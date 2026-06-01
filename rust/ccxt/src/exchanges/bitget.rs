@@ -36,22 +36,70 @@ impl BitgetCore {
         // (e.g. portfolioMargin via fixture) take precedence, then
         // describe()'s defaults fill in any gaps.
         let __described_options = crate::get_value(&described, &crate::Value::Str("options".to_string()));
-        if let (crate::Value::Map(existing), crate::Value::Map(defaults)) =
+        // Capture the describe()'s explicit networksById BEFORE the merge
+        // — the merge below overlays the base Exchange's options (whose
+        // after_construct left an EMPTY networksById), which would
+        // otherwise clobber the manual mappings like binance BSC to BEP20.
+        let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
+        if let (crate::Value::Dict(existing), crate::Value::Dict(defaults)) =
             (&self.exchange.options.clone(), &__described_options)
         {
-            let mut merged = defaults.clone();
-            for (k, v) in existing { merged.insert(k.clone(), v.clone()); }
+            let mut merged = (**defaults).clone();
+            for (k, v) in existing.iter() { merged.insert(k.clone(), v.clone()); }
             self.exchange.options = crate::Value::Map(merged);
-        } else if !matches!(self.exchange.options, crate::Value::Map(_)) {
+        } else if !matches!(self.exchange.options, crate::Value::Dict(_)) {
             self.exchange.options = __described_options;
+        }
+        // Derive options.networksById (CCXT's createNetworksByIdObject):
+        // start from the auto-inverted networks (generated), then overlay
+        // the describe()'s explicit networksById so manual mappings win —
+        // mirrors TS extend(generated, manual). Without the manual
+        // overlay, an exchange whose networks defines both BSC to BSC and
+        // BEP20 to BSC would invert to BSC to BSC (wrong) by iteration
+        // order instead of the intended BSC to BEP20.
+        if let crate::Value::Dict(opts_arc) = self.exchange.options.clone() {
+            let mut opts = std::sync::Arc::try_unwrap(opts_arc).unwrap_or_else(|a| (*a).clone());
+            let mut by_id: indexmap::IndexMap<String, crate::Value> = indexmap::IndexMap::new();
+            if let Some(crate::Value::Dict(networks)) = opts.get("networks") {
+                for (code, id) in networks.iter() {
+                    if let crate::Value::Str(id_s) = id {
+                        by_id.entry(id_s.clone())
+                             .or_insert_with(|| crate::Value::Str(code.clone()));
+                    }
+                }
+            }
+            if let crate::Value::Dict(manual) = &__described_networks_by_id {
+                for (k, v) in manual.iter() { by_id.insert(k.clone(), v.clone()); }
+            }
+            opts.insert("networksById".to_string(), crate::Value::Map(by_id));
+            self.exchange.options = crate::Value::Map(opts);
         }
         self.exchange.hostname = crate::get_value(&described, &crate::Value::Str("hostname".to_string()));
         self.exchange.version  = crate::get_value(&described, &crate::Value::Str("version".to_string()));
         self.exchange.id       = crate::get_value(&described, &crate::Value::Str("id".to_string()));
         self.exchange.name     = crate::get_value(&described, &crate::Value::Str("name".to_string()));
         self.exchange.exceptions = crate::get_value(&described, &crate::Value::Str("exceptions".to_string()));
-        self.exchange.requiredCredentials = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string()));
+        // Only override the base-default requiredCredentials when the
+        // exchange's describe() actually provides them (super.describe()
+        // is stubbed, so most exchanges' describe() omits this).
+        { let __rc = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string())); if !matches!(__rc, crate::Value::Null) { self.exchange.requiredCredentials = __rc; } }
+        // Merge describe()'s commonCurrencies over the base defaults so
+        // exchange-specific aliases (bitfinex UST to USDT, onetrading
+        // MIOTA to IOTA) reach commonCurrencyCode / safeCurrencyCode.
+        { let __cc = crate::get_value(&described, &crate::Value::Str("commonCurrencies".to_string())); if let crate::Value::Dict(extra) = __cc { let extra = std::sync::Arc::try_unwrap(extra).unwrap_or_else(|a| (*a).clone()); if let crate::Value::Dict(base) = &mut self.exchange.commonCurrencies { let base = std::sync::Arc::make_mut(base); for (k, v) in extra { base.insert(k, v); } } else { self.exchange.commonCurrencies = crate::Value::Map(extra); } } }
         self.exchange.precisionMode = crate::get_value(&described, &crate::Value::Str("precisionMode".to_string()));
+        self.exchange.timeframes = crate::get_value(&described, &crate::Value::Str("timeframes".to_string()));
+        self.exchange.fees = crate::get_value(&described, &crate::Value::Str("fees".to_string()));
+        // `features` carries the describe() block that drives
+        // unified-method tests (e.g. `features.spot.fetchCurrencies.private`
+        // tells testFetchCurrencies to skip the length check). It's set
+        // after `Exchange::new` because `features_generator` (in
+        // `after_construct`) bails when `features == Null` — so we
+        // assign and re-run the generator here.
+        self.exchange.features = crate::get_value(&described, &crate::Value::Str("features".to_string()));
+        if !matches!(self.exchange.features, crate::Value::Null) {
+            self.exchange.features_generator();
+        }
         // Markets and currencies may have been populated already by
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
@@ -76,7 +124,7 @@ impl BitgetCore {
     /// Casts the void pointer back to `*mut Self` and forwards to the
     /// real `call_dynamic`. Safety: the pointer must come from the
     /// matching Core's bind() — guaranteed by Exchange::bind_call_async.
-    fn __call_dynamic_dispatch<'a>(
+    pub fn __call_dynamic_dispatch<'a>(
         ptr: *mut (),
         method: &'a str,
         args: Vec<crate::Value>,
@@ -105,9 +153,9 @@ impl BitgetCore {
             "create_convert_trade" => self.create_convert_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]).await,
             "create_market_buy_order_with_cost" => self.create_market_buy_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]).await,
             "create_order" => self.create_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
-            "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
+            "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]),
             "create_orders" => self.create_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-            "create_uta_order_request" => self.create_uta_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
+            "create_uta_order_request" => self.create_uta_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]),
             "create_uta_orders" => self.create_uta_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
             "edit_order" => self.edit_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_balance" => self.fetch_balance(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
@@ -159,7 +207,7 @@ impl BitgetCore {
             "fetch_uta_markets" => self.fetch_uta_markets(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
             "fetch_withdrawals" => self.fetch_withdrawals(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-            "handle_product_type_and_params" => self.handle_product_type_and_params(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+            "handle_product_type_and_params" => self.handle_product_type_and_params(&args.get(0..).unwrap_or(&[]).to_vec()[..]),
             "modify_margin_helper" => self.modify_margin_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]).await,
             "nonce" => self.nonce(),
             "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -167,7 +215,7 @@ impl BitgetCore {
             "parse_borrow_rate" => self.parse_borrow_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_conversion" => self.parse_conversion(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-            "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+            "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_funding_histories" => self.parse_funding_histories(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_funding_history" => self.parse_funding_history(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -239,6 +287,10 @@ impl crate::exchange::DerivedExchange for BitgetCore {
         // Forward to the inherent method on BitgetCore.
         BitgetCore::parse_funding_rate(self, rate, &[market.clone()])
     }
+    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BitgetCore.
+        BitgetCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+    }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
         BitgetCore::parse_ledger_entry(self, entry, &[currency.clone()])
@@ -258,6 +310,38 @@ impl crate::exchange::DerivedExchange for BitgetCore {
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
         BitgetCore::parse_margin_modification(self, data, &[market.clone()])
+    }
+    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BitgetCore.
+        BitgetCore::parse_transaction(self, transaction, &[currency.clone()])
+    }
+    fn parse_borrow_interest(&self, info: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BitgetCore.
+        BitgetCore::parse_borrow_interest(self, info, &[market.clone()])
+    }
+    fn parse_margin_mode(&self, margin_mode: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BitgetCore.
+        BitgetCore::parse_margin_mode(self, margin_mode, &[market.clone()])
+    }
+    fn parse_conversion(&self, conversion: crate::Value, from_currency: crate::Value, to_currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BitgetCore.
+        BitgetCore::parse_conversion(self, conversion, &[from_currency.clone(), to_currency.clone()])
+    }
+    fn parse_borrow_rate(&self, info: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BitgetCore.
+        BitgetCore::parse_borrow_rate(self, info, &[currency.clone()])
+    }
+    fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BitgetCore.
+        BitgetCore::parse_leverage(self, leverage, &[market.clone()])
+    }
+    fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BitgetCore.
+        BitgetCore::parse_market_leverage_tiers(self, info, &[market.clone()])
+    }
+    fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BitgetCore.
+        BitgetCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitgetCore.
@@ -281,7 +365,7 @@ impl std::ops::DerefMut for BitgetCore {
 impl BitgetCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bitget".to_string()));
         m.insert("name".to_string(), Value::Str("Bitget".to_string()));
         m.insert("countries".to_string(), Value::List(vec![Value::Str("SG".to_string())]));
@@ -290,7 +374,7 @@ impl BitgetCore {
         m.insert("certified".to_string(), Value::Bool(true));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("has".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("CORS".to_string(), Value::Null);
         m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Bool(true));
@@ -412,7 +496,7 @@ impl BitgetCore {
     m
 }));
         m.insert("timeframes".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("1m".to_string(), Value::Str("1m".to_string()));
         m.insert("3m".to_string(), Value::Str("3m".to_string()));
         m.insert("5m".to_string(), Value::Str("5m".to_string()));
@@ -431,10 +515,10 @@ impl BitgetCore {
 }));
         m.insert("hostname".to_string(), Value::Str("bitget.com".to_string()));
         m.insert("urls".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/fbaa10cc-a277-441d-a5b7-997dd9a87658".to_string()));
         m.insert("api".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Str("https://api.{hostname}".to_string()));
         m.insert("mix".to_string(), Value::Str("https://api.{hostname}".to_string()));
         m.insert("user".to_string(), Value::Str("https://api.{hostname}".to_string()));
@@ -456,13 +540,13 @@ impl BitgetCore {
     m
 }));
         m.insert("api".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("common".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("v2/public/annoucements".to_string(), Value::Int(1));
         m.insert("v2/public/time".to_string(), Value::Int(1));
     m
@@ -470,9 +554,9 @@ impl BitgetCore {
     m
 }));
         m.insert("spot".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("spot/v1/notice/queryAllNotices".to_string(), Value::Int(1));
         m.insert("spot/v1/public/time".to_string(), Value::Int(1));
         m.insert("spot/v1/public/currencies".to_string(), Value::Float(6.6667));
@@ -504,9 +588,9 @@ impl BitgetCore {
     m
 }));
         m.insert("mix".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("mix/v1/market/contracts".to_string(), Value::Int(1));
         m.insert("mix/v1/market/depth".to_string(), Value::Int(1));
         m.insert("mix/v1/market/ticker".to_string(), Value::Int(1));
@@ -555,9 +639,9 @@ impl BitgetCore {
     m
 }));
         m.insert("margin".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("margin/v1/cross/public/interestRateAndLimit".to_string(), Value::Int(2));
         m.insert("margin/v1/isolated/public/interestRateAndLimit".to_string(), Value::Int(2));
         m.insert("margin/v1/cross/public/tierData".to_string(), Value::Int(2));
@@ -570,9 +654,9 @@ impl BitgetCore {
     m
 }));
         m.insert("earn".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("v2/earn/loan/public/coinInfos".to_string(), Value::Int(2));
         m.insert("v2/earn/loan/public/hour-interest".to_string(), Value::Int(2));
     m
@@ -580,9 +664,9 @@ impl BitgetCore {
     m
 }));
         m.insert("uta".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("v3/market/instruments".to_string(), Value::Int(1));
         m.insert("v3/market/tickers".to_string(), Value::Int(1));
         m.insert("v3/market/orderbook".to_string(), Value::Int(1));
@@ -606,11 +690,11 @@ impl BitgetCore {
     m
 }));
         m.insert("private".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("spot/v1/wallet/deposit-address".to_string(), Value::Int(4));
         m.insert("spot/v1/wallet/withdrawal-list".to_string(), Value::Int(1));
         m.insert("spot/v1/wallet/deposit-list".to_string(), Value::Int(1));
@@ -646,7 +730,7 @@ impl BitgetCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("spot/v1/wallet/transfer".to_string(), Value::Int(4));
         m.insert("spot/v1/wallet/transfer-v2".to_string(), Value::Int(4));
         m.insert("spot/v1/wallet/subTransfer".to_string(), Value::Int(10));
@@ -720,9 +804,9 @@ impl BitgetCore {
     m
 }));
         m.insert("mix".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("mix/v1/account/account".to_string(), Value::Int(2));
         m.insert("mix/v1/account/accounts".to_string(), Value::Int(2));
         m.insert("mix/v1/position/singlePosition".to_string(), Value::Int(2));
@@ -783,7 +867,7 @@ impl BitgetCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("mix/v1/account/sub-account-contract-assets".to_string(), Value::Int(200));
         m.insert("mix/v1/account/open-count".to_string(), Value::Int(1));
         m.insert("mix/v1/account/setLeverage".to_string(), Value::Int(4));
@@ -853,9 +937,9 @@ impl BitgetCore {
     m
 }));
         m.insert("user".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("user/v1/fee/query".to_string(), Value::Int(2));
         m.insert("user/v1/sub/virtual-list".to_string(), Value::Int(2));
         m.insert("user/v1/sub/virtual-api-list".to_string(), Value::Int(2));
@@ -868,7 +952,7 @@ impl BitgetCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("user/v1/sub/virtual-create".to_string(), Value::Int(4));
         m.insert("user/v1/sub/virtual-modify".to_string(), Value::Int(4));
         m.insert("user/v1/sub/virtual-api-batch-create".to_string(), Value::Int(20));
@@ -884,9 +968,9 @@ impl BitgetCore {
     m
 }));
         m.insert("p2p".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("p2p/v1/merchant/merchantList".to_string(), Value::Int(2));
         m.insert("p2p/v1/merchant/merchantInfo".to_string(), Value::Int(2));
         m.insert("p2p/v1/merchant/advList".to_string(), Value::Int(2));
@@ -900,9 +984,9 @@ impl BitgetCore {
     m
 }));
         m.insert("broker".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("broker/v1/account/info".to_string(), Value::Int(2));
         m.insert("broker/v1/account/sub-list".to_string(), Value::Int(20));
         m.insert("broker/v1/account/sub-email".to_string(), Value::Int(20));
@@ -921,7 +1005,7 @@ impl BitgetCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("broker/v1/account/sub-create".to_string(), Value::Int(20));
         m.insert("broker/v1/account/sub-modify".to_string(), Value::Int(20));
         m.insert("broker/v1/account/sub-modify-email".to_string(), Value::Int(20));
@@ -943,9 +1027,9 @@ impl BitgetCore {
     m
 }));
         m.insert("margin".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("margin/v1/cross/account/riskRate".to_string(), Value::Int(2));
         m.insert("margin/v1/cross/account/maxTransferOutAmount".to_string(), Value::Int(2));
         m.insert("margin/v1/isolated/account/maxTransferOutAmount".to_string(), Value::Int(2));
@@ -998,7 +1082,7 @@ impl BitgetCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("margin/v1/cross/account/borrow".to_string(), Value::Int(2));
         m.insert("margin/v1/isolated/account/borrow".to_string(), Value::Int(2));
         m.insert("margin/v1/cross/account/repay".to_string(), Value::Int(2));
@@ -1039,9 +1123,9 @@ impl BitgetCore {
     m
 }));
         m.insert("copy".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("v2/copy/mix-trader/order-current-track".to_string(), Value::Int(2));
         m.insert("v2/copy/mix-trader/order-history-track".to_string(), Value::Int(2));
         m.insert("v2/copy/mix-trader/order-total-detail".to_string(), Value::Int(2));
@@ -1075,7 +1159,7 @@ impl BitgetCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("v2/copy/mix-trader/order-modify-tpsl".to_string(), Value::Int(2));
         m.insert("v2/copy/mix-trader/order-close-positions".to_string(), Value::Int(2));
         m.insert("v2/copy/mix-trader/config-setting-symbols".to_string(), Value::Int(2));
@@ -1099,9 +1183,9 @@ impl BitgetCore {
     m
 }));
         m.insert("tax".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("v2/tax/spot-record".to_string(), Value::Int(20));
         m.insert("v2/tax/future-record".to_string(), Value::Int(20));
         m.insert("v2/tax/margin-record".to_string(), Value::Int(20));
@@ -1111,9 +1195,9 @@ impl BitgetCore {
     m
 }));
         m.insert("convert".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("v2/convert/currencies".to_string(), Value::Int(2));
         m.insert("v2/convert/quoted-price".to_string(), Value::Int(2));
         m.insert("v2/convert/convert-record".to_string(), Value::Int(2));
@@ -1122,7 +1206,7 @@ impl BitgetCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("v2/convert/trade".to_string(), Value::Int(2));
         m.insert("v2/convert/bgb-convert".to_string(), Value::Int(2));
     m
@@ -1130,9 +1214,9 @@ impl BitgetCore {
     m
 }));
         m.insert("earn".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("v2/earn/savings/product".to_string(), Value::Int(2));
         m.insert("v2/earn/savings/account".to_string(), Value::Int(2));
         m.insert("v2/earn/savings/assets".to_string(), Value::Int(2));
@@ -1156,7 +1240,7 @@ impl BitgetCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("v2/earn/savings/subscribe".to_string(), Value::Int(2));
         m.insert("v2/earn/savings/redeem".to_string(), Value::Int(2));
         m.insert("v2/earn/sharkfin/subscribe".to_string(), Value::Int(2));
@@ -1168,18 +1252,18 @@ impl BitgetCore {
     m
 }));
         m.insert("common".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("v2/common/trade-rate".to_string(), Value::Int(2));
     m
 }));
     m
 }));
         m.insert("uta".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("v3/account/assets".to_string(), Value::Int(1));
         m.insert("v3/account/funding-assets".to_string(), Value::Int(1));
         m.insert("v3/account/settings".to_string(), Value::Int(1));
@@ -1235,7 +1319,7 @@ impl BitgetCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("v3/account/set-leverage".to_string(), Value::Int(2));
         m.insert("v3/account/set-hold-mode".to_string(), Value::Int(2));
         m.insert("v3/account/repay".to_string(), Value::Int(4));
@@ -1285,15 +1369,15 @@ impl BitgetCore {
     m
 }));
         m.insert("fees".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.002".to_string()), &[]));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.002".to_string()), &[]));
     m
 }));
         m.insert("swap".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.0006".to_string()), &[]));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.0004".to_string()), &[]));
     m
@@ -1301,16 +1385,16 @@ impl BitgetCore {
     m
 }));
         m.insert("requiredCredentials".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("apiKey".to_string(), Value::Bool(true));
         m.insert("secret".to_string(), Value::Bool(true));
         m.insert("password".to_string(), Value::Bool(true));
     m
 }));
         m.insert("exceptions".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("1".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("failure to get a peer from the ring-balancer".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
         m.insert("4010".to_string(), Value::Str("PermissionDenied".to_string()).clone());
@@ -1811,7 +1895,7 @@ impl BitgetCore {
     m
 }));
         m.insert("broad".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("invalid size, valid range".to_string(), Value::Str("ExchangeError".to_string()));
     m
 }));
@@ -1819,7 +1903,7 @@ impl BitgetCore {
 }));
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
         m.insert("commonCurrencies".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("APX".to_string(), Value::Str("AstroPepeX".to_string()));
         m.insert("DEGEN".to_string(), Value::Str("DegenReborn".to_string()));
         m.insert("EVA".to_string(), Value::Str("Evadore".to_string()));
@@ -1829,14 +1913,14 @@ impl BitgetCore {
     m
 }));
         m.insert("options".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("uta".to_string(), Value::Bool(false));
         m.insert("timeDifference".to_string(), Value::Int(0));
         m.insert("adjustForTimeDifference".to_string(), Value::Bool(false));
         m.insert("timeframes".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("1m".to_string(), Value::Str("1min".to_string()));
         m.insert("5m".to_string(), Value::Str("5min".to_string()));
         m.insert("3m".to_string(), Value::Str("3min".to_string()));
@@ -1853,7 +1937,7 @@ impl BitgetCore {
     m
 }));
         m.insert("swap".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("1m".to_string(), Value::Str("1m".to_string()));
         m.insert("3m".to_string(), Value::Str("3m".to_string()));
         m.insert("5m".to_string(), Value::Str("5m".to_string()));
@@ -1871,7 +1955,7 @@ impl BitgetCore {
     m
 }));
         m.insert("uta".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("1m".to_string(), Value::Str("1m".to_string()));
         m.insert("3m".to_string(), Value::Str("3m".to_string()));
         m.insert("5m".to_string(), Value::Str("5m".to_string()));
@@ -1888,7 +1972,7 @@ impl BitgetCore {
     m
 }));
         m.insert("fetchMarkets".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("types".to_string(), Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string())]));
     m
 }));
@@ -1897,14 +1981,14 @@ impl BitgetCore {
         m.insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(true));
         m.insert("broker".to_string(), Value::Str("p4sve".to_string()));
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fillResponseFromRequest".to_string(), Value::Bool(true));
     m
 }));
         m.insert("fetchOHLCV".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("maxRecentDaysPerTimeframe".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("1m".to_string(), Value::Int(30));
         m.insert("3m".to_string(), Value::Int(30));
         m.insert("5m".to_string(), Value::Int(30));
@@ -1922,9 +2006,9 @@ impl BitgetCore {
     m
 }));
         m.insert("spot".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("maxLimitPerTimeframe".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("1d".to_string(), Value::Int(300));
         m.insert("3d".to_string(), Value::Int(100));
         m.insert("1w".to_string(), Value::Int(100));
@@ -1935,9 +2019,9 @@ impl BitgetCore {
     m
 }));
         m.insert("swap".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("maxLimitPerTimeframe".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("4h".to_string(), Value::Int(540));
         m.insert("6h".to_string(), Value::Int(360));
         m.insert("12h".to_string(), Value::Int(180));
@@ -1953,26 +2037,26 @@ impl BitgetCore {
     m
 }));
         m.insert("fetchTrades".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), Value::Str("publicSpotGetV2SpotMarketFillsHistory".to_string()));
     m
 }));
         m.insert("swap".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), Value::Str("publicMixGetV2MixMarketFillsHistory".to_string()));
     m
 }));
     m
 }));
         m.insert("fetchFundingRate".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), Value::Str("publicMixGetV2MixMarketCurrentFundRate".to_string()));
     m
 }));
         m.insert("accountsByType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Str("spot".to_string()));
         m.insert("cross".to_string(), Value::Str("crossed_margin".to_string()));
         m.insert("isolated".to_string(), Value::Str("isolated_margin".to_string()));
@@ -1983,7 +2067,7 @@ impl BitgetCore {
     m
 }));
         m.insert("accountsById".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Str("spot".to_string()));
         m.insert("crossed_margin".to_string(), Value::Str("cross".to_string()));
         m.insert("isolated_margin".to_string(), Value::Str("isolated".to_string()));
@@ -1995,7 +2079,7 @@ impl BitgetCore {
 }));
         m.insert("sandboxMode".to_string(), Value::Bool(false));
         m.insert("networks".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("TRC20".to_string(), Value::Str("TRC20".to_string()));
         m.insert("ERC20".to_string(), Value::Str("ERC20".to_string()));
         m.insert("BEP20".to_string(), Value::Str("BSC".to_string()));
@@ -2083,11 +2167,11 @@ impl BitgetCore {
     m
 }));
         m.insert("networksById".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         m.insert("fetchPositions".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), Value::Str("privateMixGetV2MixPositionAllPosition".to_string()));
     m
 }));
@@ -2097,16 +2181,16 @@ impl BitgetCore {
 }));
         m.insert("rollingWindowSize".to_string(), Value::Int(1000));
         m.insert("features".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sandbox".to_string(), Value::Bool(true));
         m.insert("createOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("triggerPrice".to_string(), Value::Bool(true));
         m.insert("triggerPriceType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("last".to_string(), Value::Bool(true));
         m.insert("mark".to_string(), Value::Bool(true));
         m.insert("index".to_string(), Value::Bool(false));
@@ -2116,9 +2200,9 @@ impl BitgetCore {
         m.insert("stopLossPrice".to_string(), Value::Bool(true));
         m.insert("takeProfitPrice".to_string(), Value::Bool(true));
         m.insert("attachedStopLossTakeProfit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("triggerPriceType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("last".to_string(), Value::Bool(false));
         m.insert("mark".to_string(), Value::Bool(false));
         m.insert("index".to_string(), Value::Bool(false));
@@ -2128,7 +2212,7 @@ impl BitgetCore {
     m
 }));
         m.insert("timeInForce".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("IOC".to_string(), Value::Bool(true));
         m.insert("FOK".to_string(), Value::Bool(true));
         m.insert("PO".to_string(), Value::Bool(true));
@@ -2142,12 +2226,12 @@ impl BitgetCore {
     m
 }));
         m.insert("createOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("max".to_string(), Value::Int(50));
     m
 }));
         m.insert("fetchMyTrades".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("limit".to_string(), Value::Int(100));
         m.insert("daysBack".to_string(), Value::Null);
@@ -2156,7 +2240,7 @@ impl BitgetCore {
     m
 }));
         m.insert("fetchOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("trigger".to_string(), Value::Bool(false));
         m.insert("trailing".to_string(), Value::Bool(false));
@@ -2164,7 +2248,7 @@ impl BitgetCore {
     m
 }));
         m.insert("fetchOpenOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("limit".to_string(), Value::Int(100));
         m.insert("trigger".to_string(), Value::Bool(true));
@@ -2174,7 +2258,7 @@ impl BitgetCore {
 }));
         m.insert("fetchOrders".to_string(), Value::Null);
         m.insert("fetchClosedOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("limit".to_string(), Value::Int(100));
         m.insert("daysBack".to_string(), Value::Null);
@@ -2186,20 +2270,20 @@ impl BitgetCore {
     m
 }));
         m.insert("fetchOHLCV".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("limit".to_string(), Value::Int(200));
     m
 }));
     m
 }));
         m.insert("forPerps".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("spot".to_string()));
         m.insert("createOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("triggerPrice".to_string(), Value::Bool(true));
         m.insert("triggerPriceType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("last".to_string(), Value::Bool(true));
         m.insert("mark".to_string(), Value::Bool(true));
         m.insert("index".to_string(), Value::Bool(false));
@@ -2209,9 +2293,9 @@ impl BitgetCore {
         m.insert("stopLossPrice".to_string(), Value::Bool(true));
         m.insert("takeProfitPrice".to_string(), Value::Bool(true));
         m.insert("attachedStopLossTakeProfit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("triggerPriceType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("last".to_string(), Value::Bool(true));
         m.insert("mark".to_string(), Value::Bool(true));
         m.insert("index".to_string(), Value::Bool(true));
@@ -2221,7 +2305,7 @@ impl BitgetCore {
     m
 }));
         m.insert("timeInForce".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("IOC".to_string(), Value::Bool(true));
         m.insert("FOK".to_string(), Value::Bool(true));
         m.insert("PO".to_string(), Value::Bool(true));
@@ -2235,40 +2319,40 @@ impl BitgetCore {
     m
 }));
         m.insert("fetchMyTrades".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("untilDays".to_string(), Value::Int(7));
     m
 }));
         m.insert("fetchClosedOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("trailing".to_string(), Value::Bool(true));
     m
 }));
     m
 }));
         m.insert("swap".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("linear".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forPerps".to_string()));
     m
 }));
         m.insert("inverse".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forPerps".to_string()));
     m
 }));
     m
 }));
         m.insert("future".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("linear".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forPerps".to_string()));
     m
 }));
         m.insert("inverse".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forPerps".to_string()));
     m
 }));
@@ -2289,7 +2373,7 @@ impl BitgetCore {
  * @param enabled
  */
     pub fn set_sandbox_mode(&mut self, mut enabled: Value) {
-        add_element_to_object(&mut self.options.clone(), &Value::Str("sandboxMode".to_string()), enabled.clone());
+        add_element_to_object(&mut self.options, &Value::Str("sandboxMode".to_string()), enabled.clone());
 }
 
 /*
@@ -2302,10 +2386,10 @@ impl BitgetCore {
         self.set_sandbox_mode(enabled.clone());
 }
 
-    pub async fn handle_product_type_and_params(&self, optional_args: &[Value]) -> Value {
+    pub fn handle_product_type_and_params(&self, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut subType: Value = Value::Null;
@@ -2313,7 +2397,7 @@ impl BitgetCore {
         let mut defaultProductType: Value = Value::Null;
         if is_true(&(!is_equal(&subType, &Value::Null))) && is_true(&(is_equal(&market, &Value::Null))) {
             // set default only if subType is defined and market is not defined, since there is also USDC productTypes which are also linear
-            // const sandboxMode = get_value(&this, &Value::Str("safeBool".to_string())) (get_value(&this, &Value::Str("options".to_string())), 'sandboxMode', false);
+            // const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
             // if (sandboxMode) {
             //     defaultProductType = (subType === 'linear') ? 'SUSDT-FUTURES' : 'SCOIN-FUTURES';
             // } else {
@@ -2345,23 +2429,25 @@ impl BitgetCore {
             }
         }
         if is_equal(&productType, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a productType param, one of \"USDT-FUTURES\", \"USDC-FUTURES\", \"COIN-FUTURES\", \"SUSDT-FUTURES\", \"SUSDC-FUTURES\", \"SCOIN-FUTURES\" or for uta only \"SPOT\"".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a productType param, one of \"USDT-FUTURES\", \"USDC-FUTURES\", \"COIN-FUTURES\", \"SUSDT-FUTURES\", \"SUSDC-FUTURES\", \"SCOIN-FUTURES\" or for uta only \"SPOT\"".to_string()))));
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("productType".to_string()), Value::Str("category".to_string())]), &[]);
         return Value::List(vec![productType.clone(), params.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/common/public/Get-Server-Time
+ * @see https://www.bitget.com/api-doc/common/public/Get-Server-Time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
     pub async fn fetch_time(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut response: Value = self.call_method(Value::Str("public_common_get_v2_public_time".to_string()), &[params.clone()]).await;
@@ -2375,28 +2461,30 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
-        return self.safe_integer(data.clone(), Value::Str("serverTime".to_string()), &[]);
+        return self.safe_integer_k(data.clone(), "serverTime", &[]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchMarkets
  * @description retrieves data on all markets for bitget
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/market/Get-Symbols
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-All-Symbols-Contracts
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/common/support-currencies
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/public/Instruments
+ * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
+ * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
+ * @see https://www.bitget.com/api-doc/margin/common/support-currencies
+ * @see https://www.bitget.com/api-doc/uta/public/Instruments
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object[]} an array of objects representing market data
  */
     pub async fn fetch_markets(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.options, &Value::Str("adjustForTimeDifference".to_string()))) {
@@ -2413,31 +2501,33 @@ impl BitgetCore {
 
     pub async fn fetch_default_markets(&mut self, mut params: Value) -> Value {
         let mut types: Value = Value::Null;
-        let mut fetchMarketsOptions: Value = self.safe_dict(self.options.clone(), Value::Str("fetchMarkets".to_string()), &[]);
+        let mut fetchMarketsOptions: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
         let mut defaultMarkets: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string())]);
         if !is_equal(&fetchMarketsOptions, &Value::Null) {
-            types = self.safe_list(fetchMarketsOptions.clone(), Value::Str("types".to_string()), &[defaultMarkets.clone()]);
+            types = self.safe_list_k(fetchMarketsOptions.clone(), "types", &[defaultMarkets.clone()]);
         }  else {
             // for backward-compatibility
-            types = self.safe_list(self.options.clone(), Value::Str("fetchMarkets".to_string()), &[defaultMarkets.clone()]);
+            types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[defaultMarkets.clone()]);
         }
         let mut promises: Value = Value::List(vec![]);
         let mut fetchMargins: Value = Value::Bool(false);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&types)) {
+            let mut __for_first_326: bool = true;
+            while { if !__for_first_326 { i = add(&i, &Value::Int(1)); } __for_first_326 = false; is_less_than(&i, &get_array_length(&types)) } {
+            let mut type_var: Value = get_value(&types, &i);
             let mut type_var: Value = get_value(&types, &i);
             if is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))) {
                 let mut subTypes: Value = Value::List(vec![Value::Str("USDT-FUTURES".to_string()), Value::Str("COIN-FUTURES".to_string()), Value::Str("USDC-FUTURES".to_string()), Value::Str("SUSDT-FUTURES".to_string()), Value::Str("SCOIN-FUTURES".to_string()), Value::Str("SUSDC-FUTURES".to_string())]);
                 {
                                         let mut j: Value = Value::Int(0);
-                    while is_less_than(&j, &get_array_length(&subTypes)) {
+                    let mut __for_first_325: bool = true;
+                    while { if !__for_first_325 { j = add(&j, &Value::Int(1)); } __for_first_325 = false; is_less_than(&j, &get_array_length(&subTypes)) } {
                     append_to_array(&mut promises, self.call_method(Value::Str("public_mix_get_v2_mix_market_contracts".to_string()), &[self.extend(params.clone(), &[Value::Map({
-                        let mut m = std::collections::HashMap::new();
+                        let mut m = indexmap::IndexMap::new();
                             m.insert("productType".to_string(), get_value(&subTypes, &j));
                         m
                     })])]).await);
-                    j = add(&j, &Value::Int(1));
                 }
                 }
             }  else if is_equal(&type_var, &Value::Str("spot".to_string())) {
@@ -2445,33 +2535,32 @@ impl BitgetCore {
                 fetchMargins = Value::Bool(true);
                 append_to_array(&mut promises, self.call_method(Value::Str("public_margin_get_v2_margin_currencies".to_string()), &[params.clone()]).await);
             }  else {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" does not support ".to_string())), &type_var), &Value::Str(" market".to_string()))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" does not support ".to_string())), &type_var), &Value::Str(" market".to_string()))));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut results: Value = promise_all(&promises).await;
         let mut markets: Value = Value::List(vec![]);
-        add_element_to_object(&mut self.options.clone(), &Value::Str("crossMarginPairsData".to_string()), Value::List(vec![]));
-        add_element_to_object(&mut self.options.clone(), &Value::Str("isolatedMarginPairsData".to_string()), Value::List(vec![]));
+        add_element_to_object(&mut self.options, &Value::Str("crossMarginPairsData".to_string()), Value::List(vec![]));
+        add_element_to_object(&mut self.options, &Value::Str("isolatedMarginPairsData".to_string()), Value::List(vec![]));
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&results)) {
+            let mut __for_first_327: bool = true;
+            while { if !__for_first_327 { i = add(&i, &Value::Int(1)); } __for_first_327 = false; is_less_than(&i, &get_array_length(&results)) } {
             let mut res: Value = self.safe_dict(results.clone(), i.clone(), &[]);
-            let mut data: Value = self.safe_list(res.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+            let mut data: Value = self.safe_list_k(res.clone(), "data", &[Value::List(vec![])]);
             let mut firstData: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut isBorrowable: Value = self.safe_bool(firstData.clone(), Value::Str("isBorrowable".to_string()), &[]);
+            let mut isBorrowable: Value = self.safe_bool_k(firstData.clone(), "isBorrowable", &[]);
             if is_true(&fetchMargins) && !is_equal(&isBorrowable, &Value::Null) {
                 let mut keysList: Value = object_keys(&self.index_by(data.clone(), Value::Str("symbol".to_string())));
-                add_element_to_object(&mut self.options.clone(), &Value::Str("crossMarginPairsData".to_string()), keysList.clone());
-                add_element_to_object(&mut self.options.clone(), &Value::Str("isolatedMarginPairsData".to_string()), keysList.clone());
+                add_element_to_object(&mut self.options, &Value::Str("crossMarginPairsData".to_string()), keysList.clone());
+                add_element_to_object(&mut self.options, &Value::Str("isolatedMarginPairsData".to_string()), keysList.clone());
             }  else {
                 markets = self.array_concat(markets.clone(), data.clone());
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         //
@@ -2534,14 +2623,16 @@ impl BitgetCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&markets)) {
+            let mut __for_first_328: bool = true;
+            while { if !__for_first_328 { i = add(&i, &Value::Int(1)); } __for_first_328 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
-            let mut marketId: Value = self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]);
-            let mut quoteId: Value = self.safe_string(market.clone(), Value::Str("quoteCoin".to_string()), &[]);
-            let mut baseId: Value = self.safe_string(market.clone(), Value::Str("baseCoin".to_string()), &[]);
+            let mut market: Value = get_value(&markets, &i);
+            let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+            let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteCoin", &[]);
+            let mut baseId: Value = self.safe_string_k(market.clone(), "baseCoin", &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
-            let mut supportMarginCoins: Value = self.safe_value(market.clone(), Value::Str("supportMarginCoins".to_string()), &[Value::List(vec![])]);
+            let mut supportMarginCoins: Value = self.safe_value_k(market.clone(), "supportMarginCoins", &[Value::List(vec![])]);
             let mut settleId: Value = Value::Null;
             if is_true(&self.in_array(baseId.clone(), supportMarginCoins.clone())) {
                 settleId = baseId.clone();
@@ -2563,18 +2654,18 @@ impl BitgetCore {
             let mut inverse: Value = Value::Null;
             let mut expiry: Value = Value::Null;
             let mut expiryDatetime: Value = Value::Null;
-            let mut symbolType: Value = self.safe_string(market.clone(), Value::Str("symbolType".to_string()), &[]);
+            let mut symbolType: Value = self.safe_string_k(market.clone(), "symbolType", &[]);
             let mut marginModes: Value = Value::Null;
             let mut isMarginTradingAllowed: Value = Value::Bool(false);
             if is_equal(&symbolType, &Value::Null) {
                 type_var = Value::Str("spot".to_string());
                 spot = Value::Bool(true);
-                pricePrecision = self.parse_number(self.parse_precision(&[self.safe_string(market.clone(), Value::Str("pricePrecision".to_string()), &[])]), &[]);
-                amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string(market.clone(), Value::Str("quantityPrecision".to_string()), &[])]), &[]);
+                pricePrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "pricePrecision", &[])]), &[]);
+                amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]);
                 let mut hasCrossMargin: Value = self.in_array(marketId.clone(), get_value(&self.options, &Value::Str("crossMarginPairsData".to_string())));
                 let mut hasIsolatedMargin: Value = self.in_array(marketId.clone(), get_value(&self.options, &Value::Str("isolatedMarginPairsData".to_string())));
                 marginModes = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("cross".to_string(), hasCrossMargin.clone());
                         m.insert("isolated".to_string(), hasIsolatedMargin.clone());
                     m
@@ -2586,7 +2677,7 @@ impl BitgetCore {
                     swap = Value::Bool(true);
                     symbol = add(&add(&symbol, &Value::Str(":".to_string())), &settle);
                 }  else if is_equal(&symbolType, &Value::Str("delivery".to_string())) {
-                    expiry = self.safe_integer(market.clone(), Value::Str("deliveryTime".to_string()), &[]);
+                    expiry = self.safe_integer_k(market.clone(), "deliveryTime", &[]);
                     expiryDatetime = self.iso8601(expiry.clone());
                     let mut expiryParts: Value = split(&expiryDatetime, &Value::Str("-".to_string()));
                     let mut yearPart: Value = self.safe_string(expiryParts.clone(), Value::Int(0), &[]);
@@ -2602,10 +2693,10 @@ impl BitgetCore {
                 contract = Value::Bool(true);
                 inverse = Value::Bool(is_equal(&base, &settle));
                 linear = Value::Bool(!is_true(&inverse));
-                let mut priceDecimals: Value = self.safe_integer(market.clone(), Value::Str("pricePlace".to_string()), &[]);
-                let mut amountDecimals: Value = self.safe_integer(market.clone(), Value::Str("volumePlace".to_string()), &[]);
-                let mut priceStep: Value = self.safe_string(market.clone(), Value::Str("priceEndStep".to_string()), &[]);
-                let mut amountStep: Value = self.safe_string(market.clone(), Value::Str("sizeMultiplier".to_string()), &[]);
+                let mut priceDecimals: Value = self.safe_integer_k(market.clone(), "pricePlace", &[]);
+                let mut amountDecimals: Value = self.safe_integer_k(market.clone(), "volumePlace", &[]);
+                let mut priceStep: Value = self.safe_string_k(market.clone(), "priceEndStep", &[]);
+                let mut amountStep: Value = self.safe_string_k(market.clone(), "sizeMultiplier", &[]);
                 let mut precise = Precise::new(priceStep);
                 { let __sv_tmp = crate::runtime::Math::max(&get_value(&precise, &Value::Str("decimals".to_string())), &priceDecimals); crate::set_value(&mut precise, &Value::Str("decimals".to_string()), __sv_tmp); }
                 precise.reduce();
@@ -2617,7 +2708,7 @@ impl BitgetCore {
                 let mut amountString: Value = to_string_val(&preciseAmount);
                 amountPrecision = self.parse_number(amountString.clone(), &[]);
                 marginModes = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("cross".to_string(), Value::Bool(true));
                         m.insert("isolated".to_string(), Value::Bool(true));
                     m
@@ -2630,11 +2721,11 @@ impl BitgetCore {
             }
             let mut minCost: Value = Value::Null;
             if is_equal(&quote, &Value::Str("USDT".to_string())) {
-                minCost = self.safe_number(market.clone(), Value::Str("minTradeUSDT".to_string()), &[]);
+                minCost = self.safe_number_k(market.clone(), "minTradeUSDT", &[]);
             }
             let mut contractSize: Value = ternary(is_true(&contract), Value::Int(1), Value::Null);
             append_to_array(&mut result, self.safe_market_structure(&[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("base".to_string(), base.clone());
@@ -2654,55 +2745,56 @@ impl BitgetCore {
         m.insert("contract".to_string(), contract.clone());
         m.insert("linear".to_string(), linear.clone());
         m.insert("inverse".to_string(), inverse.clone());
-        m.insert("taker".to_string(), self.safe_number(market.clone(), Value::Str("takerFeeRate".to_string()), &[]));
-        m.insert("maker".to_string(), self.safe_number(market.clone(), Value::Str("makerFeeRate".to_string()), &[]));
+        m.insert("taker".to_string(), self.safe_number_k(market.clone(), "takerFeeRate", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(market.clone(), "makerFeeRate", &[]));
         m.insert("contractSize".to_string(), contractSize.clone());
         m.insert("expiry".to_string(), expiry.clone());
         m.insert("expiryDatetime".to_string(), expiryDatetime.clone());
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amountPrecision.clone());
         m.insert("price".to_string(), pricePrecision.clone());
     m
 }));
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(market.clone(), Value::Str("minLever".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(market.clone(), Value::Str("maxLever".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(market.clone(), "minLever", &[]));
+        m.insert("max".to_string(), self.safe_number_k(market.clone(), "maxLever", &[]));
     m
 }));
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number2(market.clone(), Value::Str("minTradeNum".to_string()), Value::Str("minTradeAmount".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(market.clone(), Value::Str("maxTradeAmount".to_string()), &[]));
+        m.insert("max".to_string(), self.safe_number_k(market.clone(), "maxTradeAmount", &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("cost".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), minCost.clone());
         m.insert("max".to_string(), Value::Null);
     m
 }));
     m
 }));
-        m.insert("created".to_string(), self.safe_integer(market.clone(), Value::Str("launchTime".to_string()), &[]));
+        m.insert("created".to_string(), self.safe_integer_k(market.clone(), "launchTime", &[]));
         m.insert("info".to_string(), market.clone());
     m
 })]));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
     pub async fn fetch_uta_markets(&mut self, mut params: Value) -> Value {
@@ -2710,25 +2802,25 @@ impl BitgetCore {
         let mut promises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&subTypes)) {
+            let mut __for_first_329: bool = true;
+            while { if !__for_first_329 { i = add(&i, &Value::Int(1)); } __for_first_329 = false; is_less_than(&i, &get_array_length(&subTypes)) } {
             let mut req: Value = self.extend(params.clone(), &[Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("category".to_string(), get_value(&subTypes, &i));
                 m
             })]);
             append_to_array(&mut promises, self.call_method(Value::Str("public_uta_get_v3_market_instruments".to_string()), &[req.clone()]).await);
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut results: Value = promise_all(&promises).await;
         let mut markets: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&results)) {
+            let mut __for_first_330: bool = true;
+            while { if !__for_first_330 { i = add(&i, &Value::Int(1)); } __for_first_330 = false; is_less_than(&i, &get_array_length(&results)) } {
             let mut res: Value = self.safe_dict(results.clone(), i.clone(), &[]);
-            let mut data: Value = self.safe_list(res.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+            let mut data: Value = self.safe_list_k(res.clone(), "data", &[Value::List(vec![])]);
             markets = self.array_concat(markets.clone(), data.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         //
@@ -2823,12 +2915,14 @@ impl BitgetCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&markets)) {
+            let mut __for_first_331: bool = true;
+            while { if !__for_first_331 { i = add(&i, &Value::Int(1)); } __for_first_331 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
-            let mut category: Value = self.safe_string(market.clone(), Value::Str("category".to_string()), &[]);
-            let mut marketId: Value = self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]);
-            let mut quoteId: Value = self.safe_string(market.clone(), Value::Str("quoteCoin".to_string()), &[]);
-            let mut baseId: Value = self.safe_string(market.clone(), Value::Str("baseCoin".to_string()), &[]);
+            let mut market: Value = get_value(&markets, &i);
+            let mut category: Value = self.safe_string_k(market.clone(), "category", &[]);
+            let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+            let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteCoin", &[]);
+            let mut baseId: Value = self.safe_string_k(market.clone(), "baseCoin", &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut settleId: Value = Value::Null;
@@ -2855,7 +2949,7 @@ impl BitgetCore {
             let mut inverse: Value = Value::Null;
             let mut expiry: Value = Value::Null;
             let mut expiryDatetime: Value = Value::Null;
-            let mut symbolType: Value = self.safe_string(market.clone(), Value::Str("type".to_string()), &[]);
+            let mut symbolType: Value = self.safe_string_k(market.clone(), "type", &[]);
             let mut marginModes: Value = Value::Null;
             let mut isMarginTradingAllowed: Value = Value::Bool(false);
             let mut isUtaMargin: Value = Value::Bool(is_equal(&category, &Value::Str("MARGIN".to_string())));
@@ -2863,13 +2957,13 @@ impl BitgetCore {
                 type_var = Value::Str("spot".to_string());
                 spot = Value::Bool(true);
                 if is_true(&isUtaMargin) {
-                    let mut isolatedBase: Value = self.safe_string(market.clone(), Value::Str("isIsolatedBaseBorrowable".to_string()), &[]);
-                    let mut isolatedQuote: Value = self.safe_string(market.clone(), Value::Str("isIsolatedQuotedBorrowable".to_string()), &[]);
+                    let mut isolatedBase: Value = self.safe_string_k(market.clone(), "isIsolatedBaseBorrowable", &[]);
+                    let mut isolatedQuote: Value = self.safe_string_k(market.clone(), "isIsolatedQuotedBorrowable", &[]);
                     let mut isolated: Value = Value::Bool(is_true(&(is_equal(&isolatedBase, &Value::Str("YES".to_string())))) || is_true(&(is_equal(&isolatedQuote, &Value::Str("YES".to_string())))));
-                    let mut maxCrossLeverage: Value = self.safe_string(market.clone(), Value::Str("maxCrossedLeverage".to_string()), &[]);
+                    let mut maxCrossLeverage: Value = self.safe_string_k(market.clone(), "maxCrossedLeverage", &[]);
                     let mut cross: Value = Value::Bool(!is_equal(&maxCrossLeverage, &Value::Str("0".to_string())));
                     marginModes = Value::Map({
-                        let mut m = std::collections::HashMap::new();
+                        let mut m = indexmap::IndexMap::new();
                             m.insert("cross".to_string(), cross.clone());
                             m.insert("isolated".to_string(), isolated.clone());
                         m
@@ -2882,7 +2976,7 @@ impl BitgetCore {
                     swap = Value::Bool(true);
                     symbol = add(&add(&symbol, &Value::Str(":".to_string())), &settle);
                 }  else if is_equal(&symbolType, &Value::Str("delivery".to_string())) {
-                    expiry = self.safe_integer(market.clone(), Value::Str("deliveryTime".to_string()), &[]);
+                    expiry = self.safe_integer_k(market.clone(), "deliveryTime", &[]);
                     expiryDatetime = self.iso8601(expiry.clone());
                     let mut expiryParts: Value = split(&expiryDatetime, &Value::Str("-".to_string()));
                     let mut yearPart: Value = self.safe_string(expiryParts.clone(), Value::Int(0), &[]);
@@ -2899,22 +2993,22 @@ impl BitgetCore {
                 inverse = Value::Bool(is_equal(&base, &settle));
                 linear = Value::Bool(!is_true(&inverse));
                 marginModes = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("cross".to_string(), Value::Bool(true));
                         m.insert("isolated".to_string(), Value::Bool(true));
                     m
                 });
             }
-            pricePrecision = self.parse_number(self.parse_precision(&[self.safe_string(market.clone(), Value::Str("pricePrecision".to_string()), &[])]), &[]);
-            amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string(market.clone(), Value::Str("quantityPrecision".to_string()), &[])]), &[]);
-            let mut status: Value = self.safe_string(market.clone(), Value::Str("status".to_string()), &[]);
+            pricePrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "pricePrecision", &[])]), &[]);
+            amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]);
+            let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
             let mut active: Value = Value::Null;
             if !is_equal(&status, &Value::Null) {
                 active = Value::Bool(is_true(&(is_equal(&status, &Value::Str("online".to_string())))) || is_true(&(is_equal(&status, &Value::Str("normal".to_string())))));
             }
             let mut contractSize: Value = ternary(is_true(&contract), Value::Int(1), Value::Null);
             append_to_array(&mut result, self.safe_market_structure(&[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("base".to_string(), base.clone());
@@ -2934,68 +3028,69 @@ impl BitgetCore {
         m.insert("contract".to_string(), contract.clone());
         m.insert("linear".to_string(), linear.clone());
         m.insert("inverse".to_string(), inverse.clone());
-        m.insert("taker".to_string(), self.safe_number(market.clone(), Value::Str("takerFeeRate".to_string()), &[]));
-        m.insert("maker".to_string(), self.safe_number(market.clone(), Value::Str("makerFeeRate".to_string()), &[]));
+        m.insert("taker".to_string(), self.safe_number_k(market.clone(), "takerFeeRate", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(market.clone(), "makerFeeRate", &[]));
         m.insert("contractSize".to_string(), contractSize.clone());
         m.insert("expiry".to_string(), expiry.clone());
         m.insert("expiryDatetime".to_string(), expiryDatetime.clone());
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amountPrecision.clone());
         m.insert("price".to_string(), pricePrecision.clone());
     m
 }));
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(market.clone(), Value::Str("minLeverage".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(market.clone(), Value::Str("maxLeverage".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(market.clone(), "minLeverage", &[]));
+        m.insert("max".to_string(), self.safe_number_k(market.clone(), "maxLeverage", &[]));
     m
 }));
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(market.clone(), Value::Str("minOrderQty".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(market.clone(), Value::Str("maxOrderQty".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(market.clone(), "minOrderQty", &[]));
+        m.insert("max".to_string(), self.safe_number_k(market.clone(), "maxOrderQty", &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("cost".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(market.clone(), Value::Str("minOrderAmount".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(market.clone(), "minOrderAmount", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
     m
 }));
-        m.insert("created".to_string(), self.safe_integer(market.clone(), Value::Str("launchTime".to_string()), &[]));
+        m.insert("created".to_string(), self.safe_integer_k(market.clone(), "launchTime", &[]));
         m.insert("info".to_string(), market.clone());
     m
 })]));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/market/Get-Coin-List
+ * @see https://www.bitget.com/api-doc/spot/market/Get-Coin-List
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
     pub async fn fetch_currencies(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut response: Value = self.call_method(Value::Str("public_spot_get_v2_spot_public_coins".to_string()), &[params.clone()]).await;
@@ -3033,20 +3128,22 @@ impl BitgetCore {
         //            ...
         //
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
-        let mut fiatCurrencies: Value = self.safe_list(self.options.clone(), Value::Str("fiatCurrencies".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut fiatCurrencies: Value = self.safe_list_k(self.options.clone(), "fiatCurrencies", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&data)) {
+            let mut __for_first_333: bool = true;
+            while { if !__for_first_333 { i = add(&i, &Value::Int(1)); } __for_first_333 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
-            let mut id: Value = self.safe_string(entry.clone(), Value::Str("coin".to_string()), &[]); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
+            let mut entry: Value = get_value(&data, &i);
+            let mut id: Value = self.safe_string_k(entry.clone(), "coin", &[]); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-            let mut chains: Value = self.safe_value(entry.clone(), Value::Str("chains".to_string()), &[Value::List(vec![])]);
+            let mut chains: Value = self.safe_value_k(entry.clone(), "chains", &[Value::List(vec![])]);
             let mut networks: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut withdraw: Value = Value::Null;
@@ -3058,31 +3155,33 @@ impl BitgetCore {
             }
             {
                                 let mut j: Value = Value::Int(0);
-                while is_less_than(&j, &chainsLength) {
+                let mut __for_first_332: bool = true;
+                while { if !__for_first_332 { j = add(&j, &Value::Int(1)); } __for_first_332 = false; is_less_than(&j, &chainsLength) } {
                 let mut chain: Value = get_value(&chains, &j);
-                let mut networkId: Value = self.safe_string(chain.clone(), Value::Str("chain".to_string()), &[]);
+                let mut chain: Value = get_value(&chains, &j);
+                let mut networkId: Value = self.safe_string_k(chain.clone(), "chain", &[]);
                 let mut network: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
                 network = to_upper(&network);
-                let mut withdrawable: Value = Value::Bool(is_equal(&self.safe_string(chain.clone(), Value::Str("withdrawable".to_string()), &[]), &Value::Str("true".to_string())));
-                let mut rechargeable: Value = Value::Bool(is_equal(&self.safe_string(chain.clone(), Value::Str("rechargeable".to_string()), &[]), &Value::Str("true".to_string())));
+                let mut withdrawable: Value = Value::Bool(is_equal(&self.safe_string_k(chain.clone(), "withdrawable", &[]), &Value::Str("true".to_string())));
+                let mut rechargeable: Value = Value::Bool(is_equal(&self.safe_string_k(chain.clone(), "rechargeable", &[]), &Value::Str("true".to_string())));
                 withdraw = ternary(is_true(&(is_equal(&withdraw, &Value::Null))), withdrawable.clone(), Value::Bool((is_true(&withdraw) || is_true(&withdrawable))));
                 deposit = ternary(is_true(&(is_equal(&deposit, &Value::Null))), rechargeable.clone(), Value::Bool((is_true(&deposit) || is_true(&rechargeable))));
                 add_element_to_object(&mut networks, &network, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
         m.insert("id".to_string(), networkId.clone());
         m.insert("network".to_string(), network.clone());
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(chain.clone(), Value::Str("minWithdrawAmount".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(chain.clone(), "minWithdrawAmount", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(chain.clone(), Value::Str("minDepositAmount".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(chain.clone(), "minDepositAmount", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -3091,17 +3190,16 @@ impl BitgetCore {
         m.insert("active".to_string(), Value::Null);
         m.insert("withdraw".to_string(), withdrawable.clone());
         m.insert("deposit".to_string(), rechargeable.clone());
-        m.insert("fee".to_string(), self.safe_number(chain.clone(), Value::Str("withdrawFee".to_string()), &[]));
-        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string(chain.clone(), Value::Str("withdrawMinScale".to_string()), &[])]), &[]));
+        m.insert("fee".to_string(), self.safe_number_k(chain.clone(), "withdrawFee", &[]));
+        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(chain.clone(), "withdrawMinScale", &[])]), &[]));
     m
 }));
-                j = add(&j, &Value::Int(1));
             }
             }
             let mut active: Value = Value::Bool(is_true(&withdraw) && is_true(&deposit));
             let mut isFiat: Value = self.in_array(code.clone(), fiatCurrencies.clone());
             add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry.clone());
         m.insert("id".to_string(), id.clone());
         m.insert("code".to_string(), code.clone());
@@ -3114,21 +3212,21 @@ impl BitgetCore {
         m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
@@ -3138,37 +3236,38 @@ impl BitgetCore {
         m.insert("created".to_string(), Value::Null);
     m
 })));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchMarketLeverageTiers
  * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/position/Get-Query-Position-Lever
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/cross/account/Cross-Tier-Data
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/isolated/account/Isolated-Tier-Data
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/public/Get-Position-Tier-Data
+ * @see https://www.bitget.com/api-doc/contract/position/Get-Query-Position-Lever
+ * @see https://www.bitget.com/api-doc/margin/cross/account/Cross-Tier-Data
+ * @see https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Tier-Data
+ * @see https://www.bitget.com/api-doc/uta/public/Get-Position-Tier-Data
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] for spot margin 'cross' or 'isolated', default is 'isolated'
- * @param {string} [get_value(&params, &Value::Str("code".to_string()))] required for cross spot margin
- * @param {string} [get_value(&params, &Value::Str("productType".to_string()))] *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object} a [leverage tiers structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=leverage-tiers-structure}
+ * @param {string} [params.marginMode] for spot margin 'cross' or 'isolated', default is 'isolated'
+ * @param {string} [params.code] required for cross spot margin
+ * @param {string} [params.productType] *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
     pub async fn fetch_market_leverage_tiers(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Value = Value::Null;
@@ -3176,7 +3275,7 @@ impl BitgetCore {
         let mut productType: Value = Value::Null;
         let mut uta: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchMarketLeverageTiers".to_string()), &[params.clone(), Value::Str("isolated".to_string())]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMarketLeverageTiers".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             if is_equal(&productType, &Value::Str("SPOT".to_string())) {
@@ -3195,16 +3294,16 @@ impl BitgetCore {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             response = self.call_method(Value::Str("private_margin_get_v2_margin_isolated_tier_data".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
-            let mut code: Value = self.safe_string(params.clone(), Value::Str("code".to_string()), &[]);
+            let mut code: Value = self.safe_string_k(params.clone(), "code", &[]);
             if is_equal(&code, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMarketLeverageTiers() requires a code argument".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMarketLeverageTiers() requires a code argument".to_string()))));
             }
             params = self.omit(params.clone(), Value::Str("code".to_string()), &[]);
             let mut currency: Value = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("coin".to_string()), get_value(&currency, &Value::Str("id".to_string())));
             response = self.call_method(Value::Str("private_margin_get_v2_margin_crossed_tier_data".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&add(&self.id, &Value::Str(" fetchMarketLeverageTiers() symbol does not support market ".to_string())), &get_value(&market, &Value::Str("symbol".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&add(&self.id, &Value::Str(" fetchMarketLeverageTiers() symbol does not support market ".to_string())), &get_value(&market, &Value::Str("symbol".to_string())))));
         }
         //
         // swap and future
@@ -3280,8 +3379,10 @@ impl BitgetCore {
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut result: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_market_leverage_tiers(result.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_market_leverage_tiers(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -3336,7 +3437,9 @@ impl BitgetCore {
         let mut minNotional: Value = Value::Int(0);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&info)) {
+            let mut __for_first_334: bool = true;
+            while { if !__for_first_334 { i = add(&i, &Value::Int(1)); } __for_first_334 = false; is_less_than(&i, &get_array_length(&info)) } {
+            let mut item: Value = get_value(&info, &i);
             let mut item: Value = get_value(&info, &i);
             let mut minimumNotional: Value = self.safe_number2(item.clone(), Value::Str("startUnit".to_string()), Value::Str("minTierValue".to_string()), &[]);
             if !is_equal(&minimumNotional, &Value::Null) {
@@ -3345,46 +3448,47 @@ impl BitgetCore {
             let mut maxNotional: Value = self.safe_number_n(item.clone(), Value::List(vec![Value::Str("endUnit".to_string()), Value::Str("maxBorrowableAmount".to_string()), Value::Str("baseMaxBorrowableAmount".to_string()), Value::Str("maxTierValue".to_string())]), &[]);
             let mut marginCurrency: Value = self.safe_string2(item.clone(), Value::Str("coin".to_string()), Value::Str("baseCoin".to_string()), &[]);
             let mut currencyId: Value = ternary(is_true(&(!is_equal(&marginCurrency, &Value::Null))), marginCurrency.clone(), get_value(&market, &Value::Str("base".to_string())));
-            let mut marketId: Value = self.safe_string(item.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut marketId: Value = self.safe_string_k(item.clone(), "symbol", &[]);
             append_to_array(&mut tiers, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.safe_integer2(item.clone(), Value::Str("level".to_string()), Value::Str("tier".to_string()), &[]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
                     m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[]));
                     m.insert("minNotional".to_string(), minNotional.clone());
                     m.insert("maxNotional".to_string(), maxNotional.clone());
                     m.insert("maintenanceMarginRate".to_string(), self.safe_number_n(item.clone(), Value::List(vec![Value::Str("keepMarginRate".to_string()), Value::Str("maintainMarginRate".to_string()), Value::Str("mmr".to_string())]), &[]));
-                    m.insert("maxLeverage".to_string(), self.safe_number(item.clone(), Value::Str("leverage".to_string()), &[]));
+                    m.insert("maxLeverage".to_string(), self.safe_number_k(item.clone(), "leverage", &[]));
                     m.insert("info".to_string(), item.clone());
                 m
             }));
             minNotional = maxNotional.clone();
-            i = add(&i, &Value::Int(1));
         }
         }
         return tiers;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/account/Get-Deposit-Record
+ * @see https://www.bitget.com/api-doc/spot/account/Get-Deposit-Record
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] end time in milliseconds
- * @param {string} [get_value(&params, &Value::Str("idLessThan".to_string()))] return records with id less than the provided value
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @param {int} [params.until] end time in milliseconds
+ * @param {string} [params.idLessThan] return records with id less than the provided value
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_deposits(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -3397,7 +3501,7 @@ impl BitgetCore {
             since = subtract(&self.milliseconds(), &Value::Int(7776000000)); // 90 days
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("startTime".to_string(), since.clone());
                 m.insert("endTime".to_string(), self.milliseconds());
             m
@@ -3435,40 +3539,42 @@ impl BitgetCore {
         //         ]
         //     }
         //
-        let mut rawTransactions: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut rawTransactions: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_transactions(rawTransactions.clone(), &[Value::Null, since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#withdraw
  * @description make a withdrawal
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/account/Wallet-Withdrawal
+ * @see https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("chain".to_string()))] the blockchain network the withdrawal is taking place on
- * @returns {object} a [transaction structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @param {string} [params.chain] the blockchain network the withdrawal is taking place on
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
         let mut tag = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.check_address(&[address.clone()]);
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&networkCode, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" withdraw() requires a \"network\" parameter".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" withdraw() requires a \"network\" parameter".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut networkId: Value = self.network_code_to_id(networkCode.clone(), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("address".to_string(), address.clone());
                 m.insert("chain".to_string(), networkId.clone());
@@ -3491,17 +3597,17 @@ impl BitgetCore {
         //          }
         //      }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut result: Value = self.parse_transaction(data.clone(), &[currency.clone()]);
         add_element_to_object(&mut result, &Value::Str("type".to_string()), Value::Str("withdrawal".to_string()));
-        let mut withdrawOptions: Value = self.safe_value(self.options.clone(), Value::Str("withdraw".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut withdrawOptions: Value = self.safe_value_k(self.options.clone(), "withdraw", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut fillResponseFromRequest: Value = self.safe_bool(withdrawOptions.clone(), Value::Str("fillResponseFromRequest".to_string()), &[Value::Bool(true)]);
+        let mut fillResponseFromRequest: Value = self.safe_bool_k(withdrawOptions.clone(), "fillResponseFromRequest", &[Value::Bool(true)]);
         if is_true(&fillResponseFromRequest) {
             add_element_to_object(&mut result, &Value::Str("currency".to_string()), code.clone());
             add_element_to_object(&mut result, &Value::Str("amount".to_string()), amount.clone());
@@ -3511,28 +3617,30 @@ impl BitgetCore {
             add_element_to_object(&mut result, &Value::Str("network".to_string()), networkCode.clone());
         }
         return result;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/account/Get-Withdraw-Record
+ * @see https://www.bitget.com/api-doc/spot/account/Get-Withdraw-Record
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] end time in milliseconds
- * @param {string} [get_value(&params, &Value::Str("idLessThan".to_string()))] return records with id less than the provided value
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @param {int} [params.until] end time in milliseconds
+ * @param {string} [params.idLessThan] return records with id less than the provided value
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_withdrawals(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -3549,7 +3657,7 @@ impl BitgetCore {
             since = subtract(&self.milliseconds(), &Value::Int(7776000000)); // 90 days
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("startTime".to_string(), since.clone());
                 m.insert("endTime".to_string(), self.milliseconds());
             m
@@ -3588,8 +3696,10 @@ impl BitgetCore {
         //         ]
         //     }
         //
-        let mut rawTransactions: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut rawTransactions: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_transactions(rawTransactions.clone(), &[currency.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -3632,22 +3742,22 @@ impl BitgetCore {
         //         "uTime": "1694131680247"
         //     }
         //
-        let mut currencyId: Value = self.safe_string(transaction.clone(), Value::Str("coin".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(transaction.clone(), "coin", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
-        let mut timestamp: Value = self.safe_integer(transaction.clone(), Value::Str("cTime".to_string()), &[]);
-        let mut networkId: Value = self.safe_string(transaction.clone(), Value::Str("chain".to_string()), &[]);
-        let mut status: Value = self.safe_string(transaction.clone(), Value::Str("status".to_string()), &[]);
-        let mut tag: Value = self.safe_string(transaction.clone(), Value::Str("tag".to_string()), &[]);
-        let mut feeCostString: Value = self.safe_string(transaction.clone(), Value::Str("fee".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "cTime", &[]);
+        let mut networkId: Value = self.safe_string_k(transaction.clone(), "chain", &[]);
+        let mut status: Value = self.safe_string_k(transaction.clone(), "status", &[]);
+        let mut tag: Value = self.safe_string_k(transaction.clone(), "tag", &[]);
+        let mut feeCostString: Value = self.safe_string_k(transaction.clone(), "fee", &[]);
         let mut feeCostAbsString: Value = Value::Null;
         if !is_equal(&feeCostString, &Value::Null) {
             feeCostAbsString = crate::precise::Precise::stringAbs(&feeCostString);
         }
         let mut fee: Value = Value::Null;
-        let mut amountString: Value = self.safe_string(transaction.clone(), Value::Str("size".to_string()), &[]);
+        let mut amountString: Value = self.safe_string_k(transaction.clone(), "size", &[]);
         if !is_equal(&feeCostAbsString, &Value::Null) {
             fee = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), code.clone());
                     m.insert("cost".to_string(), self.parse_number(feeCostAbsString.clone(), &[]));
                 m
@@ -3655,21 +3765,21 @@ impl BitgetCore {
             amountString = crate::precise::Precise::stringSub(&amountString, &feeCostAbsString);
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("id".to_string(), self.safe_string(transaction.clone(), Value::Str("orderId".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), self.safe_string_k(transaction.clone(), "orderId", &[]));
         m.insert("info".to_string(), transaction.clone());
-        m.insert("txid".to_string(), self.safe_string(transaction.clone(), Value::Str("tradeId".to_string()), &[]));
+        m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "tradeId", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("network".to_string(), self.network_id_to_code(&[networkId.clone()]));
-        m.insert("addressFrom".to_string(), self.safe_string(transaction.clone(), Value::Str("fromAddress".to_string()), &[]));
-        m.insert("address".to_string(), self.safe_string(transaction.clone(), Value::Str("toAddress".to_string()), &[]));
-        m.insert("addressTo".to_string(), self.safe_string(transaction.clone(), Value::Str("toAddress".to_string()), &[]));
+        m.insert("addressFrom".to_string(), self.safe_string_k(transaction.clone(), "fromAddress", &[]));
+        m.insert("address".to_string(), self.safe_string_k(transaction.clone(), "toAddress", &[]));
+        m.insert("addressTo".to_string(), self.safe_string_k(transaction.clone(), "toAddress", &[]));
         m.insert("amount".to_string(), self.parse_number(amountString.clone(), &[]));
-        m.insert("type".to_string(), self.safe_string(transaction.clone(), Value::Str("type".to_string()), &[]));
+        m.insert("type".to_string(), self.safe_string_k(transaction.clone(), "type", &[]));
         m.insert("currency".to_string(), code.clone());
         m.insert("status".to_string(), self.parse_transaction_status(status.clone()));
-        m.insert("updated".to_string(), self.safe_integer(transaction.clone(), Value::Str("uTime".to_string()), &[]));
+        m.insert("updated".to_string(), self.safe_integer_k(transaction.clone(), "uTime", &[]));
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), tag.clone());
         m.insert("tagTo".to_string(), tag.clone());
@@ -3678,11 +3788,13 @@ impl BitgetCore {
         m.insert("fee".to_string(), fee.clone());
     m
 });
+
+    Value::Null
 }
 
     pub fn parse_transaction_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("success".to_string(), Value::Str("ok".to_string()));
                 m.insert("Pending".to_string(), Value::Str("pending".to_string()));
                 m.insert("pending_review".to_string(), Value::Str("pending".to_string()));
@@ -3691,20 +3803,22 @@ impl BitgetCore {
             m
         });
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/account/Get-Deposit-Address
+ * @see https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
     pub async fn fetch_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -3712,7 +3826,7 @@ impl BitgetCore {
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
@@ -3734,11 +3848,13 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_deposit_address(data.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_deposit_address(&self, mut depositAddress: Value, optional_args: &[Value]) -> Value {
@@ -3752,47 +3868,49 @@ impl BitgetCore {
         //         "url": "https://blockchair.com/bitcoin/transaction/"
         //     }
         //
-        let mut currencyId: Value = self.safe_string(depositAddress.clone(), Value::Str("coin".to_string()), &[]);
-        let mut networkId: Value = self.safe_string(depositAddress.clone(), Value::Str("chain".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(depositAddress.clone(), "coin", &[]);
+        let mut networkId: Value = self.safe_string_k(depositAddress.clone(), "chain", &[]);
         let mut parsedCurrency: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut network: Value = Value::Null;
         if !is_equal(&networkId, &Value::Null) {
             network = self.network_id_to_code(&[networkId.clone(), parsedCurrency.clone()]);
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
         m.insert("currency".to_string(), parsedCurrency.clone());
         m.insert("network".to_string(), network.clone());
-        m.insert("address".to_string(), self.safe_string(depositAddress.clone(), Value::Str("address".to_string()), &[]));
-        m.insert("tag".to_string(), self.safe_string(depositAddress.clone(), Value::Str("tag".to_string()), &[]));
+        m.insert("address".to_string(), self.safe_string_k(depositAddress.clone(), "address", &[]));
+        m.insert("tag".to_string(), self.safe_string_k(depositAddress.clone(), "tag", &[]));
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/market/Get-Orderbook
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-Merge-Depth
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/public/OrderBook
+ * @see https://www.bitget.com/api-doc/spot/market/Get-Orderbook
+ * @see https://www.bitget.com/api-doc/contract/market/Get-Merge-Depth
+ * @see https://www.bitget.com/api-doc/uta/public/OrderBook
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object} A dictionary of [order book structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-book-structure} indexed by market symbols
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -3800,7 +3918,7 @@ impl BitgetCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         let mut uta: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrderBook".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -3838,14 +3956,16 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut bidsKey: Value = ternary(is_true(&uta), Value::Str("b".to_string()), Value::Str("bids".to_string()));
         let mut asksKey: Value = ternary(is_true(&uta), Value::Str("a".to_string()), Value::Str("asks".to_string()));
-        let mut timestamp: Value = self.safe_integer(data.clone(), Value::Str("ts".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(data.clone(), "ts", &[]);
         return self.parse_order_book(data.clone(), get_value(&market, &Value::Str("symbol".to_string())), &[timestamp.clone(), bidsKey.clone(), asksKey.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -3953,24 +4073,24 @@ impl BitgetCore {
         //         "deliveryStatus": ""
         //     }
         //
-        let mut marketId: Value = self.safe_string(ticker.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         let mut close: Value = self.safe_string2(ticker.clone(), Value::Str("lastPr".to_string()), Value::Str("lastPrice".to_string()), &[]);
         let mut timestamp: Value = self.safe_integer_omit_zero(ticker.clone(), Value::Str("ts".to_string()), &[]); // exchange bitget provided 0
-        let mut category: Value = self.safe_string(ticker.clone(), Value::Str("category".to_string()), &[]);
-        let mut markPrice: Value = self.safe_string(ticker.clone(), Value::Str("markPrice".to_string()), &[]);
+        let mut category: Value = self.safe_string_k(ticker.clone(), "category", &[]);
+        let mut markPrice: Value = self.safe_string_k(ticker.clone(), "markPrice", &[]);
         let mut marketType: Value = Value::Null;
         if is_true(&(!is_equal(&markPrice, &Value::Null))) && is_true(&(!is_equal(&category, &Value::Str("SPOT".to_string())))) {
             marketType = Value::Str("contract".to_string());
         }  else {
             marketType = Value::Str("spot".to_string());
         }
-        let mut percentage: Value = self.safe_string(ticker.clone(), Value::Str("price24hPcnt".to_string()), &[]);
+        let mut percentage: Value = self.safe_string_k(ticker.clone(), "price24hPcnt", &[]);
         if is_equal(&percentage, &Value::Null) {
-            let mut change24h: Value = self.safe_string(ticker.clone(), Value::Str("change24h".to_string()), &[]);
+            let mut change24h: Value = self.safe_string_k(ticker.clone(), "change24h", &[]);
             percentage = crate::precise::Precise::stringMul(&change24h, &Value::Str("100".to_string()));
         }
         return self.safe_ticker(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, marketType.clone()]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
@@ -3990,39 +4110,41 @@ impl BitgetCore {
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_string2(ticker.clone(), Value::Str("baseVolume".to_string()), Value::Str("volume24h".to_string()), &[]));
         m.insert("quoteVolume".to_string(), self.safe_string2(ticker.clone(), Value::Str("quoteVolume".to_string()), Value::Str("turnover24h".to_string()), &[]));
-        m.insert("indexPrice".to_string(), self.safe_string(ticker.clone(), Value::Str("indexPrice".to_string()), &[]));
+        m.insert("indexPrice".to_string(), self.safe_string_k(ticker.clone(), "indexPrice", &[]));
         m.insert("markPrice".to_string(), markPrice.clone());
         m.insert("info".to_string(), ticker.clone());
     m
 }), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/market/Get-Tickers
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-Ticker
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/public/Tickers
+ * @see https://www.bitget.com/api-doc/spot/market/Get-Tickers
+ * @see https://www.bitget.com/api-doc/contract/market/Get-Ticker
+ * @see https://www.bitget.com/api-doc/uta/public/Tickers
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object} a [ticker structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ticker-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         let mut uta: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTicker".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -4158,62 +4280,66 @@ impl BitgetCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_ticker(get_value(&data, &Value::Int(0)), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchMarkPrice
  * @description fetches the mark price for a specific market
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-Symbol-Price
+ * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Price
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarkPrice() is not supported for spot markets".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarkPrice() is not supported for spot markets".to_string()))));
         }  else {
             let mut productType: Value = Value::Null;
-            { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+            { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             response = self.call_method(Value::Str("public_mix_get_v2_mix_market_symbol_price".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_ticker(get_value(&data, &Value::Int(0)), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/market/Get-Tickers
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-All-Symbol-Ticker
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/public/Tickers
+ * @see https://www.bitget.com/api-doc/spot/market/Get-Tickers
+ * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+ * @see https://www.bitget.com/api-doc/uta/public/Tickers
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] *contract only* 'linear', 'inverse'
- * @param {string} [get_value(&params, &Value::Str("productType".to_string()))] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
- * @returns {object} a dictionary of [ticker structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ticker-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {string} [params.subType] *contract only* 'linear', 'inverse'
+ * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -4224,17 +4350,17 @@ impl BitgetCore {
         }
         let mut response: Value = Value::Null;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTickers".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         // Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
-        // as "options.defaultSubType" is also set in exchange options, we should consider `get_value(&params, &Value::Str("subType".to_string()))`
+        // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
         // with higher priority and only default to spot, if `subType` is not set in params
-        let mut passedSubType: Value = self.safe_string(params.clone(), Value::Str("subType".to_string()), &[]);
+        let mut passedSubType: Value = self.safe_string_k(params.clone(), "subType", &[]);
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         // only if passedSubType && productType is undefined, then use spot
         let mut uta: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTickers".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -4369,8 +4495,10 @@ impl BitgetCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_tickers(data.clone(), &[symbols.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -4489,24 +4617,24 @@ impl BitgetCore {
         //         "execPnl": "0.00017"
         //     }
         //
-        let mut marketId: Value = self.safe_string(trade.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
         let mut timestamp: Value = self.safe_integer_n(trade.clone(), Value::List(vec![Value::Str("cTime".to_string()), Value::Str("ts".to_string()), Value::Str("createdTime".to_string())]), &[]);
         let mut fee: Value = Value::Null;
-        let mut feeDetail: Value = self.safe_value(trade.clone(), Value::Str("feeDetail".to_string()), &[]);
-        let mut posMode: Value = self.safe_string(trade.clone(), Value::Str("posMode".to_string()), &[]);
-        let mut category: Value = self.safe_string(trade.clone(), Value::Str("category".to_string()), &[]);
+        let mut feeDetail: Value = self.safe_value_k(trade.clone(), "feeDetail", &[]);
+        let mut posMode: Value = self.safe_string_k(trade.clone(), "posMode", &[]);
+        let mut category: Value = self.safe_string_k(trade.clone(), "category", &[]);
         let mut isFeeStructure: Value = Value::Bool(is_true(&(!is_equal(&posMode, &Value::Null))) || is_true(&(!is_equal(&category, &Value::Null))));
         let mut feeStructure: Value = ternary(is_true(&isFeeStructure), get_value(&feeDetail, &Value::Int(0)), feeDetail.clone());
         if !is_equal(&feeStructure, &Value::Null) {
-            let mut currencyCode: Value = self.safe_currency_code(self.safe_string(feeStructure.clone(), Value::Str("feeCoin".to_string()), &[]), &[]);
+            let mut currencyCode: Value = self.safe_currency_code(self.safe_string_k(feeStructure.clone(), "feeCoin", &[]), &[]);
             fee = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), currencyCode.clone());
                 m
             });
             let mut feeCostString: Value = self.safe_string2(feeStructure.clone(), Value::Str("totalFee".to_string()), Value::Str("fee".to_string()), &[]);
-            let mut deduction: Value = ternary(is_equal(&self.safe_string(feeStructure.clone(), Value::Str("deduction".to_string()), &[]), &Value::Str("yes".to_string())), Value::Bool(true), Value::Bool(false));
+            let mut deduction: Value = ternary(is_equal(&self.safe_string_k(feeStructure.clone(), "deduction", &[]), &Value::Str("yes".to_string())), Value::Bool(true), Value::Bool(false));
             if is_true(&deduction) {
                 add_element_to_object(&mut fee, &Value::Str("cost".to_string()), feeCostString.clone());
             }  else {
@@ -4514,14 +4642,14 @@ impl BitgetCore {
             }
         }
         return self.safe_trade(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("tradeId".to_string()), Value::Str("execId".to_string()), &[]));
-        m.insert("order".to_string(), self.safe_string(trade.clone(), Value::Str("orderId".to_string()), &[]));
+        m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderId", &[]));
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("side".to_string()), &[]));
-        m.insert("type".to_string(), self.safe_string(trade.clone(), Value::Str("orderType".to_string()), &[]));
-        m.insert("takerOrMaker".to_string(), self.safe_string(trade.clone(), Value::Str("tradeScope".to_string()), &[]));
+        m.insert("type".to_string(), self.safe_string_k(trade.clone(), "orderType", &[]));
+        m.insert("takerOrMaker".to_string(), self.safe_string_k(trade.clone(), "tradeScope", &[]));
         m.insert("price".to_string(), self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("priceAvg".to_string()), Value::Str("price".to_string()), Value::Str("execPrice".to_string())]), &[]));
         m.insert("amount".to_string(), self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("baseVolume".to_string()), Value::Str("size".to_string()), Value::Str("execQty".to_string())]), &[]));
         m.insert("cost".to_string(), self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("quoteVolume".to_string()), Value::Str("amount".to_string()), Value::Str("execValue".to_string())]), &[]));
@@ -4530,31 +4658,33 @@ impl BitgetCore {
         m.insert("fee".to_string(), fee.clone());
     m
 }), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/market/Get-Recent-Trades
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/market/Get-Market-Trades
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-Recent-Fills
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-Fills-History
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/public/Fills
+ * @see https://www.bitget.com/api-doc/spot/market/Get-Recent-Trades
+ * @see https://www.bitget.com/api-doc/spot/market/Get-Market-Trades
+ * @see https://www.bitget.com/api-doc/contract/market/Get-Recent-Fills
+ * @see https://www.bitget.com/api-doc/contract/market/Get-Fills-History
+ * @see https://www.bitget.com/api-doc/uta/public/Fills
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
- * @returns {Trade[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=public-trades}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {int} [params.until] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for
+ * @param {boolean} [params.paginate] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
     pub async fn fetch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -4565,7 +4695,7 @@ impl BitgetCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -4580,13 +4710,13 @@ impl BitgetCore {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
             }
         }
-        let mut options: Value = self.safe_value(self.options.clone(), Value::Str("fetchTrades".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut options: Value = self.safe_value_k(self.options.clone(), "fetchTrades", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut response: Value = Value::Null;
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             if is_equal(&productType, &Value::Str("SPOT".to_string())) {
                 let mut marginMode: Value = Value::Null;
@@ -4598,12 +4728,12 @@ impl BitgetCore {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
             response = self.call_method(Value::Str("public_uta_get_v3_market_fills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            let mut spotOptions: Value = self.safe_value(options.clone(), Value::Str("spot".to_string()), &[Value::Map({
-                let mut m = std::collections::HashMap::new();
+            let mut spotOptions: Value = self.safe_value_k(options.clone(), "spot", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut defaultSpotMethod: Value = self.safe_string(spotOptions.clone(), Value::Str("method".to_string()), &[Value::Str("publicSpotGetV2SpotMarketFillsHistory".to_string())]);
-            let mut spotMethod: Value = self.safe_string(params.clone(), Value::Str("method".to_string()), &[defaultSpotMethod.clone()]);
+            let mut defaultSpotMethod: Value = self.safe_string_k(spotOptions.clone(), "method", &[Value::Str("publicSpotGetV2SpotMarketFillsHistory".to_string())]);
+            let mut spotMethod: Value = self.safe_string_k(params.clone(), "method", &[defaultSpotMethod.clone()]);
             params = self.omit(params.clone(), Value::Str("method".to_string()), &[]);
             if is_equal(&spotMethod, &Value::Str("publicSpotGetV2SpotMarketFillsHistory".to_string())) {
                 { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -4615,12 +4745,12 @@ impl BitgetCore {
                 response = self.call_method(Value::Str("public_spot_get_v2_spot_market_fills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }
         }  else {
-            let mut swapOptions: Value = self.safe_value(options.clone(), Value::Str("swap".to_string()), &[Value::Map({
-                let mut m = std::collections::HashMap::new();
+            let mut swapOptions: Value = self.safe_value_k(options.clone(), "swap", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut defaultSwapMethod: Value = self.safe_string(swapOptions.clone(), Value::Str("method".to_string()), &[Value::Str("publicMixGetV2MixMarketFillsHistory".to_string())]);
-            let mut swapMethod: Value = self.safe_string(params.clone(), Value::Str("method".to_string()), &[defaultSwapMethod.clone()]);
+            let mut defaultSwapMethod: Value = self.safe_string_k(swapOptions.clone(), "method", &[Value::Str("publicMixGetV2MixMarketFillsHistory".to_string())]);
+            let mut swapMethod: Value = self.safe_string_k(params.clone(), "method", &[defaultSwapMethod.clone()]);
             params = self.omit(params.clone(), Value::Str("method".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             if is_equal(&swapMethod, &Value::Str("publicMixGetV2MixMarketFillsHistory".to_string())) {
@@ -4687,29 +4817,31 @@ impl BitgetCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchTradingFee
  * @description fetch the trading fees for a market
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/common/public/Get-Trade-Rate
+ * @see https://www.bitget.com/api-doc/common/public/Get-Trade-Rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
- * @returns {object} a [fee structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=fee-structure}
+ * @param {string} [params.marginMode] 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
     pub async fn fetch_trading_fee(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -4736,28 +4868,30 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         return self.parse_trading_fee(data.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/market/Get-Symbols
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-All-Symbols-Contracts
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/common/support-currencies
+ * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
+ * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
+ * @see https://www.bitget.com/api-doc/margin/common/support-currencies
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("productType".to_string()))] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
- * @param {boolean} [get_value(&params, &Value::Str("margin".to_string()))] set to true for spot margin
- * @returns {object} a dictionary of [fee structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=fee-structure} indexed by market symbols
+ * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {boolean} [params.margin] set to true for spot margin
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
     pub async fn fetch_trading_fees(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -4767,7 +4901,7 @@ impl BitgetCore {
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchTradingFees".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTradingFees".to_string()), &[Value::Null, params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            let mut margin: Value = self.safe_bool(params.clone(), Value::Str("margin".to_string()), &[Value::Bool(false)]);
+            let mut margin: Value = self.safe_bool_k(params.clone(), "margin", &[Value::Bool(false)]);
             params = self.omit(params.clone(), Value::Str("margin".to_string()), &[]);
             if is_true(&(!is_equal(&marginMode, &Value::Null))) || is_true(&margin) {
                 response = self.call_method(Value::Str("public_margin_get_v2_margin_currencies".to_string()), &[params.clone()]).await;
@@ -4776,11 +4910,11 @@ impl BitgetCore {
             }
         }  else if is_true(&(is_equal(&marketType, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&marketType, &Value::Str("future".to_string())))) {
             let mut productType: Value = Value::Null;
-            { let __destr_tmp = self.handle_product_type_and_params(&[Value::Null, params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+            { let __destr_tmp = self.handle_product_type_and_params(&[Value::Null, params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut params, &Value::Str("productType".to_string()), productType.clone());
             response = self.call_method(Value::Str("public_mix_get_v2_mix_market_contracts".to_string()), &[params.clone()]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" does not support ".to_string())), &marketType), &Value::Str(" market".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" does not support ".to_string())), &marketType), &Value::Str(" market".to_string()))));
         }
         //
         // spot and margin
@@ -4853,39 +4987,44 @@ impl BitgetCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&data)) {
+            let mut __for_first_335: bool = true;
+            while { if !__for_first_335 { i = add(&i, &Value::Int(1)); } __for_first_335 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
-            let mut marketId: Value = self.safe_string(entry.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut entry: Value = get_value(&data, &i);
+            let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Null, marketType.clone()]);
             let mut market: Value = self.market(symbol.clone());
             let mut fee: Value = self.parse_trading_fee(entry.clone(), &[market.clone()]);
             add_element_to_object(&mut result, &symbol, fee.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
     pub fn parse_trading_fee(&self, mut data: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut marketId: Value = self.safe_string(data.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-        m.insert("maker".to_string(), self.safe_number(data.clone(), Value::Str("makerFeeRate".to_string()), &[]));
-        m.insert("taker".to_string(), self.safe_number(data.clone(), Value::Str("takerFeeRate".to_string()), &[]));
+        m.insert("maker".to_string(), self.safe_number_k(data.clone(), "makerFeeRate", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(data.clone(), "takerFeeRate", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
 });
+
+    Value::Null
 }
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
@@ -4901,33 +5040,35 @@ impl BitgetCore {
         //         "1399132.341"
         //     ]
         //
-        let mut inverse: Value = self.safe_bool(market.clone(), Value::Str("inverse".to_string()), &[]);
+        let mut inverse: Value = self.safe_bool_k(market.clone(), "inverse", &[]);
         let mut volumeIndex: Value = ternary(is_true(&inverse), Value::Int(6), Value::Int(5));
         return Value::List(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), volumeIndex.clone(), &[])]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/market/Get-Candle-Data
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/market/Get-History-Candle-Data
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-Candle-Data
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-History-Candle-Data
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-History-Index-Candle-Data
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-History-Mark-Candle-Data
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/public/Get-Candle-Data
+ * @see https://www.bitget.com/api-doc/spot/market/Get-Candle-Data
+ * @see https://www.bitget.com/api-doc/spot/market/Get-History-Candle-Data
+ * @see https://www.bitget.com/api-doc/contract/market/Get-Candle-Data
+ * @see https://www.bitget.com/api-doc/contract/market/Get-History-Candle-Data
+ * @see https://www.bitget.com/api-doc/contract/market/Get-History-Index-Candle-Data
+ * @see https://www.bitget.com/api-doc/contract/market/Get-History-Mark-Candle-Data
+ * @see https://www.bitget.com/api-doc/uta/public/Get-Candle-Data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest candle to fetch
- * @param {boolean} [get_value(&params, &Value::Str("useHistoryEndpoint".to_string()))] whether to force to use historical endpoint (it has max limit of 200)
- * @param {boolean} [get_value(&params, &Value::Str("useHistoryEndpointForPagination".to_string()))] whether to force to use historical endpoint for pagination (default true)
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {string} [get_value(&params, &Value::Str("price".to_string()))] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+ * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200)
+ * @param {boolean} [params.useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -4935,15 +5076,15 @@ impl BitgetCore {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut defaultLimit: Value = Value::Int(100); // default 100, max 1000
         let mut maxLimitForRecentEndpoint: Value = Value::Int(1000);
         let mut maxLimitForHistoryEndpoint: Value = Value::Int(200); // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
-        let mut useHistoryEndpoint: Value = self.safe_bool(params.clone(), Value::Str("useHistoryEndpoint".to_string()), &[Value::Bool(false)]);
-        let mut useHistoryEndpointForPagination: Value = self.safe_bool(params.clone(), Value::Str("useHistoryEndpointForPagination".to_string()), &[Value::Bool(true)]);
+        let mut useHistoryEndpoint: Value = self.safe_bool_k(params.clone(), "useHistoryEndpoint", &[Value::Bool(false)]);
+        let mut useHistoryEndpointForPagination: Value = self.safe_bool_k(params.clone(), "useHistoryEndpointForPagination", &[Value::Bool(true)]);
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -4952,7 +5093,7 @@ impl BitgetCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -4971,26 +5112,26 @@ impl BitgetCore {
         let mut msInDay: Value = Value::Int(86400000);
         let mut now: Value = self.milliseconds();
         let mut duration: Value = multiply(&self.parse_timeframe(timeframe.clone()), &Value::Int(1000));
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         let mut limitDefined: Value = Value::Bool(!is_equal(&limit, &Value::Null));
         let mut sinceDefined: Value = Value::Bool(!is_equal(&since, &Value::Null));
         let mut untilDefined: Value = Value::Bool(!is_equal(&until, &Value::Null));
         params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
         // retrievable periods listed here:
-        // - https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/market/Get-Candle-Data#request-parameters
-        // - https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-Candle-Data#description
+        // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
+        // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
         let mut key: Value = ternary(is_true(&get_value(&market, &Value::Str("spot".to_string()))), Value::Str("spot".to_string()), Value::Str("swap".to_string()));
         let mut ohlcOptions: Value = self.safe_dict(get_value(&self.options, &Value::Str("fetchOHLCV".to_string())), key.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut maxLimitPerTimeframe: Value = self.safe_dict(ohlcOptions.clone(), Value::Str("maxLimitPerTimeframe".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut maxLimitPerTimeframe: Value = self.safe_dict_k(ohlcOptions.clone(), "maxLimitPerTimeframe", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut maxLimitForThisTimeframe: Value = self.safe_integer(maxLimitPerTimeframe.clone(), timeframe.clone(), &[limit.clone()]);
         let mut recentEndpointDaysMap: Value = self.safe_dict(get_value(&self.options, &Value::Str("fetchOHLCV".to_string())), Value::Str("maxRecentDaysPerTimeframe".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut recentEndpointAvailableDays: Value = self.safe_integer(recentEndpointDaysMap.clone(), timeframe.clone(), &[]);
@@ -5010,7 +5151,7 @@ impl BitgetCore {
             calculatedStartTime = since.clone();
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
             if !is_true(&untilDefined) {
-                calculatedEndTime = self.sum(calculatedStartTime.clone(), limitMultipliedDuration.clone(), &[]);
+                calculatedEndTime = self.sum(&[calculatedStartTime.clone(), limitMultipliedDuration.clone()]);
                 if is_greater_than(&calculatedEndTime, &now) {
                     calculatedEndTime = now.clone();
                 }
@@ -5041,7 +5182,7 @@ impl BitgetCore {
                 let mut maxDistanceDaysForContracts: Value = Value::Int(90);
                 // only correct if request is larger
                 if is_greater_than(&subtract(&calculatedEndTime, &calculatedStartTime), &multiply(&maxDistanceDaysForContracts, &msInDay)) {
-                    calculatedEndTime = self.sum(calculatedStartTime.clone(), multiply(&maxDistanceDaysForContracts, &msInDay), &[]);
+                    calculatedEndTime = self.sum(&[calculatedStartTime.clone(), multiply(&maxDistanceDaysForContracts, &msInDay)]);
                     add_element_to_object(&mut request, &Value::Str("endTime".to_string()), calculatedEndTime.clone());
                 }
             }
@@ -5053,7 +5194,7 @@ impl BitgetCore {
         let mut productType: Value = Value::Null;
         let mut priceType: Value = Value::Null;
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("price".to_string()), &[]); priceType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             if !is_equal(&priceType, &Value::Null) {
                 if is_equal(&priceType, &Value::Str("mark".to_string())) {
@@ -5084,9 +5225,9 @@ impl BitgetCore {
                     limit = Value::Int(1000);
                 }
                 // Recent endpoint for mark/index prices
-                // https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-Candle-Data
+                // https://www.bitget.com/api-doc/contract/market/Get-Candle-Data
                 response = self.call_method(Value::Str("public_mix_get_v2_mix_market_candles".to_string()), &[self.extend(Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("kLineType".to_string(), priceType.clone());
                     m
                 }), &[extended.clone()])]).await;
@@ -5110,34 +5251,36 @@ impl BitgetCore {
             return Value::List(vec![]);
         }
         //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[response.clone()]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[response.clone()]);
         return self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/account/Get-Account-Assets
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/account/Get-Account-List
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/cross/account/Get-Cross-Assets
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/isolated/account/Get-Isolated-Assets
- * @see https://get_value(&bitgetlimited, &Value::Str("github".to_string())).io/apidoc/en/margin/#get-cross-assets
- * @see https://get_value(&bitgetlimited, &Value::Str("github".to_string())).io/apidoc/en/margin/#get-isolated-assets
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/account/Get-Account
+ * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Assets
+ * @see https://www.bitget.com/api-doc/contract/account/Get-Account-List
+ * @see https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Assets
+ * @see https://www.bitget.com/api-doc/margin/isolated/account/Get-Isolated-Assets
+ * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
+ * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
+ * @see https://www.bitget.com/api-doc/uta/account/Get-Account
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("productType".to_string()))] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
- * @param {string} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object} a [balance structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=balance-structure}
+ * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
     pub async fn fetch_balance(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut marketType: Value = Value::Null;
@@ -5149,15 +5292,15 @@ impl BitgetCore {
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchBalance".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             response = self.call_method(Value::Str("private_uta_get_v3_account_assets".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
-            let mut results: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut results: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut assets: Value = self.safe_list(results.clone(), Value::Str("assets".to_string()), &[Value::List(vec![])]);
+            let mut assets: Value = self.safe_list_k(results.clone(), "assets", &[Value::List(vec![])]);
             return self.parse_uta_balance(assets.clone());
         }  else if is_true(&(is_equal(&marketType, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&marketType, &Value::Str("future".to_string())))) {
             let mut productType: Value = Value::Null;
-            { let __destr_tmp = self.handle_product_type_and_params(&[Value::Null, params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+            { let __destr_tmp = self.handle_product_type_and_params(&[Value::Null, params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             response = self.call_method(Value::Str("private_mix_get_v2_mix_account_accounts".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
@@ -5167,7 +5310,7 @@ impl BitgetCore {
         }  else if is_equal(&marketType, &Value::Str("spot".to_string())) {
             response = self.call_method(Value::Str("private_spot_get_v2_spot_account_assets".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchBalance() does not support ".to_string())), &marketType), &Value::Str(" accounts".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchBalance() does not support ".to_string())), &marketType), &Value::Str(" accounts".to_string()))));
         }
         // spot
         //
@@ -5245,77 +5388,85 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_balance(data.clone());
+
+    Value::Null
 }
 
     pub fn parse_uta_balance(&self, mut balance: Value) -> Value {
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), balance.clone());
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&balance)) {
+            let mut __for_first_336: bool = true;
+            while { if !__for_first_336 { i = add(&i, &Value::Int(1)); } __for_first_336 = false; is_less_than(&i, &get_array_length(&balance)) } {
+            let mut entry: Value = get_value(&balance, &i);
             let mut entry: Value = get_value(&balance, &i);
             let mut account: Value = self.account();
-            let mut currencyId: Value = self.safe_string(entry.clone(), Value::Str("coin".to_string()), &[]);
+            let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            add_element_to_object(&mut account, &Value::Str("debt".to_string()), self.safe_string(entry.clone(), Value::Str("debt".to_string()), &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(entry.clone(), Value::Str("locked".to_string()), &[]));
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(entry.clone(), Value::Str("available".to_string()), &[]));
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(entry.clone(), Value::Str("balance".to_string()), &[]));
+            add_element_to_object(&mut account, &Value::Str("debt".to_string()), self.safe_string_k(entry.clone(), "debt", &[]));
+            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(entry.clone(), "locked", &[]));
+            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(entry.clone(), "available", &[]));
+            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(entry.clone(), "balance", &[]));
             add_element_to_object(&mut result, &code, account.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.safe_balance(result.clone());
+
+    Value::Null
 }
 
     pub fn parse_balance(&self, mut balance: Value) -> Value {
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), balance.clone());
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&balance)) {
+            let mut __for_first_337: bool = true;
+            while { if !__for_first_337 { i = add(&i, &Value::Int(1)); } __for_first_337 = false; is_less_than(&i, &get_array_length(&balance)) } {
+            let mut entry: Value = get_value(&balance, &i);
             let mut entry: Value = get_value(&balance, &i);
             let mut account: Value = self.account();
             let mut currencyId: Value = self.safe_string2(entry.clone(), Value::Str("marginCoin".to_string()), Value::Str("coin".to_string()), &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            let mut borrow: Value = self.safe_string(entry.clone(), Value::Str("borrow".to_string()), &[]);
+            let mut borrow: Value = self.safe_string_k(entry.clone(), "borrow", &[]);
             if !is_equal(&borrow, &Value::Null) {
-                let mut interest: Value = self.safe_string(entry.clone(), Value::Str("interest".to_string()), &[]);
-                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(entry.clone(), Value::Str("transferable".to_string()), &[]));
-                add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(entry.clone(), Value::Str("totalAmount".to_string()), &[]));
+                let mut interest: Value = self.safe_string_k(entry.clone(), "interest", &[]);
+                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(entry.clone(), "transferable", &[]));
+                add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(entry.clone(), "totalAmount", &[]));
                 add_element_to_object(&mut account, &Value::Str("debt".to_string()), crate::precise::Precise::stringAdd(&borrow, &interest));
             }  else {
-                // Use transferable instead of available for swap and margin https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/pull/19127
-                let mut spotAccountFree: Value = self.safe_string(entry.clone(), Value::Str("available".to_string()), &[]);
-                let mut contractAccountFree: Value = self.safe_string(entry.clone(), Value::Str("maxTransferOut".to_string()), &[]);
+                // Use transferable instead of available for swap and margin https://github.com/ccxt/ccxt/pull/19127
+                let mut spotAccountFree: Value = self.safe_string_k(entry.clone(), "available", &[]);
+                let mut contractAccountFree: Value = self.safe_string_k(entry.clone(), "maxTransferOut", &[]);
                 if !is_equal(&contractAccountFree, &Value::Null) {
                     add_element_to_object(&mut account, &Value::Str("free".to_string()), contractAccountFree.clone());
-                    add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(entry.clone(), Value::Str("accountEquity".to_string()), &[]));
+                    add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(entry.clone(), "accountEquity", &[]));
                 }  else {
                     add_element_to_object(&mut account, &Value::Str("free".to_string()), spotAccountFree.clone());
-                    let mut frozen: Value = self.safe_string(entry.clone(), Value::Str("frozen".to_string()), &[]);
-                    let mut locked: Value = self.safe_string(entry.clone(), Value::Str("locked".to_string()), &[]);
+                    let mut frozen: Value = self.safe_string_k(entry.clone(), "frozen", &[]);
+                    let mut locked: Value = self.safe_string_k(entry.clone(), "locked", &[]);
                     add_element_to_object(&mut account, &Value::Str("used".to_string()), crate::precise::Precise::stringAdd(&frozen, &locked));
                 }
             }
             add_element_to_object(&mut result, &code, account.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.safe_balance(result.clone());
+
+    Value::Null
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("new".to_string(), Value::Str("open".to_string()));
                 m.insert("init".to_string(), Value::Str("open".to_string()));
                 m.insert("not_trigger".to_string(), Value::Str("open".to_string()));
@@ -5335,6 +5486,8 @@ impl BitgetCore {
             m
         });
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -5551,49 +5704,49 @@ impl BitgetCore {
         //         "updatedTime": "1753058267412"
         //     }
         //
-        let mut errorMessage: Value = self.safe_string(order.clone(), Value::Str("errorMsg".to_string()), &[]);
+        let mut errorMessage: Value = self.safe_string_k(order.clone(), "errorMsg", &[]);
         if !is_equal(&errorMessage, &Value::Null) {
             return self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
-        m.insert("id".to_string(), self.safe_string(order.clone(), Value::Str("orderId".to_string()), &[]));
+        m.insert("id".to_string(), self.safe_string_k(order.clone(), "orderId", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string2(order.clone(), Value::Str("clientOrderId".to_string()), Value::Str("clientOid".to_string()), &[]));
         m.insert("status".to_string(), Value::Str("rejected".to_string()));
     m
 }), &[market.clone()]);
         }
-        let mut posSide: Value = self.safe_string(order.clone(), Value::Str("posSide".to_string()), &[]);
+        let mut posSide: Value = self.safe_string_k(order.clone(), "posSide", &[]);
         let mut isContractOrder: Value = Value::Bool(!is_equal(&posSide, &Value::Null));
         let mut marketType: Value = ternary(is_true(&isContractOrder), Value::Str("contract".to_string()), Value::Str("spot".to_string()));
         if !is_equal(&market, &Value::Null) {
             marketType = get_value(&market, &Value::Str("type".to_string()));
         }
-        let mut marketId: Value = self.safe_string(order.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, marketType.clone()]);
         let mut timestamp: Value = self.safe_integer_n(order.clone(), Value::List(vec![Value::Str("cTime".to_string()), Value::Str("ctime".to_string()), Value::Str("createdTime".to_string())]), &[]);
         let mut updateTimestamp: Value = self.safe_integer2(order.clone(), Value::Str("uTime".to_string()), Value::Str("updatedTime".to_string()), &[]);
         let mut rawStatus: Value = self.safe_string_n(order.clone(), Value::List(vec![Value::Str("status".to_string()), Value::Str("state".to_string()), Value::Str("orderStatus".to_string()), Value::Str("planStatus".to_string())]), &[]);
         let mut fee: Value = Value::Null;
-        let mut feeCostString: Value = self.safe_string(order.clone(), Value::Str("fee".to_string()), &[]);
+        let mut feeCostString: Value = self.safe_string_k(order.clone(), "fee", &[]);
         if !is_equal(&feeCostString, &Value::Null) {
             // swap
             fee = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringNeg(&feeCostString), &[]));
                     m.insert("currency".to_string(), get_value(&market, &Value::Str("settle".to_string())));
                 m
             });
         }
-        let mut feeDetail: Value = self.safe_value(order.clone(), Value::Str("feeDetail".to_string()), &[]);
-        let mut uta: Value = Value::Bool(!is_equal(&self.safe_string(order.clone(), Value::Str("category".to_string()), &[]), &Value::Null));
+        let mut feeDetail: Value = self.safe_value_k(order.clone(), "feeDetail", &[]);
+        let mut uta: Value = Value::Bool(!is_equal(&self.safe_string_k(order.clone(), "category", &[]), &Value::Null));
         if is_true(&uta) {
             let mut feeResult: Value = self.safe_dict(feeDetail.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut utaFee: Value = self.safe_string(feeResult.clone(), Value::Str("fee".to_string()), &[]);
+            let mut utaFee: Value = self.safe_string_k(feeResult.clone(), "fee", &[]);
             fee = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringNeg(&utaFee), &[]));
                     m.insert("currency".to_string(), get_value(&market, &Value::Str("settle".to_string())));
                 m
@@ -5605,19 +5758,20 @@ impl BitgetCore {
                 let mut feeObject: Value = Value::Null;
                 {
                                         let mut i: Value = Value::Int(0);
-                    while is_less_than(&i, &get_array_length(&feeValues)) {
+                    let mut __for_first_338: bool = true;
+                    while { if !__for_first_338 { i = add(&i, &Value::Int(1)); } __for_first_338 = false; is_less_than(&i, &get_array_length(&feeValues)) } {
                     let mut feeValue: Value = get_value(&feeValues, &i);
-                    if !is_equal(&self.safe_value(feeValue.clone(), Value::Str("feeCoinCode".to_string()), &[]), &Value::Null) {
+                    let mut feeValue: Value = get_value(&feeValues, &i);
+                    if !is_equal(&self.safe_value_k(feeValue.clone(), "feeCoinCode", &[]), &Value::Null) {
                         feeObject = feeValue.clone();
                         break;
                     }
-                    i = add(&i, &Value::Int(1));
                 }
                 }
                 fee = Value::Map({
-                    let mut m = std::collections::HashMap::new();
-                        m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringNeg(&self.safe_string(feeObject.clone(), Value::Str("totalFee".to_string()), &[])), &[]));
-                        m.insert("currency".to_string(), self.safe_currency_code(self.safe_string(feeObject.clone(), Value::Str("feeCoinCode".to_string()), &[]), &[]));
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringNeg(&self.safe_string_k(feeObject.clone(), "totalFee", &[])), &[]));
+                        m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(feeObject.clone(), "feeCoinCode", &[]), &[]));
                     m
                 });
             }
@@ -5629,45 +5783,45 @@ impl BitgetCore {
             timeInForce = Value::Str("PO".to_string());
         }
         let mut reduceOnly: Value = Value::Null;
-        let mut reduceOnlyRaw: Value = self.safe_string(order.clone(), Value::Str("reduceOnly".to_string()), &[]);
+        let mut reduceOnlyRaw: Value = self.safe_string_k(order.clone(), "reduceOnly", &[]);
         if !is_equal(&reduceOnlyRaw, &Value::Null) {
             reduceOnly = ternary(is_true(&(is_equal(&reduceOnlyRaw, &Value::Str("NO".to_string())))), Value::Bool(false), Value::Bool(true));
         }
         let mut price: Value = Value::Null;
         let mut average: Value = Value::Null;
-        let mut basePrice: Value = self.safe_string(order.clone(), Value::Str("basePrice".to_string()), &[]);
+        let mut basePrice: Value = self.safe_string_k(order.clone(), "basePrice", &[]);
         if !is_equal(&basePrice, &Value::Null) {
             // for spot fetchOpenOrders, the price is priceAvg and the filled price is basePrice
-            price = self.safe_string(order.clone(), Value::Str("priceAvg".to_string()), &[]);
-            average = self.safe_string(order.clone(), Value::Str("basePrice".to_string()), &[]);
+            price = self.safe_string_k(order.clone(), "priceAvg", &[]);
+            average = self.safe_string_k(order.clone(), "basePrice", &[]);
         }  else {
             price = self.safe_string_n(order.clone(), Value::List(vec![Value::Str("price".to_string()), Value::Str("executePrice".to_string()), Value::Str("slLimitPrice".to_string()), Value::Str("tpLimitPrice".to_string())]), &[]);
-            average = self.safe_string(order.clone(), Value::Str("priceAvg".to_string()), &[]);
+            average = self.safe_string_k(order.clone(), "priceAvg", &[]);
         }
         let mut size: Value = Value::Null;
         let mut filled: Value = Value::Null;
-        let mut baseSize: Value = self.safe_string(order.clone(), Value::Str("baseSize".to_string()), &[]);
+        let mut baseSize: Value = self.safe_string_k(order.clone(), "baseSize", &[]);
         if !is_equal(&baseSize, &Value::Null) {
             // for spot margin fetchOpenOrders, the order size is baseSize and the filled amount is size
             size = baseSize.clone();
-            filled = self.safe_string(order.clone(), Value::Str("size".to_string()), &[]);
+            filled = self.safe_string_k(order.clone(), "size", &[]);
         }  else {
             size = self.safe_string2(order.clone(), Value::Str("size".to_string()), Value::Str("qty".to_string()), &[]);
             filled = self.safe_string2(order.clone(), Value::Str("baseVolume".to_string()), Value::Str("cumExecQty".to_string()), &[]);
         }
-        let mut side: Value = self.safe_string(order.clone(), Value::Str("side".to_string()), &[]);
-        let mut posMode: Value = self.safe_string(order.clone(), Value::Str("posMode".to_string()), &[]);
+        let mut side: Value = self.safe_string_k(order.clone(), "side", &[]);
+        let mut posMode: Value = self.safe_string_k(order.clone(), "posMode", &[]);
         if is_equal(&posMode, &Value::Str("hedge_mode".to_string())) && is_true(&reduceOnly) {
             side = ternary(is_true(&(is_equal(&side, &Value::Str("buy".to_string())))), Value::Str("sell".to_string()), Value::Str("buy".to_string()));
         }
-        let mut orderType: Value = self.safe_string(order.clone(), Value::Str("orderType".to_string()), &[]);
+        let mut orderType: Value = self.safe_string_k(order.clone(), "orderType", &[]);
         let mut isBuyMarket: Value = Value::Bool(is_true(&(is_equal(&side, &Value::Str("buy".to_string())))) && is_true(&(is_equal(&orderType, &Value::Str("market".to_string())))));
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) && is_true(&isBuyMarket) {
             // as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
-            size = self.safe_string(order.clone(), Value::Str("baseVolume".to_string()), &[]);
+            size = self.safe_string_k(order.clone(), "baseVolume", &[]);
         }
         return self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string2(order.clone(), Value::Str("orderId".to_string()), Value::Str("data".to_string()), &[]));
         m.insert("clientOrderId".to_string(), self.safe_string2(order.clone(), Value::Str("clientOrderId".to_string()), Value::Str("clientOid".to_string()), &[]));
@@ -5687,7 +5841,7 @@ impl BitgetCore {
         m.insert("timeInForce".to_string(), timeInForce.clone());
         m.insert("postOnly".to_string(), postOnly.clone());
         m.insert("reduceOnly".to_string(), reduceOnly.clone());
-        m.insert("triggerPrice".to_string(), self.safe_number(order.clone(), Value::Str("triggerPrice".to_string()), &[]));
+        m.insert("triggerPrice".to_string(), self.safe_number_k(order.clone(), "triggerPrice", &[]));
         m.insert("takeProfitPrice".to_string(), self.safe_number_n(order.clone(), Value::List(vec![Value::Str("presetStopSurplusPrice".to_string()), Value::Str("stopSurplusTriggerPrice".to_string()), Value::Str("takeProfit".to_string())]), &[]));
         m.insert("stopLossPrice".to_string(), self.safe_number_n(order.clone(), Value::List(vec![Value::Str("presetStopLossPrice".to_string()), Value::Str("stopLossTriggerPrice".to_string()), Value::Str("stopLoss".to_string())]), &[]));
         m.insert("status".to_string(), self.parse_order_status(rawStatus.clone()));
@@ -5695,87 +5849,91 @@ impl BitgetCore {
         m.insert("trades".to_string(), Value::Null);
     m
 }), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol and cost
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/trade/Place-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/cross/trade/Cross-Place-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/isolated/trade/Isolated-Place-Order
+ * @see https://www.bitget.com/api-doc/spot/trade/Place-Order
+ * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Place-Order
+ * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_market_buy_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string()))));
         }
         let mut req: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(false));
             m
         });
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Null, self.extend(req.clone(), &[params.clone()])]).await;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#createOrder
  * @description create a trade order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/trade/Place-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/plan/Place-Plan-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/trade/Place-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/plan/Place-Tpsl-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/plan/Place-Plan-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/cross/trade/Cross-Place-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/isolated/trade/Isolated-Place-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/trade/Place-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/strategy/Place-Strategy-Order
+ * @see https://www.bitget.com/api-doc/spot/trade/Place-Order
+ * @see https://www.bitget.com/api-doc/spot/plan/Place-Plan-Order
+ * @see https://www.bitget.com/api-doc/contract/trade/Place-Order
+ * @see https://www.bitget.com/api-doc/contract/plan/Place-Tpsl-Order
+ * @see https://www.bitget.com/api-doc/contract/plan/Place-Plan-Order
+ * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Place-Order
+ * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
+ * @see https://www.bitget.com/api-doc/uta/trade/Place-Order
+ * @see https://www.bitget.com/api-doc/uta/strategy/Place-Strategy-Order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much you want to trade in units of the base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used as the execution price for contract stop-loss / take-profit orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {float} [get_value(&params, &Value::Str("cost".to_string()))] *spot only* how much you want to trade in units of the quote currency, for market buy orders only
- * @param {float} [get_value(&params, &Value::Str("triggerPrice".to_string()))] *swap only* The price at which a trigger order is triggered at
- * @param {float} [get_value(&params, &Value::Str("stopLossPrice".to_string()))] *swap only* The price at which a stop loss order is triggered at
- * @param {float} [get_value(&params, &Value::Str("takeProfitPrice".to_string()))] *swap only* The price at which a take profit order is triggered at
- * @param {object} [get_value(&params, &Value::Str("takeProfit".to_string()))] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
- * @param {float} [get_value(&params, &Value::Str("takeProfit".to_string())).triggerPrice] *swap only* take profit trigger price
- * @param {object} [get_value(&params, &Value::Str("stopLoss".to_string()))] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
- * @param {float} [get_value(&params, &Value::Str("stopLoss".to_string())).triggerPrice] *swap only* stop loss trigger price
- * @param {string} [get_value(&params, &Value::Str("timeInForce".to_string()))] "GTC", "IOC", "FOK", or "PO"
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'isolated' or 'cross' for spot margin trading
- * @param {string} [get_value(&params, &Value::Str("loanType".to_string()))] *spot margin only* 'normal', 'autoLoan', 'autoRepay', or 'autoLoanAndRepay' default is 'normal'
- * @param {string} [get_value(&params, &Value::Str("holdSide".to_string()))] *contract stopLossPrice, takeProfitPrice only* Two-way position: ('long' or 'short'), one-way position: ('buy' or 'sell')
- * @param {float} [get_value(&params, &Value::Str("stopLoss".to_string())).price] *swap only* the execution price for a stop loss attached to a trigger order
- * @param {float} [get_value(&params, &Value::Str("takeProfit".to_string())).price] *swap only* the execution price for a take profit attached to a trigger order
- * @param {string} [get_value(&params, &Value::Str("stopLoss".to_string())).type] *swap only* the type for a stop loss attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
- * @param {string} [get_value(&params, &Value::Str("takeProfit".to_string())).type] *swap only* the type for a take profit attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
- * @param {string} [get_value(&params, &Value::Str("trailingPercent".to_string()))] *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
- * @param {string} [get_value(&params, &Value::Str("trailingTriggerPrice".to_string()))] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
- * @param {string} [get_value(&params, &Value::Str("triggerType".to_string()))] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
- * @param {boolean} [get_value(&params, &Value::Str("oneWayMode".to_string()))] *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method
- * @param {bool} [get_value(&params, &Value::Str("hedged".to_string()))] *swap and future only* true for hedged mode, false for one way mode, default is false
- * @param {bool} [get_value(&params, &Value::Str("reduceOnly".to_string()))] true or false whether the order is reduce-only
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @param {string} [get_value(&params, &Value::Str("posSide".to_string()))] *uta only* hedged two-way position side, long or short
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {float} [params.cost] *spot only* how much you want to trade in units of the quote currency, for market buy orders only
+ * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
+ * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
+ * @param {float} [params.takeProfitPrice] *swap only* The price at which a take profit order is triggered at
+ * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+ * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
+ * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+ * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
+ * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
+ * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
+ * @param {string} [params.loanType] *spot margin only* 'normal', 'autoLoan', 'autoRepay', or 'autoLoanAndRepay' default is 'normal'
+ * @param {string} [params.holdSide] *contract stopLossPrice, takeProfitPrice only* Two-way position: ('long' or 'short'), one-way position: ('buy' or 'sell')
+ * @param {float} [params.stopLoss.price] *swap only* the execution price for a stop loss attached to a trigger order
+ * @param {float} [params.takeProfit.price] *swap only* the execution price for a take profit attached to a trigger order
+ * @param {string} [params.stopLoss.type] *swap only* the type for a stop loss attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+ * @param {string} [params.takeProfit.type] *swap only* the type for a take profit attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+ * @param {string} [params.trailingPercent] *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
+ * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
+ * @param {string} [params.triggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
+ * @param {boolean} [params.oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method
+ * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
+ * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {string} [params.posSide] *uta only* hedged two-way position side, long or short
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5783,8 +5941,8 @@ impl BitgetCore {
         let mut marginParams: Value = self.handle_margin_mode_and_params(Value::Str("createOrder".to_string()), &[params.clone()]);
         let mut marginMode: Value = get_value(&marginParams, &Value::Int(0));
         let mut triggerPrice: Value = self.safe_value2(params.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]);
-        let mut stopLossTriggerPrice: Value = self.safe_value(params.clone(), Value::Str("stopLossPrice".to_string()), &[]);
-        let mut takeProfitTriggerPrice: Value = self.safe_value(params.clone(), Value::Str("takeProfitPrice".to_string()), &[]);
+        let mut stopLossTriggerPrice: Value = self.safe_value_k(params.clone(), "stopLossPrice", &[]);
+        let mut takeProfitTriggerPrice: Value = self.safe_value_k(params.clone(), "takeProfitPrice", &[]);
         let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".to_string()), Value::Str("callbackRatio".to_string()), &[]);
         let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
         let mut isTriggerOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
@@ -5795,14 +5953,14 @@ impl BitgetCore {
         let mut uta: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
-            let mut request: Value = self.create_uta_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+            let mut request: Value = self.create_uta_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
             if is_true(&isStopLossOrTakeProfitTrigger) {
                 response = self.call_method(Value::Str("private_uta_post_v3_trade_place_strategy_order".to_string()), &[request.clone()]).await;
             }  else {
                 response = self.call_method(Value::Str("private_uta_post_v3_trade_place_order".to_string()), &[request.clone()]).await;
             }
         }  else {
-            let mut request: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
+            let mut request: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
             if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
                 if is_true(&isTriggerOrder) {
                     response = self.call_method(Value::Str("private_spot_post_v2_spot_trade_place_plan_order".to_string()), &[request.clone()]).await;
@@ -5834,22 +5992,24 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_order(data.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
-    pub async fn create_uta_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub fn create_uta_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut market: Value = self.market(symbol.clone());
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&productType, &Value::Str("SPOT".to_string())) {
             let mut marginMode: Value = Value::Null;
             { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("createOrder".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -5858,7 +6018,7 @@ impl BitgetCore {
             }
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("category".to_string(), productType.clone());
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("qty".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
@@ -5870,10 +6030,10 @@ impl BitgetCore {
             add_element_to_object(&mut request, &Value::Str("clientOid".to_string()), clientOrderId.clone());
             params = self.omit(params.clone(), Value::Str("clientOrderId".to_string()), &[]);
         }
-        let mut stopLossTriggerPrice: Value = self.safe_number(params.clone(), Value::Str("stopLossPrice".to_string()), &[]);
-        let mut takeProfitTriggerPrice: Value = self.safe_number(params.clone(), Value::Str("takeProfitPrice".to_string()), &[]);
-        let mut stopLoss: Value = self.safe_value(params.clone(), Value::Str("stopLoss".to_string()), &[]);
-        let mut takeProfit: Value = self.safe_value(params.clone(), Value::Str("takeProfit".to_string()), &[]);
+        let mut stopLossTriggerPrice: Value = self.safe_number_k(params.clone(), "stopLossPrice", &[]);
+        let mut takeProfitTriggerPrice: Value = self.safe_number_k(params.clone(), "takeProfitPrice", &[]);
+        let mut stopLoss: Value = self.safe_value_k(params.clone(), "stopLoss", &[]);
+        let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
         let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
         let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
         let mut isStopLossTrigger: Value = Value::Bool(!is_equal(&stopLossTriggerPrice, &Value::Null));
@@ -5881,48 +6041,48 @@ impl BitgetCore {
         let mut isStopLossOrTakeProfitTrigger: Value = Value::Bool(is_true(&isStopLossTrigger) || is_true(&isTakeProfitTrigger));
         if is_true(&isStopLossOrTakeProfitTrigger) {
             if is_true(&isStopLossTrigger) {
-                let mut slType: Value = self.safe_string(params.clone(), Value::Str("slTriggerBy".to_string()), &[Value::Str("mark".to_string())]);
+                let mut slType: Value = self.safe_string_k(params.clone(), "slTriggerBy", &[Value::Str("mark".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("slTriggerBy".to_string()), slType.clone());
                 add_element_to_object(&mut request, &Value::Str("stopLoss".to_string()), self.price_to_precision(symbol.clone(), stopLossTriggerPrice.clone()));
                 if !is_equal(&price, &Value::Null) {
                     add_element_to_object(&mut request, &Value::Str("slLimitPrice".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
-                    add_element_to_object(&mut request, &Value::Str("slOrderType".to_string()), self.safe_string(params.clone(), Value::Str("slOrderType".to_string()), &[Value::Str("limit".to_string())]));
+                    add_element_to_object(&mut request, &Value::Str("slOrderType".to_string()), self.safe_string_k(params.clone(), "slOrderType", &[Value::Str("limit".to_string())]));
                 }  else {
-                    add_element_to_object(&mut request, &Value::Str("slOrderType".to_string()), self.safe_string(params.clone(), Value::Str("slOrderType".to_string()), &[Value::Str("market".to_string())]));
+                    add_element_to_object(&mut request, &Value::Str("slOrderType".to_string()), self.safe_string_k(params.clone(), "slOrderType", &[Value::Str("market".to_string())]));
                 }
             }  else if is_true(&isTakeProfitTrigger) {
-                let mut tpType: Value = self.safe_string(params.clone(), Value::Str("tpTriggerBy".to_string()), &[Value::Str("mark".to_string())]);
+                let mut tpType: Value = self.safe_string_k(params.clone(), "tpTriggerBy", &[Value::Str("mark".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("tpTriggerBy".to_string()), tpType.clone());
                 add_element_to_object(&mut request, &Value::Str("takeProfit".to_string()), self.price_to_precision(symbol.clone(), takeProfitTriggerPrice.clone()));
                 if !is_equal(&price, &Value::Null) {
                     add_element_to_object(&mut request, &Value::Str("tpLimitPrice".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
-                    add_element_to_object(&mut request, &Value::Str("tpOrderType".to_string()), self.safe_string(params.clone(), Value::Str("tpOrderType".to_string()), &[Value::Str("limit".to_string())]));
+                    add_element_to_object(&mut request, &Value::Str("tpOrderType".to_string()), self.safe_string_k(params.clone(), "tpOrderType", &[Value::Str("limit".to_string())]));
                 }  else {
-                    add_element_to_object(&mut request, &Value::Str("tpOrderType".to_string()), self.safe_string(params.clone(), Value::Str("tpOrderType".to_string()), &[Value::Str("market".to_string())]));
+                    add_element_to_object(&mut request, &Value::Str("tpOrderType".to_string()), self.safe_string_k(params.clone(), "tpOrderType", &[Value::Str("market".to_string())]));
                 }
             }
             params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
         }  else {
             if is_true(&hasStopLoss) {
                 let mut slTriggerPrice: Value = self.safe_number2(stopLoss.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
-                let mut slLimitPrice: Value = self.safe_number(stopLoss.clone(), Value::Str("price".to_string()), &[]);
+                let mut slLimitPrice: Value = self.safe_number_k(stopLoss.clone(), "price", &[]);
                 add_element_to_object(&mut request, &Value::Str("stopLoss".to_string()), self.price_to_precision(symbol.clone(), slTriggerPrice.clone()));
                 if !is_equal(&slLimitPrice, &Value::Null) {
                     add_element_to_object(&mut request, &Value::Str("slLimitPrice".to_string()), self.price_to_precision(symbol.clone(), slLimitPrice.clone()));
-                    add_element_to_object(&mut request, &Value::Str("slOrderType".to_string()), self.safe_string(params.clone(), Value::Str("slOrderType".to_string()), &[Value::Str("limit".to_string())]));
+                    add_element_to_object(&mut request, &Value::Str("slOrderType".to_string()), self.safe_string_k(params.clone(), "slOrderType", &[Value::Str("limit".to_string())]));
                 }  else {
-                    add_element_to_object(&mut request, &Value::Str("slOrderType".to_string()), self.safe_string(params.clone(), Value::Str("slOrderType".to_string()), &[Value::Str("market".to_string())]));
+                    add_element_to_object(&mut request, &Value::Str("slOrderType".to_string()), self.safe_string_k(params.clone(), "slOrderType", &[Value::Str("market".to_string())]));
                 }
             }
             if is_true(&hasTakeProfit) {
                 let mut tpTriggerPrice: Value = self.safe_number2(takeProfit.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
-                let mut tpLimitPrice: Value = self.safe_number(takeProfit.clone(), Value::Str("price".to_string()), &[]);
+                let mut tpLimitPrice: Value = self.safe_number_k(takeProfit.clone(), "price", &[]);
                 add_element_to_object(&mut request, &Value::Str("takeProfit".to_string()), self.price_to_precision(symbol.clone(), tpTriggerPrice.clone()));
                 if !is_equal(&tpLimitPrice, &Value::Null) {
                     add_element_to_object(&mut request, &Value::Str("tpLimitPrice".to_string()), self.price_to_precision(symbol.clone(), tpLimitPrice.clone()));
-                    add_element_to_object(&mut request, &Value::Str("tpOrderType".to_string()), self.safe_string(params.clone(), Value::Str("tpOrderType".to_string()), &[Value::Str("limit".to_string())]));
+                    add_element_to_object(&mut request, &Value::Str("tpOrderType".to_string()), self.safe_string_k(params.clone(), "tpOrderType", &[Value::Str("limit".to_string())]));
                 }  else {
-                    add_element_to_object(&mut request, &Value::Str("tpOrderType".to_string()), self.safe_string(params.clone(), Value::Str("tpOrderType".to_string()), &[Value::Str("market".to_string())]));
+                    add_element_to_object(&mut request, &Value::Str("tpOrderType".to_string()), self.safe_string_k(params.clone(), "tpOrderType", &[Value::Str("market".to_string())]));
                 }
             }
             let mut isMarketOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("market".to_string())));
@@ -5930,7 +6090,7 @@ impl BitgetCore {
                 add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
             }
             add_element_to_object(&mut request, &Value::Str("orderType".to_string()), type_var.clone());
-            let mut exchangeSpecificTifParam: Value = self.safe_string(params.clone(), Value::Str("timeInForce".to_string()), &[]);
+            let mut exchangeSpecificTifParam: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
             let mut postOnly: Value = Value::Null;
             { let __destr_tmp = self.handle_post_only(isMarketOrder.clone(), Value::Bool(is_equal(&exchangeSpecificTifParam, &Value::Str("post_only".to_string()))), &[params.clone()]); postOnly = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             let mut defaultTimeInForce: Value = self.safe_string_upper(self.options.clone(), Value::Str("defaultTimeInForce".to_string()), &[]);
@@ -5945,7 +6105,7 @@ impl BitgetCore {
                 add_element_to_object(&mut request, &Value::Str("timeInForce".to_string()), Value::Str("ioc".to_string()));
             }
         }
-        let mut reduceOnly: Value = self.safe_bool(params.clone(), Value::Str("reduceOnly".to_string()), &[Value::Bool(false)]);
+        let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
         let mut hedged: Value = Value::Null;
         { let __destr_tmp = self.handle_param_bool(params.clone(), Value::Str("hedged".to_string()), &[Value::Bool(false)]); hedged = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&reduceOnly) {
@@ -5963,12 +6123,14 @@ impl BitgetCore {
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string()), Value::Str("postOnly".to_string()), Value::Str("reduceOnly".to_string()), Value::Str("hedged".to_string())]), &[]);
         return self.extend(request.clone(), &[params.clone()]);
+
+    Value::Null
 }
 
-    pub async fn create_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub fn create_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut market: Value = self.market(symbol.clone());
@@ -5977,7 +6139,7 @@ impl BitgetCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("createOrder".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("createOrder".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("orderType".to_string(), type_var.clone());
             m
@@ -5992,10 +6154,10 @@ impl BitgetCore {
         }
         let mut isMarketOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("market".to_string())));
         let mut triggerPrice: Value = self.safe_value2(params.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]);
-        let mut stopLossTriggerPrice: Value = self.safe_value(params.clone(), Value::Str("stopLossPrice".to_string()), &[]);
-        let mut takeProfitTriggerPrice: Value = self.safe_value(params.clone(), Value::Str("takeProfitPrice".to_string()), &[]);
-        let mut stopLoss: Value = self.safe_value(params.clone(), Value::Str("stopLoss".to_string()), &[]);
-        let mut takeProfit: Value = self.safe_value(params.clone(), Value::Str("takeProfit".to_string()), &[]);
+        let mut stopLossTriggerPrice: Value = self.safe_value_k(params.clone(), "stopLossPrice", &[]);
+        let mut takeProfitTriggerPrice: Value = self.safe_value_k(params.clone(), "takeProfitPrice", &[]);
+        let mut stopLoss: Value = self.safe_value_k(params.clone(), "stopLoss", &[]);
+        let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
         let mut isTriggerOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
         let mut isStopLossTriggerOrder: Value = Value::Bool(!is_equal(&stopLossTriggerPrice, &Value::Null));
         let mut isTakeProfitTriggerOrder: Value = Value::Bool(!is_equal(&takeProfitTriggerPrice, &Value::Null));
@@ -6003,17 +6165,17 @@ impl BitgetCore {
         let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
         let mut isStopLossOrTakeProfitTrigger: Value = Value::Bool(is_true(&isStopLossTriggerOrder) || is_true(&isTakeProfitTriggerOrder));
         let mut isStopLossOrTakeProfit: Value = Value::Bool(is_true(&hasStopLoss) || is_true(&hasTakeProfit));
-        let mut trailingTriggerPrice: Value = self.safe_string(params.clone(), Value::Str("trailingTriggerPrice".to_string()), &[self.number_to_string(price.clone())]);
+        let mut trailingTriggerPrice: Value = self.safe_string_k(params.clone(), "trailingTriggerPrice", &[self.number_to_string(price.clone())]);
         let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".to_string()), Value::Str("callbackRatio".to_string()), &[]);
         let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
-        if is_greater_than(&self.sum(isTriggerOrder.clone(), isStopLossTriggerOrder.clone(), &[isTakeProfitTriggerOrder.clone(), isTrailingPercentOrder.clone()]), &Value::Int(1)) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent".to_string()))));
+        if is_greater_than(&self.sum(&[isTriggerOrder.clone(), isStopLossTriggerOrder.clone(), isTakeProfitTriggerOrder.clone(), isTrailingPercentOrder.clone()]), &Value::Int(1)) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent".to_string()))));
         }
         if is_equal(&type_var, &Value::Str("limit".to_string())) {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
         let mut triggerPriceType: Value = self.safe_string2(params.clone(), Value::Str("triggerPriceType".to_string()), Value::Str("triggerType".to_string()), &[Value::Str("mark_price".to_string())]);
-        let mut reduceOnly: Value = self.safe_bool(params.clone(), Value::Str("reduceOnly".to_string()), &[Value::Bool(false)]);
+        let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOid".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         let mut exchangeSpecificTifParam: Value = self.safe_string2(params.clone(), Value::Str("force".to_string()), Value::Str("timeInForce".to_string()), &[]);
         let mut postOnly: Value = Value::Null;
@@ -6034,7 +6196,7 @@ impl BitgetCore {
             add_element_to_object(&mut request, &Value::Str("marginCoin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
             add_element_to_object(&mut request, &Value::Str("size".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
             let mut productType: Value = Value::Null;
-            { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+            { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             if !is_equal(&clientOrderId, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("clientOid".to_string()), clientOrderId.clone());
@@ -6044,10 +6206,10 @@ impl BitgetCore {
             }
             if is_true(&isTrailingPercentOrder) {
                 if !is_true(&isMarketOrder) {
-                    panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrder() bitget trailing orders must be market orders".to_string()))));
+                    panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrder() bitget trailing orders must be market orders".to_string()))));
                 }
                 if is_equal(&trailingTriggerPrice, &Value::Null) {
-                    panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() bitget trailing orders must have a trailingTriggerPrice param".to_string()))));
+                    panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() bitget trailing orders must have a trailingTriggerPrice param".to_string()))));
                 }
                 add_element_to_object(&mut request, &Value::Str("planType".to_string()), Value::Str("track_plan".to_string()));
                 add_element_to_object(&mut request, &Value::Str("triggerPrice".to_string()), self.price_to_precision(symbol.clone(), trailingTriggerPrice.clone()));
@@ -6061,17 +6223,17 @@ impl BitgetCore {
                 if is_true(&hasStopLoss) {
                     let mut slTriggerPrice: Value = self.safe_string2(stopLoss.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
                     add_element_to_object(&mut request, &Value::Str("stopLossTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), slTriggerPrice.clone()));
-                    let mut slPrice: Value = self.safe_string(stopLoss.clone(), Value::Str("price".to_string()), &[]);
+                    let mut slPrice: Value = self.safe_string_k(stopLoss.clone(), "price", &[]);
                     add_element_to_object(&mut request, &Value::Str("stopLossExecutePrice".to_string()), self.price_to_precision(symbol.clone(), slPrice.clone()));
-                    let mut slType: Value = self.safe_string(stopLoss.clone(), Value::Str("type".to_string()), &[Value::Str("mark_price".to_string())]);
+                    let mut slType: Value = self.safe_string_k(stopLoss.clone(), "type", &[Value::Str("mark_price".to_string())]);
                     add_element_to_object(&mut request, &Value::Str("stopLossTriggerType".to_string()), slType.clone());
                 }
                 if is_true(&hasTakeProfit) {
                     let mut tpTriggerPrice: Value = self.safe_string2(takeProfit.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
                     add_element_to_object(&mut request, &Value::Str("stopSurplusTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), tpTriggerPrice.clone()));
-                    let mut tpPrice: Value = self.safe_string(takeProfit.clone(), Value::Str("price".to_string()), &[]);
+                    let mut tpPrice: Value = self.safe_string_k(takeProfit.clone(), "price", &[]);
                     add_element_to_object(&mut request, &Value::Str("stopSurplusExecutePrice".to_string()), self.price_to_precision(symbol.clone(), tpPrice.clone()));
-                    let mut tpType: Value = self.safe_string(takeProfit.clone(), Value::Str("type".to_string()), &[Value::Str("mark_price".to_string())]);
+                    let mut tpType: Value = self.safe_string_k(takeProfit.clone(), "type", &[Value::Str("mark_price".to_string())]);
                     add_element_to_object(&mut request, &Value::Str("stopSurplusTriggerType".to_string()), tpType.clone());
                 }
             }  else if is_true(&isStopLossOrTakeProfitTrigger) {
@@ -6127,7 +6289,7 @@ impl BitgetCore {
             }
         }  else if is_equal(&marketType, &Value::Str("spot".to_string())) {
             if is_true(&isStopLossOrTakeProfitTrigger) || is_true(&isStopLossOrTakeProfit) {
-                panic!("{:?}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() does not support stop loss/take profit orders on spot markets, only swap markets".to_string()))));
+                panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() does not support stop loss/take profit orders on spot markets, only swap markets".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("side".to_string()), side.clone());
             let mut quantity: Value = Value::Null;
@@ -6136,13 +6298,13 @@ impl BitgetCore {
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("createMarketBuyOrderRequiresPrice".to_string()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             if is_true(&isMarketOrder) && is_true(&(is_equal(&side, &Value::Str("buy".to_string())))) {
                 planType = Value::Str("total".to_string());
-                let mut cost: Value = self.safe_number(params.clone(), Value::Str("cost".to_string()), &[]);
+                let mut cost: Value = self.safe_number_k(params.clone(), "cost", &[]);
                 params = self.omit(params.clone(), Value::Str("cost".to_string()), &[]);
                 if !is_equal(&cost, &Value::Null) {
                     quantity = self.cost_to_precision(symbol.clone(), cost.clone());
                 }  else if is_true(&createMarketBuyOrderRequiresPrice) {
                     if is_equal(&price, &Value::Null) {
-                        panic!("{:?}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".to_string()))));
+                        panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".to_string()))));
                     }  else {
                         let mut amountString: Value = self.number_to_string(amount.clone());
                         let mut priceString: Value = self.number_to_string(price.clone());
@@ -6180,14 +6342,16 @@ impl BitgetCore {
                 }
             }
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" createOrder() does not support ".to_string())), &marketType), &Value::Str(" orders".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" createOrder() does not support ".to_string())), &marketType), &Value::Str(" orders".to_string()))));
         }
         return self.extend(request.clone(), &[params.clone()]);
+
+    Value::Null
 }
 
     pub async fn create_uta_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6196,22 +6360,24 @@ impl BitgetCore {
         let mut marginMode: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&orders)) {
+            let mut __for_first_339: bool = true;
+            while { if !__for_first_339 { i = add(&i, &Value::Int(1)); } __for_first_339 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
-            let mut marketId: Value = self.safe_string(rawOrder.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut rawOrder: Value = get_value(&orders, &i);
+            let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             if is_equal(&symbol, &Value::Null) {
                 symbol = marketId.clone();
             }  else {
                 if !is_equal(&symbol, &marketId) {
-                    panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrders() requires all orders to have the same symbol".to_string()))));
+                    panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrders() requires all orders to have the same symbol".to_string()))));
                 }
             }
-            let mut type_var: Value = self.safe_string(rawOrder.clone(), Value::Str("type".to_string()), &[]);
-            let mut side: Value = self.safe_string(rawOrder.clone(), Value::Str("side".to_string()), &[]);
-            let mut amount: Value = self.safe_value(rawOrder.clone(), Value::Str("amount".to_string()), &[]);
-            let mut price: Value = self.safe_value(rawOrder.clone(), Value::Str("price".to_string()), &[]);
-            let mut orderParams: Value = self.safe_value(rawOrder.clone(), Value::Str("params".to_string()), &[Value::Map({
-                let mut m = std::collections::HashMap::new();
+            let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
+            let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
+            let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
+            let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
+            let mut orderParams: Value = self.safe_value_k(rawOrder.clone(), "params", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
                 m
             })]);
             let mut marginResult: Value = self.handle_margin_mode_and_params(Value::Str("createOrders".to_string()), &[orderParams.clone()]);
@@ -6221,13 +6387,12 @@ impl BitgetCore {
                     marginMode = currentMarginMode.clone();
                 }  else {
                     if !is_equal(&marginMode, &currentMarginMode) {
-                        panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrders() requires all orders to have the same margin mode (isolated or cross)".to_string()))));
+                        panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrders() requires all orders to have the same margin mode (isolated or cross)".to_string()))));
                     }
                 }
             }
-            let mut orderRequest: Value = self.create_uta_order_request(marketId.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), orderParams.clone()]).await;
+            let mut orderRequest: Value = self.create_uta_order_request(marketId.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), orderParams.clone()]);
             append_to_array(&mut ordersRequests, orderRequest.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut market: Value = self.market(symbol.clone());
@@ -6245,27 +6410,29 @@ impl BitgetCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#createOrders
  * @description create a list of trade orders (all orders should be of the same symbol)
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/trade/Batch-Place-Orders
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/trade/Batch-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/isolated/trade/Isolated-Batch-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/cross/trade/Cross-Batch-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/trade/Place-Batch
+ * @see https://www.bitget.com/api-doc/spot/trade/Batch-Place-Orders
+ * @see https://www.bitget.com/api-doc/contract/trade/Batch-Order
+ * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Order
+ * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Order
+ * @see https://www.bitget.com/api-doc/uta/trade/Place-Batch
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the api endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6279,22 +6446,24 @@ impl BitgetCore {
         let mut marginMode: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&orders)) {
+            let mut __for_first_340: bool = true;
+            while { if !__for_first_340 { i = add(&i, &Value::Int(1)); } __for_first_340 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
-            let mut marketId: Value = self.safe_string(rawOrder.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut rawOrder: Value = get_value(&orders, &i);
+            let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             if is_equal(&symbol, &Value::Null) {
                 symbol = marketId.clone();
             }  else {
                 if !is_equal(&symbol, &marketId) {
-                    panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrders() requires all orders to have the same symbol".to_string()))));
+                    panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrders() requires all orders to have the same symbol".to_string()))));
                 }
             }
-            let mut type_var: Value = self.safe_string(rawOrder.clone(), Value::Str("type".to_string()), &[]);
-            let mut side: Value = self.safe_string(rawOrder.clone(), Value::Str("side".to_string()), &[]);
-            let mut amount: Value = self.safe_value(rawOrder.clone(), Value::Str("amount".to_string()), &[]);
-            let mut price: Value = self.safe_value(rawOrder.clone(), Value::Str("price".to_string()), &[]);
-            let mut orderParams: Value = self.safe_value(rawOrder.clone(), Value::Str("params".to_string()), &[Value::Map({
-                let mut m = std::collections::HashMap::new();
+            let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
+            let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
+            let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
+            let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
+            let mut orderParams: Value = self.safe_value_k(rawOrder.clone(), "params", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
                 m
             })]);
             let mut marginResult: Value = self.handle_margin_mode_and_params(Value::Str("createOrders".to_string()), &[orderParams.clone()]);
@@ -6304,18 +6473,17 @@ impl BitgetCore {
                     marginMode = currentMarginMode.clone();
                 }  else {
                     if !is_equal(&marginMode, &currentMarginMode) {
-                        panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrders() requires all orders to have the same margin mode (isolated or cross)".to_string()))));
+                        panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrders() requires all orders to have the same margin mode (isolated or cross)".to_string()))));
                     }
                 }
             }
-            let mut orderRequest: Value = self.create_order_request(marketId.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), orderParams.clone()]).await;
+            let mut orderRequest: Value = self.create_order_request(marketId.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), orderParams.clone()]);
             append_to_array(&mut ordersRequests, orderRequest.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("orderList".to_string(), ordersRequests.clone());
             m
@@ -6329,7 +6497,7 @@ impl BitgetCore {
             add_element_to_object(&mut request, &Value::Str("marginMode".to_string()), marginModeRequest.clone());
             add_element_to_object(&mut request, &Value::Str("marginCoin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
             let mut productType: Value = Value::Null;
-            { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+            { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             response = self.call_method(Value::Str("private_mix_post_v2_mix_order_batch_place_order".to_string()), &[request.clone()]).await;
         }  else if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
@@ -6362,27 +6530,29 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut failure: Value = self.safe_value(data.clone(), Value::Str("failureList".to_string()), &[Value::List(vec![])]);
-        let mut orderInfo: Value = self.safe_value(data.clone(), Value::Str("successList".to_string()), &[Value::List(vec![])]);
+        let mut failure: Value = self.safe_value_k(data.clone(), "failureList", &[Value::List(vec![])]);
+        let mut orderInfo: Value = self.safe_value_k(data.clone(), "successList", &[Value::List(vec![])]);
         let mut both: Value = self.array_concat(orderInfo.clone(), failure.clone());
         return self.parse_orders(both.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#editOrder
  * @description edit a trade order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/plan/Modify-Plan-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/trade/Cancel-Replace-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/trade/Modify-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/plan/Modify-Tpsl-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/plan/Modify-Plan-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/trade/Modify-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/strategy/Modify-Strategy-Order
+ * @see https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+ * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
+ * @see https://www.bitget.com/api-doc/contract/trade/Modify-Order
+ * @see https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
+ * @see https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
+ * @see https://www.bitget.com/api-doc/uta/trade/Modify-Order
+ * @see https://www.bitget.com/api-doc/uta/strategy/Modify-Strategy-Order
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -6390,34 +6560,34 @@ impl BitgetCore {
  * @param {float} amount how much you want to trade in units of the base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {float} [get_value(&params, &Value::Str("triggerPrice".to_string()))] the price that a trigger order is triggered at
- * @param {float} [get_value(&params, &Value::Str("stopLossPrice".to_string()))] *swap only* The price at which a stop loss order is triggered at
- * @param {float} [get_value(&params, &Value::Str("takeProfitPrice".to_string()))] *swap only* The price at which a take profit order is triggered at
- * @param {object} [get_value(&params, &Value::Str("takeProfit".to_string()))] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
- * @param {float} [get_value(&params, &Value::Str("takeProfit".to_string())).triggerPrice] *swap only* take profit trigger price
- * @param {object} [get_value(&params, &Value::Str("stopLoss".to_string()))] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
- * @param {float} [get_value(&params, &Value::Str("stopLoss".to_string())).triggerPrice] *swap only* stop loss trigger price
- * @param {float} [get_value(&params, &Value::Str("stopLoss".to_string())).price] *swap only* the execution price for a stop loss attached to a trigger order
- * @param {float} [get_value(&params, &Value::Str("takeProfit".to_string())).price] *swap only* the execution price for a take profit attached to a trigger order
- * @param {string} [get_value(&params, &Value::Str("stopLoss".to_string())).type] *swap only* the type for a stop loss attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
- * @param {string} [get_value(&params, &Value::Str("takeProfit".to_string())).type] *swap only* the type for a take profit attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
- * @param {string} [get_value(&params, &Value::Str("trailingPercent".to_string()))] *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
- * @param {string} [get_value(&params, &Value::Str("trailingTriggerPrice".to_string()))] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
- * @param {string} [get_value(&params, &Value::Str("newTriggerType".to_string()))] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
+ * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
+ * @param {float} [params.takeProfitPrice] *swap only* The price at which a take profit order is triggered at
+ * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+ * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
+ * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+ * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
+ * @param {float} [params.stopLoss.price] *swap only* the execution price for a stop loss attached to a trigger order
+ * @param {float} [params.takeProfit.price] *swap only* the execution price for a take profit attached to a trigger order
+ * @param {string} [params.stopLoss.type] *swap only* the type for a stop loss attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+ * @param {string} [params.takeProfit.type] *swap only* the type for a take profit attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+ * @param {string} [params.trailingPercent] *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
+ * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
+ * @param {string} [params.newTriggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn edit_order(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("clientOid".to_string()), &[]);
@@ -6430,25 +6600,25 @@ impl BitgetCore {
         let mut isMarketOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("market".to_string())));
         let mut triggerPrice: Value = self.safe_value2(params.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]);
         let mut isTriggerOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
-        let mut stopLossPrice: Value = self.safe_value(params.clone(), Value::Str("stopLossPrice".to_string()), &[]);
+        let mut stopLossPrice: Value = self.safe_value_k(params.clone(), "stopLossPrice", &[]);
         let mut isStopLossOrder: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null));
-        let mut takeProfitPrice: Value = self.safe_value(params.clone(), Value::Str("takeProfitPrice".to_string()), &[]);
+        let mut takeProfitPrice: Value = self.safe_value_k(params.clone(), "takeProfitPrice", &[]);
         let mut isTakeProfitOrder: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
-        let mut stopLoss: Value = self.safe_value(params.clone(), Value::Str("stopLoss".to_string()), &[]);
-        let mut takeProfit: Value = self.safe_value(params.clone(), Value::Str("takeProfit".to_string()), &[]);
+        let mut stopLoss: Value = self.safe_value_k(params.clone(), "stopLoss", &[]);
+        let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
         let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
         let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
-        let mut trailingTriggerPrice: Value = self.safe_string(params.clone(), Value::Str("trailingTriggerPrice".to_string()), &[self.number_to_string(price.clone())]);
+        let mut trailingTriggerPrice: Value = self.safe_string_k(params.clone(), "trailingTriggerPrice", &[self.number_to_string(price.clone())]);
         let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".to_string()), Value::Str("newCallbackRatio".to_string()), &[]);
         let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
-        if is_greater_than(&self.sum(isTriggerOrder.clone(), isStopLossOrder.clone(), &[isTakeProfitOrder.clone(), isTrailingPercentOrder.clone()]), &Value::Int(1)) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent".to_string()))));
+        if is_greater_than(&self.sum(&[isTriggerOrder.clone(), isStopLossOrder.clone(), isTakeProfitOrder.clone(), isTrailingPercentOrder.clone()]), &Value::Int(1)) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent".to_string()))));
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stopPrice".to_string()), Value::Str("triggerType".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("trailingTriggerPrice".to_string()), Value::Str("trailingPercent".to_string())]), &[]);
         let mut response: Value = Value::Null;
         let mut productType: Value = Value::Null;
         let mut uta: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("editOrder".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             if !is_equal(&amount, &Value::Null) {
@@ -6456,24 +6626,24 @@ impl BitgetCore {
             }
             if is_true(&isStopLossOrder) || is_true(&isTakeProfitOrder) {
                 if is_true(&isStopLossOrder) {
-                    let mut slType: Value = self.safe_string(params.clone(), Value::Str("slTriggerBy".to_string()), &[Value::Str("mark".to_string())]);
+                    let mut slType: Value = self.safe_string_k(params.clone(), "slTriggerBy", &[Value::Str("mark".to_string())]);
                     add_element_to_object(&mut request, &Value::Str("slTriggerBy".to_string()), slType.clone());
                     add_element_to_object(&mut request, &Value::Str("stopLoss".to_string()), self.price_to_precision(symbol.clone(), stopLossPrice.clone()));
                     if !is_equal(&price, &Value::Null) {
                         add_element_to_object(&mut request, &Value::Str("slLimitPrice".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
-                        add_element_to_object(&mut request, &Value::Str("slOrderType".to_string()), self.safe_string(params.clone(), Value::Str("slOrderType".to_string()), &[Value::Str("limit".to_string())]));
+                        add_element_to_object(&mut request, &Value::Str("slOrderType".to_string()), self.safe_string_k(params.clone(), "slOrderType", &[Value::Str("limit".to_string())]));
                     }  else {
-                        add_element_to_object(&mut request, &Value::Str("slOrderType".to_string()), self.safe_string(params.clone(), Value::Str("slOrderType".to_string()), &[Value::Str("market".to_string())]));
+                        add_element_to_object(&mut request, &Value::Str("slOrderType".to_string()), self.safe_string_k(params.clone(), "slOrderType", &[Value::Str("market".to_string())]));
                     }
                 }  else if is_true(&isTakeProfitOrder) {
-                    let mut tpType: Value = self.safe_string(params.clone(), Value::Str("tpTriggerBy".to_string()), &[Value::Str("mark".to_string())]);
+                    let mut tpType: Value = self.safe_string_k(params.clone(), "tpTriggerBy", &[Value::Str("mark".to_string())]);
                     add_element_to_object(&mut request, &Value::Str("tpTriggerBy".to_string()), tpType.clone());
                     add_element_to_object(&mut request, &Value::Str("takeProfit".to_string()), self.price_to_precision(symbol.clone(), takeProfitPrice.clone()));
                     if !is_equal(&price, &Value::Null) {
                         add_element_to_object(&mut request, &Value::Str("tpLimitPrice".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
-                        add_element_to_object(&mut request, &Value::Str("tpOrderType".to_string()), self.safe_string(params.clone(), Value::Str("tpOrderType".to_string()), &[Value::Str("limit".to_string())]));
+                        add_element_to_object(&mut request, &Value::Str("tpOrderType".to_string()), self.safe_string_k(params.clone(), "tpOrderType", &[Value::Str("limit".to_string())]));
                     }  else {
-                        add_element_to_object(&mut request, &Value::Str("tpOrderType".to_string()), self.safe_string(params.clone(), Value::Str("tpOrderType".to_string()), &[Value::Str("market".to_string())]));
+                        add_element_to_object(&mut request, &Value::Str("tpOrderType".to_string()), self.safe_string_k(params.clone(), "tpOrderType", &[Value::Str("market".to_string())]));
                     }
                 }
                 params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
@@ -6485,12 +6655,12 @@ impl BitgetCore {
                 response = self.call_method(Value::Str("private_uta_post_v3_trade_modify_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            let mut cost: Value = self.safe_string(params.clone(), Value::Str("cost".to_string()), &[]);
+            let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
             params = self.omit(params.clone(), Value::Str("cost".to_string()), &[]);
-            let mut editMarketBuyOrderRequiresPrice: Value = self.safe_bool(self.options.clone(), Value::Str("editMarketBuyOrderRequiresPrice".to_string()), &[Value::Bool(true)]);
+            let mut editMarketBuyOrderRequiresPrice: Value = self.safe_bool_k(self.options.clone(), "editMarketBuyOrderRequiresPrice", &[Value::Bool(true)]);
             if is_true(&(is_true(&editMarketBuyOrderRequiresPrice) || is_true(&(!is_equal(&cost, &Value::Null))))) && is_true(&isMarketOrder) && is_true(&(is_equal(&side, &Value::Str("buy".to_string())))) {
                 if is_equal(&price, &Value::Null) && is_equal(&cost, &Value::Null) {
-                    panic!("{:?}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params".to_string()))));
+                    panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params".to_string()))));
                 }  else {
                     let mut amountString: Value = self.number_to_string(amount.clone());
                     let mut priceString: Value = self.number_to_string(price.clone());
@@ -6515,7 +6685,7 @@ impl BitgetCore {
             }
         }  else {
             if is_true(&(!is_true(&get_value(&market, &Value::Str("swap".to_string()))))) && is_true(&(!is_true(&get_value(&market, &Value::Str("future".to_string()))))) {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" editOrder() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" editOrder() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
@@ -6529,7 +6699,7 @@ impl BitgetCore {
             }
             if is_true(&isTrailingPercentOrder) {
                 if !is_true(&isMarketOrder) {
-                    panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" editOrder() bitget trailing orders must be market orders".to_string()))));
+                    panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" editOrder() bitget trailing orders must be market orders".to_string()))));
                 }
                 if !is_equal(&trailingTriggerPrice, &Value::Null) {
                     add_element_to_object(&mut request, &Value::Str("newTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), trailingTriggerPrice.clone()));
@@ -6553,22 +6723,22 @@ impl BitgetCore {
                 if is_true(&hasStopLoss) {
                     let mut slTriggerPrice: Value = self.safe_number2(stopLoss.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
                     add_element_to_object(&mut request, &Value::Str("newStopLossTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), slTriggerPrice.clone()));
-                    let mut slPrice: Value = self.safe_number(stopLoss.clone(), Value::Str("price".to_string()), &[]);
+                    let mut slPrice: Value = self.safe_number_k(stopLoss.clone(), "price", &[]);
                     add_element_to_object(&mut request, &Value::Str("newStopLossExecutePrice".to_string()), self.price_to_precision(symbol.clone(), slPrice.clone()));
-                    let mut slType: Value = self.safe_string(stopLoss.clone(), Value::Str("type".to_string()), &[Value::Str("mark_price".to_string())]);
+                    let mut slType: Value = self.safe_string_k(stopLoss.clone(), "type", &[Value::Str("mark_price".to_string())]);
                     add_element_to_object(&mut request, &Value::Str("newStopLossTriggerType".to_string()), slType.clone());
                 }
                 if is_true(&hasTakeProfit) {
                     let mut tpTriggerPrice: Value = self.safe_number2(takeProfit.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
                     add_element_to_object(&mut request, &Value::Str("newSurplusTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), tpTriggerPrice.clone()));
-                    let mut tpPrice: Value = self.safe_number(takeProfit.clone(), Value::Str("price".to_string()), &[]);
+                    let mut tpPrice: Value = self.safe_number_k(takeProfit.clone(), "price", &[]);
                     add_element_to_object(&mut request, &Value::Str("newStopSurplusExecutePrice".to_string()), self.price_to_precision(symbol.clone(), tpPrice.clone()));
-                    let mut tpType: Value = self.safe_string(takeProfit.clone(), Value::Str("type".to_string()), &[Value::Str("mark_price".to_string())]);
+                    let mut tpType: Value = self.safe_string_k(takeProfit.clone(), "type", &[Value::Str("mark_price".to_string())]);
                     add_element_to_object(&mut request, &Value::Str("newStopSurplusTriggerType".to_string()), tpType.clone());
                 }
                 response = self.call_method(Value::Str("private_mix_post_v2_mix_order_modify_plan_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }  else {
-                let mut defaultNewClientOrderId: Value = self.uuid();
+                let mut defaultNewClientOrderId: Value = self.uuid(&[]);
                 let mut newClientOrderId: Value = self.safe_string2(params.clone(), Value::Str("newClientOid".to_string()), Value::Str("newClientOrderId".to_string()), &[defaultNewClientOrderId.clone()]);
                 params = self.omit(params.clone(), Value::Str("newClientOrderId".to_string()), &[]);
                 add_element_to_object(&mut request, &Value::Str("newClientOid".to_string()), newClientOrderId.clone());
@@ -6594,44 +6764,46 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_order(data.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#cancelOrder
  * @description cancels an open order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/trade/Cancel-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/plan/Cancel-Plan-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/trade/Cancel-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/plan/Cancel-Plan-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/cross/trade/Cross-Cancel-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/isolated/trade/Isolated-Cancel-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/trade/Cancel-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/strategy/Cancel-Strategy-Order
+ * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Order
+ * @see https://www.bitget.com/api-doc/spot/plan/Cancel-Plan-Order
+ * @see https://www.bitget.com/api-doc/contract/trade/Cancel-Order
+ * @see https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order
+ * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Cancel-Order
+ * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Cancel-Order
+ * @see https://www.bitget.com/api-doc/uta/trade/Cancel-Order
+ * @see https://www.bitget.com/api-doc/uta/strategy/Cancel-Strategy-Order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'isolated' or 'cross' for spot margin trading
- * @param {boolean} [get_value(&params, &Value::Str("trigger".to_string()))] set to true for canceling trigger orders
- * @param {string} [get_value(&params, &Value::Str("planType".to_string()))] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
- * @param {boolean} [get_value(&params, &Value::Str("trailing".to_string()))] set to true if you want to cancel a trailing order
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @param {string} [get_value(&params, &Value::Str("clientOrderId".to_string()))] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
- * @returns {object} An [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
+ * @param {boolean} [params.trigger] set to true for canceling trigger orders
+ * @param {string} [params.planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
+ * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
@@ -6639,10 +6811,10 @@ impl BitgetCore {
         let mut response: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("cancelOrder".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut trailing: Value = self.safe_value(params.clone(), Value::Str("trailing".to_string()), &[]);
+        let mut trailing: Value = self.safe_value_k(params.clone(), "trailing", &[]);
         let mut trigger: Value = self.safe_value2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("trailing".to_string())]), &[]);
         if !is_true(&(is_true(&get_value(&market, &Value::Str("spot".to_string()))) && is_true(&trigger))) {
@@ -6657,7 +6829,7 @@ impl BitgetCore {
         if is_true(&isContractTriggerEndpoint) {
             let mut orderIdList: Value = Value::List(vec![]);
             let mut orderId: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m
             });
             if !is_equal(&clientOrderId, &Value::Null) {
@@ -6684,10 +6856,10 @@ impl BitgetCore {
             }
         }  else if is_true(&(get_value(&market, &Value::Str("swap".to_string())))) || is_true(&(get_value(&market, &Value::Str("future".to_string())))) {
             let mut productType: Value = Value::Null;
-            { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+            { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             if is_true(&trailing) {
-                let mut planType: Value = self.safe_string(params.clone(), Value::Str("planType".to_string()), &[Value::Str("track_plan".to_string())]);
+                let mut planType: Value = self.safe_string_k(params.clone(), "planType", &[Value::Str("track_plan".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("planType".to_string()), planType.clone());
                 response = self.call_method(Value::Str("private_mix_post_v2_mix_order_cancel_plan_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }  else if is_true(&trigger) {
@@ -6710,7 +6882,7 @@ impl BitgetCore {
                 }
             }
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" cancelOrder() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" cancelOrder() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
         }
         //
         // spot, swap, future and spot margin
@@ -6762,13 +6934,13 @@ impl BitgetCore {
         //         "data": null
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut order: Value = Value::Null;
         if is_true(&isContractTriggerEndpoint) {
-            let mut orderInfo: Value = self.safe_value(data.clone(), Value::Str("successList".to_string()), &[Value::List(vec![])]);
+            let mut orderInfo: Value = self.safe_value_k(data.clone(), "successList", &[Value::List(vec![])]);
             order = get_value(&orderInfo, &Value::Int(0));
         }  else {
             if is_true(&uta) && is_true(&trigger) {
@@ -6778,35 +6950,38 @@ impl BitgetCore {
             }
         }
         return self.parse_order(order.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub async fn cancel_uta_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut requestList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&ids)) {
+            let mut __for_first_341: bool = true;
+            while { if !__for_first_341 { i = add(&i, &Value::Int(1)); } __for_first_341 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut individualId: Value = get_value(&ids, &i);
             let mut individualId: Value = get_value(&ids, &i);
             let mut order: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("orderId".to_string(), individualId.clone());
                     m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                     m.insert("category".to_string(), productType.clone());
                 m
             });
             append_to_array(&mut requestList, order.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut response: Value = self.call_method(Value::Str("private_uta_post_v3_trade_cancel_batch".to_string()), &[requestList.clone()]).await;
@@ -6823,36 +6998,38 @@ impl BitgetCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#cancelOrders
  * @description cancel multiple orders
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/trade/Batch-Cancel-Orders
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/trade/Batch-Cancel-Orders
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/plan/Cancel-Plan-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/trade/Cancel-Batch
+ * @see https://www.bitget.com/api-doc/spot/trade/Batch-Cancel-Orders
+ * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
+ * @see https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order
+ * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+ * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
+ * @see https://www.bitget.com/api-doc/uta/trade/Cancel-Batch
  * @param {string[]} ids order ids
  * @param {string} symbol unified market symbol, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'isolated' or 'cross' for spot margin trading
- * @param {boolean} [get_value(&params, &Value::Str("trigger".to_string()))] *contract only* set to true for canceling trigger orders
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object} an array of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
+ * @param {boolean} [params.trigger] *contract only* set to true for canceling trigger orders
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
@@ -6868,19 +7045,20 @@ impl BitgetCore {
         let mut orderIdList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&ids)) {
+            let mut __for_first_342: bool = true;
+            while { if !__for_first_342 { i = add(&i, &Value::Int(1)); } __for_first_342 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut individualId: Value = get_value(&ids, &i);
             let mut individualId: Value = get_value(&ids, &i);
             let mut orderId: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("orderId".to_string(), individualId.clone());
                 m
             });
             append_to_array(&mut orderIdList, orderId.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -6902,7 +7080,7 @@ impl BitgetCore {
             }
         }  else {
             let mut productType: Value = Value::Null;
-            { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+            { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             if is_true(&trigger) {
                 response = self.call_method(Value::Str("private_mix_post_v2_mix_order_cancel_plan_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
@@ -6926,47 +7104,49 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orders: Value = self.safe_list(data.clone(), Value::Str("successList".to_string()), &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(data.clone(), "successList", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#cancelAllOrders
  * @description cancel all open orders
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/trade/Cancel-Symbol-Orders
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/plan/Batch-Cancel-Plan-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/trade/Batch-Cancel-Orders
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
+ * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
+ * @see https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
+ * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
+ * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+ * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'isolated' or 'cross' for spot margin trading
- * @param {boolean} [get_value(&params, &Value::Str("trigger".to_string()))] *contract only* set to true for canceling trigger orders
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
+ * @param {boolean} [params.trigger] *contract only* set to true for canceling trigger orders
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_all_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelAllOrders() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelAllOrders() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("cancelAllOrders".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -6985,11 +7165,11 @@ impl BitgetCore {
             response = self.call_method(Value::Str("private_uta_post_v3_trade_cancel_symbol_order".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             if !is_equal(&marginMode, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrders() does not support margin markets, you can use cancelOrders() instead".to_string()))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrders() does not support margin markets, you can use cancelOrders() instead".to_string()))));
             }  else {
                 if is_true(&trigger) {
                     let mut stopRequest: Value = Value::Map({
-                        let mut m = std::collections::HashMap::new();
+                        let mut m = indexmap::IndexMap::new();
                             m.insert("symbolList".to_string(), Value::List(vec![get_value(&market, &Value::Str("id".to_string()))]));
                         m
                     });
@@ -7007,11 +7187,11 @@ impl BitgetCore {
                 //         }
                 //     }
                 //
-                let mut timestamp: Value = self.safe_integer(response.clone(), Value::Str("requestTime".to_string()), &[]);
-                let mut responseData: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[]);
-                let mut marketId: Value = self.safe_string(responseData.clone(), Value::Str("symbol".to_string()), &[]);
+                let mut timestamp: Value = self.safe_integer_k(response.clone(), "requestTime", &[]);
+                let mut responseData: Value = self.safe_dict_k(response.clone(), "data", &[]);
+                let mut marketId: Value = self.safe_string_k(responseData.clone(), "symbol", &[]);
                 return Value::List(vec![self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[Value::Null, Value::Null, Value::Str("spot".to_string())]));
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -7027,7 +7207,7 @@ impl BitgetCore {
                 response = self.call_method(Value::Str("private_mix_post_v2_mix_order_batch_cancel_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }
         }
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
         let mut resultList: Value = self.safe_list_n(data.clone(), Value::List(vec![Value::Str("resultList".to_string()), Value::Str("successList".to_string()), Value::Str("list".to_string())]), &[]);
         let mut failureList: Value = self.safe_list2(data.clone(), Value::Str("failure".to_string()), Value::Str("failureList".to_string()), &[]);
         let mut responseList: Value = Value::Null;
@@ -7037,35 +7217,37 @@ impl BitgetCore {
             responseList = resultList.clone();
         }
         return self.parse_orders(responseList.clone(), &[]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/trade/Get-Order-Info
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/trade/Get-Order-Details
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/trade/Get-Order-Details
+ * @see https://www.bitget.com/api-doc/spot/trade/Get-Order-Info
+ * @see https://www.bitget.com/api-doc/contract/trade/Get-Order-Details
+ * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-Details
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @param {string} [get_value(&params, &Value::Str("clientOrderId".to_string()))] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
- * @returns {object} An [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("clientOid".to_string()), &[]);
@@ -7085,11 +7267,11 @@ impl BitgetCore {
         }  else if is_true(&get_value(&market, &Value::Str("swap".to_string()))) || is_true(&get_value(&market, &Value::Str("future".to_string()))) {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             let mut productType: Value = Value::Null;
-            { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+            { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             response = self.call_method(Value::Str("private_mix_get_v2_mix_order_detail".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchOrder() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchOrder() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
         }
         //
         // spot
@@ -7205,61 +7387,63 @@ impl BitgetCore {
         if !is_true(&uta) && is_true(&(is_string(&response))) {
             response = json_parse(&response);
         }
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
         if is_true(&(!is_equal(&data, &Value::Null))) {
             if !is_true(&Value::Bool(is_array(&data))) {
                 return self.parse_order(data.clone(), &[market.clone()]);
             }
         }
-        let mut dataList: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut dataList: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut dataListLength: Value = get_array_length(&dataList);
         if is_equal(&dataListLength, &Value::Int(0)) {
-            panic!("{:?}", crate::exchange_errors::order_not_found(add(&add(&add(&add(&self.id, &Value::Str(" fetchOrder() could not find order id ".to_string())), &id), &Value::Str(" in ".to_string())), &self.json(response.clone()))));
+            panic!("{}", crate::exchange_errors::order_not_found(add(&add(&add(&add(&self.id, &Value::Str(" fetchOrder() could not find order id ".to_string())), &id), &Value::Str(" in ".to_string())), &self.json(response.clone()))));
         }
         let mut first: Value = self.safe_dict(dataList.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_order(first.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/trade/Get-Unfilled-Orders
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/plan/Get-Current-Plan-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/trade/Get-Orders-Pending
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/plan/get-orders-plan-pending
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/cross/trade/Get-Cross-Open-Orders
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/isolated/trade/Isolated-Open-Orders
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/strategy/Get-Unfilled-Strategy-Orders
+ * @see https://www.bitget.com/api-doc/spot/trade/Get-Unfilled-Orders
+ * @see https://www.bitget.com/api-doc/spot/plan/Get-Current-Plan-Order
+ * @see https://www.bitget.com/api-doc/contract/trade/Get-Orders-Pending
+ * @see https://www.bitget.com/api-doc/contract/plan/get-orders-plan-pending
+ * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Open-Orders
+ * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Open-Orders
+ * @see https://www.bitget.com/api-doc/uta/strategy/Get-Unfilled-Strategy-Orders
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch orders for
- * @param {string} [get_value(&params, &Value::Str("planType".to_string()))] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
- * @param {boolean} [get_value(&params, &Value::Str("trigger".to_string()))] set to true for fetching trigger orders
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {string} [get_value(&params, &Value::Str("isPlan".to_string()))] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
- * @param {boolean} [get_value(&params, &Value::Str("trailing".to_string()))] set to true if you want to fetch trailing orders
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {Order[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {int} [params.until] the latest time in ms to fetch orders for
+ * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+ * @param {boolean} [params.trigger] set to true for fetching trigger orders
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+ * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_open_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = Value::Null;
         let mut type_var: Value = Value::Null;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut marginMode: Value = Value::Null;
@@ -7271,10 +7455,10 @@ impl BitgetCore {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchOpenOrders".to_string()), Value::Str("defaultType".to_string()), &[Value::Str("spot".to_string())]);
             let mut marketType: Value = ternary(is_true(&(Value::Bool(in_op(&market, &Value::Str("type".to_string()))))), get_value(&market, &Value::Str("type".to_string())), defaultType.clone());
-            type_var = self.safe_string(params.clone(), Value::Str("type".to_string()), &[marketType.clone()]);
+            type_var = self.safe_string_k(params.clone(), "type", &[marketType.clone()]);
         }  else {
             let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchOpenOrders".to_string()), Value::Str("defaultType".to_string()), &[Value::Str("spot".to_string())]);
-            type_var = self.safe_string(params.clone(), Value::Str("type".to_string()), &[defaultType.clone()]);
+            type_var = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
         }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOpenOrders".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -7296,9 +7480,9 @@ impl BitgetCore {
             return self.fetch_paginated_call_cursor(Value::Str("fetchOpenOrders".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone(), cursorReceived.clone(), cursorSent.clone()]).await;
         }
         let mut response: Value = Value::Null;
-        let mut trailing: Value = self.safe_bool(params.clone(), Value::Str("trailing".to_string()), &[]);
+        let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[]);
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
-        let mut planTypeDefined: Value = Value::Bool(!is_equal(&self.safe_string(params.clone(), Value::Str("planType".to_string()), &[]), &Value::Null));
+        let mut planTypeDefined: Value = Value::Bool(!is_equal(&self.safe_string_k(params.clone(), "planType", &[]), &Value::Null));
         let mut isTrigger: Value = Value::Bool(is_true(&trigger) || is_true(&planTypeDefined));
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if !is_equal(&since, &Value::Null) {
@@ -7315,7 +7499,7 @@ impl BitgetCore {
             }
         }
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("type".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("trailing".to_string())]), &[]);
         if is_true(&uta) {
             if is_equal(&type_var, &Value::Str("spot".to_string())) {
@@ -7350,11 +7534,11 @@ impl BitgetCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             if is_true(&trailing) {
-                let mut planType: Value = self.safe_string(params.clone(), Value::Str("planType".to_string()), &[Value::Str("track_plan".to_string())]);
+                let mut planType: Value = self.safe_string_k(params.clone(), "planType", &[Value::Str("track_plan".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("planType".to_string()), planType.clone());
                 response = self.call_method(Value::Str("private_mix_get_v2_mix_order_orders_plan_pending".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }  else if is_true(&isTrigger) {
-                let mut planType: Value = self.safe_string(params.clone(), Value::Str("planType".to_string()), &[Value::Str("normal_plan".to_string())]);
+                let mut planType: Value = self.safe_string_k(params.clone(), "planType", &[Value::Str("normal_plan".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("planType".to_string()), planType.clone());
                 response = self.call_method(Value::Str("private_mix_get_v2_mix_order_orders_plan_pending".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }  else {
@@ -7613,130 +7797,136 @@ impl BitgetCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
         if is_true(&uta) {
             let mut result: Value = Value::Null;
             if is_true(&trigger) {
-                result = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+                result = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
             }  else {
-                result = self.safe_list(data.clone(), Value::Str("list".to_string()), &[Value::List(vec![])]);
+                result = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
             }
             return self.parse_orders(result.clone(), &[market.clone(), since.clone(), limit.clone()]);
         }  else if is_equal(&type_var, &Value::Str("spot".to_string())) {
             if is_true(&(!is_equal(&marginMode, &Value::Null))) || is_true(&trigger) {
-                let mut resultList: Value = self.safe_list(data.clone(), Value::Str("orderList".to_string()), &[Value::List(vec![])]);
+                let mut resultList: Value = self.safe_list_k(data.clone(), "orderList", &[Value::List(vec![])]);
                 return self.parse_orders(resultList.clone(), &[market.clone(), since.clone(), limit.clone()]);
             }
         }  else {
-            let mut result: Value = self.safe_list(data.clone(), Value::Str("entrustedList".to_string()), &[Value::List(vec![])]);
+            let mut result: Value = self.safe_list_k(data.clone(), "entrustedList", &[Value::List(vec![])]);
             return self.parse_orders(result.clone(), &[market.clone(), since.clone(), limit.clone()]);
         }
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/trade/Get-History-Orders
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/plan/Get-History-Plan-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/trade/Get-Orders-History
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/plan/orders-plan-history
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/cross/trade/Get-Cross-Order-History
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/trade/Get-Order-History
+ * @see https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
+ * @see https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
+ * @see https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
+ * @see https://www.bitget.com/api-doc/contract/plan/orders-plan-history
+ * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
+ * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+ * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-History
  * @param {string} symbol unified market symbol of the closed orders
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the max number of closed orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch orders for
- * @param {string} [get_value(&params, &Value::Str("planType".to_string()))] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
- * @param {boolean} [get_value(&params, &Value::Str("trigger".to_string()))] set to true for fetching trigger orders
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {string} [get_value(&params, &Value::Str("isPlan".to_string()))] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
- * @param {boolean} [get_value(&params, &Value::Str("trailing".to_string()))] set to true if you want to fetch trailing orders
- * @returns {Order[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {int} [params.until] the latest time in ms to fetch orders for
+ * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+ * @param {boolean} [params.trigger] set to true for fetching trigger orders
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+ * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_closed_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut orders: Value = self.fetch_canceled_and_closed_orders(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         return self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("closed".to_string()), &[]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchCanceledOrders
  * @description fetches information on multiple canceled orders made by the user
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/trade/Get-History-Orders
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/plan/Get-History-Plan-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/trade/Get-Orders-History
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/plan/orders-plan-history
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/cross/trade/Get-Cross-Order-History
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/trade/Get-Order-History
+ * @see https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
+ * @see https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
+ * @see https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
+ * @see https://www.bitget.com/api-doc/contract/plan/orders-plan-history
+ * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
+ * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+ * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-History
  * @param {string} symbol unified market symbol of the canceled orders
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the max number of canceled orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch orders for
- * @param {string} [get_value(&params, &Value::Str("planType".to_string()))] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
- * @param {boolean} [get_value(&params, &Value::Str("trigger".to_string()))] set to true for fetching trigger orders
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {string} [get_value(&params, &Value::Str("isPlan".to_string()))] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
- * @param {boolean} [get_value(&params, &Value::Str("trailing".to_string()))] set to true if you want to fetch trailing orders
- * @returns {object} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {int} [params.until] the latest time in ms to fetch orders for
+ * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+ * @param {boolean} [params.trigger] set to true for fetching trigger orders
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+ * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut orders: Value = self.fetch_canceled_and_closed_orders(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         return self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("canceled".to_string()), &[]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchCanceledAndClosedOrders
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/trade/Get-History-Orders
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/plan/Get-History-Plan-Order
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/trade/Get-Orders-History
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/plan/orders-plan-history
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/cross/trade/Get-Cross-Order-History
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/trade/Get-Order-History
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/strategy/Get-History-Strategy-Orders
+ * @see https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
+ * @see https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
+ * @see https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
+ * @see https://www.bitget.com/api-doc/contract/plan/orders-plan-history
+ * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
+ * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+ * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-History
+ * @see https://www.bitget.com/api-doc/uta/strategy/Get-History-Strategy-Orders
  * @description fetches information on multiple canceled and closed orders made by the user
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch orders for
- * @param {string} [get_value(&params, &Value::Str("planType".to_string()))] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
- * @param {boolean} [get_value(&params, &Value::Str("trigger".to_string()))] set to true for fetching trigger orders
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {string} [get_value(&params, &Value::Str("isPlan".to_string()))] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
- * @param {boolean} [get_value(&params, &Value::Str("trailing".to_string()))] set to true if you want to fetch trailing orders
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {Order[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {int} [params.until] the latest time in ms to fetch orders for
+ * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+ * @param {boolean} [params.trigger] set to true for fetching trigger orders
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+ * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_canceled_and_closed_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut uta: Value = Value::Null;
@@ -7747,7 +7937,7 @@ impl BitgetCore {
         self.load_markets(&[]).await;
         let mut market: Value = Value::Null;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if !is_equal(&symbol, &Value::Null) {
@@ -7772,7 +7962,7 @@ impl BitgetCore {
             return self.fetch_paginated_call_cursor(Value::Str("fetchCanceledAndClosedOrders".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone(), cursorReceived.clone(), Value::Str("idLessThan".to_string())]).await;
         }
         let mut response: Value = Value::Null;
-        let mut trailing: Value = self.safe_bool(params.clone(), Value::Str("trailing".to_string()), &[]);
+        let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[]);
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("trailing".to_string())]), &[]);
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -7803,7 +7993,7 @@ impl BitgetCore {
                 }
             }  else if is_true(&trigger) {
                 if is_equal(&symbol, &Value::Null) {
-                    panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchCanceledAndClosedOrders() requires a symbol argument".to_string()))));
+                    panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchCanceledAndClosedOrders() requires a symbol argument".to_string()))));
                 }
                 let mut endTime: Value = self.safe_integer_n(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("until".to_string())]), &[]);
                 params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
@@ -7820,15 +8010,15 @@ impl BitgetCore {
             }
         }  else {
             let mut productType: Value = Value::Null;
-            { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+            { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let mut planTypeDefined: Value = Value::Bool(!is_equal(&self.safe_string(params.clone(), Value::Str("planType".to_string()), &[]), &Value::Null));
+            let mut planTypeDefined: Value = Value::Bool(!is_equal(&self.safe_string_k(params.clone(), "planType", &[]), &Value::Null));
             if is_true(&trailing) {
-                let mut planType: Value = self.safe_string(params.clone(), Value::Str("planType".to_string()), &[Value::Str("track_plan".to_string())]);
+                let mut planType: Value = self.safe_string_k(params.clone(), "planType", &[Value::Str("track_plan".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("planType".to_string()), planType.clone());
                 response = self.call_method(Value::Str("private_mix_get_v2_mix_order_orders_plan_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }  else if is_true(&trigger) || is_true(&planTypeDefined) {
-                let mut planType: Value = self.safe_string(params.clone(), Value::Str("planType".to_string()), &[Value::Str("normal_plan".to_string())]);
+                let mut planType: Value = self.safe_string_k(params.clone(), "planType", &[Value::Str("normal_plan".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("planType".to_string()), planType.clone());
                 response = self.call_method(Value::Str("private_mix_get_v2_mix_order_orders_plan_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }  else {
@@ -8013,22 +8203,24 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
             if is_true(&(!is_equal(&marginMode, &Value::Null))) || is_true(&trigger) {
-                return self.parse_orders(self.safe_value(data.clone(), Value::Str("orderList".to_string()), &[Value::List(vec![])]), &[market.clone(), since.clone(), limit.clone()]);
+                return self.parse_orders(self.safe_value_k(data.clone(), "orderList", &[Value::List(vec![])]), &[market.clone(), since.clone(), limit.clone()]);
             }
         }  else {
-            return self.parse_orders(self.safe_value(data.clone(), Value::Str("entrustedList".to_string()), &[Value::List(vec![])]), &[market.clone(), since.clone(), limit.clone()]);
+            return self.parse_orders(self.safe_value_k(data.clone(), "entrustedList", &[Value::List(vec![])]), &[market.clone(), since.clone(), limit.clone()]);
         }
         if is_string(&response) {
             response = json_parse(&response);
         }
-        let mut orders: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub async fn fetch_uta_canceled_and_closed_orders(&mut self, optional_args: &[Value]) -> Value {
@@ -8036,7 +8228,7 @@ impl BitgetCore {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -8045,7 +8237,7 @@ impl BitgetCore {
             market = self.market(symbol.clone());
         }
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&productType, &Value::Str("SPOT".to_string())) {
             let mut marginMode: Value = Value::Null;
             { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchCanceledAndClosedOrders".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -8054,7 +8246,7 @@ impl BitgetCore {
             }
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("category".to_string(), productType.clone());
             m
         });
@@ -8161,40 +8353,42 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut orders: Value = self.safe_list(data.clone(), Value::Str("list".to_string()), &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/account/Get-Account-Bills
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/account/Get-Account-Bill
+ * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
+ * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] end time in ms
- * @param {string} [get_value(&params, &Value::Str("symbol".to_string()))] *contract only* unified market symbol
- * @param {string} [get_value(&params, &Value::Str("productType".to_string()))] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [ledger structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ledger-entry-structure}
+ * @param {int} [params.until] end time in ms
+ * @param {string} [params.symbol] *contract only* unified market symbol
+ * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
     pub async fn fetch_ledger(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
-        let mut symbol: Value = self.safe_string(params.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut symbol: Value = self.safe_string_k(params.clone(), "symbol", &[]);
         params = self.omit(params.clone(), Value::Str("symbol".to_string()), &[]);
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
@@ -8213,7 +8407,7 @@ impl BitgetCore {
         }
         let mut currency: Value = Value::Null;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if !is_equal(&code, &Value::Null) {
@@ -8235,7 +8429,7 @@ impl BitgetCore {
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             }
             let mut productType: Value = Value::Null;
-            { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+            { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             response = self.call_method(Value::Str("private_mix_get_v2_mix_account_bill".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
@@ -8283,12 +8477,14 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
         if is_true(&(is_equal(&marketType, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&marketType, &Value::Str("future".to_string())))) {
-            let mut bills: Value = self.safe_value(data.clone(), Value::Str("bills".to_string()), &[Value::List(vec![])]);
+            let mut bills: Value = self.safe_value_k(data.clone(), "bills", &[Value::List(vec![])]);
             return self.parse_ledger(bills.clone(), &[currency.clone(), since.clone(), limit.clone()]);
         }
         return self.parse_ledger(data.clone(), &[currency.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_ledger_entry(&self, mut item: Value, optional_args: &[Value]) -> Value {
@@ -8320,11 +8516,11 @@ impl BitgetCore {
         //         "cTime": "1700728034996"
         //     }
         //
-        let mut currencyId: Value = self.safe_string(item.clone(), Value::Str("coin".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(item.clone(), "coin", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
-        let mut timestamp: Value = self.safe_integer(item.clone(), Value::Str("cTime".to_string()), &[]);
-        let mut after: Value = self.safe_number(item.clone(), Value::Str("balance".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(item.clone(), "cTime", &[]);
+        let mut after: Value = self.safe_number_k(item.clone(), "balance", &[]);
         let mut fee: Value = self.safe_number2(item.clone(), Value::Str("fees".to_string()), Value::Str("fee".to_string()), &[]);
         let mut amountRaw: Value = self.safe_string2(item.clone(), Value::Str("size".to_string()), Value::Str("amount".to_string()), &[]);
         let mut amount: Value = self.parse_number(crate::precise::Precise::stringAbs(&amountRaw), &[]);
@@ -8333,34 +8529,36 @@ impl BitgetCore {
             direction = Value::Str("out".to_string());
         }
         return self.safe_ledger_entry(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
-        m.insert("id".to_string(), self.safe_string(item.clone(), Value::Str("billId".to_string()), &[]));
+        m.insert("id".to_string(), self.safe_string_k(item.clone(), "billId", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("direction".to_string(), direction.clone());
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), Value::Null);
-        m.insert("type".to_string(), self.parse_ledger_type(self.safe_string(item.clone(), Value::Str("businessType".to_string()), &[])));
+        m.insert("type".to_string(), self.parse_ledger_type(self.safe_string_k(item.clone(), "businessType", &[])));
         m.insert("currency".to_string(), code.clone());
         m.insert("amount".to_string(), amount.clone());
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), after.clone());
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code.clone());
         m.insert("cost".to_string(), fee.clone());
     m
 }));
     m
 }), &[currency.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_ledger_type(&self, mut type_var: Value) -> Value {
         let mut types: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("trans_to_cross".to_string(), Value::Str("transfer".to_string()));
                 m.insert("trans_from_cross".to_string(), Value::Str("transfer".to_string()));
                 m.insert("trans_to_exchange".to_string(), Value::Str("transfer".to_string()));
@@ -8404,43 +8602,45 @@ impl BitgetCore {
             m
         });
         return self.safe_string(types.clone(), type_var.clone(), &[type_var.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/trade/Get-Fills
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/trade/Get-Order-Fills
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/cross/trade/Get-Cross-Order-Fills
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/isolated/trade/Get-Isolated-Transaction-Details
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/trade/Get-Order-Fills
+ * @see https://www.bitget.com/api-doc/spot/trade/Get-Fills
+ * @see https://www.bitget.com/api-doc/contract/trade/Get-Order-Fills
+ * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-Fills
+ * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Transaction-Details
+ * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-Fills
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch trades for
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=trade-structure}
+ * @param {int} [params.until] the latest time in ms to fetch trades for
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
     pub async fn fetch_my_trades(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut uta: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMyTrades".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if !is_true(&uta) && is_true(&(is_equal(&symbol, &Value::Null))) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -8491,7 +8691,7 @@ impl BitgetCore {
                 }
             }  else {
                 let mut productType: Value = Value::Null;
-                { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+                { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
                 add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
                 response = self.call_method(Value::Str("private_mix_get_v2_mix_order_fills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }
@@ -8627,42 +8827,44 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
         if is_true(&uta) {
-            let mut fills: Value = self.safe_list(data.clone(), Value::Str("list".to_string()), &[Value::List(vec![])]);
+            let mut fills: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
             return self.parse_trades(fills.clone(), &[market.clone(), since.clone(), limit.clone()]);
         }  else if is_true(&(is_true(&get_value(&market, &Value::Str("swap".to_string()))) || is_true(&(get_value(&market, &Value::Str("future".to_string())))))) {
-            let mut fills: Value = self.safe_list(data.clone(), Value::Str("fillList".to_string()), &[Value::List(vec![])]);
+            let mut fills: Value = self.safe_list_k(data.clone(), "fillList", &[Value::List(vec![])]);
             return self.parse_trades(fills.clone(), &[market.clone(), since.clone(), limit.clone()]);
         }  else if !is_equal(&marginMode, &Value::Null) {
-            let mut fills: Value = self.safe_list(data.clone(), Value::Str("fills".to_string()), &[Value::List(vec![])]);
+            let mut fills: Value = self.safe_list_k(data.clone(), "fills", &[Value::List(vec![])]);
             return self.parse_trades(fills.clone(), &[market.clone(), since.clone(), limit.clone()]);
         }
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchPosition
  * @description fetch data on a single open contract trade position
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/position/get-single-position
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/trade/Get-Position
+ * @see https://www.bitget.com/api-doc/contract/position/get-single-position
+ * @see https://www.bitget.com/api-doc/uta/trade/Get-Position
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object} a [position structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -8711,11 +8913,11 @@ impl BitgetCore {
             //         }
             //     }
             //
-            let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            result = self.safe_list(data.clone(), Value::Str("list".to_string()), &[Value::List(vec![])]);
+            result = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
         }  else {
             add_element_to_object(&mut request, &Value::Str("marginCoin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
@@ -8750,36 +8952,38 @@ impl BitgetCore {
             //         ]
             //     }
             //
-            result = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+            result = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         }
         let mut first: Value = self.safe_dict(result.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_position(first.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchPositions
  * @description fetch all open positions
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/position/get-all-position
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/position/Get-History-Position
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/trade/Get-Position
+ * @see https://www.bitget.com/api-doc/contract/position/get-all-position
+ * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
+ * @see https://www.bitget.com/api-doc/uta/trade/Get-Position
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginCoin".to_string()))] the settle currency of the positions, needs to match the productType
- * @param {string} [get_value(&params, &Value::Str("productType".to_string()))] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {boolean} [get_value(&params, &Value::Str("useHistoryEndpoint".to_string()))] default false, when true  will use the historic endpoint to fetch positions
- * @param {string} [get_value(&params, &Value::Str("method".to_string()))] either (default) 'privateMixGetV2MixPositionAllPosition', 'privateMixGetV2MixPositionHistoryPosition', or 'privateUtaGetV3PositionCurrentPosition'
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object[]} a list of [position structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
+ * @param {string} [params.productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.useHistoryEndpoint] default false, when true  will use the historic endpoint to fetch positions
+ * @param {string} [params.method] either (default) 'privateMixGetV2MixPositionAllPosition', 'privateMixGetV2MixPositionHistoryPosition', or 'privateUtaGetV3PositionCurrentPosition'
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_positions(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -8789,7 +8993,7 @@ impl BitgetCore {
             return self.fetch_paginated_call_cursor(Value::Str("fetchPositions".to_string()), &[Value::Null, Value::Null, Value::Null, params.clone(), Value::Str("endId".to_string()), Value::Str("idLessThan".to_string())]).await;
         }
         let mut method: Value = Value::Null;
-        let mut useHistoryEndpoint: Value = self.safe_bool(params.clone(), Value::Str("useHistoryEndpoint".to_string()), &[Value::Bool(false)]);
+        let mut useHistoryEndpoint: Value = self.safe_bool_k(params.clone(), "useHistoryEndpoint", &[Value::Bool(false)]);
         if is_true(&useHistoryEndpoint) {
             method = Value::Str("privateMixGetV2MixPositionHistoryPosition".to_string());
         }  else {
@@ -8804,9 +9008,9 @@ impl BitgetCore {
             }
         }
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Value = Value::Null;
@@ -8817,7 +9021,7 @@ impl BitgetCore {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
             response = self.call_method(Value::Str("private_uta_get_v3_position_current_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else if is_equal(&method, &Value::Str("privateMixGetV2MixPositionAllPosition".to_string())) {
-            let mut marginCoin: Value = self.safe_string(params.clone(), Value::Str("marginCoin".to_string()), &[Value::Str("USDT".to_string())]);
+            let mut marginCoin: Value = self.safe_string_k(params.clone(), "marginCoin", &[Value::Str("USDT".to_string())]);
             if !is_equal(&market, &Value::Null) {
                 marginCoin = get_value(&market, &Value::Str("settleId".to_string()));
             }  else if is_equal(&productType, &Value::Str("USDT-FUTURES".to_string())) {
@@ -8830,7 +9034,7 @@ impl BitgetCore {
                 marginCoin = Value::Str("SUSDC".to_string());
             }  else if is_true(&(is_equal(&productType, &Value::Str("SCOIN-FUTURES".to_string())))) || is_true(&(is_equal(&productType, &Value::Str("COIN-FUTURES".to_string())))) {
                 if is_equal(&marginCoin, &Value::Null) {
-                    panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchPositions() requires a marginCoin parameter that matches the productType".to_string()))));
+                    panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchPositions() requires a marginCoin parameter that matches the productType".to_string()))));
                 }
             }
             add_element_to_object(&mut request, &Value::Str("marginCoin".to_string()), marginCoin.clone());
@@ -8947,24 +9151,26 @@ impl BitgetCore {
         //
         let mut position: Value = Value::List(vec![]);
         if is_true(&uta) || is_true(&isHistory) {
-            let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            position = self.safe_list(data.clone(), Value::Str("list".to_string()), &[Value::List(vec![])]);
+            position = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
         }  else {
-            position = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+            position = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         }
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&position)) {
+            let mut __for_first_343: bool = true;
+            while { if !__for_first_343 { i = add(&i, &Value::Int(1)); } __for_first_343 = false; is_less_than(&i, &get_array_length(&position)) } {
             append_to_array(&mut result, self.parse_position(get_value(&position, &i), &[market.clone()]));
-            i = add(&i, &Value::Int(1));
         }
         }
         symbols = self.market_symbols(&[symbols.clone()]);
         return self.filter_by_array_positions(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone(), Value::Bool(false)]);
+
+    Value::Null
 }
 
     pub fn parse_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
@@ -9098,11 +9304,11 @@ impl BitgetCore {
         //         "updatedTime": "1751020520458"
         //     }
         //
-        let mut marketId: Value = self.safe_string(position.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("contract".to_string())]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut timestamp: Value = self.safe_integer_n(position.clone(), Value::List(vec![Value::Str("cTime".to_string()), Value::Str("ctime".to_string()), Value::Str("createdTime".to_string())]), &[]);
-        let mut marginMode: Value = self.safe_string(position.clone(), Value::Str("marginMode".to_string()), &[]);
+        let mut marginMode: Value = self.safe_string_k(position.clone(), "marginMode", &[]);
         let mut collateral: Value = Value::Null;
         let mut initialMargin: Value = Value::Null;
         let mut unrealizedPnl: Value = self.safe_string2(position.clone(), Value::Str("unrealizedPL".to_string()), Value::Str("unrealisedPnl".to_string()), &[]);
@@ -9121,24 +9327,24 @@ impl BitgetCore {
             hedged = Value::Bool(false);
         }
         let mut side: Value = self.safe_string2(position.clone(), Value::Str("holdSide".to_string()), Value::Str("posSide".to_string()), &[]);
-        let mut leverage: Value = self.safe_string(position.clone(), Value::Str("leverage".to_string()), &[]);
-        let mut contractSizeNumber: Value = self.safe_value(market.clone(), Value::Str("contractSize".to_string()), &[]);
+        let mut leverage: Value = self.safe_string_k(position.clone(), "leverage", &[]);
+        let mut contractSizeNumber: Value = self.safe_value_k(market.clone(), "contractSize", &[]);
         let mut contractSize: Value = self.number_to_string(contractSizeNumber.clone());
         let mut baseAmount: Value = self.safe_string2(position.clone(), Value::Str("total".to_string()), Value::Str("openTotalPos".to_string()), &[]);
         let mut entryPrice: Value = self.safe_string_n(position.clone(), Value::List(vec![Value::Str("openPriceAvg".to_string()), Value::Str("openAvgPrice".to_string()), Value::Str("avgPrice".to_string())]), &[]);
-        let mut maintenanceMarginPercentage: Value = self.safe_string(position.clone(), Value::Str("keepMarginRate".to_string()), &[]);
+        let mut maintenanceMarginPercentage: Value = self.safe_string_k(position.clone(), "keepMarginRate", &[]);
         let mut openNotional: Value = crate::precise::Precise::stringMul(&entryPrice, &baseAmount);
         if is_equal(&initialMargin, &Value::Null) {
             initialMargin = crate::precise::Precise::stringDiv(&openNotional, &leverage);
         }
         let mut contracts: Value = self.parse_number(crate::precise::Precise::stringDiv(&baseAmount, &contractSize), &[]);
         if is_equal(&contracts, &Value::Null) {
-            contracts = self.safe_number(position.clone(), Value::Str("closeTotalPos".to_string()), &[]);
+            contracts = self.safe_number_k(position.clone(), "closeTotalPos", &[]);
         }
-        let mut markPrice: Value = self.safe_string(position.clone(), Value::Str("markPrice".to_string()), &[]);
+        let mut markPrice: Value = self.safe_string_k(position.clone(), "markPrice", &[]);
         let mut notional: Value = crate::precise::Precise::stringMul(&baseAmount, &markPrice);
         let mut initialMarginPercentage: Value = crate::precise::Precise::stringDiv(&initialMargin, &notional);
-        let mut liquidationPrice: Value = self.parse_number(self.omit_zero(self.safe_string(position.clone(), Value::Str("liquidationPrice".to_string()), &[])), &[]);
+        let mut liquidationPrice: Value = self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "liquidationPrice", &[])), &[]);
         let mut calcTakerFeeRate: Value = Value::Str("0.0006".to_string());
         let mut calcTakerFeeMult: Value = Value::Str("0.9994".to_string());
         if is_true(&(is_equal(&liquidationPrice, &Value::Null))) && is_true(&(is_equal(&marginMode, &Value::Str("isolated".to_string())))) && is_true(&crate::precise::Precise::stringGt(&baseAmount, &Value::Str("0".to_string()))) {
@@ -9159,9 +9365,9 @@ impl BitgetCore {
         }
         let mut feeToClose: Value = crate::precise::Precise::stringMul(&notional, &calcTakerFeeRate);
         let mut maintenanceMargin: Value = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&maintenanceMarginPercentage, &notional), &feeToClose);
-        let mut percentage: Value = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&unrealizedPnl, &initialMargin), &Value::Str("100".to_string()));
+        let mut percentage: Value = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnl, &initialMargin, &Value::Int(4)), &Value::Str("100".to_string()));
         return self.safe_position(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string2(position.clone(), Value::Str("orderId".to_string()), Value::Str("positionId".to_string()), &[]));
         m.insert("symbol".to_string(), symbol.clone());
@@ -9192,37 +9398,39 @@ impl BitgetCore {
         m.insert("takeProfitPrice".to_string(), Value::Null);
     m
 }));
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-History-Funding-Rate
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/public/Get-History-Funding-Rate
+ * @see https://www.bitget.com/api-doc/contract/market/Get-History-Funding-Rate
+ * @see https://www.bitget.com/api-doc/uta/public/Get-History-Funding-Rate
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of funding rate structures to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-history-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
     pub async fn fetch_funding_rate_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -9230,7 +9438,7 @@ impl BitgetCore {
         let mut uta: Value = Value::Null;
         let mut response: Value = Value::Null;
         let mut result: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRateHistory".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             if !is_equal(&limit, &Value::Null) {
@@ -9254,11 +9462,11 @@ impl BitgetCore {
             //         }
             //     }
             //
-            let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            result = self.safe_list(data.clone(), Value::Str("resultList".to_string()), &[Value::List(vec![])]);
+            result = self.safe_list_k(data.clone(), "resultList", &[Value::List(vec![])]);
         }  else {
             let mut paginate: Value = Value::Bool(false);
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRateHistory".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -9284,59 +9492,62 @@ impl BitgetCore {
             //         ]
             //     }
             //
-            result = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+            result = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         }
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&result)) {
+            let mut __for_first_344: bool = true;
+            while { if !__for_first_344 { i = add(&i, &Value::Int(1)); } __for_first_344 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut entry: Value = get_value(&result, &i);
-            let mut marketId: Value = self.safe_string(entry.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut entry: Value = get_value(&result, &i);
+            let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             let mut symbolInner: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
             let mut timestamp: Value = self.safe_integer2(entry.clone(), Value::Str("fundingTime".to_string()), Value::Str("fundingRateTimestamp".to_string()), &[]);
             append_to_array(&mut rates, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), symbolInner.clone());
-                    m.insert("fundingRate".to_string(), self.safe_number(entry.clone(), Value::Str("fundingRate".to_string()), &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(entry.clone(), "fundingRate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
                 m
             }));
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut sorted: Value = self.sort_by(rates.clone(), Value::Str("timestamp".to_string()), &[]);
         return self.filter_by_symbol_since_limit(sorted.clone(), &[get_value(&market, &Value::Str("symbol".to_string())), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-Current-Funding-Rate
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/public/Get-Current-Funding-Rate
+ * @see https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate
+ * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+ * @see https://www.bitget.com/api-doc/uta/public/Get-Current-Funding-Rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @param {string} [get_value(&params, &Value::Str("method".to_string()))] either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
- * @returns {object} a [funding rate structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
     pub async fn fetch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" fetchFundingRate() supports swap contracts only".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" fetchFundingRate() supports swap contracts only".to_string()))));
         }
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -9355,26 +9566,28 @@ impl BitgetCore {
                 response = self.call_method(Value::Str("public_mix_get_v2_mix_market_funding_time".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }
         }
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_funding_rate(get_value(&data, &Value::Int(0)), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchFundingRates
  * @description fetch the current funding rates for all markets
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-All-Symbol-Ticker
+ * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] *contract only* 'linear', 'inverse'
- * @param {string} [get_value(&params, &Value::Str("productType".to_string()))] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
- * @param {string} [get_value(&params, &Value::Str("method".to_string()))] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
- * @returns {object} a dictionary of [funding rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rates-structure}, indexed by market symbols
+ * @param {string} [params.subType] *contract only* 'linear', 'inverse'
+ * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
+ * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
     pub async fn fetch_funding_rates(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -9384,11 +9597,11 @@ impl BitgetCore {
             market = self.market(symbol.clone());
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut method: Value = Value::Str("publicMixGetV2MixMarketTickers".to_string());
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRates".to_string()), Value::Str("method".to_string()), &[method.clone()]); method = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
@@ -9448,33 +9661,37 @@ impl BitgetCore {
             response = self.call_method(Value::Str("public_mix_get_v2_mix_market_current_fund_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_funding_rates(data.clone(), &[symbols.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchFundingIntervals
  * @description fetch the funding rate interval for multiple markets
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-All-Symbol-Ticker
+ * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("productType".to_string()))] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
- * @returns {object[]} a list of [funding rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-structure}
+ * @param {string} [params.productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
     pub async fn fetch_funding_intervals(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         params = self.extend(Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("publicMixGetV2MixMarketCurrentFundRate".to_string()));
             m
         }), &[params.clone()]);
         return self.fetch_funding_rates(&[symbols.clone(), params.clone()]).await;
+
+    Value::Null
 }
 
     pub fn parse_funding_rate(&self, mut contract: Value, optional_args: &[Value]) -> Value {
@@ -9535,19 +9752,19 @@ impl BitgetCore {
         //         "markPrice": "12345"
         //     }
         //
-        let mut marketId: Value = self.safe_string(contract.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(contract.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("swap".to_string())]);
         let mut fundingTimestamp: Value = self.safe_integer2(contract.clone(), Value::Str("nextFundingTime".to_string()), Value::Str("nextUpdate".to_string()), &[]);
         let mut interval: Value = self.safe_string2(contract.clone(), Value::Str("ratePeriod".to_string()), Value::Str("fundingRateInterval".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer(contract.clone(), Value::Str("ts".to_string()), &[]);
-        let mut markPrice: Value = self.safe_number(contract.clone(), Value::Str("markPrice".to_string()), &[]);
-        let mut indexPrice: Value = self.safe_number(contract.clone(), Value::Str("indexPrice".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(contract.clone(), "ts", &[]);
+        let mut markPrice: Value = self.safe_number_k(contract.clone(), "markPrice", &[]);
+        let mut indexPrice: Value = self.safe_number_k(contract.clone(), "indexPrice", &[]);
         let mut intervalString: Value = Value::Null;
         if !is_equal(&interval, &Value::Null) {
             intervalString = add(&interval, &Value::Str("h".to_string()));
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("markPrice".to_string(), markPrice.clone());
@@ -9556,7 +9773,7 @@ impl BitgetCore {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("fundingRate".to_string(), self.safe_number(contract.clone(), Value::Str("fundingRate".to_string()), &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "fundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), fundingTimestamp.clone());
         m.insert("fundingDatetime".to_string(), self.iso8601(fundingTimestamp.clone()));
         m.insert("nextFundingRate".to_string(), Value::Null);
@@ -9568,32 +9785,34 @@ impl BitgetCore {
         m.insert("interval".to_string(), intervalString.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchFundingHistory
  * @description fetch the funding history
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/account/Get-Account-Bill
+ * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
  * @param {string} symbol unified market symbol
  * @param {int} [since] the starting timestamp in milliseconds
  * @param {int} [limit] the number of entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch funding history for
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding history structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-history-structure}
+ * @param {int} [params.until] the latest time in ms to fetch funding history for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
     pub async fn fetch_funding_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingHistory() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingHistory() requires a symbol argument".to_string()))));
         }
         let mut uta: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingHistory".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -9607,12 +9826,12 @@ impl BitgetCore {
         }
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" fetchFundingHistory() supports swap contracts only".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" fetchFundingHistory() supports swap contracts only".to_string()))));
         }
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -9634,8 +9853,8 @@ impl BitgetCore {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             response = self.call_method(Value::Str("private_mix_get_v2_mix_account_bill".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut bills: Value = self.safe_list2(data.clone(), Value::Str("bills".to_string()), Value::Str("list".to_string()), &[Value::List(vec![])]);
@@ -9643,6 +9862,8 @@ impl BitgetCore {
             bills = self.filter_by_array(bills.clone(), Value::Str("type".to_string()), &[Value::List(vec![Value::Str("CONTRACT_MAIN_SETTLE_FEE_USER_IN".to_string()), Value::Str("CONTRACT_MAIN_SETTLE_FEE_USER_OUT".to_string())]), Value::Bool(false)]);
         }
         return self.parse_funding_histories(bills.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_funding_history(&self, mut contract: Value, optional_args: &[Value]) -> Value {
@@ -9671,20 +9892,22 @@ impl BitgetCore {
         //         "ts": "1745853486185"
         //     }
         //
-        let mut marketId: Value = self.safe_string(contract.clone(), Value::Str("symbol".to_string()), &[]);
-        let mut currencyId: Value = self.safe_string(contract.clone(), Value::Str("coin".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(contract.clone(), "symbol", &[]);
+        let mut currencyId: Value = self.safe_string_k(contract.clone(), "coin", &[]);
         let mut timestamp: Value = self.safe_integer2(contract.clone(), Value::Str("cTime".to_string()), Value::Str("ts".to_string()), &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("swap".to_string())]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("code".to_string(), self.safe_currency_code(currencyId.clone(), &[]));
-        m.insert("amount".to_string(), self.safe_number(contract.clone(), Value::Str("amount".to_string()), &[]));
+        m.insert("amount".to_string(), self.safe_number_k(contract.clone(), "amount", &[]));
         m.insert("id".to_string(), self.safe_string2(contract.clone(), Value::Str("billId".to_string()), Value::Str("id".to_string()), &[]));
     m
 });
+
+    Value::Null
 }
 
     pub fn parse_funding_histories(&self, mut contracts: Value, optional_args: &[Value]) -> Value {
@@ -9694,15 +9917,16 @@ impl BitgetCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&contracts)) {
+            let mut __for_first_345: bool = true;
+            while { if !__for_first_345 { i = add(&i, &Value::Int(1)); } __for_first_345 = false; is_less_than(&i, &get_array_length(&contracts)) } {
+            let mut contract: Value = get_value(&contracts, &i);
             let mut contract: Value = get_value(&contracts, &i);
             // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
-            // const business = get_value(&this, &Value::Str("safeString".to_string())) (contract, 'businessType');
+            // const business = this.safeString (contract, 'businessType');
             // if (business !== 'contract_settle_fee') {
             //     continue;
             // }
             append_to_array(&mut result, self.parse_funding_history(contract.clone(), &[market.clone()]));
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut sorted: Value = self.sort_by(result.clone(), Value::Str("timestamp".to_string()), &[]);
@@ -9711,20 +9935,22 @@ impl BitgetCore {
             symbol = get_value(&market, &Value::Str("symbol".to_string()));
         }
         return self.filter_by_symbol_since_limit(sorted.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub async fn modify_margin_helper(&mut self, mut symbol: Value, mut amount: Value, mut type_var: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
-        let mut holdSide: Value = self.safe_string(params.clone(), Value::Str("holdSide".to_string()), &[]);
+        let mut holdSide: Value = self.safe_string_k(params.clone(), "holdSide", &[]);
         let mut market: Value = self.market(symbol.clone());
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("marginCoin".to_string(), get_value(&market, &Value::Str("settleId".to_string())));
                 m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
@@ -9735,11 +9961,13 @@ impl BitgetCore {
         params = self.omit(params.clone(), Value::Str("holdSide".to_string()), &[]);
         let mut response: Value = self.call_method(Value::Str("private_mix_post_v2_mix_account_set_margin".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.extend(self.parse_margin_modification(response.clone(), &[market.clone()]), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
         m.insert("type".to_string(), type_var.clone());
     m
 })]);
+
+    Value::Null
 }
 
     pub fn parse_margin_modification(&self, mut data: Value, optional_args: &[Value]) -> Value {
@@ -9754,10 +9982,10 @@ impl BitgetCore {
         //         "data": ""
         //     }
         //
-        let mut errorCode: Value = self.safe_string(data.clone(), Value::Str("code".to_string()), &[]);
+        let mut errorCode: Value = self.safe_string_k(data.clone(), "code", &[]);
         let mut status: Value = ternary(is_true(&(is_equal(&errorCode, &Value::Str("00000".to_string())))), Value::Str("ok".to_string()), Value::Str("failed".to_string()));
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
         m.insert("type".to_string(), Value::Null);
@@ -9770,75 +9998,81 @@ impl BitgetCore {
         m.insert("datetime".to_string(), Value::Null);
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#reduceMargin
  * @description remove margin from a position
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/account/Change-Margin
+ * @see https://www.bitget.com/api-doc/contract/account/Change-Margin
  * @param {string} symbol unified market symbol
  * @param {float} amount the amount of margin to remove
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
     pub async fn reduce_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_greater_than(&amount, &Value::Int(0)) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" reduceMargin() amount parameter must be a negative value".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" reduceMargin() amount parameter must be a negative value".to_string()))));
         }
-        let mut holdSide: Value = self.safe_string(params.clone(), Value::Str("holdSide".to_string()), &[]);
+        let mut holdSide: Value = self.safe_string_k(params.clone(), "holdSide", &[]);
         if is_equal(&holdSide, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" reduceMargin() requires a holdSide parameter, either long or short".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" reduceMargin() requires a holdSide parameter, either long or short".to_string()))));
         }
         return self.modify_margin_helper(symbol.clone(), amount.clone(), Value::Str("reduce".to_string()), &[params.clone()]).await;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#addMargin
  * @description add margin
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/account/Change-Margin
+ * @see https://www.bitget.com/api-doc/contract/account/Change-Margin
  * @param {string} symbol unified market symbol
  * @param {float} amount the amount of margin to add
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
     pub async fn add_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut holdSide: Value = self.safe_string(params.clone(), Value::Str("holdSide".to_string()), &[]);
+        let mut holdSide: Value = self.safe_string_k(params.clone(), "holdSide", &[]);
         if is_equal(&holdSide, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" addMargin() requires a holdSide parameter, either long or short".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" addMargin() requires a holdSide parameter, either long or short".to_string()))));
         }
         return self.modify_margin_helper(symbol.clone(), amount.clone(), Value::Str("add".to_string()), &[params.clone()]).await;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/account/Get-Single-Account
+ * @see https://www.bitget.com/api-doc/contract/account/Get-Single-Account
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
     pub async fn fetch_leverage(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("marginCoin".to_string(), get_value(&market, &Value::Str("settleId".to_string())));
                 m.insert("productType".to_string(), productType.clone());
@@ -9873,20 +10107,22 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_leverage(data.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_leverage(&self, mut leverage: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut isCrossMarginMode: Value = Value::Bool(is_equal(&self.safe_string(leverage.clone(), Value::Str("marginMode".to_string()), &[]), &Value::Str("crossed".to_string())));
+        let mut isCrossMarginMode: Value = Value::Bool(is_equal(&self.safe_string_k(leverage.clone(), "marginMode", &[]), &Value::Str("crossed".to_string())));
         let mut longLevKey: Value = ternary(is_true(&isCrossMarginMode), Value::Str("crossedMarginLeverage".to_string()), Value::Str("isolatedLongLever".to_string()));
         let mut shortLevKey: Value = ternary(is_true(&isCrossMarginMode), Value::Str("crossedMarginLeverage".to_string()), Value::Str("isolatedShortLever".to_string()));
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage.clone());
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
         m.insert("marginMode".to_string(), ternary(is_true(&isCrossMarginMode), Value::Str("cross".to_string()), Value::Str("isolated".to_string())));
@@ -9894,37 +10130,39 @@ impl BitgetCore {
         m.insert("shortLeverage".to_string(), self.safe_integer(leverage.clone(), shortLevKey.clone(), &[]));
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#setLeverage
  * @description set the level of leverage for a market
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/account/Change-Leverage
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/account/Change-Leverage
+ * @see https://www.bitget.com/api-doc/contract/account/Change-Leverage
+ * @see https://www.bitget.com/api-doc/uta/account/Change-Leverage
  * @param {int} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("holdSide".to_string()))] *isolated only* position direction, 'long' or 'short'
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @param {boolean} [get_value(&params, &Value::Str("posSide".to_string()))] required for uta isolated margin, long or short
+ * @param {string} [params.holdSide] *isolated only* position direction, 'long' or 'short'
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {boolean} [params.posSide] required for uta isolated margin, long or short
  * @returns {object} response from the exchange
  */
     pub async fn set_leverage(&mut self, mut leverage: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("leverage".to_string(), self.number_to_string(leverage.clone()));
             m
@@ -9949,13 +10187,15 @@ impl BitgetCore {
             response = self.call_method(Value::Str("private_mix_post_v2_mix_account_set_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
         return response;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#setMarginMode
  * @description set margin mode to 'cross' or 'isolated'
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/account/Change-Margin-Mode
+ * @see https://www.bitget.com/api-doc/contract/account/Change-Margin-Mode
  * @param {string} marginMode 'cross' or 'isolated'
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -9964,25 +10204,25 @@ impl BitgetCore {
     pub async fn set_margin_mode(&mut self, mut marginMode: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setMarginMode() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setMarginMode() requires a symbol argument".to_string()))));
         }
         marginMode = to_lower(&marginMode);
         if is_equal(&marginMode, &Value::Str("cross".to_string())) {
             marginMode = Value::Str("crossed".to_string());
         }
         if is_true(&(!is_equal(&marginMode, &Value::Str("isolated".to_string())))) && is_true(&(!is_equal(&marginMode, &Value::Str("crossed".to_string())))) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setMarginMode() marginMode must be either isolated or crossed (cross)".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setMarginMode() marginMode must be either isolated or crossed (cross)".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("marginCoin".to_string(), get_value(&market, &Value::Str("settleId".to_string())));
                 m.insert("marginMode".to_string(), marginMode.clone());
@@ -9991,31 +10231,33 @@ impl BitgetCore {
         });
         let mut response: Value = self.call_method(Value::Str("private_mix_post_v2_mix_account_set_margin_mode".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return response;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#setPositionMode
  * @description set hedged to true or false for a market
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/account/Change-Hold-Mode
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/account/Change-Position-Mode
+ * @see https://www.bitget.com/api-doc/contract/account/Change-Hold-Mode
+ * @see https://www.bitget.com/api-doc/uta/account/Change-Position-Mode
  * @param {bool} hedged set to true to use dualSidePosition
  * @param {string} symbol not used by bitget setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("productType".to_string()))] required if not uta and symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
+ * @param {string} [params.productType] required if not uta and symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} response from the exchange
  */
     pub async fn set_position_mode(&mut self, mut hedged: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut posMode: Value = ternary(is_true(&hedged), Value::Str("hedge_mode".to_string()), Value::Str("one_way_mode".to_string()));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
@@ -10025,7 +10267,7 @@ impl BitgetCore {
         let mut productType: Value = Value::Null;
         let mut uta: Value = Value::Null;
         let mut response: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("setPositionMode".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             add_element_to_object(&mut request, &Value::Str("holdMode".to_string()), posMode.clone());
@@ -10036,33 +10278,35 @@ impl BitgetCore {
             response = self.call_method(Value::Str("private_mix_post_v2_mix_account_set_position_mode".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
         return response;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchOpenInterest
  * @description retrieves the open interest of a contract trading pair
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-Open-Interest
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/public/Get-Open-Interest
+ * @see https://www.bitget.com/api-doc/contract/market/Get-Open-Interest
+ * @see https://www.bitget.com/api-doc/uta/public/Get-Open-Interest
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object} an open interest structure{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=open-interest-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
     pub async fn fetch_open_interest(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOpenInterest() supports contract markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOpenInterest() supports contract markets only".to_string()))));
         }
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -10076,11 +10320,13 @@ impl BitgetCore {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             response = self.call_method(Value::Str("public_mix_get_v2_mix_market_open_interest".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_open_interest(data.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_open_interest(&self, mut interest: Value, optional_args: &[Value]) -> Value {
@@ -10111,10 +10357,10 @@ impl BitgetCore {
         //     }
         //
         let mut data: Value = self.safe_list2(interest.clone(), Value::Str("openInterestList".to_string()), Value::Str("list".to_string()), &[Value::List(vec![])]);
-        let mut timestamp: Value = self.safe_integer(interest.clone(), Value::Str("ts".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(interest.clone(), "ts", &[]);
         let mut marketId: Value = self.safe_string(get_value(&data, &Value::Int(0)), Value::Str("symbol".to_string()), &[]);
         return self.safe_open_interest(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("contract".to_string())]));
         m.insert("openInterestAmount".to_string(), self.safe_number2(get_value(&data, &Value::Int(0)), Value::Str("size".to_string()), Value::Str("openInterest".to_string()), &[]));
         m.insert("openInterestValue".to_string(), Value::Null);
@@ -10123,44 +10369,46 @@ impl BitgetCore {
         m.insert("info".to_string(), interest.clone());
     m
 }), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchTransfers
  * @description fetch a history of internal transfers made on an account
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/account/Get-Account-TransferRecords
+ * @see https://www.bitget.com/api-doc/spot/account/Get-Account-TransferRecords
  * @param {string} code unified currency code of the currency transferred
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of transfers structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch entries for
- * @returns {object[]} a list of [transfer structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transfer-structure}
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
     pub async fn fetch_transfers(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&code, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchTransfers() requires a code argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchTransfers() requires a code argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTransfers".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut fromAccount: Value = self.safe_string(params.clone(), Value::Str("fromAccount".to_string()), &[type_var.clone()]);
+        let mut fromAccount: Value = self.safe_string_k(params.clone(), "fromAccount", &[type_var.clone()]);
         params = self.omit(params.clone(), Value::Str("fromAccount".to_string()), &[]);
-        let mut accountsByType: Value = self.safe_value(self.options.clone(), Value::Str("accountsByType".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut accountsByType: Value = self.safe_value_k(self.options.clone(), "accountsByType", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         type_var = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[]);
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("fromType".to_string(), type_var.clone());
             m
@@ -10194,46 +10442,48 @@ impl BitgetCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_transfers(data.clone(), &[currency.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/spot/account/Wallet-Transfer
+ * @see https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("symbol".to_string()))] unified CCXT market symbol, required when transferring to or from an account type that is a leveraged position-by-position account
- * @param {string} [get_value(&params, &Value::Str("clientOid".to_string()))] custom id
- * @returns {object} a [transfer structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transfer-structure}
+ * @param {string} [params.symbol] unified CCXT market symbol, required when transferring to or from an account type that is a leveraged position-by-position account
+ * @param {string} [params.clientOid] custom id
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
     pub async fn transfer(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
-        let mut accountsByType: Value = self.safe_value(self.options.clone(), Value::Str("accountsByType".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut accountsByType: Value = self.safe_value_k(self.options.clone(), "accountsByType", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut fromType: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[]);
         let mut toType: Value = self.safe_string(accountsByType.clone(), toAccount.clone(), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("fromType".to_string(), fromType.clone());
                 m.insert("toType".to_string(), toType.clone());
                 m.insert("amount".to_string(), amount.clone());
                 m.insert("coin".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
-        let mut symbol: Value = self.safe_string(params.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut symbol: Value = self.safe_string_k(params.clone(), "symbol", &[]);
         params = self.omit(params.clone(), Value::Str("symbol".to_string()), &[]);
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
@@ -10252,12 +10502,14 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
-        add_element_to_object(&mut data, &Value::Str("ts".to_string()), self.safe_integer(response.clone(), Value::Str("requestTime".to_string()), &[]));
+        add_element_to_object(&mut data, &Value::Str("ts".to_string()), self.safe_integer_k(response.clone(), "requestTime", &[]));
         return self.parse_transfer(data.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_transfer(&self, mut transfer: Value, optional_args: &[Value]) -> Value {
@@ -10286,42 +10538,46 @@ impl BitgetCore {
         //         "transferId": "24930940"
         //     }
         //
-        let mut timestamp: Value = self.safe_integer(transfer.clone(), Value::Str("ts".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(transfer.clone(), "ts", &[]);
         let mut status: Value = self.safe_string_lower(transfer.clone(), Value::Str("status".to_string()), &[]);
-        let mut currencyId: Value = self.safe_string(transfer.clone(), Value::Str("coin".to_string()), &[]);
-        let mut fromAccountRaw: Value = self.safe_string(transfer.clone(), Value::Str("fromType".to_string()), &[]);
-        let mut accountsById: Value = self.safe_value(self.options.clone(), Value::Str("accountsById".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut currencyId: Value = self.safe_string_k(transfer.clone(), "coin", &[]);
+        let mut fromAccountRaw: Value = self.safe_string_k(transfer.clone(), "fromType", &[]);
+        let mut accountsById: Value = self.safe_value_k(self.options.clone(), "accountsById", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut fromAccount: Value = self.safe_string(accountsById.clone(), fromAccountRaw.clone(), &[fromAccountRaw.clone()]);
-        let mut toAccountRaw: Value = self.safe_string(transfer.clone(), Value::Str("toType".to_string()), &[]);
+        let mut toAccountRaw: Value = self.safe_string_k(transfer.clone(), "toType", &[]);
         let mut toAccount: Value = self.safe_string(accountsById.clone(), toAccountRaw.clone(), &[toAccountRaw.clone()]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer.clone());
-        m.insert("id".to_string(), self.safe_string(transfer.clone(), Value::Str("transferId".to_string()), &[]));
+        m.insert("id".to_string(), self.safe_string_k(transfer.clone(), "transferId", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
-        m.insert("amount".to_string(), self.safe_number(transfer.clone(), Value::Str("size".to_string()), &[]));
+        m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "size", &[]));
         m.insert("fromAccount".to_string(), fromAccount.clone());
         m.insert("toAccount".to_string(), toAccount.clone());
         m.insert("status".to_string(), self.parse_transfer_status(status.clone()));
     m
 });
+
+    Value::Null
 }
 
     pub fn parse_transfer_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("successful".to_string(), Value::Str("ok".to_string()));
             m
         });
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
+
+    Value::Null
 }
 
-    pub async fn parse_deposit_withdraw_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_deposit_withdraw_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -10345,60 +10601,63 @@ impl BitgetCore {
         //         "transfer": "true""
         //     }
         //
-        let mut chains: Value = self.safe_value(fee.clone(), Value::Str("chains".to_string()), &[Value::List(vec![])]);
+        let mut chains: Value = self.safe_value_k(fee.clone(), "chains", &[Value::List(vec![])]);
         let mut chainsLength: Value = get_array_length(&chains);
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), fee.clone());
                 m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
     m
 }));
                 m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
     m
 }));
                 m.insert("networks".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &chainsLength) {
+            let mut __for_first_346: bool = true;
+            while { if !__for_first_346 { i = add(&i, &Value::Int(1)); } __for_first_346 = false; is_less_than(&i, &chainsLength) } {
             let mut chain: Value = get_value(&chains, &i);
-            let mut networkId: Value = self.safe_string(chain.clone(), Value::Str("chain".to_string()), &[]);
-            let mut currencyCode: Value = self.safe_string(currency.clone(), Value::Str("code".to_string()), &[]);
+            let mut chain: Value = get_value(&chains, &i);
+            let mut networkId: Value = self.safe_string_k(chain.clone(), "chain", &[]);
+            let mut currencyCode: Value = self.safe_string_k(currency.clone(), "code", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), currencyCode.clone()]);
             add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".to_string())), &networkCode, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("fee".to_string(), self.safe_number(chain.clone(), Value::Str("withdrawFee".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("fee".to_string(), self.safe_number_k(chain.clone(), "withdrawFee", &[]));
         m.insert("percentage".to_string(), Value::Bool(false));
     m
 }));
     m
 }));
             if is_equal(&chainsLength, &Value::Int(1)) {
-                add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("fee".to_string()), self.safe_number(chain.clone(), Value::Str("withdrawFee".to_string()), &[]));
+                add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("fee".to_string()), self.safe_number_k(chain.clone(), "withdrawFee", &[]));
                 add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("percentage".to_string()), Value::Bool(false));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
 /*
@@ -10413,7 +10672,7 @@ impl BitgetCore {
     pub async fn fetch_deposit_withdraw_fees(&mut self, optional_args: &[Value]) -> Value {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -10425,7 +10684,7 @@ impl BitgetCore {
         //             {
         //                 "chains": [
         //                     {
-        //                         "browserUrl": "https://get_value(&blockchair, &Value::Str("com".to_string()))/bitcoin/transaction/",
+        //                         "browserUrl": "https://blockchair.com/bitcoin/transaction/",
         //                         "chain": "BTC",
         //                         "depositConfirm": "1",
         //                         "extraWithdrawFee": "0",
@@ -10447,29 +10706,31 @@ impl BitgetCore {
         //         "requestTime": "1700120731773"
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_deposit_withdraw_fees(data.clone(), &[codes.clone(), Value::Str("coin".to_string())]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#borrowCrossMargin
  * @description create a loan to borrow margin
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/cross/account/Cross-Borrow
+ * @see https://www.bitget.com/api-doc/margin/cross/account/Cross-Borrow
  * @param {string} code unified currency code of the currency to borrow
  * @param {string} amount the amount to borrow
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin loan structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn borrow_cross_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("borrowAmount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
@@ -10487,34 +10748,36 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         return self.parse_margin_loan(data.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#borrowIsolatedMargin
  * @description create a loan to borrow margin
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/isolated/account/Isolated-Borrow
+ * @see https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Borrow
  * @param {string} symbol unified market symbol
  * @param {string} code unified currency code of the currency to borrow
  * @param {string} amount the amount to borrow
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin loan structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn borrow_isolated_margin(&mut self, mut symbol: Value, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("borrowAmount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -10534,34 +10797,36 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         return self.parse_margin_loan(data.clone(), &[currency.clone(), market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#repayIsolatedMargin
  * @description repay borrowed margin and interest
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/isolated/account/Isolated-Repay
+ * @see https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Repay
  * @param {string} symbol unified market symbol
  * @param {string} code unified currency code of the currency to repay
  * @param {string} amount the amount to repay
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin loan structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn repay_isolated_margin(&mut self, mut symbol: Value, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("repayAmount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -10582,32 +10847,34 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         return self.parse_margin_loan(data.clone(), &[currency.clone(), market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#repayCrossMargin
  * @description repay borrowed margin and interest
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/cross/account/Cross-Repay
+ * @see https://www.bitget.com/api-doc/margin/cross/account/Cross-Repay
  * @param {string} code unified currency code of the currency to repay
  * @param {string} amount the amount to repay
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin loan structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn repay_cross_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("repayAmount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
@@ -10626,11 +10893,13 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         return self.parse_margin_loan(data.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_margin_loan(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -10673,14 +10942,14 @@ impl BitgetCore {
         //         "repayAmount": "4.00006834"
         //     }
         //
-        let mut currencyId: Value = self.safe_string(info.clone(), Value::Str("coin".to_string()), &[]);
-        let mut marketId: Value = self.safe_string(info.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(info.clone(), "coin", &[]);
+        let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
         let mut symbol: Value = Value::Null;
         if !is_equal(&marketId, &Value::Null) {
             symbol = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("spot".to_string())]);
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(info.clone(), Value::Str("loanId".to_string()), Value::Str("repayId".to_string()), &[]));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
         m.insert("amount".to_string(), self.safe_number2(info.clone(), Value::Str("borrowAmount".to_string()), Value::Str("repayAmount".to_string()), &[]));
@@ -10690,29 +10959,31 @@ impl BitgetCore {
         m.insert("info".to_string(), info.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchMyLiquidations
  * @description retrieves the users liquidated positions
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/cross/record/Get-Cross-Liquidation-Records
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/isolated/record/Get-Isolated-Liquidation-Records
+ * @see https://www.bitget.com/api-doc/margin/cross/record/Get-Cross-Liquidation-Records
+ * @see https://www.bitget.com/api-doc/margin/isolated/record/Get-Isolated-Liquidation-Records
  * @param {string} [symbol] unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
  * @param {object} [params] exchange specific parameters for the bitget api endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest liquidation
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated' default value is 'cross'
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} an array of [liquidation structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=liquidation-structure}
+ * @param {int} [params.until] timestamp in ms of the latest liquidation
+ * @param {string} [params.marginMode] 'cross' or 'isolated' default value is 'cross'
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
     pub async fn fetch_my_liquidations(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -10728,10 +10999,10 @@ impl BitgetCore {
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchMyLiquidations".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if !is_equal(&type_var, &Value::Str("spot".to_string())) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMyLiquidations() supports spot margin markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMyLiquidations() supports spot margin markets only".to_string()))));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -10748,7 +11019,7 @@ impl BitgetCore {
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchMyLiquidations".to_string()), &[params.clone(), Value::Str("cross".to_string())]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
             if is_equal(&symbol, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyLiquidations() requires a symbol argument".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyLiquidations() requires a symbol argument".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             response = self.call_method(Value::Str("private_margin_get_v2_margin_isolated_liquidation_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
@@ -10807,12 +11078,14 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut liquidations: Value = self.safe_list(data.clone(), Value::Str("resultList".to_string()), &[Value::List(vec![])]);
+        let mut liquidations: Value = self.safe_list_k(data.clone(), "resultList", &[Value::List(vec![])]);
         return self.parse_liquidations(liquidations.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_liquidation(&self, mut liquidation: Value, optional_args: &[Value]) -> Value {
@@ -10847,13 +11120,13 @@ impl BitgetCore {
         //         "cTime": "1653453245342"
         //     }
         //
-        let mut marketId: Value = self.safe_string(liquidation.clone(), Value::Str("symbol".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer(liquidation.clone(), Value::Str("liqEndTime".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(liquidation.clone(), "symbol", &[]);
+        let mut timestamp: Value = self.safe_integer_k(liquidation.clone(), "liqEndTime", &[]);
         let mut liquidationFee: Value = self.safe_string2(liquidation.clone(), Value::Str("LiqFee".to_string()), Value::Str("liqFee".to_string()), &[]);
-        let mut totalDebt: Value = self.safe_string(liquidation.clone(), Value::Str("totalDebt".to_string()), &[]);
+        let mut totalDebt: Value = self.safe_string_k(liquidation.clone(), "totalDebt", &[]);
         let mut quoteValueString: Value = crate::precise::Precise::stringAdd(&liquidationFee, &totalDebt);
         return self.safe_liquidation(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
         m.insert("contracts".to_string(), Value::Null);
@@ -10865,26 +11138,28 @@ impl BitgetCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
 }), &[]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchIsolatedBorrowRate
  * @description fetch the rate of interest to borrow a currency for margin trading
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/isolated/account/Isolated-Margin-Interest-Rate-And-Max-Borrowable-Amount
+ * @see https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Margin-Interest-Rate-And-Max-Borrowable-Amount
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [isolated borrow rate structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=isolated-borrow-rate-structure}
+ * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
  */
     pub async fn fetch_isolated_borrow_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -10930,14 +11205,16 @@ impl BitgetCore {
         //         ]
         //     }
         //
-        let mut timestamp: Value = self.safe_integer(response.clone(), Value::Str("requestTime".to_string()), &[]);
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut timestamp: Value = self.safe_integer_k(response.clone(), "requestTime", &[]);
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_value(data.clone(), Value::Int(0), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         add_element_to_object(&mut first, &Value::Str("timestamp".to_string()), timestamp.clone());
         return self.parse_isolated_borrow_rate(first.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_isolated_borrow_rate(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -10976,46 +11253,48 @@ impl BitgetCore {
         //         ]
         //     }
         //
-        let mut marketId: Value = self.safe_string(info.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("spot".to_string())]);
-        let mut baseId: Value = self.safe_string(info.clone(), Value::Str("baseCoin".to_string()), &[]);
-        let mut quoteId: Value = self.safe_string(info.clone(), Value::Str("quoteCoin".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer(info.clone(), Value::Str("timestamp".to_string()), &[]);
+        let mut baseId: Value = self.safe_string_k(info.clone(), "baseCoin", &[]);
+        let mut quoteId: Value = self.safe_string_k(info.clone(), "quoteCoin", &[]);
+        let mut timestamp: Value = self.safe_integer_k(info.clone(), "timestamp", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("base".to_string(), self.safe_currency_code(baseId.clone(), &[]));
-        m.insert("baseRate".to_string(), self.safe_number(info.clone(), Value::Str("baseDailyInterestRate".to_string()), &[]));
+        m.insert("baseRate".to_string(), self.safe_number_k(info.clone(), "baseDailyInterestRate", &[]));
         m.insert("quote".to_string(), self.safe_currency_code(quoteId.clone(), &[]));
-        m.insert("quoteRate".to_string(), self.safe_number(info.clone(), Value::Str("quoteDailyInterestRate".to_string()), &[]));
+        m.insert("quoteRate".to_string(), self.safe_number_k(info.clone(), "quoteDailyInterestRate", &[]));
         m.insert("period".to_string(), Value::Int(86400000));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("info".to_string(), info.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchCrossBorrowRate
  * @description fetch the rate of interest to borrow a currency for margin trading
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/cross/account/Get-Cross-Margin-Interest-Rate-And-Borrowable
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/public/Get-Margin-Loans
+ * @see https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Margin-Interest-Rate-And-Borrowable
+ * @see https://www.bitget.com/api-doc/uta/public/Get-Margin-Loans
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object} a [borrow rate structure]{@link https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
  */
     pub async fn fetch_cross_borrow_rate(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
@@ -11037,8 +11316,8 @@ impl BitgetCore {
             //         }
             //     }
             //
-            result = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            result = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         }  else {
@@ -11069,15 +11348,17 @@ impl BitgetCore {
             //         ]
             //     }
             //
-            let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+            let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
             result = self.safe_value(data.clone(), Value::Int(0), &[Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m
             })]);
         }
-        let mut timestamp: Value = self.safe_integer(response.clone(), Value::Str("requestTime".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(response.clone(), "requestTime", &[]);
         add_element_to_object(&mut result, &Value::Str("timestamp".to_string()), timestamp.clone());
         return self.parse_borrow_rate(result.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_borrow_rate(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -11111,10 +11392,10 @@ impl BitgetCore {
         //         "limit": "100"
         //     }
         //
-        let mut currencyId: Value = self.safe_string(info.clone(), Value::Str("coin".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer(info.clone(), Value::Str("timestamp".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(info.clone(), "coin", &[]);
+        let mut timestamp: Value = self.safe_integer_k(info.clone(), "timestamp", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
         m.insert("rate".to_string(), self.safe_number2(info.clone(), Value::Str("dailyInterestRate".to_string()), Value::Str("dailyInterest".to_string()), &[]));
         m.insert("period".to_string(), Value::Int(86400000));
@@ -11123,21 +11404,23 @@ impl BitgetCore {
         m.insert("info".to_string(), info.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchBorrowInterest
  * @description fetch the interest owed by the user for borrowing currency for margin trading
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/cross/record/Get-Cross-Interest-Records
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/margin/isolated/record/Get-Isolated-Interest-Records
+ * @see https://www.bitget.com/api-doc/margin/cross/record/Get-Cross-Interest-Records
+ * @see https://www.bitget.com/api-doc/margin/isolated/record/Get-Isolated-Interest-Records
  * @param {string} [code] unified currency code
  * @param {string} [symbol] unified market symbol when fetching interest in isolated markets
  * @param {int} [since] the earliest time in ms to fetch borrow interest for
  * @param {int} [limit] the maximum number of structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [borrow interest structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=borrow-interest-structure}
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
     pub async fn fetch_borrow_interest(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
@@ -11145,7 +11428,7 @@ impl BitgetCore {
         let mut since = get_arg(optional_args, 2, Value::Null);
         let mut limit = get_arg(optional_args, 3, Value::Null);
         let mut params = get_arg(optional_args, 4, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -11159,7 +11442,7 @@ impl BitgetCore {
             market = self.market(symbol.clone());
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut currency: Value = Value::Null;
@@ -11180,7 +11463,7 @@ impl BitgetCore {
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchBorrowInterest".to_string()), &[params.clone(), Value::Str("cross".to_string())]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
             if is_equal(&symbol, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchBorrowInterest() requires a symbol argument".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchBorrowInterest() requires a symbol argument".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             response = self.call_method(Value::Str("private_margin_get_v2_margin_isolated_interest_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
@@ -11237,13 +11520,15 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rows: Value = self.safe_value(data.clone(), Value::Str("resultList".to_string()), &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_value_k(data.clone(), "resultList", &[Value::List(vec![])]);
         let mut interest: Value = self.parse_borrow_interests(rows.clone(), &[market.clone()]);
         return self.filter_by_currency_since_limit(interest.clone(), &[code.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_borrow_interest(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -11276,54 +11561,56 @@ impl BitgetCore {
         //         "uTime": "1700876470957"
         //     }
         //
-        let mut marketId: Value = self.safe_string(info.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut marginMode: Value = ternary(is_true(&(!is_equal(&marketId, &Value::Null))), Value::Str("isolated".to_string()), Value::Str("cross".to_string()));
-        let mut timestamp: Value = self.safe_integer(info.clone(), Value::Str("cTime".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(info.clone(), "cTime", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
-        m.insert("symbol".to_string(), self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]));
-        m.insert("currency".to_string(), self.safe_currency_code(self.safe_string(info.clone(), Value::Str("interestCoin".to_string()), &[]), &[]));
-        m.insert("interest".to_string(), self.safe_number(info.clone(), Value::Str("interestAmount".to_string()), &[]));
-        m.insert("interestRate".to_string(), self.safe_number(info.clone(), Value::Str("dailyInterestRate".to_string()), &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
+        m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(info.clone(), "interestCoin", &[]), &[]));
+        m.insert("interest".to_string(), self.safe_number_k(info.clone(), "interestAmount", &[]));
+        m.insert("interestRate".to_string(), self.safe_number_k(info.clone(), "dailyInterestRate", &[]));
         m.insert("amountBorrowed".to_string(), Value::Null);
         m.insert("marginMode".to_string(), marginMode.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#closePosition
  * @description closes an open position for a market
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/trade/Flash-Close-Position
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/trade/Close-All-Positions
+ * @see https://www.bitget.com/api-doc/contract/trade/Flash-Close-Position
+ * @see https://www.bitget.com/api-doc/uta/trade/Close-All-Positions
  * @param {string} symbol unified CCXT market symbol
  * @param {string} [side] one-way mode: 'buy' or 'sell', hedge-mode: 'long' or 'short'
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object} An [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn close_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut side = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
         let mut productType: Value = Value::Null;
         let mut uta: Value = Value::Null;
         let mut response: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("closePosition".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             if !is_equal(&side, &Value::Null) {
@@ -11338,39 +11625,41 @@ impl BitgetCore {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             response = self.call_method(Value::Str("private_mix_post_v2_mix_order_close_positions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut order: Value = self.safe_list2(data.clone(), Value::Str("successList".to_string()), Value::Str("list".to_string()), &[Value::List(vec![])]);
         return self.parse_order(get_value(&order, &Value::Int(0)), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#closeAllPositions
  * @description closes all open positions for a market type
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/trade/Flash-Close-Position
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/trade/Close-All-Positions
+ * @see https://www.bitget.com/api-doc/contract/trade/Flash-Close-Position
+ * @see https://www.bitget.com/api-doc/uta/trade/Close-All-Positions
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("productType".to_string()))] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object[]} A list of [position structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @param {string} [params.productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn close_all_positions(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut productType: Value = Value::Null;
         let mut uta: Value = Value::Null;
         let mut response: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[Value::Null, params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[Value::Null, params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("closeAllPositions".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
@@ -11379,34 +11668,36 @@ impl BitgetCore {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             response = self.call_method(Value::Str("private_mix_post_v2_mix_order_close_positions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut orderInfo: Value = self.safe_list2(data.clone(), Value::Str("successList".to_string()), Value::Str("list".to_string()), &[Value::List(vec![])]);
         return self.parse_positions(orderInfo.clone(), &[Value::Null, params.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchMarginMode
  * @description fetches the margin mode of a trading pair
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/account/Get-Single-Account
+ * @see https://www.bitget.com/api-doc/contract/account/Get-Single-Account
  * @param {string} symbol unified symbol of the market to fetch the margin mode for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin mode structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-mode-structure}
+ * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
     pub async fn fetch_margin_mode(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("marginCoin".to_string(), get_value(&market, &Value::Str("settleId".to_string())));
                 m.insert("productType".to_string(), productType.clone());
@@ -11441,52 +11732,56 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_margin_mode(data.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_margin_mode(&self, mut marginMode: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut marginType: Value = self.safe_string(marginMode.clone(), Value::Str("marginMode".to_string()), &[]);
+        let mut marginType: Value = self.safe_string_k(marginMode.clone(), "marginMode", &[]);
         marginType = ternary(is_true(&(is_equal(&marginType, &Value::Str("crossed".to_string())))), Value::Str("cross".to_string()), marginType.clone());
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), marginMode.clone());
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
         m.insert("marginMode".to_string(), marginType.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchPositionsHistory
  * @description fetches historical positions
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/position/Get-History-Position
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/trade/Get-Position-History
+ * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
+ * @see https://www.bitget.com/api-doc/uta/trade/Get-Position-History
  * @param {string[]} [symbols] unified contract symbols
  * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
  * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
  * @param {object} params extra parameters specific to the exchange api endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
- * @param {string} [get_value(&params, &Value::Str("productType".to_string()))] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object[]} a list of [position structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
+ * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_positions_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
@@ -11507,7 +11802,7 @@ impl BitgetCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchPositionsHistory".to_string()), Value::Str("uta".to_string()), &[Value::Bool(false)]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
@@ -11515,35 +11810,37 @@ impl BitgetCore {
         }  else {
             response = self.call_method(Value::Str("private_mix_get_v2_mix_position_history_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut responseList: Value = self.safe_list(data.clone(), Value::Str("list".to_string()), &[Value::List(vec![])]);
+        let mut responseList: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
         let mut positions: Value = self.parse_positions(responseList.clone(), &[symbols.clone(), params.clone()]);
         return self.filter_by_since_limit(positions.clone(), &[since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchConvertQuote
  * @description fetch a quote for converting from one currency to another
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/common/convert/Get-Quoted-Price
+ * @see https://www.bitget.com/api-doc/common/convert/Get-Quoted-Price
  * @param {string} fromCode the currency that you want to sell and convert from
  * @param {string} toCode the currency that you want to buy and convert into
  * @param {float} [amount] how much you want to trade in units of the from currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [conversion structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
     pub async fn fetch_convert_quote(&mut self, mut fromCode: Value, mut toCode: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("fromCoin".to_string(), fromCode.clone());
                 m.insert("toCoin".to_string(), toCode.clone());
                 m.insert("fromCoinSize".to_string(), self.number_to_string(amount.clone()));
@@ -11566,49 +11863,51 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fromCurrencyId: Value = self.safe_string(data.clone(), Value::Str("fromCoin".to_string()), &[fromCode.clone()]);
+        let mut fromCurrencyId: Value = self.safe_string_k(data.clone(), "fromCoin", &[fromCode.clone()]);
         let mut fromCurrency: Value = self.currency(fromCurrencyId.clone());
-        let mut toCurrencyId: Value = self.safe_string(data.clone(), Value::Str("toCoin".to_string()), &[toCode.clone()]);
+        let mut toCurrencyId: Value = self.safe_string_k(data.clone(), "toCoin", &[toCode.clone()]);
         let mut toCurrency: Value = self.currency(toCurrencyId.clone());
         return self.parse_conversion(data.clone(), &[fromCurrency.clone(), toCurrency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#createConvertTrade
  * @description convert from one currency to another
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/common/convert/Trade
+ * @see https://www.bitget.com/api-doc/common/convert/Trade
  * @param {string} id the id of the trade that you want to make
  * @param {string} fromCode the currency that you want to sell and convert from
  * @param {string} toCode the currency that you want to buy and convert into
  * @param {float} amount how much you want to trade in units of the from currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} get_value(&params, &Value::Str("price".to_string())) the price of the conversion, obtained from fetchConvertQuote()
- * @param {string} get_value(&params, &Value::Str("toAmount".to_string())) the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
- * @returns {object} a [conversion structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=conversion-structure}
+ * @param {string} params.price the price of the conversion, obtained from fetchConvertQuote()
+ * @param {string} params.toAmount the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
     pub async fn create_convert_trade(&mut self, mut id: Value, mut fromCode: Value, mut toCode: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut price: Value = self.safe_string2(params.clone(), Value::Str("price".to_string()), Value::Str("cnvtPrice".to_string()), &[]);
         if is_equal(&price, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createConvertTrade() requires a price parameter".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createConvertTrade() requires a price parameter".to_string()))));
         }
         let mut toAmount: Value = self.safe_string2(params.clone(), Value::Str("toAmount".to_string()), Value::Str("toCoinSize".to_string()), &[]);
         if is_equal(&toAmount, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createConvertTrade() requires a toAmount parameter".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createConvertTrade() requires a toAmount parameter".to_string()))));
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("price".to_string()), Value::Str("toAmount".to_string())]), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("traceId".to_string(), id.clone());
                 m.insert("fromCoin".to_string(), fromCode.clone());
                 m.insert("toCoin".to_string(), toCode.clone());
@@ -11631,37 +11930,39 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut toCurrencyId: Value = self.safe_string(data.clone(), Value::Str("toCoin".to_string()), &[toCode.clone()]);
+        let mut toCurrencyId: Value = self.safe_string_k(data.clone(), "toCoin", &[toCode.clone()]);
         let mut toCurrency: Value = self.currency(toCurrencyId.clone());
         return self.parse_conversion(data.clone(), &[Value::Null, toCurrency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchConvertTradeHistory
  * @description fetch the users history of conversion trades
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/common/convert/Get-Convert-Record
+ * @see https://www.bitget.com/api-doc/common/convert/Get-Convert-Record
  * @param {string} [code] the unified currency code
  * @param {int} [since] the earliest time in ms to fetch conversions for
  * @param {int} [limit] the maximum number of conversion structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [conversion structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=conversion-structure}
+ * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
     pub async fn fetch_convert_trade_history(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut msInDay: Value = Value::Int(86400000);
@@ -11704,12 +12005,14 @@ impl BitgetCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut dataList: Value = self.safe_list(data.clone(), Value::Str("dataList".to_string()), &[Value::List(vec![])]);
+        let mut dataList: Value = self.safe_list_k(data.clone(), "dataList", &[Value::List(vec![])]);
         return self.parse_conversions(dataList.clone(), &[code.clone(), Value::Str("fromCoin".to_string()), Value::Str("toCoin".to_string()), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_conversion(&self, mut conversion: Value, optional_args: &[Value]) -> Value {
@@ -11750,38 +12053,40 @@ impl BitgetCore {
         //         "fee": "0"
         //     }
         //
-        let mut timestamp: Value = self.safe_integer(conversion.clone(), Value::Str("ts".to_string()), &[]);
-        let mut fromCoin: Value = self.safe_string(conversion.clone(), Value::Str("fromCoin".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(conversion.clone(), "ts", &[]);
+        let mut fromCoin: Value = self.safe_string_k(conversion.clone(), "fromCoin", &[]);
         let mut fromCode: Value = self.safe_currency_code(fromCoin.clone(), &[fromCurrency.clone()]);
-        let mut to: Value = self.safe_string(conversion.clone(), Value::Str("toCoin".to_string()), &[]);
+        let mut to: Value = self.safe_string_k(conversion.clone(), "toCoin", &[]);
         let mut toCode: Value = self.safe_currency_code(to.clone(), &[toCurrency.clone()]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), conversion.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("id".to_string(), self.safe_string2(conversion.clone(), Value::Str("id".to_string()), Value::Str("traceId".to_string()), &[]));
         m.insert("fromCurrency".to_string(), fromCode.clone());
-        m.insert("fromAmount".to_string(), self.safe_number(conversion.clone(), Value::Str("fromCoinSize".to_string()), &[]));
+        m.insert("fromAmount".to_string(), self.safe_number_k(conversion.clone(), "fromCoinSize", &[]));
         m.insert("toCurrency".to_string(), toCode.clone());
-        m.insert("toAmount".to_string(), self.safe_number(conversion.clone(), Value::Str("toCoinSize".to_string()), &[]));
-        m.insert("price".to_string(), self.safe_number(conversion.clone(), Value::Str("cnvtPrice".to_string()), &[]));
-        m.insert("fee".to_string(), self.safe_number(conversion.clone(), Value::Str("fee".to_string()), &[]));
+        m.insert("toAmount".to_string(), self.safe_number_k(conversion.clone(), "toCoinSize", &[]));
+        m.insert("price".to_string(), self.safe_number_k(conversion.clone(), "cnvtPrice", &[]));
+        m.insert("fee".to_string(), self.safe_number_k(conversion.clone(), "fee", &[]));
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchConvertCurrencies
  * @description fetches all available currencies that can be converted
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/common/convert/Get-Convert-Currencies
+ * @see https://www.bitget.com/api-doc/common/convert/Get-Convert-Currencies
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
     pub async fn fetch_convert_currencies(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -11802,18 +12107,20 @@ impl BitgetCore {
         //     }
         //
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&data)) {
+            let mut __for_first_347: bool = true;
+            while { if !__for_first_347 { i = add(&i, &Value::Int(1)); } __for_first_347 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
-            let mut id: Value = self.safe_string(entry.clone(), Value::Str("coin".to_string()), &[]);
+            let mut entry: Value = get_value(&data, &i);
+            let mut id: Value = self.safe_string_k(entry.clone(), "coin", &[]);
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
             add_element_to_object(&mut result, &code, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry.clone());
         m.insert("id".to_string(), id.clone());
         m.insert("code".to_string(), code.clone());
@@ -11822,25 +12129,25 @@ impl BitgetCore {
         m.insert("name".to_string(), Value::Null);
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Null);
-        m.insert("withdraw".to_string(), self.safe_number(entry.clone(), Value::Str("available".to_string()), &[]));
+        m.insert("withdraw".to_string(), self.safe_number_k(entry.clone(), "available", &[]));
         m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(entry.clone(), Value::Str("minAmount".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(entry.clone(), Value::Str("maxAmount".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(entry.clone(), "minAmount", &[]));
+        m.insert("max".to_string(), self.safe_number_k(entry.clone(), "maxAmount", &[]));
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
@@ -11850,34 +12157,35 @@ impl BitgetCore {
         m.insert("created".to_string(), Value::Null);
     m
 }));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchFundingInterval
  * @description fetch the current funding rate interval
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/uta/public/Get-Current-Funding-Rate
+ * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+ * @see https://www.bitget.com/api-doc/uta/public/Get-Current-Funding-Rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object} a [funding rate structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
     pub async fn fetch_funding_interval(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut productType: Value = Value::Null;
-        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]).await; productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -11890,26 +12198,28 @@ impl BitgetCore {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             response = self.call_method(Value::Str("public_mix_get_v2_mix_market_funding_time".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_funding_rate(first.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name bitget#fetchLongShortRatioHistory
  * @description fetches the long short ratio history for a unified market symbol
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/common/apidata/Margin-Ls-Ratio
- * @see https://get_value(&www, &Value::Str("bitget".to_string())).com/api-doc/common/apidata/Account-Long-Short
+ * @see https://www.bitget.com/api-doc/common/apidata/Margin-Ls-Ratio
+ * @see https://www.bitget.com/api-doc/common/apidata/Account-Long-Short
  * @param {string} symbol unified symbol of the market to fetch the long short ratio for
  * @param {string} [timeframe] the period for the ratio
  * @param {int} [since] the earliest time in ms to fetch ratios for
  * @param {int} [limit] the maximum number of long short ratio structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} an array of [long short ratio structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=long-short-ratio-structure}
+ * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
  */
     pub async fn fetch_long_short_ratio_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
@@ -11917,13 +12227,13 @@ impl BitgetCore {
         let mut since = get_arg(optional_args, 2, Value::Null);
         let mut limit = get_arg(optional_args, 3, Value::Null);
         let mut params = get_arg(optional_args, 4, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -11936,16 +12246,18 @@ impl BitgetCore {
         }  else {
             response = self.call_method(Value::Str("public_margin_get_v2_margin_market_long_short_ratio".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_long_short_ratio_history(data.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_long_short_ratio(&self, mut info: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut marketId: Value = self.safe_string(info.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
         let mut timestamp: Value = self.safe_integer_omit_zero(info.clone(), Value::Str("ts".to_string()), &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("contract".to_string())]));
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -11954,6 +12266,8 @@ impl BitgetCore {
         m.insert("longShortRatio".to_string(), self.safe_number2(info.clone(), Value::Str("longShortRatio".to_string()), Value::Str("longShortAccountRatio".to_string()), &[]));
     m
 });
+
+    Value::Null
 }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
@@ -11999,20 +12313,24 @@ impl BitgetCore {
             self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), errorCode.clone(), feedback.clone());
         }
         if is_true(&nonZeroErrorCode) || is_true(&nonEmptyMessage) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(feedback));
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
+
+    Value::Null
 }
 
     pub fn nonce(&self) -> Value {
         return subtract(&self.milliseconds(), &get_value(&self.options, &Value::Str("timeDifference".to_string())));
+
+    Value::Null
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
         let mut api = get_arg(optional_args, 0, Value::List(vec![]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
@@ -12050,9 +12368,9 @@ impl BitgetCore {
                 }
             }
             let mut signature: Value = self.hmac(self.encode(auth.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[Value::Str("base64".to_string())]);
-            let mut broker: Value = self.safe_string(self.options.clone(), Value::Str("broker".to_string()), &[]);
+            let mut broker: Value = self.safe_string_k(self.options.clone(), "broker", &[]);
             headers = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("ACCESS-SIGN".to_string(), signature.clone());
                     m.insert("ACCESS-TIMESTAMP".to_string(), timestamp.clone());
@@ -12069,22 +12387,24 @@ impl BitgetCore {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
             if is_equal(&headers, &Value::Null) {
                 headers = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                     m
                 });
             }
-            let mut productType: Value = self.safe_string(params.clone(), Value::Str("productType".to_string()), &[]);
+            let mut productType: Value = self.safe_string_k(params.clone(), "productType", &[]);
             if is_true(&(!is_equal(&productType, &Value::Str("SCOIN-FUTURES".to_string())))) && is_true(&(!is_equal(&productType, &Value::Str("SUSDT-FUTURES".to_string())))) && is_true(&(!is_equal(&productType, &Value::Str("SUSDC-FUTURES".to_string())))) {
                 add_element_to_object(&mut headers, &Value::Str("PAPTRADING".to_string()), Value::Str("1".to_string()));
             }
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.clone());
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), body.clone());
         m.insert("headers".to_string(), headers.clone());
     m
 });
+
+    Value::Null
 }
 }

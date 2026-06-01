@@ -5,33 +5,34 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
 pub fn testIsEmpty() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.is_empty(Value::Null), &Value::Bool(true)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.is_empty(Value::Null), &Value::Bool(true)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.is_empty(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.is_empty(Value::Null), &Value::Bool(true))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.is_empty(Value::Null), &Value::Bool(true))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.is_empty(Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
-})), &Value::Bool(true)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.is_empty(Value::List(vec![])), &Value::Bool(true)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.is_empty(Value::Map({
-    let mut m = std::collections::HashMap::new();
+})), &Value::Bool(true))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.is_empty(Value::List(vec![])), &Value::Bool(true))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.is_empty(Value::Map({
+    let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Int(1));
     m
-})), &Value::Bool(false)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.is_empty(Value::List(vec![Value::Int(1), Value::Int(2)])), &Value::Bool(false)))));
+})), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.is_empty(Value::List(vec![Value::Int(1), Value::Int(2)])), &Value::Bool(false))))));
     // below are scalars, so they are not checked.
     // @ts-expect-error
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.is_empty(Value::Str("".to_string())), &Value::Bool(false)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.is_empty(Value::Str("".to_string())), &Value::Bool(false))))));
     // @ts-expect-error
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.is_empty(Value::Int(0)), &Value::Bool(false)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.is_empty(Value::Int(0)), &Value::Bool(false))))));
     // @ts-expect-error
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.is_empty(Value::Bool(false)), &Value::Bool(false)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.is_empty(Value::Bool(false)), &Value::Bool(false))))));
     // @ts-expect-error
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.is_empty(Value::Str("non-empty string".to_string())), &Value::Bool(false)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.is_empty(Value::Str("non-empty string".to_string())), &Value::Bool(false))))));
 }

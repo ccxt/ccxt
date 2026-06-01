@@ -36,22 +36,70 @@ impl HyperliquidCore {
         // (e.g. portfolioMargin via fixture) take precedence, then
         // describe()'s defaults fill in any gaps.
         let __described_options = crate::get_value(&described, &crate::Value::Str("options".to_string()));
-        if let (crate::Value::Map(existing), crate::Value::Map(defaults)) =
+        // Capture the describe()'s explicit networksById BEFORE the merge
+        // — the merge below overlays the base Exchange's options (whose
+        // after_construct left an EMPTY networksById), which would
+        // otherwise clobber the manual mappings like binance BSC to BEP20.
+        let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
+        if let (crate::Value::Dict(existing), crate::Value::Dict(defaults)) =
             (&self.exchange.options.clone(), &__described_options)
         {
-            let mut merged = defaults.clone();
-            for (k, v) in existing { merged.insert(k.clone(), v.clone()); }
+            let mut merged = (**defaults).clone();
+            for (k, v) in existing.iter() { merged.insert(k.clone(), v.clone()); }
             self.exchange.options = crate::Value::Map(merged);
-        } else if !matches!(self.exchange.options, crate::Value::Map(_)) {
+        } else if !matches!(self.exchange.options, crate::Value::Dict(_)) {
             self.exchange.options = __described_options;
+        }
+        // Derive options.networksById (CCXT's createNetworksByIdObject):
+        // start from the auto-inverted networks (generated), then overlay
+        // the describe()'s explicit networksById so manual mappings win —
+        // mirrors TS extend(generated, manual). Without the manual
+        // overlay, an exchange whose networks defines both BSC to BSC and
+        // BEP20 to BSC would invert to BSC to BSC (wrong) by iteration
+        // order instead of the intended BSC to BEP20.
+        if let crate::Value::Dict(opts_arc) = self.exchange.options.clone() {
+            let mut opts = std::sync::Arc::try_unwrap(opts_arc).unwrap_or_else(|a| (*a).clone());
+            let mut by_id: indexmap::IndexMap<String, crate::Value> = indexmap::IndexMap::new();
+            if let Some(crate::Value::Dict(networks)) = opts.get("networks") {
+                for (code, id) in networks.iter() {
+                    if let crate::Value::Str(id_s) = id {
+                        by_id.entry(id_s.clone())
+                             .or_insert_with(|| crate::Value::Str(code.clone()));
+                    }
+                }
+            }
+            if let crate::Value::Dict(manual) = &__described_networks_by_id {
+                for (k, v) in manual.iter() { by_id.insert(k.clone(), v.clone()); }
+            }
+            opts.insert("networksById".to_string(), crate::Value::Map(by_id));
+            self.exchange.options = crate::Value::Map(opts);
         }
         self.exchange.hostname = crate::get_value(&described, &crate::Value::Str("hostname".to_string()));
         self.exchange.version  = crate::get_value(&described, &crate::Value::Str("version".to_string()));
         self.exchange.id       = crate::get_value(&described, &crate::Value::Str("id".to_string()));
         self.exchange.name     = crate::get_value(&described, &crate::Value::Str("name".to_string()));
         self.exchange.exceptions = crate::get_value(&described, &crate::Value::Str("exceptions".to_string()));
-        self.exchange.requiredCredentials = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string()));
+        // Only override the base-default requiredCredentials when the
+        // exchange's describe() actually provides them (super.describe()
+        // is stubbed, so most exchanges' describe() omits this).
+        { let __rc = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string())); if !matches!(__rc, crate::Value::Null) { self.exchange.requiredCredentials = __rc; } }
+        // Merge describe()'s commonCurrencies over the base defaults so
+        // exchange-specific aliases (bitfinex UST to USDT, onetrading
+        // MIOTA to IOTA) reach commonCurrencyCode / safeCurrencyCode.
+        { let __cc = crate::get_value(&described, &crate::Value::Str("commonCurrencies".to_string())); if let crate::Value::Dict(extra) = __cc { let extra = std::sync::Arc::try_unwrap(extra).unwrap_or_else(|a| (*a).clone()); if let crate::Value::Dict(base) = &mut self.exchange.commonCurrencies { let base = std::sync::Arc::make_mut(base); for (k, v) in extra { base.insert(k, v); } } else { self.exchange.commonCurrencies = crate::Value::Map(extra); } } }
         self.exchange.precisionMode = crate::get_value(&described, &crate::Value::Str("precisionMode".to_string()));
+        self.exchange.timeframes = crate::get_value(&described, &crate::Value::Str("timeframes".to_string()));
+        self.exchange.fees = crate::get_value(&described, &crate::Value::Str("fees".to_string()));
+        // `features` carries the describe() block that drives
+        // unified-method tests (e.g. `features.spot.fetchCurrencies.private`
+        // tells testFetchCurrencies to skip the length check). It's set
+        // after `Exchange::new` because `features_generator` (in
+        // `after_construct`) bails when `features == Null` — so we
+        // assign and re-run the generator here.
+        self.exchange.features = crate::get_value(&described, &crate::Value::Str("features".to_string()));
+        if !matches!(self.exchange.features, crate::Value::Null) {
+            self.exchange.features_generator();
+        }
         // Markets and currencies may have been populated already by
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
@@ -76,7 +124,7 @@ impl HyperliquidCore {
     /// Casts the void pointer back to `*mut Self` and forwards to the
     /// real `call_dynamic`. Safety: the pointer must come from the
     /// matching Core's bind() — guaranteed by Exchange::bind_call_async.
-    fn __call_dynamic_dispatch<'a>(
+    pub fn __call_dynamic_dispatch<'a>(
         ptr: *mut (),
         method: &'a str,
         args: Vec<crate::Value>,
@@ -252,6 +300,14 @@ impl crate::exchange::DerivedExchange for HyperliquidCore {
         // Forward to the inherent method on HyperliquidCore.
         HyperliquidCore::parse_margin_modification(self, data, &[market.clone()])
     }
+    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on HyperliquidCore.
+        HyperliquidCore::parse_transaction(self, transaction, &[currency.clone()])
+    }
+    fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on HyperliquidCore.
+        HyperliquidCore::parse_income(self, info, &[market.clone()])
+    }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on HyperliquidCore.
         HyperliquidCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
@@ -274,7 +330,7 @@ impl std::ops::DerefMut for HyperliquidCore {
 impl HyperliquidCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("hyperliquid".to_string()));
         m.insert("name".to_string(), Value::Str("Hyperliquid".to_string()));
         m.insert("countries".to_string(), Value::List(vec![]));
@@ -284,7 +340,7 @@ impl HyperliquidCore {
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("dex".to_string(), Value::Bool(true));
         m.insert("has".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("CORS".to_string(), Value::Null);
         m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Bool(false));
@@ -382,7 +438,7 @@ impl HyperliquidCore {
     m
 }));
         m.insert("timeframes".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("1m".to_string(), Value::Str("1m".to_string()));
         m.insert("3m".to_string(), Value::Str("3m".to_string()));
         m.insert("5m".to_string(), Value::Str("5m".to_string()));
@@ -401,16 +457,16 @@ impl HyperliquidCore {
 }));
         m.insert("hostname".to_string(), Value::Str("hyperliquid.xyz".to_string()));
         m.insert("urls".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("logo".to_string(), Value::Str("https://github.com/ccxt/ccxt/assets/43336371/b371bc6c-4a8c-489f-87f4-20a913dd8d4b".to_string()));
         m.insert("api".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Str("https://api.{hostname}".to_string()));
         m.insert("private".to_string(), Value::Str("https://api.{hostname}".to_string()));
     m
 }));
         m.insert("test".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Str("https://api.hyperliquid-testnet.xyz".to_string()));
         m.insert("private".to_string(), Value::Str("https://api.hyperliquid-testnet.xyz".to_string()));
     m
@@ -422,16 +478,16 @@ impl HyperliquidCore {
     m
 }));
         m.insert("api".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(20));
         m.insert("byType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("l2Book".to_string(), Value::Int(2));
         m.insert("allMids".to_string(), Value::Int(2));
         m.insert("clearinghouseState".to_string(), Value::Int(2));
@@ -448,9 +504,9 @@ impl HyperliquidCore {
     m
 }));
         m.insert("private".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("exchange".to_string(), Value::Int(1));
     m
 }));
@@ -459,15 +515,15 @@ impl HyperliquidCore {
     m
 }));
         m.insert("fees".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("swap".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.00045".to_string()), &[]));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.00015".to_string()), &[]));
     m
 }));
         m.insert("spot".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.0007".to_string()), &[]));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.0004".to_string()), &[]));
     m
@@ -475,7 +531,7 @@ impl HyperliquidCore {
     m
 }));
         m.insert("requiredCredentials".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("apiKey".to_string(), Value::Bool(false));
         m.insert("secret".to_string(), Value::Bool(false));
         m.insert("walletAddress".to_string(), Value::Bool(true));
@@ -483,13 +539,13 @@ impl HyperliquidCore {
     m
 }));
         m.insert("exceptions".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         m.insert("broad".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("Price must be divisible by tick size.".to_string(), Value::Str("InvalidOrder".to_string()).clone());
         m.insert("Order must have minimum value of $10".to_string(), Value::Str("InvalidOrder".to_string()).clone());
         m.insert("Insufficient margin to place order.".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
@@ -515,11 +571,11 @@ impl HyperliquidCore {
 }));
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
         m.insert("commonCurrencies".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         m.insert("options".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("defaultType".to_string(), Value::Str("swap".to_string()));
         m.insert("sandboxMode".to_string(), Value::Bool(false));
         m.insert("builderFee".to_string(), Value::Bool(true));
@@ -527,7 +583,7 @@ impl HyperliquidCore {
         m.insert("marketHelperProps".to_string(), Value::List(vec![Value::Str("hip3TokensByName".to_string()), Value::Str("cachedCurrenciesById".to_string())]));
         m.insert("zeroAddress".to_string(), Value::Str("0x0000000000000000000000000000000000000000".to_string()));
         m.insert("spotCurrencyMapping".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("UDZ".to_string(), Value::Str("2Z".to_string()));
         m.insert("UBONK".to_string(), Value::Str("BONK".to_string()));
         m.insert("UBTC".to_string(), Value::Str("BTC".to_string()));
@@ -543,10 +599,10 @@ impl HyperliquidCore {
     m
 }));
         m.insert("fetchMarkets".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("types".to_string(), Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("hip3".to_string())]));
         m.insert("hip3".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("limit".to_string(), Value::Int(10));
         m.insert("dexes".to_string(), Value::List(vec![]));
     m
@@ -556,12 +612,12 @@ impl HyperliquidCore {
     m
 }));
         m.insert("features".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("default".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sandbox".to_string(), Value::Bool(true));
         m.insert("createOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("triggerPrice".to_string(), Value::Bool(false));
         m.insert("triggerPriceType".to_string(), Value::Null);
@@ -569,9 +625,9 @@ impl HyperliquidCore {
         m.insert("stopLossPrice".to_string(), Value::Bool(false));
         m.insert("takeProfitPrice".to_string(), Value::Bool(false));
         m.insert("attachedStopLossTakeProfit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("triggerPriceType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("last".to_string(), Value::Bool(false));
         m.insert("mark".to_string(), Value::Bool(false));
         m.insert("index".to_string(), Value::Bool(false));
@@ -583,7 +639,7 @@ impl HyperliquidCore {
     m
 }));
         m.insert("timeInForce".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("IOC".to_string(), Value::Bool(true));
         m.insert("FOK".to_string(), Value::Bool(false));
         m.insert("PO".to_string(), Value::Bool(true));
@@ -600,12 +656,12 @@ impl HyperliquidCore {
     m
 }));
         m.insert("createOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("max".to_string(), Value::Int(1000));
     m
 }));
         m.insert("fetchMyTrades".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("limit".to_string(), Value::Int(2000));
         m.insert("daysBack".to_string(), Value::Null);
@@ -614,7 +670,7 @@ impl HyperliquidCore {
     m
 }));
         m.insert("fetchOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("trigger".to_string(), Value::Bool(false));
         m.insert("trailing".to_string(), Value::Bool(false));
@@ -622,7 +678,7 @@ impl HyperliquidCore {
     m
 }));
         m.insert("fetchOpenOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("limit".to_string(), Value::Int(2000));
         m.insert("trigger".to_string(), Value::Bool(false));
@@ -631,7 +687,7 @@ impl HyperliquidCore {
     m
 }));
         m.insert("fetchOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("limit".to_string(), Value::Int(2000));
         m.insert("daysBack".to_string(), Value::Null);
@@ -642,7 +698,7 @@ impl HyperliquidCore {
     m
 }));
         m.insert("fetchClosedOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("limit".to_string(), Value::Int(2000));
         m.insert("daysBack".to_string(), Value::Null);
@@ -654,22 +710,22 @@ impl HyperliquidCore {
     m
 }));
         m.insert("fetchOHLCV".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("limit".to_string(), Value::Int(5000));
     m
 }));
     m
 }));
         m.insert("spot".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("default".to_string()));
     m
 }));
         m.insert("forPerps".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("default".to_string()));
         m.insert("createOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("stopLossPrice".to_string(), Value::Bool(true));
         m.insert("takeProfitPrice".to_string(), Value::Bool(true));
         m.insert("attachedStopLossTakeProfit".to_string(), Value::Null);
@@ -678,28 +734,28 @@ impl HyperliquidCore {
     m
 }));
         m.insert("swap".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("linear".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forPerps".to_string()));
     m
 }));
         m.insert("inverse".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forPerps".to_string()));
     m
 }));
     m
 }));
         m.insert("future".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("linear".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forPerps".to_string()));
     m
 }));
         m.insert("inverse".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forPerps".to_string()));
     m
 }));
@@ -716,18 +772,18 @@ impl HyperliquidCore {
 
     pub fn set_sandbox_mode(&mut self, mut enabled: Value) {
         self.super_set_sandbox_mode(enabled.clone());
-        add_element_to_object(&mut self.options.clone(), &Value::Str("sandboxMode".to_string()), enabled.clone());
+        add_element_to_object(&mut self.options, &Value::Str("sandboxMode".to_string()), enabled.clone());
 }
 
     pub fn market(&self, mut symbol: Value) -> Value {
         if is_equal(&self.markets, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" markets not loaded".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" markets not loaded".to_string()))));
         }
         if is_true(&(!is_equal(&symbol, &Value::Null))) && !is_true(&(Value::Bool(in_op(&self.markets, &symbol)))) {
             let mut symbolParts: Value = split(&symbol, &Value::Str("/".to_string()));
             let mut baseName: Value = self.safe_string(symbolParts.clone(), Value::Int(0), &[]);
-            let mut spotCurrencyMapping: Value = self.safe_dict(self.options.clone(), Value::Str("spotCurrencyMapping".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut spotCurrencyMapping: Value = self.safe_dict_k(self.options.clone(), "spotCurrencyMapping", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             if is_true(&Value::Bool(in_op(&spotCurrencyMapping, &baseName))) {
@@ -749,15 +805,15 @@ impl HyperliquidCore {
  * @name hyperliquid#fetchStatus
  * @description the latest known information on the availability of the exchange API
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
     pub async fn fetch_status(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("exchangeStatus".to_string()));
             m
         });
@@ -767,11 +823,11 @@ impl HyperliquidCore {
         //         "status": "ok"
         //     }
         //
-        let mut status: Value = self.safe_string(response.clone(), Value::Str("specialStatuses".to_string()), &[]);
+        let mut status: Value = self.safe_string_k(response.clone(), "specialStatuses", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), ternary(is_true(&(is_equal(&status, &Value::Null))), Value::Str("ok".to_string()), Value::Str("maintenance".to_string())));
-        m.insert("updated".to_string(), self.safe_integer(response.clone(), Value::Str("time".to_string()), &[]));
+        m.insert("updated".to_string(), self.safe_integer_k(response.clone(), "time", &[]));
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
         m.insert("info".to_string(), response.clone());
@@ -790,16 +846,16 @@ impl HyperliquidCore {
  */
     pub async fn fetch_time(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("exchangeStatus".to_string()));
             m
         });
         let mut response: Value = self.call_method(Value::Str("public_post_info".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
-        return self.safe_integer(response.clone(), Value::Str("time".to_string()), &[]);
+        return self.safe_integer_k(response.clone(), "time", &[]);
 
     Value::Null
 }
@@ -808,20 +864,20 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
     pub async fn fetch_currencies(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&self.check_required_credentials(&[Value::Bool(false)])) {
             self.initialize_client().await;
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("spotMeta".to_string()));
             m
         });
@@ -840,35 +896,36 @@ impl HyperliquidCore {
         //         }
         //     ]
         //
-        // const spotMeta = await get_value(&this, &Value::Str("publicPostInfo".to_string())) ({ 'type': 'spotMeta' });
-        let mut tokens: Value = self.safe_list(response.clone(), Value::Str("tokens".to_string()), &[Value::List(vec![])]);
-        // const meta = get_value(&this, &Value::Str("safeList".to_string())) (response, 'universe', []);
-        add_element_to_object(&mut self.options.clone(), &Value::Str("cachedCurrenciesById".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
+        // const spotMeta = await this.publicPostInfo ({ 'type': 'spotMeta' });
+        let mut tokens: Value = self.safe_list_k(response.clone(), "tokens", &[Value::List(vec![])]);
+        // const meta = this.safeList (response, 'universe', []);
+        add_element_to_object(&mut self.options, &Value::Str("cachedCurrenciesById".to_string()), Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })); // used to map hip3 markets
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&tokens)) {
+            let mut __for_first_800: bool = true;
+            while { if !__for_first_800 { i = add(&i, &Value::Int(1)); } __for_first_800 = false; is_less_than(&i, &get_array_length(&tokens)) } {
             let mut data: Value = self.safe_dict(tokens.clone(), i.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             // const id = i;
-            let mut id: Value = self.safe_string(data.clone(), Value::Str("index".to_string()), &[]);
-            let mut name: Value = self.safe_string(data.clone(), Value::Str("name".to_string()), &[]);
+            let mut id: Value = self.safe_string_k(data.clone(), "index", &[]);
+            let mut name: Value = self.safe_string_k(data.clone(), "name", &[]);
             let mut code: Value = self.safe_currency_code(name.clone(), &[]);
-            add_element_to_object(get_value_mut(&mut self.options.clone(), &Value::Str("cachedCurrenciesById".to_string())), &id, name.clone());
+            add_element_to_object(get_value_mut(&mut self.options, &Value::Str("cachedCurrenciesById".to_string())), &id, name.clone());
             add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("name".to_string(), name.clone());
         m.insert("code".to_string(), code.clone());
-        m.insert("precision".to_string(), self.parse_precision(&[self.safe_string(data.clone(), Value::Str("weiDecimals".to_string()), &[])]));
+        m.insert("precision".to_string(), self.parse_precision(&[self.safe_string_k(data.clone(), "weiDecimals", &[])]));
         m.insert("info".to_string(), data.clone());
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Null);
@@ -877,15 +934,15 @@ impl HyperliquidCore {
         m.insert("fee".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Str("crypto".to_string()));
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
@@ -895,7 +952,7 @@ impl HyperliquidCore {
     m
 })));
             // add in wrapped map
-            let mut fullName: Value = self.safe_string(data.clone(), Value::Str("fullName".to_string()), &[]);
+            let mut fullName: Value = self.safe_string_k(data.clone(), "fullName", &[]);
             if !is_equal(&fullName, &Value::Null) && !is_equal(&name, &Value::Null) {
                 let mut isWrapped: Value = Value::Bool(is_true(&Value::Bool(starts_with(&fullName, &Value::Str("Unit ".to_string())))) && is_true(&Value::Bool(starts_with(&name, &Value::Str("U".to_string())))));
                 if is_true(&isWrapped) {
@@ -903,16 +960,15 @@ impl HyperliquidCore {
                     let mut nameWithoutU: Value = Value::Str("".to_string());
                     {
                                                 let mut j: Value = Value::Int(0);
-                        while is_less_than(&j, &get_array_length(&parts)) {
+                        let mut __for_first_799: bool = true;
+                        while { if !__for_first_799 { j = add(&j, &Value::Int(1)); } __for_first_799 = false; is_less_than(&j, &get_array_length(&parts)) } {
                         nameWithoutU = add(&nameWithoutU, &get_value(&parts, &j));
-                        j = add(&j, &Value::Int(1));
                     }
                     }
                     let mut baseCode: Value = self.safe_currency_code(nameWithoutU.clone(), &[]);
-                    add_element_to_object(get_value_mut(&mut self.options.clone(), &Value::Str("spotCurrencyMapping".to_string())), &code, baseCode.clone());
+                    add_element_to_object(get_value_mut(&mut self.options, &Value::Str("spotCurrencyMapping".to_string())), &code, baseCode.clone());
                 }
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -924,25 +980,27 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#fetchMarkets
  * @description retrieves data on all markets for hyperliquid
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
     pub async fn fetch_markets(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut options: Value = self.safe_dict(self.options.clone(), Value::Str("fetchMarkets".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut types: Value = self.safe_list(options.clone(), Value::Str("types".to_string()), &[]);
+        let mut types: Value = self.safe_list_k(options.clone(), "types", &[]);
         let mut rawPromises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&types)) {
+            let mut __for_first_801: bool = true;
+            while { if !__for_first_801 { i = add(&i, &Value::Int(1)); } __for_first_801 = false; is_less_than(&i, &get_array_length(&types)) } {
+            let mut marketType: Value = get_value(&types, &i);
             let mut marketType: Value = get_value(&types, &i);
             if is_equal(&marketType, &Value::Str("swap".to_string())) {
                 append_to_array(&mut rawPromises, self.fetch_swap_markets(&[params.clone()]).await);
@@ -951,16 +1009,15 @@ impl HyperliquidCore {
             }  else if is_equal(&marketType, &Value::Str("hip3".to_string())) {
                 append_to_array(&mut rawPromises, self.fetch_hip3_markets(&[params.clone()]).await);
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut promises: Value = promise_all(&rawPromises).await;
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&promises)) {
+            let mut __for_first_802: bool = true;
+            while { if !__for_first_802 { i = add(&i, &Value::Int(1)); } __for_first_802 = false; is_less_than(&i, &get_array_length(&promises)) } {
             result = self.array_concat(result.clone(), get_value(&promises, &i));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -972,18 +1029,18 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#fetchHip3Markets
  * @description retrieves data on all hip3 markets for hyperliquid
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-all-perpetual-dexs
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-all-perpetual-dexs
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
     pub async fn fetch_hip3_markets(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut fetchDexes: Value = self.call_method(Value::Str("public_post_info".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("perpDexs".to_string()));
             m
         })]).await;
@@ -1006,31 +1063,32 @@ impl HyperliquidCore {
         //     ]
         //
         let mut perpDexesOffset: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(1);
-            while is_less_than(&i, &get_array_length(&fetchDexes)) {
+            let mut __for_first_803: bool = true;
+            while { if !__for_first_803 { i = add(&i, &Value::Int(1)); } __for_first_803 = false; is_less_than(&i, &get_array_length(&fetchDexes)) } {
             // builder-deployed perp dexs start at 110000
             let mut dex: Value = get_value(&fetchDexes, &i);
+            let mut dex: Value = get_value(&fetchDexes, &i);
             let mut secondPart: Value = multiply(&(subtract(&i, &Value::Int(1))), &Value::Int(10000));
-            let mut offset: Value = self.sum(Value::Int(110000), secondPart.clone(), &[]);
+            let mut offset: Value = self.sum(&[Value::Int(110000), secondPart.clone()]);
             add_element_to_object(&mut perpDexesOffset, &get_value(&dex, &Value::Str("name".to_string())), offset.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut fetchDexesList: Value = Value::List(vec![]);
-        let mut options: Value = self.safe_dict(self.options.clone(), Value::Str("fetchMarkets".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut hip3: Value = self.safe_dict(options.clone(), Value::Str("hip3".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut hip3: Value = self.safe_dict_k(options.clone(), "hip3", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut dexesProvided: Value = self.safe_list(hip3.clone(), Value::Str("dexes".to_string()), &[Value::List(vec![])]); // let users provide their own list of dexes to load
-        let mut maxLimit: Value = self.safe_integer(hip3.clone(), Value::Str("limit".to_string()), &[Value::Int(10)]);
+        let mut dexesProvided: Value = self.safe_list_k(hip3.clone(), "dexes", &[Value::List(vec![])]); // let users provide their own list of dexes to load
+        let mut maxLimit: Value = self.safe_integer_k(hip3.clone(), "limit", &[Value::Int(10)]);
         let mut userProvidedDexesLength: Value = get_array_length(&dexesProvided);
         if is_greater_than(&userProvidedDexesLength, &Value::Int(0)) {
             if is_greater_than(&userProvidedDexesLength, &Value::Int(0)) {
@@ -1040,95 +1098,97 @@ impl HyperliquidCore {
             let mut fetchDexesLength: Value = get_array_length(&fetchDexes);
             {
                                 let mut i: Value = Value::Int(1);
-                while is_less_than(&i, &maxLimit) {
+                let mut __for_first_804: bool = true;
+                while { if !__for_first_804 { i = add(&i, &Value::Int(1)); } __for_first_804 = false; is_less_than(&i, &maxLimit) } {
                 if is_greater_than_or_equal(&i, &fetchDexesLength) {
                     break;
                 }
                 let mut dex: Value = self.safe_dict(fetchDexes.clone(), i.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
                 if is_equal(&dex, &Value::Null) {
                     continue;
                 }
-                let mut dexName: Value = self.safe_string(dex.clone(), Value::Str("name".to_string()), &[]);
+                let mut dexName: Value = self.safe_string_k(dex.clone(), "name", &[]);
                 append_to_array(&mut fetchDexesList, dexName.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
         }
         let mut rawPromises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&fetchDexesList)) {
+            let mut __for_first_805: bool = true;
+            while { if !__for_first_805 { i = add(&i, &Value::Int(1)); } __for_first_805 = false; is_less_than(&i, &get_array_length(&fetchDexesList)) } {
             let mut request: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("metaAndAssetCtxs".to_string()));
                     m.insert("dex".to_string(), self.safe_string(fetchDexesList.clone(), i.clone(), &[]));
                 m
             });
             append_to_array(&mut rawPromises, self.call_method(Value::Str("public_post_info".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await);
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut promises: Value = promise_all(&rawPromises).await;
-        add_element_to_object(&mut self.options.clone(), &Value::Str("hip3TokensByName".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
+        add_element_to_object(&mut self.options, &Value::Str("hip3TokensByName".to_string()), Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut markets: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&promises)) {
+            let mut __for_first_807: bool = true;
+            while { if !__for_first_807 { i = add(&i, &Value::Int(1)); } __for_first_807 = false; is_less_than(&i, &get_array_length(&promises)) } {
+            let mut dexName: Value = get_value(&fetchDexesList, &i);
             let mut dexName: Value = get_value(&fetchDexesList, &i);
             let mut offset: Value = get_value(&perpDexesOffset, &dexName);
             let mut response: Value = get_value(&promises, &i);
+            let mut response: Value = get_value(&promises, &i);
             let mut meta: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut collateralToken: Value = self.safe_string(meta.clone(), Value::Str("collateralToken".to_string()), &[]);
-            let mut universe: Value = self.safe_list(meta.clone(), Value::Str("universe".to_string()), &[Value::List(vec![])]);
+            let mut collateralToken: Value = self.safe_string_k(meta.clone(), "collateralToken", &[]);
+            let mut universe: Value = self.safe_list_k(meta.clone(), "universe", &[Value::List(vec![])]);
             let mut assetCtxs: Value = self.safe_list(response.clone(), Value::Int(1), &[Value::List(vec![])]);
             let mut result: Value = Value::List(vec![]);
             {
                                 let mut j: Value = Value::Int(0);
-                while is_less_than(&j, &get_array_length(&universe)) {
+                let mut __for_first_806: bool = true;
+                while { if !__for_first_806 { j = add(&j, &Value::Int(1)); } __for_first_806 = false; is_less_than(&j, &get_array_length(&universe)) } {
                 let mut data: Value = self.extend(self.safe_dict(universe.clone(), j.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]), &[self.safe_dict(assetCtxs.clone(), j.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })])]);
-                add_element_to_object(&mut data, &Value::Str("baseId".to_string()), self.sum(j.clone(), offset.clone(), &[]));
+                add_element_to_object(&mut data, &Value::Str("baseId".to_string()), self.sum(&[j.clone(), offset.clone()]));
                 add_element_to_object(&mut data, &Value::Str("collateralToken".to_string()), collateralToken.clone());
                 add_element_to_object(&mut data, &Value::Str("hip3".to_string()), Value::Bool(true));
                 add_element_to_object(&mut data, &Value::Str("dex".to_string()), dexName.clone());
-                let mut cachedCurrencies: Value = self.safe_dict(self.options.clone(), Value::Str("cachedCurrenciesById".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+                let mut cachedCurrencies: Value = self.safe_dict_k(self.options.clone(), "cachedCurrenciesById", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
                 // injecting collateral token name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
                 if is_true(&Value::Bool(in_op(&cachedCurrencies, &collateralToken))) {
-                    let mut name: Value = self.safe_string(data.clone(), Value::Str("name".to_string()), &[]);
+                    let mut name: Value = self.safe_string_k(data.clone(), "name", &[]);
                     let mut collateralTokenCode: Value = self.safe_string(cachedCurrencies.clone(), collateralToken.clone(), &[]);
                     add_element_to_object(&mut data, &Value::Str("collateralTokenName".to_string()), collateralTokenCode.clone());
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     let mut safeCode: Value = self.safe_currency_code(name.clone(), &[]);
-                    add_element_to_object(get_value_mut(&mut self.options.clone(), &Value::Str("hip3TokensByName".to_string())), &name, Value::Map({
-    let mut m = std::collections::HashMap::new();
+                    add_element_to_object(get_value_mut(&mut self.options, &Value::Str("hip3TokensByName".to_string())), &name, Value::Map({
+    let mut m = indexmap::IndexMap::new();
         m.insert("quote".to_string(), collateralTokenCode.clone());
         m.insert("code".to_string(), replace_str(&safeCode, &Value::Str(":".to_string()), &Value::Str("-".to_string())));
     m
 }));
                 }
                 append_to_array(&mut result, data.clone());
-                j = add(&j, &Value::Int(1));
             }
             }
             markets = self.array_concat(markets.clone(), self.parse_markets(result.clone()));
-            i = add(&i, &Value::Int(1));
         }
         }
         return markets;
@@ -1140,17 +1200,17 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#fetchSwapMarkets
  * @description retrieves data on all swap markets for hyperliquid
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
     pub async fn fetch_swap_markets(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("metaAndAssetCtxs".to_string()));
             m
         });
@@ -1187,25 +1247,25 @@ impl HyperliquidCore {
         //
         //
         let mut meta: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut universe: Value = self.safe_list(meta.clone(), Value::Str("universe".to_string()), &[Value::List(vec![])]);
+        let mut universe: Value = self.safe_list_k(meta.clone(), "universe", &[Value::List(vec![])]);
         let mut assetCtxs: Value = self.safe_list(response.clone(), Value::Int(1), &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&universe)) {
+            let mut __for_first_808: bool = true;
+            while { if !__for_first_808 { i = add(&i, &Value::Int(1)); } __for_first_808 = false; is_less_than(&i, &get_array_length(&universe)) } {
             let mut data: Value = self.extend(self.safe_dict(universe.clone(), i.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]), &[self.safe_dict(assetCtxs.clone(), i.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })])]);
             add_element_to_object(&mut data, &Value::Str("baseId".to_string()), i.clone());
             append_to_array(&mut result, data.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.parse_markets(result.clone());
@@ -1255,7 +1315,7 @@ impl HyperliquidCore {
             let mut integerPart: Value = self.safe_string(priceSplitted.clone(), Value::Int(0), &[Value::Str("".to_string())]);
             // Get significant digits, take the max() of 5 and the integer digits count
             let mut significantDigits: Value = crate::runtime::Math::max(&Value::Int(5), &get_array_length(&integerPart));
-            // Calculate price precision based on maxDecimals - szDecimals and significantDigits - get_value(&integerPart, &Value::Str("length".to_string()))
+            // Calculate price precision based on maxDecimals - szDecimals and significantDigits - integerPart.length
             pricePrecision = crate::runtime::Math::min(&subtract(&maxDecimals, &amountPrecision), &subtract(&significantDigits, &get_array_length(&integerPart)));
         }
         return self.parse_to_int(pricePrecision.clone());
@@ -1267,17 +1327,17 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#fetchSpotMarkets
  * @description retrieves data on all spot markets for hyperliquid
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
     pub async fn fetch_spot_markets(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("spotMetaAndAssetCtxs".to_string()));
             m
         });
@@ -1327,58 +1387,59 @@ impl HyperliquidCore {
         // ]
         //
         let mut first: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut second: Value = self.safe_list(response.clone(), Value::Int(1), &[Value::List(vec![])]);
-        let mut meta: Value = self.safe_list(first.clone(), Value::Str("universe".to_string()), &[Value::List(vec![])]);
-        let mut tokens: Value = self.safe_list(first.clone(), Value::Str("tokens".to_string()), &[Value::List(vec![])]);
+        let mut meta: Value = self.safe_list_k(first.clone(), "universe", &[Value::List(vec![])]);
+        let mut tokens: Value = self.safe_list_k(first.clone(), "tokens", &[Value::List(vec![])]);
         let mut markets: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&meta)) {
+            let mut __for_first_809: bool = true;
+            while { if !__for_first_809 { i = add(&i, &Value::Int(1)); } __for_first_809 = false; is_less_than(&i, &get_array_length(&meta)) } {
             let mut market: Value = self.safe_dict(meta.clone(), i.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut index: Value = self.safe_integer(market.clone(), Value::Str("index".to_string()), &[]);
+            let mut index: Value = self.safe_integer_k(market.clone(), "index", &[]);
             let mut extraData: Value = self.safe_dict(second.clone(), index.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut marketName: Value = self.safe_string(market.clone(), Value::Str("name".to_string()), &[]);
-            // if (get_value(&marketName, &Value::Str("indexOf".to_string())) ('/') < 0) {
+            let mut marketName: Value = self.safe_string_k(market.clone(), "name", &[]);
+            // if (marketName.indexOf ('/') < 0) {
             //     // there are some weird spot markets in testnet, eg @2
             //     continue;
             // }
-            // const marketParts = get_value(&marketName, &Value::Str("split".to_string())) ('/');
-            // const baseName = get_value(&this, &Value::Str("safeString".to_string())) (marketParts, 0);
-            // const quoteId = get_value(&this, &Value::Str("safeString".to_string())) (marketParts, 1);
-            let mut fees: Value = self.safe_dict(self.fees.clone(), Value::Str("spot".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            // const marketParts = marketName.split ('/');
+            // const baseName = this.safeString (marketParts, 0);
+            // const quoteId = this.safeString (marketParts, 1);
+            let mut fees: Value = self.safe_dict_k(self.fees.clone(), "spot", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut taker: Value = self.safe_number(fees.clone(), Value::Str("taker".to_string()), &[]);
-            let mut maker: Value = self.safe_number(fees.clone(), Value::Str("maker".to_string()), &[]);
-            let mut tokensPos: Value = self.safe_list(market.clone(), Value::Str("tokens".to_string()), &[Value::List(vec![])]);
+            let mut taker: Value = self.safe_number_k(fees.clone(), "taker", &[]);
+            let mut maker: Value = self.safe_number_k(fees.clone(), "maker", &[]);
+            let mut tokensPos: Value = self.safe_list_k(market.clone(), "tokens", &[Value::List(vec![])]);
             let mut baseTokenPos: Value = self.safe_integer(tokensPos.clone(), Value::Int(0), &[]);
             let mut quoteTokenPos: Value = self.safe_integer(tokensPos.clone(), Value::Int(1), &[]);
             let mut baseTokenInfo: Value = self.safe_dict(tokens.clone(), baseTokenPos.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut quoteTokenInfo: Value = self.safe_dict(tokens.clone(), quoteTokenPos.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut baseName: Value = self.safe_string(baseTokenInfo.clone(), Value::Str("name".to_string()), &[]);
-            let mut quoteId: Value = self.safe_string(quoteTokenInfo.clone(), Value::Str("name".to_string()), &[]);
+            let mut baseName: Value = self.safe_string_k(baseTokenInfo.clone(), "name", &[]);
+            let mut quoteId: Value = self.safe_string_k(quoteTokenInfo.clone(), "name", &[]);
             if is_equal(&baseName, &Value::Null) || is_equal(&quoteId, &Value::Null) {
                 continue;
             }
             // do spot currency mapping
-            let mut spotCurrencyMapping: Value = self.safe_dict(self.options.clone(), Value::Str("spotCurrencyMapping".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut spotCurrencyMapping: Value = self.safe_dict_k(self.options.clone(), "spotCurrencyMapping", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut mappedBaseName: Value = self.safe_string(spotCurrencyMapping.clone(), baseName.clone(), &[baseName.clone()]);
@@ -1386,20 +1447,20 @@ impl HyperliquidCore {
             let mut mappedBase: Value = self.safe_currency_code(mappedBaseName.clone(), &[]);
             let mut mappedQuote: Value = self.safe_currency_code(mappedQuoteId.clone(), &[]);
             let mut mappedSymbol: Value = add(&add(&mappedBase, &Value::Str("/".to_string())), &mappedQuote);
-            let mut innerBaseTokenInfo: Value = self.safe_dict(baseTokenInfo.clone(), Value::Str("spec".to_string()), &[baseTokenInfo.clone()]);
-            // const innerQuoteTokenInfo = get_value(&this, &Value::Str("safeDict".to_string())) (quoteTokenInfo, 'spec', quoteTokenInfo);
-            let mut amountPrecisionStr: Value = self.safe_string(innerBaseTokenInfo.clone(), Value::Str("szDecimals".to_string()), &[]);
+            let mut innerBaseTokenInfo: Value = self.safe_dict_k(baseTokenInfo.clone(), "spec", &[baseTokenInfo.clone()]);
+            // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
+            let mut amountPrecisionStr: Value = self.safe_string_k(innerBaseTokenInfo.clone(), "szDecimals", &[]);
             let mut amountPrecision: Value = crate::runtime::parse_int(&amountPrecisionStr);
-            let mut price: Value = self.safe_number(extraData.clone(), Value::Str("midPx".to_string()), &[]);
+            let mut price: Value = self.safe_number_k(extraData.clone(), "midPx", &[]);
             let mut pricePrecision: Value = Value::Int(0);
             if !is_equal(&price, &Value::Null) {
                 pricePrecision = self.calculate_price_precision(price.clone(), amountPrecision.clone(), Value::Int(8));
             }
             let mut pricePrecisionStr: Value = self.number_to_string(pricePrecision.clone());
-            // const quotePrecision = get_value(&this, &Value::Str("parseNumber".to_string())) (get_value(&this, &Value::Str("parsePrecision".to_string())) (get_value(&this, &Value::Str("safeString".to_string())) (innerQuoteTokenInfo, 'szDecimals')));
+            // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             let mut baseId: Value = self.number_to_string(add(&index, &Value::Int(10000)));
             let mut entry: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), marketName.clone());
                     m.insert("symbol".to_string(), mappedSymbol.clone());
                     m.insert("base".to_string(), mappedBase.clone());
@@ -1428,33 +1489,33 @@ impl HyperliquidCore {
                     m.insert("strike".to_string(), Value::Null);
                     m.insert("optionType".to_string(), Value::Null);
                     m.insert("precision".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.parse_number(self.parse_precision(&[amountPrecisionStr.clone()]), &[]));
         m.insert("price".to_string(), self.parse_number(self.parse_precision(&[pricePrecisionStr.clone()]), &[]));
     m
 }));
                     m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("cost".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.parse_number(Value::Str("10".to_string()), &[]));
         m.insert("max".to_string(), Value::Null);
     m
@@ -1466,7 +1527,6 @@ impl HyperliquidCore {
                 m
             });
             append_to_array(&mut markets, self.safe_market_structure(&[entry.clone()]));
-            i = add(&i, &Value::Int(1));
         }
         }
         return markets;
@@ -1496,14 +1556,14 @@ impl HyperliquidCore {
         //         "collateralToken": "0" hip3 tokens only
         //     }
         //
-        let mut collateralTokenCode: Value = self.safe_string(market.clone(), Value::Str("collateralTokenName".to_string()), &[]);
+        let mut collateralTokenCode: Value = self.safe_string_k(market.clone(), "collateralTokenName", &[]);
         let mut quoteId: Value = ternary(is_true(&(is_equal(&collateralTokenCode, &Value::Null))), Value::Str("USDC".to_string()), collateralTokenCode.clone());
         let mut settleId: Value = ternary(is_true(&(is_equal(&collateralTokenCode, &Value::Null))), Value::Str("USDC".to_string()), collateralTokenCode.clone());
-        let mut baseName: Value = self.safe_string(market.clone(), Value::Str("name".to_string()), &[]);
+        let mut baseName: Value = self.safe_string_k(market.clone(), "name", &[]);
         let mut base: Value = self.safe_currency_code(baseName.clone(), &[]);
         base = replace_str(&base, &Value::Str(":".to_string()), &Value::Str("-".to_string())); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut baseId: Value = self.safe_string(market.clone(), Value::Str("baseId".to_string()), &[]);
+        let mut baseId: Value = self.safe_string_k(market.clone(), "baseId", &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
         let mut contract: Value = Value::Bool(true);
@@ -1513,27 +1573,27 @@ impl HyperliquidCore {
                 symbol = add(&add(&symbol, &Value::Str(":".to_string())), &settle);
             }
         }
-        let mut fees: Value = self.safe_dict(self.fees.clone(), Value::Str("swap".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut fees: Value = self.safe_dict_k(self.fees.clone(), "swap", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut taker: Value = self.safe_number(fees.clone(), Value::Str("taker".to_string()), &[]);
-        let mut maker: Value = self.safe_number(fees.clone(), Value::Str("maker".to_string()), &[]);
-        let mut amountPrecisionStr: Value = self.safe_string(market.clone(), Value::Str("szDecimals".to_string()), &[]);
+        let mut taker: Value = self.safe_number_k(fees.clone(), "taker", &[]);
+        let mut maker: Value = self.safe_number_k(fees.clone(), "maker", &[]);
+        let mut amountPrecisionStr: Value = self.safe_string_k(market.clone(), "szDecimals", &[]);
         let mut amountPrecision: Value = crate::runtime::parse_int(&amountPrecisionStr);
-        let mut price: Value = self.safe_number(market.clone(), Value::Str("markPx".to_string()), &[Value::Int(0)]);
+        let mut price: Value = self.safe_number_k(market.clone(), "markPx", &[Value::Int(0)]);
         let mut pricePrecision: Value = Value::Int(0);
         if !is_equal(&price, &Value::Null) {
             pricePrecision = self.calculate_price_precision(price.clone(), amountPrecision.clone(), Value::Int(6));
         }
         let mut pricePrecisionStr: Value = self.number_to_string(pricePrecision.clone());
-        let mut isDelisted: Value = self.safe_bool(market.clone(), Value::Str("isDelisted".to_string()), &[]);
+        let mut isDelisted: Value = self.safe_bool_k(market.clone(), "isDelisted", &[]);
         let mut active: Value = Value::Bool(true);
         if !is_equal(&isDelisted, &Value::Null) {
             active = Value::Bool(!is_true(&isDelisted));
         }
         return self.safe_market_structure(&[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), baseId.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("base".to_string(), base.clone());
@@ -1561,33 +1621,33 @@ impl HyperliquidCore {
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.parse_number(self.parse_precision(&[amountPrecisionStr.clone()]), &[]));
         m.insert("price".to_string(), self.parse_number(self.parse_precision(&[pricePrecisionStr.clone()]), &[]));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
-        m.insert("max".to_string(), self.safe_integer(market.clone(), Value::Str("maxLeverage".to_string()), &[]));
+        m.insert("max".to_string(), self.safe_integer_k(market.clone(), "maxLeverage", &[]));
     m
 }));
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("cost".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.parse_number(Value::Str("10".to_string()), &[]));
         m.insert("max".to_string(), Value::Null);
     m
@@ -1606,8 +1666,8 @@ impl HyperliquidCore {
         if is_equal(&code, &Value::Null) {
             return code;
         }
-        let mut spotCurrencyMapping: Value = self.safe_dict(self.options.clone(), Value::Str("spotCurrencyMapping".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut spotCurrencyMapping: Value = self.safe_dict_k(self.options.clone(), "spotCurrencyMapping", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.safe_string(spotCurrencyMapping.clone(), code.clone(), &[code.clone()]);
@@ -1619,24 +1679,24 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("user".to_string()))] user address, will default to get_value(&this, &Value::Str("walletAddress".to_string())) if not provided
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] wallet type, ['spot', 'swap'], defaults to swap
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', for margin trading, uses get_value(&this, &Value::Str("options".to_string())).defaultMarginMode if not passed, defaults to undefined/None/null
- * @param {string} [get_value(&params, &Value::Str("dex".to_string()))] for hip3 markets, the dex name, eg: 'xyz'
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
- * @param {boolean} [get_value(&params, &Value::Str("enableUnifiedMargin".to_string()))] enable unified margin, CCXT tries to auto-detects this value but you can override it
- * @returns {object} a [balance structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=balance-structure}
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @param {string} [params.type] wallet type, ['spot', 'swap'], defaults to swap
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+ * @param {string} [params.dex] for hip3 markets, the dex name, eg: 'xyz'
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @param {boolean} [params.enableUnifiedMargin] enable unified margin, CCXT tries to auto-detects this value but you can override it
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
     pub async fn fetch_balance(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         // if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
-        let mut shouldRefresh: Value = Value::Bool(is_true(&(!is_equal(&self.safe_string2(params.clone(), Value::Str("user".to_string()), Value::Str("address".to_string()), &[]), &Value::Null))) && is_equal(&self.safe_bool(params.clone(), Value::Str("enableUnifiedMargin".to_string()), &[]), &Value::Null));
+        let mut shouldRefresh: Value = Value::Bool(is_true(&(!is_equal(&self.safe_string2(params.clone(), Value::Str("user".to_string()), Value::Str("address".to_string()), &[]), &Value::Null))) && is_equal(&self.safe_bool_k(params.clone(), "enableUnifiedMargin", &[]), &Value::Null));
         let mut userAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_public_address(Value::Str("fetchBalance".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut type_var: Value = Value::Null;
@@ -1645,10 +1705,10 @@ impl HyperliquidCore {
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchBalance".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isUnifiedEnabled: Value = Value::Null;
         { let __destr_tmp = self.is_unified_enabled(Value::Str("fetchBalance".to_string()), &[userAddress.clone(), shouldRefresh.clone(), params.clone()]).await; isUnifiedEnabled = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut dex: Value = self.safe_string(params.clone(), Value::Str("dex".to_string()), &[]);
+        let mut dex: Value = self.safe_string_k(params.clone(), "dex", &[]);
         let mut isSpot: Value = Value::Bool(is_true(&(is_true(&(is_equal(&type_var, &Value::Str("spot".to_string())))) || is_true(&isUnifiedEnabled))) && is_true(&(is_equal(&dex, &Value::Null))));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), ternary(is_true(&(isSpot)), Value::Str("spotClearinghouseState".to_string()), Value::Str("clearinghouseState".to_string())));
                 m.insert("user".to_string(), userAddress.clone());
             m
@@ -1689,51 +1749,52 @@ impl HyperliquidCore {
         //            }
         //     }
         //
-        let mut balances: Value = self.safe_list(response.clone(), Value::Str("balances".to_string()), &[]);
+        let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[]);
         if !is_equal(&balances, &Value::Null) {
             let mut spotBalances: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), response.clone());
                 m
             });
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&balances)) {
+                let mut __for_first_810: bool = true;
+                while { if !__for_first_810 { i = add(&i, &Value::Int(1)); } __for_first_810 = false; is_less_than(&i, &get_array_length(&balances)) } {
                 let mut balance: Value = get_value(&balances, &i);
-                let mut unifiedCode: Value = self.safe_currency_code(self.safe_string(balance.clone(), Value::Str("coin".to_string()), &[]), &[]);
+                let mut balance: Value = get_value(&balances, &i);
+                let mut unifiedCode: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "coin", &[]), &[]);
                 let mut code: Value = ternary(is_true(&isSpot), self.update_spot_currency_code(unifiedCode.clone()), unifiedCode.clone());
                 let mut account: Value = self.account();
-                let mut total: Value = self.safe_string(balance.clone(), Value::Str("total".to_string()), &[]);
-                let mut used: Value = self.safe_string(balance.clone(), Value::Str("hold".to_string()), &[]);
+                let mut total: Value = self.safe_string_k(balance.clone(), "total", &[]);
+                let mut used: Value = self.safe_string_k(balance.clone(), "hold", &[]);
                 add_element_to_object(&mut account, &Value::Str("total".to_string()), total.clone());
                 add_element_to_object(&mut account, &Value::Str("used".to_string()), used.clone());
                 add_element_to_object(&mut spotBalances, &code, account.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
             return self.safe_balance(spotBalances.clone());
         }
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("marginSummary".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "marginSummary", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut usdcBalance: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
-                m.insert("total".to_string(), self.safe_number(data.clone(), Value::Str("accountValue".to_string()), &[]));
+            let mut m = indexmap::IndexMap::new();
+                m.insert("total".to_string(), self.safe_number_k(data.clone(), "accountValue", &[]));
             m
         });
         if is_true(&(!is_equal(&marginMode, &Value::Null))) && is_true(&(is_equal(&marginMode, &Value::Str("isolated".to_string())))) {
-            add_element_to_object(&mut usdcBalance, &Value::Str("free".to_string()), self.safe_number(response.clone(), Value::Str("withdrawable".to_string()), &[]));
+            add_element_to_object(&mut usdcBalance, &Value::Str("free".to_string()), self.safe_number_k(response.clone(), "withdrawable", &[]));
         }  else {
-            add_element_to_object(&mut usdcBalance, &Value::Str("used".to_string()), self.safe_number(data.clone(), Value::Str("totalMarginUsed".to_string()), &[]));
+            add_element_to_object(&mut usdcBalance, &Value::Str("used".to_string()), self.safe_number_k(data.clone(), "totalMarginUsed", &[]));
         }
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
                 m.insert("USDC".to_string(), usdcBalance.clone());
             m
         });
-        let mut timestamp: Value = self.safe_integer(response.clone(), Value::Str("time".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(response.clone(), "time", &[]);
         add_element_to_object(&mut result, &Value::Str("timestamp".to_string()), timestamp.clone());
         add_element_to_object(&mut result, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
         return self.safe_balance(result.clone());
@@ -1745,22 +1806,22 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("l2Book".to_string()));
                 m.insert("coin".to_string(), ternary(is_true(&get_value(&market, &Value::Str("swap".to_string()))), get_value(&market, &Value::Str("baseName".to_string())), get_value(&market, &Value::Str("id".to_string()))));
             m
@@ -1788,14 +1849,14 @@ impl HyperliquidCore {
         //         "time": "1704290104840"
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("levels".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "levels", &[Value::List(vec![])]);
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("bids".to_string(), self.safe_list(data.clone(), Value::Int(0), &[Value::List(vec![])]));
                 m.insert("asks".to_string(), self.safe_list(data.clone(), Value::Int(1), &[Value::List(vec![])]));
             m
         });
-        let mut timestamp: Value = self.safe_integer(response.clone(), Value::Str("time".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(response.clone(), "time", &[]);
         return self.parse_order_book(result.clone(), get_value(&market, &Value::Str("symbol".to_string())), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Str("px".to_string()), Value::Str("sz".to_string())]);
 
     Value::Null
@@ -1805,25 +1866,25 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] 'spot' or 'swap', by default fetches both
- * @param {boolean} [get_value(&params, &Value::Str("hip3".to_string()))] set to true to fetch hip3 markets only
- * @returns {object} a dictionary of [ticker structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ticker-structure}
+ * @param {string} [params.type] 'spot' or 'swap', by default fetches both
+ * @param {boolean} [params.hip3] set to true to fetch hip3 markets only
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
         // at this stage, to get tickers data, we use fetchMarkets endpoints
         let mut response: Value = Value::List(vec![]);
-        let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[]);
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
         let mut hip3: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTickers".to_string()), Value::Str("hip3".to_string()), &[Value::Bool(false)]); hip3 = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -1832,7 +1893,7 @@ impl HyperliquidCore {
             let mut firstSymbol: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
             if !is_equal(&firstSymbol, &Value::Null) {
                 let mut market: Value = self.market(firstSymbol.clone());
-                if is_true(&self.safe_bool(self.safe_dict(market.clone(), Value::Str("info".to_string()), &[]), Value::Str("hip3".to_string()), &[])) {
+                if is_true(&self.safe_bool(self.safe_dict_k(market.clone(), "info", &[]), Value::Str("hip3".to_string()), &[])) {
                     hip3 = Value::Bool(true);
                 }
             }
@@ -1849,18 +1910,19 @@ impl HyperliquidCore {
         }
         // same response as under "fetchMarkets"
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_811: bool = true;
+            while { if !__for_first_811 { i = add(&i, &Value::Int(1)); } __for_first_811 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut market: Value = get_value(&response, &i);
             let mut market: Value = get_value(&response, &i);
             let mut info: Value = get_value(&market, &Value::Str("info".to_string()));
             let mut ticker: Value = self.parse_ticker(info.clone(), &[market.clone()]);
-            let mut symbol: Value = self.safe_string(ticker.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
             add_element_to_object(&mut result, &symbol, ticker.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.filter_by_array_tickers(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
@@ -1872,7 +1934,7 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#fetchFundingRates
  * @description retrieves data on all swap markets for hyperliquid
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
@@ -1880,11 +1942,11 @@ impl HyperliquidCore {
     pub async fn fetch_funding_rates(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("metaAndAssetCtxs".to_string()));
             m
         });
@@ -1921,24 +1983,24 @@ impl HyperliquidCore {
         //
         //
         let mut meta: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut universe: Value = self.safe_list(meta.clone(), Value::Str("universe".to_string()), &[Value::List(vec![])]);
+        let mut universe: Value = self.safe_list_k(meta.clone(), "universe", &[Value::List(vec![])]);
         let mut assetCtxs: Value = self.safe_list(response.clone(), Value::Int(1), &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&universe)) {
+            let mut __for_first_812: bool = true;
+            while { if !__for_first_812 { i = add(&i, &Value::Int(1)); } __for_first_812 = false; is_less_than(&i, &get_array_length(&universe)) } {
             let mut data: Value = self.extend(self.safe_dict(universe.clone(), i.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]), &[self.safe_dict(assetCtxs.clone(), i.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })])]);
             append_to_array(&mut result, data.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.parse_funding_rates(result.clone(), &[symbols.clone()]);
@@ -1968,15 +2030,15 @@ impl HyperliquidCore {
         //         "prevDayPx": "2381.5"
         //     }
         //
-        let mut base: Value = self.safe_string(info.clone(), Value::Str("name".to_string()), &[]);
+        let mut base: Value = self.safe_string_k(info.clone(), "name", &[]);
         let mut marketId: Value = self.coin_to_market_id(base.clone());
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
-        let mut funding: Value = self.safe_number(info.clone(), Value::Str("funding".to_string()), &[]);
-        let mut markPx: Value = self.safe_number(info.clone(), Value::Str("markPx".to_string()), &[]);
-        let mut oraclePx: Value = self.safe_number(info.clone(), Value::Str("oraclePx".to_string()), &[]);
+        let mut funding: Value = self.safe_number_k(info.clone(), "funding", &[]);
+        let mut markPx: Value = self.safe_number_k(info.clone(), "markPx", &[]);
+        let mut oraclePx: Value = self.safe_number_k(info.clone(), "oraclePx", &[]);
         let mut fundingTimestamp: Value = multiply(&multiply(&multiply(&(add(&math_floor(&divide(&divide(&divide(&self.milliseconds(), &Value::Int(60)), &Value::Int(60)), &Value::Int(1000))), &Value::Int(1))), &Value::Int(60)), &Value::Int(60)), &Value::Int(1000));
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("markPrice".to_string(), markPx.clone());
@@ -2018,21 +2080,21 @@ impl HyperliquidCore {
         //         "circulatingSupply": "998949190.03400207", // only in spot
         //     },
         //
-        let mut name: Value = self.safe_string(ticker.clone(), Value::Str("name".to_string()), &[]);
+        let mut name: Value = self.safe_string_k(ticker.clone(), "name", &[]);
         let mut marketId: Value = self.coin_to_market_id(name.clone());
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut bidAsk: Value = self.safe_list(ticker.clone(), Value::Str("impactPxs".to_string()), &[]);
+        let mut bidAsk: Value = self.safe_list_k(ticker.clone(), "impactPxs", &[]);
         return self.safe_ticker(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("previousClose".to_string(), self.safe_number(ticker.clone(), Value::Str("prevDayPx".to_string()), &[]));
-        m.insert("close".to_string(), self.safe_number(ticker.clone(), Value::Str("midPx".to_string()), &[]));
-        m.insert("last".to_string(), self.safe_number(ticker.clone(), Value::Str("price".to_string()), &[]));
+        m.insert("previousClose".to_string(), self.safe_number_k(ticker.clone(), "prevDayPx", &[]));
+        m.insert("close".to_string(), self.safe_number_k(ticker.clone(), "midPx", &[]));
+        m.insert("last".to_string(), self.safe_number_k(ticker.clone(), "price", &[]));
         m.insert("bid".to_string(), self.safe_number(bidAsk.clone(), Value::Int(0), &[]));
         m.insert("ask".to_string(), self.safe_number(bidAsk.clone(), Value::Int(1), &[]));
-        m.insert("quoteVolume".to_string(), self.safe_number(ticker.clone(), Value::Str("dayNtlVlm".to_string()), &[]));
+        m.insert("quoteVolume".to_string(), self.safe_number_k(ticker.clone(), "dayNtlVlm", &[]));
         m.insert("info".to_string(), ticker.clone());
     m
 }), &[market.clone()]);
@@ -2044,13 +2106,13 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint#candle-snapshot
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#candle-snapshot
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents, support '1m', '15m', '1h', '1d'
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest candle to fetch
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -2058,19 +2120,19 @@ impl HyperliquidCore {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[self.milliseconds()]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[self.milliseconds()]);
         let mut useTail: Value = Value::Bool(is_equal(&since, &Value::Null));
         let mut originalSince: Value = since.clone();
         if is_equal(&since, &Value::Null) {
             if !is_equal(&limit, &Value::Null) {
                 // optimization if limit is provided
                 let mut timeframeInMilliseconds: Value = multiply(&self.parse_timeframe(timeframe.clone()), &Value::Int(1000));
-                since = self.sum(until.clone(), multiply(&multiply(&timeframeInMilliseconds, &limit), &negate(&Value::Int(1))), &[]);
+                since = self.sum(&[until.clone(), multiply(&multiply(&timeframeInMilliseconds, &limit), &negate(&Value::Int(1)))]);
                 if is_less_than(&since, &Value::Int(0)) {
                     since = Value::Int(0);
                 }
@@ -2081,10 +2143,10 @@ impl HyperliquidCore {
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("candleSnapshot".to_string()));
                 m.insert("req".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("coin".to_string(), ternary(is_true(&get_value(&market, &Value::Str("swap".to_string()))), get_value(&market, &Value::Str("baseName".to_string())), get_value(&market, &Value::Str("id".to_string()))));
         m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
         m.insert("startTime".to_string(), since.clone());
@@ -2101,7 +2163,7 @@ impl HyperliquidCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer(ohlcv.clone(), Value::Str("t".to_string()), &[]), self.safe_number(ohlcv.clone(), Value::Str("o".to_string()), &[]), self.safe_number(ohlcv.clone(), Value::Str("h".to_string()), &[]), self.safe_number(ohlcv.clone(), Value::Str("l".to_string()), &[]), self.safe_number(ohlcv.clone(), Value::Str("c".to_string()), &[]), self.safe_number(ohlcv.clone(), Value::Str("v".to_string()), &[])]);
+        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv.clone(), "v", &[])]);
 
     Value::Null
 }
@@ -2110,23 +2172,23 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest trade
- * @param {string} [get_value(&params, &Value::Str("address".to_string()))] wallet address that made trades
- * @param {string} [get_value(&params, &Value::Str("user".to_string()))] wallet address that made trades
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
- * @returns {Trade[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=trade-structure}
+ * @param {int} [params.until] timestamp in ms of the latest trade
+ * @param {string} [params.address] wallet address that made trades
+ * @param {string} [params.user] wallet address that made trades
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
     pub async fn fetch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut userAddress: Value = Value::Null;
@@ -2137,7 +2199,7 @@ impl HyperliquidCore {
             market = self.market(symbol.clone());
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("user".to_string(), userAddress.clone());
             m
         });
@@ -2147,7 +2209,7 @@ impl HyperliquidCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("userFills".to_string()));
         }
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         if !is_equal(&until, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
@@ -2187,10 +2249,10 @@ impl HyperliquidCore {
     pub fn sign_hash(&self, mut hash: Value, mut privateKey: Value) -> Value {
         let mut signature: Value = ecdsa(slice(&hash, &negate(&Value::Int(64)), &Value::Null), slice(&privateKey, &negate(&Value::Int(64)), &Value::Null), Value::Str("secp256k1".to_string()), Value::Null);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("r".to_string(), add(&Value::Str("0x".to_string()), &get_value(&signature, &Value::Str("r".to_string()))));
         m.insert("s".to_string(), add(&Value::Str("0x".to_string()), &get_value(&signature, &Value::Str("s".to_string()))));
-        m.insert("v".to_string(), self.sum(Value::Int(27), get_value(&signature, &Value::Str("v".to_string())), &[]));
+        m.insert("v".to_string(), self.sum(&[Value::Int(27), get_value(&signature, &Value::Str("v".to_string()))]));
     m
 });
 
@@ -2207,7 +2269,7 @@ impl HyperliquidCore {
         let mut isTestnet = get_arg(optional_args, 0, Value::Bool(true));
         let mut source: Value = ternary(is_true(&(isTestnet)), Value::Str("b".to_string()), Value::Str("a".to_string()));
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), source.clone());
         m.insert("connectionId".to_string(), hash.clone());
     m
@@ -2218,10 +2280,10 @@ impl HyperliquidCore {
 
     pub fn action_hash(&self, mut action: Value, mut vaultAddress: Value, mut nonce: Value, optional_args: &[Value]) -> Value {
         let mut expiresAfter = get_arg(optional_args, 0, Value::Null);
-        let mut dataBinary: Value = self.packb(action.clone());
-        let mut dataHex: Value = self.binary_to_base16(dataBinary.clone());
+        let mut dataBinary: Value = self.packb(action.clone(), &[]);
+        let mut dataHex: Value = self.binary_to_base16(dataBinary.clone(), &[]);
         let mut data: Value = dataHex.clone();
-        data = add(&data, &add(&Value::Str("00000".to_string()), &self.int_to_base16(nonce.clone())));
+        data = add(&data, &add(&Value::Str("00000".to_string()), &self.int_to_base16(nonce.clone(), &[])));
         if is_equal(&vaultAddress, &Value::Null) {
             data = add(&data, &Value::Str("00".to_string()));
         }  else {
@@ -2230,9 +2292,9 @@ impl HyperliquidCore {
         }
         if !is_equal(&expiresAfter, &Value::Null) {
             data = add(&data, &Value::Str("00".to_string()));
-            data = add(&data, &add(&Value::Str("00000".to_string()), &self.int_to_base16(expiresAfter.clone())));
+            data = add(&data, &add(&Value::Str("00000".to_string()), &self.int_to_base16(expiresAfter.clone(), &[])));
         }
-        return self.hash(self.base16_to_binary(data.clone()), Value::Str("keccak".to_string()), &[Value::Str("binary".to_string())]);
+        return self.hash(self.base16_to_binary(data.clone(), &[]), Value::Str("keccak".to_string()), &[Value::Str("binary".to_string())]);
 
     Value::Null
 }
@@ -2241,7 +2303,7 @@ impl HyperliquidCore {
         let mut vaultAdress = get_arg(optional_args, 0, Value::Null);
         let mut expiresAfter = get_arg(optional_args, 1, Value::Null);
         let mut hash: Value = self.action_hash(action.clone(), vaultAdress.clone(), nonce.clone(), &[expiresAfter.clone()]);
-        let mut isTestnet: Value = self.safe_bool(self.options.clone(), Value::Str("sandboxMode".to_string()), &[Value::Bool(false)]);
+        let mut isTestnet: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         let mut phantomAgent: Value = self.construct_phantom_agent(hash.clone(), &[isTestnet.clone()]);
         // const data: Dict = {
         //     'domain': {
@@ -2265,10 +2327,10 @@ impl HyperliquidCore {
         //     'primaryType': 'Agent',
         //     'message': phantomAgent,
         // }
-        let mut zeroAddress: Value = self.safe_string(self.options.clone(), Value::Str("zeroAddress".to_string()), &[]);
+        let mut zeroAddress: Value = self.safe_string_k(self.options.clone(), "zeroAddress", &[]);
         let mut chainId: Value = Value::Int(1337); // check this out
         let mut domain: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("chainId".to_string(), chainId.clone());
                 m.insert("name".to_string(), Value::Str("Exchange".to_string()));
                 m.insert("verifyingContract".to_string(), zeroAddress.clone());
@@ -2276,14 +2338,14 @@ impl HyperliquidCore {
             m
         });
         let mut messageTypes: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("Agent".to_string(), Value::List(vec![Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("source".to_string()));
         m.insert("type".to_string(), Value::Str("string".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("connectionId".to_string()));
         m.insert("type".to_string(), Value::Str("bytes32".to_string()));
     m
@@ -2298,10 +2360,10 @@ impl HyperliquidCore {
 }
 
     pub fn sign_user_signed_action(&self, mut messageTypes: Value, mut message: Value) -> Value {
-        let mut zeroAddress: Value = self.safe_string(self.options.clone(), Value::Str("zeroAddress".to_string()), &[]);
+        let mut zeroAddress: Value = self.safe_string_k(self.options.clone(), "zeroAddress", &[]);
         let mut chainId: Value = Value::Int(421614); // check this out
         let mut domain: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("chainId".to_string(), chainId.clone());
                 m.insert("name".to_string(), Value::Str("HyperliquidSignTransaction".to_string()));
                 m.insert("verifyingContract".to_string(), zeroAddress.clone());
@@ -2317,24 +2379,24 @@ impl HyperliquidCore {
 
     pub fn build_usd_send_sig(&self, mut message: Value) -> Value {
         let mut messageTypes: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:UsdSend".to_string(), Value::List(vec![Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("hyperliquidChain".to_string()));
         m.insert("type".to_string(), Value::Str("string".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("destination".to_string()));
         m.insert("type".to_string(), Value::Str("string".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("amount".to_string()));
         m.insert("type".to_string(), Value::Str("string".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("time".to_string()));
         m.insert("type".to_string(), Value::Str("uint64".to_string()));
     m
@@ -2348,24 +2410,24 @@ impl HyperliquidCore {
 
     pub fn build_usd_class_send_sig(&self, mut message: Value) -> Value {
         let mut messageTypes: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:UsdClassTransfer".to_string(), Value::List(vec![Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("hyperliquidChain".to_string()));
         m.insert("type".to_string(), Value::Str("string".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("amount".to_string()));
         m.insert("type".to_string(), Value::Str("string".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("toPerp".to_string()));
         m.insert("type".to_string(), Value::Str("bool".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("nonce".to_string()));
         m.insert("type".to_string(), Value::Str("uint64".to_string()));
     m
@@ -2379,24 +2441,24 @@ impl HyperliquidCore {
 
     pub fn build_withdraw_sig(&self, mut message: Value) -> Value {
         let mut messageTypes: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:Withdraw".to_string(), Value::List(vec![Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("hyperliquidChain".to_string()));
         m.insert("type".to_string(), Value::Str("string".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("destination".to_string()));
         m.insert("type".to_string(), Value::Str("string".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("amount".to_string()));
         m.insert("type".to_string(), Value::Str("string".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("time".to_string()));
         m.insert("type".to_string(), Value::Str("uint64".to_string()));
     m
@@ -2410,24 +2472,24 @@ impl HyperliquidCore {
 
     pub fn build_user_dex_abstraction_sig(&self, mut message: Value) -> Value {
         let mut messageTypes: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:UserDexAbstraction".to_string(), Value::List(vec![Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("hyperliquidChain".to_string()));
         m.insert("type".to_string(), Value::Str("string".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("user".to_string()));
         m.insert("type".to_string(), Value::Str("address".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("enabled".to_string()));
         m.insert("type".to_string(), Value::Str("bool".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("nonce".to_string()));
         m.insert("type".to_string(), Value::Str("uint64".to_string()));
     m
@@ -2441,24 +2503,24 @@ impl HyperliquidCore {
 
     pub fn build_user_abstraction_sig(&self, mut message: Value) -> Value {
         let mut messageTypes: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:UserSetAbstraction".to_string(), Value::List(vec![Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("hyperliquidChain".to_string()));
         m.insert("type".to_string(), Value::Str("string".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("user".to_string()));
         m.insert("type".to_string(), Value::Str("address".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("abstraction".to_string()));
         m.insert("type".to_string(), Value::Str("string".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("nonce".to_string()));
         m.insert("type".to_string(), Value::Str("uint64".to_string()));
     m
@@ -2472,24 +2534,24 @@ impl HyperliquidCore {
 
     pub fn build_approve_builder_fee_sig(&self, mut message: Value) -> Value {
         let mut messageTypes: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:ApproveBuilderFee".to_string(), Value::List(vec![Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("hyperliquidChain".to_string()));
         m.insert("type".to_string(), Value::Str("string".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("maxFeeRate".to_string()));
         m.insert("type".to_string(), Value::Str("string".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("builder".to_string()));
         m.insert("type".to_string(), Value::Str("address".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("nonce".to_string()));
         m.insert("type".to_string(), Value::Str("uint64".to_string()));
     m
@@ -2502,30 +2564,33 @@ impl HyperliquidCore {
 }
 
     pub async fn set_ref(&mut self) -> Value {
-        if is_true(&self.safe_bool(self.options.clone(), Value::Str("refSet".to_string()), &[Value::Bool(false)])) {
+        if is_true(&self.safe_bool_k(self.options.clone(), "refSet", &[Value::Bool(false)])) {
             return Value::Bool(true);
         }
-        add_element_to_object(&mut self.options.clone(), &Value::Str("refSet".to_string()), Value::Bool(true));
+        add_element_to_object(&mut self.options, &Value::Str("refSet".to_string()), Value::Bool(true));
         let mut action: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("setReferrer".to_string()));
-                m.insert("code".to_string(), self.safe_string(self.options.clone(), Value::Str("ref".to_string()), &[Value::Str("CCXT1".to_string())]));
+                m.insert("code".to_string(), self.safe_string_k(self.options.clone(), "ref", &[Value::Str("CCXT1".to_string())]));
             m
         });
         let mut nonce: Value = self.milliseconds();
         let mut signature: Value = self.sign_l1_action(action.clone(), nonce.clone(), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), action.clone());
                 m.insert("nonce".to_string(), nonce.clone());
                 m.insert("signature".to_string(), signature.clone());
             m
         });
         let mut response: Value = Value::Null;
-        {
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = self.call_method(Value::Str("private_post_exchange".to_string()), &[request.clone()]).await;
-            return response;
-        }
+            return response.clone();
+         #[allow(unreachable_code)] { Value::Null }})).await;
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
+            response = Value::Null; // ignore this
+         } }
         return response;
 
     Value::Null
@@ -2533,9 +2598,9 @@ impl HyperliquidCore {
 
     pub async fn approve_builder_fee(&mut self, mut builder: Value, mut maxFeeRate: Value) -> Value {
         let mut nonce: Value = self.milliseconds();
-        let mut isSandboxMode: Value = self.safe_bool(self.options.clone(), Value::Str("sandboxMode".to_string()), &[Value::Bool(false)]);
+        let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         let mut payload: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), ternary(is_true(&isSandboxMode), Value::Str("Testnet".to_string()), Value::Str("Mainnet".to_string())));
                 m.insert("maxFeeRate".to_string(), maxFeeRate.clone());
                 m.insert("builder".to_string(), builder.clone());
@@ -2544,7 +2609,7 @@ impl HyperliquidCore {
         });
         let mut sig: Value = self.build_approve_builder_fee_sig(payload.clone());
         let mut action: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), get_value(&payload, &Value::Str("hyperliquidChain".to_string())));
                 m.insert("signatureChainId".to_string(), Value::Str("0x66eee".to_string()));
                 m.insert("maxFeeRate".to_string(), get_value(&payload, &Value::Str("maxFeeRate".to_string())));
@@ -2554,7 +2619,7 @@ impl HyperliquidCore {
             m
         });
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), action.clone());
                 m.insert("nonce".to_string(), nonce.clone());
                 m.insert("signature".to_string(), sig.clone());
@@ -2567,11 +2632,14 @@ impl HyperliquidCore {
 }
 
     pub async fn initialize_client(&mut self) -> Value {
-        {
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             promise_all(&Value::List(vec![self.handle_builder_fee_approval().await, self.set_ref().await, self.is_unified_enabled(Value::Str("fetchBalance".to_string()), &[Value::Null, Value::Bool(false), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]).await])).await; // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            return Value::Bool(false);
         }
         return Value::Bool(true);
 
@@ -2579,19 +2647,22 @@ impl HyperliquidCore {
 }
 
     pub async fn handle_builder_fee_approval(&mut self) -> Value {
-        let mut buildFee: Value = self.safe_bool(self.options.clone(), Value::Str("builderFee".to_string()), &[Value::Bool(true)]);
+        let mut buildFee: Value = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]);
         if !is_true(&buildFee) {
             return Value::Bool(false);
         }
-        let mut approvedBuilderFee: Value = self.safe_bool(self.options.clone(), Value::Str("approvedBuilderFee".to_string()), &[Value::Bool(false)]);
+        let mut approvedBuilderFee: Value = self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]);
         if is_true(&approvedBuilderFee) {
             return Value::Bool(true);
         }
-        {
-            let mut builder: Value = self.safe_string(self.options.clone(), Value::Str("builder".to_string()), &[Value::Str("0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6".to_string())]);
-            let mut maxFeeRate: Value = self.safe_string(self.options.clone(), Value::Str("feeRate".to_string()), &[Value::Str("0.01%".to_string())]);
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            let mut builder: Value = self.safe_string_k(self.options.clone(), "builder", &[Value::Str("0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6".to_string())]);
+            let mut maxFeeRate: Value = self.safe_string_k(self.options.clone(), "feeRate", &[Value::Str("0.01%".to_string())]);
             self.approve_builder_fee(builder.clone(), maxFeeRate.clone()).await;
-            add_element_to_object(&mut self.options.clone(), &Value::Str("approvedBuilderFee".to_string()), Value::Bool(true));
+            add_element_to_object(&mut self.options, &Value::Str("approvedBuilderFee".to_string()), Value::Bool(true));
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            add_element_to_object(&mut self.options, &Value::Str("builderFee".to_string()), Value::Bool(false)); // disable builder fee if an error occurs
         }
         return Value::Bool(true);
 
@@ -2601,9 +2672,9 @@ impl HyperliquidCore {
 /*
  * @method
  * @name hyperliquid#isUnifiedEnabled
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
  * @description returns enableUnifiedMargin so the user can check if unified account is enabled
- * @param {string} method the method for which we want to check if unified margin is enabled, this is used to check options for specific methods (get_value(&e, &Value::Str("g".to_string())). fetchBalance can have a specific option to enable unified margin)
+ * @param {string} method the method for which we want to check if unified margin is enabled, this is used to check options for specific methods (e.g. fetchBalance can have a specific option to enable unified margin)
  * @param address
  * @param shouldRefresh
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2613,7 +2684,7 @@ impl HyperliquidCore {
         let mut address = get_arg(optional_args, 0, Value::Null);
         let mut shouldRefresh = get_arg(optional_args, 1, Value::Bool(false));
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut userAddress: Value = Value::Null;
@@ -2626,21 +2697,24 @@ impl HyperliquidCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("enableUnifiedMargin".to_string()), &[]); enableUnifiedMargin = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&enableUnifiedMargin, &Value::Null) || is_true(&shouldRefresh) {
             let mut request: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("userAbstraction".to_string()));
                     m.insert("user".to_string(), userAddress.clone());
                 m
             });
             let mut response: Value = Value::Null;
-            {
+            let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 response = self.call_method(Value::Str("public_post_info".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
+             #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+                response = Value::Null; // ignore this error and assume unified margin is not enabled
             }
             //
             // "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
             //
             enableUnifiedMargin = Value::Bool(is_equal(&response, &Value::Str("\"unifiedAccount\"".to_string())));
             // don't cache this result if this is a different addresss
-            add_element_to_object(&mut self.options.clone(), &Value::Str("enableUnifiedMargin".to_string()), enableUnifiedMargin.clone()); // cache this for future calls
+            add_element_to_object(&mut self.options, &Value::Str("enableUnifiedMargin".to_string()), enableUnifiedMargin.clone()); // cache this for future calls
         }
         return Value::List(vec![enableUnifiedMargin.clone(), params.clone()]);
 
@@ -2651,25 +2725,25 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#setUserAbstraction
  * @description set user abstraction mode
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#set-user-abstraction
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#set-user-abstraction
  * @param {string} abstraction one of the strings ["disabled", "unifiedAccount", "portfolioMargin"],
  * @param {object} [params]
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
+ * @param {string} [params.type] 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
  * @returns dictionary response from the exchange
  */
     pub async fn set_user_abstraction(&mut self, mut abstraction: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut userAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_public_address(Value::Str("setUserAbstraction".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut nonce: Value = self.milliseconds();
-        let mut isSandboxMode: Value = self.safe_bool(self.options.clone(), Value::Str("sandboxMode".to_string()), &[Value::Bool(false)]);
-        let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[Value::Str("userSetAbstraction".to_string())]);
+        let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[Value::Str("userSetAbstraction".to_string())]);
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
         let mut payload: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), ternary(is_true(&isSandboxMode), Value::Str("Testnet".to_string()), Value::Str("Mainnet".to_string())));
                 m.insert("user".to_string(), userAddress.clone());
                 m.insert("abstraction".to_string(), abstraction.clone());
@@ -2678,7 +2752,7 @@ impl HyperliquidCore {
         });
         let mut sig: Value = self.build_user_abstraction_sig(payload.clone());
         let mut action: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), get_value(&payload, &Value::Str("hyperliquidChain".to_string())));
                 m.insert("signatureChainId".to_string(), Value::Str("0x66eee".to_string()));
                 m.insert("abstraction".to_string(), get_value(&payload, &Value::Str("abstraction".to_string())));
@@ -2688,7 +2762,7 @@ impl HyperliquidCore {
             m
         });
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), action.clone());
                 m.insert("nonce".to_string(), nonce.clone());
                 m.insert("signature".to_string(), sig.clone());
@@ -2706,22 +2780,22 @@ impl HyperliquidCore {
  * @description If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
  * @param enabled
  * @param params
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
+ * @param {string} [params.type] 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
  * @returns dictionary response from the exchange
  */
     pub async fn enable_user_dex_abstraction(&mut self, mut enabled: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut userAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_public_address(Value::Str("enableUserDexAbstraction".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut nonce: Value = self.milliseconds();
-        let mut isSandboxMode: Value = self.safe_bool(self.options.clone(), Value::Str("sandboxMode".to_string()), &[Value::Bool(false)]);
-        let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[Value::Str("userDexAbstraction".to_string())]);
+        let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[Value::Str("userDexAbstraction".to_string())]);
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
         let mut payload: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), ternary(is_true(&isSandboxMode), Value::Str("Testnet".to_string()), Value::Str("Mainnet".to_string())));
                 m.insert("user".to_string(), userAddress.clone());
                 m.insert("enabled".to_string(), enabled.clone());
@@ -2730,7 +2804,7 @@ impl HyperliquidCore {
         });
         let mut sig: Value = self.build_user_dex_abstraction_sig(payload.clone());
         let mut action: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), get_value(&payload, &Value::Str("hyperliquidChain".to_string())));
                 m.insert("signatureChainId".to_string(), Value::Str("0x66eee".to_string()));
                 m.insert("enabled".to_string(), get_value(&payload, &Value::Str("enabled".to_string())));
@@ -2740,7 +2814,7 @@ impl HyperliquidCore {
             m
         });
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), action.clone());
                 m.insert("nonce".to_string(), nonce.clone());
                 m.insert("signature".to_string(), sig.clone());
@@ -2762,17 +2836,17 @@ impl HyperliquidCore {
  */
     pub async fn set_agent_abstraction(&mut self, mut abstraction: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut nonce: Value = self.milliseconds();
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), nonce.clone());
             m
         });
         let mut action: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("agentSetAbstraction".to_string()));
                 m.insert("abstraction".to_string(), abstraction.clone());
             m
@@ -2790,27 +2864,27 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#createOrder
  * @description create a trade order
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("timeInForce".to_string()))] 'Gtc', 'Ioc', 'Alo'
- * @param {bool} [get_value(&params, &Value::Str("postOnly".to_string()))] true or false whether the order is post-only
- * @param {bool} [get_value(&params, &Value::Str("reduceOnly".to_string()))] true or false whether the order is reduce-only
- * @param {float} [get_value(&params, &Value::Str("triggerPrice".to_string()))] The price at which a trigger order is triggered at
- * @param {string} [get_value(&params, &Value::Str("clientOrderId".to_string()))] client order id, (optional 128 bit hex string get_value(&e, &Value::Str("g".to_string())). 0x1234567890abcdef1234567890abcdef)
- * @param {string} [get_value(&params, &Value::Str("slippage".to_string()))] the slippage for market order
- * @param {string} [get_value(&params, &Value::Str("vaultAddress".to_string()))] the vault address for order
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
+ * @param {bool} [params.postOnly] true or false whether the order is post-only
+ * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+ * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+ * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+ * @param {string} [params.slippage] the slippage for market order
+ * @param {string} [params.vaultAddress] the vault address for order
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -2832,15 +2906,15 @@ impl HyperliquidCore {
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {int} duration the duration of the TWAP order in milliseconds
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {bool} [get_value(&params, &Value::Str("randomize".to_string()))] whether to randomize the time intervals of the TWAP order slices (default is false, meaning equal intervals)
- * @param {bool} [get_value(&params, &Value::Str("reduceOnly".to_string()))] true or false whether the order is reduce-only
- * @param {int} [get_value(&params, &Value::Str("expiresAfter".to_string()))] time in ms after which the twap order expires
- * @param {string} [get_value(&params, &Value::Str("vaultAddress".to_string()))] the vault address for order
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {bool} [params.randomize] whether to randomize the time intervals of the TWAP order slices (default is false, meaning equal intervals)
+ * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+ * @param {int} [params.expiresAfter] time in ms after which the twap order expires
+ * @param {string} [params.vaultAddress] the vault address for order
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_twap_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut duration: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -2849,30 +2923,30 @@ impl HyperliquidCore {
         let mut nonce: Value = self.milliseconds();
         let mut isBuy: Value = Value::Bool(is_equal(&side, &Value::Str("BUY".to_string())));
         let mut vaultAddress: Value = Value::Null;
-        let mut randomize: Value = self.safe_bool(params.clone(), Value::Str("randomize".to_string()), &[Value::Bool(false)]);
+        let mut randomize: Value = self.safe_bool_k(params.clone(), "randomize", &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::Str("randomize".to_string()), &[]);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("vaultAddress".to_string()), &[]); vaultAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
         let mut durationMins: Value = math_floor(&divide(&divide(&duration, &Value::Int(1000)), &Value::Int(60))); // convert from ms to minutes
         let mut orderObj: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("a".to_string(), self.parse_to_int(get_value(&market, &Value::Str("baseId".to_string()))));
                 m.insert("b".to_string(), isBuy.clone());
                 m.insert("s".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
-                m.insert("r".to_string(), self.safe_bool(params.clone(), Value::Str("reduceOnly".to_string()), &[Value::Bool(false)]));
+                m.insert("r".to_string(), self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]));
                 m.insert("m".to_string(), durationMins.clone());
                 m.insert("t".to_string(), randomize.clone());
             m
         });
         let mut orderAction: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("twapOrder".to_string()));
                 m.insert("twap".to_string(), orderObj.clone());
             m
         });
         let mut signature: Value = self.sign_l1_action(orderAction.clone(), nonce.clone(), &[vaultAddress.clone()]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), orderAction.clone());
                 m.insert("nonce".to_string(), nonce.clone());
                 m.insert("signature".to_string(), signature.clone());
@@ -2882,7 +2956,7 @@ impl HyperliquidCore {
             params = self.omit(params.clone(), Value::Str("vaultAddress".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("vaultAddress".to_string()), vaultAddress.clone());
         }
-        let mut expiresAfter: Value = self.safe_integer(params.clone(), Value::Str("expiresAfter".to_string()), &[]);
+        let mut expiresAfter: Value = self.safe_integer_k(params.clone(), "expiresAfter", &[]);
         if !is_equal(&expiresAfter, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("expiresAfter".to_string()), expiresAfter.clone());
             params = self.omit(params.clone(), Value::Str("expiresAfter".to_string()), &[]);
@@ -2901,25 +2975,25 @@ impl HyperliquidCore {
         //         }
         //     }
         // }
-        let mut responseObj: Value = self.safe_dict(response.clone(), Value::Str("response".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut responseObj: Value = self.safe_dict_k(response.clone(), "response", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_dict(responseObj.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(responseObj.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut status: Value = self.safe_dict(data.clone(), Value::Str("status".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut status: Value = self.safe_dict_k(data.clone(), "status", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut running: Value = self.safe_dict(status.clone(), Value::Str("running".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut running: Value = self.safe_dict_k(status.clone(), "running", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut orderId: Value = self.safe_string(running.clone(), Value::Str("twapId".to_string()), &[]);
+        let mut orderId: Value = self.safe_string_k(running.clone(), "twapId", &[]);
         return self.parse_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("running".to_string()));
         m.insert("oid".to_string(), orderId.clone());
     m
@@ -2932,14 +3006,14 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#createOrders
  * @description create a list of trade orders
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -2963,30 +3037,31 @@ impl HyperliquidCore {
         //         }
         //     }
         //
-        let mut responseObj: Value = self.safe_dict(response.clone(), Value::Str("response".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut responseObj: Value = self.safe_dict_k(response.clone(), "response", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_dict(responseObj.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(responseObj.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut statuses: Value = self.safe_list(data.clone(), Value::Str("statuses".to_string()), &[Value::List(vec![])]);
+        let mut statuses: Value = self.safe_list_k(data.clone(), "statuses", &[Value::List(vec![])]);
         let mut ordersToBeParsed: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&statuses)) {
+            let mut __for_first_813: bool = true;
+            while { if !__for_first_813 { i = add(&i, &Value::Int(1)); } __for_first_813 = false; is_less_than(&i, &get_array_length(&statuses)) } {
+            let mut order: Value = get_value(&statuses, &i);
             let mut order: Value = get_value(&statuses, &i);
             if is_equal(&order, &Value::Str("waitingForTrigger".to_string())) {
                 append_to_array(&mut ordersToBeParsed, Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("status".to_string(), order.clone());
                     m
                 })); // tp/sl orders can return a string like "waitingForTrigger",
             }  else {
                 append_to_array(&mut ordersToBeParsed, order.clone());
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.parse_orders(ordersToBeParsed.clone(), &[Value::Null]);
@@ -2997,7 +3072,7 @@ impl HyperliquidCore {
     pub fn create_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut market: Value = self.market(symbol.clone());
@@ -3006,22 +3081,22 @@ impl HyperliquidCore {
         let mut isMarket: Value = Value::Bool(is_equal(&type_var, &Value::Str("MARKET".to_string())));
         let mut isBuy: Value = Value::Bool(is_equal(&side, &Value::Str("BUY".to_string())));
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string()), &[]);
-        let mut slippage: Value = self.safe_string(params.clone(), Value::Str("slippage".to_string()), &[]);
+        let mut slippage: Value = self.safe_string_k(params.clone(), "slippage", &[]);
         let mut defaultTimeInForce: Value = ternary(is_true(&(isMarket)), Value::Str("ioc".to_string()), Value::Str("gtc".to_string()));
-        let mut postOnly: Value = self.safe_bool(params.clone(), Value::Str("postOnly".to_string()), &[Value::Bool(false)]);
+        let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
         if is_true(&postOnly) {
             defaultTimeInForce = Value::Str("alo".to_string());
         }
         let mut timeInForce: Value = self.safe_string_lower(params.clone(), Value::Str("timeInForce".to_string()), &[defaultTimeInForce.clone()]);
         timeInForce = self.capitalize(timeInForce.clone());
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
-        let mut stopLossPrice: Value = self.safe_string(params.clone(), Value::Str("stopLossPrice".to_string()), &[triggerPrice.clone()]);
-        let mut takeProfitPrice: Value = self.safe_string(params.clone(), Value::Str("takeProfitPrice".to_string()), &[]);
+        let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[triggerPrice.clone()]);
+        let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
         let mut isTrigger: Value = Value::Bool(is_true(&stopLossPrice) || is_true(&takeProfitPrice));
         let mut px: Value = Value::Null;
         if is_true(&isMarket) {
             if is_equal(&price, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str("  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str("  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).".to_string()))));
             }
             px = ternary(is_true(&(isBuy)), crate::precise::Precise::stringMul(&price, &crate::precise::Precise::stringAdd(&Value::Str("1".to_string()), &slippage)), crate::precise::Precise::stringMul(&price, &crate::precise::Precise::stringSub(&Value::Str("1".to_string()), &slippage)));
             px = self.price_to_precision(symbol.clone(), px.clone()); // round after adding slippage
@@ -3029,9 +3104,9 @@ impl HyperliquidCore {
             px = self.price_to_precision(symbol.clone(), price.clone());
         }
         let mut sz: Value = self.amount_to_precision(symbol.clone(), amount.clone());
-        let mut reduceOnly: Value = self.safe_bool(params.clone(), Value::Str("reduceOnly".to_string()), &[Value::Bool(false)]);
+        let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
         let mut orderType: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if is_true(&isTrigger) {
@@ -3043,7 +3118,7 @@ impl HyperliquidCore {
                 triggerPrice = self.price_to_precision(symbol.clone(), stopLossPrice.clone());
             }
             add_element_to_object(&mut orderType, &Value::Str("trigger".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("isMarket".to_string(), isMarket.clone());
         m.insert("triggerPx".to_string(), triggerPrice.clone());
         m.insert("tpsl".to_string(), ternary(is_true(&(isTp)), Value::Str("tp".to_string()), Value::Str("sl".to_string())));
@@ -3051,14 +3126,14 @@ impl HyperliquidCore {
 }));
         }  else {
             add_element_to_object(&mut orderType, &Value::Str("limit".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("tif".to_string(), timeInForce.clone());
     m
 }));
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("slippage".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("timeInForce".to_string()), Value::Str("client_id".to_string()), Value::Str("reduceOnly".to_string()), Value::Str("postOnly".to_string())]), &[]);
         let mut orderObj: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("a".to_string(), self.parse_to_int(get_value(&market, &Value::Str("baseId".to_string()))));
                 m.insert("b".to_string(), isBuy.clone());
                 m.insert("p".to_string(), px.clone());
@@ -3077,50 +3152,52 @@ impl HyperliquidCore {
 
     pub fn create_orders_request(&self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
          * @method
          * @name hyperliquid#createOrdersRequest
          * @description create a list of trade orders
-         * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
          * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-         * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         self.check_required_credentials(&[]);
-        let mut defaultSlippage: Value = self.safe_string(self.options.clone(), Value::Str("defaultSlippage".to_string()), &[]);
-        defaultSlippage = self.safe_string(params.clone(), Value::Str("slippage".to_string()), &[defaultSlippage.clone()]);
+        let mut defaultSlippage: Value = self.safe_string_k(self.options.clone(), "defaultSlippage", &[]);
+        defaultSlippage = self.safe_string_k(params.clone(), "slippage", &[defaultSlippage.clone()]);
         let mut hasClientOrderId: Value = Value::Bool(false);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&orders)) {
+            let mut __for_first_814: bool = true;
+            while { if !__for_first_814 { i = add(&i, &Value::Int(1)); } __for_first_814 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
-            let mut orderParams: Value = self.safe_dict(rawOrder.clone(), Value::Str("params".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut rawOrder: Value = get_value(&orders, &i);
+            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut clientOrderId: Value = self.safe_string2(orderParams.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string()), &[]);
             if !is_equal(&clientOrderId, &Value::Null) {
                 hasClientOrderId = Value::Bool(true);
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         if is_true(&hasClientOrderId) {
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&orders)) {
+                let mut __for_first_815: bool = true;
+                while { if !__for_first_815 { i = add(&i, &Value::Int(1)); } __for_first_815 = false; is_less_than(&i, &get_array_length(&orders)) } {
                 let mut rawOrder: Value = get_value(&orders, &i);
-                let mut orderParams: Value = self.safe_dict(rawOrder.clone(), Value::Str("params".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+                let mut rawOrder: Value = get_value(&orders, &i);
+                let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
                 let mut clientOrderId: Value = self.safe_string2(orderParams.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string()), &[]);
                 if is_equal(&clientOrderId, &Value::Null) {
-                    panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrders() all orders must have clientOrderId if at least one has a clientOrderId".to_string()))));
+                    panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrders() all orders must have clientOrderId if at least one has a clientOrderId".to_string()))));
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }
@@ -3130,23 +3207,25 @@ impl HyperliquidCore {
         let mut grouping: Value = Value::Str("na".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&orders)) {
+            let mut __for_first_816: bool = true;
+            while { if !__for_first_816 { i = add(&i, &Value::Int(1)); } __for_first_816 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
-            let mut marketId: Value = self.safe_string(rawOrder.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut rawOrder: Value = get_value(&orders, &i);
+            let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             let mut market: Value = self.market(marketId.clone());
             let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
             let mut type_var: Value = self.safe_string_upper(rawOrder.clone(), Value::Str("type".to_string()), &[]);
             let mut side: Value = self.safe_string_upper(rawOrder.clone(), Value::Str("side".to_string()), &[]);
-            let mut amount: Value = self.safe_string(rawOrder.clone(), Value::Str("amount".to_string()), &[]);
-            let mut price: Value = self.safe_string(rawOrder.clone(), Value::Str("price".to_string()), &[]);
-            let mut orderParams: Value = self.safe_dict(rawOrder.clone(), Value::Str("params".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut amount: Value = self.safe_string_k(rawOrder.clone(), "amount", &[]);
+            let mut price: Value = self.safe_string_k(rawOrder.clone(), "price", &[]);
+            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut slippage: Value = self.safe_string(orderParams.clone(), Value::Str("slippage".to_string()), &[defaultSlippage.clone()]);
+            let mut slippage: Value = self.safe_string_k(orderParams.clone(), "slippage", &[defaultSlippage.clone()]);
             add_element_to_object(&mut orderParams, &Value::Str("slippage".to_string()), slippage.clone());
-            let mut stopLoss: Value = self.safe_value(orderParams.clone(), Value::Str("stopLoss".to_string()), &[]);
-            let mut takeProfit: Value = self.safe_value(orderParams.clone(), Value::Str("takeProfit".to_string()), &[]);
+            let mut stopLoss: Value = self.safe_value_k(orderParams.clone(), "stopLoss", &[]);
+            let mut takeProfit: Value = self.safe_value_k(orderParams.clone(), "takeProfit", &[]);
             let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
             let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
             orderParams = self.omit(orderParams.clone(), Value::List(vec![Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string())]), &[]);
@@ -3154,12 +3233,12 @@ impl HyperliquidCore {
             if is_true(&hasStopLoss) || is_true(&hasTakeProfit) {
                 // grouping opposed orders for sl/tp
                 let mut stopLossOrderTriggerPrice: Value = self.safe_string_n(stopLoss.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string())]), &[]);
-                let mut stopLossOrderType: Value = self.safe_string(stopLoss.clone(), Value::Str("type".to_string()), &[Value::Str("limit".to_string())]);
+                let mut stopLossOrderType: Value = self.safe_string_k(stopLoss.clone(), "type", &[Value::Str("limit".to_string())]);
                 let mut stopLossOrderLimitPrice: Value = self.safe_string_n(stopLoss.clone(), Value::List(vec![Value::Str("price".to_string()), Value::Str("stopLossPrice".to_string())]), &[stopLossOrderTriggerPrice.clone()]);
                 let mut takeProfitOrderTriggerPrice: Value = self.safe_string_n(takeProfit.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string())]), &[]);
-                let mut takeProfitOrderType: Value = self.safe_string(takeProfit.clone(), Value::Str("type".to_string()), &[Value::Str("limit".to_string())]);
+                let mut takeProfitOrderType: Value = self.safe_string_k(takeProfit.clone(), "type", &[Value::Str("limit".to_string())]);
                 let mut takeProfitOrderLimitPrice: Value = self.safe_string_n(takeProfit.clone(), Value::List(vec![Value::Str("price".to_string()), Value::Str("takeProfitPrice".to_string())]), &[takeProfitOrderTriggerPrice.clone()]);
-                grouping = self.safe_string(orderParams.clone(), Value::Str("grouping".to_string()), &[Value::Str("normalTpsl".to_string())]);
+                grouping = self.safe_string_k(orderParams.clone(), "grouping", &[Value::Str("normalTpsl".to_string())]);
                 if is_equal(&grouping, &Value::Str("positionTpsl".to_string())) {
                     amount = Value::Str("0".to_string());
                     stopLossOrderType = Value::Str("market".to_string());
@@ -3167,7 +3246,7 @@ impl HyperliquidCore {
                 }  else if is_equal(&grouping, &Value::Str("normalTpsl".to_string())) {
                     append_to_array(&mut orderReq, mainOrderObj.clone());
                 }  else {
-                    panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" only support grouping normalTpsl and positionTpsl.".to_string()))));
+                    panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" only support grouping normalTpsl and positionTpsl.".to_string()))));
                 }
                 orderParams = self.omit(orderParams.clone(), Value::List(vec![Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string()), Value::Str("grouping".to_string())]), &[]);
                 let mut triggerOrderSide: Value = Value::Str("".to_string());
@@ -3178,7 +3257,7 @@ impl HyperliquidCore {
                 }
                 if is_true(&hasTakeProfit) {
                     let mut orderObj: Value = self.create_order_request(symbol.clone(), takeProfitOrderType.clone(), triggerOrderSide.clone(), amount.clone(), &[takeProfitOrderLimitPrice.clone(), self.extend(orderParams.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("takeProfitPrice".to_string(), takeProfitOrderTriggerPrice.clone());
         m.insert("reduceOnly".to_string(), Value::Bool(true));
     m
@@ -3187,7 +3266,7 @@ impl HyperliquidCore {
                 }
                 if is_true(&hasStopLoss) {
                     let mut orderObj: Value = self.create_order_request(symbol.clone(), stopLossOrderType.clone(), triggerOrderSide.clone(), amount.clone(), &[stopLossOrderLimitPrice.clone(), self.extend(orderParams.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("stopLossPrice".to_string(), stopLossOrderTriggerPrice.clone());
         m.insert("reduceOnly".to_string(), Value::Bool(true));
     m
@@ -3197,31 +3276,30 @@ impl HyperliquidCore {
             }  else {
                 append_to_array(&mut orderReq, mainOrderObj.clone());
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("vaultAddress".to_string()), &[]); vaultAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
         let mut orderAction: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("order".to_string()));
                 m.insert("orders".to_string(), orderReq.clone());
                 m.insert("grouping".to_string(), grouping.clone());
             m
         });
-        if is_true(&self.safe_bool(self.options.clone(), Value::Str("approvedBuilderFee".to_string()), &[Value::Bool(false)])) {
+        if is_true(&self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)])) {
             let mut wallet: Value = self.safe_string_lower(self.options.clone(), Value::Str("builder".to_string()), &[Value::Str("0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6".to_string())]);
             add_element_to_object(&mut orderAction, &Value::Str("builder".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("b".to_string(), wallet.clone());
-        m.insert("f".to_string(), self.safe_integer(self.options.clone(), Value::Str("feeInt".to_string()), &[Value::Int(10)]));
+        m.insert("f".to_string(), self.safe_integer_k(self.options.clone(), "feeInt", &[Value::Int(10)]));
     m
 }));
         }
         let mut signature: Value = self.sign_l1_action(orderAction.clone(), nonce.clone(), &[vaultAddress.clone()]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), orderAction.clone());
                 m.insert("nonce".to_string(), nonce.clone());
                 m.insert("signature".to_string(), signature.clone());
@@ -3240,24 +3318,24 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#cancelOrder
  * @description cancels an open order
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("clientOrderId".to_string()))] client order id, (optional 128 bit hex string get_value(&e, &Value::Str("g".to_string())). 0x1234567890abcdef1234567890abcdef)
- * @param {string} [get_value(&params, &Value::Str("vaultAddress".to_string()))] the vault address for order
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
- * @param {boolean} [get_value(&params, &Value::Str("twap".to_string()))] whether the order to cancel is a twap order, (default is false)
- * @returns {object} An [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+ * @param {string} [params.vaultAddress] the vault address for order
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @param {boolean} [params.twap] whether the order to cancel is a twap order, (default is false)
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&self.safe_bool(params.clone(), Value::Str("twap".to_string()), &[Value::Bool(false)])) {
+        if is_true(&self.safe_bool_k(params.clone(), "twap", &[Value::Bool(false)])) {
             params = self.omit(params.clone(), Value::Str("twap".to_string()), &[]);
             return self.cancel_twap_order(id.clone(), &[symbol.clone(), params.clone()]).await;
         }
@@ -3271,25 +3349,25 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#cancelOrders
  * @description cancel multiple orders
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string|string[]} [get_value(&params, &Value::Str("clientOrderId".to_string()))] client order ids, (optional 128 bit hex string get_value(&e, &Value::Str("g".to_string())). 0x1234567890abcdef1234567890abcdef)
- * @param {string} [get_value(&params, &Value::Str("vaultAddress".to_string()))] the vault address
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
- * @returns {object} an list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+ * @param {string} [params.vaultAddress] the vault address
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.check_required_credentials(&[]);
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         self.initialize_client().await;
@@ -3308,21 +3386,22 @@ impl HyperliquidCore {
         //         }
         //     }
         //
-        let mut innerResponse: Value = self.safe_dict(response.clone(), Value::Str("response".to_string()), &[]);
-        let mut data: Value = self.safe_dict(innerResponse.clone(), Value::Str("data".to_string()), &[]);
-        let mut statuses: Value = self.safe_list(data.clone(), Value::Str("statuses".to_string()), &[]);
+        let mut innerResponse: Value = self.safe_dict_k(response.clone(), "response", &[]);
+        let mut data: Value = self.safe_dict_k(innerResponse.clone(), "data", &[]);
+        let mut statuses: Value = self.safe_list_k(data.clone(), "statuses", &[]);
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&statuses)) {
+            let mut __for_first_817: bool = true;
+            while { if !__for_first_817 { i = add(&i, &Value::Int(1)); } __for_first_817 = false; is_less_than(&i, &get_array_length(&statuses)) } {
+            let mut status: Value = get_value(&statuses, &i);
             let mut status: Value = get_value(&statuses, &i);
             append_to_array(&mut orders, self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), status.clone());
         m.insert("status".to_string(), status.clone());
     m
 }), &[]));
-            i = add(&i, &Value::Int(1));
         }
         }
         return orders;
@@ -3334,30 +3413,30 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#cancelTwapOrder
  * @description cancels a running twap order
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-a-twap-order
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-a-twap-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("expiresAfter".to_string()))] time in ms after which the twap order expires
- * @param {string} [get_value(&params, &Value::Str("vaultAddress".to_string()))] the vault address for order
- * @returns {object} An [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {int} [params.expiresAfter] time in ms after which the twap order expires
+ * @param {string} [params.vaultAddress] the vault address for order
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_twap_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelTwapOrder() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelTwapOrder() requires a symbol argument".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("cancelTwapOrder".to_string()), Value::Str("vaultAddress".to_string()), &[]); vaultAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
         let mut action: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("twapCancel".to_string()));
                 m.insert("a".to_string(), self.parse_to_int(get_value(&market, &Value::Str("baseId".to_string()))));
                 m.insert("t".to_string(), self.parse_to_numeric(id.clone()));
@@ -3366,7 +3445,7 @@ impl HyperliquidCore {
         let mut nonce: Value = self.milliseconds();
         let mut signature: Value = self.sign_l1_action(action.clone(), nonce.clone(), &[vaultAddress.clone()]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), action.clone());
                 m.insert("nonce".to_string(), nonce.clone());
                 m.insert("signature".to_string(), signature.clone());
@@ -3376,7 +3455,7 @@ impl HyperliquidCore {
             params = self.omit(params.clone(), Value::Str("vaultAddress".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("vaultAddress".to_string()), vaultAddress.clone());
         }
-        let mut expiresAfter: Value = self.safe_integer(params.clone(), Value::Str("expiresAfter".to_string()), &[]);
+        let mut expiresAfter: Value = self.safe_integer_k(params.clone(), "expiresAfter", &[]);
         if !is_equal(&expiresAfter, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("expiresAfter".to_string()), expiresAfter.clone());
             params = self.omit(params.clone(), Value::Str("expiresAfter".to_string()), &[]);
@@ -3393,17 +3472,17 @@ impl HyperliquidCore {
         //     }
         //  }
         //
-        let mut responseObj: Value = self.safe_dict(response.clone(), Value::Str("response".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut responseObj: Value = self.safe_dict_k(response.clone(), "response", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_dict(responseObj.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(responseObj.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut status: Value = self.safe_string(data.clone(), Value::Str("status".to_string()), &[]);
+        let mut status: Value = self.safe_string_k(data.clone(), "status", &[]);
         return self.parse_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), status.clone());
         m.insert("oid".to_string(), id.clone());
     m
@@ -3415,15 +3494,15 @@ impl HyperliquidCore {
     pub fn cancel_orders_request(&self, mut ids: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
          * @method
          * @name hyperliquid#cancelOrdersRequest
          * @description build the request payload for cancelling multiple orders
-         * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
-         * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol
          * @param {object} [params]
@@ -3434,13 +3513,13 @@ impl HyperliquidCore {
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string())]), &[]);
         let mut nonce: Value = self.milliseconds();
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), nonce.clone());
             m
         });
         let mut cancelReq: Value = Value::List(vec![]);
         let mut cancelAction: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("".to_string()));
                 m.insert("cancels".to_string(), Value::List(vec![]));
             m
@@ -3453,28 +3532,28 @@ impl HyperliquidCore {
             add_element_to_object(&mut cancelAction, &Value::Str("type".to_string()), Value::Str("cancelByCloid".to_string()));
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&clientOrderId)) {
+                let mut __for_first_818: bool = true;
+                while { if !__for_first_818 { i = add(&i, &Value::Int(1)); } __for_first_818 = false; is_less_than(&i, &get_array_length(&clientOrderId)) } {
                 append_to_array(&mut cancelReq, Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("asset".to_string(), baseId.clone());
                         m.insert("cloid".to_string(), get_value(&clientOrderId, &i));
                     m
                 }));
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else {
             add_element_to_object(&mut cancelAction, &Value::Str("type".to_string()), Value::Str("cancel".to_string()));
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&ids)) {
+                let mut __for_first_819: bool = true;
+                while { if !__for_first_819 { i = add(&i, &Value::Int(1)); } __for_first_819 = false; is_less_than(&i, &get_array_length(&ids)) } {
                 append_to_array(&mut cancelReq, Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("a".to_string(), baseId.clone());
                         m.insert("o".to_string(), self.parse_to_numeric(get_value(&ids, &i)));
                     m
                 }));
-                i = add(&i, &Value::Int(1));
             }
             }
         }
@@ -3498,17 +3577,17 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#cancelOrdersForSymbols
  * @description cancel multiple orders for multiple symbols
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
  * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("vaultAddress".to_string()))] the vault address
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
- * @returns {object} an list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.vaultAddress] the vault address
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_orders_for_symbols(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.check_required_credentials(&[]);
@@ -3516,13 +3595,13 @@ impl HyperliquidCore {
         self.initialize_client().await;
         let mut nonce: Value = self.milliseconds();
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), nonce.clone());
             m
         });
         let mut cancelReq: Value = Value::List(vec![]);
         let mut cancelAction: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("".to_string()));
                 m.insert("cancels".to_string(), Value::List(vec![]));
             m
@@ -3530,31 +3609,32 @@ impl HyperliquidCore {
         let mut cancelByCloid: Value = Value::Bool(false);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&orders)) {
+            let mut __for_first_820: bool = true;
+            while { if !__for_first_820 { i = add(&i, &Value::Int(1)); } __for_first_820 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = get_value(&orders, &i);
-            let mut clientOrderId: Value = self.safe_string(order.clone(), Value::Str("clientOrderId".to_string()), &[]);
+            let mut order: Value = get_value(&orders, &i);
+            let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clientOrderId", &[]);
             if !is_equal(&clientOrderId, &Value::Null) {
                 cancelByCloid = Value::Bool(true);
             }
-            let mut id: Value = self.safe_string(order.clone(), Value::Str("id".to_string()), &[]);
-            let mut symbol: Value = self.safe_string(order.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut id: Value = self.safe_string_k(order.clone(), "id", &[]);
+            let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[]);
             if is_equal(&symbol, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrdersForSymbols() requires a symbol argument in each order".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrdersForSymbols() requires a symbol argument in each order".to_string()))));
             }
             if !is_equal(&id, &Value::Null) && is_true(&cancelByCloid) {
-                panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" cancelOrdersForSymbols() all orders must have either id or clientOrderId".to_string()))));
+                panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" cancelOrdersForSymbols() all orders must have either id or clientOrderId".to_string()))));
             }
             let mut assetKey: Value = ternary(is_true(&cancelByCloid), Value::Str("asset".to_string()), Value::Str("a".to_string()));
             let mut idKey: Value = ternary(is_true(&cancelByCloid), Value::Str("cloid".to_string()), Value::Str("o".to_string()));
             let mut market: Value = self.market(symbol.clone());
             let mut cancelObj: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m
             });
             add_element_to_object(&mut cancelObj, &assetKey, self.parse_to_numeric(get_value(&market, &Value::Str("baseId".to_string()))));
             add_element_to_object(&mut cancelObj, &idKey, ternary(is_true(&cancelByCloid), clientOrderId.clone(), self.parse_to_numeric(id.clone())));
             append_to_array(&mut cancelReq, cancelObj.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         add_element_to_object(&mut cancelAction, &Value::Str("type".to_string()), ternary(is_true(&cancelByCloid), Value::Str("cancelByCloid".to_string()), Value::Str("cancel".to_string())));
@@ -3571,7 +3651,7 @@ impl HyperliquidCore {
         }
         let mut response: Value = self.call_method(Value::Str("private_post_exchange".to_string()), &[request.clone()]).await;
         return Value::List(vec![self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
     m
 }), &[])]);
@@ -3585,13 +3665,13 @@ impl HyperliquidCore {
  * @description dead man's switch, cancel all orders after the given timeout
  * @param {number} timeout time in milliseconds, 0 represents cancel the timer
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("vaultAddress".to_string()))] the vault address
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
+ * @param {string} [params.vaultAddress] the vault address
+ * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} the api result
  */
     pub async fn cancel_all_orders_after(&mut self, mut timeout: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.check_required_credentials(&[]);
@@ -3600,12 +3680,12 @@ impl HyperliquidCore {
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string())]), &[]);
         let mut nonce: Value = self.milliseconds();
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), nonce.clone());
             m
         });
         let mut cancelAction: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("scheduleCancel".to_string()));
                 m.insert("time".to_string(), add(&nonce, &timeout));
             m
@@ -3628,40 +3708,42 @@ impl HyperliquidCore {
 
     pub fn edit_orders_request(&self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.check_required_credentials(&[]);
         let mut hasClientOrderId: Value = Value::Bool(false);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&orders)) {
+            let mut __for_first_821: bool = true;
+            while { if !__for_first_821 { i = add(&i, &Value::Int(1)); } __for_first_821 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
-            let mut orderParams: Value = self.safe_dict(rawOrder.clone(), Value::Str("params".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut rawOrder: Value = get_value(&orders, &i);
+            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut clientOrderId: Value = self.safe_string2(orderParams.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string()), &[]);
             if !is_equal(&clientOrderId, &Value::Null) {
                 hasClientOrderId = Value::Bool(true);
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         if is_true(&hasClientOrderId) {
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&orders)) {
+                let mut __for_first_822: bool = true;
+                while { if !__for_first_822 { i = add(&i, &Value::Int(1)); } __for_first_822 = false; is_less_than(&i, &get_array_length(&orders)) } {
                 let mut rawOrder: Value = get_value(&orders, &i);
-                let mut orderParams: Value = self.safe_dict(rawOrder.clone(), Value::Str("params".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+                let mut rawOrder: Value = get_value(&orders, &i);
+                let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
                 let mut clientOrderId: Value = self.safe_string2(orderParams.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string()), &[]);
                 if is_equal(&clientOrderId, &Value::Null) {
-                    panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" editOrders() all orders must have clientOrderId if at least one has a clientOrderId".to_string()))));
+                    panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" editOrders() all orders must have clientOrderId if at least one has a clientOrderId".to_string()))));
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }
@@ -3669,26 +3751,28 @@ impl HyperliquidCore {
         let mut modifies: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&orders)) {
+            let mut __for_first_823: bool = true;
+            while { if !__for_first_823 { i = add(&i, &Value::Int(1)); } __for_first_823 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
-            let mut id: Value = self.safe_string(rawOrder.clone(), Value::Str("id".to_string()), &[]);
-            let mut marketId: Value = self.safe_string(rawOrder.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut rawOrder: Value = get_value(&orders, &i);
+            let mut id: Value = self.safe_string_k(rawOrder.clone(), "id", &[]);
+            let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             let mut market: Value = self.market(marketId.clone());
             let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
             let mut type_var: Value = self.safe_string_upper(rawOrder.clone(), Value::Str("type".to_string()), &[]);
             let mut isMarket: Value = Value::Bool(is_equal(&type_var, &Value::Str("MARKET".to_string())));
             let mut side: Value = self.safe_string_upper(rawOrder.clone(), Value::Str("side".to_string()), &[]);
             let mut isBuy: Value = Value::Bool(is_equal(&side, &Value::Str("BUY".to_string())));
-            let mut amount: Value = self.safe_string(rawOrder.clone(), Value::Str("amount".to_string()), &[]);
-            let mut price: Value = self.safe_string(rawOrder.clone(), Value::Str("price".to_string()), &[]);
-            let mut orderParams: Value = self.safe_dict(rawOrder.clone(), Value::Str("params".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut amount: Value = self.safe_string_k(rawOrder.clone(), "amount", &[]);
+            let mut price: Value = self.safe_string_k(rawOrder.clone(), "price", &[]);
+            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut defaultSlippage: Value = self.safe_string(self.options.clone(), Value::Str("defaultSlippage".to_string()), &[]);
-            let mut slippage: Value = self.safe_string(orderParams.clone(), Value::Str("slippage".to_string()), &[defaultSlippage.clone()]);
+            let mut defaultSlippage: Value = self.safe_string_k(self.options.clone(), "defaultSlippage", &[]);
+            let mut slippage: Value = self.safe_string_k(orderParams.clone(), "slippage", &[defaultSlippage.clone()]);
             let mut defaultTimeInForce: Value = ternary(is_true(&(isMarket)), Value::Str("ioc".to_string()), Value::Str("gtc".to_string()));
-            let mut postOnly: Value = self.safe_bool(orderParams.clone(), Value::Str("postOnly".to_string()), &[Value::Bool(false)]);
+            let mut postOnly: Value = self.safe_bool_k(orderParams.clone(), "postOnly", &[Value::Bool(false)]);
             if is_true(&postOnly) {
                 defaultTimeInForce = Value::Str("alo".to_string());
             }
@@ -3696,10 +3780,10 @@ impl HyperliquidCore {
             timeInForce = self.capitalize(timeInForce.clone());
             let mut clientOrderId: Value = self.safe_string2(orderParams.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string()), &[]);
             let mut triggerPrice: Value = self.safe_string2(orderParams.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
-            let mut stopLossPrice: Value = self.safe_string(orderParams.clone(), Value::Str("stopLossPrice".to_string()), &[triggerPrice.clone()]);
-            let mut takeProfitPrice: Value = self.safe_string(orderParams.clone(), Value::Str("takeProfitPrice".to_string()), &[]);
+            let mut stopLossPrice: Value = self.safe_string_k(orderParams.clone(), "stopLossPrice", &[triggerPrice.clone()]);
+            let mut takeProfitPrice: Value = self.safe_string_k(orderParams.clone(), "takeProfitPrice", &[]);
             let mut isTrigger: Value = Value::Bool(is_true(&stopLossPrice) || is_true(&takeProfitPrice));
-            let mut reduceOnly: Value = self.safe_bool(orderParams.clone(), Value::Str("reduceOnly".to_string()), &[Value::Bool(false)]);
+            let mut reduceOnly: Value = self.safe_bool_k(orderParams.clone(), "reduceOnly", &[Value::Bool(false)]);
             orderParams = self.omit(orderParams.clone(), Value::List(vec![Value::Str("slippage".to_string()), Value::Str("timeInForce".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string()), Value::Str("postOnly".to_string()), Value::Str("reduceOnly".to_string())]), &[]);
             let mut px: Value = self.number_to_string(price.clone());
             if is_true(&isMarket) {
@@ -3710,7 +3794,7 @@ impl HyperliquidCore {
             }
             let mut sz: Value = self.amount_to_precision(symbol.clone(), amount.clone());
             let mut orderType: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m
             });
             if is_true(&isTrigger) {
@@ -3722,7 +3806,7 @@ impl HyperliquidCore {
                     triggerPrice = self.price_to_precision(symbol.clone(), stopLossPrice.clone());
                 }
                 add_element_to_object(&mut orderType, &Value::Str("trigger".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("isMarket".to_string(), isMarket.clone());
         m.insert("triggerPx".to_string(), triggerPrice.clone());
         m.insert("tpsl".to_string(), ternary(is_true(&(isTp)), Value::Str("tp".to_string()), Value::Str("sl".to_string())));
@@ -3730,7 +3814,7 @@ impl HyperliquidCore {
 }));
             }  else {
                 add_element_to_object(&mut orderType, &Value::Str("limit".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("tif".to_string(), timeInForce.clone());
     m
 }));
@@ -3739,7 +3823,7 @@ impl HyperliquidCore {
                 triggerPrice = Value::Str("0".to_string());
             }
             let mut orderReq: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("a".to_string(), self.parse_to_int(get_value(&market, &Value::Str("baseId".to_string()))));
                     m.insert("b".to_string(), isBuy.clone());
                     m.insert("p".to_string(), px.clone());
@@ -3752,18 +3836,17 @@ impl HyperliquidCore {
                 add_element_to_object(&mut orderReq, &Value::Str("c".to_string()), clientOrderId.clone());
             }
             let mut modifyReq: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("oid".to_string(), self.parse_to_int(id.clone()));
                     m.insert("order".to_string(), orderReq.clone());
                 m
             });
             append_to_array(&mut modifies, modifyReq.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut nonce: Value = self.milliseconds();
         let mut modifyAction: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("batchModify".to_string()));
                 m.insert("modifies".to_string(), modifies.clone());
             m
@@ -3773,7 +3856,7 @@ impl HyperliquidCore {
         vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
         let mut signature: Value = self.sign_l1_action(modifyAction.clone(), nonce.clone(), &[vaultAddress.clone()]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), modifyAction.clone());
                 m.insert("nonce".to_string(), nonce.clone());
                 m.insert("signature".to_string(), signature.clone());
@@ -3791,7 +3874,7 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#editOrder
  * @description edit a trade order
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -3799,25 +3882,25 @@ impl HyperliquidCore {
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("timeInForce".to_string()))] 'Gtc', 'Ioc', 'Alo'
- * @param {bool} [get_value(&params, &Value::Str("postOnly".to_string()))] true or false whether the order is post-only
- * @param {bool} [get_value(&params, &Value::Str("reduceOnly".to_string()))] true or false whether the order is reduce-only
- * @param {float} [get_value(&params, &Value::Str("triggerPrice".to_string()))] The price at which a trigger order is triggered at
- * @param {string} [get_value(&params, &Value::Str("clientOrderId".to_string()))] client order id, (optional 128 bit hex string get_value(&e, &Value::Str("g".to_string())). 0x1234567890abcdef1234567890abcdef)
- * @param {string} [get_value(&params, &Value::Str("vaultAddress".to_string()))] the vault address for order
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
+ * @param {bool} [params.postOnly] true or false whether the order is post-only
+ * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+ * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+ * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+ * @param {string} [params.vaultAddress] the vault address for order
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn edit_order(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         if is_equal(&id, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" editOrder() requires an id argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" editOrder() requires an id argument".to_string()))));
         }
         let mut orderglobalParamsVariable = self.parse_create_edit_order_args(id.clone(), symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut order: Value = get_value(&orderglobalParamsVariable, &Value::Int(0));
@@ -3832,14 +3915,14 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#editOrders
  * @description edit a list of trade orders
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn edit_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -3881,15 +3964,15 @@ impl HyperliquidCore {
         //         }
         //     }
         //
-        let mut responseObject: Value = self.safe_dict(response.clone(), Value::Str("response".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut responseObject: Value = self.safe_dict_k(response.clone(), "response", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut dataObject: Value = self.safe_dict(responseObject.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut dataObject: Value = self.safe_dict_k(responseObject.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut statuses: Value = self.safe_list(dataObject.clone(), Value::Str("statuses".to_string()), &[Value::List(vec![])]);
+        let mut statuses: Value = self.safe_list_k(dataObject.clone(), "statuses", &[Value::List(vec![])]);
         return self.parse_orders(statuses.clone(), &[]);
 
     Value::Null
@@ -3907,20 +3990,20 @@ impl HyperliquidCore {
  */
     pub async fn create_vault(&mut self, mut name: Value, mut description: Value, mut initialUsd: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.check_required_credentials(&[]);
         self.load_markets(&[]).await;
         let mut nonce: Value = self.milliseconds();
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), nonce.clone());
             m
         });
         let mut usd: Value = self.parse_to_int(crate::precise::Precise::stringMul(&self.number_to_string(initialUsd.clone()), &Value::Str("1000000".to_string())));
         let mut action: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("createVault".to_string()));
                 m.insert("name".to_string(), name.clone());
                 m.insert("description".to_string(), description.clone());
@@ -3941,29 +4024,29 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-historical-funding-rates
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-historical-funding-rates
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest funding rate
- * @returns {object[]} a list of [funding rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-history-structure}
+ * @param {int} [params.until] timestamp in ms of the latest funding rate
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
     pub async fn fetch_funding_rate_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("fundingHistory".to_string()));
                 m.insert("coin".to_string(), get_value(&market, &Value::Str("baseName".to_string())));
             m
@@ -3974,7 +4057,7 @@ impl HyperliquidCore {
             let mut maxLimit: Value = ternary(is_true(&(is_equal(&limit, &Value::Null))), Value::Int(500), limit.clone());
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), subtract(&self.milliseconds(), &multiply(&multiply(&multiply(&maxLimit, &Value::Int(60)), &Value::Int(60)), &Value::Int(1000))));
         }
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         if !is_equal(&until, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
@@ -3993,19 +4076,20 @@ impl HyperliquidCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_824: bool = true;
+            while { if !__for_first_824 { i = add(&i, &Value::Int(1)); } __for_first_824 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
-            let mut timestamp: Value = self.safe_integer(entry.clone(), Value::Str("time".to_string()), &[]);
+            let mut entry: Value = get_value(&response, &i);
+            let mut timestamp: Value = self.safe_integer_k(entry.clone(), "time", &[]);
             append_to_array(&mut result, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
-                    m.insert("fundingRate".to_string(), self.safe_number(entry.clone(), Value::Str("fundingRate".to_string()), &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(entry.clone(), "fundingRate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
                 m
             }));
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut sorted: Value = self.sort_by(result.clone(), Value::Str("timestamp".to_string()), &[]);
@@ -4015,7 +4099,7 @@ impl HyperliquidCore {
 }
 
     pub fn get_dex_from_hip3_symbol(&self, mut market: Value) -> Value {
-        let mut baseName: Value = self.safe_string(market.clone(), Value::Str("baseName".to_string()), &[Value::Str("".to_string())]);
+        let mut baseName: Value = self.safe_string_k(market.clone(), "baseName", &[Value::Str("".to_string())]);
         let mut part: Value = split(&baseName, &Value::Str(":".to_string()));
         let mut partsLength: Value = get_array_length(&part);
         if is_greater_than(&partsLength, &Value::Int(1)) {
@@ -4030,23 +4114,23 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-open-orders
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-open-orders
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("user".to_string()))] user address, will default to get_value(&this, &Value::Str("walletAddress".to_string())) if not provided
- * @param {string} [get_value(&params, &Value::Str("method".to_string()))] 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
- * @param {string} [get_value(&params, &Value::Str("dex".to_string()))] perp dex name. default is null
- * @returns {Order[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @param {string} [params.method] 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @param {string} [params.dex] perp dex name. default is null
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_open_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut userAddress: Value = Value::Null;
@@ -4055,7 +4139,7 @@ impl HyperliquidCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOpenOrders".to_string()), Value::Str("method".to_string()), &[Value::Str("frontendOpenOrders".to_string())]); method = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), method.clone());
                 m.insert("user".to_string(), userAddress.clone());
             m
@@ -4086,17 +4170,18 @@ impl HyperliquidCore {
         let mut orderWithStatus: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_825: bool = true;
+            while { if !__for_first_825 { i = add(&i, &Value::Int(1)); } __for_first_825 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut order: Value = get_value(&response, &i);
             let mut order: Value = get_value(&response, &i);
             let mut extendOrder: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m
             });
-            if is_equal(&self.safe_string(order.clone(), Value::Str("status".to_string()), &[]), &Value::Null) {
+            if is_equal(&self.safe_string_k(order.clone(), "status", &[]), &Value::Null) {
                 add_element_to_object(&mut extendOrder, &Value::Str("ccxtStatus".to_string()), Value::Str("open".to_string()));
             }
             append_to_array(&mut orderWithStatus, self.extend(order.clone(), &[extendOrder.clone()]));
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.parse_orders(orderWithStatus.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -4112,15 +4197,15 @@ impl HyperliquidCore {
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("user".to_string()))] user address, will default to get_value(&this, &Value::Str("walletAddress".to_string())) if not provided
- * @returns {Order[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_closed_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -4139,15 +4224,15 @@ impl HyperliquidCore {
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("user".to_string()))] user address, will default to get_value(&this, &Value::Str("walletAddress".to_string())) if not provided
- * @returns {Order[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -4166,15 +4251,15 @@ impl HyperliquidCore {
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("user".to_string()))] user address, will default to get_value(&this, &Value::Str("walletAddress".to_string())) if not provided
- * @returns {Order[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_canceled_and_closed_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -4193,17 +4278,17 @@ impl HyperliquidCore {
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("user".to_string()))] user address, will default to get_value(&this, &Value::Str("walletAddress".to_string())) if not provided
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
- * @param {string} [get_value(&params, &Value::Str("dex".to_string()))] perp dex name. default is null
- * @returns {Order[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @param {string} [params.dex] perp dex name. default is null
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut userAddress: Value = Value::Null;
@@ -4211,7 +4296,7 @@ impl HyperliquidCore {
         self.load_markets(&[]).await;
         let mut market: Value = Value::Null;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("historicalOrders".to_string()));
                 m.insert("user".to_string(), userAddress.clone());
             m
@@ -4246,30 +4331,31 @@ impl HyperliquidCore {
         // so a canceled order appears twice: once as 'open' and once as 'canceled'.
         // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
         let mut deduplicatedByOid: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_826: bool = true;
+            while { if !__for_first_826 { i = add(&i, &Value::Int(1)); } __for_first_826 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut rawOrder: Value = get_value(&response, &i);
-            let mut entry: Value = self.safe_dict(rawOrder.clone(), Value::Str("order".to_string()), &[]);
+            let mut rawOrder: Value = get_value(&response, &i);
+            let mut entry: Value = self.safe_dict_k(rawOrder.clone(), "order", &[]);
             if is_equal(&entry, &Value::Null) {
                 entry = rawOrder.clone();
             }
-            let mut oid: Value = self.safe_string(entry.clone(), Value::Str("oid".to_string()), &[]);
+            let mut oid: Value = self.safe_string_k(entry.clone(), "oid", &[]);
             if !is_equal(&oid, &Value::Null) {
                 if !is_true(&(Value::Bool(in_op(&deduplicatedByOid, &oid)))) {
                     add_element_to_object(&mut deduplicatedByOid, &oid, rawOrder.clone());
                 }  else {
-                    let mut existingTimestamp: Value = self.safe_integer(get_value(&deduplicatedByOid, &oid), Value::Str("statusTimestamp".to_string()), &[]);
-                    let mut currentTimestamp: Value = self.safe_integer(rawOrder.clone(), Value::Str("statusTimestamp".to_string()), &[]);
+                    let mut existingTimestamp: Value = self.safe_integer_k(get_value(&deduplicatedByOid, &oid), "statusTimestamp", &[]);
+                    let mut currentTimestamp: Value = self.safe_integer_k(rawOrder.clone(), "statusTimestamp", &[]);
                     if !is_equal(&currentTimestamp, &Value::Null) && is_true(&(is_equal(&existingTimestamp, &Value::Null) || is_greater_than(&currentTimestamp, &existingTimestamp))) {
                         add_element_to_object(&mut deduplicatedByOid, &oid, rawOrder.clone());
                     }
                 }
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut deduplicated: Value = object_values(&deduplicatedByOid);
@@ -4282,19 +4368,19 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint#query-order-status-by-oid-or-cloid
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-order-status-by-oid-or-cloid
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("clientOrderId".to_string()))] client order id, (optional 128 bit hex string get_value(&e, &Value::Str("g".to_string())). 0x1234567890abcdef1234567890abcdef)
- * @param {string} [get_value(&params, &Value::Str("user".to_string()))] user address, will default to get_value(&this, &Value::Str("walletAddress".to_string())) if not provided
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
- * @returns {object} An [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut userAddress: Value = Value::Null;
@@ -4304,9 +4390,9 @@ impl HyperliquidCore {
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
         }
-        let mut clientOrderId: Value = self.safe_string(params.clone(), Value::Str("clientOrderId".to_string()), &[]);
+        let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("orderStatus".to_string()));
                 m.insert("user".to_string(), userAddress.clone());
             m
@@ -4346,7 +4432,7 @@ impl HyperliquidCore {
         //         "status": "order"
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("order".to_string()), &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "order", &[]);
         return self.parse_order(data.clone(), &[market.clone()]);
 
     Value::Null
@@ -4449,10 +4535,10 @@ impl HyperliquidCore {
         //     "triggerPx": "0.6"
         // }
         //
-        let mut error: Value = self.safe_string(order.clone(), Value::Str("error".to_string()), &[]);
+        let mut error: Value = self.safe_string_k(order.clone(), "error", &[]);
         if !is_equal(&error, &Value::Null) {
             return self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("status".to_string(), Value::Str("rejected".to_string()));
     m
@@ -4462,56 +4548,56 @@ impl HyperliquidCore {
         if is_equal(&entry, &Value::Null) {
             entry = order.clone();
         }
-        let mut filled: Value = self.safe_dict(order.clone(), Value::Str("filled".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut filled: Value = self.safe_dict_k(order.clone(), "filled", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut coin: Value = self.safe_string(entry.clone(), Value::Str("coin".to_string()), &[]);
+        let mut coin: Value = self.safe_string_k(entry.clone(), "coin", &[]);
         let mut marketId: Value = Value::Null;
         if !is_equal(&coin, &Value::Null) {
             marketId = self.coin_to_market_id(coin.clone());
         }
-        if is_equal(&self.safe_string(entry.clone(), Value::Str("id".to_string()), &[]), &Value::Null) {
+        if is_equal(&self.safe_string_k(entry.clone(), "id", &[]), &Value::Null) {
             market = self.safe_market(&[marketId.clone(), Value::Null]);
         }  else {
             market = self.safe_market(&[marketId.clone(), market.clone()]);
         }
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
-        let mut timestamp: Value = self.safe_integer(entry.clone(), Value::Str("timestamp".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(entry.clone(), "timestamp", &[]);
         let mut status: Value = self.safe_string2(order.clone(), Value::Str("status".to_string()), Value::Str("ccxtStatus".to_string()), &[]);
         order = self.omit(order.clone(), Value::List(vec![Value::Str("ccxtStatus".to_string())]), &[]);
-        let mut side: Value = self.safe_string(entry.clone(), Value::Str("side".to_string()), &[]);
+        let mut side: Value = self.safe_string_k(entry.clone(), "side", &[]);
         if !is_equal(&side, &Value::Null) {
             side = ternary(is_true(&(is_equal(&side, &Value::Str("A".to_string())))), Value::Str("sell".to_string()), Value::Str("buy".to_string()));
         }
         let mut totalAmount: Value = self.safe_string2(entry.clone(), Value::Str("origSz".to_string()), Value::Str("totalSz".to_string()), &[]);
-        let mut remaining: Value = self.safe_string(entry.clone(), Value::Str("sz".to_string()), &[]);
+        let mut remaining: Value = self.safe_string_k(entry.clone(), "sz", &[]);
         let mut tif: Value = self.safe_string_upper(entry.clone(), Value::Str("tif".to_string()), &[]);
         let mut postOnly: Value = Value::Null;
         if !is_equal(&tif, &Value::Null) {
             postOnly = Value::Bool(is_equal(&tif, &Value::Str("ALO".to_string())));
         }
         return self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
-        m.insert("id".to_string(), self.safe_string(entry.clone(), Value::Str("oid".to_string()), &[]));
-        m.insert("clientOrderId".to_string(), self.safe_string(entry.clone(), Value::Str("cloid".to_string()), &[]));
+        m.insert("id".to_string(), self.safe_string_k(entry.clone(), "oid", &[]));
+        m.insert("clientOrderId".to_string(), self.safe_string_k(entry.clone(), "cloid", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer(order.clone(), Value::Str("statusTimestamp".to_string()), &[]));
+        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(order.clone(), "statusTimestamp", &[]));
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("type".to_string(), self.parse_order_type(self.safe_string_lower(entry.clone(), Value::Str("orderType".to_string()), &[])));
         m.insert("timeInForce".to_string(), tif.clone());
         m.insert("postOnly".to_string(), postOnly.clone());
-        m.insert("reduceOnly".to_string(), self.safe_bool(entry.clone(), Value::Str("reduceOnly".to_string()), &[]));
+        m.insert("reduceOnly".to_string(), self.safe_bool_k(entry.clone(), "reduceOnly", &[]));
         m.insert("side".to_string(), side.clone());
-        m.insert("price".to_string(), self.safe_string(entry.clone(), Value::Str("limitPx".to_string()), &[]));
-        m.insert("triggerPrice".to_string(), ternary(is_true(&self.safe_bool(entry.clone(), Value::Str("isTrigger".to_string()), &[])), self.safe_number(entry.clone(), Value::Str("triggerPx".to_string()), &[]), Value::Null));
+        m.insert("price".to_string(), self.safe_string_k(entry.clone(), "limitPx", &[]));
+        m.insert("triggerPrice".to_string(), ternary(is_true(&self.safe_bool_k(entry.clone(), "isTrigger", &[])), self.safe_number_k(entry.clone(), "triggerPx", &[]), Value::Null));
         m.insert("amount".to_string(), totalAmount.clone());
         m.insert("cost".to_string(), Value::Null);
-        m.insert("average".to_string(), self.safe_string(entry.clone(), Value::Str("avgPx".to_string()), &[]));
-        m.insert("filled".to_string(), self.safe_string(filled.clone(), Value::Str("totalSz".to_string()), &[crate::precise::Precise::stringSub(&totalAmount, &remaining)]));
+        m.insert("average".to_string(), self.safe_string_k(entry.clone(), "avgPx", &[]));
+        m.insert("filled".to_string(), self.safe_string_k(filled.clone(), "totalSz", &[crate::precise::Precise::stringSub(&totalAmount, &remaining)]));
         m.insert("remaining".to_string(), remaining.clone());
         m.insert("status".to_string(), self.parse_order_status(status.clone()));
         m.insert("fee".to_string(), Value::Null);
@@ -4527,7 +4613,7 @@ impl HyperliquidCore {
             return Value::Null;
         }
         let mut statuses: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("triggered".to_string(), Value::Str("open".to_string()));
                 m.insert("filled".to_string(), Value::Str("closed".to_string()));
                 m.insert("open".to_string(), Value::Str("open".to_string()));
@@ -4549,7 +4635,7 @@ impl HyperliquidCore {
 
     pub fn parse_order_type(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("stop limit".to_string(), Value::Str("limit".to_string()));
                 m.insert("stop market".to_string(), Value::Str("market".to_string()));
             m
@@ -4563,22 +4649,22 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest trade
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
- * @returns {Trade[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=trade-structure}
+ * @param {int} [params.until] timestamp in ms of the latest trade
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
     pub async fn fetch_my_trades(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut userAddress: Value = Value::Null;
@@ -4589,7 +4675,7 @@ impl HyperliquidCore {
             market = self.market(symbol.clone());
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("user".to_string(), userAddress.clone());
             m
         });
@@ -4599,7 +4685,7 @@ impl HyperliquidCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("userFills".to_string()));
         }
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         if !is_equal(&until, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
@@ -4630,36 +4716,36 @@ impl HyperliquidCore {
         //         "time": 1704262888911
         //     }
         //
-        let mut timestamp: Value = self.safe_integer(trade.clone(), Value::Str("time".to_string()), &[]);
-        let mut price: Value = self.safe_string(trade.clone(), Value::Str("px".to_string()), &[]);
-        let mut amount: Value = self.safe_string(trade.clone(), Value::Str("sz".to_string()), &[]);
-        let mut coin: Value = self.safe_string(trade.clone(), Value::Str("coin".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(trade.clone(), "time", &[]);
+        let mut price: Value = self.safe_string_k(trade.clone(), "px", &[]);
+        let mut amount: Value = self.safe_string_k(trade.clone(), "sz", &[]);
+        let mut coin: Value = self.safe_string_k(trade.clone(), "coin", &[]);
         let mut marketId: Value = self.coin_to_market_id(coin.clone());
         market = self.safe_market(&[marketId.clone(), Value::Null]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
-        let mut id: Value = self.safe_string(trade.clone(), Value::Str("tid".to_string()), &[]);
-        let mut side: Value = self.safe_string(trade.clone(), Value::Str("side".to_string()), &[]);
+        let mut id: Value = self.safe_string_k(trade.clone(), "tid", &[]);
+        let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
         if !is_equal(&side, &Value::Null) {
             side = ternary(is_true(&(is_equal(&side, &Value::Str("A".to_string())))), Value::Str("sell".to_string()), Value::Str("buy".to_string()));
         }
-        let mut fee: Value = self.safe_string(trade.clone(), Value::Str("fee".to_string()), &[]);
+        let mut fee: Value = self.safe_string_k(trade.clone(), "fee", &[]);
         let mut takerOrMaker: Value = Value::Null;
-        let mut crossed: Value = self.safe_bool(trade.clone(), Value::Str("crossed".to_string()), &[]);
+        let mut crossed: Value = self.safe_bool_k(trade.clone(), "crossed", &[]);
         if !is_equal(&crossed, &Value::Null) {
             takerOrMaker = ternary(is_true(&crossed), Value::Str("taker".to_string()), Value::Str("maker".to_string()));
         }
-        let mut builderFee: Value = self.safe_string(trade.clone(), Value::Str("builderFee".to_string()), &[]);
+        let mut builderFee: Value = self.safe_string_k(trade.clone(), "builderFee", &[]);
         if !is_equal(&builderFee, &Value::Null) {
             fee = crate::precise::Precise::stringAdd(&fee, &builderFee);
         }
         return self.safe_trade(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("id".to_string(), id.clone());
-        m.insert("order".to_string(), self.safe_string(trade.clone(), Value::Str("oid".to_string()), &[]));
+        m.insert("order".to_string(), self.safe_string_k(trade.clone(), "oid", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone());
         m.insert("takerOrMaker".to_string(), takerOrMaker.clone());
@@ -4667,9 +4753,9 @@ impl HyperliquidCore {
         m.insert("amount".to_string(), amount.clone());
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), fee.clone());
-        m.insert("currency".to_string(), self.safe_string(trade.clone(), Value::Str("feeToken".to_string()), &[]));
+        m.insert("currency".to_string(), self.safe_string_k(trade.clone(), "feeToken", &[]));
         m.insert("rate".to_string(), Value::Null);
     m
 }));
@@ -4683,20 +4769,20 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#fetchPosition
  * @description fetch data on an open position
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("user".to_string()))] user address, will default to get_value(&this, &Value::Str("walletAddress".to_string())) if not provided
- * @returns {object} a [position structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut positions: Value = self.fetch_positions(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
         return self.safe_dict(positions.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
 
@@ -4715,7 +4801,8 @@ impl HyperliquidCore {
         let mut dexName: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &symbolsLength) {
+            let mut __for_first_827: bool = true;
+            while { if !__for_first_827 { i = add(&i, &Value::Int(1)); } __for_first_827 = false; is_less_than(&i, &symbolsLength) } {
             if is_equal(&dexName, &Value::Null) {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 dexName = self.get_dex_from_hip3_symbol(market.clone());
@@ -4723,10 +4810,9 @@ impl HyperliquidCore {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 let mut currentDexName: Value = self.get_dex_from_hip3_symbol(market.clone());
                 if !is_equal(&currentDexName, &dexName) {
-                    panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" ".to_string())), &methodName), &Value::Str(" only supports fetching positions for one DEX at a time for HIP3 markets".to_string()))));
+                    panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" ".to_string())), &methodName), &Value::Str(" only supports fetching positions for one DEX at a time for HIP3 markets".to_string()))));
                 }
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return dexName;
@@ -4738,18 +4824,18 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#fetchPositions
  * @description fetch all open positions
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("user".to_string()))] user address, will default to get_value(&this, &Value::Str("walletAddress".to_string())) if not provided
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
- * @param {string} [get_value(&params, &Value::Str("dex".to_string()))] perp dex name, eg: XYZ
- * @returns {object[]} a list of [position structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @param {string} [params.dex] perp dex name, eg: XYZ
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_positions(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -4757,7 +4843,7 @@ impl HyperliquidCore {
         { let __destr_tmp = self.handle_public_address(Value::Str("fetchPositions".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("clearinghouseState".to_string()));
                 m.insert("user".to_string(), userAddress.clone());
             m
@@ -4812,13 +4898,13 @@ impl HyperliquidCore {
         //         "withdrawable": "100.0"
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("assetPositions".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "assetPositions", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&data)) {
+            let mut __for_first_828: bool = true;
+            while { if !__for_first_828 { i = add(&i, &Value::Int(1)); } __for_first_828 = false; is_less_than(&i, &get_array_length(&data)) } {
             append_to_array(&mut result, self.parse_position(get_value(&data, &i), &[Value::Null]));
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.filter_by_array_positions(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone(), Value::Bool(false)]);
@@ -4854,30 +4940,30 @@ impl HyperliquidCore {
         //         "type": "oneWay"
         //     }
         //
-        let mut entry: Value = self.safe_dict(position.clone(), Value::Str("position".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut entry: Value = self.safe_dict_k(position.clone(), "position", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut coin: Value = self.safe_string(entry.clone(), Value::Str("coin".to_string()), &[]);
+        let mut coin: Value = self.safe_string_k(entry.clone(), "coin", &[]);
         let mut marketId: Value = self.coin_to_market_id(coin.clone());
         market = self.safe_market(&[marketId.clone(), Value::Null]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
-        let mut leverage: Value = self.safe_dict(entry.clone(), Value::Str("leverage".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut leverage: Value = self.safe_dict_k(entry.clone(), "leverage", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut marginMode: Value = self.safe_string(leverage.clone(), Value::Str("type".to_string()), &[]);
+        let mut marginMode: Value = self.safe_string_k(leverage.clone(), "type", &[]);
         let mut isIsolated: Value = Value::Bool(is_equal(&marginMode, &Value::Str("isolated".to_string())));
-        let mut rawSize: Value = self.safe_string(entry.clone(), Value::Str("szi".to_string()), &[]);
+        let mut rawSize: Value = self.safe_string_k(entry.clone(), "szi", &[]);
         let mut size: Value = rawSize.clone();
         let mut side: Value = Value::Null;
         if !is_equal(&size, &Value::Null) {
             side = ternary(is_true(&crate::precise::Precise::stringGt(&rawSize, &Value::Str("0".to_string()))), Value::Str("long".to_string()), Value::Str("short".to_string()));
             size = crate::precise::Precise::stringAbs(&size);
         }
-        let mut rawUnrealizedPnl: Value = self.safe_string(entry.clone(), Value::Str("unrealizedPnl".to_string()), &[]);
+        let mut rawUnrealizedPnl: Value = self.safe_string_k(entry.clone(), "unrealizedPnl", &[]);
         let mut absRawUnrealizedPnl: Value = crate::precise::Precise::stringAbs(&rawUnrealizedPnl);
-        let mut marginUsed: Value = self.safe_string(entry.clone(), Value::Str("marginUsed".to_string()), &[]);
+        let mut marginUsed: Value = self.safe_string_k(entry.clone(), "marginUsed", &[]);
         let mut initialMargin: Value = Value::Null;
         if is_true(&isIsolated) {
             initialMargin = crate::precise::Precise::stringSub(&marginUsed, &rawUnrealizedPnl);
@@ -4886,7 +4972,7 @@ impl HyperliquidCore {
         }
         let mut percentage: Value = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&absRawUnrealizedPnl, &marginUsed), &Value::Str("100".to_string()));
         return self.safe_position(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.clone());
@@ -4897,17 +4983,17 @@ impl HyperliquidCore {
         m.insert("side".to_string(), side.clone());
         m.insert("contracts".to_string(), self.parse_number(size.clone(), &[]));
         m.insert("contractSize".to_string(), Value::Null);
-        m.insert("entryPrice".to_string(), self.safe_number(entry.clone(), Value::Str("entryPx".to_string()), &[]));
+        m.insert("entryPrice".to_string(), self.safe_number_k(entry.clone(), "entryPx", &[]));
         m.insert("markPrice".to_string(), Value::Null);
-        m.insert("notional".to_string(), self.safe_number(entry.clone(), Value::Str("positionValue".to_string()), &[]));
-        m.insert("leverage".to_string(), self.safe_number(leverage.clone(), Value::Str("value".to_string()), &[]));
+        m.insert("notional".to_string(), self.safe_number_k(entry.clone(), "positionValue", &[]));
+        m.insert("leverage".to_string(), self.safe_number_k(leverage.clone(), "value", &[]));
         m.insert("collateral".to_string(), self.parse_number(marginUsed.clone(), &[]));
         m.insert("initialMargin".to_string(), self.parse_number(initialMargin.clone(), &[]));
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), self.parse_number(rawUnrealizedPnl.clone(), &[]));
-        m.insert("liquidationPrice".to_string(), self.safe_number(entry.clone(), Value::Str("liquidationPx".to_string()), &[]));
+        m.insert("liquidationPrice".to_string(), self.safe_number_k(entry.clone(), "liquidationPx", &[]));
         m.insert("marginMode".to_string(), marginMode.clone());
         m.insert("percentage".to_string(), self.parse_number(percentage.clone(), &[]));
     m
@@ -4923,32 +5009,32 @@ impl HyperliquidCore {
  * @param {string} marginMode margin mode must be either [isolated, cross]
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("leverage".to_string()))] the rate of leverage, is required if setting trade mode (symbol)
- * @param {string} [get_value(&params, &Value::Str("vaultAddress".to_string()))] the vault address
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
+ * @param {string} [params.leverage] the rate of leverage, is required if setting trade mode (symbol)
+ * @param {string} [params.vaultAddress] the vault address
+ * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} response from the exchange
  */
     pub async fn set_margin_mode(&mut self, mut marginMode: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setMarginMode() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setMarginMode() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
-        let mut leverage: Value = self.safe_integer(params.clone(), Value::Str("leverage".to_string()), &[]);
+        let mut leverage: Value = self.safe_integer_k(params.clone(), "leverage", &[]);
         if is_equal(&leverage, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setMarginMode() requires a leverage parameter".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setMarginMode() requires a leverage parameter".to_string()))));
         }
         let mut asset: Value = self.parse_to_int(get_value(&market, &Value::Str("baseId".to_string())));
         let mut isCross: Value = Value::Bool(is_equal(&marginMode, &Value::Str("cross".to_string())));
         let mut nonce: Value = self.milliseconds();
         params = self.omit(params.clone(), Value::List(vec![Value::Str("leverage".to_string())]), &[]);
         let mut updateAction: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("updateLeverage".to_string()));
                 m.insert("asset".to_string(), asset.clone());
                 m.insert("isCross".to_string(), isCross.clone());
@@ -4964,7 +5050,7 @@ impl HyperliquidCore {
         }
         let mut signature: Value = self.sign_l1_action(updateAction.clone(), nonce.clone(), &[vaultAddress.clone()]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), updateAction.clone());
                 m.insert("nonce".to_string(), nonce.clone());
                 m.insert("signature".to_string(), signature.clone());
@@ -4986,27 +5072,27 @@ impl HyperliquidCore {
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] margin mode must be either [isolated, cross], default is cross
+ * @param {string} [params.marginMode] margin mode must be either [isolated, cross], default is cross
  * @returns {object} response from the exchange
  */
     pub async fn set_leverage(&mut self, mut leverage: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
-        let mut marginMode: Value = self.safe_string(params.clone(), Value::Str("marginMode".to_string()), &[Value::Str("cross".to_string())]);
+        let mut marginMode: Value = self.safe_string_k(params.clone(), "marginMode", &[Value::Str("cross".to_string())]);
         let mut isCross: Value = Value::Bool(is_equal(&marginMode, &Value::Str("cross".to_string())));
         let mut asset: Value = self.parse_to_int(get_value(&market, &Value::Str("baseId".to_string())));
         let mut nonce: Value = self.milliseconds();
         params = self.omit(params.clone(), Value::Str("marginMode".to_string()), &[]);
         let mut updateAction: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("updateLeverage".to_string()));
                 m.insert("asset".to_string(), asset.clone());
                 m.insert("isCross".to_string(), isCross.clone());
@@ -5018,7 +5104,7 @@ impl HyperliquidCore {
         vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
         let mut signature: Value = self.sign_l1_action(updateAction.clone(), nonce.clone(), &[vaultAddress.clone()]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), updateAction.clone());
                 m.insert("nonce".to_string(), nonce.clone());
                 m.insert("signature".to_string(), signature.clone());
@@ -5038,17 +5124,17 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#addMargin
  * @description add margin
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
  * @param {string} symbol unified market symbol
  * @param {float} amount amount of margin to add
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("vaultAddress".to_string()))] the vault address
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
- * @returns {object} a [margin structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-structure}
+ * @param {string} [params.vaultAddress] the vault address
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
     pub async fn add_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.modify_margin_helper(symbol.clone(), amount.clone(), Value::Str("add".to_string()), &[params.clone()]).await;
@@ -5059,18 +5145,18 @@ impl HyperliquidCore {
 /*
  * @method
  * @name hyperliquid#reduceMargin
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
  * @description remove margin from a position
  * @param {string} symbol unified market symbol
  * @param {float} amount the amount of margin to remove
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("vaultAddress".to_string()))] the vault address
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
- * @returns {object} a [margin structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-structure}
+ * @param {string} [params.vaultAddress] the vault address
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
     pub async fn reduce_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.modify_margin_helper(symbol.clone(), amount.clone(), Value::Str("reduce".to_string()), &[params.clone()]).await;
@@ -5080,7 +5166,7 @@ impl HyperliquidCore {
 
     pub async fn modify_margin_helper(&mut self, mut symbol: Value, mut amount: Value, mut type_var: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5092,7 +5178,7 @@ impl HyperliquidCore {
         }
         let mut nonce: Value = self.milliseconds();
         let mut updateAction: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("updateIsolatedMargin".to_string()));
                 m.insert("asset".to_string(), asset.clone());
                 m.insert("isBuy".to_string(), Value::Bool(true));
@@ -5104,7 +5190,7 @@ impl HyperliquidCore {
         vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
         let mut signature: Value = self.sign_l1_action(updateAction.clone(), nonce.clone(), &[vaultAddress.clone()]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), updateAction.clone());
                 m.insert("nonce".to_string(), nonce.clone());
                 m.insert("signature".to_string(), signature.clone());
@@ -5115,8 +5201,8 @@ impl HyperliquidCore {
         }
         let mut response: Value = self.call_method(Value::Str("private_post_exchange".to_string()), &[request.clone()]).await;
         return self.extend(self.parse_margin_modification(response.clone(), &[market.clone()]), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("code".to_string(), self.safe_string(response.clone(), Value::Str("status".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("code".to_string(), self.safe_string_k(response.clone(), "status", &[]));
     m
 })]);
 
@@ -5126,14 +5212,14 @@ impl HyperliquidCore {
     pub fn parse_margin_modification(&self, mut data: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
         m.insert("amount".to_string(), Value::Null);
         m.insert("total".to_string(), Value::Null);
-        m.insert("code".to_string(), self.safe_string(market.clone(), Value::Str("settle".to_string()), &[]));
+        m.insert("code".to_string(), self.safe_string_k(market.clone(), "settle", &[]));
         m.insert("status".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
@@ -5147,28 +5233,28 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from *spot, swap*
  * @param {string} toAccount account to transfer to *swap, spot or address*
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("vaultAddress".to_string()))] the vault address for order
- * @returns {object} a [transfer structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transfer-structure}
+ * @param {string} [params.vaultAddress] the vault address for order
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
     pub async fn transfer(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.check_required_credentials(&[]);
         self.load_markets(&[]).await;
-        let mut isSandboxMode: Value = self.safe_bool(self.options.clone(), Value::Str("sandboxMode".to_string()), &[]);
+        let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[]);
         let mut nonce: Value = self.milliseconds();
         if is_true(&self.in_array(fromAccount.clone(), Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("perp".to_string())]))) {
             // handle swap <> spot account transfer
             if !is_true(&self.in_array(toAccount.clone(), Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("perp".to_string())]))) {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" transfer() only support spot <> swap transfer".to_string()))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" transfer() only support spot <> swap transfer".to_string()))));
             }
             let mut strAmount: Value = self.number_to_string(amount.clone());
             let mut vaultAddress: Value = self.safe_string2(params.clone(), Value::Str("vaultAddress".to_string()), Value::Str("subAccountAddress".to_string()), &[]);
@@ -5178,7 +5264,7 @@ impl HyperliquidCore {
             }
             let mut toPerp: Value = Value::Bool(is_true(&(is_equal(&toAccount, &Value::Str("perp".to_string())))) || is_true(&(is_equal(&toAccount, &Value::Str("swap".to_string())))));
             let mut transferPayload: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("hyperliquidChain".to_string(), ternary(is_true(&isSandboxMode), Value::Str("Testnet".to_string()), Value::Str("Mainnet".to_string())));
                     m.insert("amount".to_string(), strAmount.clone());
                     m.insert("toPerp".to_string(), toPerp.clone());
@@ -5187,9 +5273,9 @@ impl HyperliquidCore {
             });
             let mut transferSig: Value = self.build_usd_class_send_sig(transferPayload.clone());
             let mut transferRequest: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("action".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("hyperliquidChain".to_string(), get_value(&transferPayload, &Value::Str("hyperliquidChain".to_string())));
         m.insert("signatureChainId".to_string(), Value::Str("0x66eee".to_string()));
         m.insert("type".to_string(), Value::Str("usdClassTransfer".to_string()));
@@ -5214,14 +5300,14 @@ impl HyperliquidCore {
         }  else if is_equal(&toAccount, &Value::Str("main".to_string())) {
             subAccountAddress = fromAccount.clone();
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" transfer() only support main <> subaccount transfer".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" transfer() only support main <> subaccount transfer".to_string()))));
         }
         self.check_address(&[subAccountAddress.clone()]);
         if is_equal(&code, &Value::Null) || is_equal(&to_upper(&code), &Value::Str("USDC".to_string())) {
             // Transfer USDC with subAccountTransfer
             let mut usd: Value = self.parse_to_int(crate::precise::Precise::stringMul(&self.number_to_string(amount.clone()), &Value::Str("1000000".to_string())));
             let mut action: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("subAccountTransfer".to_string()));
                     m.insert("subAccountUser".to_string(), subAccountAddress.clone());
                     m.insert("isDeposit".to_string(), isDeposit.clone());
@@ -5230,7 +5316,7 @@ impl HyperliquidCore {
             });
             let mut sig: Value = self.sign_l1_action(action.clone(), nonce.clone(), &[]);
             let mut request: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("action".to_string(), action.clone());
                     m.insert("nonce".to_string(), nonce.clone());
                     m.insert("signature".to_string(), sig.clone());
@@ -5242,7 +5328,7 @@ impl HyperliquidCore {
             // Transfer non-USDC with subAccountSpotTransfer
             let mut symbol: Value = self.symbol(code.clone());
             let mut action: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("subAccountSpotTransfer".to_string()));
                     m.insert("subAccountUser".to_string(), subAccountAddress.clone());
                     m.insert("isDeposit".to_string(), isDeposit.clone());
@@ -5252,7 +5338,7 @@ impl HyperliquidCore {
             });
             let mut sig: Value = self.sign_l1_action(action.clone(), nonce.clone(), &[]);
             let mut request: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("action".to_string(), action.clone());
                     m.insert("nonce".to_string(), nonce.clone());
                     m.insert("signature".to_string(), sig.clone());
@@ -5261,12 +5347,14 @@ impl HyperliquidCore {
             let mut response: Value = self.call_method(Value::Str("private_post_exchange".to_string()), &[request.clone()]).await;
             return self.parse_transfer(response.clone(), &[]);
         }
+
+    Value::Null
 }
 
     pub fn parse_transfer(&self, mut transfer: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
@@ -5286,20 +5374,20 @@ impl HyperliquidCore {
  * @method
  * @name hyperliquid#withdraw
  * @description make a withdrawal (only support USDC)
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#initiate-a-withdrawal-request
- * @see https://get_value(&hyperliquid, &Value::Str("gitbook".to_string())).io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-or-withdraw-from-a-vault
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#initiate-a-withdrawal-request
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-or-withdraw-from-a-vault
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("vaultAddress".to_string()))] vault address withdraw from
- * @returns {object} a [transaction structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @param {string} [params.vaultAddress] vault address withdraw from
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
         let mut tag = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.check_required_credentials(&[]);
@@ -5308,7 +5396,7 @@ impl HyperliquidCore {
         if !is_equal(&code, &Value::Null) {
             code = to_upper(&code);
             if !is_equal(&code, &Value::Str("USDC".to_string())) {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" withdraw() only support USDC".to_string()))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" withdraw() only support USDC".to_string()))));
             }
         }
         let mut vaultAddress: Value = Value::Null;
@@ -5317,13 +5405,13 @@ impl HyperliquidCore {
         params = self.omit(params.clone(), Value::Str("vaultAddress".to_string()), &[]);
         let mut nonce: Value = self.milliseconds();
         let mut action: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut sig: Value = Value::Null;
         if !is_equal(&vaultAddress, &Value::Null) {
             action = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("vaultTransfer".to_string()));
                     m.insert("vaultAddress".to_string(), add(&Value::Str("0x".to_string()), &vaultAddress));
                     m.insert("isDeposit".to_string(), Value::Bool(false));
@@ -5332,9 +5420,9 @@ impl HyperliquidCore {
             });
             sig = self.sign_l1_action(action.clone(), nonce.clone(), &[]);
         }  else {
-            let mut isSandboxMode: Value = self.safe_bool(self.options.clone(), Value::Str("sandboxMode".to_string()), &[Value::Bool(false)]);
+            let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
             let mut payload: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("hyperliquidChain".to_string(), ternary(is_true(&isSandboxMode), Value::Str("Testnet".to_string()), Value::Str("Mainnet".to_string())));
                     m.insert("destination".to_string(), address.clone());
                     m.insert("amount".to_string(), to_string_val(&amount));
@@ -5343,7 +5431,7 @@ impl HyperliquidCore {
             });
             sig = self.build_withdraw_sig(payload.clone());
             action = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("hyperliquidChain".to_string(), get_value(&payload, &Value::Str("hyperliquidChain".to_string())));
                     m.insert("signatureChainId".to_string(), Value::Str("0x66eee".to_string()));
                     m.insert("destination".to_string(), address.clone());
@@ -5354,7 +5442,7 @@ impl HyperliquidCore {
             });
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), action.clone());
                 m.insert("nonce".to_string(), nonce.clone());
                 m.insert("signature".to_string(), sig.clone());
@@ -5382,44 +5470,44 @@ impl HyperliquidCore {
         //     }
         // }
         //
-        let mut timestamp: Value = self.safe_integer(transaction.clone(), Value::Str("time".to_string()), &[]);
-        let mut delta: Value = self.safe_dict(transaction.clone(), Value::Str("delta".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "time", &[]);
+        let mut delta: Value = self.safe_dict_k(transaction.clone(), "delta", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut fee: Value = Value::Null;
-        let mut feeCost: Value = self.safe_integer(delta.clone(), Value::Str("fee".to_string()), &[]);
+        let mut feeCost: Value = self.safe_integer_k(delta.clone(), "fee", &[]);
         if !is_equal(&feeCost, &Value::Null) {
             fee = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), Value::Str("USDC".to_string()));
                     m.insert("cost".to_string(), feeCost.clone());
                 m
             });
         }
         let mut internal: Value = Value::Null;
-        let mut type_var: Value = self.safe_string(delta.clone(), Value::Str("type".to_string()), &[]);
+        let mut type_var: Value = self.safe_string_k(delta.clone(), "type", &[]);
         if !is_equal(&type_var, &Value::Null) {
             internal = Value::Bool(is_equal(&type_var, &Value::Str("internalTransfer".to_string())));
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), Value::Null);
-        m.insert("txid".to_string(), self.safe_string(transaction.clone(), Value::Str("hash".to_string()), &[]));
+        m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "hash", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), Value::Null);
-        m.insert("addressTo".to_string(), self.safe_string(delta.clone(), Value::Str("destination".to_string()), &[]));
-        m.insert("addressFrom".to_string(), self.safe_string(delta.clone(), Value::Str("user".to_string()), &[]));
+        m.insert("addressTo".to_string(), self.safe_string_k(delta.clone(), "destination", &[]));
+        m.insert("addressFrom".to_string(), self.safe_string_k(delta.clone(), "user", &[]));
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
-        m.insert("amount".to_string(), self.safe_number(delta.clone(), Value::Str("usdc".to_string()), &[]));
+        m.insert("amount".to_string(), self.safe_number_k(delta.clone(), "usdc", &[]));
         m.insert("currency".to_string(), Value::Null);
-        m.insert("status".to_string(), self.safe_string(transaction.clone(), Value::Str("status".to_string()), &[]));
+        m.insert("status".to_string(), self.safe_string_k(transaction.clone(), "status", &[]));
         m.insert("updated".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), internal.clone());
@@ -5436,13 +5524,13 @@ impl HyperliquidCore {
  * @description fetch the trading fees for a market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("user".to_string()))] user address, will default to get_value(&this, &Value::Str("walletAddress".to_string())) if not provided
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
- * @returns {object} a [fee structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=fee-structure}
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
     pub async fn fetch_trading_fee(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5450,7 +5538,7 @@ impl HyperliquidCore {
         { let __destr_tmp = self.handle_public_address(Value::Str("fetchTradingFee".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("userFees".to_string()));
                 m.insert("user".to_string(), userAddress.clone());
             m
@@ -5492,9 +5580,9 @@ impl HyperliquidCore {
         //     }
         //
         let mut data: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
-                m.insert("userCrossRate".to_string(), self.safe_string(response.clone(), Value::Str("userCrossRate".to_string()), &[]));
-                m.insert("userAddRate".to_string(), self.safe_string(response.clone(), Value::Str("userAddRate".to_string()), &[]));
+            let mut m = indexmap::IndexMap::new();
+                m.insert("userCrossRate".to_string(), self.safe_string_k(response.clone(), "userCrossRate", &[]));
+                m.insert("userAddRate".to_string(), self.safe_string_k(response.clone(), "userAddRate", &[]));
             m
         });
         return self.parse_trading_fee(data.clone(), &[market.clone()]);
@@ -5541,11 +5629,11 @@ impl HyperliquidCore {
         //
         let mut symbol: Value = self.safe_symbol(Value::Null, &[market.clone()]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("maker".to_string(), self.safe_number(fee.clone(), Value::Str("userAddRate".to_string()), &[]));
-        m.insert("taker".to_string(), self.safe_number(fee.clone(), Value::Str("userCrossRate".to_string()), &[]));
+        m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "userAddRate", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(fee.clone(), "userCrossRate", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
@@ -5562,23 +5650,23 @@ impl HyperliquidCore {
  * @param {int} [since] timestamp in ms of the earliest ledger entry
  * @param {int} [limit] max number of ledger entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest ledger entry
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
- * @returns {object} a [ledger structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ledger-entry-structure}
+ * @param {int} [params.until] timestamp in ms of the latest ledger entry
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
     pub async fn fetch_ledger(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut userAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_public_address(Value::Str("fetchLedger".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("userNonFundingLedgerUpdates".to_string()));
                 m.insert("user".to_string(), userAddress.clone());
             m
@@ -5586,7 +5674,7 @@ impl HyperliquidCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
         }
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if !is_equal(&until, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
             params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
@@ -5610,31 +5698,31 @@ impl HyperliquidCore {
         //     }
         // }
         //
-        let mut timestamp: Value = self.safe_integer(item.clone(), Value::Str("time".to_string()), &[]);
-        let mut delta: Value = self.safe_dict(item.clone(), Value::Str("delta".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut timestamp: Value = self.safe_integer_k(item.clone(), "time", &[]);
+        let mut delta: Value = self.safe_dict_k(item.clone(), "delta", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut fee: Value = Value::Null;
-        let mut feeCost: Value = self.safe_integer(delta.clone(), Value::Str("fee".to_string()), &[]);
+        let mut feeCost: Value = self.safe_integer_k(delta.clone(), "fee", &[]);
         if !is_equal(&feeCost, &Value::Null) {
             fee = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), Value::Str("USDC".to_string()));
                     m.insert("cost".to_string(), feeCost.clone());
                 m
             });
         }
-        let mut type_var: Value = self.safe_string(delta.clone(), Value::Str("type".to_string()), &[]);
-        let mut amount: Value = self.safe_string(delta.clone(), Value::Str("usdc".to_string()), &[]);
+        let mut type_var: Value = self.safe_string_k(delta.clone(), "type", &[]);
+        let mut amount: Value = self.safe_string_k(delta.clone(), "usdc", &[]);
         return self.safe_ledger_entry(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
-        m.insert("id".to_string(), self.safe_string(item.clone(), Value::Str("hash".to_string()), &[]));
+        m.insert("id".to_string(), self.safe_string_k(item.clone(), "hash", &[]));
         m.insert("direction".to_string(), Value::Null);
         m.insert("account".to_string(), Value::Null);
-        m.insert("referenceAccount".to_string(), self.safe_string(delta.clone(), Value::Str("user".to_string()), &[]));
-        m.insert("referenceId".to_string(), self.safe_string(item.clone(), Value::Str("hash".to_string()), &[]));
+        m.insert("referenceAccount".to_string(), self.safe_string_k(delta.clone(), "user", &[]));
+        m.insert("referenceId".to_string(), self.safe_string_k(item.clone(), "hash", &[]));
         m.insert("type".to_string(), self.parse_ledger_entry_type(type_var.clone()));
         m.insert("currency".to_string(), Value::Null);
         m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
@@ -5652,7 +5740,7 @@ impl HyperliquidCore {
 
     pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Value {
         let mut ledgerType: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("internalTransfer".to_string(), Value::Str("transfer".to_string()));
                 m.insert("accountClassTransfer".to_string(), Value::Str("transfer".to_string()));
             m
@@ -5670,24 +5758,24 @@ impl HyperliquidCore {
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch withdrawals for
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
- * @param {string} [get_value(&params, &Value::Str("vaultAddress".to_string()))] vault address
- * @returns {object[]} a list of [transaction structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @param {int} [params.until] the latest time in ms to fetch withdrawals for
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @param {string} [params.vaultAddress] vault address
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_deposits(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut userAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_public_address(Value::Str("fetchDepositsWithdrawals".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("userNonFundingLedgerUpdates".to_string()));
                 m.insert("user".to_string(), userAddress.clone());
             m
@@ -5695,10 +5783,10 @@ impl HyperliquidCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
         }
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if !is_equal(&until, &Value::Null) {
             if is_equal(&since, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchDeposits requires since while until is set".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchDeposits requires since while until is set".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
             params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
@@ -5725,15 +5813,16 @@ impl HyperliquidCore {
         if !is_equal(&vaultAddress, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&records)) {
+                let mut __for_first_829: bool = true;
+                while { if !__for_first_829 { i = add(&i, &Value::Int(1)); } __for_first_829 = false; is_less_than(&i, &get_array_length(&records)) } {
+                let mut record: Value = get_value(&records, &i);
                 let mut record: Value = get_value(&records, &i);
                 if is_equal(&get_value(&record, &Value::Str("type".to_string())), &Value::Str("vaultDeposit".to_string())) {
-                    let mut delta: Value = self.safe_dict(record.clone(), Value::Str("delta".to_string()), &[]);
+                    let mut delta: Value = self.safe_dict_k(record.clone(), "delta", &[]);
                     if is_equal(&get_value(&delta, &Value::Str("vault".to_string())), &add(&Value::Str("0x".to_string()), &vaultAddress)) {
                         append_to_array(&mut deposits, record.clone());
                     }
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else {
@@ -5752,24 +5841,24 @@ impl HyperliquidCore {
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch withdrawals for
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
- * @param {string} [get_value(&params, &Value::Str("vaultAddress".to_string()))] vault address
- * @returns {object[]} a list of [transaction structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @param {int} [params.until] the latest time in ms to fetch withdrawals for
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @param {string} [params.vaultAddress] vault address
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_withdrawals(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut userAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_public_address(Value::Str("fetchDepositsWithdrawals".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("userNonFundingLedgerUpdates".to_string()));
                 m.insert("user".to_string(), userAddress.clone());
             m
@@ -5777,7 +5866,7 @@ impl HyperliquidCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
         }
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if !is_equal(&until, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
             params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
@@ -5804,15 +5893,16 @@ impl HyperliquidCore {
         if !is_equal(&vaultAddress, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&records)) {
+                let mut __for_first_830: bool = true;
+                while { if !__for_first_830 { i = add(&i, &Value::Int(1)); } __for_first_830 = false; is_less_than(&i, &get_array_length(&records)) } {
+                let mut record: Value = get_value(&records, &i);
                 let mut record: Value = get_value(&records, &i);
                 if is_equal(&get_value(&record, &Value::Str("type".to_string())), &Value::Str("vaultWithdraw".to_string())) {
-                    let mut delta: Value = self.safe_dict(record.clone(), Value::Str("delta".to_string()), &[]);
+                    let mut delta: Value = self.safe_dict_k(record.clone(), "delta", &[]);
                     if is_equal(&get_value(&delta, &Value::Str("vault".to_string())), &add(&Value::Str("0x".to_string()), &vaultAddress)) {
                         append_to_array(&mut withdrawals, record.clone());
                     }
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else {
@@ -5829,12 +5919,12 @@ impl HyperliquidCore {
  * @description Retrieves the open interest for a list of symbols
  * @param {string[]} [symbols] Unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an open interest structure{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
     pub async fn fetch_open_interests(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5851,11 +5941,11 @@ impl HyperliquidCore {
  * @description retrieves the open interest of a contract trading pair
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an [open interest structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=open-interest-structure}
+ * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
     pub async fn fetch_open_interest(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         symbol = self.symbol(symbol.clone());
@@ -5886,19 +5976,19 @@ impl HyperliquidCore {
         //      baseId: 159
         //  }
         //
-        interest = self.safe_dict(interest.clone(), Value::Str("info".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        interest = self.safe_dict_k(interest.clone(), "info", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut coin: Value = self.safe_string(interest.clone(), Value::Str("name".to_string()), &[]);
+        let mut coin: Value = self.safe_string_k(interest.clone(), "name", &[]);
         let mut marketId: Value = Value::Null;
         if !is_equal(&coin, &Value::Null) {
             marketId = self.coin_to_market_id(coin.clone());
         }
         return self.safe_open_interest(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[]));
-        m.insert("openInterestAmount".to_string(), self.safe_number(interest.clone(), Value::Str("openInterest".to_string()), &[]));
+        m.insert("openInterestAmount".to_string(), self.safe_number_k(interest.clone(), "openInterest", &[]));
         m.insert("openInterestValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
@@ -5917,15 +6007,15 @@ impl HyperliquidCore {
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("subAccountAddress".to_string()))] sub account user address
- * @returns {object} a [funding history structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-history-structure}
+ * @param {string} [params.subAccountAddress] sub account user address
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
     pub async fn fetch_funding_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5936,7 +6026,7 @@ impl HyperliquidCore {
         let mut userAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_public_address(Value::Str("fetchFundingHistory".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("user".to_string(), userAddress.clone());
                 m.insert("type".to_string(), Value::Str("userFunding".to_string()));
             m
@@ -5944,7 +6034,7 @@ impl HyperliquidCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
         }
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         if !is_equal(&until, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
@@ -5971,20 +6061,20 @@ impl HyperliquidCore {
         //     }
         // }
         //
-        let mut id: Value = self.safe_string(income.clone(), Value::Str("hash".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer(income.clone(), Value::Str("time".to_string()), &[]);
-        let mut delta: Value = self.safe_dict(income.clone(), Value::Str("delta".to_string()), &[]);
-        let mut coin: Value = self.safe_string(delta.clone(), Value::Str("coin".to_string()), &[]);
+        let mut id: Value = self.safe_string_k(income.clone(), "hash", &[]);
+        let mut timestamp: Value = self.safe_integer_k(income.clone(), "time", &[]);
+        let mut delta: Value = self.safe_dict_k(income.clone(), "delta", &[]);
+        let mut coin: Value = self.safe_string_k(delta.clone(), "coin", &[]);
         let mut marketId: Value = Value::Null;
         if !is_equal(&coin, &Value::Null) {
             marketId = self.coin_to_market_id(coin.clone());
         }
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut amount: Value = self.safe_string(delta.clone(), Value::Str("usdc".to_string()), &[]);
-        let mut code: Value = self.safe_string(market.clone(), Value::Str("settle".to_string()), &[Value::Str("USDC".to_string())]);
-        let mut rate: Value = self.safe_number(delta.clone(), Value::Str("fundingRate".to_string()), &[]);
+        let mut amount: Value = self.safe_string_k(delta.clone(), "usdc", &[]);
+        let mut code: Value = self.safe_string_k(market.clone(), "settle", &[Value::Str("USDC".to_string())]);
+        let mut rate: Value = self.safe_number_k(delta.clone(), "fundingRate", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), income.clone());
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
         m.insert("code".to_string(), code.clone());
@@ -6009,17 +6099,17 @@ impl HyperliquidCore {
  */
     pub async fn reserve_request_weight(&mut self, mut weight: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut nonce: Value = self.milliseconds();
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), nonce.clone());
             m
         });
         let mut action: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("reserveRequestWeight".to_string()));
                 m.insert("weight".to_string(), weight.clone());
             m
@@ -6039,27 +6129,27 @@ impl HyperliquidCore {
  * @description creates a sub-account under the main account
  * @param {string} name the name of the sub-account
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("expiresAfter".to_string()))] time in ms after which the sub-account will expire
+ * @param {int} [params.expiresAfter] time in ms after which the sub-account will expire
  * @returns {object} a response object
  */
     pub async fn create_sub_account(&mut self, mut name: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut nonce: Value = self.milliseconds();
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), nonce.clone());
             m
         });
         let mut action: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("createSubAccount".to_string()));
                 m.insert("name".to_string(), name.clone());
             m
         });
-        let mut expiresAfter: Value = self.safe_integer(params.clone(), Value::Str("expiresAfter".to_string()), &[]);
+        let mut expiresAfter: Value = self.safe_integer_k(params.clone(), "expiresAfter", &[]);
         if !is_equal(&expiresAfter, &Value::Null) {
             params = self.omit(params.clone(), Value::Str("expiresAfter".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("expiresAfter".to_string()), expiresAfter.clone());
@@ -6078,11 +6168,12 @@ impl HyperliquidCore {
         let mut records: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&data)) {
+            let mut __for_first_831: bool = true;
+            while { if !__for_first_831 { i = add(&i, &Value::Int(1)); } __for_first_831 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut record: Value = get_value(&data, &i);
             let mut record: Value = get_value(&data, &i);
             { let __be_tmp = get_value(&get_value(&record, &Value::Str("delta".to_string())), &Value::Str("type".to_string())); add_element_to_object(&mut record, &Value::Str("type".to_string()), __be_tmp); };
             append_to_array(&mut records, record.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return records;
@@ -6114,7 +6205,7 @@ impl HyperliquidCore {
         if is_true(&(!is_equal(&self.walletAddress, &Value::Null))) && is_true(&(!is_equal(&self.walletAddress, &Value::Str("".to_string())))) {
             return Value::List(vec![self.walletAddress.clone(), params.clone()]);
         }
-        panic!("{:?}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" ".to_string())), &methodName), &Value::Str("() requires a user parameter inside 'params' or the wallet address set".to_string()))));
+        panic!("{}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" ".to_string())), &methodName), &Value::Str("() requires a user parameter inside 'params' or the wallet address set".to_string()))));
 
     Value::Null
 }
@@ -6124,14 +6215,14 @@ impl HyperliquidCore {
         if is_equal(&coin, &Value::Null) {
             return Value::Null;
         }
-        let mut hi3TokensByname: Value = self.safe_dict(self.options.clone(), Value::Str("hip3TokensByName".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut hi3TokensByname: Value = self.safe_dict_k(self.options.clone(), "hip3TokensByName", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         if is_true(&self.safe_dict(hi3TokensByname.clone(), coin.clone(), &[])) {
             let mut hip3Dict: Value = self.safe_dict(hi3TokensByname.clone(), coin.clone(), &[]);
-            let mut quote: Value = self.safe_string(hip3Dict.clone(), Value::Str("quote".to_string()), &[Value::Str("USDC".to_string())]);
-            let mut code: Value = self.safe_string(hip3Dict.clone(), Value::Str("code".to_string()), &[coin.clone()]);
+            let mut quote: Value = self.safe_string_k(hip3Dict.clone(), "quote", &[Value::Str("USDC".to_string())]);
+            let mut code: Value = self.safe_string_k(hip3Dict.clone(), "code", &[coin.clone()]);
             return add(&add(&add(&add(&code, &Value::Str("/".to_string())), &quote), &Value::Str(":".to_string())), &quote);
         }
         if is_greater_than(&get_index_of(&coin, &Value::Str("/".to_string())), &negate(&Value::Int(1))) || is_greater_than(&get_index_of(&coin, &Value::Str("@".to_string())), &negate(&Value::Int(1))) {
@@ -6159,41 +6250,41 @@ impl HyperliquidCore {
         //
         // {"status":"unknownOid"}
         //
-        let mut status: Value = self.safe_string(response.clone(), Value::Str("status".to_string()), &[Value::Str("".to_string())]);
-        let mut error: Value = self.safe_string(response.clone(), Value::Str("error".to_string()), &[]);
+        let mut status: Value = self.safe_string_k(response.clone(), "status", &[Value::Str("".to_string())]);
+        let mut error: Value = self.safe_string_k(response.clone(), "error", &[]);
         let mut message: Value = Value::Null;
         if is_equal(&status, &Value::Str("err".to_string())) {
-            message = self.safe_string(response.clone(), Value::Str("response".to_string()), &[]);
+            message = self.safe_string_k(response.clone(), "response", &[]);
         }  else if is_equal(&status, &Value::Str("unknownOid".to_string())) {
-            panic!("{:?}", crate::exchange_errors::order_not_found(add(&add(&self.id, &Value::Str(" ".to_string())), &body)));
+            panic!("{}", crate::exchange_errors::order_not_found(add(&add(&self.id, &Value::Str(" ".to_string())), &body)));
         }  else if !is_equal(&error, &Value::Null) {
             message = error.clone();
         }  else {
-            let mut responsePayload: Value = self.safe_dict(response.clone(), Value::Str("response".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut responsePayload: Value = self.safe_dict_k(response.clone(), "response", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut data: Value = self.safe_dict(responsePayload.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut data: Value = self.safe_dict_k(responsePayload.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut statuses: Value = self.safe_list(data.clone(), Value::Str("statuses".to_string()), &[Value::List(vec![])]);
+            let mut statuses: Value = self.safe_list_k(data.clone(), "statuses", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&statuses)) {
-                message = self.safe_string(get_value(&statuses, &i), Value::Str("error".to_string()), &[]);
+                let mut __for_first_832: bool = true;
+                while { if !__for_first_832 { i = add(&i, &Value::Int(1)); } __for_first_832 = false; is_less_than(&i, &get_array_length(&statuses)) } {
+                message = self.safe_string_k(get_value(&statuses, &i), "error", &[]);
                 if !is_equal(&message, &Value::Null) {
                     break;
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
             if is_true(&Value::Bool(in_op(&data, &Value::Str("status".to_string())))) {
-                let mut errorStatus: Value = self.safe_dict(data.clone(), Value::Str("status".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+                let mut errorStatus: Value = self.safe_dict_k(data.clone(), "status", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut errorMsg: Value = self.safe_string(errorStatus.clone(), Value::Str("error".to_string()), &[]);
+                let mut errorMsg: Value = self.safe_string_k(errorStatus.clone(), "error", &[]);
                 if !is_equal(&errorStatus, &Value::Null) {
                     message = errorMsg.clone();
                 }
@@ -6206,7 +6297,7 @@ impl HyperliquidCore {
             self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), message.clone(), feedback.clone());
         }
         if is_true(&nonEmptyMessage) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(feedback));
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
 
@@ -6217,7 +6308,7 @@ impl HyperliquidCore {
         let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
@@ -6225,14 +6316,14 @@ impl HyperliquidCore {
         let mut url: Value = add(&add(&self.implode_hostname(get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &api)), &Value::Str("/".to_string())), &path);
         if is_equal(&method, &Value::Str("POST".to_string())) {
             headers = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
                 m
             });
             body = self.json(params.clone());
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.clone());
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), body.clone());
@@ -6245,7 +6336,7 @@ impl HyperliquidCore {
 
     pub fn calculate_rate_limiter_cost(&self, mut api: Value, mut method: Value, mut path: Value, mut params: Value, optional_args: &[Value]) -> Value {
         let mut config = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&(Value::Bool(in_op(&config, &Value::Str("byType".to_string()))))) && is_true(&(Value::Bool(in_op(&params, &Value::Str("type".to_string()))))) {
@@ -6255,7 +6346,7 @@ impl HyperliquidCore {
                 return get_value(&byType, &type_var);
             }
         }
-        return self.safe_value(config.clone(), Value::Str("cost".to_string()), &[Value::Int(1)]);
+        return self.safe_value_k(config.clone(), "cost", &[Value::Int(1)]);
 
     Value::Null
 }
@@ -6263,7 +6354,7 @@ impl HyperliquidCore {
     pub fn parse_create_edit_order_args(&self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut market: Value = self.market(symbol.clone());
@@ -6272,7 +6363,7 @@ impl HyperliquidCore {
         vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut order: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("type".to_string(), type_var.clone());
                 m.insert("side".to_string(), side.clone());
@@ -6282,7 +6373,7 @@ impl HyperliquidCore {
             m
         });
         let mut globalParams: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if !is_equal(&vaultAddress, &Value::Null) {

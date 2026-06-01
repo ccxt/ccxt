@@ -433,6 +433,93 @@ impl Exchange {
         Value::Str(s.chars().take(n).collect())
     }
 
+    // ── Hot-path `safe_*_k` variants — take `key: &str` directly so the
+    // transpiler can skip wrapping every literal key in a `Value::Str`.
+    // Each `_k` saves two String allocations per call (the key Value +
+    // the key_str re-extraction). On a 500-trade fetchTrades, cumulative
+    // savings are several thousand allocations.
+
+    #[inline]
+    pub fn safe_value_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+        let v = crate::value::get_value_k(&obj, key);
+        let missing = matches!(&v, Value::Null) || matches!(&v, Value::Str(s) if s.is_empty());
+        if missing { arg_default(optional_args) } else { v }
+    }
+
+    #[inline]
+    pub fn safe_string_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+        let v = self.safe_value_k(obj, key, &[]);
+        match v {
+            Value::Str(_)   => v,
+            Value::Int(n)   => Value::Str(n.to_string()),
+            Value::Float(f) => Value::Str(f.to_string()),
+            Value::Bool(b)  => Value::Str(b.to_string()),
+            _               => arg_default(optional_args),
+        }
+    }
+
+    #[inline]
+    pub fn safe_integer_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+        let v = self.safe_value_k(obj, key, &[]);
+        match v {
+            Value::Int(_)   => v,
+            Value::Float(f) => Value::Int(f as i64),
+            Value::Str(s)   => match s.parse::<i64>() {
+                Ok(n) => Value::Int(n),
+                Err(_) => match s.parse::<f64>() {
+                    Ok(f) if f.is_finite() => Value::Int(f as i64),
+                    _ => arg_default(optional_args),
+                },
+            },
+            _ => arg_default(optional_args),
+        }
+    }
+
+    #[inline]
+    pub fn safe_float_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+        let v = self.safe_value_k(obj, key, &[]);
+        match v {
+            Value::Float(_) => v,
+            Value::Int(n)   => Value::Float(n as f64),
+            Value::Str(s)   => match s.parse::<f64>() {
+                Ok(n) => Value::Float(n), Err(_) => arg_default(optional_args),
+            },
+            _ => arg_default(optional_args),
+        }
+    }
+
+    #[inline]
+    pub fn safe_number_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+        self.safe_float_k(obj, key, optional_args)
+    }
+
+    #[inline]
+    pub fn safe_bool_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+        let v = self.safe_value_k(obj, key, &[]);
+        match v {
+            Value::Bool(_) => v,
+            Value::Int(n)  => Value::Bool(n != 0),
+            Value::Str(s)  => match s.to_lowercase().as_str() {
+                "true" | "1" | "yes" => Value::Bool(true),
+                "false"| "0" | "no"  => Value::Bool(false),
+                _                    => arg_default(optional_args),
+            },
+            _ => arg_default(optional_args),
+        }
+    }
+
+    #[inline]
+    pub fn safe_dict_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+        let v = self.safe_value_k(obj, key, &[]);
+        if matches!(v, Value::Dict(_)) { v } else { arg_default(optional_args) }
+    }
+
+    #[inline]
+    pub fn safe_list_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+        let v = self.safe_value_k(obj, key, &[]);
+        if matches!(v, Value::Arr(_)) { v } else { arg_default(optional_args) }
+    }
+
     pub fn safe_value(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value {
         // Match TS `prop` semantics: an empty string is treated as
         // "missing" — same as null/undefined. Without this, exchanges

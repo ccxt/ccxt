@@ -5,10 +5,11 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
-pub fn testSleep() -> Value {
+pub async fn testSleep() -> Value {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
@@ -20,6 +21,8 @@ pub fn testSleep() -> Value {
     // Allow a small margin of error due to execution time
     let mut marginOfError: Value = Value::Int(20);
     let mut maxElapsed: Value = add(&sleepAmount, &marginOfError);
-    assert!(ccxt::runtime::is_true(&(is_greater_than_or_equal(&elapsed, &sleepAmount))));
-    assert!(ccxt::runtime::is_true(&(is_less_than_or_equal(&elapsed, &maxElapsed))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than_or_equal(&elapsed, &sleepAmount)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_less_than_or_equal(&elapsed, &maxElapsed)))));
+
+    Value::Null
 }

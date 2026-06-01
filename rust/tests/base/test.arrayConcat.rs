@@ -5,12 +5,13 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
 pub fn testArrayConcat() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Null, Value::Str("testArrayConcat".to_string()), exchange.array_concat(Value::List(vec![Value::Str("b".to_string())]), Value::List(vec![Value::Str("a".to_string()), Value::Str("c".to_string())])), Value::List(vec![Value::Str("b".to_string()), Value::Str("a".to_string()), Value::Str("c".to_string())]));
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testArrayConcat".to_string()).clone(), exchange.array_concat(Value::List(vec![Value::Str("b".to_string())]), Value::List(vec![Value::Str("a".to_string()), Value::Str("c".to_string())])).clone(), Value::List(vec![Value::Str("b".to_string()), Value::Str("a".to_string()), Value::Str("c".to_string())]).clone()]);
 }

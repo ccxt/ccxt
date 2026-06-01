@@ -36,22 +36,70 @@ impl BinanceCore {
         // (e.g. portfolioMargin via fixture) take precedence, then
         // describe()'s defaults fill in any gaps.
         let __described_options = crate::get_value(&described, &crate::Value::Str("options".to_string()));
-        if let (crate::Value::Map(existing), crate::Value::Map(defaults)) =
+        // Capture the describe()'s explicit networksById BEFORE the merge
+        // — the merge below overlays the base Exchange's options (whose
+        // after_construct left an EMPTY networksById), which would
+        // otherwise clobber the manual mappings like binance BSC to BEP20.
+        let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
+        if let (crate::Value::Dict(existing), crate::Value::Dict(defaults)) =
             (&self.exchange.options.clone(), &__described_options)
         {
-            let mut merged = defaults.clone();
-            for (k, v) in existing { merged.insert(k.clone(), v.clone()); }
+            let mut merged = (**defaults).clone();
+            for (k, v) in existing.iter() { merged.insert(k.clone(), v.clone()); }
             self.exchange.options = crate::Value::Map(merged);
-        } else if !matches!(self.exchange.options, crate::Value::Map(_)) {
+        } else if !matches!(self.exchange.options, crate::Value::Dict(_)) {
             self.exchange.options = __described_options;
+        }
+        // Derive options.networksById (CCXT's createNetworksByIdObject):
+        // start from the auto-inverted networks (generated), then overlay
+        // the describe()'s explicit networksById so manual mappings win —
+        // mirrors TS extend(generated, manual). Without the manual
+        // overlay, an exchange whose networks defines both BSC to BSC and
+        // BEP20 to BSC would invert to BSC to BSC (wrong) by iteration
+        // order instead of the intended BSC to BEP20.
+        if let crate::Value::Dict(opts_arc) = self.exchange.options.clone() {
+            let mut opts = std::sync::Arc::try_unwrap(opts_arc).unwrap_or_else(|a| (*a).clone());
+            let mut by_id: indexmap::IndexMap<String, crate::Value> = indexmap::IndexMap::new();
+            if let Some(crate::Value::Dict(networks)) = opts.get("networks") {
+                for (code, id) in networks.iter() {
+                    if let crate::Value::Str(id_s) = id {
+                        by_id.entry(id_s.clone())
+                             .or_insert_with(|| crate::Value::Str(code.clone()));
+                    }
+                }
+            }
+            if let crate::Value::Dict(manual) = &__described_networks_by_id {
+                for (k, v) in manual.iter() { by_id.insert(k.clone(), v.clone()); }
+            }
+            opts.insert("networksById".to_string(), crate::Value::Map(by_id));
+            self.exchange.options = crate::Value::Map(opts);
         }
         self.exchange.hostname = crate::get_value(&described, &crate::Value::Str("hostname".to_string()));
         self.exchange.version  = crate::get_value(&described, &crate::Value::Str("version".to_string()));
         self.exchange.id       = crate::get_value(&described, &crate::Value::Str("id".to_string()));
         self.exchange.name     = crate::get_value(&described, &crate::Value::Str("name".to_string()));
         self.exchange.exceptions = crate::get_value(&described, &crate::Value::Str("exceptions".to_string()));
-        self.exchange.requiredCredentials = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string()));
+        // Only override the base-default requiredCredentials when the
+        // exchange's describe() actually provides them (super.describe()
+        // is stubbed, so most exchanges' describe() omits this).
+        { let __rc = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string())); if !matches!(__rc, crate::Value::Null) { self.exchange.requiredCredentials = __rc; } }
+        // Merge describe()'s commonCurrencies over the base defaults so
+        // exchange-specific aliases (bitfinex UST to USDT, onetrading
+        // MIOTA to IOTA) reach commonCurrencyCode / safeCurrencyCode.
+        { let __cc = crate::get_value(&described, &crate::Value::Str("commonCurrencies".to_string())); if let crate::Value::Dict(extra) = __cc { let extra = std::sync::Arc::try_unwrap(extra).unwrap_or_else(|a| (*a).clone()); if let crate::Value::Dict(base) = &mut self.exchange.commonCurrencies { let base = std::sync::Arc::make_mut(base); for (k, v) in extra { base.insert(k, v); } } else { self.exchange.commonCurrencies = crate::Value::Map(extra); } } }
         self.exchange.precisionMode = crate::get_value(&described, &crate::Value::Str("precisionMode".to_string()));
+        self.exchange.timeframes = crate::get_value(&described, &crate::Value::Str("timeframes".to_string()));
+        self.exchange.fees = crate::get_value(&described, &crate::Value::Str("fees".to_string()));
+        // `features` carries the describe() block that drives
+        // unified-method tests (e.g. `features.spot.fetchCurrencies.private`
+        // tells testFetchCurrencies to skip the length check). It's set
+        // after `Exchange::new` because `features_generator` (in
+        // `after_construct`) bails when `features == Null` — so we
+        // assign and re-run the generator here.
+        self.exchange.features = crate::get_value(&described, &crate::Value::Str("features".to_string()));
+        if !matches!(self.exchange.features, crate::Value::Null) {
+            self.exchange.features_generator();
+        }
         // Markets and currencies may have been populated already by
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
@@ -76,7 +124,7 @@ impl BinanceCore {
     /// Casts the void pointer back to `*mut Self` and forwards to the
     /// real `call_dynamic`. Safety: the pointer must come from the
     /// matching Core's bind() — guaranteed by Exchange::bind_call_async.
-    fn __call_dynamic_dispatch<'a>(
+    pub fn __call_dynamic_dispatch<'a>(
         ptr: *mut (),
         method: &'a str,
         args: Vec<crate::Value>,
@@ -231,7 +279,7 @@ impl BinanceCore {
             "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_order_type_by_market" => self.parse_order_type_by_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "parse_position_risk" => self.parse_position_risk(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+            "parse_position_risk" => self.parse_position_risk(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parse_settlement" => self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "parse_settlements" => self.parse_settlements(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -287,6 +335,14 @@ impl crate::exchange::DerivedExchange for BinanceCore {
         // Forward to the inherent method on BinanceCore.
         BinanceCore::parse_funding_rate(self, rate, &[market.clone()])
     }
+    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BinanceCore.
+        BinanceCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+    }
+    fn parse_last_price(&self, entry: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BinanceCore.
+        BinanceCore::parse_last_price(self, entry, &[market.clone()])
+    }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
         BinanceCore::parse_ledger_entry(self, entry, &[currency.clone()])
@@ -311,6 +367,54 @@ impl crate::exchange::DerivedExchange for BinanceCore {
         // Forward to the inherent method on BinanceCore.
         BinanceCore::parse_margin_modification(self, data, &[market.clone()])
     }
+    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BinanceCore.
+        BinanceCore::parse_transaction(self, transaction, &[currency.clone()])
+    }
+    fn parse_borrow_interest(&self, info: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BinanceCore.
+        BinanceCore::parse_borrow_interest(self, info, &[market.clone()])
+    }
+    fn parse_adl_rank(&self, info: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BinanceCore.
+        BinanceCore::parse_adl_rank(self, info, &[market.clone()])
+    }
+    fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BinanceCore.
+        BinanceCore::parse_income(self, info, &[market.clone()])
+    }
+    fn parse_greeks(&self, greeks: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BinanceCore.
+        BinanceCore::parse_greeks(self, greeks, &[market.clone()])
+    }
+    fn parse_margin_mode(&self, margin_mode: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BinanceCore.
+        BinanceCore::parse_margin_mode(self, margin_mode, &[market.clone()])
+    }
+    fn parse_conversion(&self, conversion: crate::Value, from_currency: crate::Value, to_currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BinanceCore.
+        BinanceCore::parse_conversion(self, conversion, &[from_currency.clone(), to_currency.clone()])
+    }
+    fn parse_borrow_rate(&self, info: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BinanceCore.
+        BinanceCore::parse_borrow_rate(self, info, &[currency.clone()])
+    }
+    fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BinanceCore.
+        BinanceCore::parse_leverage(self, leverage, &[market.clone()])
+    }
+    fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BinanceCore.
+        BinanceCore::parse_market_leverage_tiers(self, info, &[market.clone()])
+    }
+    fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BinanceCore.
+        BinanceCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
+    }
+    fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BinanceCore.
+        BinanceCore::create_expired_option_market(self, symbol)
+    }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on BinanceCore.
         BinanceCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
@@ -333,7 +437,7 @@ impl std::ops::DerefMut for BinanceCore {
 impl BinanceCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("binance".to_string()));
         m.insert("name".to_string(), Value::Str("Binance".to_string()));
         m.insert("countries".to_string(), Value::List(vec![]));
@@ -341,7 +445,7 @@ impl BinanceCore {
         m.insert("certified".to_string(), Value::Bool(true));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("has".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("CORS".to_string(), Value::Null);
         m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Bool(true));
@@ -492,7 +596,7 @@ impl BinanceCore {
     m
 }));
         m.insert("timeframes".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("1s".to_string(), Value::Str("1s".to_string()));
         m.insert("1m".to_string(), Value::Str("1m".to_string()));
         m.insert("3m".to_string(), Value::Str("3m".to_string()));
@@ -512,10 +616,10 @@ impl BinanceCore {
     m
 }));
         m.insert("urls".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/e9419b93-ccb0-46aa-9bff-c883f096274b".to_string()));
         m.insert("test".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("dapiPublic".to_string(), Value::Str("https://testnet.binancefuture.com/dapi/v1".to_string()));
         m.insert("dapiPrivate".to_string(), Value::Str("https://testnet.binancefuture.com/dapi/v1".to_string()));
         m.insert("dapiPrivateV2".to_string(), Value::Str("https://testnet.binancefuture.com/dapi/v2".to_string()));
@@ -531,7 +635,7 @@ impl BinanceCore {
     m
 }));
         m.insert("demo".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("dapiPublic".to_string(), Value::Str("https://demo-dapi.binance.com/dapi/v1".to_string()));
         m.insert("dapiPrivate".to_string(), Value::Str("https://demo-dapi.binance.com/dapi/v1".to_string()));
         m.insert("dapiPrivateV2".to_string(), Value::Str("https://demo-dapi.binance.com/dapi/v2".to_string()));
@@ -547,7 +651,7 @@ impl BinanceCore {
     m
 }));
         m.insert("api".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sapi".to_string(), Value::Str("https://api.binance.com/sapi/v1".to_string()));
         m.insert("sapiV2".to_string(), Value::Str("https://api.binance.com/sapi/v2".to_string()));
         m.insert("sapiV3".to_string(), Value::Str("https://api.binance.com/sapi/v3".to_string()));
@@ -574,7 +678,7 @@ impl BinanceCore {
 }));
         m.insert("www".to_string(), Value::Str("https://www.binance.com".to_string()));
         m.insert("referral".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::Str("https://accounts.binance.com/register?ref=CCXTCOM".to_string()));
         m.insert("discount".to_string(), Value::Float(0.1));
     m
@@ -585,11 +689,11 @@ impl BinanceCore {
     m
 }));
         m.insert("api".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sapi".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("copyTrading/futures/userStatus".to_string(), Value::Int(2));
         m.insert("copyTrading/futures/leadSymbol".to_string(), Value::Int(2));
         m.insert("system/status".to_string(), Value::Float(0.1));
@@ -634,13 +738,13 @@ impl BinanceCore {
         m.insert("margin/allOrderList".to_string(), Value::Int(20));
         m.insert("margin/openOrderList".to_string(), Value::Int(1));
         m.insert("margin/crossMarginData".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(0.1));
         m.insert("noCoin".to_string(), Value::Float(0.5));
     m
 }));
         m.insert("margin/isolatedMarginData".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(0.1));
         m.insert("noCoin".to_string(), Value::Int(1));
     m
@@ -758,7 +862,7 @@ impl BinanceCore {
         m.insert("mining/payment/uid".to_string(), Value::Float(0.5));
         m.insert("bswap/pools".to_string(), Value::Float(0.1));
         m.insert("bswap/liquidity".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(0.1));
         m.insert("noPoolId".to_string(), Value::Int(1));
     m
@@ -869,7 +973,7 @@ impl BinanceCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("asset/dust".to_string(), Value::Float(0.06667));
         m.insert("asset/dust-btc".to_string(), Value::Float(0.1));
         m.insert("asset/transfer".to_string(), Value::Float(6.0003));
@@ -997,13 +1101,13 @@ impl BinanceCore {
     m
 }));
         m.insert("put".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("userDataStream".to_string(), Value::Float(0.1));
         m.insert("userDataStream/isolated".to_string(), Value::Float(0.1));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("margin/openOrders".to_string(), Value::Float(0.1));
         m.insert("margin/order".to_string(), Value::Float(0.006667));
         m.insert("margin/orderList".to_string(), Value::Float(0.006667));
@@ -1020,9 +1124,9 @@ impl BinanceCore {
     m
 }));
         m.insert("sapiV2".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("eth-staking/account".to_string(), Value::Int(15));
         m.insert("sub-account/futures/account".to_string(), Value::Float(0.1));
         m.insert("sub-account/futures/accountSummary".to_string(), Value::Int(1));
@@ -1037,7 +1141,7 @@ impl BinanceCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("eth-staking/eth/stake".to_string(), Value::Int(15));
         m.insert("sub-account/subAccountApi/ipRestriction".to_string(), Value::Float(20.001));
         m.insert("loan/flexible/borrow".to_string(), Value::Float(40.002));
@@ -1048,37 +1152,37 @@ impl BinanceCore {
     m
 }));
         m.insert("sapiV3".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sub-account/assets".to_string(), Value::Float(0.40002));
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("asset/getUserAsset".to_string(), Value::Float(0.5));
     m
 }));
     m
 }));
         m.insert("sapiV4".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sub-account/assets".to_string(), Value::Float(0.40002));
     m
 }));
     m
 }));
         m.insert("dapiPublic".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("ping".to_string(), Value::Int(1));
         m.insert("time".to_string(), Value::Int(1));
         m.insert("exchangeInfo".to_string(), Value::Int(1));
         m.insert("depth".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(2));
         m.insert("byLimit".to_string(), Value::List(vec![Value::List(vec![Value::Int(50), Value::Int(2)]), Value::List(vec![Value::Int(100), Value::Int(5)]), Value::List(vec![Value::Int(500), Value::Int(10)]), Value::List(vec![Value::Int(1000), Value::Int(20)])]));
     m
@@ -1089,49 +1193,49 @@ impl BinanceCore {
         m.insert("premiumIndex".to_string(), Value::Int(10));
         m.insert("fundingRate".to_string(), Value::Int(1));
         m.insert("klines".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("byLimit".to_string(), Value::List(vec![Value::List(vec![Value::Int(99), Value::Int(1)]), Value::List(vec![Value::Int(499), Value::Int(2)]), Value::List(vec![Value::Int(1000), Value::Int(5)]), Value::List(vec![Value::Int(10000), Value::Int(10)])]));
     m
 }));
         m.insert("continuousKlines".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("byLimit".to_string(), Value::List(vec![Value::List(vec![Value::Int(99), Value::Int(1)]), Value::List(vec![Value::Int(499), Value::Int(2)]), Value::List(vec![Value::Int(1000), Value::Int(5)]), Value::List(vec![Value::Int(10000), Value::Int(10)])]));
     m
 }));
         m.insert("indexPriceKlines".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("byLimit".to_string(), Value::List(vec![Value::List(vec![Value::Int(99), Value::Int(1)]), Value::List(vec![Value::Int(499), Value::Int(2)]), Value::List(vec![Value::Int(1000), Value::Int(5)]), Value::List(vec![Value::Int(10000), Value::Int(10)])]));
     m
 }));
         m.insert("markPriceKlines".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("byLimit".to_string(), Value::List(vec![Value::List(vec![Value::Int(99), Value::Int(1)]), Value::List(vec![Value::Int(499), Value::Int(2)]), Value::List(vec![Value::Int(1000), Value::Int(5)]), Value::List(vec![Value::Int(10000), Value::Int(10)])]));
     m
 }));
         m.insert("premiumIndexKlines".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("byLimit".to_string(), Value::List(vec![Value::List(vec![Value::Int(99), Value::Int(1)]), Value::List(vec![Value::Int(499), Value::Int(2)]), Value::List(vec![Value::Int(1000), Value::Int(5)]), Value::List(vec![Value::Int(10000), Value::Int(10)])]));
     m
 }));
         m.insert("ticker/24hr".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("noSymbol".to_string(), Value::Int(40));
     m
 }));
         m.insert("ticker/price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("noSymbol".to_string(), Value::Int(2));
     m
 }));
         m.insert("ticker/bookTicker".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(2));
         m.insert("noSymbol".to_string(), Value::Int(5));
     m
@@ -1144,9 +1248,9 @@ impl BinanceCore {
     m
 }));
         m.insert("dapiData".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("delivery-price".to_string(), Value::Int(1));
         m.insert("openInterestHist".to_string(), Value::Int(1));
         m.insert("topLongShortAccountRatio".to_string(), Value::Int(1));
@@ -1159,21 +1263,21 @@ impl BinanceCore {
     m
 }));
         m.insert("dapiPrivate".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("positionSide/dual".to_string(), Value::Int(30));
         m.insert("orderAmendment".to_string(), Value::Int(1));
         m.insert("order".to_string(), Value::Int(1));
         m.insert("openOrder".to_string(), Value::Int(1));
         m.insert("openOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("noSymbol".to_string(), Value::Int(5));
     m
 }));
         m.insert("allOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(20));
         m.insert("noSymbol".to_string(), Value::Int(40));
     m
@@ -1183,7 +1287,7 @@ impl BinanceCore {
         m.insert("positionMargin/history".to_string(), Value::Int(1));
         m.insert("positionRisk".to_string(), Value::Int(1));
         m.insert("userTrades".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(20));
         m.insert("noSymbol".to_string(), Value::Int(40));
     m
@@ -1191,7 +1295,7 @@ impl BinanceCore {
         m.insert("income".to_string(), Value::Int(20));
         m.insert("leverageBracket".to_string(), Value::Int(1));
         m.insert("forceOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(20));
         m.insert("noSymbol".to_string(), Value::Int(50));
     m
@@ -1209,7 +1313,7 @@ impl BinanceCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("positionSide/dual".to_string(), Value::Int(1));
         m.insert("order".to_string(), Value::Int(4));
         m.insert("batchOrders".to_string(), Value::Int(5));
@@ -1221,14 +1325,14 @@ impl BinanceCore {
     m
 }));
         m.insert("put".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("listenKey".to_string(), Value::Int(1));
         m.insert("order".to_string(), Value::Int(1));
         m.insert("batchOrders".to_string(), Value::Int(5));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("order".to_string(), Value::Int(1));
         m.insert("allOpenOrders".to_string(), Value::Int(1));
         m.insert("batchOrders".to_string(), Value::Int(5));
@@ -1238,23 +1342,23 @@ impl BinanceCore {
     m
 }));
         m.insert("dapiPrivateV2".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("leverageBracket".to_string(), Value::Int(1));
     m
 }));
     m
 }));
         m.insert("fapiPublic".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("ping".to_string(), Value::Int(1));
         m.insert("time".to_string(), Value::Int(1));
         m.insert("exchangeInfo".to_string(), Value::Int(1));
         m.insert("depth".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(2));
         m.insert("byLimit".to_string(), Value::List(vec![Value::List(vec![Value::Int(50), Value::Int(2)]), Value::List(vec![Value::Int(100), Value::Int(5)]), Value::List(vec![Value::Int(500), Value::Int(10)]), Value::List(vec![Value::Int(1000), Value::Int(20)])]));
     m
@@ -1264,31 +1368,31 @@ impl BinanceCore {
         m.insert("historicalTrades".to_string(), Value::Int(20));
         m.insert("aggTrades".to_string(), Value::Int(20));
         m.insert("klines".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("byLimit".to_string(), Value::List(vec![Value::List(vec![Value::Int(99), Value::Int(1)]), Value::List(vec![Value::Int(499), Value::Int(2)]), Value::List(vec![Value::Int(1000), Value::Int(5)]), Value::List(vec![Value::Int(10000), Value::Int(10)])]));
     m
 }));
         m.insert("continuousKlines".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("byLimit".to_string(), Value::List(vec![Value::List(vec![Value::Int(99), Value::Int(1)]), Value::List(vec![Value::Int(499), Value::Int(2)]), Value::List(vec![Value::Int(1000), Value::Int(5)]), Value::List(vec![Value::Int(10000), Value::Int(10)])]));
     m
 }));
         m.insert("markPriceKlines".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("byLimit".to_string(), Value::List(vec![Value::List(vec![Value::Int(99), Value::Int(1)]), Value::List(vec![Value::Int(499), Value::Int(2)]), Value::List(vec![Value::Int(1000), Value::Int(5)]), Value::List(vec![Value::Int(10000), Value::Int(10)])]));
     m
 }));
         m.insert("indexPriceKlines".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("byLimit".to_string(), Value::List(vec![Value::List(vec![Value::Int(99), Value::Int(1)]), Value::List(vec![Value::Int(499), Value::Int(2)]), Value::List(vec![Value::Int(1000), Value::Int(5)]), Value::List(vec![Value::Int(10000), Value::Int(10)])]));
     m
 }));
         m.insert("premiumIndexKlines".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("byLimit".to_string(), Value::List(vec![Value::List(vec![Value::Int(99), Value::Int(1)]), Value::List(vec![Value::Int(499), Value::Int(2)]), Value::List(vec![Value::Int(1000), Value::Int(5)]), Value::List(vec![Value::Int(10000), Value::Int(10)])]));
     m
@@ -1297,19 +1401,19 @@ impl BinanceCore {
         m.insert("fundingInfo".to_string(), Value::Int(1));
         m.insert("premiumIndex".to_string(), Value::Int(1));
         m.insert("ticker/24hr".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("noSymbol".to_string(), Value::Int(40));
     m
 }));
         m.insert("ticker/price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("noSymbol".to_string(), Value::Int(2));
     m
 }));
         m.insert("ticker/bookTicker".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("noSymbol".to_string(), Value::Int(2));
     m
@@ -1317,14 +1421,14 @@ impl BinanceCore {
         m.insert("openInterest".to_string(), Value::Int(1));
         m.insert("indexInfo".to_string(), Value::Int(1));
         m.insert("assetIndex".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("noSymbol".to_string(), Value::Int(10));
     m
 }));
         m.insert("constituents".to_string(), Value::Int(2));
         m.insert("apiTradingStatus".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("noSymbol".to_string(), Value::Int(10));
     m
@@ -1339,9 +1443,9 @@ impl BinanceCore {
     m
 }));
         m.insert("fapiData".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("delivery-price".to_string(), Value::Int(1));
         m.insert("openInterestHist".to_string(), Value::Int(1));
         m.insert("topLongShortAccountRatio".to_string(), Value::Int(1));
@@ -1354,11 +1458,11 @@ impl BinanceCore {
     m
 }));
         m.insert("fapiPrivate".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("forceOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(20));
         m.insert("noSymbol".to_string(), Value::Int(50));
     m
@@ -1366,7 +1470,7 @@ impl BinanceCore {
         m.insert("allOrders".to_string(), Value::Int(5));
         m.insert("openOrder".to_string(), Value::Int(1));
         m.insert("openOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("noSymbol".to_string(), Value::Int(40));
     m
@@ -1407,7 +1511,7 @@ impl BinanceCore {
         m.insert("convert/orderStatus".to_string(), Value::Int(5));
         m.insert("algoOrder".to_string(), Value::Int(1));
         m.insert("openAlgoOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("noSymbol".to_string(), Value::Int(40));
     m
@@ -1417,7 +1521,7 @@ impl BinanceCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("batchOrders".to_string(), Value::Int(5));
         m.insert("positionSide/dual".to_string(), Value::Int(1));
         m.insert("positionMargin".to_string(), Value::Int(1));
@@ -1437,14 +1541,14 @@ impl BinanceCore {
     m
 }));
         m.insert("put".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("listenKey".to_string(), Value::Int(1));
         m.insert("order".to_string(), Value::Int(1));
         m.insert("batchOrders".to_string(), Value::Int(5));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("batchOrders".to_string(), Value::Int(1));
         m.insert("order".to_string(), Value::Int(1));
         m.insert("allOpenOrders".to_string(), Value::Int(1));
@@ -1456,18 +1560,18 @@ impl BinanceCore {
     m
 }));
         m.insert("fapiPublicV2".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("ticker/price".to_string(), Value::Int(0));
     m
 }));
     m
 }));
         m.insert("fapiPrivateV2".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("account".to_string(), Value::Int(1));
         m.insert("balance".to_string(), Value::Int(1));
         m.insert("positionRisk".to_string(), Value::Int(1));
@@ -1476,17 +1580,17 @@ impl BinanceCore {
     m
 }));
         m.insert("fapiPublicV3".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
     m
 }));
         m.insert("fapiPrivateV3".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("account".to_string(), Value::Int(1));
         m.insert("balance".to_string(), Value::Int(1));
         m.insert("positionRisk".to_string(), Value::Int(1));
@@ -1495,9 +1599,9 @@ impl BinanceCore {
     m
 }));
         m.insert("eapiPublic".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("ping".to_string(), Value::Int(1));
         m.insert("time".to_string(), Value::Int(1));
         m.insert("exchangeInfo".to_string(), Value::Int(1));
@@ -1515,13 +1619,13 @@ impl BinanceCore {
     m
 }));
         m.insert("eapiPrivate".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("account".to_string(), Value::Int(3));
         m.insert("position".to_string(), Value::Int(5));
         m.insert("openOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("noSymbol".to_string(), Value::Int(40));
     m
@@ -1544,7 +1648,7 @@ impl BinanceCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("order".to_string(), Value::Int(1));
         m.insert("batchOrders".to_string(), Value::Int(5));
         m.insert("listenKey".to_string(), Value::Int(1));
@@ -1557,13 +1661,13 @@ impl BinanceCore {
     m
 }));
         m.insert("put".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("listenKey".to_string(), Value::Int(1));
         m.insert("block/order/create".to_string(), Value::Int(5));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("order".to_string(), Value::Int(1));
         m.insert("batchOrders".to_string(), Value::Int(1));
         m.insert("allOpenOrders".to_string(), Value::Int(1));
@@ -1575,13 +1679,13 @@ impl BinanceCore {
     m
 }));
         m.insert("public".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("ping".to_string(), Value::Float(0.2));
         m.insert("time".to_string(), Value::Float(0.2));
         m.insert("depth".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("byLimit".to_string(), Value::List(vec![Value::List(vec![Value::Int(100), Value::Int(1)]), Value::List(vec![Value::Int(500), Value::Int(5)]), Value::List(vec![Value::Int(1000), Value::Int(10)]), Value::List(vec![Value::Int(5000), Value::Int(50)])]));
     m
@@ -1592,26 +1696,26 @@ impl BinanceCore {
         m.insert("klines".to_string(), Value::Float(0.4));
         m.insert("uiKlines".to_string(), Value::Float(0.4));
         m.insert("ticker/24hr".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(0.4));
         m.insert("noSymbol".to_string(), Value::Int(16));
     m
 }));
         m.insert("ticker".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(0.4));
         m.insert("noSymbol".to_string(), Value::Int(16));
     m
 }));
         m.insert("ticker/tradingDay".to_string(), Value::Float(0.8));
         m.insert("ticker/price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(0.4));
         m.insert("noSymbol".to_string(), Value::Float(0.8));
     m
 }));
         m.insert("ticker/bookTicker".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(0.4));
         m.insert("noSymbol".to_string(), Value::Float(0.8));
     m
@@ -1621,32 +1725,32 @@ impl BinanceCore {
     m
 }));
         m.insert("put".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("userDataStream".to_string(), Value::Float(0.4));
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("userDataStream".to_string(), Value::Float(0.4));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("userDataStream".to_string(), Value::Float(0.4));
     m
 }));
     m
 }));
         m.insert("private".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("allOrderList".to_string(), Value::Int(4));
         m.insert("openOrderList".to_string(), Value::Float(1.2));
         m.insert("orderList".to_string(), Value::Float(0.8));
         m.insert("order".to_string(), Value::Float(0.8));
         m.insert("openOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(1.2));
         m.insert("noSymbol".to_string(), Value::Int(16));
     m
@@ -1661,7 +1765,7 @@ impl BinanceCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("order/oco".to_string(), Value::Float(0.2));
         m.insert("orderList/oco".to_string(), Value::Float(0.2));
         m.insert("orderList/oto".to_string(), Value::Float(0.2));
@@ -1676,7 +1780,7 @@ impl BinanceCore {
     m
 }));
         m.insert("delete".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("openOrders".to_string(), Value::Float(0.2));
         m.insert("orderList".to_string(), Value::Float(0.2));
         m.insert("order".to_string(), Value::Float(0.2));
@@ -1685,14 +1789,14 @@ impl BinanceCore {
     m
 }));
         m.insert("papi".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("ping".to_string(), Value::Float(0.2));
         m.insert("um/order".to_string(), Value::Int(1));
         m.insert("um/openOrder".to_string(), Value::Int(1));
         m.insert("um/openOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("noSymbol".to_string(), Value::Int(40));
     m
@@ -1701,7 +1805,7 @@ impl BinanceCore {
         m.insert("cm/order".to_string(), Value::Int(1));
         m.insert("cm/openOrder".to_string(), Value::Int(1));
         m.insert("cm/openOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("noSymbol".to_string(), Value::Int(40));
     m
@@ -1709,21 +1813,21 @@ impl BinanceCore {
         m.insert("cm/allOrders".to_string(), Value::Int(20));
         m.insert("um/conditional/openOrder".to_string(), Value::Int(1));
         m.insert("um/conditional/openOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("noSymbol".to_string(), Value::Int(40));
     m
 }));
         m.insert("um/conditional/orderHistory".to_string(), Value::Int(1));
         m.insert("um/conditional/allOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("noSymbol".to_string(), Value::Int(40));
     m
 }));
         m.insert("cm/conditional/openOrder".to_string(), Value::Int(1));
         m.insert("cm/conditional/openOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("noSymbol".to_string(), Value::Int(40));
     m
@@ -1751,19 +1855,19 @@ impl BinanceCore {
         m.insert("cm/leverageBracket".to_string(), Value::Float(0.2));
         m.insert("margin/forceOrders".to_string(), Value::Int(1));
         m.insert("um/forceOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(20));
         m.insert("noSymbol".to_string(), Value::Int(50));
     m
 }));
         m.insert("cm/forceOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(20));
         m.insert("noSymbol".to_string(), Value::Int(50));
     m
 }));
         m.insert("um/apiTradingStatus".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(0.2));
         m.insert("noSymbol".to_string(), Value::Int(2));
     m
@@ -1798,7 +1902,7 @@ impl BinanceCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("um/order".to_string(), Value::Int(1));
         m.insert("um/conditional/order".to_string(), Value::Int(1));
         m.insert("cm/order".to_string(), Value::Int(1));
@@ -1823,14 +1927,14 @@ impl BinanceCore {
     m
 }));
         m.insert("put".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("listenKey".to_string(), Value::Float(0.2));
         m.insert("um/order".to_string(), Value::Int(1));
         m.insert("cm/order".to_string(), Value::Int(1));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("um/order".to_string(), Value::Int(1));
         m.insert("um/conditional/order".to_string(), Value::Int(1));
         m.insert("um/allOpenOrders".to_string(), Value::Int(1));
@@ -1848,9 +1952,9 @@ impl BinanceCore {
     m
 }));
         m.insert("papiV2".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("um/account".to_string(), Value::Int(1));
     m
 }));
@@ -1859,9 +1963,9 @@ impl BinanceCore {
     m
 }));
         m.insert("fees".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("trading".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("feeSide".to_string(), Value::Str("get".to_string()));
         m.insert("tierBased".to_string(), Value::Bool(false));
         m.insert("percentage".to_string(), Value::Bool(true));
@@ -1870,16 +1974,16 @@ impl BinanceCore {
     m
 }));
         m.insert("linear".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("trading".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("feeSide".to_string(), Value::Str("quote".to_string()));
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.000500".to_string()), &[]));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.000200".to_string()), &[]));
         m.insert("tiers".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("taker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.000400".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("250".to_string()), &[]), self.parse_number(Value::Str("0.000400".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2500".to_string()), &[]), self.parse_number(Value::Str("0.000350".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("7500".to_string()), &[]), self.parse_number(Value::Str("0.000320".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("22500".to_string()), &[]), self.parse_number(Value::Str("0.000300".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50000".to_string()), &[]), self.parse_number(Value::Str("0.000270".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("100000".to_string()), &[]), self.parse_number(Value::Str("0.000250".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200000".to_string()), &[]), self.parse_number(Value::Str("0.000220".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("400000".to_string()), &[]), self.parse_number(Value::Str("0.000200".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("750000".to_string()), &[]), self.parse_number(Value::Str("0.000170".to_string()), &[])])]));
         m.insert("maker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.000200".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("250".to_string()), &[]), self.parse_number(Value::Str("0.000160".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2500".to_string()), &[]), self.parse_number(Value::Str("0.000140".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("7500".to_string()), &[]), self.parse_number(Value::Str("0.000120".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("22500".to_string()), &[]), self.parse_number(Value::Str("0.000100".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50000".to_string()), &[]), self.parse_number(Value::Str("0.000080".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("100000".to_string()), &[]), self.parse_number(Value::Str("0.000060".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200000".to_string()), &[]), self.parse_number(Value::Str("0.000040".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("400000".to_string()), &[]), self.parse_number(Value::Str("0.000020".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("750000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])])]));
     m
@@ -1889,16 +1993,16 @@ impl BinanceCore {
     m
 }));
         m.insert("inverse".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("trading".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("feeSide".to_string(), Value::Str("base".to_string()));
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.000500".to_string()), &[]));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.000100".to_string()), &[]));
         m.insert("tiers".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("taker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.000500".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("250".to_string()), &[]), self.parse_number(Value::Str("0.000450".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2500".to_string()), &[]), self.parse_number(Value::Str("0.000400".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("7500".to_string()), &[]), self.parse_number(Value::Str("0.000300".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("22500".to_string()), &[]), self.parse_number(Value::Str("0.000250".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50000".to_string()), &[]), self.parse_number(Value::Str("0.000240".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("100000".to_string()), &[]), self.parse_number(Value::Str("0.000240".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200000".to_string()), &[]), self.parse_number(Value::Str("0.000240".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("400000".to_string()), &[]), self.parse_number(Value::Str("0.000240".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("750000".to_string()), &[]), self.parse_number(Value::Str("0.000240".to_string()), &[])])]));
         m.insert("maker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.000100".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("250".to_string()), &[]), self.parse_number(Value::Str("0.000080".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2500".to_string()), &[]), self.parse_number(Value::Str("0.000050".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("7500".to_string()), &[]), self.parse_number(Value::Str("0.0000030".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("22500".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50000".to_string()), &[]), self.parse_number(Value::Str("-0.000050".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("100000".to_string()), &[]), self.parse_number(Value::Str("-0.000060".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200000".to_string()), &[]), self.parse_number(Value::Str("-0.000070".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("400000".to_string()), &[]), self.parse_number(Value::Str("-0.000080".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("750000".to_string()), &[]), self.parse_number(Value::Str("-0.000090".to_string()), &[])])]));
     m
@@ -1908,15 +2012,15 @@ impl BinanceCore {
     m
 }));
         m.insert("option".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
     m
 }));
         m.insert("currencies".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("BNFCR".to_string(), self.safe_currency_structure(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("BNFCR".to_string()));
         m.insert("code".to_string(), Value::Str("BNFCR".to_string()));
         m.insert("precision".to_string(), self.parse_number(Value::Str("0.001".to_string()), &[]));
@@ -1925,18 +2029,18 @@ impl BinanceCore {
     m
 }));
         m.insert("commonCurrencies".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("BCC".to_string(), Value::Str("BCC".to_string()));
         m.insert("YOYO".to_string(), Value::Str("YOYOW".to_string()));
     m
 }));
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
         m.insert("options".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sandboxMode".to_string(), Value::Bool(false));
         m.insert("fetchMargins".to_string(), Value::Bool(true));
         m.insert("fetchMarkets".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("types".to_string(), Value::List(vec![Value::Str("spot".to_string()), Value::Str("linear".to_string()), Value::Str("inverse".to_string())]));
     m
 }));
@@ -1954,14 +2058,14 @@ impl BinanceCore {
         m.insert("timeDifference".to_string(), Value::Int(0));
         m.insert("adjustForTimeDifference".to_string(), Value::Bool(false));
         m.insert("newOrderRespType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("market".to_string(), Value::Str("FULL".to_string()));
         m.insert("limit".to_string(), Value::Str("FULL".to_string()));
     m
 }));
         m.insert("quoteOrderQty".to_string(), Value::Bool(true));
         m.insert("broker".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Str("x-TKT5PX2F".to_string()));
         m.insert("margin".to_string(), Value::Str("x-TKT5PX2F".to_string()));
         m.insert("future".to_string(), Value::Str("x-cvBPrNm9".to_string()));
@@ -1972,7 +2076,7 @@ impl BinanceCore {
     m
 }));
         m.insert("accountsByType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("main".to_string(), Value::Str("MAIN".to_string()));
         m.insert("spot".to_string(), Value::Str("MAIN".to_string()));
         m.insert("funding".to_string(), Value::Str("FUNDING".to_string()));
@@ -1987,7 +2091,7 @@ impl BinanceCore {
     m
 }));
         m.insert("accountsById".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("MAIN".to_string(), Value::Str("spot".to_string()));
         m.insert("FUNDING".to_string(), Value::Str("funding".to_string()));
         m.insert("MARGIN".to_string(), Value::Str("margin".to_string()));
@@ -1997,7 +2101,7 @@ impl BinanceCore {
     m
 }));
         m.insert("networks".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("ERC20".to_string(), Value::Str("ETH".to_string()));
         m.insert("ETH".to_string(), Value::Str("ETH".to_string()));
         m.insert("TRC20".to_string(), Value::Str("TRX".to_string()));
@@ -2043,7 +2147,7 @@ impl BinanceCore {
     m
 }));
         m.insert("networksById".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("TRX".to_string(), Value::Str("TRC20".to_string()));
         m.insert("BSC".to_string(), Value::Str("BEP20".to_string()));
         m.insert("ETH".to_string(), Value::Str("ERC20".to_string()));
@@ -2052,21 +2156,21 @@ impl BinanceCore {
     m
 }));
         m.insert("impliedNetworks".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("ETH".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("ERC20".to_string(), Value::Str("ETH".to_string()));
     m
 }));
         m.insert("TRX".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("TRC20".to_string(), Value::Str("TRX".to_string()));
     m
 }));
     m
 }));
         m.insert("legalMoney".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("MXN".to_string(), Value::Bool(true));
         m.insert("UGX".to_string(), Value::Bool(true));
         m.insert("SEK".to_string(), Value::Bool(true));
@@ -2102,7 +2206,7 @@ impl BinanceCore {
     m
 }));
         m.insert("legalMoneyCurrenciesById".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("BUSD".to_string(), Value::Str("USD".to_string()));
     m
 }));
@@ -2111,17 +2215,17 @@ impl BinanceCore {
     m
 }));
         m.insert("features".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sandbox".to_string(), Value::Bool(true));
         m.insert("fetchCurrencies".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("private".to_string(), Value::Bool(true));
     m
 }));
         m.insert("createOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("triggerPrice".to_string(), Value::Bool(true));
         m.insert("triggerPriceType".to_string(), Value::Null);
@@ -2130,7 +2234,7 @@ impl BinanceCore {
         m.insert("takeProfitPrice".to_string(), Value::Bool(true));
         m.insert("attachedStopLossTakeProfit".to_string(), Value::Null);
         m.insert("timeInForce".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("IOC".to_string(), Value::Bool(true));
         m.insert("FOK".to_string(), Value::Bool(true));
         m.insert("PO".to_string(), Value::Bool(true));
@@ -2142,7 +2246,7 @@ impl BinanceCore {
         m.insert("marketBuyByCost".to_string(), Value::Bool(true));
         m.insert("marketBuyRequiresPrice".to_string(), Value::Bool(false));
         m.insert("selfTradePrevention".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("EXPIRE_MAKER".to_string(), Value::Bool(true));
         m.insert("EXPIRE_TAKER".to_string(), Value::Bool(true));
         m.insert("EXPIRE_BOTH".to_string(), Value::Bool(true));
@@ -2155,7 +2259,7 @@ impl BinanceCore {
 }));
         m.insert("createOrders".to_string(), Value::Null);
         m.insert("fetchMyTrades".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("limit".to_string(), Value::Int(1000));
         m.insert("daysBack".to_string(), Value::Null);
@@ -2164,7 +2268,7 @@ impl BinanceCore {
     m
 }));
         m.insert("fetchOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("trigger".to_string(), Value::Bool(false));
         m.insert("trailing".to_string(), Value::Bool(false));
@@ -2172,7 +2276,7 @@ impl BinanceCore {
     m
 }));
         m.insert("fetchOpenOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("limit".to_string(), Value::Null);
         m.insert("trigger".to_string(), Value::Bool(false));
@@ -2181,7 +2285,7 @@ impl BinanceCore {
     m
 }));
         m.insert("fetchOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("limit".to_string(), Value::Int(1000));
         m.insert("daysBack".to_string(), Value::Null);
@@ -2192,7 +2296,7 @@ impl BinanceCore {
     m
 }));
         m.insert("fetchClosedOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("limit".to_string(), Value::Int(1000));
         m.insert("daysBack".to_string(), Value::Null);
@@ -2204,21 +2308,21 @@ impl BinanceCore {
     m
 }));
         m.insert("fetchOHLCV".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("limit".to_string(), Value::Int(1000));
     m
 }));
     m
 }));
         m.insert("forDerivatives".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sandbox".to_string(), Value::Bool(true));
         m.insert("createOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("triggerPrice".to_string(), Value::Bool(true));
         m.insert("triggerPriceType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("mark".to_string(), Value::Bool(true));
         m.insert("last".to_string(), Value::Bool(true));
         m.insert("index".to_string(), Value::Bool(false));
@@ -2228,7 +2332,7 @@ impl BinanceCore {
         m.insert("takeProfitPrice".to_string(), Value::Bool(true));
         m.insert("attachedStopLossTakeProfit".to_string(), Value::Null);
         m.insert("timeInForce".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("IOC".to_string(), Value::Bool(true));
         m.insert("FOK".to_string(), Value::Bool(true));
         m.insert("PO".to_string(), Value::Bool(true));
@@ -2245,12 +2349,12 @@ impl BinanceCore {
     m
 }));
         m.insert("createOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("max".to_string(), Value::Int(5));
     m
 }));
         m.insert("fetchMyTrades".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("daysBack".to_string(), Value::Null);
         m.insert("limit".to_string(), Value::Int(1000));
@@ -2259,7 +2363,7 @@ impl BinanceCore {
     m
 }));
         m.insert("fetchOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("trigger".to_string(), Value::Bool(false));
         m.insert("trailing".to_string(), Value::Bool(false));
@@ -2267,7 +2371,7 @@ impl BinanceCore {
     m
 }));
         m.insert("fetchOpenOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("limit".to_string(), Value::Int(500));
         m.insert("trigger".to_string(), Value::Bool(false));
@@ -2276,7 +2380,7 @@ impl BinanceCore {
     m
 }));
         m.insert("fetchOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("limit".to_string(), Value::Int(1000));
         m.insert("daysBack".to_string(), Value::Int(90));
@@ -2287,7 +2391,7 @@ impl BinanceCore {
     m
 }));
         m.insert("fetchClosedOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("limit".to_string(), Value::Int(1000));
         m.insert("daysBack".to_string(), Value::Int(90));
@@ -2299,35 +2403,35 @@ impl BinanceCore {
     m
 }));
         m.insert("fetchOHLCV".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("limit".to_string(), Value::Int(1500));
     m
 }));
     m
 }));
         m.insert("swap".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("linear".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forDerivatives".to_string()));
     m
 }));
         m.insert("inverse".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forDerivatives".to_string()));
     m
 }));
     m
 }));
         m.insert("future".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("linear".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forDerivatives".to_string()));
     m
 }));
         m.insert("inverse".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forDerivatives".to_string()));
     m
 }));
@@ -2336,11 +2440,11 @@ impl BinanceCore {
     m
 }));
         m.insert("exceptions".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("-1004".to_string(), Value::Str("OperationFailed".to_string()).clone());
         m.insert("-1008".to_string(), Value::Str("OperationFailed".to_string()).clone());
         m.insert("-1099".to_string(), Value::Str("AuthenticationError".to_string()).clone());
@@ -2645,9 +2749,9 @@ impl BinanceCore {
     m
 }));
         m.insert("linear".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("-1005".to_string(), Value::Str("PermissionDenied".to_string()).clone());
         m.insert("-1008".to_string(), Value::Str("OperationFailed".to_string()).clone());
         m.insert("-1011".to_string(), Value::Str("PermissionDenied".to_string()).clone());
@@ -2743,9 +2847,9 @@ impl BinanceCore {
     m
 }));
         m.insert("inverse".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("-1005".to_string(), Value::Str("PermissionDenied".to_string()).clone());
         m.insert("-1011".to_string(), Value::Str("PermissionDenied".to_string()).clone());
         m.insert("-1023".to_string(), Value::Str("BadRequest".to_string()).clone());
@@ -2797,9 +2901,9 @@ impl BinanceCore {
     m
 }));
         m.insert("option".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("-1003".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("-1004".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("-1006".to_string(), Value::Str("ExchangeError".to_string()).clone());
@@ -2968,9 +3072,9 @@ impl BinanceCore {
     m
 }));
         m.insert("portfolioMargin".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("-1000".to_string(), Value::Str("OperationFailed".to_string()).clone());
         m.insert("-1001".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("-1002".to_string(), Value::Str("PermissionDenied".to_string()).clone());
@@ -3145,7 +3249,7 @@ impl BinanceCore {
     m
 }));
         m.insert("exact".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("-1000".to_string(), Value::Str("OperationFailed".to_string()).clone());
         m.insert("-1001".to_string(), Value::Str("OperationFailed".to_string()).clone());
         m.insert("-1002".to_string(), Value::Str("AuthenticationError".to_string()).clone());
@@ -3284,7 +3388,7 @@ impl BinanceCore {
     m
 }));
         m.insert("broad".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("has no operation privilege".to_string(), Value::Str("PermissionDenied".to_string()).clone());
         m.insert("MAX_POSITION".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("PERCENT_PRICE_BY_SIDE".to_string(), Value::Str("InvalidOrder".to_string()).clone());
@@ -3306,6 +3410,8 @@ impl BinanceCore {
         }  else {
             return Value::Bool(is_equal(&subType, &Value::Str("inverse".to_string())));
         }
+
+    Value::Null
 }
 
     pub fn is_linear(&self, mut type_var: Value, optional_args: &[Value]) -> Value {
@@ -3315,11 +3421,13 @@ impl BinanceCore {
         }  else {
             return Value::Bool(is_equal(&subType, &Value::Str("linear".to_string())));
         }
+
+    Value::Null
 }
 
     pub fn set_sandbox_mode(&mut self, mut enable: Value) {
         self.super_set_sandbox_mode(enable.clone());
-        add_element_to_object(&mut self.options.clone(), &Value::Str("sandboxMode".to_string()), enable.clone());
+        add_element_to_object(&mut self.options, &Value::Str("sandboxMode".to_string()), enable.clone());
 }
 
     pub fn create_expired_option_market(&self, mut symbol: Value) -> Value {
@@ -3340,7 +3448,7 @@ impl BinanceCore {
         let mut datetime: Value = self.convert_expire_date(expiry.clone());
         let mut timestamp: Value = self.parse8601(datetime.clone());
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), add(&add(&add(&add(&add(&add(&base, &Value::Str("-".to_string())), &expiry), &Value::Str("-".to_string())), &strikeAsString), &Value::Str("-".to_string())), &optionType));
         m.insert("symbol".to_string(), add(&add(&add(&add(&add(&add(&add(&add(&add(&add(&base, &Value::Str("/".to_string())), &settle), &Value::Str(":".to_string())), &settle), &Value::Str("-".to_string())), &expiry), &Value::Str("-".to_string())), &strikeAsString), &Value::Str("-".to_string())), &optionType));
         m.insert("base".to_string(), base.clone());
@@ -3365,27 +3473,27 @@ impl BinanceCore {
         m.insert("settle".to_string(), settle.clone());
         m.insert("settleId".to_string(), settle.clone());
         m.insert("precision".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Null);
         m.insert("price".to_string(), Value::Null);
     m
 }));
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("cost".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
@@ -3401,11 +3509,11 @@ impl BinanceCore {
 
     pub fn market(&self, mut symbol: Value) -> Value {
         if is_equal(&self.markets, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" markets not loaded".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" markets not loaded".to_string()))));
         }
         // defaultType has legacy support on binance
-        let mut defaultType: Value = self.safe_string(self.options.clone(), Value::Str("defaultType".to_string()), &[]);
-        let mut defaultSubType: Value = self.safe_string(self.options.clone(), Value::Str("defaultSubType".to_string()), &[]);
+        let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[]);
+        let mut defaultSubType: Value = self.safe_string_k(self.options.clone(), "defaultSubType", &[]);
         let mut isLegacyLinear: Value = Value::Bool(is_equal(&defaultType, &Value::Str("future".to_string())));
         let mut isLegacyInverse: Value = Value::Bool(is_equal(&defaultType, &Value::Str("delivery".to_string())));
         let mut isLegacy: Value = Value::Bool(is_true(&isLegacyLinear) || is_true(&isLegacyInverse));
@@ -3434,12 +3542,13 @@ impl BinanceCore {
                 }
                 {
                                         let mut i: Value = Value::Int(0);
-                    while is_less_than(&i, &get_array_length(&markets)) {
+                    let mut __for_first_233: bool = true;
+                    while { if !__for_first_233 { i = add(&i, &Value::Int(1)); } __for_first_233 = false; is_less_than(&i, &get_array_length(&markets)) } {
+                    let mut market: Value = get_value(&markets, &i);
                     let mut market: Value = get_value(&markets, &i);
                     if is_true(&get_value(&market, &defaultType)) {
                         return market;
                     }
-                    i = add(&i, &Value::Int(1));
                 }
                 }
                 return get_value(&markets, &Value::Int(0));
@@ -3459,7 +3568,7 @@ impl BinanceCore {
                 return self.create_expired_option_market(symbol.clone());
             }
         }
-        panic!("{:?}", crate::exchange_errors::bad_symbol(add(&add(&self.id, &Value::Str(" does not have market symbol ".to_string())), &symbol)));
+        panic!("{}", crate::exchange_errors::bad_symbol(add(&add(&self.id, &Value::Str(" does not have market symbol ".to_string())), &symbol)));
 
     Value::Null
 }
@@ -3488,43 +3597,43 @@ impl BinanceCore {
  * @method
  * @name binance#enableDemoTrading
  * @description enables or disables demo trading mode
- * @see https://get_value(&www, &Value::Str("binance".to_string())).com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd
- * @see https://get_value(&demo, &Value::Str("binance".to_string())).com/en/my/settings/api-management
+ * @see https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd
+ * @see https://demo.binance.com/en/my/settings/api-management
  * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
  */
     pub fn enable_demo_trading(&mut self, mut enable: Value) {
         if is_true(&self.isSandboxModeEnabled) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences".to_string()))));
         }
         if is_true(&enable) {
-            { let __be_tmp = get_value(&self.urls, &Value::Str("api".to_string())); add_element_to_object(&mut self.urls.clone(), &Value::Str("apiBackupDemoTrading".to_string()), __be_tmp); };
-            { let __be_tmp = get_value(&self.urls, &Value::Str("demo".to_string())); add_element_to_object(&mut self.urls.clone(), &Value::Str("api".to_string()), __be_tmp); };
+            { let __be_tmp = get_value(&self.urls, &Value::Str("api".to_string())); add_element_to_object(&mut self.urls, &Value::Str("apiBackupDemoTrading".to_string()), __be_tmp); };
+            { let __be_tmp = get_value(&self.urls, &Value::Str("demo".to_string())); add_element_to_object(&mut self.urls, &Value::Str("api".to_string()), __be_tmp); };
         }  else if is_true(&Value::Bool(in_op(&self.urls, &Value::Str("apiBackupDemoTrading".to_string())))) {
-            { let __be_tmp = get_value(&self.urls, &Value::Str("apiBackupDemoTrading".to_string())); add_element_to_object(&mut self.urls.clone(), &Value::Str("api".to_string()), __be_tmp); };
+            { let __be_tmp = get_value(&self.urls, &Value::Str("apiBackupDemoTrading".to_string())); add_element_to_object(&mut self.urls, &Value::Str("api".to_string()), __be_tmp); };
             let mut newUrls: Value = self.omit(self.urls.clone(), Value::Str("apiBackupDemoTrading".to_string()), &[]);
-            self.urls = newUrls;
+            self.urls = newUrls.clone();
         }
-        add_element_to_object(&mut self.options.clone(), &Value::Str("enableDemoTrading".to_string()), enable.clone());
+        add_element_to_object(&mut self.options, &Value::Str("enableDemoTrading".to_string()), enable.clone());
 }
 
 /*
  * @method
  * @name binance#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/general-endpoints#check-server-time          // spot
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Check-Server-Time    // swap
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Check-Server-time    // future
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#check-server-time          // spot
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Check-Server-Time    // swap
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Check-Server-time    // future
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
+ * @param {string} [params.subType] "linear" or "inverse"
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
     pub async fn fetch_time(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchTime".to_string()), Value::Str("defaultType".to_string()), &[Value::Str("spot".to_string())]);
-        let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[defaultType.clone()]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
         let mut query: Value = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchTime".to_string()), &[Value::Null, params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -3536,7 +3645,7 @@ impl BinanceCore {
         }  else {
             response = self.call_method(Value::Str("public_get_time".to_string()), &[query.clone()]).await;
         }
-        return self.safe_integer(response.clone(), Value::Str("serverTime".to_string()), &[]);
+        return self.safe_integer_k(response.clone(), "serverTime", &[]);
 
     Value::Null
 }
@@ -3545,20 +3654,20 @@ impl BinanceCore {
  * @method
  * @name binance#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/wallet/capital/all-coins-info
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/market-data/Get-All-Margin-Assets
+ * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
+ * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Margin-Assets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
     pub async fn fetch_currencies(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut fetchCurrenciesEnabled: Value = self.safe_bool(self.options.clone(), Value::Str("fetchCurrencies".to_string()), &[]);
+        let mut fetchCurrenciesEnabled: Value = self.safe_bool_k(self.options.clone(), "fetchCurrencies", &[]);
         if !is_true(&fetchCurrenciesEnabled) {
             return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 });
         }
@@ -3568,27 +3677,27 @@ impl BinanceCore {
         // and fallback to generating the currencies from the markets
         if !is_true(&self.check_required_credentials(&[Value::Bool(false)])) {
             return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 });
         }
         // sandbox/testnet does not support sapi endpoints
-        let mut apiBackup: Value = self.safe_value(self.urls.clone(), Value::Str("apiBackup".to_string()), &[]);
+        let mut apiBackup: Value = self.safe_value_k(self.urls.clone(), "apiBackup", &[]);
         if !is_equal(&apiBackup, &Value::Null) {
             return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 });
         }
         // demotrading does not support sapi endpoints
-        if is_true(&self.safe_bool(self.options.clone(), Value::Str("enableDemoTrading".to_string()), &[Value::Bool(false)])) {
+        if is_true(&self.safe_bool_k(self.options.clone(), "enableDemoTrading", &[Value::Bool(false)])) {
             return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 });
         }
         let mut promises: Value = Value::List(vec![self.call_method(Value::Str("sapi_get_capital_config_getall".to_string()), &[params.clone()]).await]);
-        let mut fetchMargins: Value = self.safe_bool(self.options.clone(), Value::Str("fetchMargins".to_string()), &[Value::Bool(false)]);
+        let mut fetchMargins: Value = self.safe_bool_k(self.options.clone(), "fetchMargins", &[Value::Bool(false)]);
         if is_true(&fetchMargins) {
             append_to_array(&mut promises, self.call_method(Value::Str("sapi_get_margin_all_pairs".to_string()), &[params.clone()]).await);
         }
@@ -3600,12 +3709,13 @@ impl BinanceCore {
             marginablesById = self.index_by(responseMarginables.clone(), Value::Str("assetName".to_string()));
         }
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&responseCurrencies)) {
+            let mut __for_first_235: bool = true;
+            while { if !__for_first_235 { i = add(&i, &Value::Int(1)); } __for_first_235 = false; is_less_than(&i, &get_array_length(&responseCurrencies)) } {
             //
             //    {
             //        "coin": "LINK",
@@ -3701,7 +3811,7 @@ impl BinanceCore {
             //        ]
             //    }
             //
-            //     some coins (get_value(&e, &Value::Str("g".to_string())). ETH, BIGTIME, SONIC, etc) return extra fields under network entry
+            //     some coins (e.g. ETH, BIGTIME, SONIC, etc) return extra fields under network entry
             //
             //                "specialTips": "",
             //                "specialWithdrawTips": "",
@@ -3710,48 +3820,51 @@ impl BinanceCore {
             //                "contractAddress": "0x64bc2ca1be492be7185faa2c8835d9b824c8a194"
             //
             let mut entry: Value = get_value(&responseCurrencies, &i);
-            let mut id: Value = self.safe_string(entry.clone(), Value::Str("coin".to_string()), &[]);
-            let mut name: Value = self.safe_string(entry.clone(), Value::Str("name".to_string()), &[]);
+            let mut entry: Value = get_value(&responseCurrencies, &i);
+            let mut id: Value = self.safe_string_k(entry.clone(), "coin", &[]);
+            let mut name: Value = self.safe_string_k(entry.clone(), "name", &[]);
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-            let mut isFiat: Value = self.safe_bool(entry.clone(), Value::Str("isLegalMoney".to_string()), &[]);
-            let mut networkList: Value = self.safe_list(entry.clone(), Value::Str("networkList".to_string()), &[Value::List(vec![])]);
+            let mut isFiat: Value = self.safe_bool_k(entry.clone(), "isLegalMoney", &[]);
+            let mut networkList: Value = self.safe_list_k(entry.clone(), "networkList", &[Value::List(vec![])]);
             let mut fees: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut fee: Value = Value::Null;
             let mut networks: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut isETF: Value = Value::Bool(false);
             {
                                 let mut j: Value = Value::Int(0);
-                while is_less_than(&j, &get_array_length(&networkList)) {
+                let mut __for_first_234: bool = true;
+                while { if !__for_first_234 { j = add(&j, &Value::Int(1)); } __for_first_234 = false; is_less_than(&j, &get_array_length(&networkList)) } {
                 let mut networkItem: Value = get_value(&networkList, &j);
-                let mut network: Value = self.safe_string(networkItem.clone(), Value::Str("network".to_string()), &[]);
+                let mut networkItem: Value = get_value(&networkList, &j);
+                let mut network: Value = self.safe_string_k(networkItem.clone(), "network", &[]);
                 let mut networkCode: Value = self.network_id_to_code(&[network.clone(), code.clone()]);
-                isETF = Value::Bool(is_equal(&network, &Value::Str("ETF".to_string()))); // ETF currencies (get_value(&e, &Value::Str("g".to_string())). BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
-                // const name = get_value(&this, &Value::Str("safeString".to_string())) (networkItem, 'name');
-                let mut withdrawFee: Value = self.safe_number(networkItem.clone(), Value::Str("withdrawFee".to_string()), &[]);
-                let mut depositEnable: Value = self.safe_bool(networkItem.clone(), Value::Str("depositEnable".to_string()), &[]);
-                let mut withdrawEnable: Value = self.safe_bool(networkItem.clone(), Value::Str("withdrawEnable".to_string()), &[]);
+                isETF = Value::Bool(is_equal(&network, &Value::Str("ETF".to_string()))); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
+                // const name = this.safeString (networkItem, 'name');
+                let mut withdrawFee: Value = self.safe_number_k(networkItem.clone(), "withdrawFee", &[]);
+                let mut depositEnable: Value = self.safe_bool_k(networkItem.clone(), "depositEnable", &[]);
+                let mut withdrawEnable: Value = self.safe_bool_k(networkItem.clone(), "withdrawEnable", &[]);
                 add_element_to_object(&mut fees, &network, withdrawFee.clone());
-                let mut isDefault: Value = self.safe_bool(networkItem.clone(), Value::Str("isDefault".to_string()), &[]);
+                let mut isDefault: Value = self.safe_bool_k(networkItem.clone(), "isDefault", &[]);
                 if is_true(&isDefault) || is_true(&(is_equal(&fee, &Value::Null))) {
                     fee = withdrawFee.clone();
                 }
                 // todo: default networks in "setMarkets" overload
                 // if (isDefault) {
-                //     get_value(&this, &Value::Str("options".to_string()))['defaultNetworkCodesForCurrencies'][code] = networkCode;
+                //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
                 // }
                 let mut withdrawPrecision: Value = self.omit_zero(self.safe_string2(networkItem.clone(), Value::Str("withdrawIntegerMultiple".to_string()), Value::Str("withdrawInternalMin".to_string()), &[]));
-                // zero values happen only on fiat or leveraged(ETF) tokens: https://get_value(&t, &Value::Str("me".to_string()))/binance_api_english/393075
+                // zero values happen only on fiat or leveraged(ETF) tokens: https://t.me/binance_api_english/393075
                 if is_equal(&withdrawPrecision, &Value::Null) && is_true(&isFiat) {
-                    withdrawPrecision = self.safe_string(self.options.clone(), Value::Str("defaultFiatWithdrawPrecision".to_string()), &[]);
+                    withdrawPrecision = self.safe_string_k(self.options.clone(), "defaultFiatWithdrawPrecision", &[]);
                 }
                 add_element_to_object(&mut networks, &networkCode, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), networkItem.clone());
         m.insert("id".to_string(), network.clone());
         m.insert("network".to_string(), networkCode.clone());
@@ -3761,16 +3874,16 @@ impl BinanceCore {
         m.insert("fee".to_string(), withdrawFee.clone());
         m.insert("precision".to_string(), self.parse_number(withdrawPrecision.clone(), &[]));
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(networkItem.clone(), Value::Str("withdrawMin".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(networkItem.clone(), Value::Str("withdrawMax".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(networkItem.clone(), "withdrawMin", &[]));
+        m.insert("max".to_string(), self.safe_number_k(networkItem.clone(), "withdrawMax", &[]));
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(networkItem.clone(), Value::Str("depositDust".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(networkItem.clone(), "depositDust", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -3778,7 +3891,6 @@ impl BinanceCore {
 }));
     m
 }));
-                j = add(&j, &Value::Int(1));
             }
             }
             let mut type_var: Value = Value::Null;
@@ -3789,9 +3901,9 @@ impl BinanceCore {
             }  else {
                 type_var = Value::Str("crypto".to_string());
             }
-            let mut trading: Value = self.safe_bool(entry.clone(), Value::Str("trading".to_string()), &[]);
+            let mut trading: Value = self.safe_bool_k(entry.clone(), "trading", &[]);
             let mut marginEntry: Value = self.safe_dict(marginablesById.clone(), id.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             //
@@ -3805,7 +3917,7 @@ impl BinanceCore {
             //     }
             //
             add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("name".to_string(), name.clone());
         m.insert("code".to_string(), code.clone());
@@ -3819,10 +3931,9 @@ impl BinanceCore {
         m.insert("fee".to_string(), Value::Null);
         m.insert("fees".to_string(), fees.clone());
         m.insert("limits".to_string(), Value::Null);
-        m.insert("margin".to_string(), self.safe_bool(marginEntry.clone(), Value::Str("isBorrowable".to_string()), &[]));
+        m.insert("margin".to_string(), self.safe_bool_k(marginEntry.clone(), "isBorrowable", &[]));
     m
 })));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -3834,56 +3945,59 @@ impl BinanceCore {
  * @method
  * @name binance#fetchMarkets
  * @description retrieves data on all markets for binance
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information           // spot
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information     // future
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/market-data/Exchange-Information                             // option
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                           // cross margin
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                       // isolated margin
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information           // spot
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information     // future
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
+ * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                           // cross margin
+ * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                       // isolated margin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
     pub async fn fetch_markets(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut promisesRaw: Value = Value::List(vec![]);
         let mut rawFetchMarkets: Value = Value::Null;
         let mut defaultTypes: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("linear".to_string()), Value::Str("inverse".to_string())]);
-        let mut fetchMarketsOptions: Value = self.safe_dict(self.options.clone(), Value::Str("fetchMarkets".to_string()), &[]);
+        let mut fetchMarketsOptions: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
         if !is_equal(&fetchMarketsOptions, &Value::Null) {
-            rawFetchMarkets = self.safe_list(fetchMarketsOptions.clone(), Value::Str("types".to_string()), &[defaultTypes.clone()]);
+            rawFetchMarkets = self.safe_list_k(fetchMarketsOptions.clone(), "types", &[defaultTypes.clone()]);
         }  else {
             // for backward-compatibility
-            rawFetchMarkets = self.safe_list(self.options.clone(), Value::Str("fetchMarkets".to_string()), &[defaultTypes.clone()]);
+            rawFetchMarkets = self.safe_list_k(self.options.clone(), "fetchMarkets", &[defaultTypes.clone()]);
         }
         // handle loadAllOptions option
-        let mut loadAllOptions: Value = self.safe_bool(self.options.clone(), Value::Str("loadAllOptions".to_string()), &[Value::Bool(false)]);
+        let mut loadAllOptions: Value = self.safe_bool_k(self.options.clone(), "loadAllOptions", &[Value::Bool(false)]);
         if is_true(&loadAllOptions) {
             if !is_true(&self.in_array(Value::Str("option".to_string()), rawFetchMarkets.clone())) {
                 append_to_array(&mut rawFetchMarkets, Value::Str("option".to_string()));
             }
         }
-        let mut sandboxMode: Value = self.safe_bool(self.options.clone(), Value::Str("sandboxMode".to_string()), &[Value::Bool(false)]);
-        let mut demoMode: Value = self.safe_bool(self.options.clone(), Value::Str("enableDemoTrading".to_string()), &[Value::Bool(false)]);
+        let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
+        let mut demoMode: Value = self.safe_bool_k(self.options.clone(), "enableDemoTrading", &[Value::Bool(false)]);
         let mut isDemoEnv: Value = Value::Bool(is_true(&demoMode) || is_true(&sandboxMode));
         let mut fetchMarkets: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&rawFetchMarkets)) {
+            let mut __for_first_236: bool = true;
+            while { if !__for_first_236 { i = add(&i, &Value::Int(1)); } __for_first_236 = false; is_less_than(&i, &get_array_length(&rawFetchMarkets)) } {
+            let mut type_var: Value = get_value(&rawFetchMarkets, &i);
             let mut type_var: Value = get_value(&rawFetchMarkets, &i);
             if is_equal(&type_var, &Value::Str("option".to_string())) && is_true(&isDemoEnv) {
                 continue;
             }
             append_to_array(&mut fetchMarkets, type_var.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
-        let mut fetchMargins: Value = self.safe_bool(self.options.clone(), Value::Str("fetchMargins".to_string()), &[Value::Bool(false)]);
+        let mut fetchMargins: Value = self.safe_bool_k(self.options.clone(), "fetchMargins", &[Value::Bool(false)]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&fetchMarkets)) {
+            let mut __for_first_237: bool = true;
+            while { if !__for_first_237 { i = add(&i, &Value::Int(1)); } __for_first_237 = false; is_less_than(&i, &get_array_length(&fetchMarkets)) } {
+            let mut marketType: Value = get_value(&fetchMarkets, &i);
             let mut marketType: Value = get_value(&fetchMarkets, &i);
             if is_equal(&marketType, &Value::Str("spot".to_string())) {
                 append_to_array(&mut promisesRaw, self.call_method(Value::Str("public_get_exchange_info".to_string()), &[params.clone()]).await);
@@ -3898,33 +4012,32 @@ impl BinanceCore {
             }  else if is_equal(&marketType, &Value::Str("option".to_string())) {
                 append_to_array(&mut promisesRaw, self.call_method(Value::Str("eapi_public_get_exchange_info".to_string()), &[params.clone()]).await);
             }  else {
-                panic!("{:?}", crate::exchange_errors::exchange_error(add(&add(&add(&self.id, &Value::Str(" fetchMarkets() this.options fetchMarkets \"".to_string())), &marketType), &Value::Str("\" is not a supported market type".to_string()))));
+                panic!("{}", crate::exchange_errors::exchange_error(add(&add(&add(&self.id, &Value::Str(" fetchMarkets() this.options fetchMarkets \"".to_string())), &marketType), &Value::Str("\" is not a supported market type".to_string()))));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut results: Value = promise_all(&promisesRaw).await;
         let mut markets: Value = Value::List(vec![]);
-        add_element_to_object(&mut self.options.clone(), &Value::Str("crossMarginPairsData".to_string()), Value::List(vec![]));
-        add_element_to_object(&mut self.options.clone(), &Value::Str("isolatedMarginPairsData".to_string()), Value::List(vec![]));
+        add_element_to_object(&mut self.options, &Value::Str("crossMarginPairsData".to_string()), Value::List(vec![]));
+        add_element_to_object(&mut self.options, &Value::Str("isolatedMarginPairsData".to_string()), Value::List(vec![]));
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&results)) {
+            let mut __for_first_238: bool = true;
+            while { if !__for_first_238 { i = add(&i, &Value::Int(1)); } __for_first_238 = false; is_less_than(&i, &get_array_length(&results)) } {
             let mut res: Value = self.safe_value(results.clone(), i.clone(), &[]);
             if is_true(&fetchMargins) && is_true(&Value::Bool(is_array(&res))) {
                 let mut keysList: Value = object_keys(&self.index_by(res.clone(), Value::Str("symbol".to_string())));
                 let mut length: Value = get_array_length(&get_value(&self.options, &Value::Str("crossMarginPairsData".to_string())));
                 // first one is the cross-margin promise
                 if is_equal(&length, &Value::Int(0)) {
-                    add_element_to_object(&mut self.options.clone(), &Value::Str("crossMarginPairsData".to_string()), keysList.clone());
+                    add_element_to_object(&mut self.options, &Value::Str("crossMarginPairsData".to_string()), keysList.clone());
                 }  else {
-                    add_element_to_object(&mut self.options.clone(), &Value::Str("isolatedMarginPairsData".to_string()), keysList.clone());
+                    add_element_to_object(&mut self.options, &Value::Str("isolatedMarginPairsData".to_string()), keysList.clone());
                 }
             }  else {
                 let mut resultMarkets: Value = self.safe_list2(res.clone(), Value::Str("symbols".to_string()), Value::Str("optionSymbols".to_string()), &[Value::List(vec![])]);
                 markets = self.array_concat(markets.clone(), resultMarkets.clone());
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         //
@@ -4149,31 +4262,33 @@ impl BinanceCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&markets)) {
+            let mut __for_first_239: bool = true;
+            while { if !__for_first_239 { i = add(&i, &Value::Int(1)); } __for_first_239 = false; is_less_than(&i, &get_array_length(&markets)) } {
             append_to_array(&mut result, self.parse_market(get_value(&markets, &i)));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
     pub fn parse_market(&self, mut market: Value) -> Value {
         let mut swap: Value = Value::Bool(false);
         let mut future: Value = Value::Bool(false);
         let mut option: Value = Value::Bool(false);
-        let mut underlying: Value = self.safe_string(market.clone(), Value::Str("underlying".to_string()), &[]);
-        let mut id: Value = self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut underlying: Value = self.safe_string_k(market.clone(), "underlying", &[]);
+        let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut optionParts: Value = split(&id, &Value::Str("-".to_string()));
         let mut optionBase: Value = self.safe_string(optionParts.clone(), Value::Int(0), &[]);
         let mut lowercaseId: Value = self.safe_string_lower(market.clone(), Value::Str("symbol".to_string()), &[]);
-        let mut baseId: Value = self.safe_string(market.clone(), Value::Str("baseAsset".to_string()), &[optionBase.clone()]);
-        let mut quoteId: Value = self.safe_string(market.clone(), Value::Str("quoteAsset".to_string()), &[]);
+        let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[optionBase.clone()]);
+        let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteAsset", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut contractType: Value = self.safe_string(market.clone(), Value::Str("contractType".to_string()), &[]);
+        let mut contractType: Value = self.safe_string_k(market.clone(), "contractType", &[]);
         let mut contract: Value = (Value::Bool(in_op(&market, &Value::Str("contractType".to_string()))));
         let mut expiry: Value = self.safe_integer2(market.clone(), Value::Str("deliveryDate".to_string()), Value::Str("expiryDate".to_string()), &[]);
-        let mut settleId: Value = self.safe_string(market.clone(), Value::Str("marginAsset".to_string()), &[]);
+        let mut settleId: Value = self.safe_string_k(market.clone(), "marginAsset", &[]);
         if is_true(&(is_equal(&contractType, &Value::Str("PERPETUAL".to_string())))) || is_true(&(is_equal(&expiry, &Value::Int(4133404800000)))) {
             expiry = Value::Null;
             swap = Value::Bool(true);
@@ -4186,7 +4301,7 @@ impl BinanceCore {
         }
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut spot: Value = Value::Bool(!is_true(&contract));
-        let mut filters: Value = self.safe_list(market.clone(), Value::Str("filters".to_string()), &[Value::List(vec![])]);
+        let mut filters: Value = self.safe_list_k(market.clone(), "filters", &[Value::List(vec![])]);
         let mut filtersByType: Value = self.index_by(filters.clone(), Value::Str("filterType".to_string()));
         let mut status: Value = self.safe_string2(market.clone(), Value::Str("status".to_string()), Value::Str("contractStatus".to_string()), &[]);
         let mut contractSize: Value = Value::Null;
@@ -4201,7 +4316,7 @@ impl BinanceCore {
             }  else if is_true(&future) {
                 symbol = add(&add(&add(&add(&symbol, &Value::Str(":".to_string())), &settle), &Value::Str("-".to_string())), &self.yymmdd(expiry.clone(), &[]));
             }  else if is_true(&option) {
-                strike = self.number_to_string(self.parse_to_numeric(self.safe_string(market.clone(), Value::Str("strikePrice".to_string()), &[])));
+                strike = self.number_to_string(self.parse_to_numeric(self.safe_string_k(market.clone(), "strikePrice", &[])));
                 symbol = add(&add(&add(&add(&add(&add(&add(&add(&symbol, &Value::Str(":".to_string())), &settle), &Value::Str("-".to_string())), &self.yymmdd(expiry.clone(), &[])), &Value::Str("-".to_string())), &strike), &Value::Str("-".to_string())), &self.safe_string(optionParts.clone(), Value::Int(3), &[]));
             }
             contractSize = self.safe_number2(market.clone(), Value::Str("contractSize".to_string()), Value::Str("unit".to_string()), &[self.parse_number(Value::Str("1".to_string()), &[])]);
@@ -4209,38 +4324,38 @@ impl BinanceCore {
             inverse = Value::Bool(is_equal(&settle, &base));
             let mut feesType: Value = ternary(is_true(&linear), Value::Str("linear".to_string()), Value::Str("inverse".to_string()));
             fees = self.safe_dict(self.fees.clone(), feesType.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         }
         let mut active: Value = Value::Bool(is_equal(&status, &Value::Str("TRADING".to_string())));
         if is_true(&spot) {
-            let mut permissions: Value = self.safe_list(market.clone(), Value::Str("permissions".to_string()), &[Value::List(vec![])]);
+            let mut permissions: Value = self.safe_list_k(market.clone(), "permissions", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                while is_less_than(&j, &get_array_length(&permissions)) {
+                let mut __for_first_240: bool = true;
+                while { if !__for_first_240 { j = add(&j, &Value::Int(1)); } __for_first_240 = false; is_less_than(&j, &get_array_length(&permissions)) } {
                 if is_equal(&get_value(&permissions, &j), &Value::Str("TRD_GRP_003".to_string())) {
                     active = Value::Bool(false);
                     break;
                 }
-                j = add(&j, &Value::Int(1));
             }
             }
         }
-        let mut isMarginTradingAllowed: Value = self.safe_bool(market.clone(), Value::Str("isMarginTradingAllowed".to_string()), &[Value::Bool(false)]);
+        let mut isMarginTradingAllowed: Value = self.safe_bool_k(market.clone(), "isMarginTradingAllowed", &[Value::Bool(false)]);
         let mut marginModes: Value = Value::Null;
         if is_true(&spot) {
             let mut hasCrossMargin: Value = self.in_array(id.clone(), get_value(&self.options, &Value::Str("crossMarginPairsData".to_string())));
             let mut hasIsolatedMargin: Value = self.in_array(id.clone(), get_value(&self.options, &Value::Str("isolatedMarginPairsData".to_string())));
             marginModes = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("cross".to_string(), hasCrossMargin.clone());
                     m.insert("isolated".to_string(), hasIsolatedMargin.clone());
                 m
             });
         }  else if is_true(&linear) || is_true(&inverse) {
             marginModes = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("cross".to_string(), Value::Bool(true));
                     m.insert("isolated".to_string(), Value::Bool(true));
                 m
@@ -4262,7 +4377,7 @@ impl BinanceCore {
             parsedStrike = self.parse_to_numeric(strike.clone());
         }
         let mut entry: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.clone());
                 m.insert("lowercaseId".to_string(), lowercaseId.clone());
                 m.insert("symbol".to_string(), symbol.clone());
@@ -4291,35 +4406,35 @@ impl BinanceCore {
                 m.insert("strike".to_string(), parsedStrike.clone());
                 m.insert("optionType".to_string(), self.safe_string_lower(market.clone(), Value::Str("side".to_string()), &[]));
                 m.insert("precision".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.parse_number(self.parse_precision(&[self.safe_string2(market.clone(), Value::Str("quantityPrecision".to_string()), Value::Str("quantityScale".to_string()), &[])]), &[]));
         m.insert("price".to_string(), self.parse_number(self.parse_precision(&[self.safe_string2(market.clone(), Value::Str("pricePrecision".to_string()), Value::Str("priceScale".to_string()), &[])]), &[]));
-        m.insert("base".to_string(), self.parse_number(self.parse_precision(&[self.safe_string(market.clone(), Value::Str("baseAssetPrecision".to_string()), &[])]), &[]));
-        m.insert("quote".to_string(), self.parse_number(self.parse_precision(&[self.safe_string(market.clone(), Value::Str("quotePrecision".to_string()), &[])]), &[]));
+        m.insert("base".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "baseAssetPrecision", &[])]), &[]));
+        m.insert("quote".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quotePrecision", &[])]), &[]));
     m
 }));
                 m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(market.clone(), Value::Str("minQty".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(market.clone(), Value::Str("maxQty".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(market.clone(), "minQty", &[]));
+        m.insert("max".to_string(), self.safe_number_k(market.clone(), "maxQty", &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("cost".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
@@ -4327,58 +4442,58 @@ impl BinanceCore {
     m
 }));
                 m.insert("info".to_string(), market.clone());
-                m.insert("created".to_string(), self.safe_integer(market.clone(), Value::Str("onboardDate".to_string()), &[]));
+                m.insert("created".to_string(), self.safe_integer_k(market.clone(), "onboardDate", &[]));
             m
         });
         if is_true(&Value::Bool(in_op(&filtersByType, &Value::Str("PRICE_FILTER".to_string())))) {
-            let mut filter: Value = self.safe_dict(filtersByType.clone(), Value::Str("PRICE_FILTER".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut filter: Value = self.safe_dict_k(filtersByType.clone(), "PRICE_FILTER", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             // PRICE_FILTER reports zero values for maxPrice
             // since they updated filter types in November 2018
-            // https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/issues/4286
+            // https://github.com/ccxt/ccxt/issues/4286
             // therefore limits['price']['max'] doesn't have any meaningful value except undefined
             add_element_to_object(get_value_mut(&mut entry, &Value::Str("limits".to_string())), &Value::Str("price".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(filter.clone(), Value::Str("minPrice".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(filter.clone(), Value::Str("maxPrice".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(filter.clone(), "minPrice", &[]));
+        m.insert("max".to_string(), self.safe_number_k(filter.clone(), "maxPrice", &[]));
     m
 }));
-            add_element_to_object(get_value_mut(&mut entry, &Value::Str("precision".to_string())), &Value::Str("price".to_string()), self.safe_number(filter.clone(), Value::Str("tickSize".to_string()), &[]));
+            add_element_to_object(get_value_mut(&mut entry, &Value::Str("precision".to_string())), &Value::Str("price".to_string()), self.safe_number_k(filter.clone(), "tickSize", &[]));
         }
         if is_true(&Value::Bool(in_op(&filtersByType, &Value::Str("LOT_SIZE".to_string())))) {
-            let mut filter: Value = self.safe_dict(filtersByType.clone(), Value::Str("LOT_SIZE".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut filter: Value = self.safe_dict_k(filtersByType.clone(), "LOT_SIZE", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            add_element_to_object(get_value_mut(&mut entry, &Value::Str("precision".to_string())), &Value::Str("amount".to_string()), self.safe_number(filter.clone(), Value::Str("stepSize".to_string()), &[]));
+            add_element_to_object(get_value_mut(&mut entry, &Value::Str("precision".to_string())), &Value::Str("amount".to_string()), self.safe_number_k(filter.clone(), "stepSize", &[]));
             add_element_to_object(get_value_mut(&mut entry, &Value::Str("limits".to_string())), &Value::Str("amount".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(filter.clone(), Value::Str("minQty".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(filter.clone(), Value::Str("maxQty".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(filter.clone(), "minQty", &[]));
+        m.insert("max".to_string(), self.safe_number_k(filter.clone(), "maxQty", &[]));
     m
 }));
         }
         if is_true(&Value::Bool(in_op(&filtersByType, &Value::Str("MARKET_LOT_SIZE".to_string())))) {
-            let mut filter: Value = self.safe_dict(filtersByType.clone(), Value::Str("MARKET_LOT_SIZE".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut filter: Value = self.safe_dict_k(filtersByType.clone(), "MARKET_LOT_SIZE", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             add_element_to_object(get_value_mut(&mut entry, &Value::Str("limits".to_string())), &Value::Str("market".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(filter.clone(), Value::Str("minQty".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(filter.clone(), Value::Str("maxQty".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(filter.clone(), "minQty", &[]));
+        m.insert("max".to_string(), self.safe_number_k(filter.clone(), "maxQty", &[]));
     m
 }));
         }
         if is_true(&(Value::Bool(in_op(&filtersByType, &Value::Str("MIN_NOTIONAL".to_string()))))) || is_true(&(Value::Bool(in_op(&filtersByType, &Value::Str("NOTIONAL".to_string()))))) {
             let mut filter: Value = self.safe_dict2(filtersByType.clone(), Value::Str("MIN_NOTIONAL".to_string()), Value::Str("NOTIONAL".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             add_element_to_object(get_value_mut(get_value_mut(&mut entry, &Value::Str("limits".to_string())), &Value::Str("cost".to_string())), &Value::Str("min".to_string()), self.safe_number2(filter.clone(), Value::Str("minNotional".to_string()), Value::Str("notional".to_string()), &[]));
-            add_element_to_object(get_value_mut(get_value_mut(&mut entry, &Value::Str("limits".to_string())), &Value::Str("cost".to_string())), &Value::Str("max".to_string()), self.safe_number(filter.clone(), Value::Str("maxNotional".to_string()), &[]));
+            add_element_to_object(get_value_mut(get_value_mut(&mut entry, &Value::Str("limits".to_string())), &Value::Str("cost".to_string())), &Value::Str("max".to_string()), self.safe_number_k(filter.clone(), "maxNotional", &[]));
         }
         return entry;
 
@@ -4387,10 +4502,10 @@ impl BinanceCore {
 
     pub fn parse_balance_helper(&self, mut entry: Value) -> Value {
         let mut account: Value = self.account();
-        add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(entry.clone(), Value::Str("locked".to_string()), &[]));
-        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(entry.clone(), Value::Str("free".to_string()), &[]));
-        let mut interest: Value = self.safe_string(entry.clone(), Value::Str("interest".to_string()), &[]);
-        let mut debt: Value = self.safe_string(entry.clone(), Value::Str("borrowed".to_string()), &[]);
+        add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(entry.clone(), "locked", &[]));
+        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(entry.clone(), "free", &[]));
+        let mut interest: Value = self.safe_string_k(entry.clone(), "interest", &[]);
+        let mut debt: Value = self.safe_string_k(entry.clone(), "borrowed", &[]);
         add_element_to_object(&mut account, &Value::Str("debt".to_string()), crate::precise::Precise::stringAdd(&debt, &interest));
         return account;
 
@@ -4402,7 +4517,7 @@ impl BinanceCore {
         let mut marginMode = get_arg(optional_args, 1, Value::Null);
         let mut isPortfolioMargin = get_arg(optional_args, 2, Value::Bool(false));
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
             m
         });
@@ -4412,134 +4527,140 @@ impl BinanceCore {
         if is_true(&isPortfolioMargin) {
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&response)) {
+                let mut __for_first_241: bool = true;
+                while { if !__for_first_241 { i = add(&i, &Value::Int(1)); } __for_first_241 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut entry: Value = get_value(&response, &i);
                 let mut entry: Value = get_value(&response, &i);
                 let mut account: Value = self.account();
-                let mut currencyId: Value = self.safe_string(entry.clone(), Value::Str("asset".to_string()), &[]);
+                let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 if is_equal(&type_var, &Value::Str("linear".to_string())) {
-                    add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(entry.clone(), Value::Str("umWalletBalance".to_string()), &[]));
-                    add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(entry.clone(), Value::Str("umUnrealizedPNL".to_string()), &[]));
+                    add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(entry.clone(), "umWalletBalance", &[]));
+                    add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(entry.clone(), "umUnrealizedPNL", &[]));
                 }  else if is_equal(&type_var, &Value::Str("inverse".to_string())) {
-                    add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(entry.clone(), Value::Str("cmWalletBalance".to_string()), &[]));
-                    add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(entry.clone(), Value::Str("cmUnrealizedPNL".to_string()), &[]));
+                    add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(entry.clone(), "cmWalletBalance", &[]));
+                    add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(entry.clone(), "cmUnrealizedPNL", &[]));
                 }  else if is_true(&cross) {
-                    let mut borrowed: Value = self.safe_string(entry.clone(), Value::Str("crossMarginBorrowed".to_string()), &[]);
-                    let mut interest: Value = self.safe_string(entry.clone(), Value::Str("crossMarginInterest".to_string()), &[]);
+                    let mut borrowed: Value = self.safe_string_k(entry.clone(), "crossMarginBorrowed", &[]);
+                    let mut interest: Value = self.safe_string_k(entry.clone(), "crossMarginInterest", &[]);
                     add_element_to_object(&mut account, &Value::Str("debt".to_string()), crate::precise::Precise::stringAdd(&borrowed, &interest));
-                    add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(entry.clone(), Value::Str("crossMarginFree".to_string()), &[]));
-                    add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(entry.clone(), Value::Str("crossMarginLocked".to_string()), &[]));
-                    add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(entry.clone(), Value::Str("crossMarginAsset".to_string()), &[]));
+                    add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(entry.clone(), "crossMarginFree", &[]));
+                    add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(entry.clone(), "crossMarginLocked", &[]));
+                    add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(entry.clone(), "crossMarginAsset", &[]));
                 }  else {
-                    let mut usedLinear: Value = self.safe_string(entry.clone(), Value::Str("umUnrealizedPNL".to_string()), &[]);
-                    let mut usedInverse: Value = self.safe_string(entry.clone(), Value::Str("cmUnrealizedPNL".to_string()), &[]);
+                    let mut usedLinear: Value = self.safe_string_k(entry.clone(), "umUnrealizedPNL", &[]);
+                    let mut usedInverse: Value = self.safe_string_k(entry.clone(), "cmUnrealizedPNL", &[]);
                     let mut totalUsed: Value = crate::precise::Precise::stringAdd(&usedLinear, &usedInverse);
-                    let mut totalWalletBalance: Value = self.safe_string(entry.clone(), Value::Str("totalWalletBalance".to_string()), &[]);
+                    let mut totalWalletBalance: Value = self.safe_string_k(entry.clone(), "totalWalletBalance", &[]);
                     add_element_to_object(&mut account, &Value::Str("total".to_string()), crate::precise::Precise::stringAdd(&totalUsed, &totalWalletBalance));
                 }
                 add_element_to_object(&mut result, &code, account.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else if !is_true(&isolated) && is_true(&(is_true(&(is_equal(&type_var, &Value::Str("spot".to_string())))) || is_true(&cross))) {
-            timestamp = self.safe_integer(response.clone(), Value::Str("updateTime".to_string()), &[]);
+            timestamp = self.safe_integer_k(response.clone(), "updateTime", &[]);
             let mut balances: Value = self.safe_list2(response.clone(), Value::Str("balances".to_string()), Value::Str("userAssets".to_string()), &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&balances)) {
+                let mut __for_first_242: bool = true;
+                while { if !__for_first_242 { i = add(&i, &Value::Int(1)); } __for_first_242 = false; is_less_than(&i, &get_array_length(&balances)) } {
                 let mut balance: Value = get_value(&balances, &i);
-                let mut currencyId: Value = self.safe_string(balance.clone(), Value::Str("asset".to_string()), &[]);
+                let mut balance: Value = get_value(&balances, &i);
+                let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut account: Value = self.account();
-                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(balance.clone(), Value::Str("free".to_string()), &[]));
-                add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(balance.clone(), Value::Str("locked".to_string()), &[]));
+                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "free", &[]));
+                add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "locked", &[]));
                 if is_true(&cross) {
-                    let mut debt: Value = self.safe_string(balance.clone(), Value::Str("borrowed".to_string()), &[]);
-                    let mut interest: Value = self.safe_string(balance.clone(), Value::Str("interest".to_string()), &[]);
+                    let mut debt: Value = self.safe_string_k(balance.clone(), "borrowed", &[]);
+                    let mut interest: Value = self.safe_string_k(balance.clone(), "interest", &[]);
                     add_element_to_object(&mut account, &Value::Str("debt".to_string()), crate::precise::Precise::stringAdd(&debt, &interest));
                 }
                 add_element_to_object(&mut result, &code, account.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else if is_true(&isolated) {
-            let mut assets: Value = self.safe_list(response.clone(), Value::Str("assets".to_string()), &[]);
+            let mut assets: Value = self.safe_list_k(response.clone(), "assets", &[]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&assets)) {
+                let mut __for_first_243: bool = true;
+                while { if !__for_first_243 { i = add(&i, &Value::Int(1)); } __for_first_243 = false; is_less_than(&i, &get_array_length(&assets)) } {
                 let mut asset: Value = get_value(&assets, &i);
-                let mut marketId: Value = self.safe_string(asset.clone(), Value::Str("symbol".to_string()), &[]);
+                let mut asset: Value = get_value(&assets, &i);
+                let mut marketId: Value = self.safe_string_k(asset.clone(), "symbol", &[]);
                 let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Null, Value::Str("spot".to_string())]);
-                let mut base: Value = self.safe_dict(asset.clone(), Value::Str("baseAsset".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+                let mut base: Value = self.safe_dict_k(asset.clone(), "baseAsset", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut quote: Value = self.safe_dict(asset.clone(), Value::Str("quoteAsset".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+                let mut quote: Value = self.safe_dict_k(asset.clone(), "quoteAsset", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut baseCode: Value = self.safe_currency_code(self.safe_string(base.clone(), Value::Str("asset".to_string()), &[]), &[]);
-                let mut quoteCode: Value = self.safe_currency_code(self.safe_string(quote.clone(), Value::Str("asset".to_string()), &[]), &[]);
+                let mut baseCode: Value = self.safe_currency_code(self.safe_string_k(base.clone(), "asset", &[]), &[]);
+                let mut quoteCode: Value = self.safe_currency_code(self.safe_string_k(quote.clone(), "asset", &[]), &[]);
                 let mut subResult: Value = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                     m
                 });
                 add_element_to_object(&mut subResult, &baseCode, self.parse_balance_helper(base.clone()));
                 add_element_to_object(&mut subResult, &quoteCode, self.parse_balance_helper(quote.clone()));
                 add_element_to_object(&mut result, &symbol, self.safe_balance(subResult.clone()));
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else if is_equal(&type_var, &Value::Str("savings".to_string())) {
-            let mut positionAmountVos: Value = self.safe_list(response.clone(), Value::Str("positionAmountVos".to_string()), &[Value::List(vec![])]);
+            let mut positionAmountVos: Value = self.safe_list_k(response.clone(), "positionAmountVos", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&positionAmountVos)) {
+                let mut __for_first_244: bool = true;
+                while { if !__for_first_244 { i = add(&i, &Value::Int(1)); } __for_first_244 = false; is_less_than(&i, &get_array_length(&positionAmountVos)) } {
                 let mut entry: Value = get_value(&positionAmountVos, &i);
-                let mut currencyId: Value = self.safe_string(entry.clone(), Value::Str("asset".to_string()), &[]);
+                let mut entry: Value = get_value(&positionAmountVos, &i);
+                let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut account: Value = self.account();
-                let mut usedAndTotal: Value = self.safe_string(entry.clone(), Value::Str("amount".to_string()), &[]);
+                let mut usedAndTotal: Value = self.safe_string_k(entry.clone(), "amount", &[]);
                 add_element_to_object(&mut account, &Value::Str("total".to_string()), usedAndTotal.clone());
                 add_element_to_object(&mut account, &Value::Str("used".to_string()), usedAndTotal.clone());
                 add_element_to_object(&mut result, &code, account.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else if is_equal(&type_var, &Value::Str("funding".to_string())) {
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&response)) {
+                let mut __for_first_245: bool = true;
+                while { if !__for_first_245 { i = add(&i, &Value::Int(1)); } __for_first_245 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut entry: Value = get_value(&response, &i);
                 let mut entry: Value = get_value(&response, &i);
                 let mut account: Value = self.account();
-                let mut currencyId: Value = self.safe_string(entry.clone(), Value::Str("asset".to_string()), &[]);
+                let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(entry.clone(), Value::Str("free".to_string()), &[]));
-                let mut frozen: Value = self.safe_string(entry.clone(), Value::Str("freeze".to_string()), &[]);
-                let mut withdrawing: Value = self.safe_string(entry.clone(), Value::Str("withdrawing".to_string()), &[]);
-                let mut locked: Value = self.safe_string(entry.clone(), Value::Str("locked".to_string()), &[]);
+                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(entry.clone(), "free", &[]));
+                let mut frozen: Value = self.safe_string_k(entry.clone(), "freeze", &[]);
+                let mut withdrawing: Value = self.safe_string_k(entry.clone(), "withdrawing", &[]);
+                let mut locked: Value = self.safe_string_k(entry.clone(), "locked", &[]);
                 add_element_to_object(&mut account, &Value::Str("used".to_string()), crate::precise::Precise::stringAdd(&frozen, &crate::precise::Precise::stringAdd(&locked, &withdrawing)));
                 add_element_to_object(&mut result, &code, account.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else {
             let mut balances: Value = response.clone();
             if !is_true(&Value::Bool(is_array(&response))) {
-                balances = self.safe_list(response.clone(), Value::Str("assets".to_string()), &[Value::List(vec![])]);
+                balances = self.safe_list_k(response.clone(), "assets", &[Value::List(vec![])]);
             }
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&balances)) {
+                let mut __for_first_246: bool = true;
+                while { if !__for_first_246 { i = add(&i, &Value::Int(1)); } __for_first_246 = false; is_less_than(&i, &get_array_length(&balances)) } {
                 let mut balance: Value = get_value(&balances, &i);
-                let mut currencyId: Value = self.safe_string(balance.clone(), Value::Str("asset".to_string()), &[]);
+                let mut balance: Value = get_value(&balances, &i);
+                let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut account: Value = self.account();
-                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(balance.clone(), Value::Str("availableBalance".to_string()), &[]));
-                add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(balance.clone(), Value::Str("initialMargin".to_string()), &[]));
+                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "availableBalance", &[]));
+                add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "initialMargin", &[]));
                 add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string2(balance.clone(), Value::Str("marginBalance".to_string()), Value::Str("balance".to_string()), &[]));
                 add_element_to_object(&mut result, &code, account.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
         }
@@ -4554,30 +4675,30 @@ impl BinanceCore {
  * @method
  * @name binance#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-information-user_data  // spot
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/account/Query-Cross-Margin-Account-Details                       // cross margin
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/account/Query-Isolated-Margin-Account-Info                       // isolated margin
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/wallet/asset/funding-wallet                                                     // funding
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/account/rest-api/Futures-Account-Balance-V2   // swap
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/account/rest-api/Futures-Account-Balance      // future
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/account/Option-Account-Information                           // option
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-information-user_data  // spot
+ * @see https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Account-Details                       // cross margin
+ * @see https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Account-Info                       // isolated margin
+ * @see https://developers.binance.com/docs/wallet/asset/funding-wallet                                                     // funding
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Futures-Account-Balance-V2   // swap
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Futures-Account-Balance      // future
+ * @see https://developers.binance.com/docs/derivatives/option/account/Option-Account-Information                           // option
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', for margin trading, uses get_value(&this, &Value::Str("options".to_string())).defaultMarginMode if not passed, defaults to undefined/None/null
- * @param {string[]|undefined} [get_value(&params, &Value::Str("symbols".to_string()))] unified market symbols, only used in isolated margin mode
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to fetch the balance for a portfolio margin account
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] 'linear' or 'inverse'
- * @returns {object} a [balance structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=balance-structure}
+ * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+ * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
+ * @param {string} [params.subType] 'linear' or 'inverse'
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
     pub async fn fetch_balance(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchBalance".to_string()), Value::Str("defaultType".to_string()), &[Value::Str("spot".to_string())]);
-        let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[defaultType.clone()]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchBalance".to_string()), &[Value::Null, params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isPortfolioMargin: Value = Value::Null;
@@ -4588,7 +4709,7 @@ impl BinanceCore {
         query = self.omit(query.clone(), Value::Str("type".to_string()), &[]);
         let mut response: Value = Value::Null;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if is_true(&isPortfolioMargin) || is_true(&(is_equal(&type_var, &Value::Str("papi".to_string())))) {
@@ -4613,7 +4734,7 @@ impl BinanceCore {
             type_var = Value::Str("inverse".to_string());
             response = self.call_method(Value::Str("dapi_private_get_account".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
         }  else if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-            let mut paramSymbols: Value = self.safe_list(params.clone(), Value::Str("symbols".to_string()), &[]);
+            let mut paramSymbols: Value = self.safe_list_k(params.clone(), "symbols", &[]);
             query = self.omit(query.clone(), Value::Str("symbols".to_string()), &[]);
             if !is_equal(&paramSymbols, &Value::Null) {
                 let mut symbols: Value = Value::Str("".to_string());
@@ -4621,11 +4742,12 @@ impl BinanceCore {
                     symbols = self.market_id(get_value(&paramSymbols, &Value::Int(0)));
                     {
                                                 let mut i: Value = Value::Int(1);
-                        while is_less_than(&i, &get_array_length(&paramSymbols)) {
+                        let mut __for_first_247: bool = true;
+                        while { if !__for_first_247 { i = add(&i, &Value::Int(1)); } __for_first_247 = false; is_less_than(&i, &get_array_length(&paramSymbols)) } {
+                        let mut symbol: Value = get_value(&paramSymbols, &i);
                         let mut symbol: Value = get_value(&paramSymbols, &i);
                         let mut id: Value = self.market_id(symbol.clone());
                         symbols = add(&symbols, &add(&Value::Str(",".to_string()), &id));
-                        i = add(&i, &Value::Int(1));
                     }
                     }
                 }  else {
@@ -4652,38 +4774,38 @@ impl BinanceCore {
  * @method
  * @name binance#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book       // spot
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book     // swap
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book-RPI // swap rpi
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book     // future
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/market-data/Order-Book                             // option
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book       // spot
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book     // swap
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book-RPI // swap rpi
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book     // future
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                             // option
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("rpi".to_string()))] *future only* set to true to use the RPI endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-book-structure} indexed by market symbols
+ * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
         if !is_equal(&limit, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 5000, see https://get_value(&github, &Value::Str("com".to_string()))/binance/binance-spot-api-docs/blob/master/rest-get_value(&api, &Value::Str("md".to_string()))#order-book
+            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("option".to_string()))) {
             response = self.call_method(Value::Str("eapi_public_get_depth".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-            let mut rpi: Value = self.safe_value(params.clone(), Value::Str("rpi".to_string()), &[Value::Bool(false)]);
+            let mut rpi: Value = self.safe_value_k(params.clone(), "rpi", &[Value::Bool(false)]);
             params = self.omit(params.clone(), Value::Str("rpi".to_string()), &[]);
             if is_true(&rpi) {
                 // rpi limit only supports 1000
@@ -4733,7 +4855,7 @@ impl BinanceCore {
         //         "u": 1015939
         //     }
         //
-        let mut timestamp: Value = self.safe_integer(response.clone(), Value::Str("T".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(response.clone(), "T", &[]);
         let mut orderbook: Value = self.parse_order_book(response.clone(), symbol.clone(), &[timestamp.clone()]);
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer2(response.clone(), Value::Str("lastUpdateId".to_string()), Value::Str("u".to_string()), &[]));
         return orderbook;
@@ -4889,44 +5011,44 @@ impl BinanceCore {
         if is_equal(&marketType, &Value::Null) {
             marketType = ternary(is_true(&(Value::Bool(in_op(&ticker, &Value::Str("bidQty".to_string()))))), Value::Str("spot".to_string()), Value::Str("contract".to_string()));
         }
-        let mut marketId: Value = self.safe_string(ticker.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, marketType.clone()]);
-        let mut last: Value = self.safe_string(ticker.clone(), Value::Str("lastPrice".to_string()), &[]);
-        let mut wAvg: Value = self.safe_string(ticker.clone(), Value::Str("weightedAvgPrice".to_string()), &[]);
+        let mut last: Value = self.safe_string_k(ticker.clone(), "lastPrice", &[]);
+        let mut wAvg: Value = self.safe_string_k(ticker.clone(), "weightedAvgPrice", &[]);
         let mut isCoinm: Value = (Value::Bool(in_op(&ticker, &Value::Str("baseVolume".to_string()))));
         let mut baseVolume: Value = Value::Null;
         let mut quoteVolume: Value = Value::Null;
         if is_true(&isCoinm) {
-            baseVolume = self.safe_string(ticker.clone(), Value::Str("baseVolume".to_string()), &[]);
+            baseVolume = self.safe_string_k(ticker.clone(), "baseVolume", &[]);
             // 'volume' field in inverse markets is not quoteVolume, but traded amount (per contracts)
             quoteVolume = crate::precise::Precise::stringMul(&baseVolume, &wAvg);
         }  else {
-            baseVolume = self.safe_string(ticker.clone(), Value::Str("volume".to_string()), &[]);
+            baseVolume = self.safe_string_k(ticker.clone(), "volume", &[]);
             quoteVolume = self.safe_string2(ticker.clone(), Value::Str("quoteVolume".to_string()), Value::Str("amount".to_string()), &[]);
         }
         return self.safe_ticker(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("high".to_string(), self.safe_string2(ticker.clone(), Value::Str("highPrice".to_string()), Value::Str("high".to_string()), &[]));
         m.insert("low".to_string(), self.safe_string2(ticker.clone(), Value::Str("lowPrice".to_string()), Value::Str("low".to_string()), &[]));
-        m.insert("bid".to_string(), self.safe_string(ticker.clone(), Value::Str("bidPrice".to_string()), &[]));
-        m.insert("bidVolume".to_string(), self.safe_string(ticker.clone(), Value::Str("bidQty".to_string()), &[]));
-        m.insert("ask".to_string(), self.safe_string(ticker.clone(), Value::Str("askPrice".to_string()), &[]));
-        m.insert("askVolume".to_string(), self.safe_string(ticker.clone(), Value::Str("askQty".to_string()), &[]));
+        m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bidPrice", &[]));
+        m.insert("bidVolume".to_string(), self.safe_string_k(ticker.clone(), "bidQty", &[]));
+        m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "askPrice", &[]));
+        m.insert("askVolume".to_string(), self.safe_string_k(ticker.clone(), "askQty", &[]));
         m.insert("vwap".to_string(), wAvg.clone());
         m.insert("open".to_string(), self.safe_string2(ticker.clone(), Value::Str("openPrice".to_string()), Value::Str("open".to_string()), &[]));
         m.insert("close".to_string(), last.clone());
         m.insert("last".to_string(), last.clone());
-        m.insert("previousClose".to_string(), self.safe_string(ticker.clone(), Value::Str("prevClosePrice".to_string()), &[]));
-        m.insert("change".to_string(), self.safe_string(ticker.clone(), Value::Str("priceChange".to_string()), &[]));
-        m.insert("percentage".to_string(), self.safe_string(ticker.clone(), Value::Str("priceChangePercent".to_string()), &[]));
+        m.insert("previousClose".to_string(), self.safe_string_k(ticker.clone(), "prevClosePrice", &[]));
+        m.insert("change".to_string(), self.safe_string_k(ticker.clone(), "priceChange", &[]));
+        m.insert("percentage".to_string(), self.safe_string_k(ticker.clone(), "priceChangePercent", &[]));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), baseVolume.clone());
         m.insert("quoteVolume".to_string(), quoteVolume.clone());
-        m.insert("markPrice".to_string(), self.safe_string(ticker.clone(), Value::Str("markPrice".to_string()), &[]));
-        m.insert("indexPrice".to_string(), self.safe_string(ticker.clone(), Value::Str("indexPrice".to_string()), &[]));
+        m.insert("markPrice".to_string(), self.safe_string_k(ticker.clone(), "markPrice", &[]));
+        m.insert("indexPrice".to_string(), self.safe_string_k(ticker.clone(), "indexPrice", &[]));
         m.insert("info".to_string(), ticker.clone());
     m
 }), &[market.clone()]);
@@ -4938,13 +5060,13 @@ impl BinanceCore {
  * @method
  * @name binance#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/wallet/others/system-status
+ * @see https://developers.binance.com/docs/wallet/others/system-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
     pub async fn fetch_status(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut response: Value = self.call_method(Value::Str("sapi_get_system_status".to_string()), &[params.clone()]).await;
@@ -4954,11 +5076,11 @@ impl BinanceCore {
         //         "msg": "normal"           // "normal", "system_maintenance"
         //     }
         //
-        let mut statusRaw: Value = self.safe_string(response.clone(), Value::Str("status".to_string()), &[]);
+        let mut statusRaw: Value = self.safe_string_k(response.clone(), "status", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), self.safe_string(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("0".to_string(), Value::Str("ok".to_string()));
         m.insert("1".to_string(), Value::Str("maintenance".to_string()));
     m
@@ -4977,25 +5099,25 @@ impl BinanceCore {
  * @method
  * @name binance#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics     // spot
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#rolling-window-price-change-statistics  // spot
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // swap
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // future
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           // option
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics     // spot
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#rolling-window-price-change-statistics  // spot
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // swap
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // future
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           // option
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("rolling".to_string()))] (spot only) default false, if true, uses the rolling 24 hour ticker endpoint /api/v3/ticker
- * @returns {object} a [ticker structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ticker-structure}
+ * @param {boolean} [params.rolling] (spot only) default false, if true, uses the rolling 24 hour ticker endpoint /api/v3/ticker
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -5007,7 +5129,7 @@ impl BinanceCore {
         }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
             response = self.call_method(Value::Str("dapi_public_get_ticker24hr".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            let mut rolling: Value = self.safe_bool(params.clone(), Value::Str("rolling".to_string()), &[Value::Bool(false)]);
+            let mut rolling: Value = self.safe_bool_k(params.clone(), "rolling", &[Value::Bool(false)]);
             params = self.omit(params.clone(), Value::Str("rolling".to_string()), &[]);
             if is_true(&rolling) {
                 response = self.call_method(Value::Str("public_get_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
@@ -5017,7 +5139,7 @@ impl BinanceCore {
         }
         if is_true(&Value::Bool(is_array(&response))) {
             let mut firstTicker: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             return self.parse_ticker(firstTicker.clone(), &[market.clone()]);
@@ -5031,18 +5153,18 @@ impl BinanceCore {
  * @method
  * @name binance#fetchBidsAsks
  * @description fetches the bid and ask price and volume for multiple markets
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker   // spot
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // future
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker   // spot
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // future
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
- * @returns {object} a dictionary of [ticker structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ticker-structure}
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5059,7 +5181,7 @@ impl BinanceCore {
             response = self.call_method(Value::Str("dapi_public_get_ticker_book_ticker".to_string()), &[params.clone()]).await;
         }  else if is_equal(&type_var, &Value::Str("spot".to_string())) {
             let mut request: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m
             });
             if !is_equal(&symbols, &Value::Null) {
@@ -5067,7 +5189,7 @@ impl BinanceCore {
             }
             response = self.call_method(Value::Str("public_get_ticker_book_ticker".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchBidsAsks() does not support ".to_string())), &type_var), &Value::Str(" markets yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchBidsAsks() does not support ".to_string())), &type_var), &Value::Str(" markets yet".to_string()))));
         }
         return self.parse_tickers(response.clone(), &[symbols.clone()]);
 
@@ -5078,18 +5200,18 @@ impl BinanceCore {
  * @method
  * @name binance#fetchLastPrices
  * @description fetches the last price for multiple markets
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-price-ticker    // spot
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // swap
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // future
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-price-ticker    // spot
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // swap
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // future
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
+ * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object} a dictionary of lastprices structures
  */
     pub async fn fetch_last_prices(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5107,7 +5229,7 @@ impl BinanceCore {
         }  else if is_equal(&type_var, &Value::Str("spot".to_string())) {
             response = self.call_method(Value::Str("public_get_ticker_price".to_string()), &[params.clone()]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchLastPrices() does not support ".to_string())), &type_var), &Value::Str(" markets yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchLastPrices() does not support ".to_string())), &type_var), &Value::Str(" markets yet".to_string()))));
         }
         return self.parse_last_prices(response.clone(), &[symbols.clone()]);
 
@@ -5142,12 +5264,12 @@ impl BinanceCore {
         //         "time": 1591257246176
         //     }
         //
-        let mut timestamp: Value = self.safe_integer(entry.clone(), Value::Str("time".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(entry.clone(), "time", &[]);
         let mut type_var: Value = ternary(is_true(&(is_equal(&timestamp, &Value::Null))), Value::Str("spot".to_string()), Value::Str("swap".to_string()));
-        let mut marketId: Value = self.safe_string(entry.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, type_var.clone()]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
@@ -5164,20 +5286,20 @@ impl BinanceCore {
  * @method
  * @name binance#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics    // spot
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // swap
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // future
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                          // option
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics    // spot
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // swap
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // future
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                          // option
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] 'spot', 'option', use params["subType"] for swap and future markets
- * @returns {object} a dictionary of [ticker structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ticker-structure}
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5193,12 +5315,12 @@ impl BinanceCore {
         }  else if is_true(&self.is_inverse(type_var.clone(), &[subType.clone()])) {
             response = self.call_method(Value::Str("dapi_public_get_ticker24hr".to_string()), &[params.clone()]).await;
         }  else if is_equal(&type_var, &Value::Str("spot".to_string())) {
-            let mut rolling: Value = self.safe_bool(params.clone(), Value::Str("rolling".to_string()), &[Value::Bool(false)]);
+            let mut rolling: Value = self.safe_bool_k(params.clone(), "rolling", &[Value::Bool(false)]);
             params = self.omit(params.clone(), Value::Str("rolling".to_string()), &[]);
             if is_true(&rolling) {
                 symbols = self.market_symbols(&[symbols.clone()]);
                 let mut request: Value = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("symbols".to_string(), self.json(self.market_ids(&[symbols.clone()])));
                     m
                 });
@@ -5206,7 +5328,7 @@ impl BinanceCore {
                 return self.parse_tickers_for_rolling(response.clone(), symbols.clone());
             }  else {
                 let mut request: Value = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                     m
                 });
                 if !is_equal(&symbols, &Value::Null) {
@@ -5217,7 +5339,7 @@ impl BinanceCore {
         }  else if is_equal(&type_var, &Value::Str("option".to_string())) {
             response = self.call_method(Value::Str("eapi_public_get_ticker".to_string()), &[params.clone()]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchTickers() does not support ".to_string())), &type_var), &Value::Str(" markets yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchTickers() does not support ".to_string())), &type_var), &Value::Str(" markets yet".to_string()))));
         }
         return self.parse_tickers(response.clone(), &[symbols.clone()]);
 
@@ -5228,13 +5350,13 @@ impl BinanceCore {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
-            let mut marketId: Value = self.safe_string(get_value(&response, &i), Value::Str("symbol".to_string()), &[]);
+            let mut __for_first_248: bool = true;
+            while { if !__for_first_248 { i = add(&i, &Value::Int(1)); } __for_first_248 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut marketId: Value = self.safe_string_k(get_value(&response, &i), "symbol", &[]);
             let mut tickerMarket: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("spot".to_string())]);
             let mut parsedTicker: Value = self.parse_ticker(get_value(&response, &i), &[]);
             add_element_to_object(&mut parsedTicker, &Value::Str("symbol".to_string()), get_value(&tickerMarket, &Value::Str("symbol".to_string())));
             append_to_array(&mut results, parsedTicker.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.filter_by_array(results.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
@@ -5246,16 +5368,16 @@ impl BinanceCore {
  * @method
  * @name binance#fetchMarkPrice
  * @description fetches mark price for the market
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
- * @returns {object} a dictionary of [ticker structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ticker-structure}
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5265,7 +5387,7 @@ impl BinanceCore {
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchMarkPrice".to_string()), &[market.clone(), params.clone(), Value::Str("linear".to_string())]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -5275,11 +5397,11 @@ impl BinanceCore {
         }  else if is_true(&self.is_inverse(type_var.clone(), &[subType.clone()])) {
             response = self.call_method(Value::Str("dapi_public_get_premium_index".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchMarkPrice() does not support ".to_string())), &type_var), &Value::Str(" markets yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchMarkPrice() does not support ".to_string())), &type_var), &Value::Str(" markets yet".to_string()))));
         }
         if is_true(&Value::Bool(is_array(&response))) {
             return self.parse_ticker(self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]), &[market.clone()]);
         }
@@ -5292,17 +5414,17 @@ impl BinanceCore {
  * @method
  * @name binance#fetchMarkPrices
  * @description fetches mark prices for multiple markets
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
- * @returns {object} a dictionary of [ticker structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ticker-structure}
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_mark_prices(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5318,7 +5440,7 @@ impl BinanceCore {
         }  else if is_true(&self.is_inverse(type_var.clone(), &[subType.clone()])) {
             response = self.call_method(Value::Str("dapi_public_get_premium_index".to_string()), &[params.clone()]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchMarkPrices() does not support ".to_string())), &type_var), &Value::Str(" markets yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchMarkPrices() does not support ".to_string())), &type_var), &Value::Str(" markets yet".to_string()))));
         }
         return self.parse_tickers(response.clone(), &[symbols.clone()]);
 
@@ -5378,7 +5500,7 @@ impl BinanceCore {
         //         "closeTime": 1677097200000
         //     }
         //
-        let mut inverse: Value = self.safe_bool(market.clone(), Value::Str("inverse".to_string()), &[]);
+        let mut inverse: Value = self.safe_bool_k(market.clone(), "inverse", &[]);
         let mut volumeIndex: Value = ternary(is_true(&inverse), Value::Int(7), Value::Int(5));
         return Value::List(vec![self.safe_integer2(ohlcv.clone(), Value::Int(0), Value::Str("openTime".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Int(1), Value::Str("open".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Int(2), Value::Str("high".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Int(3), Value::Str("low".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Int(4), Value::Str("close".to_string()), &[]), self.safe_number2(ohlcv.clone(), volumeIndex.clone(), Value::Str("volume".to_string()), &[])]);
 
@@ -5389,24 +5511,24 @@ impl BinanceCore {
  * @method
  * @name binance#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#klinecandlestick-data
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/market-data/Kline-Candlestick-Data
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Kline-Candlestick-Data
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#klinecandlestick-data
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("price".to_string()))] "mark" or "index" for mark price and index price candles
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest candle to fetch
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -5414,7 +5536,7 @@ impl BinanceCore {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5428,15 +5550,15 @@ impl BinanceCore {
         // the reality is that the time range wider than 500 candles won't work right
         let mut defaultLimit: Value = Value::Int(500);
         let mut maxLimit: Value = Value::Int(1000);
-        let mut price: Value = self.safe_string(params.clone(), Value::Str("price".to_string()), &[]);
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut price: Value = self.safe_string_k(params.clone(), "price", &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("price".to_string()), Value::Str("until".to_string())]), &[]);
         if !is_equal(&since, &Value::Null) && !is_equal(&until, &Value::Null) && is_equal(&limit, &Value::Null) {
             limit = maxLimit.clone();
         }
         limit = ternary(is_true(&(is_equal(&limit, &Value::Null))), defaultLimit.clone(), crate::runtime::Math::min(&limit, &maxLimit));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
                 m.insert("limit".to_string(), limit.clone());
             m
@@ -5449,12 +5571,12 @@ impl BinanceCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), marketId.clone());
         }
-        // const duration = get_value(&this, &Value::Str("parseTimeframe".to_string())) (timeframe);
+        // const duration = this.parseTimeframe (timeframe);
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
             //
             // It didn't work before without the endTime
-            // https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/issues/8454
+            // https://github.com/ccxt/ccxt/issues/8454
             //
             if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
                 if is_greater_than(&since, &Value::Int(0)) {
@@ -5535,7 +5657,7 @@ impl BinanceCore {
         }
         //
         // aggregate trades
-        // https://get_value(&github, &Value::Str("com".to_string()))/binance-exchange/binance-official-api-docs/blob/master/rest-get_value(&api, &Value::Str("md".to_string()))#compressedaggregate-trades-list
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
         //
         //     {
         //         "a": 26129,         // Aggregate tradeId
@@ -5561,8 +5683,8 @@ impl BinanceCore {
         //     }
         //
         // recent public trades and old public trades
-        // https://get_value(&github, &Value::Str("com".to_string()))/binance-exchange/binance-official-api-docs/blob/master/rest-get_value(&api, &Value::Str("md".to_string()))#recent-trades-list
-        // https://get_value(&github, &Value::Str("com".to_string()))/binance-exchange/binance-official-api-docs/blob/master/rest-get_value(&api, &Value::Str("md".to_string()))#old-trade-lookup-market_data
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#recent-trades-list
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-trade-lookup-market_data
         //
         //     {
         //         "id": 28457,
@@ -5574,7 +5696,7 @@ impl BinanceCore {
         //     }
         //
         // private trades
-        // https://get_value(&github, &Value::Str("com".to_string()))/binance-exchange/binance-official-api-docs/blob/master/rest-get_value(&api, &Value::Str("md".to_string()))#account-trade-list-user_data
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#account-trade-list-user_data
         //
         //     {
         //         "symbol": "BNBBTC",
@@ -5731,8 +5853,8 @@ impl BinanceCore {
         //
         let mut timestamp: Value = self.safe_integer2(trade.clone(), Value::Str("T".to_string()), Value::Str("time".to_string()), &[]);
         let mut amount: Value = self.safe_string2(trade.clone(), Value::Str("q".to_string()), Value::Str("qty".to_string()), &[]);
-        amount = self.safe_string(trade.clone(), Value::Str("quantity".to_string()), &[amount.clone()]);
-        let mut marketId: Value = self.safe_string(trade.clone(), Value::Str("symbol".to_string()), &[]);
+        amount = self.safe_string_k(trade.clone(), "quantity", &[amount.clone()]);
+        let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         let mut isSpotTrade: Value = Value::Bool(is_true(&(Value::Bool(in_op(&trade, &Value::Str("isIsolated".to_string()))))) || is_true(&(Value::Bool(in_op(&trade, &Value::Str("M".to_string()))))) || is_true(&(Value::Bool(in_op(&trade, &Value::Str("orderListId".to_string()))))) || is_true(&(Value::Bool(in_op(&trade, &Value::Str("isMaker".to_string()))))));
         let mut marketType: Value = ternary(is_true(&isSpotTrade), Value::Str("spot".to_string()), Value::Str("contract".to_string()));
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, marketType.clone()]);
@@ -5752,9 +5874,9 @@ impl BinanceCore {
         let mut fee: Value = Value::Null;
         if is_true(&Value::Bool(in_op(&trade, &Value::Str("commission".to_string())))) {
             fee = Value::Map({
-                let mut m = std::collections::HashMap::new();
-                    m.insert("cost".to_string(), self.safe_string(trade.clone(), Value::Str("commission".to_string()), &[]));
-                    m.insert("currency".to_string(), self.safe_currency_code(self.safe_string(trade.clone(), Value::Str("commissionAsset".to_string()), &[]), &[]));
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "commission", &[]));
+                    m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(trade.clone(), "commissionAsset", &[]), &[]));
                 m
             });
         }
@@ -5765,12 +5887,12 @@ impl BinanceCore {
             takerOrMaker = ternary(is_true(&get_value(&trade, &Value::Str("maker".to_string()))), Value::Str("maker".to_string()), Value::Str("taker".to_string()));
         }
         if is_true(&(Value::Bool(in_op(&trade, &Value::Str("optionSide".to_string()))))) || is_true(&get_value(&market, &Value::Str("option".to_string()))) {
-            let mut settle: Value = self.safe_currency_code(self.safe_string(trade.clone(), Value::Str("quoteAsset".to_string()), &[Value::Str("USDT".to_string())]), &[]);
+            let mut settle: Value = self.safe_currency_code(self.safe_string_k(trade.clone(), "quoteAsset", &[Value::Str("USDT".to_string())]), &[]);
             takerOrMaker = self.safe_string_lower(trade.clone(), Value::Str("liquidity".to_string()), &[]);
             if is_true(&Value::Bool(in_op(&trade, &Value::Str("fee".to_string())))) {
                 fee = Value::Map({
-                    let mut m = std::collections::HashMap::new();
-                        m.insert("cost".to_string(), self.safe_string(trade.clone(), Value::Str("fee".to_string()), &[]));
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "fee", &[]));
                         m.insert("currency".to_string(), settle.clone());
                     m
                 });
@@ -5785,13 +5907,13 @@ impl BinanceCore {
             }
         }
         return self.safe_trade(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("id".to_string(), self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("t".to_string()), Value::Str("a".to_string()), Value::Str("tradeId".to_string()), Value::Str("id".to_string())]), &[]));
-        m.insert("order".to_string(), self.safe_string(trade.clone(), Value::Str("orderId".to_string()), &[]));
+        m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderId", &[]));
         m.insert("type".to_string(), self.safe_string_lower(trade.clone(), Value::Str("type".to_string()), &[]));
         m.insert("side".to_string(), side.clone());
         m.insert("takerOrMaker".to_string(), takerOrMaker.clone());
@@ -5810,35 +5932,35 @@ impl BinanceCore {
  * @name binance#fetchTrades
  * @description get the list of most recent trades for a particular symbol
  * Default fetchTradesMethod
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#compressedaggregate-trades-list    // publicGetAggTrades (spot)
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // fapiPublicGetAggTrades (swap)
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // dapiPublicGetAggTrades (future)
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/market-data/Recent-Trades-List                                       // eapiPublicGetTrades (option)
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#compressedaggregate-trades-list    // publicGetAggTrades (spot)
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // fapiPublicGetAggTrades (swap)
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // dapiPublicGetAggTrades (future)
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List                                       // eapiPublicGetTrades (option)
  * Other fetchTradesMethod
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#recent-trades-list                 // publicGetTrades (spot)
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               // fapiPublicGetTrades (swap)
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Recent-Trades-List               // dapiPublicGetTrades (future)
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#old-trade-lookup                   // publicGetHistoricalTrades (spot)
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup                // fapiPublicGetHistoricalTrades (swap)
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Old-Trades-Lookup                // dapiPublicGetHistoricalTrades (future)
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/market-data/Old-Trades-Lookup                                        // eapiPublicGetHistoricalTrades (option)
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#recent-trades-list                 // publicGetTrades (spot)
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               // fapiPublicGetTrades (swap)
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Recent-Trades-List               // dapiPublicGetTrades (future)
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#old-trade-lookup                   // publicGetHistoricalTrades (spot)
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup                // fapiPublicGetHistoricalTrades (swap)
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Old-Trades-Lookup                // dapiPublicGetHistoricalTrades (future)
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup                                        // eapiPublicGetHistoricalTrades (option)
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
  * @param {int} [limit] default 500, max 1000
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
- * @param {int} [get_value(&params, &Value::Str("fetchTradesMethod".to_string()))] 'publicGetAggTrades' (spot default), 'fapiPublicGetAggTrades' (swap default), 'dapiPublicGetAggTrades' (future default), 'eapiPublicGetTrades' (option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {int} [params.until] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
+ * @param {int} [params.fetchTradesMethod] 'publicGetAggTrades' (spot default), 'fapiPublicGetAggTrades' (swap default), 'dapiPublicGetAggTrades' (future default), 'eapiPublicGetTrades' (option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  *
  * EXCHANGE SPECIFIC PARAMETERS
- * @param {int} [get_value(&params, &Value::Str("fromId".to_string()))] trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
- * @returns {Trade[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=public-trades}
+ * @param {int} [params.fromId] trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
     pub async fn fetch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5849,23 +5971,23 @@ impl BinanceCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
         if !is_true(&get_value(&market, &Value::Str("option".to_string()))) {
             if !is_equal(&since, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
-                // https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/issues/6400
-                // https://get_value(&github, &Value::Str("com".to_string()))/binance-exchange/binance-official-api-docs/blob/master/rest-get_value(&api, &Value::Str("md".to_string()))#compressedaggregate-trades-list
+                // https://github.com/ccxt/ccxt/issues/6400
+                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
                 add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.sum(&[since.clone(), Value::Int(3600000)]));
             }
-            let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+            let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
             if !is_equal(&until, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
             }
         }
-        let mut method: Value = self.safe_string(self.options.clone(), Value::Str("fetchTradesMethod".to_string()), &[]);
+        let mut method: Value = self.safe_string_k(self.options.clone(), "fetchTradesMethod", &[]);
         method = self.safe_string2(params.clone(), Value::Str("fetchTradesMethod".to_string()), Value::Str("method".to_string()), &[method.clone()]);
         if !is_equal(&limit, &Value::Null) {
             let mut isFutureOrSwap: Value = Value::Bool(is_true(&get_value(&market, &Value::Str("swap".to_string()))) || is_true(&get_value(&market, &Value::Str("future".to_string()))));
@@ -5894,7 +6016,7 @@ impl BinanceCore {
  * @name binance#editSpotOrder
  * @ignore
  * @description edit a trade order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
@@ -5902,19 +6024,19 @@ impl BinanceCore {
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', for spot margin trading
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn edit_spot_order(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" editSpotOrder() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" editSpotOrder() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
         }
         let mut payload: Value = self.edit_spot_order_request(id.clone(), symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut response: Value = self.call_method(Value::Str("private_post_order_cancel_replace".to_string()), &[payload.clone()]).await;
@@ -5957,7 +6079,7 @@ impl BinanceCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("newOrderResponse".to_string()), &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "newOrderResponse", &[]);
         return self.parse_order(data.clone(), &[market.clone()]);
 
     Value::Null
@@ -5966,7 +6088,7 @@ impl BinanceCore {
     pub fn edit_spot_order_request(&self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -5981,13 +6103,13 @@ impl BinanceCore {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the exchange API endpoint
-         * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', for spot margin trading
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @returns {object} request to be sent to the exchange
          */
         let mut market: Value = self.market(symbol.clone());
         let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("newClientOrderId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("origClientOrderId".to_string())]), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("side".to_string(), to_upper(&side));
             m
@@ -6010,15 +6132,15 @@ impl BinanceCore {
         let mut validOrderTypes: Value = self.safe_list(get_value(&market, &Value::Str("info".to_string())), Value::Str("orderTypes".to_string()), &[]);
         if !is_true(&self.in_array(uppercaseType.clone(), validOrderTypes.clone())) {
             if !is_equal(&initialUppercaseType, &uppercaseType) {
-                panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&add(&add(&add(&self.id, &Value::Str(" triggerPrice parameter is not allowed for ".to_string())), &symbol), &Value::Str(" ".to_string())), &type_var), &Value::Str(" orders".to_string()))));
+                panic!("{}", crate::exchange_errors::invalid_order(add(&add(&add(&add(&add(&self.id, &Value::Str(" triggerPrice parameter is not allowed for ".to_string())), &symbol), &Value::Str(" ".to_string())), &type_var), &Value::Str(" orders".to_string()))));
             }  else {
-                panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&add(&add(&add(&self.id, &Value::Str(" ".to_string())), &type_var), &Value::Str(" is not a valid order type for the ".to_string())), &symbol), &Value::Str(" market".to_string()))));
+                panic!("{}", crate::exchange_errors::invalid_order(add(&add(&add(&add(&add(&self.id, &Value::Str(" ".to_string())), &type_var), &Value::Str(" is not a valid order type for the ".to_string())), &symbol), &Value::Str(" market".to_string()))));
             }
         }
         if is_equal(&clientOrderId, &Value::Null) {
-            let mut broker: Value = self.safe_dict(self.options.clone(), Value::Str("broker".to_string()), &[]);
+            let mut broker: Value = self.safe_dict_k(self.options.clone(), "broker", &[]);
             if !is_equal(&broker, &Value::Null) {
-                let mut brokerId: Value = self.safe_string(broker.clone(), Value::Str("spot".to_string()), &[]);
+                let mut brokerId: Value = self.safe_string_k(broker.clone(), "spot", &[]);
                 if !is_equal(&brokerId, &Value::Null) {
                     add_element_to_object(&mut request, &Value::Str("newClientOrderId".to_string()), add(&brokerId, &self.uuid22(&[])));
                 }
@@ -6032,7 +6154,7 @@ impl BinanceCore {
         let mut triggerPriceIsRequired: Value = Value::Bool(false);
         let mut quantityIsRequired: Value = Value::Bool(false);
         if is_equal(&uppercaseType, &Value::Str("MARKET".to_string())) {
-            let mut quoteOrderQty: Value = self.safe_bool(self.options.clone(), Value::Str("quoteOrderQty".to_string()), &[Value::Bool(true)]);
+            let mut quoteOrderQty: Value = self.safe_bool_k(self.options.clone(), "quoteOrderQty", &[Value::Bool(true)]);
             if is_true(&quoteOrderQty) {
                 let mut quoteOrderQtyNew: Value = self.safe_value2(params.clone(), Value::Str("quoteOrderQty".to_string()), Value::Str("cost".to_string()), &[]);
                 let mut precision: Value = get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("price".to_string()));
@@ -6070,16 +6192,16 @@ impl BinanceCore {
         }
         if is_true(&priceIsRequired) {
             if is_equal(&price, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&add(&self.id, &Value::Str(" editOrder() requires a price argument for a ".to_string())), &type_var), &Value::Str(" order".to_string()))));
+                panic!("{}", crate::exchange_errors::invalid_order(add(&add(&add(&self.id, &Value::Str(" editOrder() requires a price argument for a ".to_string())), &type_var), &Value::Str(" order".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
-        if is_true(&timeInForceIsRequired) && is_true(&(is_equal(&self.safe_string(params.clone(), Value::Str("timeInForce".to_string()), &[]), &Value::Null))) {
+        if is_true(&timeInForceIsRequired) && is_true(&(is_equal(&self.safe_string_k(params.clone(), "timeInForce", &[]), &Value::Null))) {
             add_element_to_object(&mut request, &Value::Str("timeInForce".to_string()), get_value(&self.options, &Value::Str("defaultTimeInForce".to_string()))); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if is_true(&triggerPriceIsRequired) {
             if is_equal(&triggerPrice, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&add(&self.id, &Value::Str(" editOrder() requires a triggerPrice extra param for a ".to_string())), &type_var), &Value::Str(" order".to_string()))));
+                panic!("{}", crate::exchange_errors::invalid_order(add(&add(&add(&self.id, &Value::Str(" editOrder() requires a triggerPrice extra param for a ".to_string())), &type_var), &Value::Str(" order".to_string()))));
             }  else {
                 add_element_to_object(&mut request, &Value::Str("stopPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
             }
@@ -6089,8 +6211,8 @@ impl BinanceCore {
         if is_equal(&cancelId, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("cancelOrderId".to_string()), id.clone()); // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
         }
-        // remove timeInForce from params because PO is only used by get_value(&this, &Value::Str("isPostOnly".to_string())) and it's not a valid value for Binance
-        if is_equal(&self.safe_string(params.clone(), Value::Str("timeInForce".to_string()), &[]), &Value::Str("PO".to_string())) {
+        // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
+        if is_equal(&self.safe_string_k(params.clone(), "timeInForce", &[]), &Value::Str("PO".to_string())) {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("timeInForce".to_string())]), &[]);
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("quoteOrderQty".to_string()), Value::Str("cost".to_string()), Value::Str("stopPrice".to_string()), Value::Str("newClientOrderId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("postOnly".to_string())]), &[]);
@@ -6102,15 +6224,15 @@ impl BinanceCore {
     pub fn edit_contract_order_request(&self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" editContractOrder() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" editContractOrder() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("side".to_string(), to_upper(&side));
                 m.insert("orderId".to_string(), id.clone());
@@ -6134,10 +6256,10 @@ impl BinanceCore {
  * @method
  * @name binance#editContractOrder
  * @description edit a trade order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Modify-UM-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Modify-CM-Order
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-UM-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-CM-Order
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -6145,13 +6267,13 @@ impl BinanceCore {
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to edit an order in a portfolio margin account
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn edit_contract_order(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6160,7 +6282,7 @@ impl BinanceCore {
         { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("editContractOrder".to_string()), Value::Str("papi".to_string()), Value::Str("portfolioMargin".to_string()), &[Value::Bool(false)]); isPortfolioMargin = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&get_value(&market, &Value::Str("linear".to_string()))) || is_true(&isPortfolioMargin) {
             if is_true(&(is_equal(&price, &Value::Null))) && !is_true(&(Value::Bool(in_op(&params, &Value::Str("priceMatch".to_string()))))) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" editOrder() requires a price argument for portfolio margin and linear orders".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" editOrder() requires a price argument for portfolio margin and linear orders".to_string()))));
             }
         }
         let mut request: Value = self.edit_contract_order_request(id.clone(), symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
@@ -6187,9 +6309,9 @@ impl BinanceCore {
  * @method
  * @name binance#editOrder
  * @description edit a trade order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Order
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Order
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -6197,40 +6319,42 @@ impl BinanceCore {
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn edit_order(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if is_true(&get_value(&market, &Value::Str("option".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" editOrder() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" editOrder() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
         }
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             return self.edit_spot_order(id.clone(), symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         }  else {
             return self.edit_contract_order(id.clone(), symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         }
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#editOrders
  * @description edit a list of trade orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Multiple-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Multiple-Orders
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Multiple-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Multiple-Orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn edit_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6238,37 +6362,38 @@ impl BinanceCore {
         let mut orderSymbols: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&orders)) {
+            let mut __for_first_249: bool = true;
+            while { if !__for_first_249 { i = add(&i, &Value::Int(1)); } __for_first_249 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
-            let mut marketId: Value = self.safe_string(rawOrder.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut rawOrder: Value = get_value(&orders, &i);
+            let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             append_to_array(&mut orderSymbols, marketId.clone());
-            let mut id: Value = self.safe_string(rawOrder.clone(), Value::Str("id".to_string()), &[]);
-            let mut type_var: Value = self.safe_string(rawOrder.clone(), Value::Str("type".to_string()), &[]);
-            let mut side: Value = self.safe_string(rawOrder.clone(), Value::Str("side".to_string()), &[]);
-            let mut amount: Value = self.safe_value(rawOrder.clone(), Value::Str("amount".to_string()), &[]);
-            let mut price: Value = self.safe_value(rawOrder.clone(), Value::Str("price".to_string()), &[]);
-            let mut orderParams: Value = self.safe_dict(rawOrder.clone(), Value::Str("params".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut id: Value = self.safe_string_k(rawOrder.clone(), "id", &[]);
+            let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
+            let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
+            let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
+            let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
+            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut isPortfolioMargin: Value = Value::Null;
             { let __destr_tmp = self.handle_option_and_params2(orderParams.clone(), Value::Str("editOrders".to_string()), Value::Str("papi".to_string()), Value::Str("portfolioMargin".to_string()), &[Value::Bool(false)]); isPortfolioMargin = get_value(&__destr_tmp, &Value::Int(0)); orderParams = get_value(&__destr_tmp, &Value::Int(1)); }
             if is_true(&isPortfolioMargin) {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" editOrders() does not support portfolio margin orders".to_string()))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" editOrders() does not support portfolio margin orders".to_string()))));
             }
             let mut orderRequest: Value = self.edit_contract_order_request(id.clone(), marketId.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), orderParams.clone()]);
             append_to_array(&mut ordersRequests, orderRequest.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         orderSymbols = self.market_symbols(&[orderSymbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut market: Value = self.market(get_value(&orderSymbols, &Value::Int(0)));
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) || is_true(&get_value(&market, &Value::Str("option".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" editOrders() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" editOrders() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
         }
         let mut response: Value = Value::Null;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("batchOrders".to_string(), ordersRequests.clone());
             m
         });
@@ -6285,7 +6410,7 @@ impl BinanceCore {
 
     pub fn parse_order_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("NEW".to_string(), Value::Str("open".to_string()));
                 m.insert("PARTIALLY_FILLED".to_string(), Value::Str("open".to_string()));
                 m.insert("ACCEPTED".to_string(), Value::Str("open".to_string()));
@@ -6308,12 +6433,12 @@ impl BinanceCore {
 
     pub fn parse_order_type_by_market(&self, mut type_var: Value, mut marketType: Value) -> Value {
         let mut types: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if is_true(&(!is_equal(&marketType, &Value::Null))) && is_equal(&marketType, &Value::Str("spot".to_string())) {
             types = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("limit_maker".to_string(), Value::Str("limit".to_string()));
                     m.insert("stop_loss_limit".to_string(), Value::Str("limit".to_string()));
                     m.insert("stop_loss".to_string(), Value::Str("market".to_string()));
@@ -6323,7 +6448,7 @@ impl BinanceCore {
             });
         }  else {
             types = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("limit_maker".to_string(), Value::Str("limit".to_string()));
                     m.insert("stop".to_string(), Value::Str("limit".to_string()));
                     m.insert("stop_market".to_string(), Value::Str("market".to_string()));
@@ -6859,13 +6984,13 @@ impl BinanceCore {
         //         "msg": "success"
         //     }
         //
-        let mut code: Value = self.safe_string(order.clone(), Value::Str("code".to_string()), &[]);
+        let mut code: Value = self.safe_string_k(order.clone(), "code", &[]);
         if !is_equal(&code, &Value::Null) {
             // cancelOrders/createOrders might have a partial success
-            let mut msg: Value = self.safe_string(order.clone(), Value::Str("msg".to_string()), &[]);
+            let mut msg: Value = self.safe_string_k(order.clone(), "msg", &[]);
             if is_true(&(!is_equal(&code, &Value::Str("200".to_string())))) && !is_true(&(is_true(&(is_equal(&msg, &Value::Str("success".to_string())))) || is_true(&(is_equal(&msg, &Value::Str("The operation of cancel all open order is done.".to_string())))))) {
                 return self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("status".to_string(), Value::Str("rejected".to_string()));
     m
@@ -6873,11 +6998,11 @@ impl BinanceCore {
             }
         }
         let mut status: Value = self.parse_order_status(self.safe_string_n(order.clone(), Value::List(vec![Value::Str("status".to_string()), Value::Str("strategyStatus".to_string()), Value::Str("algoStatus".to_string())]), &[]));
-        let mut marketId: Value = self.safe_string(order.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         let mut isContract: Value = Value::Bool(is_true(&(Value::Bool(in_op(&order, &Value::Str("positionSide".to_string()))))) || is_true(&(Value::Bool(in_op(&order, &Value::Str("cumQuote".to_string()))))));
         let mut marketType: Value = ternary(is_true(&isContract), Value::Str("contract".to_string()), Value::Str("spot".to_string()));
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, marketType.clone()]);
-        let mut filled: Value = self.safe_string(order.clone(), Value::Str("executedQty".to_string()), &[Value::Str("0".to_string())]);
+        let mut filled: Value = self.safe_string_k(order.clone(), "executedQty", &[Value::Str("0".to_string())]);
         let mut timestamp: Value = self.safe_integer_n(order.clone(), Value::List(vec![Value::Str("time".to_string()), Value::Str("createTime".to_string()), Value::Str("workingTime".to_string()), Value::Str("transactTime".to_string()), Value::Str("updateTime".to_string())]), &[]); // order of the keys matters here
         let mut lastTradeTimestamp: Value = Value::Null;
         if is_true(&(Value::Bool(in_op(&order, &Value::Str("transactTime".to_string()))))) || is_true(&(Value::Bool(in_op(&order, &Value::Str("updateTime".to_string()))))) {
@@ -6891,18 +7016,18 @@ impl BinanceCore {
             }
         }
         let mut lastUpdateTimestamp: Value = self.safe_integer2(order.clone(), Value::Str("transactTime".to_string()), Value::Str("updateTime".to_string()), &[]);
-        let mut average: Value = self.safe_string(order.clone(), Value::Str("avgPrice".to_string()), &[]);
-        let mut price: Value = self.safe_string(order.clone(), Value::Str("price".to_string()), &[]);
+        let mut average: Value = self.safe_string_k(order.clone(), "avgPrice", &[]);
+        let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut amount: Value = self.safe_string2(order.clone(), Value::Str("origQty".to_string()), Value::Str("quantity".to_string()), &[]);
         // - Spot/Margin market: cummulativeQuoteQty
         // - Futures market: cumQuote.
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         let mut cost: Value = self.safe_string2(order.clone(), Value::Str("cummulativeQuoteQty".to_string()), Value::Str("cumQuote".to_string()), &[]);
-        cost = self.safe_string(order.clone(), Value::Str("cumBase".to_string()), &[cost.clone()]);
+        cost = self.safe_string_k(order.clone(), "cumBase", &[cost.clone()]);
         let mut type_var: Value = self.safe_string_lower2(order.clone(), Value::Str("type".to_string()), Value::Str("orderType".to_string()), &[]);
         let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
-        let mut fills: Value = self.safe_list(order.clone(), Value::Str("fills".to_string()), &[Value::List(vec![])]);
-        let mut timeInForce: Value = self.safe_string(order.clone(), Value::Str("timeInForce".to_string()), &[]);
+        let mut fills: Value = self.safe_list_k(order.clone(), "fills", &[Value::List(vec![])]);
+        let mut timeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
         if is_equal(&timeInForce, &Value::Str("GTX".to_string())) {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = Value::Str("PO".to_string());
@@ -6910,19 +7035,19 @@ impl BinanceCore {
         let mut postOnly: Value = Value::Bool(is_true(&(is_equal(&type_var, &Value::Str("limit_maker".to_string())))) || is_true(&(is_equal(&timeInForce, &Value::Str("PO".to_string())))));
         let mut stopPriceString: Value = self.safe_string2(order.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]);
         let mut triggerPrice: Value = self.parse_number(self.omit_zero(stopPriceString.clone()), &[]);
-        let mut feeCost: Value = self.safe_number(order.clone(), Value::Str("fee".to_string()), &[]);
+        let mut feeCost: Value = self.safe_number_k(order.clone(), "fee", &[]);
         let mut fee: Value = Value::Null;
         if !is_equal(&feeCost, &Value::Null) {
             fee = Value::Map({
-                let mut m = std::collections::HashMap::new();
-                    m.insert("currency".to_string(), self.safe_string(order.clone(), Value::Str("quoteAsset".to_string()), &[]));
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("currency".to_string(), self.safe_string_k(order.clone(), "quoteAsset", &[]));
                     m.insert("cost".to_string(), feeCost.clone());
                     m.insert("rate".to_string(), Value::Null);
                 m
             });
         }
         return self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_n(order.clone(), Value::List(vec![Value::Str("strategyId".to_string()), Value::Str("orderId".to_string()), Value::Str("algoId".to_string())]), &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_n(order.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("newClientStrategyId".to_string()), Value::Str("clientAlgoId".to_string())]), &[]));
@@ -6934,7 +7059,7 @@ impl BinanceCore {
         m.insert("type".to_string(), self.parse_order_type_by_market(type_var.clone(), marketType.clone()));
         m.insert("timeInForce".to_string(), timeInForce.clone());
         m.insert("postOnly".to_string(), postOnly.clone());
-        m.insert("reduceOnly".to_string(), self.safe_bool(order.clone(), Value::Str("reduceOnly".to_string()), &[]));
+        m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduceOnly", &[]));
         m.insert("side".to_string(), side.clone());
         m.insert("price".to_string(), price.clone());
         m.insert("triggerPrice".to_string(), triggerPrice.clone());
@@ -6956,16 +7081,16 @@ impl BinanceCore {
  * @method
  * @name binance#createOrders
  * @description *contract only* create a list of trade orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Place-Multiple-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/trade/Place-Multiple-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Place-Multiple-Orders
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6973,31 +7098,32 @@ impl BinanceCore {
         let mut orderSymbols: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&orders)) {
+            let mut __for_first_250: bool = true;
+            while { if !__for_first_250 { i = add(&i, &Value::Int(1)); } __for_first_250 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
-            let mut marketId: Value = self.safe_string(rawOrder.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut rawOrder: Value = get_value(&orders, &i);
+            let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             append_to_array(&mut orderSymbols, marketId.clone());
-            let mut type_var: Value = self.safe_string(rawOrder.clone(), Value::Str("type".to_string()), &[]);
-            let mut side: Value = self.safe_string(rawOrder.clone(), Value::Str("side".to_string()), &[]);
-            let mut amount: Value = self.safe_value(rawOrder.clone(), Value::Str("amount".to_string()), &[]);
-            let mut price: Value = self.safe_value(rawOrder.clone(), Value::Str("price".to_string()), &[]);
-            let mut orderParams: Value = self.safe_dict(rawOrder.clone(), Value::Str("params".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
+            let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
+            let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
+            let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
+            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut orderRequest: Value = self.create_order_request(marketId.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), orderParams.clone()]);
             append_to_array(&mut ordersRequests, orderRequest.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         orderSymbols = self.market_symbols(&[orderSymbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut market: Value = self.market(get_value(&orderSymbols, &Value::Int(0)));
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" createOrders() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" createOrders() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
         }
         let mut response: Value = Value::Null;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("batchOrders".to_string(), ordersRequests.clone());
             m
         });
@@ -7018,66 +7144,66 @@ impl BinanceCore {
  * @method
  * @name binance#createOrder
  * @description create a trade order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#test-new-order-trade
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/trade/New-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/trading-endpoints#sor
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#sor
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/New-UM-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/New-CM-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Algo-Order
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#test-new-order-trade
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api
+ * @see https://developers.binance.com/docs/derivatives/option/trade/New-Order
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#sor
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#sor
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Algo-Order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of you want to trade in units of the base currency
  * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("reduceOnly".to_string()))] for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to true or in hedge mode. For spot margin and option reduceOnly is a boolean.
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', for spot margin trading
- * @param {boolean} [get_value(&params, &Value::Str("sor".to_string()))] *spot only* whether to use SOR (Smart Order Routing) or not, default is false
- * @param {boolean} [get_value(&params, &Value::Str("test".to_string()))] *spot only* whether to use the test endpoint or not, default is false
- * @param {float} [get_value(&params, &Value::Str("trailingPercent".to_string()))] the percent to trail away from the current market price
- * @param {float} [get_value(&params, &Value::Str("trailingTriggerPrice".to_string()))] the price to trigger a trailing order, default uses the price argument
- * @param {float} [get_value(&params, &Value::Str("triggerPrice".to_string()))] the price that a trigger order is triggered at
- * @param {float} [get_value(&params, &Value::Str("stopLossPrice".to_string()))] the price that a stop loss order is triggered at
- * @param {float} [get_value(&params, &Value::Str("takeProfitPrice".to_string()))] the price that a take profit order is triggered at
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to create an order in a portfolio margin account
- * @param {string} [get_value(&params, &Value::Str("selfTradePrevention".to_string()))] set unified value for stp, one of NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
- * @param {float} [get_value(&params, &Value::Str("icebergAmount".to_string()))] set iceberg amount for limit orders
- * @param {string} [get_value(&params, &Value::Str("stopLossOrTakeProfit".to_string()))] 'stopLoss' or 'takeProfit', required for spot trailing orders
- * @param {string} [get_value(&params, &Value::Str("positionSide".to_string()))] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
- * @param {bool} [get_value(&params, &Value::Str("hedged".to_string()))] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
- * @param {string} [get_value(&params, &Value::Str("clientOrderId".to_string()))] the clientOrderId of the order
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.reduceOnly] for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to true or in hedge mode. For spot margin and option reduceOnly is a boolean.
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+ * @param {boolean} [params.sor] *spot only* whether to use SOR (Smart Order Routing) or not, default is false
+ * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
+ * @param {float} [params.trailingPercent] the percent to trail away from the current market price
+ * @param {float} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
+ * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
+ * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
+ * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to create an order in a portfolio margin account
+ * @param {string} [params.selfTradePrevention] set unified value for stp, one of NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
+ * @param {float} [params.icebergAmount] set iceberg amount for limit orders
+ * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
+ * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+ * @param {bool} [params.hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
+ * @param {string} [params.clientOrderId] the clientOrderId of the order
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         // don't handle/omit params here, omitting happens inside createOrderRequest
-        let mut marketType: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[get_value(&market, &Value::Str("type".to_string()))]);
-        let mut marginMode: Value = self.safe_string(params.clone(), Value::Str("marginMode".to_string()), &[]);
+        let mut marketType: Value = self.safe_string_k(params.clone(), "type", &[get_value(&market, &Value::Str("type".to_string()))]);
+        let mut marginMode: Value = self.safe_string_k(params.clone(), "marginMode", &[]);
         let mut porfolioOptionsValue: Value = self.safe_bool2(self.options.clone(), Value::Str("papi".to_string()), Value::Str("portfolioMargin".to_string()), &[Value::Bool(false)]);
         let mut isPortfolioMargin: Value = self.safe_bool2(params.clone(), Value::Str("papi".to_string()), Value::Str("portfolioMargin".to_string()), &[porfolioOptionsValue.clone()]);
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
-        let mut stopLossPrice: Value = self.safe_string(params.clone(), Value::Str("stopLossPrice".to_string()), &[]);
-        let mut takeProfitPrice: Value = self.safe_string(params.clone(), Value::Str("takeProfitPrice".to_string()), &[]);
+        let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
+        let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
         let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".to_string()), Value::Str("callbackRate".to_string()), &[]);
         let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
         let mut isStopLoss: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null));
         let mut isTakeProfit: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
         let mut isConditional: Value = Value::Bool(is_true(&(!is_equal(&triggerPrice, &Value::Null))) || is_true(&isTrailingPercentOrder) || is_true(&isStopLoss) || is_true(&isTakeProfit));
         let mut sor: Value = self.safe_bool2(params.clone(), Value::Str("sor".to_string()), Value::Str("SOR".to_string()), &[Value::Bool(false)]);
-        let mut test: Value = self.safe_bool(params.clone(), Value::Str("test".to_string()), &[Value::Bool(false)]);
+        let mut test: Value = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("sor".to_string()), Value::Str("SOR".to_string()), Value::Str("test".to_string())]), &[]);
         // if (isPortfolioMargin) {
         //     params['portfolioMargin'] = isPortfolioMargin;
@@ -7138,7 +7264,7 @@ impl BinanceCore {
     pub fn create_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -7155,13 +7281,13 @@ impl BinanceCore {
          * @returns {object} request to be sent to the exchange
          */
         let mut market: Value = self.market(symbol.clone());
-        let mut marketType: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[get_value(&market, &Value::Str("type".to_string()))]);
+        let mut marketType: Value = self.safe_string_k(params.clone(), "type", &[get_value(&market, &Value::Str("type".to_string()))]);
         let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("clientAlgoId".to_string()), Value::Str("newClientOrderId".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         let mut initialUppercaseType: Value = to_upper(&type_var);
         let mut isMarketOrder: Value = Value::Bool(is_equal(&initialUppercaseType, &Value::Str("MARKET".to_string())));
         let mut isLimitOrder: Value = Value::Bool(is_equal(&initialUppercaseType, &Value::Str("LIMIT".to_string())));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("side".to_string(), to_upper(&side));
             m
@@ -7170,7 +7296,7 @@ impl BinanceCore {
         { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("createOrder".to_string()), Value::Str("papi".to_string()), Value::Str("portfolioMargin".to_string()), &[Value::Bool(false)]); isPortfolioMargin = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("createOrder".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut reduceOnly: Value = self.safe_bool(params.clone(), Value::Str("reduceOnly".to_string()), &[Value::Bool(false)]);
+        let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
         if is_true(&reduceOnly) {
             if is_equal(&marketType, &Value::Str("margin".to_string())) || is_true(&(!is_true(&get_value(&market, &Value::Str("contract".to_string()))) && is_true(&(!is_equal(&marginMode, &Value::Null))))) {
                 params = self.omit(params.clone(), Value::Str("reduceOnly".to_string()), &[]);
@@ -7178,12 +7304,12 @@ impl BinanceCore {
             }
         }
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
-        let mut stopLossPrice: Value = self.safe_string(params.clone(), Value::Str("stopLossPrice".to_string()), &[triggerPrice.clone()]); // fallback to stopLoss
-        let mut takeProfitPrice: Value = self.safe_string(params.clone(), Value::Str("takeProfitPrice".to_string()), &[]);
-        let mut trailingDelta: Value = self.safe_string(params.clone(), Value::Str("trailingDelta".to_string()), &[]);
+        let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[triggerPrice.clone()]); // fallback to stopLoss
+        let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
+        let mut trailingDelta: Value = self.safe_string_k(params.clone(), "trailingDelta", &[]);
         let mut trailingTriggerPrice: Value = self.safe_string2(params.clone(), Value::Str("trailingTriggerPrice".to_string()), Value::Str("activationPrice".to_string()), &[]);
         let mut trailingPercent: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("trailingPercent".to_string()), Value::Str("callbackRate".to_string()), Value::Str("trailingDelta".to_string())]), &[]);
-        let mut priceMatch: Value = self.safe_string(params.clone(), Value::Str("priceMatch".to_string()), &[]);
+        let mut priceMatch: Value = self.safe_string_k(params.clone(), "priceMatch", &[]);
         let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
         let mut isStopLoss: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null) || !is_equal(&trailingDelta, &Value::Null));
         let mut isTakeProfit: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
@@ -7203,10 +7329,10 @@ impl BinanceCore {
                 }
             }  else {
                 if is_true(&(!is_equal(&uppercaseType, &Value::Str("STOP_LOSS".to_string())))) && is_true(&(!is_equal(&uppercaseType, &Value::Str("TAKE_PROFIT".to_string())))) && is_true(&(!is_equal(&uppercaseType, &Value::Str("STOP_LOSS_LIMIT".to_string())))) && is_true(&(!is_equal(&uppercaseType, &Value::Str("TAKE_PROFIT_LIMIT".to_string())))) {
-                    let mut stopLossOrTakeProfit: Value = self.safe_string(params.clone(), Value::Str("stopLossOrTakeProfit".to_string()), &[]);
+                    let mut stopLossOrTakeProfit: Value = self.safe_string_k(params.clone(), "stopLossOrTakeProfit", &[]);
                     params = self.omit(params.clone(), Value::Str("stopLossOrTakeProfit".to_string()), &[]);
                     if is_true(&(!is_equal(&stopLossOrTakeProfit, &Value::Str("stopLoss".to_string())))) && is_true(&(!is_equal(&stopLossOrTakeProfit, &Value::Str("takeProfit".to_string())))) {
-                        panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&self.id, &symbol), &Value::Str(" trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit".to_string()))));
+                        panic!("{}", crate::exchange_errors::invalid_order(add(&add(&self.id, &symbol), &Value::Str(" trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit".to_string()))));
                     }
                     if is_true(&isMarketOrder) {
                         if is_equal(&stopLossOrTakeProfit, &Value::Str("stopLoss".to_string())) {
@@ -7250,15 +7376,15 @@ impl BinanceCore {
         }
         if is_true(&get_value(&market, &Value::Str("option".to_string()))) {
             if is_equal(&type_var, &Value::Str("market".to_string())) {
-                panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&add(&add(&add(&self.id, &Value::Str(" ".to_string())), &type_var), &Value::Str(" is not a valid order type for the ".to_string())), &symbol), &Value::Str(" market".to_string()))));
+                panic!("{}", crate::exchange_errors::invalid_order(add(&add(&add(&add(&add(&self.id, &Value::Str(" ".to_string())), &type_var), &Value::Str(" is not a valid order type for the ".to_string())), &symbol), &Value::Str(" market".to_string()))));
             }
         }  else {
             let mut validOrderTypes: Value = self.safe_list(get_value(&market, &Value::Str("info".to_string())), Value::Str("orderTypes".to_string()), &[]);
             if !is_true(&self.in_array(uppercaseType.clone(), validOrderTypes.clone())) {
                 if !is_equal(&initialUppercaseType, &uppercaseType) {
-                    panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&add(&add(&add(&self.id, &Value::Str(" triggerPrice parameter is not allowed for ".to_string())), &symbol), &Value::Str(" ".to_string())), &type_var), &Value::Str(" orders".to_string()))));
+                    panic!("{}", crate::exchange_errors::invalid_order(add(&add(&add(&add(&add(&self.id, &Value::Str(" triggerPrice parameter is not allowed for ".to_string())), &symbol), &Value::Str(" ".to_string())), &type_var), &Value::Str(" orders".to_string()))));
                 }  else {
-                    panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&add(&add(&add(&self.id, &Value::Str(" ".to_string())), &type_var), &Value::Str(" is not a valid order type for the ".to_string())), &symbol), &Value::Str(" market".to_string()))));
+                    panic!("{}", crate::exchange_errors::invalid_order(add(&add(&add(&add(&add(&self.id, &Value::Str(" ".to_string())), &type_var), &Value::Str(" is not a valid order type for the ".to_string())), &symbol), &Value::Str(" market".to_string()))));
                 }
             }
         }
@@ -7267,8 +7393,8 @@ impl BinanceCore {
             clientOrderIdRequest = Value::Str("clientAlgoId".to_string());
         }
         if is_equal(&clientOrderId, &Value::Null) {
-            let mut broker: Value = self.safe_dict(self.options.clone(), Value::Str("broker".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut broker: Value = self.safe_dict_k(self.options.clone(), "broker", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut defaultId: Value = ternary(is_true(&(get_value(&market, &Value::Str("contract".to_string())))), Value::Str("x-xcKtGhcu".to_string()), Value::Str("x-TKT5PX2F".to_string()));
@@ -7313,7 +7439,7 @@ impl BinanceCore {
         let mut typeRequest: Value = ternary(is_true(&isPortfolioMarginConditional), Value::Str("strategyType".to_string()), Value::Str("type".to_string()));
         add_element_to_object(&mut request, &typeRequest, uppercaseType.clone());
         // additional required fields depending on the order type
-        let mut closePosition: Value = self.safe_bool(params.clone(), Value::Str("closePosition".to_string()), &[Value::Bool(false)]);
+        let mut closePosition: Value = self.safe_bool_k(params.clone(), "closePosition", &[Value::Bool(false)]);
         let mut timeInForceIsRequired: Value = Value::Bool(false);
         let mut priceIsRequired: Value = Value::Bool(false);
         let mut triggerPriceIsRequired: Value = Value::Bool(false);
@@ -7340,7 +7466,7 @@ impl BinanceCore {
         //
         if is_equal(&uppercaseType, &Value::Str("MARKET".to_string())) {
             if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-                let mut quoteOrderQty: Value = self.safe_bool(self.options.clone(), Value::Str("quoteOrderQty".to_string()), &[Value::Bool(true)]);
+                let mut quoteOrderQty: Value = self.safe_bool_k(self.options.clone(), "quoteOrderQty", &[Value::Bool(true)]);
                 if is_true(&quoteOrderQty) {
                     let mut quoteOrderQtyNew: Value = self.safe_string2(params.clone(), Value::Str("quoteOrderQty".to_string()), Value::Str("cost".to_string()), &[]);
                     let mut precision: Value = get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("price".to_string()));
@@ -7392,7 +7518,7 @@ impl BinanceCore {
                 quantityIsRequired = Value::Bool(true);
             }
             if is_equal(&trailingPercent, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&add(&self.id, &Value::Str(" createOrder() requires a trailingPercent param for a ".to_string())), &type_var), &Value::Str(" order".to_string()))));
+                panic!("{}", crate::exchange_errors::invalid_order(add(&add(&add(&self.id, &Value::Str(" createOrder() requires a trailingPercent param for a ".to_string())), &type_var), &Value::Str(" order".to_string()))));
             }
         }
         if is_true(&quantityIsRequired) {
@@ -7406,7 +7532,7 @@ impl BinanceCore {
         }
         if is_true(&priceIsRequired) && !is_true(&isPriceMatch) {
             if is_equal(&price, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&add(&self.id, &Value::Str(" createOrder() requires a price argument for a ".to_string())), &type_var), &Value::Str(" order".to_string()))));
+                panic!("{}", crate::exchange_errors::invalid_order(add(&add(&add(&self.id, &Value::Str(" createOrder() requires a price argument for a ".to_string())), &type_var), &Value::Str(" order".to_string()))));
             }
             let mut pricePrecision: Value = self.safe_string(get_value(&market, &Value::Str("precision".to_string())), Value::Str("price".to_string()), &[]);
             let mut isPricePrecisionAvailable: Value = Value::Bool(!is_equal(&pricePrecision, &Value::Null));
@@ -7419,12 +7545,12 @@ impl BinanceCore {
         if is_true(&triggerPriceIsRequired) {
             if is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
                 if is_equal(&stopPrice, &Value::Null) {
-                    panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&add(&self.id, &Value::Str(" createOrder() requires a triggerPrice extra param for a ".to_string())), &type_var), &Value::Str(" order".to_string()))));
+                    panic!("{}", crate::exchange_errors::invalid_order(add(&add(&add(&self.id, &Value::Str(" createOrder() requires a triggerPrice extra param for a ".to_string())), &type_var), &Value::Str(" order".to_string()))));
                 }
             }  else {
                 // check for delta price as well
                 if is_equal(&trailingDelta, &Value::Null) && is_equal(&stopPrice, &Value::Null) && is_equal(&trailingPercent, &Value::Null) {
-                    panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&add(&self.id, &Value::Str(" createOrder() requires a triggerPrice, trailingDelta or trailingPercent param for a ".to_string())), &type_var), &Value::Str(" order".to_string()))));
+                    panic!("{}", crate::exchange_errors::invalid_order(add(&add(&add(&self.id, &Value::Str(" createOrder() requires a triggerPrice, trailingDelta or trailingPercent param for a ".to_string())), &type_var), &Value::Str(" order".to_string()))));
                 }
             }
             if !is_equal(&stopPrice, &Value::Null) {
@@ -7435,17 +7561,17 @@ impl BinanceCore {
                 }
             }
         }
-        if is_true(&timeInForceIsRequired) && is_true(&(is_equal(&self.safe_string(params.clone(), Value::Str("timeInForce".to_string()), &[]), &Value::Null))) && is_true(&(is_equal(&self.safe_string(request.clone(), Value::Str("timeInForce".to_string()), &[]), &Value::Null))) {
-            add_element_to_object(&mut request, &Value::Str("timeInForce".to_string()), self.safe_string(self.options.clone(), Value::Str("defaultTimeInForce".to_string()), &[])); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+        if is_true(&timeInForceIsRequired) && is_true(&(is_equal(&self.safe_string_k(params.clone(), "timeInForce", &[]), &Value::Null))) && is_true(&(is_equal(&self.safe_string_k(request.clone(), "timeInForce", &[]), &Value::Null))) {
+            add_element_to_object(&mut request, &Value::Str("timeInForce".to_string()), self.safe_string_k(self.options.clone(), "defaultTimeInForce", &[])); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if !is_true(&isPortfolioMargin) && is_true(&get_value(&market, &Value::Str("contract".to_string()))) && is_true(&postOnly) {
             add_element_to_object(&mut request, &Value::Str("timeInForce".to_string()), Value::Str("GTX".to_string()));
         }
-        // remove timeInForce from params because PO is only used by get_value(&this, &Value::Str("isPostOnly".to_string())) and it's not a valid value for Binance
-        if is_equal(&self.safe_string(params.clone(), Value::Str("timeInForce".to_string()), &[]), &Value::Str("PO".to_string())) {
+        // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
+        if is_equal(&self.safe_string_k(params.clone(), "timeInForce", &[]), &Value::Str("PO".to_string())) {
             params = self.omit(params.clone(), Value::Str("timeInForce".to_string()), &[]);
         }
-        let mut hedged: Value = self.safe_bool(params.clone(), Value::Str("hedged".to_string()), &[Value::Bool(false)]);
+        let mut hedged: Value = self.safe_bool_k(params.clone(), "hedged", &[Value::Bool(false)]);
         if !is_true(&get_value(&market, &Value::Str("spot".to_string()))) && !is_true(&get_value(&market, &Value::Str("option".to_string()))) && is_true(&hedged) {
             if is_true(&reduceOnly) {
                 params = self.omit(params.clone(), Value::Str("reduceOnly".to_string()), &[]);
@@ -7462,7 +7588,7 @@ impl BinanceCore {
             }
         }
         // unified iceberg
-        let mut icebergAmount: Value = self.safe_number(params.clone(), Value::Str("icebergAmount".to_string()), &[]);
+        let mut icebergAmount: Value = self.safe_number_k(params.clone(), "icebergAmount", &[]);
         if !is_equal(&icebergAmount, &Value::Null) {
             if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
                 add_element_to_object(&mut request, &Value::Str("icebergQty".to_string()), self.amount_to_precision(symbol.clone(), icebergAmount.clone()));
@@ -7478,25 +7604,25 @@ impl BinanceCore {
  * @method
  * @name binance#createMarketOrderWithCost
  * @description create a market order by providing the symbol, side and cost
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} side 'buy' or 'sell'
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_market_order_with_cost(&mut self, mut symbol: Value, mut side: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketOrderWithCost() supports spot orders only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketOrderWithCost() supports spot orders only".to_string()))));
         }
         let mut req: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), cost.clone());
             m
         });
@@ -7509,24 +7635,24 @@ impl BinanceCore {
  * @method
  * @name binance#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol and cost
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_market_buy_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string()))));
         }
         let mut req: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), cost.clone());
             m
         });
@@ -7539,21 +7665,21 @@ impl BinanceCore {
  * @method
  * @name binance#createMarketSellOrderWithCost
  * @description create a market sell order by providing the symbol and cost
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_market_sell_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketSellOrderWithCost() supports spot orders only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketSellOrderWithCost() supports spot orders only".to_string()))));
         }
         add_element_to_object(&mut params, &Value::Str("quoteOrderQty".to_string()), cost.clone());
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), cost.clone(), &[Value::Null, params.clone()]).await;
@@ -7565,41 +7691,41 @@ impl BinanceCore {
  * @method
  * @name binance#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/trading-endpoints#query-order-user_data
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/trade/Query-Single-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/trade/Query-Margin-Account-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-CM-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Algo-Order
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#query-order-user_data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Order
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Order
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Single-Order
+ * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-CM-Order
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Algo-Order
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', for spot margin trading
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to fetch an order in a portfolio margin account
- * @param {boolean} [get_value(&params, &Value::Str("trigger".to_string()))] set to true if you would like to fetch a trigger or conditional order
- * @returns {object} An [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch an order in a portfolio margin account
+ * @param {boolean} [params.trigger] set to true if you would like to fetch a trigger or conditional order
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchOrder".to_string()), Value::Str("defaultType".to_string()), &[Value::Str("spot".to_string())]);
-        let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[defaultType.clone()]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchOrder".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isPortfolioMargin: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("fetchOrder".to_string()), Value::Str("papi".to_string()), Value::Str("portfolioMargin".to_string()), &[Value::Bool(false)]); isPortfolioMargin = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -7659,37 +7785,37 @@ impl BinanceCore {
  * @method
  * @name binance#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/trade/Query-Option-Order-History
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-All-Algo-Orders
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+ * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-All-Algo-Orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', for spot margin trading
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch orders for
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to fetch orders in a portfolio margin account
- * @param {boolean} [get_value(&params, &Value::Str("trigger".to_string()))] set to true if you would like to fetch portfolio margin account trigger or conditional orders
- * @returns {Order[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+ * @param {int} [params.until] the latest time in ms to fetch orders for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+ * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrders() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrders() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut paginate: Value = Value::Bool(false);
@@ -7699,7 +7825,7 @@ impl BinanceCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchOrders".to_string()), Value::Str("defaultType".to_string()), &[get_value(&market, &Value::Str("type".to_string()))]);
-        let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[defaultType.clone()]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchOrders".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isPortfolioMargin: Value = Value::Null;
@@ -7707,7 +7833,7 @@ impl BinanceCore {
         let mut isConditional: Value = self.safe_bool_n(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("conditional".to_string())]), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("conditional".to_string()), Value::Str("type".to_string())]), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -7766,39 +7892,39 @@ impl BinanceCore {
  * @method
  * @name binance#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/trading-endpoints#current-open-orders-user_data
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Current-All-Open-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/trade/Query-Margin-Account-Open-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Conditional-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Algo-Open-Orders
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#current-open-orders-user_data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Current-All-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders
+ * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Conditional-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Algo-Open-Orders
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', for spot margin trading
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to fetch open orders in the portfolio margin account
- * @param {boolean} [get_value(&params, &Value::Str("trigger".to_string()))] set to true if you would like to fetch portfolio margin account conditional orders
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
- * @returns {Order[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
+ * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account conditional orders
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_open_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = Value::Null;
         let mut type_var: Value = Value::Null;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut marginMode: Value = Value::Null;
@@ -7811,12 +7937,12 @@ impl BinanceCore {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchOpenOrders".to_string()), Value::Str("defaultType".to_string()), &[Value::Str("spot".to_string())]);
             let mut marketType: Value = ternary(is_true(&(Value::Bool(in_op(&market, &Value::Str("type".to_string()))))), get_value(&market, &Value::Str("type".to_string())), defaultType.clone());
-            type_var = self.safe_string(params.clone(), Value::Str("type".to_string()), &[marketType.clone()]);
+            type_var = self.safe_string_k(params.clone(), "type", &[marketType.clone()]);
         }  else if is_true(&get_value(&self.options, &Value::Str("warnOnFetchOpenOrdersWithoutSymbol".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(add(&add(&add(&self.id, &Value::Str(" fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set ".to_string())), &self.id), &Value::Str(".options[\"warnOnFetchOpenOrdersWithoutSymbol\"] = false to suppress this warning message.".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(add(&add(&add(&self.id, &Value::Str(" fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set ".to_string())), &self.id), &Value::Str(".options[\"warnOnFetchOpenOrdersWithoutSymbol\"] = false to suppress this warning message.".to_string()))));
         }  else {
             let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchOpenOrders".to_string()), Value::Str("defaultType".to_string()), &[Value::Str("spot".to_string())]);
-            type_var = self.safe_string(params.clone(), Value::Str("type".to_string()), &[defaultType.clone()]);
+            type_var = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
         }
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchOpenOrders".to_string()), &[market.clone(), params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -7861,7 +7987,7 @@ impl BinanceCore {
                 if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
                     add_element_to_object(&mut request, &Value::Str("isIsolated".to_string()), Value::Bool(true));
                     if is_equal(&symbol, &Value::Null) {
-                        panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOpenOrders() requires a symbol argument for isolated markets".to_string()))));
+                        panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOpenOrders() requires a symbol argument for isolated markets".to_string()))));
                     }
                 }
                 response = self.call_method(Value::Str("sapi_get_margin_open_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
@@ -7878,32 +8004,32 @@ impl BinanceCore {
  * @method
  * @name binance#fetchOpenOrder
  * @description fetch an open order by the id
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Current-Open-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Current-Open-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Conditional-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Conditional-Order
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Current-Open-Order
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Current-Open-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Conditional-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Conditional-Order
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("trigger".to_string()))] set to true if you would like to fetch portfolio margin account stop or conditional orders
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to fetch for a portfolio margin account
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.trigger] set to true if you would like to fetch portfolio margin account stop or conditional orders
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch for a portfolio margin account
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_open_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOpenOrder() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOpenOrder() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -7937,9 +8063,9 @@ impl BinanceCore {
             }
         }  else {
             if is_true(&get_value(&market, &Value::Str("option".to_string()))) {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenOrder() does not support option markets".to_string()))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenOrder() does not support option markets".to_string()))));
             }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenOrder() does not support spot markets".to_string()))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenOrder() does not support spot markets".to_string()))));
             }
         }
         return self.parse_order(response.clone(), &[market.clone()]);
@@ -7951,34 +8077,34 @@ impl BinanceCore {
  * @method
  * @name binance#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/trade/Query-Option-Order-History
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+ * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to fetch orders in a portfolio margin account
- * @param {boolean} [get_value(&params, &Value::Str("trigger".to_string()))] set to true if you would like to fetch portfolio margin account trigger or conditional orders
- * @returns {Order[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+ * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_closed_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchClosedOrders() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchClosedOrders() requires a symbol argument".to_string()))));
         }
         let mut orders: Value = self.fetch_orders(&[symbol.clone(), since.clone(), Value::Null, params.clone()]).await;
         let mut filteredOrders: Value = self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("closed".to_string()), &[]);
@@ -7991,34 +8117,34 @@ impl BinanceCore {
  * @method
  * @name binance#fetchCanceledOrders
  * @description fetches information on multiple canceled orders made by the user
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/trade/Query-Option-Order-History
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+ * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
  * @param {string} symbol unified market symbol of the market the orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to fetch orders in a portfolio margin account
- * @param {boolean} [get_value(&params, &Value::Str("trigger".to_string()))] set to true if you would like to fetch portfolio margin account trigger or conditional orders
- * @returns {object[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+ * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchCanceledOrders() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchCanceledOrders() requires a symbol argument".to_string()))));
         }
         let mut orders: Value = self.fetch_orders(&[symbol.clone(), since.clone(), Value::Null, params.clone()]).await;
         let mut filteredOrders: Value = self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("canceled".to_string()), &[]);
@@ -8031,34 +8157,34 @@ impl BinanceCore {
  * @method
  * @name binance#fetchCanceledAndClosedOrders
  * @description fetches information on multiple canceled orders made by the user
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/trade/Query-Option-Order-History
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+ * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
  * @param {string} symbol unified market symbol of the market the orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to fetch orders in a portfolio margin account
- * @param {boolean} [get_value(&params, &Value::Str("trigger".to_string()))] set to true if you would like to fetch portfolio margin account trigger or conditional orders
- * @returns {object[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+ * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_canceled_and_closed_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchCanceledAndClosedOrders() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchCanceledAndClosedOrders() requires a symbol argument".to_string()))));
         }
         let mut orders: Value = self.fetch_orders(&[symbol.clone(), since.clone(), Value::Null, params.clone()]).await;
         let mut canceledOrders: Value = self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("canceled".to_string()), &[]);
@@ -8074,44 +8200,44 @@ impl BinanceCore {
  * @method
  * @name binance#cancelOrder
  * @description cancels an open order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-order-trade
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/trade/Cancel-Option-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/trade/Margin-Account-Cancel-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Conditional-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Algo-Order
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-order-trade
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Order
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-Order
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Cancel-Option-Order
+ * @see https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Conditional-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Algo-Order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to cancel an order in a portfolio margin account
- * @param {boolean} [get_value(&params, &Value::Str("trigger".to_string()))] set to true if you would like to cancel a portfolio margin account conditional order
- * @returns {object} An [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel an order in a portfolio margin account
+ * @param {boolean} [params.trigger] set to true if you would like to cancel a portfolio margin account conditional order
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("cancelOrder".to_string()), Value::Str("defaultType".to_string()), &[Value::Str("spot".to_string())]);
-        let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[defaultType.clone()]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("cancelOrder".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isPortfolioMargin: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("cancelOrder".to_string()), Value::Str("papi".to_string()), Value::Str("portfolioMargin".to_string()), &[Value::Bool(false)]); isPortfolioMargin = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isConditional: Value = self.safe_bool_n(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("conditional".to_string())]), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -8186,44 +8312,44 @@ impl BinanceCore {
  * @method
  * @name binance#cancelAllOrders
  * @description cancel all open orders in a market
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-all-open-orders-on-a-symbol-trade
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-All-Open-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-symbol
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/trade/Margin-Account-Cancel-All-Open-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Conditional-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Algo-Open-Orders
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-all-open-orders-on-a-symbol-trade
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-All-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-symbol
+ * @see https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-All-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Conditional-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Algo-Open-Orders
  * @param {string} symbol unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', for spot margin trading
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to cancel orders in a portfolio margin account
- * @param {boolean} [get_value(&params, &Value::Str("trigger".to_string()))] set to true if you would like to cancel portfolio margin account conditional orders
- * @returns {object[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel orders in a portfolio margin account
+ * @param {boolean} [params.trigger] set to true if you would like to cancel portfolio margin account conditional orders
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_all_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelAllOrders() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelAllOrders() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
         let mut isPortfolioMargin: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("cancelAllOrders".to_string()), Value::Str("papi".to_string()), Value::Str("portfolioMargin".to_string()), &[Value::Bool(false)]); isPortfolioMargin = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isConditional: Value = self.safe_bool_n(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("conditional".to_string())]), &[]);
-        let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[get_value(&market, &Value::Str("type".to_string()))]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[get_value(&market, &Value::Str("type".to_string()))]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("type".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("conditional".to_string())]), &[]);
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("cancelAllOrders".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -8270,45 +8396,47 @@ impl BinanceCore {
             return self.parse_orders(response.clone(), &[market.clone()]);
         }  else {
             return Value::List(vec![self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
     m
 }), &[])]);
         }
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#cancelOrders
  * @description cancel multiple orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Multiple-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-Multiple-Orders
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Multiple-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-Multiple-Orders
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string[]} [get_value(&params, &Value::Str("clientOrderIds".to_string()))] alternative to ids, array of client order ids
+ * @param {string[]} [params.clientOrderIds] alternative to ids, array of client order ids
  *
  * EXCHANGE SPECIFIC PARAMETERS
- * @param {string[]} [get_value(&params, &Value::Str("origClientOrderIdList".to_string()))] max length 10 get_value(&e, &Value::Str("g".to_string())). ["my_id_1","my_id_2"], encode the double quotes. No space after comma
- * @param {int[]} [get_value(&params, &Value::Str("recvWindow".to_string()))]
- * @returns {object} an list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string[]} [params.origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+ * @param {int[]} [params.recvWindow]
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" cancelOrders is only supported for swap markets.".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" cancelOrders is only supported for swap markets.".to_string()))));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -8334,37 +8462,37 @@ impl BinanceCore {
  * @method
  * @name binance#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List
+ * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
     pub async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrderTrades() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrderTrades() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
-        let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[get_value(&market, &Value::Str("type".to_string()))]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[get_value(&market, &Value::Str("type".to_string()))]);
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
         if !is_equal(&type_var, &Value::Str("spot".to_string())) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderTrades() supports spot markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderTrades() supports spot markets only".to_string()))));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), id.clone());
             m
         });
@@ -8377,28 +8505,28 @@ impl BinanceCore {
  * @method
  * @name binance#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/trade/Account-Trade-List
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List
+ * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch entries for
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to fetch trades for a portfolio margin account
- * @returns {Trade[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=trade-structure}
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trades for a portfolio margin account
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
     pub async fn fetch_my_trades(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -8408,7 +8536,7 @@ impl BinanceCore {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
@@ -8450,7 +8578,7 @@ impl BinanceCore {
             response = self.call_method(Value::Str("eapi_private_get_user_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
             if is_equal(&symbol, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
             }
             { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchMyTrades".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             let mut isPortfolioMargin: Value = Value::Null;
@@ -8489,31 +8617,31 @@ impl BinanceCore {
  * @method
  * @name binance#fetchMyDustTrades
  * @description fetch all dust trades made by the user
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/wallet/asset/dust-log
+ * @see https://developers.binance.com/docs/wallet/asset/dust-log
  * @param {string} symbol not used by binance fetchMyDustTrades ()
  * @param {int} [since] the earliest time in ms to fetch my dust trades for
  * @param {int} [limit] the maximum number of dust trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] 'spot' or 'margin', default spot
- * @returns {object[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=trade-structure}
+ * @param {string} [params.type] 'spot' or 'margin', default spot
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
     pub async fn fetch_my_dust_trades(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         //
-        // Binance provides an opportunity to trade insignificant (get_value(&i, &Value::Str("e".to_string())). non-tradable and non-withdrawable)
+        // Binance provides an opportunity to trade insignificant (i.e. non-tradable and non-withdrawable)
         // token leftovers (of any asset) into `BNB` coin which in turn can be used to pay trading fees with it.
         // The corresponding trades history is called the `Dust Log` and can be requested via the following end-point:
-        // https://get_value(&github, &Value::Str("com".to_string()))/binance-exchange/binance-official-api-docs/blob/master/wapi-get_value(&api, &Value::Str("md".to_string()))#dustlog-user_data
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
         //
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if !is_equal(&since, &Value::Null) {
@@ -8555,22 +8683,22 @@ impl BinanceCore {
         //         },
         //       ]
         //     }
-        let mut results: Value = self.safe_list(response.clone(), Value::Str("userAssetDribblets".to_string()), &[Value::List(vec![])]);
-        let mut rows: Value = self.safe_integer(response.clone(), Value::Str("total".to_string()), &[Value::Int(0)]);
+        let mut results: Value = self.safe_list_k(response.clone(), "userAssetDribblets", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_integer_k(response.clone(), "total", &[Value::Int(0)]);
         let mut data: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &rows) {
-            let mut logs: Value = self.safe_list(get_value(&results, &i), Value::Str("userAssetDribbletDetails".to_string()), &[Value::List(vec![])]);
+            let mut __for_first_252: bool = true;
+            while { if !__for_first_252 { i = add(&i, &Value::Int(1)); } __for_first_252 = false; is_less_than(&i, &rows) } {
+            let mut logs: Value = self.safe_list_k(get_value(&results, &i), "userAssetDribbletDetails", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                while is_less_than(&j, &get_array_length(&logs)) {
+                let mut __for_first_251: bool = true;
+                while { if !__for_first_251 { j = add(&j, &Value::Int(1)); } __for_first_251 = false; is_less_than(&j, &get_array_length(&logs)) } {
                 add_element_to_object(get_value_mut(&mut logs, &j), &Value::Str("isDustTrade".to_string()), Value::Bool(true));
                 append_to_array(&mut data, get_value(&logs, &j));
-                j = add(&j, &Value::Int(1));
             }
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut trades: Value = self.parse_trades(data.clone(), &[Value::Null, since.clone(), limit.clone()]);
@@ -8592,9 +8720,9 @@ impl BinanceCore {
         //       "isDustTrade": true
         //     }
         //
-        let mut orderId: Value = self.safe_string(trade.clone(), Value::Str("transId".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer(trade.clone(), Value::Str("operateTime".to_string()), &[]);
-        let mut currencyId: Value = self.safe_string(trade.clone(), Value::Str("fromAsset".to_string()), &[]);
+        let mut orderId: Value = self.safe_string_k(trade.clone(), "transId", &[]);
+        let mut timestamp: Value = self.safe_integer_k(trade.clone(), "operateTime", &[]);
+        let mut currencyId: Value = self.safe_string_k(trade.clone(), "fromAsset", &[]);
         let mut tradedCurrency: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut bnb: Value = self.currency(Value::Str("BNB".to_string()));
         let mut earnedCurrency: Value = get_value(&bnb, &Value::Str("code".to_string()));
@@ -8603,9 +8731,9 @@ impl BinanceCore {
         if is_true(&Value::Bool(in_op(&self.markets, &applicantSymbol))) {
             tradedCurrencyIsQuote = Value::Bool(true);
         }
-        let mut feeCostString: Value = self.safe_string(trade.clone(), Value::Str("serviceChargeAmount".to_string()), &[]);
+        let mut feeCostString: Value = self.safe_string_k(trade.clone(), "serviceChargeAmount", &[]);
         let mut fee: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), earnedCurrency.clone());
                 m.insert("cost".to_string(), self.parse_number(feeCostString.clone(), &[]));
             m
@@ -8616,13 +8744,13 @@ impl BinanceCore {
         let mut side: Value = Value::Null;
         if is_true(&tradedCurrencyIsQuote) {
             symbol = applicantSymbol.clone();
-            amountString = self.safe_string(trade.clone(), Value::Str("transferedAmount".to_string()), &[]);
-            costString = self.safe_string(trade.clone(), Value::Str("amount".to_string()), &[]);
+            amountString = self.safe_string_k(trade.clone(), "transferedAmount", &[]);
+            costString = self.safe_string_k(trade.clone(), "amount", &[]);
             side = Value::Str("buy".to_string());
         }  else {
             symbol = add(&add(&tradedCurrency, &Value::Str("/".to_string())), &earnedCurrency);
-            amountString = self.safe_string(trade.clone(), Value::Str("amount".to_string()), &[]);
-            costString = self.safe_string(trade.clone(), Value::Str("transferedAmount".to_string()), &[]);
+            amountString = self.safe_string_k(trade.clone(), "amount", &[]);
+            costString = self.safe_string_k(trade.clone(), "transferedAmount", &[]);
             side = Value::Str("sell".to_string());
         }
         let mut priceString: Value = Value::Null;
@@ -8638,7 +8766,7 @@ impl BinanceCore {
         let mut type_var: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
@@ -8662,23 +8790,23 @@ impl BinanceCore {
  * @method
  * @name binance#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/wallet/capital/deposite-history
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History
+ * @see https://developers.binance.com/docs/wallet/capital/deposite-history
+ * @see https://developers.binance.com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {bool} [get_value(&params, &Value::Str("fiat".to_string()))] if true, only fiat deposits will be returned
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch entries for
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @param {bool} [params.fiat] if true, only fiat deposits will be returned
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_deposits(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -8690,16 +8818,16 @@ impl BinanceCore {
         let mut currency: Value = Value::Null;
         let mut response: Value = Value::Null;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut legalMoney: Value = self.safe_dict(self.options.clone(), Value::Str("legalMoney".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut legalMoney: Value = self.safe_dict_k(self.options.clone(), "legalMoney", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fiatOnly: Value = self.safe_bool(params.clone(), Value::Str("fiat".to_string()), &[Value::Bool(false)]);
+        let mut fiatOnly: Value = self.safe_bool_k(params.clone(), "fiat", &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::Str("fiatOnly".to_string()), &[]);
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         if is_true(&fiatOnly) || is_true(&(Value::Bool(in_op(&legalMoney, &code)))) {
             if !is_equal(&code, &Value::Null) {
@@ -8713,7 +8841,7 @@ impl BinanceCore {
                 add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
             }
             let mut raw: Value = self.call_method(Value::Str("sapi_get_fiat_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
-            response = self.safe_list(raw.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+            response = self.safe_list_k(raw.clone(), "data", &[Value::List(vec![])]);
         }  else {
             if !is_equal(&code, &Value::Null) {
                 currency = self.currency(code.clone());
@@ -8721,7 +8849,7 @@ impl BinanceCore {
             }
             if !is_equal(&since, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
-                // max 3 months range https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/issues/6495
+                // max 3 months range https://github.com/ccxt/ccxt/issues/6495
                 let mut endTime: Value = self.sum(&[since.clone(), Value::Int(7776000000)]);
                 if !is_equal(&until, &Value::Null) {
                     endTime = crate::runtime::Math::min(&endTime, &until);
@@ -8735,9 +8863,9 @@ impl BinanceCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_253: bool = true;
+            while { if !__for_first_253 { i = add(&i, &Value::Int(1)); } __for_first_253 = false; is_less_than(&i, &get_array_length(&response)) } {
             add_element_to_object(get_value_mut(&mut response, &i), &Value::Str("type".to_string()), Value::Str("deposit".to_string()));
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
@@ -8749,23 +8877,23 @@ impl BinanceCore {
  * @method
  * @name binance#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/wallet/capital/withdraw-history
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History
+ * @see https://developers.binance.com/docs/wallet/capital/withdraw-history
+ * @see https://developers.binance.com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {bool} [get_value(&params, &Value::Str("fiat".to_string()))] if true, only fiat withdrawals will be returned
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch withdrawals for
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @param {bool} [params.fiat] if true, only fiat withdrawals will be returned
+ * @param {int} [params.until] the latest time in ms to fetch withdrawals for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_withdrawals(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -8774,17 +8902,17 @@ impl BinanceCore {
         if is_true(&paginate) {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchWithdrawals".to_string()), &[code.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
-        let mut legalMoney: Value = self.safe_dict(self.options.clone(), Value::Str("legalMoney".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut legalMoney: Value = self.safe_dict_k(self.options.clone(), "legalMoney", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fiatOnly: Value = self.safe_bool(params.clone(), Value::Str("fiat".to_string()), &[Value::Bool(false)]);
+        let mut fiatOnly: Value = self.safe_bool_k(params.clone(), "fiat", &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::Str("fiatOnly".to_string()), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if !is_equal(&until, &Value::Null) {
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
@@ -8800,7 +8928,7 @@ impl BinanceCore {
                 add_element_to_object(&mut request, &Value::Str("beginTime".to_string()), since.clone());
             }
             let mut raw: Value = self.call_method(Value::Str("sapi_get_fiat_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
-            response = self.safe_list(raw.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+            response = self.safe_list_k(raw.clone(), "data", &[Value::List(vec![])]);
         }  else {
             if !is_equal(&code, &Value::Null) {
                 currency = self.currency(code.clone());
@@ -8808,7 +8936,7 @@ impl BinanceCore {
             }
             if !is_equal(&since, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
-                // max 3 months range https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/issues/6495
+                // max 3 months range https://github.com/ccxt/ccxt/issues/6495
                 add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.sum(&[since.clone(), Value::Int(7776000000)]));
             }
             if !is_equal(&limit, &Value::Null) {
@@ -8818,9 +8946,9 @@ impl BinanceCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_254: bool = true;
+            while { if !__for_first_254 { i = add(&i, &Value::Int(1)); } __for_first_254 = false; is_less_than(&i, &get_array_length(&response)) } {
             add_element_to_object(get_value_mut(&mut response, &i), &Value::Str("type".to_string()), Value::Str("withdrawal".to_string()));
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
@@ -8834,9 +8962,9 @@ impl BinanceCore {
             return status;
         }
         let mut statusesByType: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("0".to_string(), Value::Str("pending".to_string()));
         m.insert("1".to_string(), Value::Str("ok".to_string()));
         m.insert("6".to_string(), Value::Str("ok".to_string()));
@@ -8849,7 +8977,7 @@ impl BinanceCore {
     m
 }));
                 m.insert("withdrawal".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("0".to_string(), Value::Str("pending".to_string()));
         m.insert("1".to_string(), Value::Str("canceled".to_string()));
         m.insert("2".to_string(), Value::Str("pending".to_string()));
@@ -8868,7 +8996,7 @@ impl BinanceCore {
             m
         });
         let mut statuses: Value = self.safe_dict(statusesByType.clone(), type_var.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
@@ -8943,14 +9071,14 @@ impl BinanceCore {
         //    { id: "9a67628b16ba4988ae20d329333f16bc" }
         //
         let mut id: Value = self.safe_string2(transaction.clone(), Value::Str("id".to_string()), Value::Str("orderNo".to_string()), &[]);
-        let mut address: Value = self.safe_string(transaction.clone(), Value::Str("address".to_string()), &[]);
-        let mut tag: Value = self.safe_string(transaction.clone(), Value::Str("addressTag".to_string()), &[]); // set but unused
+        let mut address: Value = self.safe_string_k(transaction.clone(), "address", &[]);
+        let mut tag: Value = self.safe_string_k(transaction.clone(), "addressTag", &[]); // set but unused
         if !is_equal(&tag, &Value::Null) {
             if is_less_than(&get_array_length(&tag), &Value::Int(1)) {
                 tag = Value::Null;
             }
         }
-        let mut txid: Value = self.safe_string(transaction.clone(), Value::Str("txId".to_string()), &[]);
+        let mut txid: Value = self.safe_string_k(transaction.clone(), "txId", &[]);
         if is_true(&(!is_equal(&txid, &Value::Null))) && is_true(&(is_greater_than_or_equal(&get_index_of(&txid, &Value::Str("Internal transfer ".to_string())), &Value::Int(0)))) {
             txid = slice(&txid, &Value::Int(18), &Value::Null);
         }
@@ -8959,39 +9087,39 @@ impl BinanceCore {
         let mut timestamp: Value = Value::Null;
         timestamp = self.safe_integer2(transaction.clone(), Value::Str("insertTime".to_string()), Value::Str("createTime".to_string()), &[]);
         if is_equal(&timestamp, &Value::Null) {
-            timestamp = self.parse8601(self.safe_string(transaction.clone(), Value::Str("applyTime".to_string()), &[]));
+            timestamp = self.parse8601(self.safe_string_k(transaction.clone(), "applyTime", &[]));
         }
         let mut updated: Value = self.safe_integer2(transaction.clone(), Value::Str("successTime".to_string()), Value::Str("updateTime".to_string()), &[]);
-        let mut type_var: Value = self.safe_string(transaction.clone(), Value::Str("type".to_string()), &[]);
+        let mut type_var: Value = self.safe_string_k(transaction.clone(), "type", &[]);
         if is_equal(&type_var, &Value::Null) {
-            let mut txType: Value = self.safe_string(transaction.clone(), Value::Str("transactionType".to_string()), &[]);
+            let mut txType: Value = self.safe_string_k(transaction.clone(), "transactionType", &[]);
             if !is_equal(&txType, &Value::Null) {
                 type_var = ternary(is_true(&(is_equal(&txType, &Value::Str("0".to_string())))), Value::Str("deposit".to_string()), Value::Str("withdrawal".to_string()));
             }
-            let mut legalMoneyCurrenciesById: Value = self.safe_dict(self.options.clone(), Value::Str("legalMoneyCurrenciesById".to_string()), &[]);
+            let mut legalMoneyCurrenciesById: Value = self.safe_dict_k(self.options.clone(), "legalMoneyCurrenciesById", &[]);
             code = self.safe_string(legalMoneyCurrenciesById.clone(), code.clone(), &[code.clone()]);
         }
-        let mut status: Value = self.parse_transaction_status_by_type(self.safe_string(transaction.clone(), Value::Str("status".to_string()), &[]), &[type_var.clone()]);
-        let mut amount: Value = self.safe_number(transaction.clone(), Value::Str("amount".to_string()), &[]);
+        let mut status: Value = self.parse_transaction_status_by_type(self.safe_string_k(transaction.clone(), "status", &[]), &[type_var.clone()]);
+        let mut amount: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
         let mut feeCost: Value = self.safe_number2(transaction.clone(), Value::Str("transactionFee".to_string()), Value::Str("totalFee".to_string()), &[]);
         let mut fee: Value = Value::Null;
         if !is_equal(&feeCost, &Value::Null) {
             fee = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), code.clone());
                     m.insert("cost".to_string(), feeCost.clone());
                 m
             });
         }
-        let mut internalInteger: Value = self.safe_integer(transaction.clone(), Value::Str("transferType".to_string()), &[]);
+        let mut internalInteger: Value = self.safe_integer_k(transaction.clone(), "transferType", &[]);
         let mut internal: Value = Value::Null;
         if !is_equal(&internalInteger, &Value::Null) {
             internal = ternary(is_true(&(!is_equal(&internalInteger, &Value::Int(0)))), Value::Bool(true), Value::Bool(false));
         }
-        let mut networkId: Value = self.safe_string(transaction.clone(), Value::Str("network".to_string()), &[]);
+        let mut networkId: Value = self.safe_string_k(transaction.clone(), "network", &[]);
         let mut network: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), id.clone());
         m.insert("txid".to_string(), txid.clone());
@@ -9020,7 +9148,7 @@ impl BinanceCore {
 
     pub fn parse_transfer_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("CONFIRMED".to_string(), Value::Str("ok".to_string()));
             m
         });
@@ -9100,12 +9228,12 @@ impl BinanceCore {
         let mut id: Value = self.safe_string2(transfer.clone(), Value::Str("tranId".to_string()), Value::Str("transactionId".to_string()), &[]);
         let mut currencyId: Value = self.safe_string2(transfer.clone(), Value::Str("asset".to_string()), Value::Str("currency".to_string()), &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
-        let mut amount: Value = self.safe_number(transfer.clone(), Value::Str("amount".to_string()), &[]);
-        let mut type_var: Value = self.safe_string(transfer.clone(), Value::Str("type".to_string()), &[]);
+        let mut amount: Value = self.safe_number_k(transfer.clone(), "amount", &[]);
+        let mut type_var: Value = self.safe_string_k(transfer.clone(), "type", &[]);
         let mut fromAccount: Value = Value::Null;
         let mut toAccount: Value = Value::Null;
-        let mut accountsById: Value = self.safe_dict(self.options.clone(), Value::Str("accountsById".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut accountsById: Value = self.safe_dict_k(self.options.clone(), "accountsById", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         if !is_equal(&type_var, &Value::Null) {
@@ -9115,23 +9243,23 @@ impl BinanceCore {
             fromAccount = self.safe_string(accountsById.clone(), fromAccount.clone(), &[fromAccount.clone()]);
             toAccount = self.safe_string(accountsById.clone(), toAccount.clone(), &[toAccount.clone()]);
         }
-        let mut walletType: Value = self.safe_integer(transfer.clone(), Value::Str("walletType".to_string()), &[]);
+        let mut walletType: Value = self.safe_integer_k(transfer.clone(), "walletType", &[]);
         if !is_equal(&walletType, &Value::Null) {
-            let mut payer: Value = self.safe_dict(transfer.clone(), Value::Str("payerInfo".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut payer: Value = self.safe_dict_k(transfer.clone(), "payerInfo", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut receiver: Value = self.safe_dict(transfer.clone(), Value::Str("receiverInfo".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut receiver: Value = self.safe_dict_k(transfer.clone(), "receiverInfo", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            fromAccount = self.safe_string(payer.clone(), Value::Str("accountId".to_string()), &[]);
-            toAccount = self.safe_string(receiver.clone(), Value::Str("accountId".to_string()), &[]);
+            fromAccount = self.safe_string_k(payer.clone(), "accountId", &[]);
+            toAccount = self.safe_string_k(receiver.clone(), "accountId", &[]);
         }
         let mut timestamp: Value = self.safe_integer2(transfer.clone(), Value::Str("timestamp".to_string()), Value::Str("transactionTime".to_string()), &[]);
-        let mut status: Value = self.parse_transfer_status(self.safe_string(transfer.clone(), Value::Str("status".to_string()), &[]));
+        let mut status: Value = self.parse_transfer_status(self.safe_string_k(transfer.clone(), "status", &[]));
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), id.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -9161,18 +9289,18 @@ impl BinanceCore {
         //       "tradeId": ""
         //     }
         //
-        let mut marketId: Value = self.safe_string(income.clone(), Value::Str("symbol".to_string()), &[]);
-        let mut currencyId: Value = self.safe_string(income.clone(), Value::Str("asset".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer(income.clone(), Value::Str("time".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(income.clone(), "symbol", &[]);
+        let mut currencyId: Value = self.safe_string_k(income.clone(), "asset", &[]);
+        let mut timestamp: Value = self.safe_integer_k(income.clone(), "time", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), income.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("swap".to_string())]));
         m.insert("code".to_string(), self.safe_currency_code(currencyId.clone(), &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("id".to_string(), self.safe_string(income.clone(), Value::Str("tranId".to_string()), &[]));
-        m.insert("amount".to_string(), self.safe_number(income.clone(), Value::Str("income".to_string()), &[]));
+        m.insert("id".to_string(), self.safe_string_k(income.clone(), "tranId", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(income.clone(), "income", &[]));
     m
 });
 
@@ -9183,33 +9311,33 @@ impl BinanceCore {
  * @method
  * @name binance#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/wallet/asset/user-universal-transfer
+ * @see https://developers.binance.com/docs/wallet/asset/user-universal-transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] exchange specific transfer type
- * @param {string} [get_value(&params, &Value::Str("symbol".to_string()))] the unified symbol, required for isolated margin transfers
- * @returns {object} a [transfer structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transfer-structure}
+ * @param {string} [params.type] exchange specific transfer type
+ * @param {string} [params.symbol] the unified symbol, required for isolated margin transfers
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
     pub async fn transfer(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
         });
-        add_element_to_object(&mut request, &Value::Str("type".to_string()), self.safe_string(params.clone(), Value::Str("type".to_string()), &[]));
+        add_element_to_object(&mut request, &Value::Str("type".to_string()), self.safe_string_k(params.clone(), "type", &[]));
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
         if is_equal(&get_value(&request, &Value::Str("type".to_string())), &Value::Null) {
-            let mut symbol: Value = self.safe_string(params.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut symbol: Value = self.safe_string_k(params.clone(), "symbol", &[]);
             let mut market: Value = Value::Null;
             if !is_equal(&symbol, &Value::Null) {
                 market = self.market(symbol.clone());
@@ -9223,16 +9351,16 @@ impl BinanceCore {
             }
             if is_equal(&fromId, &Value::Str("ISOLATED".to_string())) {
                 if is_equal(&symbol, &Value::Null) {
-                    panic!("{:?}", crate::exchange_errors::arguments_required(add(&add(&self.id, &Value::Str(" transfer () requires params[\"symbol\"] when fromAccount is ".to_string())), &fromAccount)));
+                    panic!("{}", crate::exchange_errors::arguments_required(add(&add(&self.id, &Value::Str(" transfer () requires params[\"symbol\"] when fromAccount is ".to_string())), &fromAccount)));
                 }
             }
             if is_equal(&toId, &Value::Str("ISOLATED".to_string())) {
                 if is_equal(&symbol, &Value::Null) {
-                    panic!("{:?}", crate::exchange_errors::arguments_required(add(&add(&self.id, &Value::Str(" transfer () requires params[\"symbol\"] when toAccount is ".to_string())), &toAccount)));
+                    panic!("{}", crate::exchange_errors::arguments_required(add(&add(&self.id, &Value::Str(" transfer () requires params[\"symbol\"] when toAccount is ".to_string())), &toAccount)));
                 }
             }
-            let mut accountsById: Value = self.safe_dict(self.options.clone(), Value::Str("accountsById".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut accountsById: Value = self.safe_dict_k(self.options.clone(), "accountsById", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut fromIsolated: Value = Value::Bool(!is_true(&(Value::Bool(in_op(&accountsById, &fromId)))));
@@ -9252,7 +9380,7 @@ impl BinanceCore {
                 let mut option: Value = Value::Bool(is_equal(&fromId, &Value::Str("OPTION".to_string())) || is_equal(&toId, &Value::Str("OPTION".to_string())));
                 let mut prohibitedWithIsolated: Value = Value::Bool(is_true(&fromFuture) || is_true(&toFuture) || is_true(&funding) || is_true(&option));
                 if is_true(&(is_true(&fromIsolated) || is_true(&toIsolated))) && is_true(&prohibitedWithIsolated) {
-                    panic!("{:?}", crate::exchange_errors::bad_request(add(&add(&add(&add(&self.id, &Value::Str(" transfer () does not allow transfers between ".to_string())), &fromAccount), &Value::Str(" and ".to_string())), &toAccount)));
+                    panic!("{}", crate::exchange_errors::bad_request(add(&add(&add(&add(&self.id, &Value::Str(" transfer () does not allow transfers between ".to_string())), &fromAccount), &Value::Str(" and ".to_string())), &toAccount)));
                 }  else if is_true(&toSpot) && is_true(&fromIsolated) {
                     fromId = Value::Str("ISOLATED_MARGIN".to_string());
                     add_element_to_object(&mut request, &Value::Str("fromSymbol".to_string()), isolatedSymbol.clone());
@@ -9291,26 +9419,26 @@ impl BinanceCore {
  * @method
  * @name binance#fetchTransfers
  * @description fetch a history of internal transfers made on an account
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/wallet/asset/query-user-universal-transfer
+ * @see https://developers.binance.com/docs/wallet/asset/query-user-universal-transfer
  * @param {string} code unified currency code of the currency transferred
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of transfers structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch transfers for
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {boolean} [get_value(&params, &Value::Str("internal".to_string()))] default false, when true will fetch pay trade history
- * @returns {object[]} a list of [transfer structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transfer-structure}
+ * @param {int} [params.until] the latest time in ms to fetch transfers for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.internal] default false, when true will fetch pay trade history
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
     pub async fn fetch_transfers(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
-        let mut internal: Value = self.safe_bool(params.clone(), Value::Str("internal".to_string()), &[]);
+        let mut internal: Value = self.safe_bool_k(params.clone(), "internal", &[]);
         params = self.omit(params.clone(), Value::Str("internal".to_string()), &[]);
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTransfers".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -9322,18 +9450,18 @@ impl BinanceCore {
             currency = self.currency(code.clone());
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut limitKey: Value = Value::Str("limit".to_string());
         if !is_true(&internal) {
             let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchTransfers".to_string()), Value::Str("defaultType".to_string()), &[Value::Str("spot".to_string())]);
-            let mut fromAccount: Value = self.safe_string(params.clone(), Value::Str("fromAccount".to_string()), &[defaultType.clone()]);
+            let mut fromAccount: Value = self.safe_string_k(params.clone(), "fromAccount", &[defaultType.clone()]);
             let mut defaultTo: Value = ternary(is_true(&(is_equal(&fromAccount, &Value::Str("future".to_string())))), Value::Str("spot".to_string()), Value::Str("future".to_string()));
-            let mut toAccount: Value = self.safe_string(params.clone(), Value::Str("toAccount".to_string()), &[defaultTo.clone()]);
-            let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[]);
-            let mut accountsByType: Value = self.safe_dict(self.options.clone(), Value::Str("accountsByType".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut toAccount: Value = self.safe_string_k(params.clone(), "toAccount", &[defaultTo.clone()]);
+            let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[]);
+            let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut fromId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[]);
@@ -9341,11 +9469,11 @@ impl BinanceCore {
             if is_equal(&type_var, &Value::Null) {
                 if is_equal(&fromId, &Value::Null) {
                     let mut keys: Value = object_keys(&accountsByType);
-                    panic!("{:?}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" fromAccount parameter must be one of ".to_string())), &join(&keys, &Value::Str(", ".to_string())))));
+                    panic!("{}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" fromAccount parameter must be one of ".to_string())), &join(&keys, &Value::Str(", ".to_string())))));
                 }
                 if is_equal(&toId, &Value::Null) {
                     let mut keys: Value = object_keys(&accountsByType);
-                    panic!("{:?}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" toAccount parameter must be one of ".to_string())), &join(&keys, &Value::Str(", ".to_string())))));
+                    panic!("{}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" toAccount parameter must be one of ".to_string())), &join(&keys, &Value::Str(", ".to_string())))));
                 }
                 type_var = add(&add(&fromId, &Value::Str("_".to_string())), &toId);
             }
@@ -9358,7 +9486,7 @@ impl BinanceCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
         }
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if !is_equal(&until, &Value::Null) {
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
@@ -9379,21 +9507,21 @@ impl BinanceCore {
  * @method
  * @name binance#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/wallet/capital/deposite-address
+ * @see https://developers.binance.com/docs/wallet/capital/deposite-address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("network".to_string()))] network for fetch deposit address
- * @returns {object} an [address structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=address-structure}
+ * @param {string} [params.network] network for fetch deposit address
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
     pub async fn fetch_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
@@ -9419,20 +9547,20 @@ impl BinanceCore {
         //         "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
         //     }
         //
-        let mut url: Value = self.safe_string(response.clone(), Value::Str("url".to_string()), &[]);
-        let mut address: Value = self.safe_string(response.clone(), Value::Str("address".to_string()), &[]);
-        let mut currencyId: Value = self.safe_string(response.clone(), Value::Str("currency".to_string()), &[]);
+        let mut url: Value = self.safe_string_k(response.clone(), "url", &[]);
+        let mut address: Value = self.safe_string_k(response.clone(), "address", &[]);
+        let mut currencyId: Value = self.safe_string_k(response.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         // deposit-address endpoint provides only network url (not network ID/CODE)
         // so we should map the url to network (their data is inside currencies)
         let mut networkCode: Value = self.get_network_code_by_network_url(code.clone(), &[url.clone()]);
-        let mut tag: Value = self.safe_string(response.clone(), Value::Str("tag".to_string()), &[Value::Str("".to_string())]);
+        let mut tag: Value = self.safe_string_k(response.clone(), "tag", &[Value::Str("".to_string())]);
         if is_equal(&get_array_length(&tag), &Value::Int(0)) {
             tag = Value::Null;
         }
         self.check_address(&[address.clone()]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("currency".to_string(), code.clone());
         m.insert("network".to_string(), networkCode.clone());
@@ -9449,15 +9577,15 @@ impl BinanceCore {
  * @name binance#fetchTransactionFees
  * @deprecated
  * @description please use fetchDepositWithdrawFees instead
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/wallet/capital/all-coins-info
+ * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
  * @param {string[]|undefined} codes not used by binance fetchTransactionFees ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [fee structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=fee-structure}
+ * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
     pub async fn fetch_transaction_fees(&mut self, optional_args: &[Value]) -> Value {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -9544,39 +9672,41 @@ impl BinanceCore {
         //  ]
         //
         let mut withdrawFees: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_256: bool = true;
+            while { if !__for_first_256 { i = add(&i, &Value::Int(1)); } __for_first_256 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
-            let mut currencyId: Value = self.safe_string(entry.clone(), Value::Str("coin".to_string()), &[]);
+            let mut entry: Value = get_value(&response, &i);
+            let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            let mut networkList: Value = self.safe_list(entry.clone(), Value::Str("networkList".to_string()), &[Value::List(vec![])]);
+            let mut networkList: Value = self.safe_list_k(entry.clone(), "networkList", &[Value::List(vec![])]);
             add_element_to_object(&mut withdrawFees, &code, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
             {
                                 let mut j: Value = Value::Int(0);
-                while is_less_than(&j, &get_array_length(&networkList)) {
+                let mut __for_first_255: bool = true;
+                while { if !__for_first_255 { j = add(&j, &Value::Int(1)); } __for_first_255 = false; is_less_than(&j, &get_array_length(&networkList)) } {
                 let mut networkEntry: Value = get_value(&networkList, &j);
-                let mut networkId: Value = self.safe_string(networkEntry.clone(), Value::Str("network".to_string()), &[]);
+                let mut networkEntry: Value = get_value(&networkList, &j);
+                let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
                 let mut networkCode: Value = self.safe_currency_code(networkId.clone(), &[]);
-                let mut fee: Value = self.safe_number(networkEntry.clone(), Value::Str("withdrawFee".to_string()), &[]);
+                let mut fee: Value = self.safe_number_k(networkEntry.clone(), "withdrawFee", &[]);
                 add_element_to_object(get_value_mut(&mut withdrawFees, &code), &networkCode, fee.clone());
-                j = add(&j, &Value::Int(1));
             }
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), withdrawFees.clone());
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         m.insert("info".to_string(), response.clone());
@@ -9590,15 +9720,15 @@ impl BinanceCore {
  * @method
  * @name binance#fetchDepositWithdrawFees
  * @description fetch deposit and withdraw fees
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/wallet/capital/all-coins-info
+ * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
  * @param {string[]|undefined} codes not used by binance fetchDepositWithdrawFees ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [fee structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=fee-structure}
+ * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
     pub async fn fetch_deposit_withdraw_fees(&mut self, optional_args: &[Value]) -> Value {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -9650,42 +9780,43 @@ impl BinanceCore {
         //        ]
         //    }
         //
-        let mut code: Value = self.safe_string(currency.clone(), Value::Str("code".to_string()), &[]);
-        let mut networkList: Value = self.safe_list(fee.clone(), Value::Str("networkList".to_string()), &[Value::List(vec![])]);
+        let mut code: Value = self.safe_string_k(currency.clone(), "code", &[]);
+        let mut networkList: Value = self.safe_list_k(fee.clone(), "networkList", &[Value::List(vec![])]);
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
         {
                         let mut j: Value = Value::Int(0);
-            while is_less_than(&j, &get_array_length(&networkList)) {
+            let mut __for_first_257: bool = true;
+            while { if !__for_first_257 { j = add(&j, &Value::Int(1)); } __for_first_257 = false; is_less_than(&j, &get_array_length(&networkList)) } {
             let mut networkEntry: Value = get_value(&networkList, &j);
-            let mut networkId: Value = self.safe_string(networkEntry.clone(), Value::Str("network".to_string()), &[]);
+            let mut networkEntry: Value = get_value(&networkList, &j);
+            let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-            let mut withdrawFee: Value = self.safe_number(networkEntry.clone(), Value::Str("withdrawFee".to_string()), &[]);
-            let mut isDefault: Value = self.safe_bool(networkEntry.clone(), Value::Str("isDefault".to_string()), &[]);
+            let mut withdrawFee: Value = self.safe_number_k(networkEntry.clone(), "withdrawFee", &[]);
+            let mut isDefault: Value = self.safe_bool_k(networkEntry.clone(), "isDefault", &[]);
             if is_equal(&isDefault, &Value::Bool(true)) {
                 add_element_to_object(&mut result, &Value::Str("withdraw".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), withdrawFee.clone());
         m.insert("percentage".to_string(), Value::Null);
     m
 }));
             }
             add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".to_string())), &networkCode, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), withdrawFee.clone());
         m.insert("percentage".to_string(), Value::Null);
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
     m
 }));
     m
 }));
-            j = add(&j, &Value::Int(1));
         }
         }
         return result;
@@ -9697,18 +9828,18 @@ impl BinanceCore {
  * @method
  * @name binance#withdraw
  * @description make a withdrawal
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/wallet/capital/withdraw
+ * @see https://developers.binance.com/docs/wallet/capital/withdraw
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
         let mut tag = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -9716,7 +9847,7 @@ impl BinanceCore {
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("address".to_string(), address.clone());
             m
@@ -9755,10 +9886,10 @@ impl BinanceCore {
         //         "takerCommissionRate": "0.00040"   // 0.040%
         //     }
         //
-        let mut marketId: Value = self.safe_string(fee.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(fee.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("spot".to_string())]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), self.safe_number2(fee.clone(), Value::Str("makerCommission".to_string()), Value::Str("makerCommissionRate".to_string()), &[]));
@@ -9775,20 +9906,20 @@ impl BinanceCore {
  * @method
  * @name binance#fetchTradingFee
  * @description fetch the trading fees for a market
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/wallet/asset/trade-fee
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/account/rest-api/User-Commission-Rate
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/account/rest-api/User-Commission-Rate
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-UM
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-CM
+ * @see https://developers.binance.com/docs/wallet/asset/trade-fee
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/User-Commission-Rate
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/User-Commission-Rate
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-UM
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-CM
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to fetch trading fees in a portfolio margin account
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
- * @returns {object} a [fee structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=fee-structure}
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
     pub async fn fetch_trading_fee(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -9801,7 +9932,7 @@ impl BinanceCore {
         let mut isLinear: Value = self.is_linear(type_var.clone(), &[subType.clone()]);
         let mut isInverse: Value = self.is_inverse(type_var.clone(), &[subType.clone()]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -9843,7 +9974,7 @@ impl BinanceCore {
         let mut data: Value = response.clone();
         if is_true(&Value::Bool(is_array(&data))) {
             data = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         }
@@ -9856,17 +9987,17 @@ impl BinanceCore {
  * @method
  * @name binance#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/wallet/asset/trade-fee
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
+ * @see https://developers.binance.com/docs/wallet/asset/trade-fee
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
- * @returns {object} a dictionary of [fee structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=fee-structure} indexed by market symbols
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
     pub async fn fetch_trading_fees(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -9949,16 +10080,16 @@ impl BinanceCore {
             //    ]
             //
             let mut result: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m
             });
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&response)) {
+                let mut __for_first_258: bool = true;
+                while { if !__for_first_258 { i = add(&i, &Value::Int(1)); } __for_first_258 = false; is_less_than(&i, &get_array_length(&response)) } {
                 let mut fee: Value = self.parse_trading_fee(get_value(&response, &i), &[]);
                 let mut symbol: Value = get_value(&fee, &Value::Str("symbol".to_string()));
                 add_element_to_object(&mut result, &symbol, fee.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
             return result;
@@ -9986,23 +10117,25 @@ impl BinanceCore {
             //
             let mut symbols: Value = object_keys(&self.markets);
             let mut result: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut feeTier: Value = self.safe_integer(response.clone(), Value::Str("feeTier".to_string()), &[]);
+            let mut feeTier: Value = self.safe_integer_k(response.clone(), "feeTier", &[]);
             let mut feeTiers: Value = get_value(&get_value(&get_value(&self.fees, &Value::Str("linear".to_string())), &Value::Str("trading".to_string())), &Value::Str("tiers".to_string()));
             let mut maker: Value = get_value(&get_value(&get_value(&feeTiers, &Value::Str("maker".to_string())), &feeTier), &Value::Int(1));
             let mut taker: Value = get_value(&get_value(&get_value(&feeTiers, &Value::Str("taker".to_string())), &feeTier), &Value::Int(1));
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&symbols)) {
+                let mut __for_first_259: bool = true;
+                while { if !__for_first_259 { i = add(&i, &Value::Int(1)); } __for_first_259 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = get_value(&self.markets, &symbol);
                 if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
                     add_element_to_object(&mut result, &symbol, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("feeTier".to_string(), feeTier.clone());
     m
 }));
@@ -10012,7 +10145,6 @@ impl BinanceCore {
     m
 }));
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
             return result;
@@ -10028,23 +10160,25 @@ impl BinanceCore {
             //
             let mut symbols: Value = object_keys(&self.markets);
             let mut result: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut feeTier: Value = self.safe_integer(response.clone(), Value::Str("feeTier".to_string()), &[]);
+            let mut feeTier: Value = self.safe_integer_k(response.clone(), "feeTier", &[]);
             let mut feeTiers: Value = get_value(&get_value(&get_value(&self.fees, &Value::Str("inverse".to_string())), &Value::Str("trading".to_string())), &Value::Str("tiers".to_string()));
             let mut maker: Value = get_value(&get_value(&get_value(&feeTiers, &Value::Str("maker".to_string())), &feeTier), &Value::Int(1));
             let mut taker: Value = get_value(&get_value(&get_value(&feeTiers, &Value::Str("taker".to_string())), &feeTier), &Value::Int(1));
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&symbols)) {
+                let mut __for_first_260: bool = true;
+                while { if !__for_first_260 { i = add(&i, &Value::Int(1)); } __for_first_260 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = get_value(&self.markets, &symbol);
                 if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
                     add_element_to_object(&mut result, &symbol, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("feeTier".to_string(), feeTier.clone());
     m
 }));
@@ -10054,7 +10188,6 @@ impl BinanceCore {
     m
 }));
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
             return result;
@@ -10069,26 +10202,26 @@ impl BinanceCore {
  * @name binance#futuresTransfer
  * @ignore
  * @description transfer between futures account
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/account/rest-api/New-Future-Account-Transfer
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/New-Future-Account-Transfer
  * @param {string} code unified currency code
  * @param {float} amount the amount to transfer
  * @param {string} type 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {float} get_value(&params, &Value::Str("recvWindow".to_string()))
- * @returns {object} a [transfer structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=futures-transfer-structure}
+ * @param {float} params.recvWindow
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=futures-transfer-structure}
  */
     pub async fn futures_transfer(&mut self, mut code: Value, mut amount: Value, mut type_var: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&(is_less_than(&type_var, &Value::Int(1)))) || is_true(&(is_greater_than(&type_var, &Value::Int(4)))) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" type must be between 1 and 4".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" type must be between 1 and 4".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("amount".to_string(), amount.clone());
                 m.insert("type".to_string(), type_var.clone());
@@ -10104,21 +10237,21 @@ impl BinanceCore {
  * @method
  * @name binance#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
     pub async fn fetch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -10128,7 +10261,7 @@ impl BinanceCore {
         }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
             response = self.call_method(Value::Str("dapi_public_get_premium_index".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingRate() supports linear and inverse contracts only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingRate() supports linear and inverse contracts only".to_string()))));
         }
         if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
             response = get_value(&response, &Value::Int(0));
@@ -10142,28 +10275,28 @@ impl BinanceCore {
  * @method
  * @name binance#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-History
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Get-Funding-Rate-History-of-Perpetual-Futures
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-History
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Get-Funding-Rate-History-of-Perpetual-Futures
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest funding rate
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
- * @returns {object[]} a list of [funding rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-history-structure}
+ * @param {int} [params.until] timestamp in ms of the latest funding rate
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
     pub async fn fetch_funding_rate_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut paginate: Value = Value::Bool(false);
@@ -10172,7 +10305,7 @@ impl BinanceCore {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".to_string()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".to_string()), params.clone()]).await;
         }
         let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchFundingRateHistory".to_string()), Value::Str("defaultType".to_string()), &[Value::Str("future".to_string())]);
-        let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[defaultType.clone()]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -10185,8 +10318,8 @@ impl BinanceCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
         }
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]); // unified in milliseconds
-        let mut endTime: Value = self.safe_integer(params.clone(), Value::Str("endTime".to_string()), &[until.clone()]); // exchange-specific in milliseconds
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]); // unified in milliseconds
+        let mut endTime: Value = self.safe_integer_k(params.clone(), "endTime", &[until.clone()]); // exchange-specific in milliseconds
         params = self.omit(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("until".to_string())]), &[]);
         if !is_equal(&endTime, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), endTime.clone());
@@ -10200,7 +10333,7 @@ impl BinanceCore {
         }  else if is_true(&self.is_inverse(type_var.clone(), &[subType.clone()])) {
             response = self.call_method(Value::Str("dapi_public_get_funding_rate".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchFundingRateHistory() is not supported for ".to_string())), &type_var), &Value::Str(" markets".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchFundingRateHistory() is not supported for ".to_string())), &type_var), &Value::Str(" markets".to_string()))));
         }
         return self.parse_funding_rate_histories(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -10216,12 +10349,12 @@ impl BinanceCore {
         //         "fundingTime": "1621267200000",
         //     }
         //
-        let mut timestamp: Value = self.safe_integer(contract.clone(), Value::Str("fundingTime".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(contract.clone(), "fundingTime", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(self.safe_string(contract.clone(), Value::Str("symbol".to_string()), &[]), &[Value::Null, Value::Null, Value::Str("swap".to_string())]));
-        m.insert("fundingRate".to_string(), self.safe_number(contract.clone(), Value::Str("fundingRate".to_string()), &[]));
+        m.insert("symbol".to_string(), self.safe_symbol(self.safe_string_k(contract.clone(), "symbol", &[]), &[Value::Null, Value::Null, Value::Str("swap".to_string())]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "fundingRate", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
@@ -10234,23 +10367,23 @@ impl BinanceCore {
  * @method
  * @name binance#fetchFundingRates
  * @description fetch the funding rate for multiple markets
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
- * @returns {object[]} a list of [funding rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rates-structure}, indexed by market symbols
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
     pub async fn fetch_funding_rates(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchFundingRates".to_string()), Value::Str("defaultType".to_string()), &[Value::Str("future".to_string())]);
-        let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[defaultType.clone()]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchFundingRates".to_string()), &[Value::Null, params.clone(), Value::Str("linear".to_string())]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut query: Value = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
@@ -10260,7 +10393,7 @@ impl BinanceCore {
         }  else if is_true(&self.is_inverse(type_var.clone(), &[subType.clone()])) {
             response = self.call_method(Value::Str("dapi_public_get_premium_index".to_string()), &[query.clone()]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingRates() supports linear and inverse contracts only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingRates() supports linear and inverse contracts only".to_string()))));
         }
         return self.parse_funding_rates(response.clone(), &[symbols.clone()]);
 
@@ -10269,7 +10402,7 @@ impl BinanceCore {
 
     pub fn parse_funding_rate(&self, mut contract: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        // ensure it matches with https://get_value(&www, &Value::Str("binance".to_string())).com/en/futures/funding-history/0
+        // ensure it matches with https://www.binance.com/en/futures/funding-history/0
         //
         // fetchFundingRate, fetchFundingRates
         //
@@ -10294,22 +10427,22 @@ impl BinanceCore {
         //         "disclaimer": false
         //     }
         //
-        let mut timestamp: Value = self.safe_integer(contract.clone(), Value::Str("time".to_string()), &[]);
-        let mut marketId: Value = self.safe_string(contract.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(contract.clone(), "time", &[]);
+        let mut marketId: Value = self.safe_string_k(contract.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("contract".to_string())]);
-        let mut markPrice: Value = self.safe_number(contract.clone(), Value::Str("markPrice".to_string()), &[]);
-        let mut indexPrice: Value = self.safe_number(contract.clone(), Value::Str("indexPrice".to_string()), &[]);
-        let mut interestRate: Value = self.safe_number(contract.clone(), Value::Str("interestRate".to_string()), &[]);
-        let mut estimatedSettlePrice: Value = self.safe_number(contract.clone(), Value::Str("estimatedSettlePrice".to_string()), &[]);
-        let mut fundingRate: Value = self.safe_number(contract.clone(), Value::Str("lastFundingRate".to_string()), &[]);
-        let mut fundingTime: Value = self.safe_integer(contract.clone(), Value::Str("nextFundingTime".to_string()), &[]);
-        let mut interval: Value = self.safe_string(contract.clone(), Value::Str("fundingIntervalHours".to_string()), &[]);
+        let mut markPrice: Value = self.safe_number_k(contract.clone(), "markPrice", &[]);
+        let mut indexPrice: Value = self.safe_number_k(contract.clone(), "indexPrice", &[]);
+        let mut interestRate: Value = self.safe_number_k(contract.clone(), "interestRate", &[]);
+        let mut estimatedSettlePrice: Value = self.safe_number_k(contract.clone(), "estimatedSettlePrice", &[]);
+        let mut fundingRate: Value = self.safe_number_k(contract.clone(), "lastFundingRate", &[]);
+        let mut fundingTime: Value = self.safe_integer_k(contract.clone(), "nextFundingTime", &[]);
+        let mut interval: Value = self.safe_string_k(contract.clone(), "fundingIntervalHours", &[]);
         let mut intervalString: Value = Value::Null;
         if !is_equal(&interval, &Value::Null) {
             intervalString = add(&interval, &Value::Str("h".to_string()));
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("markPrice".to_string(), markPrice.clone());
@@ -10336,45 +10469,48 @@ impl BinanceCore {
 
     pub fn parse_account_positions(&self, mut account: Value, optional_args: &[Value]) -> Value {
         let mut filterClosed = get_arg(optional_args, 0, Value::Bool(false));
-        let mut positions: Value = self.safe_list(account.clone(), Value::Str("positions".to_string()), &[]);
-        let mut assets: Value = self.safe_list(account.clone(), Value::Str("assets".to_string()), &[Value::List(vec![])]);
+        let mut positions: Value = self.safe_list_k(account.clone(), "positions", &[]);
+        let mut assets: Value = self.safe_list_k(account.clone(), "assets", &[Value::List(vec![])]);
         let mut balances: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&assets)) {
+            let mut __for_first_261: bool = true;
+            while { if !__for_first_261 { i = add(&i, &Value::Int(1)); } __for_first_261 = false; is_less_than(&i, &get_array_length(&assets)) } {
             let mut entry: Value = get_value(&assets, &i);
-            let mut currencyId: Value = self.safe_string(entry.clone(), Value::Str("asset".to_string()), &[]);
+            let mut entry: Value = get_value(&assets, &i);
+            let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            let mut crossWalletBalance: Value = self.safe_string(entry.clone(), Value::Str("crossWalletBalance".to_string()), &[]);
-            let mut crossUnPnl: Value = self.safe_string(entry.clone(), Value::Str("crossUnPnl".to_string()), &[]);
+            let mut crossWalletBalance: Value = self.safe_string_k(entry.clone(), "crossWalletBalance", &[]);
+            let mut crossUnPnl: Value = self.safe_string_k(entry.clone(), "crossUnPnl", &[]);
             add_element_to_object(&mut balances, &code, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("crossMargin".to_string(), crate::precise::Precise::stringAdd(&crossWalletBalance, &crossUnPnl));
         m.insert("crossWalletBalance".to_string(), crossWalletBalance.clone());
     m
 }));
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&positions)) {
+            let mut __for_first_262: bool = true;
+            while { if !__for_first_262 { i = add(&i, &Value::Int(1)); } __for_first_262 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = get_value(&positions, &i);
-            let mut marketId: Value = self.safe_string(position.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut position: Value = get_value(&positions, &i);
+            let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("contract".to_string())]);
             let mut code: Value = ternary(is_true(&get_value(&market, &Value::Str("linear".to_string()))), get_value(&market, &Value::Str("quote".to_string())), get_value(&market, &Value::Str("base".to_string())));
-            let mut maintenanceMargin: Value = self.safe_string(position.clone(), Value::Str("maintMargin".to_string()), &[]);
+            let mut maintenanceMargin: Value = self.safe_string_k(position.clone(), "maintMargin", &[]);
             // check for maintenance margin so empty positions are not returned
             let mut isPositionOpen: Value = Value::Bool(is_true(&(!is_equal(&maintenanceMargin, &Value::Str("0".to_string())))) && is_true(&(!is_equal(&maintenanceMargin, &Value::Str("0.00000000".to_string())))));
             if !is_true(&filterClosed) || is_true(&isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
                 if is_true(&Value::Bool(in_op(&balances, &code))) {
                     let mut parsed: Value = self.parse_account_position(self.extend(position.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("crossMargin".to_string(), get_value(&get_value(&balances, &code), &Value::Str("crossMargin".to_string())));
         m.insert("crossWalletBalance".to_string(), get_value(&get_value(&balances, &code), &Value::Str("crossWalletBalance".to_string())));
     m
@@ -10382,7 +10518,6 @@ impl BinanceCore {
                     append_to_array(&mut result, parsed.clone());
                 }
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -10479,66 +10614,67 @@ impl BinanceCore {
         //         "breakEvenPrice": "0.00000000"
         //     }
         //
-        let mut marketId: Value = self.safe_string(position.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("contract".to_string())]);
-        let mut symbol: Value = self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]);
-        let mut leverageString: Value = self.safe_string(position.clone(), Value::Str("leverage".to_string()), &[]);
+        let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+        let mut leverageString: Value = self.safe_string_k(position.clone(), "leverage", &[]);
         let mut leverage: Value = ternary(is_true(&(!is_equal(&leverageString, &Value::Null))), crate::runtime::parse_int(&leverageString), Value::Null);
-        let mut initialMarginString: Value = self.safe_string(position.clone(), Value::Str("initialMargin".to_string()), &[]);
+        let mut initialMarginString: Value = self.safe_string_k(position.clone(), "initialMargin", &[]);
         let mut initialMargin: Value = self.parse_number(initialMarginString.clone(), &[]);
         let mut initialMarginPercentageString: Value = Value::Null;
         if !is_equal(&leverageString, &Value::Null) {
-            initialMarginPercentageString = crate::precise::Precise::stringDiv(&Value::Str("1".to_string()), &leverageString);
+            initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&Value::Str("1".to_string()), &leverageString, &Value::Int(8));
             let mut rational: Value = self.is_round_number(mod_val(&Value::Int(1000), &leverage));
             if !is_true(&rational) {
-                initialMarginPercentageString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&initialMarginPercentageString, &Value::Str("1e-8".to_string())), &Value::Str("1".to_string()));
+                initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&initialMarginPercentageString, &Value::Str("1e-8".to_string())), &Value::Str("1".to_string()), &Value::Int(8));
             }
         }
         // as oppose to notionalValue
         let mut usdm: Value = (Value::Bool(in_op(&position, &Value::Str("notional".to_string()))));
-        let mut maintenanceMarginString: Value = self.safe_string(position.clone(), Value::Str("maintMargin".to_string()), &[]);
+        let mut maintenanceMarginString: Value = self.safe_string_k(position.clone(), "maintMargin", &[]);
         let mut maintenanceMargin: Value = self.parse_number(maintenanceMarginString.clone(), &[]);
-        let mut entryPriceString: Value = self.safe_string(position.clone(), Value::Str("entryPrice".to_string()), &[]);
+        let mut entryPriceString: Value = self.safe_string_k(position.clone(), "entryPrice", &[]);
         let mut entryPrice: Value = self.parse_number(entryPriceString.clone(), &[]);
         let mut notionalString: Value = self.safe_string2(position.clone(), Value::Str("notional".to_string()), Value::Str("notionalValue".to_string()), &[]);
         let mut notionalStringAbs: Value = crate::precise::Precise::stringAbs(&notionalString);
         let mut notional: Value = self.parse_number(notionalStringAbs.clone(), &[]);
-        let mut contractsString: Value = self.safe_string(position.clone(), Value::Str("positionAmt".to_string()), &[]);
+        let mut contractsString: Value = self.safe_string_k(position.clone(), "positionAmt", &[]);
         let mut contractsStringAbs: Value = crate::precise::Precise::stringAbs(&contractsString);
         if is_equal(&contractsString, &Value::Null) {
             let mut entryNotional: Value = crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&leverageString, &initialMarginString), &entryPriceString);
-            let mut contractSizeNew: Value = self.safe_string(market.clone(), Value::Str("contractSize".to_string()), &[]);
+            let mut contractSizeNew: Value = self.safe_string_k(market.clone(), "contractSize", &[]);
             contractsString = crate::precise::Precise::stringDiv(&entryNotional, &contractSizeNew);
-            contractsStringAbs = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&contractsString, &Value::Str("0.5".to_string())), &Value::Str("1".to_string()));
+            contractsStringAbs = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&contractsString, &Value::Str("0.5".to_string())), &Value::Str("1".to_string()), &Value::Int(0));
         }
         let mut contracts: Value = self.parse_number(contractsStringAbs.clone(), &[]);
-        let mut leverageBrackets: Value = self.safe_dict(self.options.clone(), Value::Str("leverageBrackets".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut leverageBrackets: Value = self.safe_dict_k(self.options.clone(), "leverageBrackets", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut leverageBracket: Value = self.safe_list(leverageBrackets.clone(), symbol.clone(), &[Value::List(vec![])]);
         let mut maintenanceMarginPercentageString: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&leverageBracket)) {
+            let mut __for_first_263: bool = true;
+            while { if !__for_first_263 { i = add(&i, &Value::Int(1)); } __for_first_263 = false; is_less_than(&i, &get_array_length(&leverageBracket)) } {
+            let mut bracket: Value = get_value(&leverageBracket, &i);
             let mut bracket: Value = get_value(&leverageBracket, &i);
             if is_true(&crate::precise::Precise::stringLt(&notionalStringAbs, &get_value(&bracket, &Value::Int(0)))) {
                 break;
             }
             maintenanceMarginPercentageString = get_value(&bracket, &Value::Int(1));
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut maintenanceMarginPercentage: Value = self.parse_number(maintenanceMarginPercentageString.clone(), &[]);
-        let mut unrealizedPnlString: Value = self.safe_string(position.clone(), Value::Str("unrealizedProfit".to_string()), &[]);
+        let mut unrealizedPnlString: Value = self.safe_string_k(position.clone(), "unrealizedProfit", &[]);
         let mut unrealizedPnl: Value = self.parse_number(unrealizedPnlString.clone(), &[]);
-        let mut timestamp: Value = self.safe_integer(position.clone(), Value::Str("updateTime".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(position.clone(), "updateTime", &[]);
         if is_equal(&timestamp, &Value::Int(0)) {
             timestamp = Value::Null;
         }
-        let mut isolated: Value = self.safe_bool(position.clone(), Value::Str("isolated".to_string()), &[]);
+        let mut isolated: Value = self.safe_bool_k(position.clone(), "isolated", &[]);
         if is_equal(&isolated, &Value::Null) {
-            let mut isolatedMarginRaw: Value = self.safe_string(position.clone(), Value::Str("isolatedMargin".to_string()), &[]);
+            let mut isolatedMarginRaw: Value = self.safe_string_k(position.clone(), "isolatedMargin", &[]);
             isolated = Value::Bool(!is_true(&crate::precise::Precise::stringEq(&isolatedMarginRaw, &Value::Str("0".to_string()))));
         }
         let mut marginMode: Value = Value::Null;
@@ -10546,12 +10682,12 @@ impl BinanceCore {
         let mut walletBalance: Value = Value::Null;
         if is_true(&isolated) {
             marginMode = Value::Str("isolated".to_string());
-            walletBalance = self.safe_string(position.clone(), Value::Str("isolatedWallet".to_string()), &[]);
+            walletBalance = self.safe_string_k(position.clone(), "isolatedWallet", &[]);
             collateralString = crate::precise::Precise::stringAdd(&walletBalance, &unrealizedPnlString);
         }  else {
             marginMode = Value::Str("cross".to_string());
-            walletBalance = self.safe_string(position.clone(), Value::Str("crossWalletBalance".to_string()), &[]);
-            collateralString = self.safe_string(position.clone(), Value::Str("crossMargin".to_string()), &[]);
+            walletBalance = self.safe_string_k(position.clone(), "crossWalletBalance", &[]);
+            collateralString = self.safe_string_k(position.clone(), "crossMargin", &[]);
         }
         let mut collateral: Value = self.parse_number(collateralString.clone(), &[]);
         let mut marginRatio: Value = Value::Null;
@@ -10559,14 +10695,14 @@ impl BinanceCore {
         let mut percentage: Value = Value::Null;
         let mut liquidationPriceStringRaw: Value = Value::Null;
         let mut liquidationPrice: Value = Value::Null;
-        let mut contractSize: Value = self.safe_value(market.clone(), Value::Str("contractSize".to_string()), &[]);
+        let mut contractSize: Value = self.safe_value_k(market.clone(), "contractSize", &[]);
         let mut contractSizeString: Value = self.number_to_string(contractSize.clone());
         if is_true(&crate::precise::Precise::stringEquals(&notionalString, &Value::Str("0".to_string()))) {
             entryPrice = Value::Null;
         }  else {
             side = ternary(is_true(&crate::precise::Precise::stringLt(&notionalString, &Value::Str("0".to_string()))), Value::Str("short".to_string()), Value::Str("long".to_string()));
-            marginRatio = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringDiv(&maintenanceMarginString, &collateralString), &Value::Str("5e-5".to_string())), &Value::Str("1".to_string())), &[]);
-            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&unrealizedPnlString, &initialMarginString), &Value::Str("100".to_string())), &[]);
+            marginRatio = self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringDiv(&maintenanceMarginString, &collateralString), &Value::Str("5e-5".to_string())), &Value::Str("1".to_string()), &Value::Int(4)), &[]);
+            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnlString, &initialMarginString, &Value::Int(4)), &Value::Str("100".to_string())), &[]);
             if is_true(&usdm) {
                 // calculate liquidation price
                 //
@@ -10611,7 +10747,7 @@ impl BinanceCore {
             let mut rounder = Precise::new(add(&Value::Str("5e-".to_string()), &pricePrecisionPlusOneString));
             let mut rounderString: Value = to_string_val(&rounder);
             let mut liquidationPriceRoundedString: Value = crate::precise::Precise::stringAdd(&rounderString, &liquidationPriceStringRaw);
-            let mut truncatedLiquidationPrice: Value = crate::precise::Precise::stringDiv(&liquidationPriceRoundedString, &Value::Str("1".to_string()));
+            let mut truncatedLiquidationPrice: Value = crate::precise::Precise::stringDivPrec(&liquidationPriceRoundedString, &Value::Str("1".to_string()), &pricePrecision);
             if is_equal(&get_value(&truncatedLiquidationPrice, &Value::Int(0)), &Value::Str("-".to_string())) {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position
@@ -10619,10 +10755,10 @@ impl BinanceCore {
             }
             liquidationPrice = self.parse_number(truncatedLiquidationPrice.clone(), &[]);
         }
-        let mut positionSide: Value = self.safe_string(position.clone(), Value::Str("positionSide".to_string()), &[]);
+        let mut positionSide: Value = self.safe_string_k(position.clone(), "positionSide", &[]);
         let mut hedged: Value = Value::Bool(!is_equal(&positionSide, &Value::Str("BOTH".to_string())));
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.clone());
@@ -10652,7 +10788,7 @@ impl BinanceCore {
     Value::Null
 }
 
-    pub async fn parse_position_risk(&self, mut position: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_position_risk(&self, mut position: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         // usdm
@@ -10739,12 +10875,12 @@ impl BinanceCore {
         //         "breakEvenPrice": "44542.81"
         //     }
         //
-        let mut marketId: Value = self.safe_string(position.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("contract".to_string())]);
-        let mut symbol: Value = self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]);
-        let mut isolatedMarginString: Value = self.safe_string(position.clone(), Value::Str("isolatedMargin".to_string()), &[]);
-        let mut leverageBrackets: Value = self.safe_dict(self.options.clone(), Value::Str("leverageBrackets".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+        let mut isolatedMarginString: Value = self.safe_string_k(position.clone(), "isolatedMargin", &[]);
+        let mut leverageBrackets: Value = self.safe_dict_k(self.options.clone(), "leverageBrackets", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut leverageBracket: Value = self.safe_list(leverageBrackets.clone(), symbol.clone(), &[Value::List(vec![])]);
@@ -10753,24 +10889,25 @@ impl BinanceCore {
         let mut maintenanceMarginPercentageString: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&leverageBracket)) {
+            let mut __for_first_264: bool = true;
+            while { if !__for_first_264 { i = add(&i, &Value::Int(1)); } __for_first_264 = false; is_less_than(&i, &get_array_length(&leverageBracket)) } {
+            let mut bracket: Value = get_value(&leverageBracket, &i);
             let mut bracket: Value = get_value(&leverageBracket, &i);
             if is_true(&crate::precise::Precise::stringLt(&notionalStringAbs, &get_value(&bracket, &Value::Int(0)))) {
                 break;
             }
             maintenanceMarginPercentageString = get_value(&bracket, &Value::Int(1));
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut notional: Value = self.parse_number(notionalStringAbs.clone(), &[]);
-        let mut contractsAbs: Value = crate::precise::Precise::stringAbs(&self.safe_string(position.clone(), Value::Str("positionAmt".to_string()), &[]));
+        let mut contractsAbs: Value = crate::precise::Precise::stringAbs(&self.safe_string_k(position.clone(), "positionAmt", &[]));
         let mut contracts: Value = self.parse_number(contractsAbs.clone(), &[]);
-        let mut unrealizedPnlString: Value = self.safe_string(position.clone(), Value::Str("unRealizedProfit".to_string()), &[]);
+        let mut unrealizedPnlString: Value = self.safe_string_k(position.clone(), "unRealizedProfit", &[]);
         let mut unrealizedPnl: Value = self.parse_number(unrealizedPnlString.clone(), &[]);
-        let mut liquidationPriceString: Value = self.omit_zero(self.safe_string(position.clone(), Value::Str("liquidationPrice".to_string()), &[]));
+        let mut liquidationPriceString: Value = self.omit_zero(self.safe_string_k(position.clone(), "liquidationPrice", &[]));
         let mut liquidationPrice: Value = self.parse_number(liquidationPriceString.clone(), &[]);
         let mut collateralString: Value = Value::Null;
-        let mut marginMode: Value = self.safe_string(position.clone(), Value::Str("marginType".to_string()), &[]);
+        let mut marginMode: Value = self.safe_string_k(position.clone(), "marginType", &[]);
         if is_equal(&marginMode, &Value::Null) && !is_equal(&isolatedMarginString, &Value::Null) {
             marginMode = ternary(is_true(&crate::precise::Precise::stringEq(&isolatedMarginString, &Value::Str("0".to_string()))), Value::Str("cross".to_string()), Value::Str("isolated".to_string()));
         }
@@ -10780,19 +10917,19 @@ impl BinanceCore {
         }  else if is_true(&crate::precise::Precise::stringLt(&notionalString, &Value::Str("0".to_string()))) {
             side = Value::Str("short".to_string());
         }
-        let mut entryPriceString: Value = self.safe_string(position.clone(), Value::Str("entryPrice".to_string()), &[]);
+        let mut entryPriceString: Value = self.safe_string_k(position.clone(), "entryPrice", &[]);
         let mut entryPrice: Value = self.parse_number(entryPriceString.clone(), &[]);
-        let mut contractSize: Value = self.safe_value(market.clone(), Value::Str("contractSize".to_string()), &[]);
+        let mut contractSize: Value = self.safe_value_k(market.clone(), "contractSize", &[]);
         let mut contractSizeString: Value = self.number_to_string(contractSize.clone());
         // as oppose to notionalValue
         let mut linear: Value = (Value::Bool(in_op(&position, &Value::Str("notional".to_string()))));
         if is_equal(&marginMode, &Value::Str("cross".to_string())) {
             // calculate collateral
-            let mut precision: Value = self.safe_dict(market.clone(), Value::Str("precision".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut precision: Value = self.safe_dict_k(market.clone(), "precision", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut basePrecisionValue: Value = self.safe_string(precision.clone(), Value::Str("base".to_string()), &[]);
+            let mut basePrecisionValue: Value = self.safe_string_k(precision.clone(), "base", &[]);
             let mut quotePrecisionValue: Value = self.safe_string2(precision.clone(), Value::Str("quote".to_string()), Value::Str("price".to_string()), &[]);
             let mut precisionIsUndefined: Value = Value::Bool(is_true(&(is_equal(&basePrecisionValue, &Value::Null))) && is_true(&(is_equal(&quotePrecisionValue, &Value::Null))));
             if !is_true(&precisionIsUndefined) {
@@ -10810,7 +10947,7 @@ impl BinanceCore {
                     let mut leftSide: Value = crate::precise::Precise::stringAdd(&inner, &entryPriceSignString);
                     let mut quotePrecision: Value = self.precision_from_string(self.safe_string2(precision.clone(), Value::Str("quote".to_string()), Value::Str("price".to_string()), &[]));
                     if !is_equal(&quotePrecision, &Value::Null) {
-                        collateralString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&leftSide, &contractsAbs), &Value::Str("1".to_string()));
+                        collateralString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringMul(&leftSide, &contractsAbs), &Value::Str("1".to_string()), &quotePrecision);
                     }
                 }  else {
                     // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
@@ -10824,19 +10961,19 @@ impl BinanceCore {
                     }
                     let mut leftSide: Value = crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString);
                     let mut rightSide: Value = crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&Value::Str("1".to_string()), &entryPriceSignString), &crate::precise::Precise::stringDiv(&onePlusMaintenanceMarginPercentageString, &liquidationPriceString));
-                    let mut basePrecision: Value = self.precision_from_string(self.safe_string(precision.clone(), Value::Str("base".to_string()), &[]));
+                    let mut basePrecision: Value = self.precision_from_string(self.safe_string_k(precision.clone(), "base", &[]));
                     if !is_equal(&basePrecision, &Value::Null) {
-                        collateralString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&leftSide, &rightSide), &Value::Str("1".to_string()));
+                        collateralString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringMul(&leftSide, &rightSide), &Value::Str("1".to_string()), &basePrecision);
                     }
                 }
             }
         }  else {
-            collateralString = self.safe_string(position.clone(), Value::Str("isolatedMargin".to_string()), &[]);
+            collateralString = self.safe_string_k(position.clone(), "isolatedMargin", &[]);
         }
         collateralString = ternary(is_true(&(is_equal(&collateralString, &Value::Null))), Value::Str("0".to_string()), collateralString.clone());
         let mut collateral: Value = self.parse_number(collateralString.clone(), &[]);
-        let mut markPrice: Value = self.parse_number(self.omit_zero(self.safe_string(position.clone(), Value::Str("markPrice".to_string()), &[])), &[]);
-        let mut timestamp: Value = self.safe_integer(position.clone(), Value::Str("updateTime".to_string()), &[]);
+        let mut markPrice: Value = self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "markPrice", &[])), &[]);
+        let mut timestamp: Value = self.safe_integer_k(position.clone(), "updateTime", &[]);
         if is_equal(&timestamp, &Value::Int(0)) {
             timestamp = Value::Null;
         }
@@ -10844,36 +10981,36 @@ impl BinanceCore {
         let mut maintenanceMarginString: Value = crate::precise::Precise::stringMul(&maintenanceMarginPercentageString, &notionalStringAbs);
         if is_equal(&maintenanceMarginString, &Value::Null) {
             // for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
-            maintenanceMarginString = self.safe_string(position.clone(), Value::Str("maintMargin".to_string()), &[]);
+            maintenanceMarginString = self.safe_string_k(position.clone(), "maintMargin", &[]);
         }
         let mut maintenanceMargin: Value = self.parse_number(maintenanceMarginString.clone(), &[]);
         let mut initialMarginString: Value = Value::Null;
         let mut initialMarginPercentageString: Value = Value::Null;
-        let mut leverageString: Value = self.safe_string(position.clone(), Value::Str("leverage".to_string()), &[]);
+        let mut leverageString: Value = self.safe_string_k(position.clone(), "leverage", &[]);
         if !is_equal(&leverageString, &Value::Null) {
             let mut leverage: Value = crate::runtime::parse_int(&leverageString);
             let mut rational: Value = self.is_round_number(mod_val(&Value::Int(1000), &leverage));
-            initialMarginPercentageString = crate::precise::Precise::stringDiv(&Value::Str("1".to_string()), &leverageString);
+            initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&Value::Str("1".to_string()), &leverageString, &Value::Int(8));
             if !is_true(&rational) {
                 initialMarginPercentageString = crate::precise::Precise::stringAdd(&initialMarginPercentageString, &Value::Str("1e-8".to_string()));
             }
             let mut unrounded: Value = crate::precise::Precise::stringMul(&notionalStringAbs, &initialMarginPercentageString);
-            initialMarginString = crate::precise::Precise::stringDiv(&unrounded, &Value::Str("1".to_string()));
+            initialMarginString = crate::precise::Precise::stringDivPrec(&unrounded, &Value::Str("1".to_string()), &Value::Int(8));
         }  else {
-            initialMarginString = self.safe_string(position.clone(), Value::Str("initialMargin".to_string()), &[]);
+            initialMarginString = self.safe_string_k(position.clone(), "initialMargin", &[]);
             let mut unrounded: Value = crate::precise::Precise::stringMul(&initialMarginString, &Value::Str("1".to_string()));
-            initialMarginPercentageString = crate::precise::Precise::stringDiv(&unrounded, &notionalStringAbs);
+            initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&unrounded, &notionalStringAbs, &Value::Int(8));
         }
         let mut marginRatio: Value = Value::Null;
         let mut percentage: Value = Value::Null;
         if !is_true(&crate::precise::Precise::stringEquals(&collateralString, &Value::Str("0".to_string()))) {
-            marginRatio = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringDiv(&maintenanceMarginString, &collateralString), &Value::Str("5e-5".to_string())), &Value::Str("1".to_string())), &[]);
-            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&unrealizedPnlString, &initialMarginString), &Value::Str("100".to_string())), &[]);
+            marginRatio = self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringDiv(&maintenanceMarginString, &collateralString), &Value::Str("5e-5".to_string())), &Value::Str("1".to_string()), &Value::Int(4)), &[]);
+            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnlString, &initialMarginString, &Value::Int(4)), &Value::Str("100".to_string())), &[]);
         }
-        let mut positionSide: Value = self.safe_string(position.clone(), Value::Str("positionSide".to_string()), &[]);
+        let mut positionSide: Value = self.safe_string_k(position.clone(), "positionSide", &[]);
         let mut hedged: Value = Value::Bool(!is_equal(&positionSide, &Value::Str("BOTH".to_string())));
         return self.safe_position(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.clone());
@@ -10902,21 +11039,23 @@ impl BinanceCore {
         m.insert("takeProfitPrice".to_string(), Value::Null);
     m
 }));
+
+    Value::Null
 }
 
     pub async fn load_leverage_brackets(&mut self, optional_args: &[Value]) -> Value {
         let mut reload = get_arg(optional_args, 0, Value::Bool(false));
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        let mut leverageBrackets: Value = self.safe_dict(self.options.clone(), Value::Str("leverageBrackets".to_string()), &[]);
+        let mut leverageBrackets: Value = self.safe_dict_k(self.options.clone(), "leverageBrackets", &[]);
         if is_true(&(is_equal(&leverageBrackets, &Value::Null))) || is_true(&(reload)) {
-            let mut defaultType: Value = self.safe_string(self.options.clone(), Value::Str("defaultType".to_string()), &[Value::Str("future".to_string())]);
-            let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[defaultType.clone()]);
+            let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("future".to_string())]);
+            let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
             let mut query: Value = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
             let mut subType: Value = Value::Null;
             { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("loadLeverageBrackets".to_string()), &[Value::Null, params.clone(), Value::Str("linear".to_string())]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -10936,53 +11075,57 @@ impl BinanceCore {
                     response = self.call_method(Value::Str("dapi_private_v2_get_leverage_bracket".to_string()), &[query.clone()]).await;
                 }
             }  else {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" loadLeverageBrackets() supports linear and inverse contracts only".to_string()))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" loadLeverageBrackets() supports linear and inverse contracts only".to_string()))));
             }
-            add_element_to_object(&mut self.options.clone(), &Value::Str("leverageBrackets".to_string()), self.create_safe_dictionary(&[]));
+            { let __be_tmp = self.create_safe_dictionary(&[]); add_element_to_object(&mut self.options, &Value::Str("leverageBrackets".to_string()), __be_tmp); };
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&response)) {
+                let mut __for_first_266: bool = true;
+                while { if !__for_first_266 { i = add(&i, &Value::Int(1)); } __for_first_266 = false; is_less_than(&i, &get_array_length(&response)) } {
                 let mut entry: Value = get_value(&response, &i);
-                let mut marketId: Value = self.safe_string(entry.clone(), Value::Str("symbol".to_string()), &[]);
+                let mut entry: Value = get_value(&response, &i);
+                let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
                 let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Null, Value::Str("contract".to_string())]);
-                let mut brackets: Value = self.safe_list(entry.clone(), Value::Str("brackets".to_string()), &[Value::List(vec![])]);
+                let mut brackets: Value = self.safe_list_k(entry.clone(), "brackets", &[Value::List(vec![])]);
                 let mut result: Value = Value::List(vec![]);
                 {
                                         let mut j: Value = Value::Int(0);
-                    while is_less_than(&j, &get_array_length(&brackets)) {
+                    let mut __for_first_265: bool = true;
+                    while { if !__for_first_265 { j = add(&j, &Value::Int(1)); } __for_first_265 = false; is_less_than(&j, &get_array_length(&brackets)) } {
+                    let mut bracket: Value = get_value(&brackets, &j);
                     let mut bracket: Value = get_value(&brackets, &j);
                     let mut floorValue: Value = self.safe_string2(bracket.clone(), Value::Str("notionalFloor".to_string()), Value::Str("qtyFloor".to_string()), &[]);
-                    let mut maintenanceMarginPercentage: Value = self.safe_string(bracket.clone(), Value::Str("maintMarginRatio".to_string()), &[]);
+                    let mut maintenanceMarginPercentage: Value = self.safe_string_k(bracket.clone(), "maintMarginRatio", &[]);
                     append_to_array(&mut result, Value::List(vec![floorValue.clone(), maintenanceMarginPercentage.clone()]));
-                    j = add(&j, &Value::Int(1));
                 }
                 }
-                add_element_to_object(get_value_mut(&mut self.options.clone(), &Value::Str("leverageBrackets".to_string())), &symbol, result.clone());
-                i = add(&i, &Value::Int(1));
+                add_element_to_object(get_value_mut(&mut self.options, &Value::Str("leverageBrackets".to_string())), &symbol, result.clone());
             }
             }
         }
         return get_value(&self.options, &Value::Str("leverageBrackets".to_string()));
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchLeverageTiers
  * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Pair
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Pair
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to fetch the leverage tiers for a portfolio margin account
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
- * @returns {object} a dictionary of [leverage tiers structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=leverage-tiers-structure}, indexed by market symbols
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the leverage tiers for a portfolio margin account
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
     pub async fn fetch_leverage_tiers(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -11006,9 +11149,11 @@ impl BinanceCore {
                 response = self.call_method(Value::Str("dapi_private_v2_get_leverage_bracket".to_string()), &[params.clone()]).await;
             }
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLeverageTiers() supports linear and inverse contracts only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLeverageTiers() supports linear and inverse contracts only".to_string()))));
         }
         return self.parse_leverage_tiers(response.clone(), &[symbols.clone(), Value::Str("symbol".to_string())]);
+
+    Value::Null
 }
 
     pub fn parse_market_leverage_tiers(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -11035,79 +11180,84 @@ impl BinanceCore {
         //        ]
         //    }
         //
-        let mut marketId: Value = self.safe_string(info.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("contract".to_string())]);
-        let mut brackets: Value = self.safe_list(info.clone(), Value::Str("brackets".to_string()), &[Value::List(vec![])]);
+        let mut brackets: Value = self.safe_list_k(info.clone(), "brackets", &[Value::List(vec![])]);
         let mut tiers: Value = Value::List(vec![]);
         {
                         let mut j: Value = Value::Int(0);
-            while is_less_than(&j, &get_array_length(&brackets)) {
+            let mut __for_first_267: bool = true;
+            while { if !__for_first_267 { j = add(&j, &Value::Int(1)); } __for_first_267 = false; is_less_than(&j, &get_array_length(&brackets)) } {
+            let mut bracket: Value = get_value(&brackets, &j);
             let mut bracket: Value = get_value(&brackets, &j);
             append_to_array(&mut tiers, Value::Map({
-                let mut m = std::collections::HashMap::new();
-                    m.insert("tier".to_string(), self.safe_number(bracket.clone(), Value::Str("bracket".to_string()), &[]));
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("tier".to_string(), self.safe_number_k(bracket.clone(), "bracket", &[]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
                     m.insert("currency".to_string(), get_value(&market, &Value::Str("quote".to_string())));
                     m.insert("minNotional".to_string(), self.safe_number2(bracket.clone(), Value::Str("notionalFloor".to_string()), Value::Str("qtyFloor".to_string()), &[]));
                     m.insert("maxNotional".to_string(), self.safe_number2(bracket.clone(), Value::Str("notionalCap".to_string()), Value::Str("qtyCap".to_string()), &[]));
-                    m.insert("maintenanceMarginRate".to_string(), self.safe_number(bracket.clone(), Value::Str("maintMarginRatio".to_string()), &[]));
-                    m.insert("maxLeverage".to_string(), self.safe_number(bracket.clone(), Value::Str("initialLeverage".to_string()), &[]));
+                    m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(bracket.clone(), "maintMarginRatio", &[]));
+                    m.insert("maxLeverage".to_string(), self.safe_number_k(bracket.clone(), "initialLeverage", &[]));
                     m.insert("info".to_string(), bracket.clone());
                 m
             }));
-            j = add(&j, &Value::Int(1));
         }
         }
         return tiers;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchPosition
  * @description fetch data on an open position
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/trade/Option-Position-Information
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("option".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPosition() supports option markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPosition() supports option markets only".to_string()))));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
         let mut response: Value = self.call_method(Value::Str("eapi_private_get_position".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_option_position(get_value(&response, &Value::Int(0)), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchOptionPositions
  * @description fetch data on open options positions
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/trade/Option-Position-Information
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_option_positions(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
@@ -11116,7 +11266,7 @@ impl BinanceCore {
             if is_true(&Value::Bool(is_array(&symbols))) {
                 let mut symbolsLength: Value = get_array_length(&symbols);
                 if is_greater_than(&symbolsLength, &Value::Int(1)) {
-                    panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchPositions() symbols argument cannot contain more than 1 symbol".to_string()))));
+                    panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchPositions() symbols argument cannot contain more than 1 symbol".to_string()))));
                 }
                 symbol = get_value(&symbols, &Value::Int(0));
             }  else {
@@ -11152,12 +11302,14 @@ impl BinanceCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_268: bool = true;
+            while { if !__for_first_268 { i = add(&i, &Value::Int(1)); } __for_first_268 = false; is_less_than(&i, &get_array_length(&response)) } {
             append_to_array(&mut result, self.parse_option_position(get_value(&response, &i), &[market.clone()]));
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.filter_by_array_positions(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone(), Value::Bool(false)]);
+
+    Value::Null
 }
 
     pub fn parse_option_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
@@ -11183,25 +11335,25 @@ impl BinanceCore {
         //         "time": 1682492427106
         //     }
         //
-        let mut marketId: Value = self.safe_string(position.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("swap".to_string())]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut side: Value = self.safe_string_lower(position.clone(), Value::Str("side".to_string()), &[]);
-        let mut quantity: Value = self.safe_string(position.clone(), Value::Str("quantity".to_string()), &[]);
+        let mut quantity: Value = self.safe_string_k(position.clone(), "quantity", &[]);
         if !is_equal(&side, &Value::Str("long".to_string())) {
             quantity = crate::precise::Precise::stringMul(&Value::Str("-1".to_string()), &quantity);
         }
-        let mut timestamp: Value = self.safe_integer(position.clone(), Value::Str("time".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(position.clone(), "time", &[]);
         return self.safe_position(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("entryPrice".to_string(), self.safe_number(position.clone(), Value::Str("entryPrice".to_string()), &[]));
-        m.insert("markPrice".to_string(), self.safe_number(position.clone(), Value::Str("markPrice".to_string()), &[]));
-        m.insert("notional".to_string(), self.safe_number(position.clone(), Value::Str("markValue".to_string()), &[]));
-        m.insert("collateral".to_string(), self.safe_number(position.clone(), Value::Str("positionCost".to_string()), &[]));
-        m.insert("unrealizedPnl".to_string(), self.safe_number(position.clone(), Value::Str("unrealizedPNL".to_string()), &[]));
+        m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "entryPrice", &[]));
+        m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "markPrice", &[]));
+        m.insert("notional".to_string(), self.safe_number_k(position.clone(), "markValue", &[]));
+        m.insert("collateral".to_string(), self.safe_number_k(position.clone(), "positionCost", &[]));
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealizedPNL", &[]));
         m.insert("side".to_string(), side.clone());
         m.insert("contracts".to_string(), self.parse_number(quantity.clone(), &[]));
         m.insert("contractSize".to_string(), Value::Null);
@@ -11219,36 +11371,38 @@ impl BinanceCore {
         m.insert("percentage".to_string(), Value::Null);
     m
 }));
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchPositions
  * @description fetch all open positions
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/trade/Option-Position-Information
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {object} [get_value(&params, &Value::Str("params".to_string()))] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("method".to_string()))] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
- * @param {bool} [get_value(&params, &Value::Str("useV2".to_string()))] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
- * @returns {object[]} a list of [position structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @param {object} [params.params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
+ * @param {bool} [params.useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_positions(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut defaultMethod: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchPositions".to_string()), Value::Str("method".to_string()), &[]); defaultMethod = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&defaultMethod, &Value::Null) {
-            let mut options: Value = self.safe_dict(self.options.clone(), Value::Str("fetchPositions".to_string()), &[]);
+            let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchPositions", &[]);
             if is_equal(&options, &Value::Null) {
-                defaultMethod = self.safe_string(self.options.clone(), Value::Str("fetchPositions".to_string()), &[Value::Str("positionRisk".to_string())]);
+                defaultMethod = self.safe_string_k(self.options.clone(), "fetchPositions", &[Value::Str("positionRisk".to_string())]);
             }  else {
                 defaultMethod = Value::Str("positionRisk".to_string());
             }
@@ -11260,7 +11414,7 @@ impl BinanceCore {
         }  else if is_equal(&defaultMethod, &Value::Str("option".to_string())) {
             return self.fetch_option_positions(&[symbols.clone(), params.clone()]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"".to_string())), &defaultMethod), &Value::Str("\" is invalid, please choose between \"account\", \"positionRisk\" and \"option\"".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"".to_string())), &defaultMethod), &Value::Str("\" is invalid, please choose between \"account\", \"positionRisk\" and \"option\"".to_string()))));
         }
 }
 
@@ -11269,34 +11423,34 @@ impl BinanceCore {
  * @name binance#fetchAccountPositions
  * @ignore
  * @description fetch account positions
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to fetch positions in a portfolio margin account
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
- * @param {boolean} [get_value(&params, &Value::Str("filterClosed".to_string()))] set to true if you would like to filter out closed positions, default is false
- * @param {boolean} [get_value(&params, &Value::Str("useV2".to_string()))] set to true if you want to use obsolete endpoint, where some more additional fields were provided
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @param {boolean} [params.filterClosed] set to true if you would like to filter out closed positions, default is false
+ * @param {boolean} [params.useV2] set to true if you want to use obsolete endpoint, where some more additional fields were provided
  * @returns {object} data on account positions
  */
     pub async fn fetch_account_positions(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if !is_equal(&symbols, &Value::Null) {
             if !is_true(&Value::Bool(is_array(&symbols))) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchPositions() requires an array argument for symbols".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchPositions() requires an array argument for symbols".to_string()))));
             }
         }
         self.load_markets(&[]).await;
         self.load_leverage_brackets(&[Value::Bool(false), params.clone()]).await;
-        let mut defaultType: Value = self.safe_string(self.options.clone(), Value::Str("defaultType".to_string()), &[Value::Str("future".to_string())]);
-        let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[defaultType.clone()]);
+        let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("future".to_string())]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchAccountPositions".to_string()), &[Value::Null, params.clone(), Value::Str("linear".to_string())]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -11322,13 +11476,15 @@ impl BinanceCore {
                 response = self.call_method(Value::Str("dapi_private_get_account".to_string()), &[params.clone()]).await;
             }
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositions() supports linear and inverse contracts only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositions() supports linear and inverse contracts only".to_string()))));
         }
         let mut filterClosed: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchAccountPositions".to_string()), Value::Str("filterClosed".to_string()), &[Value::Bool(false)]); filterClosed = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut result: Value = self.parse_account_positions(response.clone(), &[filterClosed.clone()]);
         symbols = self.market_symbols(&[symbols.clone()]);
         return self.filter_by_array_positions(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone(), Value::Bool(false)]);
+
+    Value::Null
 }
 
 /*
@@ -11336,38 +11492,38 @@ impl BinanceCore {
  * @name binance#fetchPositionsRisk
  * @ignore
  * @description fetch positions risk
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/account/Query-UM-Position-Information
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/account/Query-CM-Position-Information
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V3
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-UM-Position-Information
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-CM-Position-Information
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V3
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to fetch positions for a portfolio margin account
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
- * @param {bool} [get_value(&params, &Value::Str("useV2".to_string()))] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions for a portfolio margin account
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @param {bool} [params.useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
  * @returns {object} data on the positions risk
  */
     pub async fn fetch_positions_risk(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if !is_equal(&symbols, &Value::Null) {
             if !is_true(&Value::Bool(is_array(&symbols))) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchPositionsRisk() requires an array argument for symbols".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchPositionsRisk() requires an array argument for symbols".to_string()))));
             }
         }
         self.load_markets(&[]).await;
         self.load_leverage_brackets(&[Value::Bool(false), params.clone()]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut defaultType: Value = Value::Str("future".to_string());
-        defaultType = self.safe_string(self.options.clone(), Value::Str("defaultType".to_string()), &[defaultType.clone()]);
-        let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[defaultType.clone()]);
+        defaultType = self.safe_string_k(self.options.clone(), "defaultType", &[defaultType.clone()]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchPositionsRisk".to_string()), &[Value::Null, params.clone(), Value::Str("linear".to_string())]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isPortfolioMargin: Value = Value::Null;
@@ -11394,7 +11550,7 @@ impl BinanceCore {
                 response = self.call_method(Value::Str("dapi_private_get_position_risk".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsRisk() supports linear and inverse contracts only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsRisk() supports linear and inverse contracts only".to_string()))));
         }
         // ### Response examples ###
         //
@@ -11480,48 +11636,51 @@ impl BinanceCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_269: bool = true;
+            while { if !__for_first_269 { i = add(&i, &Value::Int(1)); } __for_first_269 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut rawPosition: Value = get_value(&response, &i);
-            let mut entryPriceString: Value = self.safe_string(rawPosition.clone(), Value::Str("entryPrice".to_string()), &[]);
+            let mut rawPosition: Value = get_value(&response, &i);
+            let mut entryPriceString: Value = self.safe_string_k(rawPosition.clone(), "entryPrice", &[]);
             if is_true(&crate::precise::Precise::stringGt(&entryPriceString, &Value::Str("0".to_string()))) {
-                append_to_array(&mut result, self.parse_position_risk(get_value(&response, &i), &[]).await);
+                append_to_array(&mut result, self.parse_position_risk(get_value(&response, &i), &[]));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         symbols = self.market_symbols(&[symbols.clone()]);
         return self.filter_by_array_positions(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone(), Value::Bool(false)]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Income-History
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Income-History
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest funding history entry
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to fetch the funding history for a portfolio margin account
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
- * @returns {object} a [funding history structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-history-structure}
+ * @param {int} [params.until] timestamp in ms of the latest funding history entry
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the funding history for a portfolio margin account
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
     pub async fn fetch_funding_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = Value::Null;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("incomeType".to_string(), Value::Str("FUNDING_FEE".to_string()));
             m
         });
@@ -11529,7 +11688,7 @@ impl BinanceCore {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             if !is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingHistory() supports swap contracts only".to_string()))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingHistory() supports swap contracts only".to_string()))));
             }
         }
         let mut subType: Value = Value::Null;
@@ -11544,7 +11703,7 @@ impl BinanceCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchFundingHistory".to_string()), Value::Str("defaultType".to_string()), &[Value::Str("future".to_string())]);
-        let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[defaultType.clone()]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
         let mut response: Value = Value::Null;
         if is_true(&self.is_linear(type_var.clone(), &[subType.clone()])) {
@@ -11560,43 +11719,45 @@ impl BinanceCore {
                 response = self.call_method(Value::Str("dapi_private_get_income".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingHistory() supports linear and inverse contracts only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingHistory() supports linear and inverse contracts only".to_string()))));
         }
         return self.parse_incomes(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#setLeverage
  * @description set the level of leverage for a market
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Initial-Leverage
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Initial-Leverage
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/account/Change-UM-Initial-Leverage
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/account/Change-CM-Initial-Leverage
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Initial-Leverage
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Initial-Leverage
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-UM-Initial-Leverage
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-CM-Initial-Leverage
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to set the leverage for a trading pair in a portfolio margin account
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to set the leverage for a trading pair in a portfolio margin account
  * @returns {object} response from the exchange
  */
     pub async fn set_leverage(&mut self, mut leverage: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage() requires a symbol argument".to_string()))));
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if is_true(&(is_less_than(&leverage, &Value::Int(1)))) || is_true(&(is_greater_than(&leverage, &Value::Int(125)))) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" leverage should be between 1 and 125".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" leverage should be between 1 and 125".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("leverage".to_string(), leverage.clone());
             m
@@ -11617,17 +11778,19 @@ impl BinanceCore {
                 response = self.call_method(Value::Str("dapi_private_post_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setLeverage() supports linear and inverse contracts only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setLeverage() supports linear and inverse contracts only".to_string()))));
         }
         return response;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#setMarginMode
  * @description set margin mode to 'cross' or 'isolated'
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Margin-Type
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Margin-Type
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Margin-Type
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Margin-Type
  * @param {string} marginMode 'cross' or 'isolated'
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -11636,11 +11799,11 @@ impl BinanceCore {
     pub async fn set_margin_mode(&mut self, mut marginMode: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setMarginMode() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setMarginMode() requires a symbol argument".to_string()))));
         }
         //
         // { "code": -4048 , "msg": "Margin type cannot be changed if there exists position." }
@@ -11654,48 +11817,72 @@ impl BinanceCore {
             marginMode = Value::Str("CROSSED".to_string());
         }
         if is_true(&(!is_equal(&marginMode, &Value::Str("ISOLATED".to_string())))) && is_true(&(!is_equal(&marginMode, &Value::Str("CROSSED".to_string())))) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" marginMode must be either isolated or cross".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" marginMode must be either isolated or cross".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("marginType".to_string(), marginMode.clone());
             m
         });
         let mut response: Value = Value::Null;
-        {
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
                 response = self.call_method(Value::Str("fapi_private_post_margin_type".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
                 response = self.call_method(Value::Str("dapi_private_post_margin_type".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }  else {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setMarginMode() supports linear and inverse contracts only".to_string()))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setMarginMode() supports linear and inverse contracts only".to_string()))));
+            }
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            // not an error
+            // https://github.com/ccxt/ccxt/issues/11268
+            // https://github.com/ccxt/ccxt/pull/11624
+            // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+            // binanceusdm
+            if is_true(&is_instance(&e, &Value::Str("MarginModeAlreadySet".to_string()))) {
+                let mut throwMarginModeAlreadySet: Value = self.safe_bool_k(self.options.clone(), "throwMarginModeAlreadySet", &[Value::Bool(false)]);
+                if is_true(&throwMarginModeAlreadySet) {
+                    panic!("{}", e);
+                }  else {
+                    response = Value::Map({
+                        let mut m = indexmap::IndexMap::new();
+                            m.insert("code".to_string(), negate(&Value::Int(4046)));
+                            m.insert("msg".to_string(), Value::Str("No need to change margin type.".to_string()));
+                        m
+                    });
+                }
+            }  else {
+                panic!("{}", e);
             }
         }
         return response;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#setPositionMode
  * @description set hedged to true or false for a market
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Position-Mode
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Position-Mode
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Position-Mode
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Position-Mode
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
  * @param {bool} hedged set to true to use dualSidePosition
  * @param {string} symbol not used by binance setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to set the position mode for a portfolio margin account
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to set the position mode for a portfolio margin account
+ * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object} response from the exchange
  */
     pub async fn set_position_mode(&mut self, mut hedged: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut market: Value = Value::Null;
@@ -11715,7 +11902,7 @@ impl BinanceCore {
             dualSidePosition = Value::Str("false".to_string());
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("dualSidePosition".to_string(), dualSidePosition.clone());
             m
         });
@@ -11733,29 +11920,31 @@ impl BinanceCore {
                 response = self.call_method(Value::Str("fapi_private_post_position_side_dual".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }
         }  else {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" setPositionMode() supports linear and inverse contracts only".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" setPositionMode() supports linear and inverse contracts only".to_string()))));
         }
         return response;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchLeverages
  * @description fetch the set leverage for all markets
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
  * @param {string[]} [symbols] a list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
- * @returns {object} a list of [leverage structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=leverage-structure}
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
     pub async fn fetch_leverages(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -11780,19 +11969,21 @@ impl BinanceCore {
                 response = self.call_method(Value::Str("dapi_private_get_account".to_string()), &[params.clone()]).await;
             }
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLeverages() supports linear and inverse contracts only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLeverages() supports linear and inverse contracts only".to_string()))));
         }
-        let mut leverages: Value = self.safe_list(response.clone(), Value::Str("positions".to_string()), &[Value::List(vec![])]);
+        let mut leverages: Value = self.safe_list_k(response.clone(), "positions", &[Value::List(vec![])]);
         if is_true(&Value::Bool(is_array(&response))) {
             leverages = response.clone();
         }
         return self.parse_leverages(leverages.clone(), &[symbols.clone(), Value::Str("symbol".to_string())]);
+
+    Value::Null
 }
 
     pub fn parse_leverage(&self, mut leverage: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut marketId: Value = self.safe_string(leverage.clone(), Value::Str("symbol".to_string()), &[]);
-        let mut marginModeRaw: Value = self.safe_bool(leverage.clone(), Value::Str("isolated".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(leverage.clone(), "symbol", &[]);
+        let mut marginModeRaw: Value = self.safe_bool_k(leverage.clone(), "isolated", &[]);
         let mut marginMode: Value = Value::Null;
         if !is_equal(&marginModeRaw, &Value::Null) {
             marginMode = ternary(is_true(&marginModeRaw), Value::Str("isolated".to_string()), Value::Str("cross".to_string()));
@@ -11804,7 +11995,7 @@ impl BinanceCore {
         let mut side: Value = self.safe_string_lower(leverage.clone(), Value::Str("positionSide".to_string()), &[]);
         let mut longLeverage: Value = Value::Null;
         let mut shortLeverage: Value = Value::Null;
-        let mut leverageValue: Value = self.safe_integer(leverage.clone(), Value::Str("leverage".to_string()), &[]);
+        let mut leverageValue: Value = self.safe_integer_k(leverage.clone(), "leverage", &[]);
         if is_true(&(is_equal(&side, &Value::Null))) || is_true(&(is_equal(&side, &Value::Str("both".to_string())))) {
             longLeverage = leverageValue.clone();
             shortLeverage = leverageValue.clone();
@@ -11814,7 +12005,7 @@ impl BinanceCore {
             shortLeverage = leverageValue.clone();
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
         m.insert("marginMode".to_string(), marginMode.clone());
@@ -11822,25 +12013,27 @@ impl BinanceCore {
         m.insert("shortLeverage".to_string(), shortLeverage.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchSettlementHistory
  * @description fetches historical settlement records
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/market-data/Historical-Exercise-Records
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Historical-Exercise-Records
  * @param {string} symbol unified market symbol of the settlement history
  * @param {int} [since] timestamp in ms
  * @param {int} [limit] number of records, default 100, max 100
  * @param {object} [params] exchange specific params
- * @returns {object[]} a list of [settlement history objects]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=settlement-history-structure}
+ * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
     pub async fn fetch_settlement_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -11848,10 +12041,10 @@ impl BinanceCore {
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchSettlementHistory".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if !is_equal(&type_var, &Value::Str("option".to_string())) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchSettlementHistory() supports option markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchSettlementHistory() supports option markets only".to_string()))));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if !is_equal(&symbol, &Value::Null) {
@@ -11879,13 +12072,15 @@ impl BinanceCore {
         let mut settlements: Value = self.parse_settlements(response.clone(), market.clone());
         let mut sorted: Value = self.sort_by(settlements.clone(), Value::Str("timestamp".to_string()), &[]);
         return self.filter_by_symbol_since_limit(sorted.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchMySettlementHistory
  * @description fetches historical settlement records of the user
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/trade/User-Exercise-Record
+ * @see https://developers.binance.com/docs/derivatives/option/trade/User-Exercise-Record
  * @param {string} symbol unified market symbol of the settlement history
  * @param {int} [since] timestamp in ms
  * @param {int} [limit] number of records
@@ -11897,7 +12092,7 @@ impl BinanceCore {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -11905,10 +12100,10 @@ impl BinanceCore {
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchMySettlementHistory".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if !is_equal(&type_var, &Value::Str("option".to_string())) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMySettlementHistory() supports option markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMySettlementHistory() supports option markets only".to_string()))));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if !is_equal(&symbol, &Value::Null) {
@@ -11945,6 +12140,8 @@ impl BinanceCore {
         let mut settlements: Value = self.parse_settlements(response.clone(), market.clone());
         let mut sorted: Value = self.sort_by(settlements.clone(), Value::Str("timestamp".to_string()), &[]);
         return self.filter_by_symbol_since_limit(sorted.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_settlement(&self, mut settlement: Value, mut market: Value) -> Value {
@@ -11979,9 +12176,9 @@ impl BinanceCore {
         //     }
         //
         let mut timestamp: Value = self.safe_integer2(settlement.clone(), Value::Str("expiryDate".to_string()), Value::Str("createDate".to_string()), &[]);
-        let mut marketId: Value = self.safe_string(settlement.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(settlement.clone(), "symbol", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), settlement.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
         m.insert("price".to_string(), self.safe_number2(settlement.clone(), Value::Str("realStrikePrice".to_string()), Value::Str("exercisePrice".to_string()), &[]));
@@ -11989,6 +12186,8 @@ impl BinanceCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
 });
+
+    Value::Null
 }
 
     pub fn parse_settlements(&self, mut settlements: Value, mut market: Value) -> Value {
@@ -12029,40 +12228,42 @@ impl BinanceCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&settlements)) {
+            let mut __for_first_270: bool = true;
+            while { if !__for_first_270 { i = add(&i, &Value::Int(1)); } __for_first_270 = false; is_less_than(&i, &get_array_length(&settlements)) } {
             append_to_array(&mut result, self.parse_settlement(get_value(&settlements, &i), market.clone()));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchLedgerEntry
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/account/Account-Funding-Flow
+ * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
  * @param {string} id the identification number of the ledger entry
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ledger structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ledger-entry-structure}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
     pub async fn fetch_ledger_entry(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchLedgerEntry".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if !is_equal(&type_var, &Value::Str("option".to_string())) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchLedgerEntry() can only be used for type option".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchLedgerEntry() can only be used for type option".to_string()))));
         }
         self.check_required_argument(Value::Str("fetchLedgerEntry".to_string()), code.clone(), Value::Str("code".to_string()), &[]);
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("recordId".to_string(), id.clone());
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
@@ -12081,33 +12282,35 @@ impl BinanceCore {
         //
         let mut first: Value = self.safe_dict(response.clone(), Value::Int(0), &[response.clone()]);
         return self.parse_ledger_entry(first.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/account/Account-Funding-Flow
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Income-History
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
+ * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Income-History
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
  * @param {string} [code] unified currency code
  * @param {int} [since] timestamp in ms of the earliest ledger entry
  * @param {int} [limit] max number of ledger entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest ledger entry
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to fetch the ledger for a portfolio margin account
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
- * @returns {object} a [ledger structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ledger-entry-structure}
+ * @param {int} [params.until] timestamp in ms of the latest ledger entry
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
     pub async fn fetch_ledger(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -12123,7 +12326,7 @@ impl BinanceCore {
             currency = self.currency(code.clone());
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchLedger".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -12134,7 +12337,7 @@ impl BinanceCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if !is_equal(&until, &Value::Null) {
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
@@ -12159,9 +12362,11 @@ impl BinanceCore {
                 response = self.call_method(Value::Str("dapi_private_get_income".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLedger() supports contract wallets only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLedger() supports contract wallets only".to_string()))));
         }
         return self.parse_ledger(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_ledger_entry(&self, mut item: Value, optional_args: &[Value]) -> Value {
@@ -12198,19 +12403,19 @@ impl BinanceCore {
         }  else {
             direction = Value::Str("in".to_string());
         }
-        let mut currencyId: Value = self.safe_string(item.clone(), Value::Str("asset".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(item.clone(), "asset", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
         let mut timestamp: Value = self.safe_integer2(item.clone(), Value::Str("createDate".to_string()), Value::Str("time".to_string()), &[]);
         let mut type_var: Value = self.safe_string2(item.clone(), Value::Str("type".to_string()), Value::Str("incomeType".to_string()), &[]);
         return self.safe_ledger_entry(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string2(item.clone(), Value::Str("id".to_string()), Value::Str("tranId".to_string()), &[]));
         m.insert("direction".to_string(), direction.clone());
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), Value::Null);
-        m.insert("referenceId".to_string(), self.safe_string(item.clone(), Value::Str("tradeId".to_string()), &[]));
+        m.insert("referenceId".to_string(), self.safe_string_k(item.clone(), "tradeId", &[]));
         m.insert("type".to_string(), self.parse_ledger_entry_type(type_var.clone()));
         m.insert("currency".to_string(), code.clone());
         m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
@@ -12222,11 +12427,13 @@ impl BinanceCore {
         m.insert("fee".to_string(), Value::Null);
     m
 }), &[currency.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Value {
         let mut ledgerType: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("FEE".to_string(), Value::Str("fee".to_string()));
                 m.insert("FUNDING_FEE".to_string(), Value::Str("fee".to_string()));
                 m.insert("OPTIONS_PREMIUM_FEE".to_string(), Value::Str("fee".to_string()));
@@ -12249,38 +12456,43 @@ impl BinanceCore {
             m
         });
         return self.safe_string(ledgerType.clone(), type_var.clone(), &[type_var.clone()]);
+
+    Value::Null
 }
 
     pub fn get_network_code_by_network_url(&self, mut currencyCode: Value, optional_args: &[Value]) -> Value {
         let mut depositUrl = get_arg(optional_args, 0, Value::Null);
-        // depositUrl is like : https://get_value(&bscscan, &Value::Str("com".to_string()))/address/0xEF238AB229342849..
+        // depositUrl is like : https://bscscan.com/address/0xEF238AB229342849..
         if is_equal(&depositUrl, &Value::Null) {
             return Value::Null;
         }
         let mut networkCode: Value = Value::Null;
         let mut currency: Value = self.currency(currencyCode.clone());
-        let mut networks: Value = self.safe_dict(currency.clone(), Value::Str("networks".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut networks: Value = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut networkCodes: Value = object_keys(&networks);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&networkCodes)) {
+            let mut __for_first_271: bool = true;
+            while { if !__for_first_271 { i = add(&i, &Value::Int(1)); } __for_first_271 = false; is_less_than(&i, &get_array_length(&networkCodes)) } {
             let mut currentNetworkCode: Value = get_value(&networkCodes, &i);
-            let mut info: Value = self.safe_dict(get_value(&networks, &currentNetworkCode), Value::Str("info".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut currentNetworkCode: Value = get_value(&networkCodes, &i);
+            let mut info: Value = self.safe_dict_k(get_value(&networks, &currentNetworkCode), "info", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut siteUrl: Value = self.safe_string(info.clone(), Value::Str("contractAddressUrl".to_string()), &[]);
+            let mut siteUrl: Value = self.safe_string_k(info.clone(), "contractAddressUrl", &[]);
             // check if url matches the field's value
             if !is_equal(&siteUrl, &Value::Null) && is_true(&Value::Bool(starts_with(&depositUrl, &self.get_base_domain_from_url(siteUrl.clone())))) {
                 networkCode = currentNetworkCode.clone();
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return networkCode;
+
+    Value::Null
 }
 
     pub fn get_base_domain_from_url(&self, mut url: Value) -> Value {
@@ -12303,26 +12515,26 @@ impl BinanceCore {
         let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut urls: Value = self.urls.clone();
         if !is_true(&(Value::Bool(in_op(&get_value(&urls, &Value::Str("api".to_string())), &api)))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" does not have a testnet/sandbox URL for ".to_string())), &api), &Value::Str(" endpoints".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" does not have a testnet/sandbox URL for ".to_string())), &api), &Value::Str(" endpoints".to_string()))));
         }
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &api);
         url = add(&url, &add(&Value::Str("/".to_string()), &path));
         if is_equal(&path, &Value::Str("historicalTrades".to_string())) {
             if is_true(&self.apiKey) {
                 headers = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("X-MBX-APIKEY".to_string(), self.apiKey.clone());
                     m
                 });
             }  else {
-                panic!("{:?}", crate::exchange_errors::authentication_error(add(&self.id, &Value::Str(" historicalTrades endpoint requires `apiKey` credential".to_string()))));
+                panic!("{}", crate::exchange_errors::authentication_error(add(&self.id, &Value::Str(" historicalTrades endpoint requires `apiKey` credential".to_string()))));
             }
         }
         let mut userDataStream: Value = Value::Bool(is_true(&(is_equal(&path, &Value::Str("userDataStream".to_string())))) || is_true(&(is_equal(&path, &Value::Str("listenKey".to_string())))) || is_true(&(is_equal(&path, &Value::Str("userListenToken".to_string())))));
@@ -12330,7 +12542,7 @@ impl BinanceCore {
             if is_true(&self.apiKey) {
                 // v1 special case for userDataStream
                 headers = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("X-MBX-APIKEY".to_string(), self.apiKey.clone());
                         m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".to_string()));
                     m
@@ -12339,22 +12551,22 @@ impl BinanceCore {
                     body = self.urlencode(params.clone(), &[]);
                 }
             }  else {
-                panic!("{:?}", crate::exchange_errors::authentication_error(add(&self.id, &Value::Str(" userDataStream endpoint requires `apiKey` credential".to_string()))));
+                panic!("{}", crate::exchange_errors::authentication_error(add(&self.id, &Value::Str(" userDataStream endpoint requires `apiKey` credential".to_string()))));
             }
         }  else if is_true(&(is_equal(&api, &Value::Str("private".to_string())))) || is_true(&(is_equal(&api, &Value::Str("eapiPrivate".to_string())))) || is_true(&(is_equal(&api, &Value::Str("sapi".to_string())) && !is_equal(&path, &Value::Str("system/status".to_string())))) || is_true(&(is_equal(&api, &Value::Str("sapiV2".to_string())))) || is_true(&(is_equal(&api, &Value::Str("sapiV3".to_string())))) || is_true(&(is_equal(&api, &Value::Str("sapiV4".to_string())))) || is_true(&(is_equal(&api, &Value::Str("dapiPrivate".to_string())))) || is_true(&(is_equal(&api, &Value::Str("dapiPrivateV2".to_string())))) || is_true(&(is_equal(&api, &Value::Str("fapiPrivate".to_string())))) || is_true(&(is_equal(&api, &Value::Str("fapiPrivateV2".to_string())))) || is_true(&(is_equal(&api, &Value::Str("fapiPrivateV3".to_string())))) || is_true(&(is_equal(&api, &Value::Str("papiV2".to_string())) || is_equal(&api, &Value::Str("papi".to_string())) && !is_equal(&path, &Value::Str("ping".to_string())))) {
             self.check_required_credentials(&[]);
-            if is_true(&(is_greater_than(&get_index_of(&url, &Value::Str("testnet.binancefuture.com".to_string())), &negate(&Value::Int(1))))) && is_true(&self.isSandboxModeEnabled) && is_true(&(!is_true(&self.safe_bool(self.options.clone(), Value::Str("disableFuturesSandboxWarning".to_string()), &[])))) {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.".to_string()))));
+            if is_true(&(is_greater_than(&get_index_of(&url, &Value::Str("testnet.binancefuture.com".to_string())), &negate(&Value::Int(1))))) && is_true(&self.isSandboxModeEnabled) && is_true(&(!is_true(&self.safe_bool_k(self.options.clone(), "disableFuturesSandboxWarning", &[])))) {
+                panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.".to_string()))));
             }
             if is_equal(&method, &Value::Str("POST".to_string())) && is_true(&(is_true(&(is_equal(&path, &Value::Str("order".to_string())))) || is_true(&(is_equal(&path, &Value::Str("sor/order".to_string())))))) {
                 // inject in implicit API calls
-                let mut newClientOrderId: Value = self.safe_string(params.clone(), Value::Str("newClientOrderId".to_string()), &[]);
+                let mut newClientOrderId: Value = self.safe_string_k(params.clone(), "newClientOrderId", &[]);
                 if is_equal(&newClientOrderId, &Value::Null) {
                     let mut isSpotOrMargin: Value = Value::Bool(is_greater_than(&get_index_of(&api, &Value::Str("sapi".to_string())), &negate(&Value::Int(1))) || is_equal(&api, &Value::Str("private".to_string())));
                     let mut marketType: Value = ternary(is_true(&isSpotOrMargin), Value::Str("spot".to_string()), Value::Str("future".to_string()));
                     let mut defaultId: Value = ternary(is_true(&(!is_true(&isSpotOrMargin))), Value::Str("x-xcKtGhcu".to_string()), Value::Str("x-TKT5PX2F".to_string()));
-                    let mut broker: Value = self.safe_dict(self.options.clone(), Value::Str("broker".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+                    let mut broker: Value = self.safe_dict_k(self.options.clone(), "broker", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
                     let mut brokerId: Value = self.safe_string(broker.clone(), marketType.clone(), &[defaultId.clone()]);
@@ -12364,44 +12576,45 @@ impl BinanceCore {
             let mut query: Value = Value::Null;
             // handle batchOrders
             if is_true(&(is_equal(&path, &Value::Str("batchOrders".to_string())))) && is_true(&(is_true(&(is_equal(&method, &Value::Str("POST".to_string())))) || is_true(&(is_equal(&method, &Value::Str("PUT".to_string())))))) {
-                let mut batchOrders: Value = self.safe_list(params.clone(), Value::Str("batchOrders".to_string()), &[]);
+                let mut batchOrders: Value = self.safe_list_k(params.clone(), "batchOrders", &[]);
                 let mut checkedBatchOrders: Value = batchOrders.clone();
                 if is_equal(&method, &Value::Str("POST".to_string())) && is_equal(&api, &Value::Str("fapiPrivate".to_string())) {
                     // check broker id if batchOrders are called with fapiPrivatePostBatchOrders
                     checkedBatchOrders = Value::List(vec![]);
                     {
                                                 let mut i: Value = Value::Int(0);
-                        while is_less_than(&i, &get_array_length(&batchOrders)) {
+                        let mut __for_first_272: bool = true;
+                        while { if !__for_first_272 { i = add(&i, &Value::Int(1)); } __for_first_272 = false; is_less_than(&i, &get_array_length(&batchOrders)) } {
                         let mut batchOrder: Value = get_value(&batchOrders, &i);
-                        let mut newClientOrderId: Value = self.safe_string(batchOrder.clone(), Value::Str("newClientOrderId".to_string()), &[]);
+                        let mut batchOrder: Value = get_value(&batchOrders, &i);
+                        let mut newClientOrderId: Value = self.safe_string_k(batchOrder.clone(), "newClientOrderId", &[]);
                         if is_equal(&newClientOrderId, &Value::Null) {
                             let mut defaultId: Value = Value::Str("x-xcKtGhcu".to_string()); // batchOrders can not be spot or margin
-                            let mut broker: Value = self.safe_dict(self.options.clone(), Value::Str("broker".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+                            let mut broker: Value = self.safe_dict_k(self.options.clone(), "broker", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-                            let mut brokerId: Value = self.safe_string(broker.clone(), Value::Str("future".to_string()), &[defaultId.clone()]);
+                            let mut brokerId: Value = self.safe_string_k(broker.clone(), "future", &[defaultId.clone()]);
                             newClientOrderId = add(&brokerId, &self.uuid22(&[]));
                             add_element_to_object(&mut batchOrder, &Value::Str("newClientOrderId".to_string()), newClientOrderId.clone());
                         }
                         append_to_array(&mut checkedBatchOrders, batchOrder.clone());
-                        i = add(&i, &Value::Int(1));
                     }
                     }
                 }
                 let mut queryBatch: Value = (self.json(checkedBatchOrders.clone()));
                 add_element_to_object(&mut params, &Value::Str("batchOrders".to_string()), queryBatch.clone());
             }
-            let mut defaultRecvWindow: Value = self.safe_integer(self.options.clone(), Value::Str("recvWindow".to_string()), &[]);
+            let mut defaultRecvWindow: Value = self.safe_integer_k(self.options.clone(), "recvWindow", &[]);
             let mut extendedParams: Value = self.extend(Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), self.nonce());
                 m
             }), &[params.clone()]);
             if !is_equal(&defaultRecvWindow, &Value::Null) {
                 add_element_to_object(&mut extendedParams, &Value::Str("recvWindow".to_string()), defaultRecvWindow.clone());
             }
-            let mut recvWindow: Value = self.safe_integer(params.clone(), Value::Str("recvWindow".to_string()), &[]);
+            let mut recvWindow: Value = self.safe_integer_k(params.clone(), "recvWindow", &[]);
             if !is_equal(&recvWindow, &Value::Null) {
                 add_element_to_object(&mut extendedParams, &Value::Str("recvWindow".to_string()), recvWindow.clone());
             }
@@ -12409,7 +12622,7 @@ impl BinanceCore {
                 query = self.urlencode_with_array_repeat(extendedParams.clone());
             }  else if is_true(&(is_equal(&path, &Value::Str("batchOrders".to_string())))) || is_true(&(is_greater_than_or_equal(&get_index_of(&path, &Value::Str("sub-account".to_string())), &Value::Int(0)))) || is_true(&(is_equal(&path, &Value::Str("capital/withdraw/apply".to_string())))) || is_true(&(is_greater_than_or_equal(&get_index_of(&path, &Value::Str("staking".to_string())), &Value::Int(0)))) || is_true(&(is_greater_than_or_equal(&get_index_of(&path, &Value::Str("simple-earn".to_string())), &Value::Int(0)))) {
                 if is_true(&(is_equal(&method, &Value::Str("DELETE".to_string())))) && is_true(&(is_equal(&path, &Value::Str("batchOrders".to_string())))) {
-                    let mut orderidlist: Value = self.safe_list(extendedParams.clone(), Value::Str("orderidlist".to_string()), &[Value::List(vec![])]);
+                    let mut orderidlist: Value = self.safe_list_k(extendedParams.clone(), "orderidlist", &[Value::List(vec![])]);
                     let mut origclientorderidlist: Value = self.safe_list2(extendedParams.clone(), Value::Str("origclientorderidlist".to_string()), Value::Str("origClientOrderIdList".to_string()), &[Value::List(vec![])]);
                     extendedParams = self.omit(extendedParams.clone(), Value::List(vec![Value::Str("orderidlist".to_string()), Value::Str("origclientorderidlist".to_string()), Value::Str("origClientOrderIdList".to_string())]), &[]);
                     if is_true(&Value::Bool(in_op(&extendedParams, &Value::Str("symbol".to_string())))) {
@@ -12426,9 +12639,9 @@ impl BinanceCore {
                         let mut newClientOrderIds: Value = Value::List(vec![]);
                         {
                                                         let mut i: Value = Value::Int(0);
-                            while is_less_than(&i, &origclientorderidlistLength) {
+                            let mut __for_first_273: bool = true;
+                            while { if !__for_first_273 { i = add(&i, &Value::Int(1)); } __for_first_273 = false; is_less_than(&i, &origclientorderidlistLength) } {
                             append_to_array(&mut newClientOrderIds, add(&add(&Value::Str("%22".to_string()), &get_value(&origclientorderidlist, &i)), &Value::Str("%22".to_string())));
-                            i = add(&i, &Value::Int(1));
                         }
                         }
                         query = add(&add(&add(&add(&query, &Value::Str("&".to_string())), &Value::Str("origclientorderidlist=%5B".to_string())), &join(&newClientOrderIds, &Value::Str("%2C".to_string()))), &Value::Str("%5D".to_string()));
@@ -12451,7 +12664,7 @@ impl BinanceCore {
             }
             query = add(&query, &add(&add(&Value::Str("&".to_string()), &Value::Str("signature=".to_string())), &signature));
             headers = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("X-MBX-APIKEY".to_string(), self.apiKey.clone());
                 m
             });
@@ -12467,13 +12680,15 @@ impl BinanceCore {
             }
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.clone());
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), body.clone());
         m.insert("headers".to_string(), headers.clone());
     m
 });
+
+    Value::Null
 }
 
     pub fn get_exceptions_by_url(&self, mut url: Value, mut exactOrBroad: Value) -> Value {
@@ -12492,56 +12707,62 @@ impl BinanceCore {
         }
         if !is_equal(&marketType, &Value::Null) {
             let mut exceptionsForMarketType: Value = self.safe_dict(self.exceptions.clone(), marketType.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             return self.safe_dict(exceptionsForMarketType.clone(), exactOrBroad.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 });
+
+    Value::Null
 }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if is_true(&(is_equal(&code, &Value::Int(418)))) || is_true(&(is_equal(&code, &Value::Int(429)))) {
-            panic!("{:?}", crate::exchange_errors::d_do_s_protection(add(&add(&add(&add(&add(&add(&self.id, &Value::Str(" ".to_string())), &to_string_val(&code)), &Value::Str(" ".to_string())), &reason), &Value::Str(" ".to_string())), &body)));
+            panic!("{}", crate::exchange_errors::d_do_s_protection(add(&add(&add(&add(&add(&add(&self.id, &Value::Str(" ".to_string())), &to_string_val(&code)), &Value::Str(" ".to_string())), &reason), &Value::Str(" ".to_string())), &body)));
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block cointains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if is_greater_than_or_equal(&code, &Value::Int(400)) {
             if is_greater_than_or_equal(&get_index_of(&body, &Value::Str("Price * QTY is zero or less".to_string())), &Value::Int(0)) {
-                panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&self.id, &Value::Str(" order cost = amount * price is zero or less ".to_string())), &body)));
+                panic!("{}", crate::exchange_errors::invalid_order(add(&add(&self.id, &Value::Str(" order cost = amount * price is zero or less ".to_string())), &body)));
             }
             if is_greater_than_or_equal(&get_index_of(&body, &Value::Str("LOT_SIZE".to_string())), &Value::Int(0)) {
-                panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&self.id, &Value::Str(" order amount should be evenly divisible by lot size ".to_string())), &body)));
+                panic!("{}", crate::exchange_errors::invalid_order(add(&add(&self.id, &Value::Str(" order amount should be evenly divisible by lot size ".to_string())), &body)));
             }
             if is_greater_than_or_equal(&get_index_of(&body, &Value::Str("PRICE_FILTER".to_string())), &Value::Int(0)) {
-                panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&self.id, &Value::Str(" order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ".to_string())), &body)));
+                panic!("{}", crate::exchange_errors::invalid_order(add(&add(&self.id, &Value::Str(" order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ".to_string())), &body)));
             }
         }
         if is_equal(&response, &Value::Null) {
             return Value::Null;
         }
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        let mut success: Value = self.safe_bool(response.clone(), Value::Str("success".to_string()), &[Value::Bool(true)]);
+        let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]);
         if !is_true(&success) {
-            let mut messageNew: Value = self.safe_string(response.clone(), Value::Str("msg".to_string()), &[]);
+            let mut messageNew: Value = self.safe_string_k(response.clone(), "msg", &[]);
             let mut parsedMessage: Value = Value::Null;
             if !is_equal(&messageNew, &Value::Null) {
-                {
+                let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                     parsedMessage = json_parse(&messageNew);
+                 #[allow(unreachable_code)] { Value::Null }}));
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+                    // do nothing
+                    parsedMessage = Value::Null;
                 }
                 if !is_equal(&parsedMessage, &Value::Null) {
                     response = parsedMessage.clone();
                 }
             }
         }
-        let mut message: Value = self.safe_string(response.clone(), Value::Str("msg".to_string()), &[]);
+        let mut message: Value = self.safe_string_k(response.clone(), "msg", &[]);
         if !is_equal(&message, &Value::Null) {
             self.throw_exactly_matched_exception(self.get_exceptions_by_url(url.clone(), Value::Str("exact".to_string())), message.clone(), add(&add(&self.id, &Value::Str(" ".to_string())), &message));
             self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), message.clone(), add(&add(&self.id, &Value::Str(" ".to_string())), &message));
@@ -12549,10 +12770,10 @@ impl BinanceCore {
             self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), message.clone(), add(&add(&self.id, &Value::Str(" ".to_string())), &message));
         }
         // checks against error codes
-        let mut error: Value = self.safe_string(response.clone(), Value::Str("code".to_string()), &[]);
+        let mut error: Value = self.safe_string_k(response.clone(), "code", &[]);
         if !is_equal(&error, &Value::Null) {
-            // https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/issues/6501
-            // https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/issues/7742
+            // https://github.com/ccxt/ccxt/issues/6501
+            // https://github.com/ccxt/ccxt/issues/7742
             if is_true(&(is_equal(&error, &Value::Str("200".to_string())))) || is_true(&crate::precise::Precise::stringEquals(&error, &Value::Str("0".to_string()))) {
                 return Value::Null;
             }
@@ -12560,25 +12781,25 @@ impl BinanceCore {
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
             if is_true(&(is_equal(&error, &Value::Str("-2015".to_string())))) && is_true(&get_value(&self.options, &Value::Str("hasAlreadyAuthenticatedSuccessfully".to_string()))) {
-                panic!("{:?}", crate::exchange_errors::d_do_s_protection(add(&add(&self.id, &Value::Str(" ".to_string())), &body)));
+                panic!("{}", crate::exchange_errors::d_do_s_protection(add(&add(&self.id, &Value::Str(" ".to_string())), &body)));
             }
             let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
             if is_equal(&message, &Value::Str("No need to change margin type.".to_string())) {
-                panic!("{:?}", crate::exchange_errors::margin_mode_already_set(feedback));
+                panic!("{}", crate::exchange_errors::margin_mode_already_set(feedback));
             }
             self.throw_exactly_matched_exception(self.get_exceptions_by_url(url.clone(), Value::Str("exact".to_string())), error.clone(), feedback.clone());
             self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), error.clone(), feedback.clone());
-            panic!("{:?}", crate::exchange_errors::exchange_error(feedback));
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         if !is_true(&success) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" ".to_string())), &body)));
+            panic!("{}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" ".to_string())), &body)));
         }
         if is_true(&Value::Bool(is_array(&response))) {
             // cancelOrders returns an array like this: [{"code":-2011,"msg":"Unknown order sent."}]
             let mut arrayLength: Value = get_array_length(&response);
             if is_equal(&arrayLength, &Value::Int(1)) {
                 let mut element: Value = get_value(&response, &Value::Int(0));
-                let mut errorCode: Value = self.safe_string(element.clone(), Value::Str("code".to_string()), &[]);
+                let mut errorCode: Value = self.safe_string_k(element.clone(), "code", &[]);
                 if !is_equal(&errorCode, &Value::Null) {
                     self.throw_exactly_matched_exception(self.get_exceptions_by_url(url.clone(), Value::Str("exact".to_string())), errorCode.clone(), add(&add(&self.id, &Value::Str(" ".to_string())), &body));
                     self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), errorCode.clone(), add(&add(&self.id, &Value::Str(" ".to_string())), &body));
@@ -12586,11 +12807,13 @@ impl BinanceCore {
             }
         }
         return Value::Null;
+
+    Value::Null
 }
 
     pub fn calculate_rate_limiter_cost(&self, mut api: Value, mut method: Value, mut path: Value, mut params: Value, optional_args: &[Value]) -> Value {
         let mut config = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&(Value::Bool(in_op(&config, &Value::Str("noCoin".to_string()))))) && !is_true(&(Value::Bool(in_op(&params, &Value::Str("coin".to_string()))))) {
@@ -12604,58 +12827,63 @@ impl BinanceCore {
             let mut byLimit: Value = get_value(&config, &Value::Str("byLimit".to_string()));
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&byLimit)) {
+                let mut __for_first_274: bool = true;
+                while { if !__for_first_274 { i = add(&i, &Value::Int(1)); } __for_first_274 = false; is_less_than(&i, &get_array_length(&byLimit)) } {
+                let mut entry: Value = get_value(&byLimit, &i);
                 let mut entry: Value = get_value(&byLimit, &i);
                 if is_less_than_or_equal(&limit, &get_value(&entry, &Value::Int(0))) {
                     return get_value(&entry, &Value::Int(1));
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }
-        return self.safe_value(config.clone(), Value::Str("cost".to_string()), &[Value::Int(1)]);
+        return self.safe_value_k(config.clone(), "cost", &[Value::Int(1)]);
+
+    Value::Null
 }
 
     pub async fn request(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
         let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut config = get_arg(optional_args, 5, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut response: Value = self.fetch2(path.clone(), &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone(), config.clone()]).await;
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if is_equal(&api, &Value::Str("private".to_string())) {
-            add_element_to_object(&mut self.options.clone(), &Value::Str("hasAlreadyAuthenticatedSuccessfully".to_string()), Value::Bool(true));
+            add_element_to_object(&mut self.options, &Value::Str("hasAlreadyAuthenticatedSuccessfully".to_string()), Value::Bool(true));
         }
         return response;
+
+    Value::Null
 }
 
     pub async fn modify_margin_helper(&mut self, mut symbol: Value, mut amount: Value, mut addOrReduce: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         // used to modify isolated positions
-        let mut defaultType: Value = self.safe_string(self.options.clone(), Value::Str("defaultType".to_string()), &[Value::Str("future".to_string())]);
+        let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("future".to_string())]);
         if is_equal(&defaultType, &Value::Str("spot".to_string())) {
             defaultType = Value::Str("future".to_string());
         }
-        let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[defaultType.clone()]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
         if is_true(&(is_equal(&type_var, &Value::Str("margin".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("spot".to_string())))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" add / reduce margin only supported with type future or delivery".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" add / reduce margin only supported with type future or delivery".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         amount = self.amount_to_precision(symbol.clone(), amount.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), addOrReduce.clone());
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("amount".to_string(), amount.clone());
@@ -12671,10 +12899,12 @@ impl BinanceCore {
             response = self.call_method(Value::Str("dapi_private_post_position_margin".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
         return self.extend(self.parse_margin_modification(response.clone(), &[market.clone()]), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("code".to_string(), code.clone());
     m
 })]);
+
+    Value::Null
 }
 
     pub fn parse_margin_modification(&self, mut data: Value, optional_args: &[Value]) -> Value {
@@ -12702,85 +12932,91 @@ impl BinanceCore {
         //        clientTranId: ""
         //    }
         //
-        let mut rawType: Value = self.safe_integer(data.clone(), Value::Str("type".to_string()), &[]);
-        let mut errorCode: Value = self.safe_string(data.clone(), Value::Str("code".to_string()), &[]);
-        let mut marketId: Value = self.safe_string(data.clone(), Value::Str("symbol".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer(data.clone(), Value::Str("time".to_string()), &[]);
+        let mut rawType: Value = self.safe_integer_k(data.clone(), "type", &[]);
+        let mut errorCode: Value = self.safe_string_k(data.clone(), "code", &[]);
+        let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
+        let mut timestamp: Value = self.safe_integer_k(data.clone(), "time", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("swap".to_string())]);
         let mut noErrorCode: Value = Value::Bool(is_equal(&errorCode, &Value::Null));
         let mut success: Value = Value::Bool(is_equal(&errorCode, &Value::Str("200".to_string())));
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
         m.insert("type".to_string(), ternary(is_true(&(is_equal(&rawType, &Value::Int(1)))), Value::Str("add".to_string()), Value::Str("reduce".to_string())));
         m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
-        m.insert("amount".to_string(), self.safe_number(data.clone(), Value::Str("amount".to_string()), &[]));
-        m.insert("code".to_string(), self.safe_string(data.clone(), Value::Str("asset".to_string()), &[]));
+        m.insert("amount".to_string(), self.safe_number_k(data.clone(), "amount", &[]));
+        m.insert("code".to_string(), self.safe_string_k(data.clone(), "asset", &[]));
         m.insert("total".to_string(), Value::Null);
         m.insert("status".to_string(), ternary(is_true(&(is_true(&success) || is_true(&noErrorCode))), Value::Str("ok".to_string()), Value::Str("failed".to_string())));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#reduceMargin
  * @description remove margin from a position
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
  * @param {string} symbol unified market symbol
  * @param {float} amount the amount of margin to remove
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
     pub async fn reduce_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.modify_margin_helper(symbol.clone(), amount.clone(), Value::Int(2), &[params.clone()]).await;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#addMargin
  * @description add margin
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
  * @param {string} symbol unified market symbol
  * @param {float} amount amount of margin to add
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
     pub async fn add_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.modify_margin_helper(symbol.clone(), amount.clone(), Value::Int(1), &[params.clone()]).await;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchCrossBorrowRate
  * @description fetch the rate of interest to borrow a currency for margin trading
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
+ * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [borrow rate structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=borrow-rate-structure}
+ * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
     pub async fn fetch_cross_borrow_rate(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
@@ -12797,57 +13033,61 @@ impl BinanceCore {
         //
         let mut rate: Value = self.safe_dict(response.clone(), Value::Int(0), &[]);
         return self.parse_borrow_rate(rate.clone(), &[]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchIsolatedBorrowRate
  * @description fetch the rate of interest to borrow a currency for margin trading
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data
+ * @see https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  *
  * EXCHANGE SPECIFIC PARAMETERS
- * @param {object} [get_value(&params, &Value::Str("vipLevel".to_string()))] user's current specific margin data will be returned if viplevel is omitted
- * @returns {object} an [isolated borrow rate structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=isolated-borrow-rate-structure}
+ * @param {object} [params.vipLevel] user's current specific margin data will be returned if viplevel is omitted
+ * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
  */
     pub async fn fetch_isolated_borrow_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
             m
         });
         let mut borrowRates: Value = self.fetch_isolated_borrow_rates(&[self.extend(request.clone(), &[params.clone()])]).await;
         return self.safe_dict(borrowRates.clone(), symbol.clone(), &[]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchIsolatedBorrowRates
  * @description fetch the borrow interest rates of all currencies
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data
+ * @see https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {object} [get_value(&params, &Value::Str("symbol".to_string()))] unified market symbol
+ * @param {object} [params.symbol] unified market symbol
  *
  * EXCHANGE SPECIFIC PARAMETERS
- * @param {object} [get_value(&params, &Value::Str("vipLevel".to_string()))] user's current specific margin data will be returned if viplevel is omitted
- * @returns {object} a [borrow rate structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=borrow-rate-structure}
+ * @param {object} [params.vipLevel] user's current specific margin data will be returned if viplevel is omitted
+ * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
     pub async fn fetch_isolated_borrow_rates(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut symbol: Value = self.safe_string(params.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut symbol: Value = self.safe_string_k(params.clone(), "symbol", &[]);
         params = self.omit(params.clone(), Value::Str("symbol".to_string()), &[]);
         if !is_equal(&symbol, &Value::Null) {
             let mut market: Value = self.market(symbol.clone());
@@ -12855,35 +13095,37 @@ impl BinanceCore {
         }
         let mut response: Value = self.call_method(Value::Str("sapi_get_margin_isolated_margin_data".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_isolated_borrow_rates(response.clone());
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchBorrowRateHistory
  * @description retrieves a history of a currencies borrow interest rate at specific time slots
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
+ * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
  * @param {string} code unified currency code
  * @param {int} [since] timestamp for the earliest borrow rate
- * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=borrow-rate-structure} to retrieve
+ * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} an array of [borrow rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=borrow-rate-structure}
+ * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
     pub async fn fetch_borrow_rate_history(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         if is_equal(&limit, &Value::Null) {
             limit = Value::Int(93);
         }  else if is_greater_than(&limit, &Value::Int(93)) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchBorrowRateHistory() limit parameter cannot exceed 92".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchBorrowRateHistory() limit parameter cannot exceed 92".to_string()))));
         }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("limit".to_string(), limit.clone());
             m
@@ -12896,6 +13138,8 @@ impl BinanceCore {
         }
         let mut response: Value = self.call_method(Value::Str("sapi_get_margin_interest_rate_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_borrow_rate_history(response.clone(), code.clone(), since.clone(), limit.clone());
+
+    Value::Null
 }
 
     pub fn parse_borrow_rate(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -12908,18 +13152,20 @@ impl BinanceCore {
         //        "vipLevel": 0
         //    }
         //
-        let mut timestamp: Value = self.safe_integer(info.clone(), Value::Str("timestamp".to_string()), &[]);
-        let mut currencyId: Value = self.safe_string(info.clone(), Value::Str("asset".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(info.clone(), "timestamp", &[]);
+        let mut currencyId: Value = self.safe_string_k(info.clone(), "asset", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
-        m.insert("rate".to_string(), self.safe_number(info.clone(), Value::Str("dailyInterestRate".to_string()), &[]));
+        m.insert("rate".to_string(), self.safe_number_k(info.clone(), "dailyInterestRate", &[]));
         m.insert("period".to_string(), Value::Int(86400000));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("info".to_string(), info.clone());
     m
 });
+
+    Value::Null
 }
 
     pub fn parse_isolated_borrow_rate(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -12943,31 +13189,33 @@ impl BinanceCore {
         //        ]
         //    }
         //
-        let mut marketId: Value = self.safe_string(info.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("spot".to_string())]);
-        let mut data: Value = self.safe_list(info.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_list_k(info.clone(), "data", &[]);
         let mut baseInfo: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         let mut quoteInfo: Value = self.safe_dict(data.clone(), Value::Int(1), &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
-        m.insert("symbol".to_string(), self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]));
-        m.insert("base".to_string(), self.safe_string(baseInfo.clone(), Value::Str("coin".to_string()), &[]));
-        m.insert("baseRate".to_string(), self.safe_number(baseInfo.clone(), Value::Str("dailyInterest".to_string()), &[]));
-        m.insert("quote".to_string(), self.safe_string(quoteInfo.clone(), Value::Str("coin".to_string()), &[]));
-        m.insert("quoteRate".to_string(), self.safe_number(quoteInfo.clone(), Value::Str("dailyInterest".to_string()), &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
+        m.insert("base".to_string(), self.safe_string_k(baseInfo.clone(), "coin", &[]));
+        m.insert("baseRate".to_string(), self.safe_number_k(baseInfo.clone(), "dailyInterest", &[]));
+        m.insert("quote".to_string(), self.safe_string_k(quoteInfo.clone(), "coin", &[]));
+        m.insert("quoteRate".to_string(), self.safe_number_k(quoteInfo.clone(), "dailyInterest", &[]));
         m.insert("period".to_string(), Value::Int(86400000));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#createGiftCode
  * @description create gift code
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/gift_card/market-data/Create-a-single-token-gift-card
+ * @see https://developers.binance.com/docs/gift_card/market-data/Create-a-single-token-gift-card
  * @param {string} code gift code
  * @param {float} amount amount of currency for the gift
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -12975,14 +13223,14 @@ impl BinanceCore {
  */
     pub async fn create_gift_code(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         // ensure you have enough token in your funding account before calling this code
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("token".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("amount".to_string(), amount.clone());
             m
@@ -12996,11 +13244,11 @@ impl BinanceCore {
         //         "success": true
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[]);
-        let mut giftcardCode: Value = self.safe_string(data.clone(), Value::Str("code".to_string()), &[]);
-        let mut id: Value = self.safe_string(data.clone(), Value::Str("referenceNo".to_string()), &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+        let mut giftcardCode: Value = self.safe_string_k(data.clone(), "code", &[]);
+        let mut id: Value = self.safe_string_k(data.clone(), "referenceNo", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("id".to_string(), id.clone());
         m.insert("code".to_string(), giftcardCode.clone());
@@ -13008,67 +13256,73 @@ impl BinanceCore {
         m.insert("amount".to_string(), amount.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#redeemGiftCode
  * @description redeem gift code
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/gift_card/market-data/Redeem-a-Binance-Gift-Card
+ * @see https://developers.binance.com/docs/gift_card/market-data/Redeem-a-Binance-Gift-Card
  * @param {string} giftcardCode
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
     pub async fn redeem_gift_code(&mut self, mut giftcardCode: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("code".to_string(), giftcardCode.clone());
             m
         });
         let mut response: Value = self.call_method(Value::Str("sapi_post_giftcard_redeem_code".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return response;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#verifyGiftCode
  * @description verify gift code
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/gift_card/market-data/Verify-Binance-Gift-Card-by-Gift-Card-Number
+ * @see https://developers.binance.com/docs/gift_card/market-data/Verify-Binance-Gift-Card-by-Gift-Card-Number
  * @param {string} id reference number id
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
     pub async fn verify_gift_code(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("referenceNo".to_string(), id.clone());
             m
         });
         let mut response: Value = self.call_method(Value::Str("sapi_get_giftcard_verify".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return response;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchBorrowInterest
  * @description fetch the interest owed by the user for borrowing currency for margin trading
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/borrow-and-repay/Get-Interest-History
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/account/Get-Margin-BorrowLoan-Interest-History
+ * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Get-Interest-History
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-Margin-BorrowLoan-Interest-History
  * @param {string} [code] unified currency code
  * @param {string} [symbol] unified market symbol when fetch interest in isolated markets
  * @param {int} [since] the earliest time in ms to fetch borrrow interest for
  * @param {int} [limit] the maximum number of structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to fetch the borrow interest in a portfolio margin account
- * @returns {object[]} a list of [borrow interest structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=borrow-interest-structure}
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the borrow interest in a portfolio margin account
+ * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
     pub async fn fetch_borrow_interest(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
@@ -13076,14 +13330,14 @@ impl BinanceCore {
         let mut since = get_arg(optional_args, 2, Value::Null);
         let mut limit = get_arg(optional_args, 3, Value::Null);
         let mut params = get_arg(optional_args, 4, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut isPortfolioMargin: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("fetchBorrowInterest".to_string()), Value::Str("papi".to_string()), Value::Str("portfolioMargin".to_string()), &[Value::Bool(false)]); isPortfolioMargin = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
@@ -13144,55 +13398,59 @@ impl BinanceCore {
         //         ]
         //     }
         //
-        let mut rows: Value = self.safe_list(response.clone(), Value::Str("rows".to_string()), &[]);
+        let mut rows: Value = self.safe_list_k(response.clone(), "rows", &[]);
         let mut interest: Value = self.parse_borrow_interests(rows.clone(), &[market.clone()]);
         return self.filter_by_currency_since_limit(interest.clone(), &[code.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_borrow_interest(&self, mut info: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut symbol: Value = self.safe_string(info.clone(), Value::Str("isolatedSymbol".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer(info.clone(), Value::Str("interestAccuredTime".to_string()), &[]);
+        let mut symbol: Value = self.safe_string_k(info.clone(), "isolatedSymbol", &[]);
+        let mut timestamp: Value = self.safe_integer_k(info.clone(), "interestAccuredTime", &[]);
         let mut marginMode: Value = ternary(is_true(&(is_equal(&symbol, &Value::Null))), Value::Str("cross".to_string()), Value::Str("isolated".to_string()));
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("currency".to_string(), self.safe_currency_code(self.safe_string(info.clone(), Value::Str("asset".to_string()), &[]), &[]));
-        m.insert("interest".to_string(), self.safe_number(info.clone(), Value::Str("interest".to_string()), &[]));
-        m.insert("interestRate".to_string(), self.safe_number(info.clone(), Value::Str("interestRate".to_string()), &[]));
-        m.insert("amountBorrowed".to_string(), self.safe_number(info.clone(), Value::Str("principal".to_string()), &[]));
+        m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(info.clone(), "asset", &[]), &[]));
+        m.insert("interest".to_string(), self.safe_number_k(info.clone(), "interest", &[]));
+        m.insert("interestRate".to_string(), self.safe_number_k(info.clone(), "interestRate", &[]));
+        m.insert("amountBorrowed".to_string(), self.safe_number_k(info.clone(), "principal", &[]));
         m.insert("marginMode".to_string(), marginMode.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#repayCrossMargin
  * @description repay borrowed margin and interest
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay-Debt
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay
+ * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay-Debt
  * @param {string} code unified currency code of the currency to repay
  * @param {float} amount the amount to repay
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to repay margin in a portfolio margin account
- * @param {string} [get_value(&params, &Value::Str("repayCrossMarginMethod".to_string()))] *portfolio margin only* 'papiPostRepayLoan' (default), 'papiPostMarginRepayDebt' (alternative)
- * @param {string} [get_value(&params, &Value::Str("specifyRepayAssets".to_string()))] *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
- * @returns {object} a [margin loan structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to repay margin in a portfolio margin account
+ * @param {string} [params.repayCrossMarginMethod] *portfolio margin only* 'papiPostRepayLoan' (default), 'papiPostMarginRepayDebt' (alternative)
+ * @param {string} [params.specifyRepayAssets] *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn repay_cross_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
@@ -13214,29 +13472,31 @@ impl BinanceCore {
             response = self.call_method(Value::Str("sapi_post_margin_borrow_repay".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
         return self.parse_margin_loan(response.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#repayIsolatedMargin
  * @description repay borrowed margin and interest
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+ * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
  * @param {string} symbol unified market symbol, required for isolated margin
  * @param {string} code unified currency code of the currency to repay
  * @param {float} amount the amount to repay
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin loan structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn repay_isolated_margin(&mut self, mut symbol: Value, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -13246,29 +13506,31 @@ impl BinanceCore {
         });
         let mut response: Value = self.call_method(Value::Str("sapi_post_margin_borrow_repay".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_margin_loan(response.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#borrowCrossMargin
  * @description create a loan to borrow margin
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Margin-Account-Borrow
+ * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Borrow
  * @param {string} code unified currency code of the currency to borrow
  * @param {float} amount the amount to borrow
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to borrow margin in a portfolio margin account
- * @returns {object} a [margin loan structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to borrow margin in a portfolio margin account
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn borrow_cross_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
@@ -13284,29 +13546,31 @@ impl BinanceCore {
             response = self.call_method(Value::Str("sapi_post_margin_borrow_repay".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
         return self.parse_margin_loan(response.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#borrowIsolatedMargin
  * @description create a loan to borrow margin
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+ * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
  * @param {string} symbol unified market symbol, required for isolated margin
  * @param {string} code unified currency code of the currency to borrow
  * @param {float} amount the amount to borrow
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin loan structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn borrow_isolated_margin(&mut self, mut symbol: Value, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -13316,6 +13580,8 @@ impl BinanceCore {
         });
         let mut response: Value = self.call_method(Value::Str("sapi_post_margin_borrow_repay".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_margin_loan(response.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_margin_loan(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -13336,46 +13602,48 @@ impl BinanceCore {
         //         "success": true
         //     }
         //
-        let mut currencyId: Value = self.safe_string(info.clone(), Value::Str("asset".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer(info.clone(), Value::Str("updateTime".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(info.clone(), "asset", &[]);
+        let mut timestamp: Value = self.safe_integer_k(info.clone(), "updateTime", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("id".to_string(), self.safe_integer(info.clone(), Value::Str("tranId".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), self.safe_integer_k(info.clone(), "tranId", &[]));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
-        m.insert("amount".to_string(), self.safe_number(info.clone(), Value::Str("amount".to_string()), &[]));
+        m.insert("amount".to_string(), self.safe_number_k(info.clone(), "amount", &[]));
         m.insert("symbol".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("info".to_string(), info.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchOpenInterestHistory
  * @description Retrieves the open interest history of a currency
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest-Statistics
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest-Statistics
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest-Statistics
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest-Statistics
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
  * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
  * @param {int} [limit] default 30, max 500
  * @param {object} [params] exchange specific parameters
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the time(ms) of the latest record to retrieve as a unix timestamp
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} an array of [open interest structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=open-interest-structure}
+ * @param {int} [params.until] the time(ms) of the latest record to retrieve as a unix timestamp
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object} an array of [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
     pub async fn fetch_open_interest_history(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("5m".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&timeframe, &Value::Str("1m".to_string())) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOpenInterestHistory cannot use the 1m timeframe".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOpenInterestHistory cannot use the 1m timeframe".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut paginate: Value = Value::Bool(false);
@@ -13385,7 +13653,7 @@ impl BinanceCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("period".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
@@ -13395,13 +13663,13 @@ impl BinanceCore {
         let mut symbolKey: Value = ternary(is_true(&get_value(&market, &Value::Str("linear".to_string()))), Value::Str("symbol".to_string()), Value::Str("pair".to_string()));
         add_element_to_object(&mut request, &symbolKey, get_value(&market, &Value::Str("id".to_string())));
         if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
-            add_element_to_object(&mut request, &Value::Str("contractType".to_string()), self.safe_string(params.clone(), Value::Str("contractType".to_string()), &[Value::Str("CURRENT_QUARTER".to_string())]));
+            add_element_to_object(&mut request, &Value::Str("contractType".to_string()), self.safe_string_k(params.clone(), "contractType", &[Value::Str("CURRENT_QUARTER".to_string())]));
         }
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
         }
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]); // unified in milliseconds
-        let mut endTime: Value = self.safe_integer(params.clone(), Value::Str("endTime".to_string()), &[until.clone()]); // exchange-specific in milliseconds
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]); // unified in milliseconds
+        let mut endTime: Value = self.safe_integer_k(params.clone(), "endTime", &[until.clone()]); // exchange-specific in milliseconds
         params = self.omit(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("until".to_string())]), &[]);
         if is_true(&endTime) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), endTime.clone());
@@ -13419,34 +13687,36 @@ impl BinanceCore {
             response = self.call_method(Value::Str("fapi_data_get_open_interest_hist".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
         return self.parse_open_interests_history(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchOpenInterest
  * @description retrieves the open interest of a contract trading pair
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/market-data/Open-Interest
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an open interest structure{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
     pub async fn fetch_open_interest(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if is_true(&get_value(&market, &Value::Str("option".to_string()))) {
             add_element_to_object(&mut request, &Value::Str("underlyingAsset".to_string()), get_value(&market, &Value::Str("baseId".to_string())));
             if is_equal(&get_value(&market, &Value::Str("expiry".to_string())), &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" fetchOpenInterest does not support ".to_string())), &symbol)));
+                panic!("{}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" fetchOpenInterest does not support ".to_string())), &symbol)));
             }
             add_element_to_object(&mut request, &Value::Str("expiration".to_string()), self.yymmdd(get_value(&market, &Value::Str("expiry".to_string())), &[]));
         }  else {
@@ -13495,28 +13765,31 @@ impl BinanceCore {
             let mut result: Value = self.parse_open_interests_history(response.clone(), &[market.clone()]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&result)) {
+                let mut __for_first_275: bool = true;
+                while { if !__for_first_275 { i = add(&i, &Value::Int(1)); } __for_first_275 = false; is_less_than(&i, &get_array_length(&result)) } {
+                let mut item: Value = get_value(&result, &i);
                 let mut item: Value = get_value(&result, &i);
                 if is_equal(&get_value(&item, &Value::Str("symbol".to_string())), &symbol) {
                     return item;
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else {
             return self.parse_open_interest(response.clone(), &[market.clone()]);
         }
         return Value::Null;
+
+    Value::Null
 }
 
     pub fn parse_open_interest(&self, mut interest: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_integer2(interest.clone(), Value::Str("timestamp".to_string()), Value::Str("time".to_string()), &[]);
-        let mut id: Value = self.safe_string(interest.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut id: Value = self.safe_string_k(interest.clone(), "symbol", &[]);
         let mut amount: Value = self.safe_number2(interest.clone(), Value::Str("sumOpenInterest".to_string()), Value::Str("openInterest".to_string()), &[]);
         let mut value: Value = self.safe_number2(interest.clone(), Value::Str("sumOpenInterestValue".to_string()), Value::Str("sumOpenInterestUsd".to_string()), &[]);
         return self.safe_open_interest(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(id.clone(), &[market.clone(), Value::Null, Value::Str("contract".to_string())]));
         m.insert("baseVolume".to_string(), ternary(is_true(&get_value(&market, &Value::Str("inverse".to_string()))), Value::Null, amount.clone()));
         m.insert("quoteVolume".to_string(), value.clone());
@@ -13527,34 +13800,36 @@ impl BinanceCore {
         m.insert("info".to_string(), interest.clone());
     m
 }), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchMyLiquidations
  * @description retrieves the users liquidated positions
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/margin_trading/trade/Get-Force-Liquidation-Record
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Users-Force-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Users-Force-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-Users-UM-Force-Orders
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/Query-Users-CM-Force-Orders
+ * @see https://developers.binance.com/docs/margin_trading/trade/Get-Force-Liquidation-Record
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Users-Force-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Users-Force-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-UM-Force-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-CM-Force-Orders
  * @param {string} [symbol] unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
  * @param {object} [params] exchange specific parameters for the binance api endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest liquidation
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true if you would like to fetch liquidations in a portfolio margin account
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] "spot"
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
- * @returns {object} an array of [liquidation structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=liquidation-structure}
+ * @param {int} [params.until] timestamp in ms of the latest liquidation
+ * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch liquidations in a portfolio margin account
+ * @param {string} [params.type] "spot"
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
     pub async fn fetch_my_liquidations(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -13574,7 +13849,7 @@ impl BinanceCore {
         let mut isPortfolioMargin: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("fetchMyLiquidations".to_string()), Value::Str("papi".to_string()), Value::Str("portfolioMargin".to_string()), &[Value::Bool(false)]); isPortfolioMargin = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if !is_equal(&type_var, &Value::Str("spot".to_string())) {
@@ -13617,7 +13892,7 @@ impl BinanceCore {
                 response = self.call_method(Value::Str("dapi_private_get_force_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchMyLiquidations() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" markets".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchMyLiquidations() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" markets".to_string()))));
         }
         //
         // margin
@@ -13696,8 +13971,10 @@ impl BinanceCore {
         //         },
         //     ]
         //
-        let mut liquidations: Value = self.safe_list(response.clone(), Value::Str("rows".to_string()), &[response.clone()]);
+        let mut liquidations: Value = self.safe_list_k(response.clone(), "rows", &[response.clone()]);
         return self.parse_liquidations(liquidations.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_liquidation(&self, mut liquidation: Value, optional_args: &[Value]) -> Value {
@@ -13770,68 +14047,72 @@ impl BinanceCore {
         //         "updateTime": 1596542005050
         //     }
         //
-        let mut marketId: Value = self.safe_string(liquidation.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(liquidation.clone(), "symbol", &[]);
         let mut timestamp: Value = self.safe_integer2(liquidation.clone(), Value::Str("updatedTime".to_string()), Value::Str("updateTime".to_string()), &[]);
         return self.safe_liquidation(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-        m.insert("contracts".to_string(), self.safe_number(liquidation.clone(), Value::Str("executedQty".to_string()), &[]));
-        m.insert("contractSize".to_string(), self.safe_number(market.clone(), Value::Str("contractSize".to_string()), &[]));
-        m.insert("price".to_string(), self.safe_number(liquidation.clone(), Value::Str("avgPrice".to_string()), &[]));
+        m.insert("contracts".to_string(), self.safe_number_k(liquidation.clone(), "executedQty", &[]));
+        m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractSize", &[]));
+        m.insert("price".to_string(), self.safe_number_k(liquidation.clone(), "avgPrice", &[]));
         m.insert("side".to_string(), self.safe_string_lower(liquidation.clone(), Value::Str("side".to_string()), &[]));
-        m.insert("baseValue".to_string(), self.safe_number(liquidation.clone(), Value::Str("cumBase".to_string()), &[]));
-        m.insert("quoteValue".to_string(), self.safe_number(liquidation.clone(), Value::Str("cumQuote".to_string()), &[]));
+        m.insert("baseValue".to_string(), self.safe_number_k(liquidation.clone(), "cumBase", &[]));
+        m.insert("quoteValue".to_string(), self.safe_number_k(liquidation.clone(), "cumQuote", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
 }), &[]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchGreeks
  * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/market-data/Option-Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
  * @param {string} symbol unified symbol of the market to fetch greeks for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [greeks structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=greeks-structure}
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
     pub async fn fetch_greeks(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
         let mut response: Value = self.call_method(Value::Str("eapi_public_get_mark".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_greeks(get_value(&response, &Value::Int(0)), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchAllGreeks
  * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/market-data/Option-Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
  * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [greeks structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=greeks-structure}
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
     pub async fn fetch_all_greeks(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
@@ -13844,6 +14125,8 @@ impl BinanceCore {
         }
         let mut response: Value = self.call_method(Value::Str("eapi_public_get_mark".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_all_greeks(response.clone(), &[symbols.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_greeks(&self, mut greeks: Value, optional_args: &[Value]) -> Value {
@@ -13863,74 +14146,79 @@ impl BinanceCore {
         //         "lowPriceLimit": "5"
         //     }
         //
-        let mut marketId: Value = self.safe_string(greeks.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(greeks.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("delta".to_string(), self.safe_number(greeks.clone(), Value::Str("delta".to_string()), &[]));
-        m.insert("gamma".to_string(), self.safe_number(greeks.clone(), Value::Str("gamma".to_string()), &[]));
-        m.insert("theta".to_string(), self.safe_number(greeks.clone(), Value::Str("theta".to_string()), &[]));
-        m.insert("vega".to_string(), self.safe_number(greeks.clone(), Value::Str("vega".to_string()), &[]));
+        m.insert("delta".to_string(), self.safe_number_k(greeks.clone(), "delta", &[]));
+        m.insert("gamma".to_string(), self.safe_number_k(greeks.clone(), "gamma", &[]));
+        m.insert("theta".to_string(), self.safe_number_k(greeks.clone(), "theta", &[]));
+        m.insert("vega".to_string(), self.safe_number_k(greeks.clone(), "vega", &[]));
         m.insert("rho".to_string(), Value::Null);
         m.insert("bidSize".to_string(), Value::Null);
         m.insert("askSize".to_string(), Value::Null);
-        m.insert("bidImpliedVolatility".to_string(), self.safe_number(greeks.clone(), Value::Str("bidIV".to_string()), &[]));
-        m.insert("askImpliedVolatility".to_string(), self.safe_number(greeks.clone(), Value::Str("askIV".to_string()), &[]));
-        m.insert("markImpliedVolatility".to_string(), self.safe_number(greeks.clone(), Value::Str("markIV".to_string()), &[]));
+        m.insert("bidImpliedVolatility".to_string(), self.safe_number_k(greeks.clone(), "bidIV", &[]));
+        m.insert("askImpliedVolatility".to_string(), self.safe_number_k(greeks.clone(), "askIV", &[]));
+        m.insert("markImpliedVolatility".to_string(), self.safe_number_k(greeks.clone(), "markIV", &[]));
         m.insert("bidPrice".to_string(), Value::Null);
         m.insert("askPrice".to_string(), Value::Null);
-        m.insert("markPrice".to_string(), self.safe_number(greeks.clone(), Value::Str("markPrice".to_string()), &[]));
+        m.insert("markPrice".to_string(), self.safe_number_k(greeks.clone(), "markPrice", &[]));
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("underlyingPrice".to_string(), Value::Null);
         m.insert("info".to_string(), greeks.clone());
     m
 });
+
+    Value::Null
 }
 
     pub async fn fetch_trading_limits(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         // this method should not be called directly, use loadTradingLimits () instead
         let mut markets: Value = self.fetch_markets(&[]).await;
         let mut tradingLimits: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&markets)) {
+            let mut __for_first_276: bool = true;
+            while { if !__for_first_276 { i = add(&i, &Value::Int(1)); } __for_first_276 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
             if is_true(&(is_equal(&symbols, &Value::Null))) || is_true(&(self.in_array(symbol.clone(), symbols.clone()))) {
                 add_element_to_object(&mut tradingLimits, &symbol, get_value(&get_value(&market, &Value::Str("limits".to_string())), &Value::Str("amount".to_string())));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return tradingLimits;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchPositionMode
  * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Current-Position-Mode
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Current-Position-Mode
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Current-Position-Mode
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Current-Position-Mode
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
+ * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
     pub async fn fetch_position_mode(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut market: Value = Value::Null;
@@ -13945,38 +14233,40 @@ impl BinanceCore {
         }  else if is_equal(&subType, &Value::Str("inverse".to_string())) {
             response = self.call_method(Value::Str("dapi_private_get_position_side_dual".to_string()), &[params.clone()]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchPositionMode requires either a symbol argument or params[\"subType\"]".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchPositionMode requires either a symbol argument or params[\"subType\"]".to_string()))));
         }
         //
         //    {
         //        dualSidePosition: false
         //    }
         //
-        let mut dualSidePosition: Value = self.safe_bool(response.clone(), Value::Str("dualSidePosition".to_string()), &[]);
+        let mut dualSidePosition: Value = self.safe_bool_k(response.clone(), "dualSidePosition", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("hedged".to_string(), dualSidePosition.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchMarginModes
  * @description fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
  * @param {string[]} symbols unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
- * @returns {object} a list of [margin mode structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-mode-structure}
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
     pub async fn fetch_margin_modes(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -13993,29 +14283,31 @@ impl BinanceCore {
         }  else if is_equal(&subType, &Value::Str("inverse".to_string())) {
             response = self.call_method(Value::Str("dapi_private_get_account".to_string()), &[params.clone()]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchMarginModes () supports linear and inverse subTypes only".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchMarginModes () supports linear and inverse subTypes only".to_string()))));
         }
-        let mut assets: Value = self.safe_list(response.clone(), Value::Str("positions".to_string()), &[Value::List(vec![])]);
+        let mut assets: Value = self.safe_list_k(response.clone(), "positions", &[Value::List(vec![])]);
         if is_true(&Value::Bool(is_array(&response))) {
             assets = response.clone();
         }
         return self.parse_margin_modes(assets.clone(), &[symbols.clone(), Value::Str("symbol".to_string()), Value::Str("swap".to_string())]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchMarginMode
  * @description fetches the margin mode of a specific symbol
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
- * @returns {object} a [margin mode structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-mode-structure}
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
     pub async fn fetch_margin_mode(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -14025,7 +14317,7 @@ impl BinanceCore {
         let mut response: Value = Value::Null;
         if is_equal(&subType, &Value::Str("linear".to_string())) {
             let mut request: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m
             });
@@ -14034,16 +14326,18 @@ impl BinanceCore {
             let mut fetchMarginModesResponse: Value = self.fetch_margin_modes(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
             return get_value(&fetchMarginModesResponse, &symbol);
         }  else {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchMarginMode () supports linear and inverse subTypes only".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchMarginMode () supports linear and inverse subTypes only".to_string()))));
         }
         return self.parse_margin_mode(get_value(&response, &Value::Int(0)), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_margin_mode(&self, mut marginMode: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut marketId: Value = self.safe_string(marginMode.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(marginMode.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut marginModeRaw: Value = self.safe_bool(marginMode.clone(), Value::Str("isolated".to_string()), &[]);
+        let mut marginModeRaw: Value = self.safe_bool_k(marginMode.clone(), "isolated", &[]);
         let mut reMarginMode: Value = Value::Null;
         if !is_equal(&marginModeRaw, &Value::Null) {
             reMarginMode = ternary(is_true(&marginModeRaw), Value::Str("isolated".to_string()), Value::Str("cross".to_string()));
@@ -14053,32 +14347,34 @@ impl BinanceCore {
             reMarginMode = ternary(is_true(&(is_equal(&marginTypeRaw, &Value::Str("crossed".to_string())))), Value::Str("cross".to_string()), Value::Str("isolated".to_string()));
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), marginMode.clone());
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
         m.insert("marginMode".to_string(), reMarginMode.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchOption
  * @description fetches option data that is commonly found in an option chain
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [option chain structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=option-chain-structure}
+ * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
     pub async fn fetch_option(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -14108,10 +14404,12 @@ impl BinanceCore {
         //     ]
         //
         let mut chain: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_option(chain.clone(), &[Value::Null, market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_option(&self, mut chain: Value, optional_args: &[Value]) -> Value {
@@ -14139,10 +14437,10 @@ impl BinanceCore {
         //         "exercisePrice": "63944.09893617"
         //     }
         //
-        let mut marketId: Value = self.safe_string(chain.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(chain.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
         m.insert("currency".to_string(), Value::Null);
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
@@ -14150,33 +14448,35 @@ impl BinanceCore {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("impliedVolatility".to_string(), Value::Null);
         m.insert("openInterest".to_string(), Value::Null);
-        m.insert("bidPrice".to_string(), self.safe_number(chain.clone(), Value::Str("bidPrice".to_string()), &[]));
-        m.insert("askPrice".to_string(), self.safe_number(chain.clone(), Value::Str("askPrice".to_string()), &[]));
+        m.insert("bidPrice".to_string(), self.safe_number_k(chain.clone(), "bidPrice", &[]));
+        m.insert("askPrice".to_string(), self.safe_number_k(chain.clone(), "askPrice", &[]));
         m.insert("midPrice".to_string(), Value::Null);
         m.insert("markPrice".to_string(), Value::Null);
-        m.insert("lastPrice".to_string(), self.safe_number(chain.clone(), Value::Str("lastPrice".to_string()), &[]));
-        m.insert("underlyingPrice".to_string(), self.safe_number(chain.clone(), Value::Str("exercisePrice".to_string()), &[]));
-        m.insert("change".to_string(), self.safe_number(chain.clone(), Value::Str("priceChange".to_string()), &[]));
-        m.insert("percentage".to_string(), self.safe_number(chain.clone(), Value::Str("priceChangePercent".to_string()), &[]));
-        m.insert("baseVolume".to_string(), self.safe_number(chain.clone(), Value::Str("volume".to_string()), &[]));
+        m.insert("lastPrice".to_string(), self.safe_number_k(chain.clone(), "lastPrice", &[]));
+        m.insert("underlyingPrice".to_string(), self.safe_number_k(chain.clone(), "exercisePrice", &[]));
+        m.insert("change".to_string(), self.safe_number_k(chain.clone(), "priceChange", &[]));
+        m.insert("percentage".to_string(), self.safe_number_k(chain.clone(), "priceChangePercent", &[]));
+        m.insert("baseVolume".to_string(), self.safe_number_k(chain.clone(), "volume", &[]));
         m.insert("quoteVolume".to_string(), Value::Null);
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchMarginAdjustmentHistory
  * @description fetches the history of margin added or reduced from contract isolated positions
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Get-Position-Margin-Change-History
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Get-Position-Margin-Change-History
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Get-Position-Margin-Change-History
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Get-Position-Margin-Change-History
  * @param {string} symbol unified market symbol
  * @param {string} [type] "add" or "reduce"
  * @param {int} [since] timestamp in ms of the earliest change to fetch
  * @param {int} [limit] the maximum amount of changes to fetch
  * @param {object} params extra parameters specific to the exchange api endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest change to fetch
- * @returns {object[]} a list of [margin structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @param {int} [params.until] timestamp in ms of the latest change to fetch
+ * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn fetch_margin_adjustment_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
@@ -14184,18 +14484,18 @@ impl BinanceCore {
         let mut since = get_arg(optional_args, 2, Value::Null);
         let mut limit = get_arg(optional_args, 3, Value::Null);
         let mut params = get_arg(optional_args, 4, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMarginAdjustmentHistory () requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMarginAdjustmentHistory () requires a symbol argument".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -14217,7 +14517,7 @@ impl BinanceCore {
         }  else if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
             response = self.call_method(Value::Str("dapi_private_get_position_margin_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&add(&self.id, &Value::Str(" fetchMarginAdjustmentHistory () is not supported for markets of type ".to_string())), &get_value(&market, &Value::Str("type".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&add(&self.id, &Value::Str(" fetchMarginAdjustmentHistory () is not supported for markets of type ".to_string())), &get_value(&market, &Value::Str("type".to_string())))));
         }
         //
         //    [
@@ -14236,19 +14536,21 @@ impl BinanceCore {
         //
         let mut modifications: Value = self.parse_margin_modifications(response.clone(), &[]);
         return self.filter_by_symbol_since_limit(modifications.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchConvertCurrencies
  * @description fetches all available currencies that can be converted
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/convert/market-data/Query-order-quantity-precision-per-asset
+ * @see https://developers.binance.com/docs/convert/market-data/Query-order-quantity-precision-per-asset
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
     pub async fn fetch_convert_currencies(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -14262,17 +14564,19 @@ impl BinanceCore {
         //     ]
         //
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_277: bool = true;
+            while { if !__for_first_277 { i = add(&i, &Value::Int(1)); } __for_first_277 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
-            let mut id: Value = self.safe_string(entry.clone(), Value::Str("asset".to_string()), &[]);
+            let mut entry: Value = get_value(&response, &i);
+            let mut id: Value = self.safe_string_k(entry.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
             add_element_to_object(&mut result, &code, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry.clone());
         m.insert("id".to_string(), id.clone());
         m.insert("code".to_string(), code.clone());
@@ -14283,23 +14587,23 @@ impl BinanceCore {
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
-        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string(entry.clone(), Value::Str("fraction".to_string()), &[])]), &[]));
+        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(entry.clone(), "fraction", &[])]), &[]));
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
@@ -14309,36 +14613,37 @@ impl BinanceCore {
         m.insert("created".to_string(), Value::Null);
     m
 }));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchConvertQuote
  * @description fetch a quote for converting from one currency to another
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/convert/trade/Send-quote-request
+ * @see https://developers.binance.com/docs/convert/trade/Send-quote-request
  * @param {string} fromCode the currency that you want to sell and convert from
  * @param {string} toCode the currency that you want to buy and convert into
  * @param {float} amount how much you want to trade in units of the from currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("walletType".to_string()))] either 'SPOT' or 'FUNDING', the default is 'SPOT'
- * @returns {object} a [conversion structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=conversion-structure}
+ * @param {string} [params.walletType] either 'SPOT' or 'FUNDING', the default is 'SPOT'
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
     pub async fn fetch_convert_quote(&mut self, mut fromCode: Value, mut toCode: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&amount, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchConvertQuote() requires an amount argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchConvertQuote() requires an amount argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("fromAsset".to_string(), fromCode.clone());
                 m.insert("toAsset".to_string(), toCode.clone());
                 m.insert("fromAmount".to_string(), amount.clone());
@@ -14358,35 +14663,37 @@ impl BinanceCore {
         let mut fromCurrency: Value = self.currency(fromCode.clone());
         let mut toCurrency: Value = self.currency(toCode.clone());
         return self.parse_conversion(response.clone(), &[fromCurrency.clone(), toCurrency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#createConvertTrade
  * @description convert from one currency to another
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/convert/trade/Accept-Quote
+ * @see https://developers.binance.com/docs/convert/trade/Accept-Quote
  * @param {string} id the id of the trade that you want to make
  * @param {string} fromCode the currency that you want to sell and convert from
  * @param {string} toCode the currency that you want to buy and convert into
  * @param {float} [amount] how much you want to trade in units of the from currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [conversion structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
     pub async fn create_convert_trade(&mut self, mut id: Value, mut fromCode: Value, mut toCode: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Value = Value::Null;
         if is_true(&(is_equal(&fromCode, &Value::Str("BUSD".to_string())))) || is_true(&(is_equal(&toCode, &Value::Str("BUSD".to_string())))) {
             if is_equal(&amount, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createConvertTrade() requires an amount argument".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createConvertTrade() requires an amount argument".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("clientTranId".to_string()), id.clone());
             add_element_to_object(&mut request, &Value::Str("asset".to_string()), fromCode.clone());
@@ -14400,27 +14707,29 @@ impl BinanceCore {
         let mut fromCurrency: Value = self.currency(fromCode.clone());
         let mut toCurrency: Value = self.currency(toCode.clone());
         return self.parse_conversion(response.clone(), &[fromCurrency.clone(), toCurrency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchConvertTrade
  * @description fetch the data for a conversion trade
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/convert/trade/Order-Status
+ * @see https://developers.binance.com/docs/convert/trade/Order-Status
  * @param {string} id the id of the trade that you want to fetch
  * @param {string} [code] the unified currency code of the conversion trade
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [conversion structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
     pub async fn fetch_convert_trade(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Value = Value::Null;
@@ -14441,9 +14750,9 @@ impl BinanceCore {
         }
         let mut data: Value = response.clone();
         if is_equal(&code, &Value::Str("BUSD".to_string())) {
-            let mut rows: Value = self.safe_list(response.clone(), Value::Str("rows".to_string()), &[Value::List(vec![])]);
+            let mut rows: Value = self.safe_list_k(response.clone(), "rows", &[Value::List(vec![])]);
             data = self.safe_dict(rows.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         }
@@ -14458,31 +14767,33 @@ impl BinanceCore {
             toCurrency = self.currency(toCurrencyId.clone());
         }
         return self.parse_conversion(data.clone(), &[fromCurrency.clone(), toCurrency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchConvertTradeHistory
  * @description fetch the users history of conversion trades
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/convert/trade/Get-Convert-Trade-History
+ * @see https://developers.binance.com/docs/convert/trade/Get-Convert-Trade-History
  * @param {string} [code] the unified currency code
  * @param {int} [since] the earliest time in ms to fetch conversions for
  * @param {int} [limit] the maximum number of conversion structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest conversion to fetch
- * @returns {object[]} a list of [conversion structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=conversion-structure}
+ * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
+ * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
     pub async fn fetch_convert_trade_history(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut msInThirtyDays: Value = Value::Int(2592000000);
@@ -14515,7 +14826,7 @@ impl BinanceCore {
             response = self.call_method(Value::Str("sapi_get_asset_convert_transfer_query_by_page".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
             if is_greater_than(&(subtract(&get_value(&request, &Value::Str("endTime".to_string())), &get_value(&request, &Value::Str("startTime".to_string())))), &msInThirtyDays) {
-                panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.".to_string()))));
+                panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.".to_string()))));
             }
             if !is_equal(&limit, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
@@ -14527,6 +14838,8 @@ impl BinanceCore {
         }
         let mut rows: Value = self.safe_list(response.clone(), responseQuery.clone(), &[Value::List(vec![])]);
         return self.parse_conversions(rows.clone(), &[code.clone(), fromCurrencyKey.clone(), toCurrencyKey.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_conversion(&self, mut conversion: Value, optional_args: &[Value]) -> Value {
@@ -14608,7 +14921,7 @@ impl BinanceCore {
         let mut to: Value = self.safe_string2(conversion.clone(), Value::Str("targetAsset".to_string()), Value::Str("toAsset".to_string()), &[]);
         let mut toCode: Value = self.safe_currency_code(to.clone(), &[toCurrency.clone()]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), conversion.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
@@ -14621,23 +14934,25 @@ impl BinanceCore {
         m.insert("fee".to_string(), Value::Null);
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchFundingIntervals
  * @description fetch the funding rate interval for multiple markets
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-Info
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Get-Funding-Info
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-Info
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Get-Funding-Info
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("subType".to_string()))] "linear" or "inverse"
- * @returns {object[]} a list of [funding rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-structure}
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
     pub async fn fetch_funding_intervals(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -14655,24 +14970,26 @@ impl BinanceCore {
         }  else if is_true(&self.is_inverse(type_var.clone(), &[subType.clone()])) {
             response = self.call_method(Value::Str("dapi_public_get_funding_info".to_string()), &[params.clone()]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingIntervals() supports linear and inverse swap contracts only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingIntervals() supports linear and inverse swap contracts only".to_string()))));
         }
         return self.parse_funding_rates(response.clone(), &[symbols.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchLongShortRatioHistory
  * @description fetches the long short ratio history for a unified market symbol
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/Long-Short-Ratio
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/market-data/rest-api/Long-Short-Ratio
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Long-Short-Ratio
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Long-Short-Ratio
  * @param {string} symbol unified symbol of the market to fetch the long short ratio for
  * @param {string} [timeframe] the period for the ratio, default is 24 hours
  * @param {int} [since] the earliest time in ms to fetch ratios for
  * @param {int} [limit] the maximum number of long short ratio structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest ratio to fetch
- * @returns {object[]} an array of [long short ratio structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=long-short-ratio-structure}
+ * @param {int} [params.until] timestamp in ms of the latest ratio to fetch
+ * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
  */
     pub async fn fetch_long_short_ratio_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
@@ -14680,7 +14997,7 @@ impl BinanceCore {
         let mut since = get_arg(optional_args, 2, Value::Null);
         let mut limit = get_arg(optional_args, 3, Value::Null);
         let mut params = get_arg(optional_args, 4, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -14689,7 +15006,7 @@ impl BinanceCore {
             timeframe = Value::Str("1d".to_string());
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("period".to_string(), timeframe.clone());
             m
         });
@@ -14710,9 +15027,11 @@ impl BinanceCore {
             add_element_to_object(&mut request, &Value::Str("pair".to_string()), get_value(&get_value(&market, &Value::Str("info".to_string())), &Value::Str("pair".to_string())));
             response = self.call_method(Value::Str("dapi_data_get_global_long_short_account_ratio".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchLongShortRatioHistory() supports linear and inverse subTypes only".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchLongShortRatioHistory() supports linear and inverse subTypes only".to_string()))));
         }
         return self.parse_long_short_ratio_history(response.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_long_short_ratio(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -14738,38 +15057,40 @@ impl BinanceCore {
         //         "timestamp": 1726790400000
         //     }
         //
-        let mut marketId: Value = self.safe_string(info.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
         let mut timestamp: Value = self.safe_integer_omit_zero(info.clone(), Value::Str("timestamp".to_string()), &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("contract".to_string())]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("timeframe".to_string(), Value::Null);
-        m.insert("longShortRatio".to_string(), self.safe_number(info.clone(), Value::Str("longShortRatio".to_string()), &[]));
+        m.insert("longShortRatio".to_string(), self.safe_number_k(info.clone(), "longShortRatio", &[]));
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchADLRank
  * @description fetches the auto deleveraging rank and risk percentage for a symbol
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/market-data/rest-api/ADL-Risk
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/ADL-Risk
  * @param {string} symbol unified symbol of the market to fetch the auto deleveraging rank for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [auto de leverage structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=auto-de-leverage-structure}
+ * @returns {object} an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
  */
     pub async fn fetch_adl_rank(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -14779,28 +15100,30 @@ impl BinanceCore {
         if is_equal(&subType, &Value::Str("linear".to_string())) {
             response = self.call_method(Value::Str("fapi_public_get_symbol_adl_risk".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchADLRank() supports linear subTypes only".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchADLRank() supports linear subTypes only".to_string()))));
         }
         return self.parse_adl_rank(response.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name binance#fetchPositionsADLRank
  * @description fetches the auto deleveraging rank and risk percentage for a list of symbols that have open positions
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/UM-Position-ADL-Quantile-Estimation
- * @see https://get_value(&developers, &Value::Str("binance".to_string())).com/docs/derivatives/portfolio-margin/trade/CM-Position-ADL-Quantile-Estimation
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Position-ADL-Quantile-Estimation
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Position-ADL-Quantile-Estimation
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("portfolioMargin".to_string()))] set to true for the portfolio margin account
- * @returns {object[]} an array of [auto de leverage structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=auto-de-leverage-structure}
+ * @param {boolean} [params.portfolioMargin] set to true for the portfolio margin account
+ * @returns {object[]} an array of [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
  */
     pub async fn fetch_positions_adl_rank(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -14824,9 +15147,11 @@ impl BinanceCore {
                 response = self.call_method(Value::Str("dapi_private_get_adl_quantile".to_string()), &[params.clone()]).await;
             }
         }  else {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchPositionsADLRank() supports linear and inverse subTypes only".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchPositionsADLRank() supports linear and inverse subTypes only".to_string()))));
         }
         return self.parse_adl_ranks(response.clone(), &[symbols.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_adl_rank(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -14851,13 +15176,13 @@ impl BinanceCore {
         //         }
         //     }
         //
-        let mut adlQuantile: Value = self.safe_dict(info.clone(), Value::Str("adlQuantile".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut adlQuantile: Value = self.safe_dict_k(info.clone(), "adlQuantile", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut longNum: Value = self.safe_number(adlQuantile.clone(), Value::Str("LONG".to_string()), &[]);
-        let mut shortNum: Value = self.safe_number(adlQuantile.clone(), Value::Str("SHORT".to_string()), &[]);
-        let mut both: Value = self.safe_number(adlQuantile.clone(), Value::Str("BOTH".to_string()), &[]);
+        let mut longNum: Value = self.safe_number_k(adlQuantile.clone(), "LONG", &[]);
+        let mut shortNum: Value = self.safe_number_k(adlQuantile.clone(), "SHORT", &[]);
+        let mut both: Value = self.safe_number_k(adlQuantile.clone(), "BOTH", &[]);
         let mut rank: Value = Value::Null;
         if !is_equal(&both, &Value::Null) {
             rank = both.clone();
@@ -14870,10 +15195,10 @@ impl BinanceCore {
                 }
             }
         }
-        let mut marketId: Value = self.safe_string(info.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
         let mut timestamp: Value = self.safe_integer2(info.clone(), Value::Str("timestamp".to_string()), Value::Str("updateTime".to_string()), &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("contract".to_string())]));
         m.insert("rank".to_string(), rank.clone());
@@ -14883,5 +15208,7 @@ impl BinanceCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
 });
+
+    Value::Null
 }
 }

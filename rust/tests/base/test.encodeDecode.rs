@@ -5,28 +5,29 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
 pub fn testEncode() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
     let mut input: Value = Value::Str("encode-test".to_string());
     let mut encoded: Value = exchange.encode(input.clone());
     let mut decoded: Value = exchange.decode(encoded.clone());
-    assert!(ccxt::runtime::is_true(&(is_equal(&decoded, &input))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&decoded, &input)))));
 }
 pub fn testDecode() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
     let mut input: Value = Value::Str("decode-test".to_string());
     let mut encoded: Value = exchange.encode(input.clone());
     let mut decoded: Value = exchange.decode(encoded.clone());
-    assert!(ccxt::runtime::is_true(&(is_equal(&decoded, &input))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&decoded, &input)))));
 }
 pub fn testEncodeDecode() {
     testEncode();

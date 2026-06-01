@@ -5,44 +5,45 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
 pub fn testBinaryToBase16() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.parse_number(Value::Null, &[]), &Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse_number(Value::Null, &[]), &Value::Null)))));
     // @SKIP_START_GO
     // Test 1: simple known bytes
     // 'ff' => [255]
-    let mut binary1: Value = exchange.base16_to_binary(Value::Str("ff".to_string()));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.binary_to_base16(binary1.clone()), &Value::Str("ff".to_string())))));
+    let mut binary1: Value = exchange.base16_to_binary(Value::Str("ff".to_string()), &[]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base16(binary1.clone(), &[]), &Value::Str("ff".to_string()))))));
     // Test 2: all zeros
     // '0000' => [0, 0]
-    let mut binary2: Value = exchange.base16_to_binary(Value::Str("0000".to_string()));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.binary_to_base16(binary2.clone()), &Value::Str("0000".to_string())))));
+    let mut binary2: Value = exchange.base16_to_binary(Value::Str("0000".to_string()), &[]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base16(binary2.clone(), &[]), &Value::Str("0000".to_string()))))));
     // Test 3: ascending bytes 01 02 03 04
-    let mut binary3: Value = exchange.base16_to_binary(Value::Str("01020304".to_string()));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.binary_to_base16(binary3.clone()), &Value::Str("01020304".to_string())))));
+    let mut binary3: Value = exchange.base16_to_binary(Value::Str("01020304".to_string()), &[]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base16(binary3.clone(), &[]), &Value::Str("01020304".to_string()))))));
     // Test 4: single byte zero
-    let mut binary4: Value = exchange.base16_to_binary(Value::Str("00".to_string()));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.binary_to_base16(binary4.clone()), &Value::Str("00".to_string())))));
+    let mut binary4: Value = exchange.base16_to_binary(Value::Str("00".to_string()), &[]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base16(binary4.clone(), &[]), &Value::Str("00".to_string()))))));
     // Test 5: single byte max
-    let mut binary5: Value = exchange.base16_to_binary(Value::Str("ff".to_string()));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.binary_length(binary5.clone()), &Value::Int(1)))));
-    assert!(ccxt::runtime::is_true(&(exchange.is_binary_message(binary5.clone()))));
+    let mut binary5: Value = exchange.base16_to_binary(Value::Str("ff".to_string()), &[]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_length(binary5.clone(), &[]), &Value::Int(1))))));
+    assert!(ccxt::runtime::is_true(&(exchange.is_binary_message(binary5.clone(), &[]))));
     // Test 6: 8 bytes (like a timestamp encoding)
     // 00 00 00 00 49 96 02 d2 = 1234567890
-    let mut binary6: Value = exchange.base16_to_binary(Value::Str("00000000499602d2".to_string()));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.binary_to_base16(binary6.clone()), &Value::Str("00000000499602d2".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.binary_length(binary6.clone()), &Value::Int(8)))));
+    let mut binary6: Value = exchange.base16_to_binary(Value::Str("00000000499602d2".to_string()), &[]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base16(binary6.clone(), &[]), &Value::Str("00000000499602d2".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_length(binary6.clone(), &[]), &Value::Int(8))))));
     // Test 7: roundtrip with deadbeef
-    let mut binary7: Value = exchange.base16_to_binary(Value::Str("deadbeef".to_string()));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.binary_to_base16(binary7.clone()), &Value::Str("deadbeef".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.binary_length(binary7.clone()), &Value::Int(4)))));
+    let mut binary7: Value = exchange.base16_to_binary(Value::Str("deadbeef".to_string()), &[]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base16(binary7.clone(), &[]), &Value::Str("deadbeef".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_length(binary7.clone(), &[]), &Value::Int(4))))));
     // Test 8: roundtrip binaryToBase16 -> base16ToBinary
     let mut hex8: Value = Value::Str("cafebabe".to_string());
-    let mut binary8: Value = exchange.base16_to_binary(hex8.clone());
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.binary_to_base16(binary8.clone()), &hex8))));
+    let mut binary8: Value = exchange.base16_to_binary(hex8.clone(), &[]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base16(binary8.clone(), &[]), &hex8)))));
 }

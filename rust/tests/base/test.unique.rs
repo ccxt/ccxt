@@ -5,17 +5,18 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
 pub fn testUnique() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
     // in different langs, the order (sort) is not guaranteed, so we sort the results before comparing them
     // todo: `unique` is primarily meant for strings atm, add numeric support
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Null, Value::Str("testUnique".to_string()), exchange.unique(Value::List(vec![])), Value::List(vec![]));
-    // get_value(&testSharedMethods, &Value::Str("assertDeepEqual".to_string())) (exchange, undefined, 'testUnique',  exchange.prop(&&Value::Str("sort".to_string())) (exchange.prop(&&Value::Str("unique".to_string())) ([ 1, 2, 3 ])), [ 1, 2, 3 ]);
-    // get_value(&testSharedMethods, &Value::Str("assertDeepEqual".to_string())) (exchange, undefined, 'testUnique',  exchange.prop(&&Value::Str("sort".to_string())) (exchange.prop(&&Value::Str("unique".to_string())) ([ 1, 2, 3, 4, 1 ])), [ 1, 2, 3, 4 ]);
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Null, Value::Str("testUnique".to_string()), exchange.sort(exchange.unique(Value::List(vec![Value::Str("a".to_string()), Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("c".to_string()), Value::Str("a".to_string()), Value::Str("c".to_string())]))), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("c".to_string())]));
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testUnique".to_string()).clone(), exchange.unique(Value::List(vec![])).clone(), Value::List(vec![]).clone()]);
+    // testSharedMethods.assertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3 ])), [ 1, 2, 3 ]);
+    // testSharedMethods.assertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3, 4, 1 ])), [ 1, 2, 3, 4 ]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testUnique".to_string()).clone(), exchange.sort(exchange.unique(Value::List(vec![Value::Str("a".to_string()), Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("c".to_string()), Value::Str("a".to_string()), Value::Str("c".to_string())])), &[]).clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("c".to_string())]).clone()]);
 }

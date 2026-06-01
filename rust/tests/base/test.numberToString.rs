@@ -5,29 +5,30 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
 pub fn testNumberToString() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("regirock".to_string()));
         m
     }));
     // ----------------------------------------------------------------------------
     // numberToString
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.number_to_string(negate(&Value::Float(7.8e-7))), &Value::Str("-0.00000078".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.number_to_string(Value::Float(7.8e-7)), &Value::Str("0.00000078".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.number_to_string(negate(&Value::Float(0.0000017805))), &Value::Str("-0.0000017805".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.number_to_string(Value::Float(0.0000017805)), &Value::Str("0.0000017805".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.number_to_string(negate(&Value::Float(7.0005e+27))), &Value::Str("-7000500000000000000000000000".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.number_to_string(Value::Float(7.0005e+27)), &Value::Str("7000500000000000000000000000".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.number_to_string(negate(&Value::Float(7.9e+27))), &Value::Str("-7900000000000000000000000000".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.number_to_string(Value::Float(7e+27)), &Value::Str("7000000000000000000000000000".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.number_to_string(Value::Float(7.9e+27)), &Value::Str("7900000000000000000000000000".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.number_to_string(negate(&Value::Float(12.345))), &Value::Str("-12.345".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.number_to_string(Value::Float(12.345)), &Value::Str("12.345".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.number_to_string(Value::Int(0)), &Value::Str("0".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.number_to_string(Value::Float(7.35946e+21)), &Value::Str("7359460000000000000000".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.number_to_string(Value::Float(1e-8)), &Value::Str("0.00000001".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.number_to_string(Value::Float(1e-7)), &Value::Str("0.0000001".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.number_to_string(negate(&Value::Float(1e-7))), &Value::Str("-0.0000001".to_string())))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.number_to_string(negate(&Value::Float(7.8e-7))), &Value::Str("-0.00000078".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.number_to_string(Value::Float(7.8e-7)), &Value::Str("0.00000078".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.number_to_string(negate(&Value::Float(0.0000017805))), &Value::Str("-0.0000017805".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.number_to_string(Value::Float(0.0000017805)), &Value::Str("0.0000017805".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.number_to_string(negate(&Value::Float(7.0005e+27))), &Value::Str("-7000500000000000000000000000".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.number_to_string(Value::Float(7.0005e+27)), &Value::Str("7000500000000000000000000000".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.number_to_string(negate(&Value::Float(7.9e+27))), &Value::Str("-7900000000000000000000000000".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.number_to_string(Value::Float(7e+27)), &Value::Str("7000000000000000000000000000".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.number_to_string(Value::Float(7.9e+27)), &Value::Str("7900000000000000000000000000".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.number_to_string(negate(&Value::Float(12.345))), &Value::Str("-12.345".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.number_to_string(Value::Float(12.345)), &Value::Str("12.345".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.number_to_string(Value::Int(0)), &Value::Str("0".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.number_to_string(Value::Float(7.35946e+21)), &Value::Str("7359460000000000000000".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.number_to_string(Value::Float(1e-8)), &Value::Str("0.00000001".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.number_to_string(Value::Float(1e-7)), &Value::Str("0.0000001".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.number_to_string(negate(&Value::Float(1e-7))), &Value::Str("-0.0000001".to_string()))))));
 }

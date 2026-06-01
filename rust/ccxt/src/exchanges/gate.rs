@@ -36,22 +36,70 @@ impl GateCore {
         // (e.g. portfolioMargin via fixture) take precedence, then
         // describe()'s defaults fill in any gaps.
         let __described_options = crate::get_value(&described, &crate::Value::Str("options".to_string()));
-        if let (crate::Value::Map(existing), crate::Value::Map(defaults)) =
+        // Capture the describe()'s explicit networksById BEFORE the merge
+        // — the merge below overlays the base Exchange's options (whose
+        // after_construct left an EMPTY networksById), which would
+        // otherwise clobber the manual mappings like binance BSC to BEP20.
+        let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
+        if let (crate::Value::Dict(existing), crate::Value::Dict(defaults)) =
             (&self.exchange.options.clone(), &__described_options)
         {
-            let mut merged = defaults.clone();
-            for (k, v) in existing { merged.insert(k.clone(), v.clone()); }
+            let mut merged = (**defaults).clone();
+            for (k, v) in existing.iter() { merged.insert(k.clone(), v.clone()); }
             self.exchange.options = crate::Value::Map(merged);
-        } else if !matches!(self.exchange.options, crate::Value::Map(_)) {
+        } else if !matches!(self.exchange.options, crate::Value::Dict(_)) {
             self.exchange.options = __described_options;
+        }
+        // Derive options.networksById (CCXT's createNetworksByIdObject):
+        // start from the auto-inverted networks (generated), then overlay
+        // the describe()'s explicit networksById so manual mappings win —
+        // mirrors TS extend(generated, manual). Without the manual
+        // overlay, an exchange whose networks defines both BSC to BSC and
+        // BEP20 to BSC would invert to BSC to BSC (wrong) by iteration
+        // order instead of the intended BSC to BEP20.
+        if let crate::Value::Dict(opts_arc) = self.exchange.options.clone() {
+            let mut opts = std::sync::Arc::try_unwrap(opts_arc).unwrap_or_else(|a| (*a).clone());
+            let mut by_id: indexmap::IndexMap<String, crate::Value> = indexmap::IndexMap::new();
+            if let Some(crate::Value::Dict(networks)) = opts.get("networks") {
+                for (code, id) in networks.iter() {
+                    if let crate::Value::Str(id_s) = id {
+                        by_id.entry(id_s.clone())
+                             .or_insert_with(|| crate::Value::Str(code.clone()));
+                    }
+                }
+            }
+            if let crate::Value::Dict(manual) = &__described_networks_by_id {
+                for (k, v) in manual.iter() { by_id.insert(k.clone(), v.clone()); }
+            }
+            opts.insert("networksById".to_string(), crate::Value::Map(by_id));
+            self.exchange.options = crate::Value::Map(opts);
         }
         self.exchange.hostname = crate::get_value(&described, &crate::Value::Str("hostname".to_string()));
         self.exchange.version  = crate::get_value(&described, &crate::Value::Str("version".to_string()));
         self.exchange.id       = crate::get_value(&described, &crate::Value::Str("id".to_string()));
         self.exchange.name     = crate::get_value(&described, &crate::Value::Str("name".to_string()));
         self.exchange.exceptions = crate::get_value(&described, &crate::Value::Str("exceptions".to_string()));
-        self.exchange.requiredCredentials = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string()));
+        // Only override the base-default requiredCredentials when the
+        // exchange's describe() actually provides them (super.describe()
+        // is stubbed, so most exchanges' describe() omits this).
+        { let __rc = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string())); if !matches!(__rc, crate::Value::Null) { self.exchange.requiredCredentials = __rc; } }
+        // Merge describe()'s commonCurrencies over the base defaults so
+        // exchange-specific aliases (bitfinex UST to USDT, onetrading
+        // MIOTA to IOTA) reach commonCurrencyCode / safeCurrencyCode.
+        { let __cc = crate::get_value(&described, &crate::Value::Str("commonCurrencies".to_string())); if let crate::Value::Dict(extra) = __cc { let extra = std::sync::Arc::try_unwrap(extra).unwrap_or_else(|a| (*a).clone()); if let crate::Value::Dict(base) = &mut self.exchange.commonCurrencies { let base = std::sync::Arc::make_mut(base); for (k, v) in extra { base.insert(k, v); } } else { self.exchange.commonCurrencies = crate::Value::Map(extra); } } }
         self.exchange.precisionMode = crate::get_value(&described, &crate::Value::Str("precisionMode".to_string()));
+        self.exchange.timeframes = crate::get_value(&described, &crate::Value::Str("timeframes".to_string()));
+        self.exchange.fees = crate::get_value(&described, &crate::Value::Str("fees".to_string()));
+        // `features` carries the describe() block that drives
+        // unified-method tests (e.g. `features.spot.fetchCurrencies.private`
+        // tells testFetchCurrencies to skip the length check). It's set
+        // after `Exchange::new` because `features_generator` (in
+        // `after_construct`) bails when `features == Null` — so we
+        // assign and re-run the generator here.
+        self.exchange.features = crate::get_value(&described, &crate::Value::Str("features".to_string()));
+        if !matches!(self.exchange.features, crate::Value::Null) {
+            self.exchange.features_generator();
+        }
         // Markets and currencies may have been populated already by
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
@@ -76,7 +124,7 @@ impl GateCore {
     /// Casts the void pointer back to `*mut Self` and forwards to the
     /// real `call_dynamic`. Safety: the pointer must come from the
     /// matching Core's bind() — guaranteed by Exchange::bind_call_async.
-    fn __call_dynamic_dispatch<'a>(
+    pub fn __call_dynamic_dispatch<'a>(
         ptr: *mut (),
         method: &'a str,
         args: Vec<crate::Value>,
@@ -248,6 +296,10 @@ impl crate::exchange::DerivedExchange for GateCore {
         // Forward to the inherent method on GateCore.
         GateCore::parse_funding_rate(self, rate, &[market.clone()])
     }
+    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on GateCore.
+        GateCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+    }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
         GateCore::parse_ledger_entry(self, entry, &[currency.clone()])
@@ -267,6 +319,34 @@ impl crate::exchange::DerivedExchange for GateCore {
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
         GateCore::parse_margin_modification(self, data, &[market.clone()])
+    }
+    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on GateCore.
+        GateCore::parse_transaction(self, transaction, &[currency.clone()])
+    }
+    fn parse_borrow_interest(&self, info: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on GateCore.
+        GateCore::parse_borrow_interest(self, info, &[market.clone()])
+    }
+    fn parse_greeks(&self, greeks: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on GateCore.
+        GateCore::parse_greeks(self, greeks, &[market.clone()])
+    }
+    fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on GateCore.
+        GateCore::parse_leverage(self, leverage, &[market.clone()])
+    }
+    fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on GateCore.
+        GateCore::parse_market_leverage_tiers(self, info, &[market.clone()])
+    }
+    fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on GateCore.
+        GateCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
+    }
+    fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
+        // Forward to the inherent method on GateCore.
+        GateCore::create_expired_option_market(self, symbol)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on GateCore.
@@ -290,7 +370,7 @@ impl std::ops::DerefMut for GateCore {
 impl GateCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("gate".to_string()));
         m.insert("name".to_string(), Value::Str("Gate".to_string()));
         m.insert("countries".to_string(), Value::List(vec![Value::Str("KR".to_string())]));
@@ -299,14 +379,14 @@ impl GateCore {
         m.insert("certified".to_string(), Value::Bool(true));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("urls".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/64f988c5-07b6-4652-b5c1-679a6bf67c85".to_string()));
         m.insert("doc".to_string(), Value::Str("https://www.gate.com/docs/developers/apiv4/en".to_string()));
         m.insert("www".to_string(), Value::Str("https://gate.com".to_string()));
         m.insert("api".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("wallet".to_string(), Value::Str("https://api.gateio.ws/api/v4".to_string()));
         m.insert("futures".to_string(), Value::Str("https://api.gateio.ws/api/v4".to_string()));
         m.insert("margin".to_string(), Value::Str("https://api.gateio.ws/api/v4".to_string()));
@@ -318,7 +398,7 @@ impl GateCore {
     m
 }));
         m.insert("private".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("withdrawals".to_string(), Value::Str("https://api.gateio.ws/api/v4".to_string()));
         m.insert("wallet".to_string(), Value::Str("https://api.gateio.ws/api/v4".to_string()));
         m.insert("futures".to_string(), Value::Str("https://api.gateio.ws/api/v4".to_string()));
@@ -338,9 +418,9 @@ impl GateCore {
     m
 }));
         m.insert("test".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("futures".to_string(), Value::Str("https://api-testnet.gateapi.io/api/v4".to_string()));
         m.insert("delivery".to_string(), Value::Str("https://api-testnet.gateapi.io/api/v4".to_string()));
         m.insert("options".to_string(), Value::Str("https://api-testnet.gateapi.io/api/v4".to_string()));
@@ -352,7 +432,7 @@ impl GateCore {
     m
 }));
         m.insert("private".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("futures".to_string(), Value::Str("https://api-testnet.gateapi.io/api/v4".to_string()));
         m.insert("delivery".to_string(), Value::Str("https://api-testnet.gateapi.io/api/v4".to_string()));
         m.insert("options".to_string(), Value::Str("https://api-testnet.gateapi.io/api/v4".to_string()));
@@ -366,7 +446,7 @@ impl GateCore {
     m
 }));
         m.insert("referral".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::Str("https://www.gate.com/share/CCXTGATE".to_string()));
         m.insert("discount".to_string(), Value::Float(0.2));
     m
@@ -374,7 +454,7 @@ impl GateCore {
     m
 }));
         m.insert("has".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("CORS".to_string(), Value::Null);
         m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Bool(true));
@@ -477,22 +557,22 @@ impl GateCore {
     m
 }));
         m.insert("api".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("wallet".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("currency_chains".to_string(), Value::Int(1));
     m
 }));
     m
 }));
         m.insert("unified".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("currencies".to_string(), Value::Int(1));
         m.insert("history_loan_rate".to_string(), Value::Int(1));
     m
@@ -500,9 +580,9 @@ impl GateCore {
     m
 }));
         m.insert("spot".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("currencies".to_string(), Value::Int(1));
         m.insert("currencies/{currency}".to_string(), Value::Int(1));
         m.insert("currency_pairs".to_string(), Value::Int(1));
@@ -518,9 +598,9 @@ impl GateCore {
     m
 }));
         m.insert("margin".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("uni/currency_pairs".to_string(), Value::Int(1));
         m.insert("uni/currency_pairs/{currency_pair}".to_string(), Value::Int(1));
         m.insert("loan_margin_tiers".to_string(), Value::Int(1));
@@ -534,9 +614,9 @@ impl GateCore {
     m
 }));
         m.insert("flash_swap".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("currency_pairs".to_string(), Value::Int(1));
         m.insert("currencies".to_string(), Value::Int(1));
     m
@@ -544,9 +624,9 @@ impl GateCore {
     m
 }));
         m.insert("futures".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("{settle}/contracts".to_string(), Value::Int(1));
         m.insert("{settle}/contracts/{contract}".to_string(), Value::Int(1));
         m.insert("{settle}/order_book".to_string(), Value::Int(1));
@@ -565,9 +645,9 @@ impl GateCore {
     m
 }));
         m.insert("delivery".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("{settle}/contracts".to_string(), Value::Int(1));
         m.insert("{settle}/contracts/{contract}".to_string(), Value::Int(1));
         m.insert("{settle}/order_book".to_string(), Value::Int(1));
@@ -581,9 +661,9 @@ impl GateCore {
     m
 }));
         m.insert("options".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("underlyings".to_string(), Value::Int(1));
         m.insert("expirations".to_string(), Value::Int(1));
         m.insert("contracts".to_string(), Value::Int(1));
@@ -601,9 +681,9 @@ impl GateCore {
     m
 }));
         m.insert("earn".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("uni/currencies".to_string(), Value::Int(1));
         m.insert("uni/currencies/{currency}".to_string(), Value::Int(1));
         m.insert("dual/investment_plan".to_string(), Value::Int(1));
@@ -613,9 +693,9 @@ impl GateCore {
     m
 }));
         m.insert("loan".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("collateral/currencies".to_string(), Value::Int(1));
         m.insert("multi_collateral/currencies".to_string(), Value::Int(1));
         m.insert("multi_collateral/ltv".to_string(), Value::Int(1));
@@ -628,26 +708,26 @@ impl GateCore {
     m
 }));
         m.insert("private".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("withdrawals".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("withdrawals".to_string(), Value::Int(20));
         m.insert("push".to_string(), Value::Int(1));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("withdrawals/{withdrawal_id}".to_string(), Value::Int(1));
     m
 }));
     m
 }));
         m.insert("wallet".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("deposit_address".to_string(), Value::Int(1));
         m.insert("withdrawals".to_string(), Value::Int(1));
         m.insert("deposits".to_string(), Value::Int(1));
@@ -668,7 +748,7 @@ impl GateCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("transfers".to_string(), Value::Float(2.5));
         m.insert("sub_account_transfers".to_string(), Value::Float(2.5));
         m.insert("sub_account_to_sub_account".to_string(), Value::Float(2.5));
@@ -678,9 +758,9 @@ impl GateCore {
     m
 }));
         m.insert("subAccounts".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sub_accounts".to_string(), Value::Float(2.5));
         m.insert("sub_accounts/{user_id}".to_string(), Value::Float(2.5));
         m.insert("sub_accounts/{user_id}/keys".to_string(), Value::Float(2.5));
@@ -688,7 +768,7 @@ impl GateCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sub_accounts".to_string(), Value::Float(2.5));
         m.insert("sub_accounts/{user_id}/keys".to_string(), Value::Float(2.5));
         m.insert("sub_accounts/{user_id}/lock".to_string(), Value::Float(2.5));
@@ -696,21 +776,21 @@ impl GateCore {
     m
 }));
         m.insert("put".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sub_accounts/{user_id}/keys/{key}".to_string(), Value::Float(2.5));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sub_accounts/{user_id}/keys/{key}".to_string(), Value::Float(2.5));
     m
 }));
     m
 }));
         m.insert("unified".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("accounts".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("borrowable".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("transferable".to_string(), divide(&Value::Int(20), &Value::Int(15)));
@@ -730,7 +810,7 @@ impl GateCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("loans".to_string(), divide(&Value::Int(200), &Value::Int(15)));
         m.insert("portfolio_calculator".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("leverage/user_currency_setting".to_string(), divide(&Value::Int(20), &Value::Int(15)));
@@ -739,16 +819,16 @@ impl GateCore {
     m
 }));
         m.insert("put".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("unified_mode".to_string(), divide(&Value::Int(20), &Value::Int(15)));
     m
 }));
     m
 }));
         m.insert("spot".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), Value::Int(1));
         m.insert("batch_fee".to_string(), Value::Int(1));
         m.insert("accounts".to_string(), Value::Int(1));
@@ -762,7 +842,7 @@ impl GateCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("batch_orders".to_string(), Value::Float(0.4));
         m.insert("cross_liquidate_orders".to_string(), Value::Int(1));
         m.insert("orders".to_string(), Value::Float(0.4));
@@ -773,7 +853,7 @@ impl GateCore {
     m
 }));
         m.insert("delete".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("orders".to_string(), divide(&Value::Int(20), &Value::Int(75)));
         m.insert("orders/{order_id}".to_string(), divide(&Value::Int(20), &Value::Int(75)));
         m.insert("price_orders".to_string(), divide(&Value::Int(20), &Value::Int(75)));
@@ -781,16 +861,16 @@ impl GateCore {
     m
 }));
         m.insert("patch".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("orders/{order_id}".to_string(), Value::Float(0.4));
     m
 }));
     m
 }));
         m.insert("margin".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("accounts".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("account_book".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("funding_accounts".to_string(), divide(&Value::Int(20), &Value::Int(15)));
@@ -821,7 +901,7 @@ impl GateCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("auto_repay".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("uni/loans".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("leverage/user_market_setting".to_string(), divide(&Value::Int(20), &Value::Int(15)));
@@ -833,28 +913,28 @@ impl GateCore {
     m
 }));
         m.insert("patch".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("loans/{loan_id}".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("loan_records/{loan_record_id}".to_string(), divide(&Value::Int(20), &Value::Int(15)));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("loans/{loan_id}".to_string(), divide(&Value::Int(20), &Value::Int(15)));
     m
 }));
     m
 }));
         m.insert("flash_swap".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("orders".to_string(), Value::Int(1));
         m.insert("orders/{order_id}".to_string(), Value::Int(1));
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("orders".to_string(), Value::Int(1));
         m.insert("orders/preview".to_string(), Value::Int(1));
     m
@@ -862,9 +942,9 @@ impl GateCore {
     m
 }));
         m.insert("futures".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("{settle}/accounts".to_string(), Value::Int(1));
         m.insert("{settle}/account_book".to_string(), Value::Int(1));
         m.insert("{settle}/positions".to_string(), Value::Int(1));
@@ -886,7 +966,7 @@ impl GateCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("{settle}/positions/{contract}/margin".to_string(), Value::Int(1));
         m.insert("{settle}/positions/{contract}/leverage".to_string(), Value::Int(1));
         m.insert("{settle}/positions/{contract}/set_leverage".to_string(), Value::Int(1));
@@ -908,13 +988,13 @@ impl GateCore {
     m
 }));
         m.insert("put".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("{settle}/orders/{order_id}".to_string(), Value::Int(1));
         m.insert("{settle}/price_orders/{order_id}".to_string(), Value::Int(1));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("{settle}/orders".to_string(), divide(&Value::Int(20), &Value::Int(75)));
         m.insert("{settle}/orders/{order_id}".to_string(), divide(&Value::Int(20), &Value::Int(75)));
         m.insert("{settle}/price_orders".to_string(), divide(&Value::Int(20), &Value::Int(75)));
@@ -924,9 +1004,9 @@ impl GateCore {
     m
 }));
         m.insert("delivery".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("{settle}/accounts".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("{settle}/account_book".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("{settle}/positions".to_string(), divide(&Value::Int(20), &Value::Int(15)));
@@ -942,7 +1022,7 @@ impl GateCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("{settle}/positions/{contract}/margin".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("{settle}/positions/{contract}/leverage".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("{settle}/positions/{contract}/risk_limit".to_string(), divide(&Value::Int(20), &Value::Int(15)));
@@ -951,7 +1031,7 @@ impl GateCore {
     m
 }));
         m.insert("delete".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("{settle}/orders".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("{settle}/orders/{order_id}".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("{settle}/price_orders".to_string(), divide(&Value::Int(20), &Value::Int(15)));
@@ -961,9 +1041,9 @@ impl GateCore {
     m
 }));
         m.insert("options".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("my_settlements".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("accounts".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("account_book".to_string(), divide(&Value::Int(20), &Value::Int(15)));
@@ -977,7 +1057,7 @@ impl GateCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("orders".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("countdown_cancel_all".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("mmp".to_string(), divide(&Value::Int(20), &Value::Int(15)));
@@ -985,7 +1065,7 @@ impl GateCore {
     m
 }));
         m.insert("delete".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("orders".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("orders/{order_id}".to_string(), divide(&Value::Int(20), &Value::Int(15)));
     m
@@ -993,9 +1073,9 @@ impl GateCore {
     m
 }));
         m.insert("earn".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("uni/lends".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("uni/lend_records".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("uni/interests/{currency}".to_string(), divide(&Value::Int(20), &Value::Int(15)));
@@ -1016,7 +1096,7 @@ impl GateCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("uni/lends".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("staking/eth2/swap".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("dual/orders".to_string(), divide(&Value::Int(20), &Value::Int(15)));
@@ -1025,21 +1105,21 @@ impl GateCore {
     m
 }));
         m.insert("put".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("uni/interest_reinvest".to_string(), divide(&Value::Int(20), &Value::Int(15)));
     m
 }));
         m.insert("patch".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("uni/lends".to_string(), divide(&Value::Int(20), &Value::Int(15)));
     m
 }));
     m
 }));
         m.insert("loan".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("collateral/orders".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("collateral/orders/{order_id}".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("collateral/repay_records".to_string(), divide(&Value::Int(20), &Value::Int(15)));
@@ -1059,7 +1139,7 @@ impl GateCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("collateral/orders".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("collateral/repay".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("collateral/collaterals".to_string(), divide(&Value::Int(20), &Value::Int(15)));
@@ -1071,9 +1151,9 @@ impl GateCore {
     m
 }));
         m.insert("account".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("detail".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("main_keys".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("rate_limit".to_string(), divide(&Value::Int(20), &Value::Int(15)));
@@ -1084,23 +1164,23 @@ impl GateCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("stp_groups".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("stp_groups/{stp_id}/users".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("debit_fee".to_string(), divide(&Value::Int(20), &Value::Int(15)));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("stp_groups/{stp_id}/users".to_string(), divide(&Value::Int(20), &Value::Int(15)));
     m
 }));
     m
 }));
         m.insert("rebate".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("agency/transaction_history".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("agency/commission_history".to_string(), divide(&Value::Int(20), &Value::Int(15)));
         m.insert("partner/transaction_history".to_string(), divide(&Value::Int(20), &Value::Int(15)));
@@ -1115,9 +1195,9 @@ impl GateCore {
     m
 }));
         m.insert("otc".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get_user_def_bank".to_string(), Value::Int(1));
         m.insert("order/list".to_string(), Value::Int(1));
         m.insert("stable_coin/order/list".to_string(), Value::Int(1));
@@ -1125,7 +1205,7 @@ impl GateCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("quote".to_string(), Value::Int(1));
         m.insert("order/create".to_string(), Value::Int(1));
         m.insert("stable_coin/order/create".to_string(), Value::Int(1));
@@ -1140,7 +1220,7 @@ impl GateCore {
     m
 }));
         m.insert("timeframes".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("10s".to_string(), Value::Str("10s".to_string()));
         m.insert("1m".to_string(), Value::Str("1m".to_string()));
         m.insert("5m".to_string(), Value::Str("5m".to_string()));
@@ -1156,7 +1236,7 @@ impl GateCore {
     m
 }));
         m.insert("commonCurrencies".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("ORT".to_string(), Value::Str("XREATORS".to_string()));
         m.insert("ASS".to_string(), Value::Str("ASSF".to_string()));
         m.insert("88MPH".to_string(), Value::Str("MPH".to_string()));
@@ -1180,30 +1260,30 @@ impl GateCore {
     m
 }));
         m.insert("requiredCredentials".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("apiKey".to_string(), Value::Bool(true));
         m.insert("secret".to_string(), Value::Bool(true));
     m
 }));
         m.insert("headers".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("X-Gate-Channel-Id".to_string(), Value::Str("ccxt".to_string()));
     m
 }));
         m.insert("options".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("timeDifference".to_string(), Value::Int(0));
         m.insert("adjustForTimeDifference".to_string(), Value::Bool(false));
         m.insert("sandboxMode".to_string(), Value::Bool(false));
         m.insert("unifiedAccount".to_string(), Value::Null);
         m.insert("createOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("expiration".to_string(), Value::Int(86400));
     m
 }));
         m.insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(true));
         m.insert("networks".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("BTC".to_string(), Value::Str("BTC".to_string()));
         m.insert("BRC20".to_string(), Value::Str("BTCBRC".to_string()));
         m.insert("ETH".to_string(), Value::Str("ETH".to_string()));
@@ -1255,7 +1335,7 @@ impl GateCore {
     m
 }));
         m.insert("networksById".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("OPETH".to_string(), Value::Str("OP".to_string()));
         m.insert("ETH".to_string(), Value::Str("ERC20".to_string()));
         m.insert("ERC20".to_string(), Value::Str("ERC20".to_string()));
@@ -1270,7 +1350,7 @@ impl GateCore {
     m
 }));
         m.insert("timeInForce".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("GTC".to_string(), Value::Str("gtc".to_string()));
         m.insert("IOC".to_string(), Value::Str("ioc".to_string()));
         m.insert("PO".to_string(), Value::Str("poc".to_string()));
@@ -1279,7 +1359,7 @@ impl GateCore {
     m
 }));
         m.insert("accountsByType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("funding".to_string(), Value::Str("spot".to_string()));
         m.insert("spot".to_string(), Value::Str("spot".to_string()));
         m.insert("margin".to_string(), Value::Str("margin".to_string()));
@@ -1295,23 +1375,23 @@ impl GateCore {
     m
 }));
         m.insert("fetchMarkets".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("types".to_string(), Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string())]));
     m
 }));
         m.insert("swap".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fetchMarkets".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("settlementCurrencies".to_string(), Value::List(vec![Value::Str("usdt".to_string()), Value::Str("btc".to_string())]));
     m
 }));
     m
 }));
         m.insert("future".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fetchMarkets".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("settlementCurrencies".to_string(), Value::List(vec![Value::Str("usdt".to_string())]));
     m
 }));
@@ -1320,12 +1400,12 @@ impl GateCore {
     m
 }));
         m.insert("features".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("default".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sandbox".to_string(), Value::Bool(true));
         m.insert("createOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("triggerPrice".to_string(), Value::Bool(true));
         m.insert("triggerDirection".to_string(), Value::Bool(true));
@@ -1334,7 +1414,7 @@ impl GateCore {
         m.insert("takeProfitPrice".to_string(), Value::Bool(true));
         m.insert("attachedStopLossTakeProfit".to_string(), Value::Null);
         m.insert("timeInForce".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("IOC".to_string(), Value::Bool(true));
         m.insert("FOK".to_string(), Value::Bool(true));
         m.insert("PO".to_string(), Value::Bool(true));
@@ -1351,12 +1431,12 @@ impl GateCore {
     m
 }));
         m.insert("createOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("max".to_string(), Value::Int(40));
     m
 }));
         m.insert("fetchMyTrades".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("limit".to_string(), Value::Int(1000));
         m.insert("daysBack".to_string(), Value::Null);
@@ -1365,7 +1445,7 @@ impl GateCore {
     m
 }));
         m.insert("fetchOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("trigger".to_string(), Value::Bool(true));
         m.insert("trailing".to_string(), Value::Bool(false));
@@ -1373,7 +1453,7 @@ impl GateCore {
     m
 }));
         m.insert("fetchOpenOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("trigger".to_string(), Value::Bool(true));
         m.insert("trailing".to_string(), Value::Bool(false));
@@ -1383,7 +1463,7 @@ impl GateCore {
 }));
         m.insert("fetchOrders".to_string(), Value::Null);
         m.insert("fetchClosedOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("trigger".to_string(), Value::Bool(true));
         m.insert("trailing".to_string(), Value::Bool(false));
@@ -1395,25 +1475,25 @@ impl GateCore {
     m
 }));
         m.insert("fetchOHLCV".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("limit".to_string(), Value::Int(1000));
     m
 }));
     m
 }));
         m.insert("spot".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("default".to_string()));
     m
 }));
         m.insert("forDerivatives".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("spot".to_string()));
         m.insert("createOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("triggerPriceType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("last".to_string(), Value::Bool(true));
         m.insert("mark".to_string(), Value::Bool(true));
         m.insert("index".to_string(), Value::Bool(true));
@@ -1422,58 +1502,58 @@ impl GateCore {
     m
 }));
         m.insert("createOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("max".to_string(), Value::Int(10));
     m
 }));
         m.insert("fetchMyTrades".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("untilDays".to_string(), Value::Null);
     m
 }));
         m.insert("fetchOpenOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
     m
 }));
         m.insert("fetchClosedOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("untilDays".to_string(), Value::Null);
         m.insert("limit".to_string(), Value::Int(1000));
     m
 }));
         m.insert("fetchOHLCV".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("limit".to_string(), Value::Int(1999));
     m
 }));
     m
 }));
         m.insert("swap".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("linear".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forDerivatives".to_string()));
     m
 }));
         m.insert("inverse".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forDerivatives".to_string()));
     m
 }));
     m
 }));
         m.insert("future".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("linear".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forDerivatives".to_string()));
     m
 }));
         m.insert("inverse".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forDerivatives".to_string()));
     m
 }));
@@ -1483,16 +1563,16 @@ impl GateCore {
 }));
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
         m.insert("fees".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("trading".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("feeSide".to_string(), Value::Str("get".to_string()));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.002".to_string()), &[]));
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.002".to_string()), &[]));
         m.insert("tiers".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("maker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1.5".to_string()), &[]), self.parse_number(Value::Str("0.00185".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("3".to_string()), &[]), self.parse_number(Value::Str("0.00175".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("6".to_string()), &[]), self.parse_number(Value::Str("0.00165".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("12.5".to_string()), &[]), self.parse_number(Value::Str("0.00155".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("25".to_string()), &[]), self.parse_number(Value::Str("0.00145".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("75".to_string()), &[]), self.parse_number(Value::Str("0.00135".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200".to_string()), &[]), self.parse_number(Value::Str("0.00125".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500".to_string()), &[]), self.parse_number(Value::Str("0.00115".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1250".to_string()), &[]), self.parse_number(Value::Str("0.00105".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2500".to_string()), &[]), self.parse_number(Value::Str("0.00095".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("3000".to_string()), &[]), self.parse_number(Value::Str("0.00085".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("6000".to_string()), &[]), self.parse_number(Value::Str("0.00075".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("11000".to_string()), &[]), self.parse_number(Value::Str("0.00065".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("20000".to_string()), &[]), self.parse_number(Value::Str("0.00055".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("40000".to_string()), &[]), self.parse_number(Value::Str("0.00055".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("75000".to_string()), &[]), self.parse_number(Value::Str("0.00055".to_string()), &[])])]));
         m.insert("taker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1.5".to_string()), &[]), self.parse_number(Value::Str("0.00195".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("3".to_string()), &[]), self.parse_number(Value::Str("0.00185".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("6".to_string()), &[]), self.parse_number(Value::Str("0.00175".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("12.5".to_string()), &[]), self.parse_number(Value::Str("0.00165".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("25".to_string()), &[]), self.parse_number(Value::Str("0.00155".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("75".to_string()), &[]), self.parse_number(Value::Str("0.00145".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200".to_string()), &[]), self.parse_number(Value::Str("0.00135".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500".to_string()), &[]), self.parse_number(Value::Str("0.00125".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1250".to_string()), &[]), self.parse_number(Value::Str("0.00115".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2500".to_string()), &[]), self.parse_number(Value::Str("0.00105".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("3000".to_string()), &[]), self.parse_number(Value::Str("0.00095".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("6000".to_string()), &[]), self.parse_number(Value::Str("0.00085".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("11000".to_string()), &[]), self.parse_number(Value::Str("0.00075".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("20000".to_string()), &[]), self.parse_number(Value::Str("0.00065".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("40000".to_string()), &[]), self.parse_number(Value::Str("0.00065".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("75000".to_string()), &[]), self.parse_number(Value::Str("0.00065".to_string()), &[])])]));
     m
@@ -1500,14 +1580,14 @@ impl GateCore {
     m
 }));
         m.insert("swap".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("feeSide".to_string(), Value::Str("base".to_string()));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.0".to_string()), &[]));
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.0005".to_string()), &[]));
         m.insert("tiers".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("maker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.0000".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1.5".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("3".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("6".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("12.5".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("25".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("75".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1250".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2500".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("3000".to_string()), &[]), self.parse_number(Value::Str("-0.00008".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("6000".to_string()), &[]), self.parse_number(Value::Str("-0.01000".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("11000".to_string()), &[]), self.parse_number(Value::Str("-0.01002".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("20000".to_string()), &[]), self.parse_number(Value::Str("-0.01005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("40000".to_string()), &[]), self.parse_number(Value::Str("-0.02000".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("75000".to_string()), &[]), self.parse_number(Value::Str("-0.02005".to_string()), &[])])]));
         m.insert("taker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.00050".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1.5".to_string()), &[]), self.parse_number(Value::Str("0.00048".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("3".to_string()), &[]), self.parse_number(Value::Str("0.00046".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("6".to_string()), &[]), self.parse_number(Value::Str("0.00044".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("12.5".to_string()), &[]), self.parse_number(Value::Str("0.00042".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("25".to_string()), &[]), self.parse_number(Value::Str("0.00040".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("75".to_string()), &[]), self.parse_number(Value::Str("0.00038".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200".to_string()), &[]), self.parse_number(Value::Str("0.00036".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500".to_string()), &[]), self.parse_number(Value::Str("0.00034".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1250".to_string()), &[]), self.parse_number(Value::Str("0.00032".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2500".to_string()), &[]), self.parse_number(Value::Str("0.00030".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("3000".to_string()), &[]), self.parse_number(Value::Str("0.00030".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("6000".to_string()), &[]), self.parse_number(Value::Str("0.00030".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("11000".to_string()), &[]), self.parse_number(Value::Str("0.00030".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("20000".to_string()), &[]), self.parse_number(Value::Str("0.00030".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("40000".to_string()), &[]), self.parse_number(Value::Str("0.00030".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("75000".to_string()), &[]), self.parse_number(Value::Str("0.00030".to_string()), &[])])]));
     m
@@ -1517,9 +1597,9 @@ impl GateCore {
     m
 }));
         m.insert("exceptions".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("INVALID_PARAM_VALUE".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("INVALID_PROTOCOL".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("INVALID_ARGUMENT".to_string(), Value::Str("BadRequest".to_string()).clone());
@@ -1620,7 +1700,7 @@ impl GateCore {
     m
 }));
         m.insert("broad".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("Your order size".to_string(), Value::Str("InvalidOrder".to_string()).clone());
     m
 }));
@@ -1635,7 +1715,7 @@ impl GateCore {
 
     pub fn set_sandbox_mode(&mut self, mut enable: Value) {
         self.super_set_sandbox_mode(enable.clone());
-        add_element_to_object(&mut self.options.clone(), &Value::Str("sandboxMode".to_string()), enable.clone());
+        add_element_to_object(&mut self.options, &Value::Str("sandboxMode".to_string()), enable.clone());
 }
 
 /*
@@ -1643,17 +1723,17 @@ impl GateCore {
  * @name gate#loadUnifiedStatus
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @description returns unifiedAccount so the user can check if the unified account is enabled
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/#retrieve-user-account-information
+ * @see https://www.gate.com/docs/developers/apiv4/#retrieve-user-account-information
  * @returns {boolean} true or false if the enabled unified account is enabled or not and sets the unifiedAccount option if it is undefined
  */
     pub async fn load_unified_status(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut unifiedAccount: Value = self.safe_bool(self.options.clone(), Value::Str("unifiedAccount".to_string()), &[]);
+        let mut unifiedAccount: Value = self.safe_bool_k(self.options.clone(), "unifiedAccount", &[]);
         if is_equal(&unifiedAccount, &Value::Null) {
-            {
+            let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 //
                 //     {
                 //         "user_id": 10406147,
@@ -1668,11 +1748,15 @@ impl GateCore {
                 //     }
                 //
                 let mut response: Value = self.call_method(Value::Str("private_account_get_detail".to_string()), &[params.clone()]).await;
-                let mut result: Value = self.safe_dict(response.clone(), Value::Str("key".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+                let mut result: Value = self.safe_dict_k(response.clone(), "key", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-                { let __be_tmp = Value::Bool(is_equal(&self.safe_integer(result.clone(), Value::Str("mode".to_string()), &[]), &Value::Int(2))); add_element_to_object(&mut self.options.clone(), &Value::Str("unifiedAccount".to_string()), __be_tmp); };
+                { let __be_tmp = Value::Bool(is_equal(&self.safe_integer_k(result.clone(), "mode", &[]), &Value::Int(2))); add_element_to_object(&mut self.options, &Value::Str("unifiedAccount".to_string()), __be_tmp); };
+             #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+                // if the request fails, the unifiedAccount is disabled
+                add_element_to_object(&mut self.options, &Value::Str("unifiedAccount".to_string()), Value::Bool(false));
             }
         }
         return get_value(&self.options, &Value::Str("unifiedAccount".to_string()));
@@ -1682,7 +1766,7 @@ impl GateCore {
 
     pub async fn upgrade_unified_trade_account(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.call_method(Value::Str("private_unified_put_unified_mode".to_string()), &[params.clone()]).await;
@@ -1694,17 +1778,17 @@ impl GateCore {
  * @method
  * @name gate#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/#get-server-current-time
+ * @see https://www.gate.com/docs/developers/apiv4/#get-server-current-time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
     pub async fn fetch_time(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut response: Value = self.call_method(Value::Str("public_spot_get_time".to_string()), &[params.clone()]).await;
-        return self.safe_integer(response.clone(), Value::Str("server_time".to_string()), &[]);
+        return self.safe_integer_k(response.clone(), "server_time", &[]);
 
     Value::Null
 }
@@ -1729,7 +1813,7 @@ impl GateCore {
         let mut datetime: Value = self.convert_expire_date(expiry.clone());
         let mut timestamp: Value = self.parse8601(datetime.clone());
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), add(&add(&add(&add(&add(&add(&add(&add(&add(&base, &Value::Str("_".to_string())), &quote), &Value::Str("-".to_string())), &Value::Str("20".to_string())), &expiry), &Value::Str("-".to_string())), &strike), &Value::Str("-".to_string())), &optionType));
         m.insert("symbol".to_string(), add(&add(&add(&add(&add(&add(&add(&add(&add(&add(&base, &Value::Str("/".to_string())), &quote), &Value::Str(":".to_string())), &settle), &Value::Str("-".to_string())), &expiry), &Value::Str("-".to_string())), &strike), &Value::Str("-".to_string())), &optionType));
         m.insert("base".to_string(), base.clone());
@@ -1754,27 +1838,27 @@ impl GateCore {
         m.insert("optionType".to_string(), ternary(is_true(&(is_equal(&optionType, &Value::Str("C".to_string())))), Value::Str("call".to_string()), Value::Str("put".to_string())));
         m.insert("strike".to_string(), self.parse_number(strike.clone(), &[]));
         m.insert("precision".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.parse_number(Value::Str("1".to_string()), &[]));
         m.insert("price".to_string(), Value::Null);
     m
 }));
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("cost".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
@@ -1806,17 +1890,17 @@ impl GateCore {
  * @method
  * @name gate#fetchMarkets
  * @description retrieves data on all markets for gate
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/#query-all-supported-currency-pairs                                       // spot
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading         // margin
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-all-futures-contracts                                           // swap
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-all-futures-contracts-2                                         // future
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#list-all-contracts-for-specified-underlying-and-expiration-date       // option
+ * @see https://www.gate.com/docs/developers/apiv4/#query-all-supported-currency-pairs                                       // spot
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading         // margin
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts                                           // swap
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2                                         // future
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-all-contracts-for-specified-underlying-and-expiration-date       // option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
     pub async fn fetch_markets(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.options, &Value::Str("adjustForTimeDifference".to_string()))) {
@@ -1826,11 +1910,13 @@ impl GateCore {
             self.load_unified_status(&[]).await;
         }
         let mut rawPromises: Value = Value::List(vec![]);
-        let mut fetchMarketsOptions: Value = self.safe_dict(self.options.clone(), Value::Str("fetchMarkets".to_string()), &[]);
-        let mut types: Value = self.safe_list(fetchMarketsOptions.clone(), Value::Str("types".to_string()), &[Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string())])]);
+        let mut fetchMarketsOptions: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
+        let mut types: Value = self.safe_list_k(fetchMarketsOptions.clone(), "types", &[Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string())])]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&types)) {
+            let mut __for_first_678: bool = true;
+            while { if !__for_first_678 { i = add(&i, &Value::Int(1)); } __for_first_678 = false; is_less_than(&i, &get_array_length(&types)) } {
+            let mut marketType: Value = get_value(&types, &i);
             let mut marketType: Value = get_value(&types, &i);
             if is_equal(&marketType, &Value::Str("spot".to_string())) {
                 // if (!sandboxMode) {
@@ -1843,16 +1929,17 @@ impl GateCore {
             }  else if is_equal(&marketType, &Value::Str("option".to_string())) {
                 append_to_array(&mut rawPromises, self.fetch_option_markets(&[params.clone()]).await);
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut results: Value = promise_all(&rawPromises).await;
         return self.arrays_concat(results.clone());
+
+    Value::Null
 }
 
     pub async fn fetch_spot_markets(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut marginPromise: Value = self.call_method(Value::Str("public_margin_get_currency_pairs".to_string()), &[params.clone()]).await;
@@ -1901,9 +1988,11 @@ impl GateCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&spotMarketsResponse)) {
+            let mut __for_first_679: bool = true;
+            while { if !__for_first_679 { i = add(&i, &Value::Int(1)); } __for_first_679 = false; is_less_than(&i, &get_array_length(&spotMarketsResponse)) } {
             let mut spotMarket: Value = get_value(&spotMarketsResponse, &i);
-            let mut id: Value = self.safe_string(spotMarket.clone(), Value::Str("id".to_string()), &[]);
+            let mut spotMarket: Value = get_value(&spotMarketsResponse, &i);
+            let mut id: Value = self.safe_string_k(spotMarket.clone(), "id", &[]);
             let mut marginMarket: Value = self.safe_value(marginMarkets.clone(), id.clone(), &[]);
             let mut market: Value = self.deep_extend(marginMarket.clone(), &[spotMarket.clone()]);
             let mut baseIdquoteIdVariable = split(&id, &Value::Str("_".to_string()));
@@ -1911,16 +2000,16 @@ impl GateCore {
             let mut quoteId: Value = get_value(&baseIdquoteIdVariable, &Value::Int(1));
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            let mut takerPercent: Value = self.safe_string(market.clone(), Value::Str("fee".to_string()), &[]);
-            let mut makerPercent: Value = self.safe_string(market.clone(), Value::Str("maker_fee_rate".to_string()), &[takerPercent.clone()]);
-            let mut amountPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string(market.clone(), Value::Str("amount_precision".to_string()), &[])]), &[]);
-            let mut tradeStatus: Value = self.safe_string(market.clone(), Value::Str("trade_status".to_string()), &[]);
-            let mut leverage: Value = self.safe_number(market.clone(), Value::Str("leverage".to_string()), &[]);
+            let mut takerPercent: Value = self.safe_string_k(market.clone(), "fee", &[]);
+            let mut makerPercent: Value = self.safe_string_k(market.clone(), "maker_fee_rate", &[takerPercent.clone()]);
+            let mut amountPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "amount_precision", &[])]), &[]);
+            let mut tradeStatus: Value = self.safe_string_k(market.clone(), "trade_status", &[]);
+            let mut leverage: Value = self.safe_number_k(market.clone(), "leverage", &[]);
             let mut margin: Value = Value::Bool(!is_equal(&leverage, &Value::Null));
             let mut buyStart: Value = self.safe_integer_product(spotMarket.clone(), Value::Str("buy_start".to_string()), Value::Int(1000), &[]); // buy_start is the trading start time, while sell_start is offline orders start time
             let mut createdTs: Value = ternary(is_true(&(!is_equal(&buyStart, &Value::Int(0)))), buyStart.clone(), Value::Null);
             append_to_array(&mut result, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
                     m.insert("symbol".to_string(), add(&add(&base, &Value::Str("/".to_string())), &quote));
                     m.insert("base".to_string(), base.clone());
@@ -1947,35 +2036,35 @@ impl GateCore {
                     m.insert("strike".to_string(), Value::Null);
                     m.insert("optionType".to_string(), Value::Null);
                     m.insert("precision".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amountPrecision.clone());
-        m.insert("price".to_string(), self.parse_number(self.parse_precision(&[self.safe_string(market.clone(), Value::Str("precision".to_string()), &[])]), &[]));
+        m.insert("price".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "precision", &[])]), &[]));
     m
 }));
                     m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.parse_number(Value::Str("1".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(market.clone(), Value::Str("leverage".to_string()), &[Value::Int(1)]));
+        m.insert("max".to_string(), self.safe_number_k(market.clone(), "leverage", &[Value::Int(1)]));
     m
 }));
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(spotMarket.clone(), Value::Str("min_base_amount".to_string()), &[amountPrecision.clone()]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(spotMarket.clone(), "min_base_amount", &[amountPrecision.clone()]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("cost".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(market.clone(), Value::Str("min_quote_amount".to_string()), &[]));
-        m.insert("max".to_string(), ternary(is_true(&margin), self.safe_number(market.clone(), Value::Str("max_quote_amount".to_string()), &[]), Value::Null));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(market.clone(), "min_quote_amount", &[]));
+        m.insert("max".to_string(), ternary(is_true(&margin), self.safe_number_k(market.clone(), "max_quote_amount", &[]), Value::Null));
     m
 }));
     m
@@ -1984,15 +2073,16 @@ impl GateCore {
                     m.insert("info".to_string(), market.clone());
                 m
             }));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
     pub async fn fetch_swap_markets(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut result: Value = Value::List(vec![]);
@@ -2002,31 +2092,34 @@ impl GateCore {
         }
         {
                         let mut c: Value = Value::Int(0);
-            while is_less_than(&c, &get_array_length(&swapSettlementCurrencies)) {
+            let mut __for_first_681: bool = true;
+            while { if !__for_first_681 { c = add(&c, &Value::Int(1)); } __for_first_681 = false; is_less_than(&c, &get_array_length(&swapSettlementCurrencies)) } {
+            let mut settleId: Value = get_value(&swapSettlementCurrencies, &c);
             let mut settleId: Value = get_value(&swapSettlementCurrencies, &c);
             let mut request: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("settle".to_string(), settleId.clone());
                 m
             });
             let mut response: Value = self.call_method(Value::Str("public_futures_get_settle_contracts".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&response)) {
+                let mut __for_first_680: bool = true;
+                while { if !__for_first_680 { i = add(&i, &Value::Int(1)); } __for_first_680 = false; is_less_than(&i, &get_array_length(&response)) } {
                 let mut parsedMarket: Value = self.parse_contract_market(get_value(&response, &i), settleId.clone());
                 append_to_array(&mut result, parsedMarket.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
-            c = add(&c, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
     pub async fn fetch_future_markets(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.options, &Value::Str("sandboxMode".to_string()))) {
@@ -2036,26 +2129,29 @@ impl GateCore {
         let mut futureSettlementCurrencies: Value = self.get_settlement_currencies(Value::Str("future".to_string()), Value::Str("fetchMarkets".to_string()));
         {
                         let mut c: Value = Value::Int(0);
-            while is_less_than(&c, &get_array_length(&futureSettlementCurrencies)) {
+            let mut __for_first_683: bool = true;
+            while { if !__for_first_683 { c = add(&c, &Value::Int(1)); } __for_first_683 = false; is_less_than(&c, &get_array_length(&futureSettlementCurrencies)) } {
+            let mut settleId: Value = get_value(&futureSettlementCurrencies, &c);
             let mut settleId: Value = get_value(&futureSettlementCurrencies, &c);
             let mut request: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("settle".to_string(), settleId.clone());
                 m
             });
             let mut response: Value = self.call_method(Value::Str("public_delivery_get_settle_contracts".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&response)) {
+                let mut __for_first_682: bool = true;
+                while { if !__for_first_682 { i = add(&i, &Value::Int(1)); } __for_first_682 = false; is_less_than(&i, &get_array_length(&response)) } {
                 let mut parsedMarket: Value = self.parse_contract_market(get_value(&response, &i), settleId.clone());
                 append_to_array(&mut result, parsedMarket.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
-            c = add(&c, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
     pub fn parse_contract_market(&self, mut market: Value, mut settleId: Value) -> Value {
@@ -2148,7 +2244,7 @@ impl GateCore {
         //        "in_delisting": false
         //    }
         //
-        let mut id: Value = self.safe_string(market.clone(), Value::Str("name".to_string()), &[]);
+        let mut id: Value = self.safe_string_k(market.clone(), "name", &[]);
         let mut parts: Value = split(&id, &Value::Str("_".to_string()));
         let mut baseId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
         let mut quoteId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
@@ -2165,20 +2261,20 @@ impl GateCore {
         }  else {
             symbol = add(&add(&add(&add(&base, &Value::Str("/".to_string())), &quote), &Value::Str(":".to_string())), &settle);
         }
-        let mut priceDeviate: Value = self.safe_string(market.clone(), Value::Str("order_price_deviate".to_string()), &[]);
-        let mut markPrice: Value = self.safe_string(market.clone(), Value::Str("mark_price".to_string()), &[]);
+        let mut priceDeviate: Value = self.safe_string_k(market.clone(), "order_price_deviate", &[]);
+        let mut markPrice: Value = self.safe_string_k(market.clone(), "mark_price", &[]);
         let mut minMultiplier: Value = crate::precise::Precise::stringSub(&Value::Str("1".to_string()), &priceDeviate);
         let mut maxMultiplier: Value = crate::precise::Precise::stringAdd(&Value::Str("1".to_string()), &priceDeviate);
         let mut minPrice: Value = crate::precise::Precise::stringMul(&minMultiplier, &markPrice);
         let mut maxPrice: Value = crate::precise::Precise::stringMul(&maxMultiplier, &markPrice);
         let mut isLinear: Value = Value::Bool(is_equal(&quote, &settle));
-        let mut contractSize: Value = self.safe_string(market.clone(), Value::Str("quanto_multiplier".to_string()), &[]);
-        // exception only for one market: https://get_value(&api, &Value::Str("gateio".to_string())).ws/api/v4/futures/btc/contracts
+        let mut contractSize: Value = self.safe_string_k(market.clone(), "quanto_multiplier", &[]);
+        // exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
         if is_equal(&contractSize, &Value::Str("0".to_string())) {
-            contractSize = Value::Str("1".to_string()); // 1 USD in WEB: https://get_value(&i, &Value::Str("imgur".to_string())).com/MBBUI04.png
+            contractSize = Value::Str("1".to_string()); // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("base".to_string(), base.clone());
@@ -2205,33 +2301,33 @@ impl GateCore {
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.parse_number(Value::Str("1".to_string()), &[]));
-        m.insert("price".to_string(), self.safe_number(market.clone(), Value::Str("order_price_round".to_string()), &[]));
+        m.insert("price".to_string(), self.safe_number_k(market.clone(), "order_price_round", &[]));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(market.clone(), Value::Str("leverage_min".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(market.clone(), Value::Str("leverage_max".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(market.clone(), "leverage_min", &[]));
+        m.insert("max".to_string(), self.safe_number_k(market.clone(), "leverage_max", &[]));
     m
 }));
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(market.clone(), Value::Str("order_size_min".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(market.clone(), Value::Str("order_size_max".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(market.clone(), "order_size_min", &[]));
+        m.insert("max".to_string(), self.safe_number_k(market.clone(), "order_size_max", &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.parse_number(minPrice.clone(), &[]));
         m.insert("max".to_string(), self.parse_number(maxPrice.clone(), &[]));
     m
 }));
         m.insert("cost".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
@@ -2242,30 +2338,36 @@ impl GateCore {
         m.insert("info".to_string(), market.clone());
     m
 });
+
+    Value::Null
 }
 
     pub async fn fetch_option_markets(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut result: Value = Value::List(vec![]);
         let mut underlyings: Value = self.fetch_option_underlyings().await;
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&underlyings)) {
+            let mut __for_first_685: bool = true;
+            while { if !__for_first_685 { i = add(&i, &Value::Int(1)); } __for_first_685 = false; is_less_than(&i, &get_array_length(&underlyings)) } {
+            let mut underlying: Value = get_value(&underlyings, &i);
             let mut underlying: Value = get_value(&underlyings, &i);
             let mut query: Value = self.extend(Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m
             }), &[params.clone()]);
             add_element_to_object(&mut query, &Value::Str("underlying".to_string()), underlying.clone());
             let mut response: Value = self.call_method(Value::Str("public_options_get_contracts".to_string()), &[query.clone()]).await;
             {
                                 let mut j: Value = Value::Int(0);
-                while is_less_than(&j, &get_array_length(&response)) {
+                let mut __for_first_684: bool = true;
+                while { if !__for_first_684 { j = add(&j, &Value::Int(1)); } __for_first_684 = false; is_less_than(&j, &get_array_length(&response)) } {
                 let mut market: Value = get_value(&response, &j);
-                let mut id: Value = self.safe_string(market.clone(), Value::Str("name".to_string()), &[]);
+                let mut market: Value = get_value(&response, &j);
+                let mut id: Value = self.safe_string_k(market.clone(), "name", &[]);
                 let mut parts: Value = split(&underlying, &Value::Str("_".to_string()));
                 let mut baseId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
                 let mut quoteId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
@@ -2273,13 +2375,13 @@ impl GateCore {
                 let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
                 let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
                 let mut expiry: Value = self.safe_timestamp(market.clone(), Value::Str("expiration_time".to_string()), &[]);
-                let mut strike: Value = self.safe_string(market.clone(), Value::Str("strike_price".to_string()), &[]);
-                let mut isCall: Value = self.safe_value(market.clone(), Value::Str("is_call".to_string()), &[]);
+                let mut strike: Value = self.safe_string_k(market.clone(), "strike_price", &[]);
+                let mut isCall: Value = self.safe_value_k(market.clone(), "is_call", &[]);
                 let mut optionLetter: Value = ternary(is_true(&isCall), Value::Str("C".to_string()), Value::Str("P".to_string()));
                 let mut optionType: Value = ternary(is_true(&isCall), Value::Str("call".to_string()), Value::Str("put".to_string()));
                 symbol = add(&add(&add(&add(&add(&add(&add(&add(&symbol, &Value::Str(":".to_string())), &quote), &Value::Str("-".to_string())), &self.yymmdd(expiry.clone(), &[])), &Value::Str("-".to_string())), &strike), &Value::Str("-".to_string())), &optionLetter);
-                let mut priceDeviate: Value = self.safe_string(market.clone(), Value::Str("order_price_deviate".to_string()), &[]);
-                let mut markPrice: Value = self.safe_string(market.clone(), Value::Str("mark_price".to_string()), &[]);
+                let mut priceDeviate: Value = self.safe_string_k(market.clone(), "order_price_deviate", &[]);
+                let mut markPrice: Value = self.safe_string_k(market.clone(), "mark_price", &[]);
                 let mut minMultiplier: Value = crate::precise::Precise::stringSub(&Value::Str("1".to_string()), &priceDeviate);
                 let mut maxMultiplier: Value = crate::precise::Precise::stringAdd(&Value::Str("1".to_string()), &priceDeviate);
                 let mut minPrice: Value = crate::precise::Precise::stringMul(&minMultiplier, &markPrice);
@@ -2289,7 +2391,7 @@ impl GateCore {
                     createdTs = Value::Null;
                 }
                 append_to_array(&mut result, Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), id.clone());
                         m.insert("symbol".to_string(), symbol.clone());
                         m.insert("base".to_string(), base.clone());
@@ -2316,33 +2418,33 @@ impl GateCore {
                         m.insert("strike".to_string(), self.parse_number(strike.clone(), &[]));
                         m.insert("optionType".to_string(), optionType.clone());
                         m.insert("precision".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.parse_number(Value::Str("1".to_string()), &[]));
-        m.insert("price".to_string(), self.safe_number(market.clone(), Value::Str("order_price_round".to_string()), &[]));
+        m.insert("price".to_string(), self.safe_number_k(market.clone(), "order_price_round", &[]));
     m
 }));
                         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(market.clone(), Value::Str("order_size_min".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(market.clone(), Value::Str("order_size_max".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(market.clone(), "order_size_min", &[]));
+        m.insert("max".to_string(), self.safe_number_k(market.clone(), "order_size_max", &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.parse_number(minPrice.clone(), &[]));
         m.insert("max".to_string(), self.parse_number(maxPrice.clone(), &[]));
     m
 }));
         m.insert("cost".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
@@ -2353,13 +2455,13 @@ impl GateCore {
                         m.insert("info".to_string(), market.clone());
                     m
                 }));
-                j = add(&j, &Value::Int(1));
             }
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
     pub async fn fetch_option_underlyings(&mut self) -> Value {
@@ -2376,23 +2478,26 @@ impl GateCore {
         let mut underlyings: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&underlyingsResponse)) {
+            let mut __for_first_686: bool = true;
+            while { if !__for_first_686 { i = add(&i, &Value::Int(1)); } __for_first_686 = false; is_less_than(&i, &get_array_length(&underlyingsResponse)) } {
             let mut underlying: Value = get_value(&underlyingsResponse, &i);
-            let mut name: Value = self.safe_string(underlying.clone(), Value::Str("name".to_string()), &[]);
+            let mut underlying: Value = get_value(&underlyingsResponse, &i);
+            let mut name: Value = self.safe_string_k(underlying.clone(), "name", &[]);
             if !is_equal(&name, &Value::Null) {
                 append_to_array(&mut underlyings, name.clone());
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return underlyings;
+
+    Value::Null
 }
 
     pub fn prepare_request(&self, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut type_var = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -2407,7 +2512,7 @@ impl GateCore {
          */
         // * Do not call for multi spot order methods like cancelAllOrders and fetchOpenOrders. Use multiOrderSpotPrepareRequest instead
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if !is_equal(&market, &Value::Null) {
@@ -2430,13 +2535,15 @@ impl GateCore {
             }
         }
         return Value::List(vec![request.clone(), params.clone()]);
+
+    Value::Null
 }
 
     pub fn spot_order_prepare_request(&self, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut trigger = get_arg(optional_args, 1, Value::Bool(false));
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -2453,24 +2560,26 @@ impl GateCore {
         let mut marginMode: Value = get_value(&marginModequeryVariable, &Value::Int(0));
         let mut query: Value = get_value(&marginModequeryVariable, &Value::Int(1));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if !is_true(&trigger) {
             if is_equal(&market, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" spotOrderPrepareRequest() requires a market argument for non-trigger orders".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" spotOrderPrepareRequest() requires a market argument for non-trigger orders".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("account".to_string()), marginMode.clone());
             add_element_to_object(&mut request, &Value::Str("currency_pair".to_string()), get_value(&market, &Value::Str("id".to_string()))); // Should always be set for non-trigger
         }
         return Value::List(vec![request.clone(), query.clone()]);
+
+    Value::Null
 }
 
     pub fn multi_order_spot_prepare_request(&self, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut trigger = get_arg(optional_args, 1, Value::Bool(false));
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -2487,7 +2596,7 @@ impl GateCore {
         let mut marginMode: Value = get_value(&marginModequeryVariable, &Value::Int(0));
         let mut query: Value = get_value(&marginModequeryVariable, &Value::Int(1));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("account".to_string(), marginMode.clone());
             m
         });
@@ -2500,6 +2609,8 @@ impl GateCore {
             }
         }
         return Value::List(vec![request.clone(), query.clone()]);
+
+    Value::Null
 }
 
     pub fn get_margin_mode(&self, mut trigger: Value, mut params: Value) -> Value {
@@ -2528,7 +2639,7 @@ impl GateCore {
                 marginMode = Value::Str("normal".to_string());
             }
             if is_equal(&marginMode, &Value::Str("cross_margin".to_string())) {
-                panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" getMarginMode() does not support trigger orders for cross margin".to_string()))));
+                panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" getMarginMode() does not support trigger orders for cross margin".to_string()))));
             }
         }
         let mut isUnifiedAccount: Value = Value::Bool(false);
@@ -2537,39 +2648,43 @@ impl GateCore {
             marginMode = Value::Str("unified".to_string());
         }
         return Value::List(vec![marginMode.clone(), params.clone()]);
+
+    Value::Null
 }
 
     pub fn get_settlement_currencies(&self, mut type_var: Value, mut method: Value) -> Value {
         let mut options: Value = self.safe_value(self.options.clone(), type_var.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         })]); // [ 'BTC', 'USDT' ] unified codes
         let mut fetchMarketsContractOptions: Value = self.safe_value(options.clone(), method.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut defaultSettle: Value = ternary(is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))), Value::List(vec![Value::Str("usdt".to_string())]), Value::List(vec![Value::Str("btc".to_string())]));
-        return self.safe_value(fetchMarketsContractOptions.clone(), Value::Str("settlementCurrencies".to_string()), &[defaultSettle.clone()]);
+        return self.safe_value_k(fetchMarketsContractOptions.clone(), "settlementCurrencies", &[defaultSettle.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-all-currency-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-currency-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
     pub async fn fetch_currencies(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         // sandbox/testnet only supports future markets
-        let mut apiBackup: Value = self.safe_value(self.urls.clone(), Value::Str("apiBackup".to_string()), &[]);
+        let mut apiBackup: Value = self.safe_value_k(self.urls.clone(), "apiBackup", &[]);
         if !is_equal(&apiBackup, &Value::Null) {
             return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 });
         }
@@ -2614,48 +2729,52 @@ impl GateCore {
         //
         let mut indexedCurrencies: Value = self.index_by(response.clone(), Value::Str("currency".to_string()));
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_688: bool = true;
+            while { if !__for_first_688 { i = add(&i, &Value::Int(1)); } __for_first_688 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
-            let mut currencyId: Value = self.safe_string(entry.clone(), Value::Str("currency".to_string()), &[]);
+            let mut entry: Value = get_value(&response, &i);
+            let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            // check leveraged tokens (get_value(&e, &Value::Str("g".to_string())). BTC3S, ETH5L)
+            // check leveraged tokens (e.g. BTC3S, ETH5L)
             let mut type_var: Value = ternary(is_true(&self.is_leveraged_currency(currencyId.clone(), &[Value::Bool(true), indexedCurrencies.clone()])), Value::Str("leveraged".to_string()), Value::Str("crypto".to_string()));
-            let mut chains: Value = self.safe_list(entry.clone(), Value::Str("chains".to_string()), &[Value::List(vec![])]);
+            let mut chains: Value = self.safe_list_k(entry.clone(), "chains", &[Value::List(vec![])]);
             let mut networks: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m
             });
             {
                                 let mut j: Value = Value::Int(0);
-                while is_less_than(&j, &get_array_length(&chains)) {
+                let mut __for_first_687: bool = true;
+                while { if !__for_first_687 { j = add(&j, &Value::Int(1)); } __for_first_687 = false; is_less_than(&j, &get_array_length(&chains)) } {
                 let mut chain: Value = get_value(&chains, &j);
-                let mut networkId: Value = self.safe_string(chain.clone(), Value::Str("name".to_string()), &[]);
+                let mut chain: Value = get_value(&chains, &j);
+                let mut networkId: Value = self.safe_string_k(chain.clone(), "name", &[]);
                 let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
                 add_element_to_object(&mut networks, &networkCode, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
         m.insert("id".to_string(), networkId.clone());
         m.insert("network".to_string(), networkCode.clone());
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), Value::Bool(!is_true(&self.safe_bool(chain.clone(), Value::Str("deposit_disabled".to_string()), &[]))));
-        m.insert("withdraw".to_string(), Value::Bool(!is_true(&self.safe_bool(chain.clone(), Value::Str("withdraw_disabled".to_string()), &[]))));
+        m.insert("deposit".to_string(), Value::Bool(!is_true(&self.safe_bool_k(chain.clone(), "deposit_disabled", &[]))));
+        m.insert("withdraw".to_string(), Value::Bool(!is_true(&self.safe_bool_k(chain.clone(), "withdraw_disabled", &[]))));
         m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), self.parse_number(Value::Str("0.0001".to_string()), &[]));
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
@@ -2664,69 +2783,71 @@ impl GateCore {
 }));
     m
 }));
-                j = add(&j, &Value::Int(1));
             }
             }
             add_element_to_object(&mut result, &code, self.safe_currency_structure(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), currencyId.clone());
         m.insert("code".to_string(), code.clone());
-        m.insert("name".to_string(), self.safe_string(entry.clone(), Value::Str("name".to_string()), &[]));
+        m.insert("name".to_string(), self.safe_string_k(entry.clone(), "name", &[]));
         m.insert("type".to_string(), type_var.clone());
-        m.insert("active".to_string(), Value::Bool(!is_true(&self.safe_bool(entry.clone(), Value::Str("delisted".to_string()), &[]))));
-        m.insert("deposit".to_string(), Value::Bool(!is_true(&self.safe_bool(entry.clone(), Value::Str("deposit_disabled".to_string()), &[]))));
-        m.insert("withdraw".to_string(), Value::Bool(!is_true(&self.safe_bool(entry.clone(), Value::Str("withdraw_disabled".to_string()), &[]))));
+        m.insert("active".to_string(), Value::Bool(!is_true(&self.safe_bool_k(entry.clone(), "delisted", &[]))));
+        m.insert("deposit".to_string(), Value::Bool(!is_true(&self.safe_bool_k(entry.clone(), "deposit_disabled", &[]))));
+        m.insert("withdraw".to_string(), Value::Bool(!is_true(&self.safe_bool_k(entry.clone(), "withdraw_disabled", &[]))));
         m.insert("fee".to_string(), Value::Null);
         m.insert("networks".to_string(), networks.clone());
         m.insert("precision".to_string(), self.parse_number(Value::Str("0.0001".to_string()), &[]));
         m.insert("info".to_string(), entry.clone());
     m
 })));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-single-contract-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-single-contract-information
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
     pub async fn fetch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" fetchFundingRate() supports swap contracts only".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" fetchFundingRate() supports swap contracts only".to_string()))));
         }
         let mut requestqueryVariable = self.prepare_request(&[market.clone(), Value::Null, params.clone()]);
         let mut request: Value = get_value(&requestqueryVariable, &Value::Int(0));
         let mut query: Value = get_value(&requestqueryVariable, &Value::Int(1));
         let mut response: Value = self.call_method(Value::Str("public_futures_get_settle_contracts_contract".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
         return self.parse_funding_rate(response.clone(), &[]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchFundingRates
  * @description fetch the funding rate for multiple markets
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-all-futures-contracts
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rates-structure}, indexed by market symbols
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
     pub async fn fetch_funding_rates(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -2741,6 +2862,8 @@ impl GateCore {
         let mut query: Value = get_value(&requestqueryVariable, &Value::Int(1));
         let mut response: Value = self.call_method(Value::Str("public_futures_get_settle_contracts".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
         return self.parse_funding_rates(response.clone(), &[symbols.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_funding_rate(&self, mut contract: Value, optional_args: &[Value]) -> Value {
@@ -2787,17 +2910,17 @@ impl GateCore {
         //        "orderbook_id": 2129638396
         //    }
         //
-        let mut marketId: Value = self.safe_string(contract.clone(), Value::Str("name".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(contract.clone(), "name", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("_".to_string()), Value::Str("swap".to_string())]);
-        let mut markPrice: Value = self.safe_number(contract.clone(), Value::Str("mark_price".to_string()), &[]);
-        let mut indexPrice: Value = self.safe_number(contract.clone(), Value::Str("index_price".to_string()), &[]);
-        let mut interestRate: Value = self.safe_number(contract.clone(), Value::Str("interest_rate".to_string()), &[]);
-        let mut fundingRate: Value = self.safe_number(contract.clone(), Value::Str("funding_rate".to_string()), &[]);
+        let mut markPrice: Value = self.safe_number_k(contract.clone(), "mark_price", &[]);
+        let mut indexPrice: Value = self.safe_number_k(contract.clone(), "index_price", &[]);
+        let mut interestRate: Value = self.safe_number_k(contract.clone(), "interest_rate", &[]);
+        let mut fundingRate: Value = self.safe_number_k(contract.clone(), "funding_rate", &[]);
         let mut fundingTime: Value = self.safe_timestamp(contract.clone(), Value::Str("funding_next_apply".to_string()), &[]);
-        let mut fundingRateIndicative: Value = self.safe_number(contract.clone(), Value::Str("funding_rate_indicative".to_string()), &[]);
-        let mut fundingInterval: Value = crate::precise::Precise::stringMul(&Value::Str("1000".to_string()), &self.safe_string(contract.clone(), Value::Str("funding_interval".to_string()), &[]));
+        let mut fundingRateIndicative: Value = self.safe_number_k(contract.clone(), "funding_rate_indicative", &[]);
+        let mut fundingInterval: Value = crate::precise::Precise::stringMul(&Value::Str("1000".to_string()), &self.safe_string_k(contract.clone(), "funding_interval", &[]));
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("markPrice".to_string(), markPrice.clone());
@@ -2818,11 +2941,13 @@ impl GateCore {
         m.insert("interval".to_string(), self.parse_funding_interval(fundingInterval.clone()));
     m
 });
+
+    Value::Null
 }
 
     pub fn parse_funding_interval(&self, mut interval: Value) -> Value {
         let mut intervals: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("3600000".to_string(), Value::Str("1h".to_string()));
                 m.insert("14400000".to_string(), Value::Str("4h".to_string()));
                 m.insert("28800000".to_string(), Value::Str("8h".to_string()));
@@ -2831,31 +2956,35 @@ impl GateCore {
             m
         });
         return self.safe_string(intervals.clone(), interval.clone(), &[interval.clone()]);
+
+    Value::Null
 }
 
     pub async fn fetch_network_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
         let mut response: Value = self.call_method(Value::Str("private_wallet_get_deposit_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
-        let mut addresses: Value = self.safe_value(response.clone(), Value::Str("multichain_addresses".to_string()), &[]);
-        let mut currencyId: Value = self.safe_string(response.clone(), Value::Str("currency".to_string()), &[]);
+        let mut addresses: Value = self.safe_value_k(response.clone(), "multichain_addresses", &[]);
+        let mut currencyId: Value = self.safe_string_k(response.clone(), "currency", &[]);
         code = self.safe_currency_code(currencyId.clone(), &[]);
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&addresses)) {
+            let mut __for_first_689: bool = true;
+            while { if !__for_first_689 { i = add(&i, &Value::Int(1)); } __for_first_689 = false; is_less_than(&i, &get_array_length(&addresses)) } {
+            let mut entry: Value = get_value(&addresses, &i);
             let mut entry: Value = get_value(&addresses, &i);
             //
             //    {
@@ -2866,15 +2995,15 @@ impl GateCore {
             //        "obtain_failed": "0"
             //    }
             //
-            let mut obtainFailed: Value = self.safe_integer(entry.clone(), Value::Str("obtain_failed".to_string()), &[]);
+            let mut obtainFailed: Value = self.safe_integer_k(entry.clone(), "obtain_failed", &[]);
             if is_true(&obtainFailed) {
                 continue;
             }
-            let mut network: Value = self.safe_string(entry.clone(), Value::Str("chain".to_string()), &[]);
-            let mut address: Value = self.safe_string(entry.clone(), Value::Str("address".to_string()), &[]);
-            let mut tag: Value = self.safe_string(entry.clone(), Value::Str("payment_id".to_string()), &[]);
+            let mut network: Value = self.safe_string_k(entry.clone(), "chain", &[]);
+            let mut address: Value = self.safe_string_k(entry.clone(), "address", &[]);
+            let mut tag: Value = self.safe_string_k(entry.clone(), "payment_id", &[]);
             add_element_to_object(&mut result, &network, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry.clone());
         m.insert("code".to_string(), code.clone());
         m.insert("currency".to_string(), code.clone());
@@ -2882,54 +3011,57 @@ impl GateCore {
         m.insert("tag".to_string(), tag.clone());
     m
 }));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchDepositAddressesByNetwork
  * @description fetch a dictionary of addresses for a currency, indexed by network
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#generate-currency-deposit-address
+ * @see https://www.gate.com/docs/developers/apiv4/en/#generate-currency-deposit-address
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the api endpoint
- * @returns {object} a dictionary of [address structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=address-structure} indexed by the network
+ * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
     pub async fn fetch_deposit_addresses_by_network(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
         let mut response: Value = self.call_method(Value::Str("private_wallet_get_deposit_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
-        let mut chains: Value = self.safe_value(response.clone(), Value::Str("multichain_addresses".to_string()), &[Value::List(vec![])]);
-        let mut currencyId: Value = self.safe_string(response.clone(), Value::Str("currency".to_string()), &[]);
+        let mut chains: Value = self.safe_value_k(response.clone(), "multichain_addresses", &[Value::List(vec![])]);
+        let mut currencyId: Value = self.safe_string_k(response.clone(), "currency", &[]);
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
         let mut parsed: Value = self.parse_deposit_addresses(chains.clone(), &[Value::Null, Value::Bool(false)]);
         return self.index_by(parsed.clone(), Value::Str("network".to_string()));
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#generate-currency-deposit-address
+ * @see https://www.gate.com/docs/developers/apiv4/en/#generate-currency-deposit-address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("network".to_string()))] unified network code (not used directly by get_value(&gate, &Value::Str("com".to_string())) but used by ccxt to filter the response)
- * @returns {object} an [address structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=address-structure}
+ * @param {string} [params.network] unified network code (not used directly by gate.com but used by ccxt to filter the response)
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
     pub async fn fetch_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -2938,6 +3070,8 @@ impl GateCore {
         let mut chainsIndexedById: Value = self.fetch_deposit_addresses_by_network(code.clone(), &[params.clone()]).await;
         let mut selectedNetworkIdOrCode: Value = self.select_network_code_from_unified_networks(code.clone(), networkCode.clone(), chainsIndexedById.clone());
         return get_value(&chainsIndexedById, &selectedNetworkIdOrCode);
+
+    Value::Null
 }
 
     pub fn parse_deposit_address(&self, mut depositAddress: Value, optional_args: &[Value]) -> Value {
@@ -2951,77 +3085,85 @@ impl GateCore {
         //         obtain_failed: "0",
         //     }
         //
-        let mut address: Value = self.safe_string(depositAddress.clone(), Value::Str("address".to_string()), &[]);
+        let mut address: Value = self.safe_string_k(depositAddress.clone(), "address", &[]);
         self.check_address(&[address.clone()]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
-        m.insert("currency".to_string(), self.safe_string(currency.clone(), Value::Str("code".to_string()), &[]));
+        m.insert("currency".to_string(), self.safe_string_k(currency.clone(), "code", &[]));
         m.insert("address".to_string(), address.clone());
-        m.insert("tag".to_string(), self.safe_string(depositAddress.clone(), Value::Str("payment_id".to_string()), &[]));
-        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string(depositAddress.clone(), Value::Str("chain".to_string()), &[])]));
+        m.insert("tag".to_string(), self.safe_string_k(depositAddress.clone(), "payment_id", &[]));
+        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(depositAddress.clone(), "chain", &[])]));
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchTradingFee
  * @description fetch the trading fees for a market
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-personal-trading-fees
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-fees
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
     pub async fn fetch_trading_fee(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency_pair".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
         let mut response: Value = self.call_method(Value::Str("private_wallet_get_fee".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_trading_fee(response.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-personal-trading-fees
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-fees
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
     pub async fn fetch_trading_fees(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut response: Value = self.call_method(Value::Str("private_wallet_get_fee".to_string()), &[params.clone()]).await;
         return self.parse_trading_fees(response.clone());
+
+    Value::Null
 }
 
     pub fn parse_trading_fees(&self, mut response: Value) -> Value {
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&self.symbols)) {
+            let mut __for_first_690: bool = true;
+            while { if !__for_first_690 { i = add(&i, &Value::Int(1)); } __for_first_690 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             add_element_to_object(&mut result, &symbol, self.parse_trading_fee(response.clone(), &[market.clone()]));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
     pub fn parse_trading_fee(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -3040,22 +3182,24 @@ impl GateCore {
         //        "futures_maker_fee": "0"
         //    }
         //
-        let mut gtDiscount: Value = self.safe_value(info.clone(), Value::Str("gt_discount".to_string()), &[]);
+        let mut gtDiscount: Value = self.safe_value_k(info.clone(), "gt_discount", &[]);
         let mut taker: Value = ternary(is_true(&gtDiscount), Value::Str("gt_taker_fee".to_string()), Value::Str("taker_fee".to_string()));
         let mut maker: Value = ternary(is_true(&gtDiscount), Value::Str("gt_maker_fee".to_string()), Value::Str("maker_fee".to_string()));
-        let mut contract: Value = self.safe_value(market.clone(), Value::Str("contract".to_string()), &[]);
+        let mut contract: Value = self.safe_value_k(market.clone(), "contract", &[]);
         let mut takerKey: Value = ternary(is_true(&contract), Value::Str("futures_taker_fee".to_string()), taker.clone());
         let mut makerKey: Value = ternary(is_true(&contract), Value::Str("futures_maker_fee".to_string()), maker.clone());
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
-        m.insert("symbol".to_string(), self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("maker".to_string(), self.safe_number(info.clone(), makerKey.clone(), &[]));
         m.insert("taker".to_string(), self.safe_number(info.clone(), takerKey.clone(), &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
 });
+
+    Value::Null
 }
 
 /*
@@ -3063,15 +3207,15 @@ impl GateCore {
  * @name gate#fetchTransactionFees
  * @deprecated
  * @description please use fetchDepositWithdrawFees instead
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-withdrawal-status
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-withdrawal-status
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
     pub async fn fetch_transaction_fees(&mut self, optional_args: &[Value]) -> Value {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -3094,72 +3238,78 @@ impl GateCore {
         //    }
         //
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut withdrawFees: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_692: bool = true;
+            while { if !__for_first_692 { i = add(&i, &Value::Int(1)); } __for_first_692 = false; is_less_than(&i, &get_array_length(&response)) } {
             withdrawFees = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut entry: Value = get_value(&response, &i);
-            let mut currencyId: Value = self.safe_string(entry.clone(), Value::Str("currency".to_string()), &[]);
+            let mut entry: Value = get_value(&response, &i);
+            let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             if is_true(&(!is_equal(&codes, &Value::Null))) && !is_true(&self.in_array(code.clone(), codes.clone())) {
                 continue;
             }
-            let mut withdrawFixOnChains: Value = self.safe_value(entry.clone(), Value::Str("withdraw_fix_on_chains".to_string()), &[]);
+            let mut withdrawFixOnChains: Value = self.safe_value_k(entry.clone(), "withdraw_fix_on_chains", &[]);
             if is_equal(&withdrawFixOnChains, &Value::Null) {
-                withdrawFees = self.safe_number(entry.clone(), Value::Str("withdraw_fix".to_string()), &[]);
+                withdrawFees = self.safe_number_k(entry.clone(), "withdraw_fix", &[]);
             }  else {
                 let mut networkIds: Value = object_keys(&withdrawFixOnChains);
                 {
                                         let mut j: Value = Value::Int(0);
-                    while is_less_than(&j, &get_array_length(&networkIds)) {
+                    let mut __for_first_691: bool = true;
+                    while { if !__for_first_691 { j = add(&j, &Value::Int(1)); } __for_first_691 = false; is_less_than(&j, &get_array_length(&networkIds)) } {
+                    let mut networkId: Value = get_value(&networkIds, &j);
                     let mut networkId: Value = get_value(&networkIds, &j);
                     let mut networkCode: Value = self.network_id_to_code(&[networkId.clone()]);
                     add_element_to_object(&mut withdrawFees, &networkCode, self.parse_number(get_value(&withdrawFixOnChains, &networkId), &[]));
-                    j = add(&j, &Value::Int(1));
                 }
                 }
             }
             add_element_to_object(&mut result, &code, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), withdrawFees.clone());
         m.insert("deposit".to_string(), Value::Null);
         m.insert("info".to_string(), entry.clone());
     m
 }));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchDepositWithdrawFees
  * @description fetch deposit and withdraw fees
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-withdrawal-status
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-withdrawal-status
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
     pub async fn fetch_deposit_withdraw_fees(&mut self, optional_args: &[Value]) -> Value {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut response: Value = self.call_method(Value::Str("private_wallet_get_withdraw_status".to_string()), &[params.clone()]).await;
         return self.parse_deposit_withdraw_fees(response.clone(), &[codes.clone(), Value::Str("currency".to_string())]);
+
+    Value::Null
 }
 
     pub fn parse_deposit_withdraw_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
@@ -3181,24 +3331,24 @@ impl GateCore {
         //        }
         //    }
         //
-        let mut withdrawFixOnChains: Value = self.safe_value(fee.clone(), Value::Str("withdraw_fix_on_chains".to_string()), &[]);
+        let mut withdrawFixOnChains: Value = self.safe_value_k(fee.clone(), "withdraw_fix_on_chains", &[]);
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), fee.clone());
                 m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("fee".to_string(), self.safe_number(fee.clone(), Value::Str("withdraw_fix".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("fee".to_string(), self.safe_number_k(fee.clone(), "withdraw_fix", &[]));
         m.insert("percentage".to_string(), Value::Bool(false));
     m
 }));
                 m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("fee".to_string(), self.safe_number(fee.clone(), Value::Str("deposit".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("fee".to_string(), self.safe_number_k(fee.clone(), "deposit", &[]));
         m.insert("percentage".to_string(), Value::Bool(false));
     m
 }));
                 m.insert("networks".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
             m
@@ -3207,50 +3357,53 @@ impl GateCore {
             let mut chainKeys: Value = object_keys(&withdrawFixOnChains);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&chainKeys)) {
+                let mut __for_first_693: bool = true;
+                while { if !__for_first_693 { i = add(&i, &Value::Int(1)); } __for_first_693 = false; is_less_than(&i, &get_array_length(&chainKeys)) } {
                 let mut chainKey: Value = get_value(&chainKeys, &i);
-                let mut networkCode: Value = self.network_id_to_code(&[chainKey.clone(), self.safe_string(fee.clone(), Value::Str("currency".to_string()), &[])]);
+                let mut chainKey: Value = get_value(&chainKeys, &i);
+                let mut networkCode: Value = self.network_id_to_code(&[chainKey.clone(), self.safe_string_k(fee.clone(), "currency", &[])]);
                 add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".to_string())), &networkCode, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), self.parse_number(get_value(&withdrawFixOnChains, &chainKey), &[]));
         m.insert("percentage".to_string(), Value::Bool(false));
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
     m
 }));
     m
 }));
-                i = add(&i, &Value::Int(1));
             }
             }
         }
         return result;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-futures-account-change-history
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-futures-account-change-history-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history-2
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding history structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
     pub async fn fetch_funding_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -3280,24 +3433,29 @@ impl GateCore {
         }  else if is_equal(&type_var, &Value::Str("future".to_string())) {
             response = self.call_method(Value::Str("private_delivery_get_settle_account_book".to_string()), &[self.extend(request.clone(), &[requestParams.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingHistory() only support swap & future market type".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingHistory() only support swap & future market type".to_string()))));
         }
         return self.parse_funding_histories(response.clone(), symbol.clone(), since.clone(), limit.clone());
+
+    Value::Null
 }
 
     pub fn parse_funding_histories(&self, mut response: Value, mut symbol: Value, mut since: Value, mut limit: Value) -> Value {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_694: bool = true;
+            while { if !__for_first_694 { i = add(&i, &Value::Int(1)); } __for_first_694 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut funding: Value = self.parse_funding_history(entry.clone(), &[]);
             append_to_array(&mut result, funding.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut sorted: Value = self.sort_by(result.clone(), Value::Str("timestamp".to_string()), &[]);
         return self.filter_by_symbol_since_limit(sorted.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_funding_history(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -3312,38 +3470,40 @@ impl GateCore {
         //    }
         //
         let mut timestamp: Value = self.safe_timestamp(info.clone(), Value::Str("time".to_string()), &[]);
-        let mut marketId: Value = self.safe_string(info.clone(), Value::Str("text".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(info.clone(), "text", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("_".to_string()), Value::Str("swap".to_string())]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
-        m.insert("symbol".to_string(), self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]));
-        m.insert("code".to_string(), self.safe_string(market.clone(), Value::Str("settle".to_string()), &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
+        m.insert("code".to_string(), self.safe_string_k(market.clone(), "settle", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("id".to_string(), Value::Null);
-        m.insert("amount".to_string(), self.safe_number(info.clone(), Value::Str("change".to_string()), &[]));
+        m.insert("amount".to_string(), self.safe_number_k(info.clone(), "change", &[]));
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-market-depth-information
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-futures-market-depth-information
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-futures-market-depth-information-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-options-contract-order-book
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-market-depth-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-futures-market-depth-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-futures-market-depth-information-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-options-contract-order-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -3378,7 +3538,7 @@ impl GateCore {
         }  else if is_true(&get_value(&market, &Value::Str("option".to_string()))) {
             response = self.call_method(Value::Str("public_options_get_order_book".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderBook() not support this market type".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderBook() not support this market type".to_string()))));
         }
         //
         // spot
@@ -3444,33 +3604,35 @@ impl GateCore {
         //         "update": 1634350208.724
         //     }
         //
-        let mut timestamp: Value = self.safe_integer(response.clone(), Value::Str("current".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(response.clone(), "current", &[]);
         if !is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             timestamp = multiply(&timestamp, &Value::Int(1000));
         }
         let mut priceKey: Value = ternary(is_true(&get_value(&market, &Value::Str("spot".to_string()))), Value::Int(0), Value::Str("p".to_string()));
         let mut amountKey: Value = ternary(is_true(&get_value(&market, &Value::Str("spot".to_string()))), Value::Int(1), Value::Str("s".to_string()));
-        let mut nonce: Value = self.safe_integer(response.clone(), Value::Str("id".to_string()), &[]);
+        let mut nonce: Value = self.safe_integer_k(response.clone(), "id", &[]);
         let mut result: Value = self.parse_order_book(response.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string()), priceKey.clone(), amountKey.clone()]);
         add_element_to_object(&mut result, &Value::Str("nonce".to_string()), nonce.clone());
         return result;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-currency-pair-ticker-information
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-all-futures-trading-statistics
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-all-futures-trading-statistics-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-options-market-ticker-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-currency-pair-ticker-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-options-market-ticker-information
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -3491,25 +3653,28 @@ impl GateCore {
             add_element_to_object(&mut request, &Value::Str("underlying".to_string()), self.safe_string(optionParts.clone(), Value::Int(0), &[]));
             response = self.call_method(Value::Str("public_options_get_tickers".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTicker() not support this market type".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTicker() not support this market type".to_string()))));
         }
         let mut ticker: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("option".to_string()))) {
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&response)) {
+                let mut __for_first_695: bool = true;
+                while { if !__for_first_695 { i = add(&i, &Value::Int(1)); } __for_first_695 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut entry: Value = get_value(&response, &i);
                 let mut entry: Value = get_value(&response, &i);
                 if is_equal(&get_value(&entry, &Value::Str("name".to_string())), &get_value(&market, &Value::Str("id".to_string()))) {
                     ticker = entry.clone();
                     break;
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else {
             ticker = self.safe_value(response.clone(), Value::Int(0), &[]);
         }
         return self.parse_ticker(ticker.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -3588,11 +3753,11 @@ impl GateCore {
         let mut last: Value = self.safe_string2(ticker.clone(), Value::Str("last".to_string()), Value::Str("last_price".to_string()), &[]);
         let mut ask: Value = self.safe_string_n(ticker.clone(), Value::List(vec![Value::Str("lowest_ask".to_string()), Value::Str("a".to_string()), Value::Str("ask1_price".to_string())]), &[]);
         let mut bid: Value = self.safe_string_n(ticker.clone(), Value::List(vec![Value::Str("highest_bid".to_string()), Value::Str("b".to_string()), Value::Str("bid1_price".to_string())]), &[]);
-        let mut high: Value = self.safe_string(ticker.clone(), Value::Str("high_24h".to_string()), &[]);
-        let mut low: Value = self.safe_string(ticker.clone(), Value::Str("low_24h".to_string()), &[]);
+        let mut high: Value = self.safe_string_k(ticker.clone(), "high_24h", &[]);
+        let mut low: Value = self.safe_string_k(ticker.clone(), "low_24h", &[]);
         let mut bidVolume: Value = self.safe_string2(ticker.clone(), Value::Str("B".to_string()), Value::Str("bid1_size".to_string()), &[]);
         let mut askVolume: Value = self.safe_string2(ticker.clone(), Value::Str("A".to_string()), Value::Str("ask1_size".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer(ticker.clone(), Value::Str("t".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "t", &[]);
         let mut baseVolume: Value = self.safe_string2(ticker.clone(), Value::Str("base_volume".to_string()), Value::Str("volume_24h_base".to_string()), &[]);
         if is_equal(&baseVolume, &Value::Str("nan".to_string())) {
             baseVolume = Value::Str("0".to_string());
@@ -3601,9 +3766,9 @@ impl GateCore {
         if is_equal(&quoteVolume, &Value::Str("nan".to_string())) {
             quoteVolume = Value::Str("0".to_string());
         }
-        let mut percentage: Value = self.safe_string(ticker.clone(), Value::Str("change_percentage".to_string()), &[]);
+        let mut percentage: Value = self.safe_string_k(ticker.clone(), "change_percentage", &[]);
         return self.safe_ticker(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
@@ -3623,29 +3788,31 @@ impl GateCore {
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), baseVolume.clone());
         m.insert("quoteVolume".to_string(), quoteVolume.clone());
-        m.insert("markPrice".to_string(), self.safe_string(ticker.clone(), Value::Str("mark_price".to_string()), &[]));
-        m.insert("indexPrice".to_string(), self.safe_string(ticker.clone(), Value::Str("index_price".to_string()), &[]));
+        m.insert("markPrice".to_string(), self.safe_string_k(ticker.clone(), "mark_price", &[]));
+        m.insert("indexPrice".to_string(), self.safe_string_k(ticker.clone(), "index_price", &[]));
         m.insert("info".to_string(), ticker.clone());
     m
 }), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-currency-pair-ticker-information
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-all-futures-trading-statistics
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-all-futures-trading-statistics-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-options-market-ticker-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-currency-pair-ticker-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-options-market-ticker-information
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -3676,48 +3843,52 @@ impl GateCore {
             add_element_to_object(&mut request, &Value::Str("underlying".to_string()), self.safe_string(optionParts.clone(), Value::Int(0), &[]));
             response = self.call_method(Value::Str("public_options_get_tickers".to_string()), &[self.extend(request.clone(), &[requestParams.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickers() not support this market type, provide symbols or set params[\"defaultType\"] to one from spot/margin/swap/future/option".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickers() not support this market type, provide symbols or set params[\"defaultType\"] to one from spot/margin/swap/future/option".to_string()))));
         }
         return self.parse_tickers(response.clone(), &[symbols.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_balance_helper(&self, mut entry: Value) -> Value {
         let mut account: Value = self.account();
         add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string2(entry.clone(), Value::Str("freeze".to_string()), Value::Str("locked".to_string()), &[]));
-        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(entry.clone(), Value::Str("available".to_string()), &[]));
-        add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(entry.clone(), Value::Str("total".to_string()), &[]));
+        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(entry.clone(), "available", &[]));
+        add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(entry.clone(), "total", &[]));
         if is_true(&Value::Bool(in_op(&entry, &Value::Str("borrowed".to_string())))) {
-            add_element_to_object(&mut account, &Value::Str("debt".to_string()), self.safe_string(entry.clone(), Value::Str("borrowed".to_string()), &[]));
+            add_element_to_object(&mut account, &Value::Str("debt".to_string()), self.safe_string_k(entry.clone(), "borrowed", &[]));
         }
         return account;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchBalance
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-unified-account-information
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#list-spot-trading-accounts
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#margin-account-list
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#funding-account-list
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-futures-account
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-futures-account-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-account-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
+ * @see https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
+ * @see https://www.gate.com/docs/developers/apiv4/en/#funding-account-list
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-account-information
  * @param {object} [params] exchange specific parameters
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] spot, margin, swap or future, if not provided get_value(&this, &Value::Str("options".to_string()))['defaultType'] is used
- * @param {string} [get_value(&params, &Value::Str("settle".to_string()))] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated' - marginMode for margin trading if not provided get_value(&this, &Value::Str("options".to_string()))['defaultMarginMode'] is used
- * @param {string} [get_value(&params, &Value::Str("symbol".to_string()))] margin only - unified ccxt symbol
- * @param {boolean} [get_value(&params, &Value::Str("unifiedAccount".to_string()))] default false, set to true for fetching the unified account balance
- * @returns {object} a [balance structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=balance-structure}
+ * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
+ * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
+ * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+ * @param {string} [params.symbol] margin only - unified ccxt symbol
+ * @param {boolean} [params.unifiedAccount] default false, set to true for fetching the unified account balance
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
     pub async fn fetch_balance(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         self.load_unified_status(&[]).await;
-        let mut symbol: Value = self.safe_string(params.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut symbol: Value = self.safe_string_k(params.clone(), "symbol", &[]);
         params = self.omit(params.clone(), Value::Str("symbol".to_string()), &[]);
         let mut isUnifiedAccount: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchBalance".to_string()), Value::Str("unifiedAccount".to_string()), &[]); isUnifiedAccount = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -3745,7 +3916,7 @@ impl GateCore {
             }  else if is_equal(&marginMode, &Value::Str("cross_margin".to_string())) {
                 response = self.call_method(Value::Str("private_margin_get_cross_accounts".to_string()), &[self.extend(request.clone(), &[requestQuery.clone()])]).await;
             }  else {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBalance() not support this marginMode".to_string()))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBalance() not support this marginMode".to_string()))));
             }
         }  else if is_equal(&type_var, &Value::Str("funding".to_string())) {
             response = self.call_method(Value::Str("private_margin_get_funding_accounts".to_string()), &[self.extend(request.clone(), &[requestQuery.clone()])]).await;
@@ -3756,7 +3927,7 @@ impl GateCore {
         }  else if is_equal(&type_var, &Value::Str("option".to_string())) {
             response = self.call_method(Value::Str("private_options_get_accounts".to_string()), &[self.extend(request.clone(), &[requestQuery.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBalance() not support this market type".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBalance() not support this market type".to_string()))));
         }
         let mut contract: Value = Value::Bool(is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("option".to_string())))));
         if is_true(&contract) {
@@ -3955,7 +4126,7 @@ impl GateCore {
         //     }
         //
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
             m
         });
@@ -3963,73 +4134,77 @@ impl GateCore {
         let mut data: Value = response.clone();
         if is_true(&Value::Bool(in_op(&data, &Value::Str("balances".to_string())))) {
             let mut flatBalances: Value = Value::List(vec![]);
-            let mut balances: Value = self.safe_value(data.clone(), Value::Str("balances".to_string()), &[Value::List(vec![])]);
+            let mut balances: Value = self.safe_value_k(data.clone(), "balances", &[Value::List(vec![])]);
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
             let mut keys: Value = object_keys(&balances);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&keys)) {
+                let mut __for_first_696: bool = true;
+                while { if !__for_first_696 { i = add(&i, &Value::Int(1)); } __for_first_696 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut currencyId: Value = get_value(&keys, &i);
                 let mut currencyId: Value = get_value(&keys, &i);
                 let mut content: Value = get_value(&balances, &currencyId);
                 add_element_to_object(&mut content, &Value::Str("currency".to_string()), currencyId.clone());
                 append_to_array(&mut flatBalances, content.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
             data = flatBalances.clone();
         }
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&data)) {
+            let mut __for_first_697: bool = true;
+            while { if !__for_first_697 { i = add(&i, &Value::Int(1)); } __for_first_697 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             if is_true(&isolated) {
-                let mut marketId: Value = self.safe_string(entry.clone(), Value::Str("currency_pair".to_string()), &[]);
+                let mut marketId: Value = self.safe_string_k(entry.clone(), "currency_pair", &[]);
                 let mut symbolInner: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("_".to_string()), Value::Str("margin".to_string())]);
-                let mut base: Value = self.safe_value(entry.clone(), Value::Str("base".to_string()), &[Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                let mut base: Value = self.safe_value_k(entry.clone(), "base", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                let mut quote: Value = self.safe_value(entry.clone(), Value::Str("quote".to_string()), &[Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                let mut quote: Value = self.safe_value_k(entry.clone(), "quote", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                let mut baseCode: Value = self.safe_currency_code(self.safe_string(base.clone(), Value::Str("currency".to_string()), &[]), &[]);
-                let mut quoteCode: Value = self.safe_currency_code(self.safe_string(quote.clone(), Value::Str("currency".to_string()), &[]), &[]);
+                let mut baseCode: Value = self.safe_currency_code(self.safe_string_k(base.clone(), "currency", &[]), &[]);
+                let mut quoteCode: Value = self.safe_currency_code(self.safe_string_k(quote.clone(), "currency", &[]), &[]);
                 let mut subResult: Value = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                     m
                 });
                 add_element_to_object(&mut subResult, &baseCode, self.parse_balance_helper(base.clone()));
                 add_element_to_object(&mut subResult, &quoteCode, self.parse_balance_helper(quote.clone()));
                 add_element_to_object(&mut result, &symbolInner, self.safe_balance(subResult.clone()));
             }  else {
-                let mut code: Value = self.safe_currency_code(self.safe_string(entry.clone(), Value::Str("currency".to_string()), &[]), &[]);
+                let mut code: Value = self.safe_currency_code(self.safe_string_k(entry.clone(), "currency", &[]), &[]);
                 add_element_to_object(&mut result, &code, self.parse_balance_helper(entry.clone()));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut returnResult: Value = ternary(is_true(&isolated), result.clone(), self.safe_balance(result.clone()));
         return returnResult;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gateio#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#market-k-line-chart                       // spot
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#futures-market-k-line-chart               // swap
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#futures-market-k-line-chart-2             // future
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#options-contract-market-candlestick-chart // option
+ * @see https://www.gate.com/docs/developers/apiv4/en/#market-k-line-chart                       // spot
+ * @see https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart               // swap
+ * @see https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart-2             // future
+ * @see https://www.gate.com/docs/developers/apiv4/en/#options-contract-market-candlestick-chart // option
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch, limit is conflicted with since and params["until"], If either since and params["until"] is specified, request will be rejected
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("price".to_string()))] "mark" or "index" for mark price and index price candles
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest candle to fetch
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
  */
     pub async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -4037,7 +4212,7 @@ impl GateCore {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -4050,16 +4225,16 @@ impl GateCore {
         if is_true(&get_value(&market, &Value::Str("option".to_string()))) {
             return self.fetch_option_ohlcv(symbol.clone(), &[timeframe.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
-        let mut price: Value = self.safe_string(params.clone(), Value::Str("price".to_string()), &[]);
+        let mut price: Value = self.safe_string_k(params.clone(), "price", &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         { let __destr_tmp = self.prepare_request(&[market.clone(), Value::Null, params.clone()]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         add_element_to_object(&mut request, &Value::Str("interval".to_string()), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
         let mut maxLimit: Value = ternary(is_true(&get_value(&market, &Value::Str("contract".to_string()))), Value::Int(1999), Value::Int(1000));
         limit = ternary(is_true(&(is_equal(&limit, &Value::Null))), maxLimit.clone(), crate::runtime::Math::min(&limit, &maxLimit));
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if !is_equal(&until, &Value::Null) {
             until = self.parse_to_int(divide(&until, &Value::Int(1000)));
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
@@ -4068,7 +4243,7 @@ impl GateCore {
             let mut duration: Value = self.parse_timeframe(timeframe.clone());
             add_element_to_object(&mut request, &Value::Str("from".to_string()), self.parse_to_int(divide(&since, &Value::Int(1000))));
             let mut distance: Value = multiply(&(subtract(&limit, &Value::Int(1))), &duration);
-            let mut toTimestamp: Value = self.sum(get_value(&request, &Value::Str("from".to_string())), distance.clone(), &[]);
+            let mut toTimestamp: Value = self.sum(&[get_value(&request, &Value::Str("from".to_string())), distance.clone()]);
             let mut currentTimestamp: Value = self.seconds();
             let mut to: Value = crate::runtime::Math::min(&toTimestamp, &currentTimestamp);
             if !is_equal(&until, &Value::Null) {
@@ -4099,6 +4274,8 @@ impl GateCore {
             response = self.call_method(Value::Str("public_spot_get_candlesticks".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
         return self.parse_ohlc_vs(response.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub async fn fetch_option_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -4106,45 +4283,47 @@ impl GateCore {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         // separated option logic because the from, to and limit parameters weren't functioning
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         { let __destr_tmp = self.prepare_request(&[market.clone(), Value::Null, params.clone()]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         add_element_to_object(&mut request, &Value::Str("interval".to_string()), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
         let mut response: Value = self.call_method(Value::Str("public_options_get_candlesticks".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_ohlc_vs(response.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-all-futures-trading-statistics
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest funding rate to fetch
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-history-structure}
+ * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
     pub async fn fetch_funding_rate_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut paginate: Value = Value::Bool(false);
@@ -4154,10 +4333,10 @@ impl GateCore {
         }
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" fetchFundingRateHistory() supports swap contracts only".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" fetchFundingRateHistory() supports swap contracts only".to_string()))));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         { let __destr_tmp = self.prepare_request(&[market.clone(), Value::Null, params.clone()]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -4167,7 +4346,7 @@ impl GateCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("from".to_string()), self.parse_to_int(divide(&since, &Value::Int(1000))));
         }
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if !is_equal(&until, &Value::Null) {
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("to".to_string()), self.parse_to_int(divide(&until, &Value::Int(1000))));
@@ -4182,23 +4361,26 @@ impl GateCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_698: bool = true;
+            while { if !__for_first_698 { i = add(&i, &Value::Int(1)); } __for_first_698 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut timestamp: Value = self.safe_timestamp(entry.clone(), Value::Str("t".to_string()), &[]);
             append_to_array(&mut rates, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), symbol.clone());
-                    m.insert("fundingRate".to_string(), self.safe_number(entry.clone(), Value::Str("r".to_string()), &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(entry.clone(), "r", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
                 m
             }));
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut sorted: Value = self.sort_by(rates.clone(), Value::Str("timestamp".to_string()), &[]);
         return self.filter_by_symbol_since_limit(sorted.clone(), &[get_value(&market, &Value::Str("symbol".to_string())), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
@@ -4230,7 +4412,7 @@ impl GateCore {
         if is_true(&Value::Bool(is_array(&ohlcv))) {
             return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(6), &[])]);
         }  else {
-            return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("t".to_string()), &[]), self.safe_number(ohlcv.clone(), Value::Str("o".to_string()), &[]), self.safe_number(ohlcv.clone(), Value::Str("h".to_string()), &[]), self.safe_number(ohlcv.clone(), Value::Str("l".to_string()), &[]), self.safe_number(ohlcv.clone(), Value::Str("c".to_string()), &[]), self.safe_number(ohlcv.clone(), Value::Str("v".to_string()), &[])]);
+            return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("t".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv.clone(), "v", &[])]);
         }
 }
 
@@ -4238,23 +4420,23 @@ impl GateCore {
  * @method
  * @name gate#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-market-transaction-records
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#futures-market-transaction-records
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#futures-market-transaction-records-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#market-trade-records
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-market-transaction-records
+ * @see https://www.gate.com/docs/developers/apiv4/en/#futures-market-transaction-records
+ * @see https://www.gate.com/docs/developers/apiv4/en/#futures-market-transaction-records-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#market-trade-records
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest trade to fetch
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=public-trades}
+ * @param {int} [params.until] timestamp in ms of the latest trade to fetch
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
     pub async fn fetch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -4282,7 +4464,7 @@ impl GateCore {
         //         'limit': limit, // maximum number of records to be returned in a single list
         //         'last_id': 'id', // specify list staring point using the id of last record in previous list-query results
         //         'from': since / 1000), // starting time in seconds, if not specified, to and limit will be used to limit response items
-        //         'to': get_value(&this, &Value::Str("seconds".to_string())) (), // end time in seconds, default to current time
+        //         'to': this.seconds (), // end time in seconds, default to current time
         //     }
         //
         let mut requestqueryVariable = self.prepare_request(&[market.clone(), Value::Null, params.clone()]);
@@ -4309,36 +4491,38 @@ impl GateCore {
         }  else if is_equal(&get_value(&market, &Value::Str("type".to_string())), &Value::Str("option".to_string())) {
             response = self.call_method(Value::Str("public_options_get_trades".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTrades() not support this market type.".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTrades() not support this market type.".to_string()))));
         }
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-personal-trading-records
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-personal-trading-records-by-time-range
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-personal-trading-records-3
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-personal-trading-records-4
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-by-time-range
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-3
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-4
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
     pub async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrderTrades() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrderTrades() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         //
@@ -4361,44 +4545,46 @@ impl GateCore {
         //      ]
         //
         let mut response: Value = self.fetch_my_trades(&[symbol.clone(), since.clone(), limit.clone(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("order_id".to_string(), id.clone());
     m
 })]).await;
         return response;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchMyTrades
  * @description Fetch personal trading history
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-personal-trading-records
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-personal-trading-records-by-time-range
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-personal-trading-records-3
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-personal-trading-records-4
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-by-time-range
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-3
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-4
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated' - marginMode for margin trading if not provided get_value(&this, &Value::Str("options".to_string()))['defaultMarginMode'] is used
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] 'spot', 'swap', or 'future', if not provided get_value(&this, &Value::Str("options".to_string()))['defaultMarginMode'] is used
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] The latest timestamp, in ms, that fetched trades were made
- * @param {int} [get_value(&params, &Value::Str("page".to_string()))] *spot only* Page number
- * @param {string} [get_value(&params, &Value::Str("order_id".to_string()))] *spot only* Filter trades with specified order ID. symbol is also required if this field is present
- * @param {string} [get_value(&params, &Value::Str("order".to_string()))] *contract only* Futures order ID, return related data only if specified
- * @param {int} [get_value(&params, &Value::Str("offset".to_string()))] *contract only* list offset, starting from 0
- * @param {string} [get_value(&params, &Value::Str("last_id".to_string()))] *contract only* specify list staring point using the id of last record in previous list-query results
- * @param {int} [get_value(&params, &Value::Str("count_total".to_string()))] *contract only* whether to return total number matched, default to 0(no return)
- * @param {bool} [get_value(&params, &Value::Str("unifiedAccount".to_string()))] set to true for fetching trades in a unified account
- * @param {bool} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=trade-structure}
+ * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+ * @param {string} [params.type] 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
+ * @param {int} [params.until] The latest timestamp, in ms, that fetched trades were made
+ * @param {int} [params.page] *spot only* Page number
+ * @param {string} [params.order_id] *spot only* Filter trades with specified order ID. symbol is also required if this field is present
+ * @param {string} [params.order] *contract only* Futures order ID, return related data only if specified
+ * @param {int} [params.offset] *contract only* list offset, starting from 0
+ * @param {string} [params.last_id] *contract only* specify list staring point using the id of last record in previous list-query results
+ * @param {int} [params.count_total] *contract only* whether to return total number matched, default to 0(no return)
+ * @param {bool} [params.unifiedAccount] set to true for fetching trades in a unified account
+ * @param {bool} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
     pub async fn fetch_my_trades(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -4411,11 +4597,11 @@ impl GateCore {
         let mut type_var: Value = Value::Null;
         let mut marginMode: Value = Value::Null;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = ternary(is_true(&(!is_equal(&symbol, &Value::Null))), self.market(symbol.clone()), Value::Null);
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchMyTrades".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut contract: Value = Value::Bool(is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("option".to_string())))));
@@ -4450,9 +4636,11 @@ impl GateCore {
         }  else if is_equal(&type_var, &Value::Str("option".to_string())) {
             response = self.call_method(Value::Str("private_options_get_my_trades".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMyTrades() not support this market type.".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMyTrades() not support this market type.".to_string()))));
         }
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -4560,7 +4748,7 @@ impl GateCore {
         //
         let mut id: Value = self.safe_string2(trade.clone(), Value::Str("id".to_string()), Value::Str("trade_id".to_string()), &[]);
         let mut timestamp: Value = Value::Null;
-        let mut msString: Value = self.safe_string(trade.clone(), Value::Str("create_time_ms".to_string()), &[]);
+        let mut msString: Value = self.safe_string_k(trade.clone(), "create_time_ms", &[]);
         if !is_equal(&msString, &Value::Null) {
             msString = crate::precise::Precise::stringMul(&msString, &Value::Str("1000".to_string()));
             msString = slice(&msString, &Value::Int(0), &Value::Int(13));
@@ -4572,23 +4760,23 @@ impl GateCore {
         let mut marketType: Value = ternary(is_true(&(Value::Bool(in_op(&trade, &Value::Str("contract".to_string()))))), Value::Str("contract".to_string()), Value::Str("spot".to_string()));
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("_".to_string()), marketType.clone()]);
         let mut amountString: Value = self.safe_string2(trade.clone(), Value::Str("amount".to_string()), Value::Str("size".to_string()), &[]);
-        let mut priceString: Value = self.safe_string(trade.clone(), Value::Str("price".to_string()), &[]);
+        let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut contractSide: Value = ternary(is_true(&crate::precise::Precise::stringLt(&amountString, &Value::Str("0".to_string()))), Value::Str("sell".to_string()), Value::Str("buy".to_string()));
         amountString = crate::precise::Precise::stringAbs(&amountString);
         let mut side: Value = self.safe_string2(trade.clone(), Value::Str("side".to_string()), Value::Str("type".to_string()), &[contractSide.clone()]);
-        let mut orderId: Value = self.safe_string(trade.clone(), Value::Str("order_id".to_string()), &[]);
-        let mut feeAmount: Value = self.safe_string(trade.clone(), Value::Str("fee".to_string()), &[]);
-        let mut gtFee: Value = self.omit_zero(self.safe_string(trade.clone(), Value::Str("gt_fee".to_string()), &[]));
-        let mut pointFee: Value = self.omit_zero(self.safe_string(trade.clone(), Value::Str("point_fee".to_string()), &[]));
+        let mut orderId: Value = self.safe_string_k(trade.clone(), "order_id", &[]);
+        let mut feeAmount: Value = self.safe_string_k(trade.clone(), "fee", &[]);
+        let mut gtFee: Value = self.omit_zero(self.safe_string_k(trade.clone(), "gt_fee", &[]));
+        let mut pointFee: Value = self.omit_zero(self.safe_string_k(trade.clone(), "point_fee", &[]));
         let mut fees: Value = Value::List(vec![]);
         if !is_equal(&feeAmount, &Value::Null) {
-            let mut feeCurrencyId: Value = self.safe_string(trade.clone(), Value::Str("fee_currency".to_string()), &[]);
+            let mut feeCurrencyId: Value = self.safe_string_k(trade.clone(), "fee_currency", &[]);
             let mut feeCurrencyCode: Value = self.safe_currency_code(feeCurrencyId.clone(), &[]);
             if is_equal(&feeCurrencyCode, &Value::Null) {
-                feeCurrencyCode = self.safe_string(market.clone(), Value::Str("settle".to_string()), &[]);
+                feeCurrencyCode = self.safe_string_k(market.clone(), "settle", &[]);
             }
             append_to_array(&mut fees, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeAmount.clone());
                     m.insert("currency".to_string(), feeCurrencyCode.clone());
                 m
@@ -4596,7 +4784,7 @@ impl GateCore {
         }
         if !is_equal(&gtFee, &Value::Null) {
             append_to_array(&mut fees, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), gtFee.clone());
                     m.insert("currency".to_string(), Value::Str("GT".to_string()));
                 m
@@ -4604,15 +4792,15 @@ impl GateCore {
         }
         if !is_equal(&pointFee, &Value::Null) {
             append_to_array(&mut fees, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), pointFee.clone());
                     m.insert("currency".to_string(), Value::Str("GATEPOINT".to_string()));
                 m
             }));
         }
-        let mut takerOrMaker: Value = self.safe_string(trade.clone(), Value::Str("role".to_string()), &[]);
+        let mut takerOrMaker: Value = self.safe_string_k(trade.clone(), "role", &[]);
         return self.safe_trade(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), id.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -4629,27 +4817,29 @@ impl GateCore {
         m.insert("fees".to_string(), fees.clone());
     m
 }), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-deposit-records
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-deposit-records
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] end time in ms
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @param {int} [params.until] end time in ms
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_deposits(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -4659,7 +4849,7 @@ impl GateCore {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchDeposits".to_string()), &[code.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut currency: Value = Value::Null;
@@ -4673,32 +4863,34 @@ impl GateCore {
         if !is_equal(&since, &Value::Null) {
             let mut start: Value = self.parse_to_int(divide(&since, &Value::Int(1000)));
             add_element_to_object(&mut request, &Value::Str("from".to_string()), start.clone());
-            add_element_to_object(&mut request, &Value::Str("to".to_string()), self.sum(start.clone(), multiply(&multiply(&multiply(&Value::Int(30), &Value::Int(24)), &Value::Int(60)), &Value::Int(60)), &[]));
+            add_element_to_object(&mut request, &Value::Str("to".to_string()), self.sum(&[start.clone(), multiply(&multiply(&multiply(&Value::Int(30), &Value::Int(24)), &Value::Int(60)), &Value::Int(60))]));
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("to".to_string()), request.clone(), params.clone(), &[Value::Float(0.001)]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = self.call_method(Value::Str("private_wallet_get_deposits".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_transactions(response.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-withdrawal-records
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-withdrawal-records
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] end time in ms
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @param {int} [params.until] end time in ms
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_withdrawals(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -4708,7 +4900,7 @@ impl GateCore {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchWithdrawals".to_string()), &[code.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut currency: Value = Value::Null;
@@ -4722,29 +4914,31 @@ impl GateCore {
         if !is_equal(&since, &Value::Null) {
             let mut start: Value = self.parse_to_int(divide(&since, &Value::Int(1000)));
             add_element_to_object(&mut request, &Value::Str("from".to_string()), start.clone());
-            add_element_to_object(&mut request, &Value::Str("to".to_string()), self.sum(start.clone(), multiply(&multiply(&multiply(&Value::Int(30), &Value::Int(24)), &Value::Int(60)), &Value::Int(60)), &[]));
+            add_element_to_object(&mut request, &Value::Str("to".to_string()), self.sum(&[start.clone(), multiply(&multiply(&multiply(&Value::Int(30), &Value::Int(24)), &Value::Int(60)), &Value::Int(60))]));
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("to".to_string()), request.clone(), params.clone(), &[Value::Float(0.001)]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = self.call_method(Value::Str("private_wallet_get_withdrawals".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_transactions(response.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#withdraw
  * @description make a withdrawal
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#withdraw
+ * @see https://www.gate.com/docs/developers/apiv4/en/#withdraw
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
         let mut tag = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -4752,7 +4946,7 @@ impl GateCore {
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("address".to_string(), address.clone());
                 m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
@@ -4768,11 +4962,13 @@ impl GateCore {
         }
         let mut response: Value = self.call_method(Value::Str("private_withdrawals_post_withdrawals".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_transaction_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("PEND".to_string(), Value::Str("pending".to_string()));
                 m.insert("REQUEST".to_string(), Value::Str("pending".to_string()));
                 m.insert("DMOVE".to_string(), Value::Str("pending".to_string()));
@@ -4789,16 +4985,20 @@ impl GateCore {
             m
         });
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_transaction_type(&self, mut type_var: Value) -> Value {
         let mut types: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("d".to_string(), Value::Str("deposit".to_string()));
                 m.insert("w".to_string(), Value::Str("withdrawal".to_string()));
             m
         });
         return self.safe_string(types.clone(), type_var.clone(), &[type_var.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -4863,9 +5063,9 @@ impl GateCore {
         //         "chain":"eth"
         //     }
         //
-        let mut id: Value = self.safe_string(transaction.clone(), Value::Str("id".to_string()), &[]);
+        let mut id: Value = self.safe_string_k(transaction.clone(), "id", &[]);
         let mut type_var: Value = Value::Null;
-        let mut amountString: Value = self.safe_string(transaction.clone(), Value::Str("amount".to_string()), &[]);
+        let mut amountString: Value = self.safe_string_k(transaction.clone(), "amount", &[]);
         if !is_equal(&id, &Value::Null) {
             if is_equal(&get_value(&id, &Value::Int(0)), &Value::Str("b".to_string())) {
                 // GateCode handling
@@ -4880,16 +5080,16 @@ impl GateCore {
             amountString = crate::precise::Precise::stringSub(&amountString, &feeCostString);
         }
         let mut networkId: Value = self.safe_string_upper(transaction.clone(), Value::Str("chain".to_string()), &[]);
-        let mut currencyId: Value = self.safe_string(transaction.clone(), Value::Str("currency".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(transaction.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-        let mut txid: Value = self.safe_string(transaction.clone(), Value::Str("txid".to_string()), &[]);
-        let mut rawStatus: Value = self.safe_string(transaction.clone(), Value::Str("status".to_string()), &[]);
+        let mut txid: Value = self.safe_string_k(transaction.clone(), "txid", &[]);
+        let mut rawStatus: Value = self.safe_string_k(transaction.clone(), "status", &[]);
         let mut status: Value = self.parse_transaction_status(rawStatus.clone());
-        let mut address: Value = self.safe_string(transaction.clone(), Value::Str("address".to_string()), &[]);
-        let mut tag: Value = self.safe_string(transaction.clone(), Value::Str("memo".to_string()), &[]);
+        let mut address: Value = self.safe_string_k(transaction.clone(), "address", &[]);
+        let mut tag: Value = self.safe_string_k(transaction.clone(), "memo", &[]);
         let mut timestamp: Value = self.safe_timestamp(transaction.clone(), Value::Str("timestamp".to_string()), &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), id.clone());
         m.insert("txid".to_string(), txid.clone());
@@ -4910,64 +5110,66 @@ impl GateCore {
         m.insert("internal".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code.clone());
         m.insert("cost".to_string(), self.parse_number(feeCostString.clone(), &[]));
     m
 }));
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#createOrder
  * @description Create an order on the exchange
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#create-an-order
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#create-price-triggered-order
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#place-futures-order
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#create-price-triggered-order-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#place-futures-order-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#create-price-triggered-order-3
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#create-an-options-order
+ * @see https://www.gate.com/docs/developers/apiv4/en/#create-an-order
+ * @see https://www.gate.com/docs/developers/apiv4/en/#create-price-triggered-order
+ * @see https://www.gate.com/docs/developers/apiv4/en/#place-futures-order
+ * @see https://www.gate.com/docs/developers/apiv4/en/#create-price-triggered-order-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#place-futures-order-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#create-price-triggered-order-3
+ * @see https://www.gate.com/docs/developers/apiv4/en/#create-an-options-order
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} type 'limit' or 'market' *"market" is contract only*
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount the amount of currency to trade
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params]  extra parameters specific to the exchange API endpoint
- * @param {float} [get_value(&params, &Value::Str("triggerPrice".to_string()))] The price at which a trigger order is triggered at
- * @param {string} [get_value(&params, &Value::Str("timeInForce".to_string()))] "GTC", "IOC", or "PO"
- * @param {float} [get_value(&params, &Value::Str("stopLossPrice".to_string()))] The price at which a stop loss order is triggered at
- * @param {float} [get_value(&params, &Value::Str("takeProfitPrice".to_string()))] The price at which a take profit order is triggered at
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated' - marginMode for margin trading if not provided get_value(&this, &Value::Str("options".to_string()))['defaultMarginMode'] is used
- * @param {int} [get_value(&params, &Value::Str("iceberg".to_string()))] Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
- * @param {string} [get_value(&params, &Value::Str("text".to_string()))] User defined information
- * @param {string} [get_value(&params, &Value::Str("account".to_string()))] *spot and margin only* "spot", "margin" or "cross_margin"
- * @param {bool} [get_value(&params, &Value::Str("auto_borrow".to_string()))] *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
- * @param {string} [get_value(&params, &Value::Str("settle".to_string()))] *contract only* Unified Currency Code for settle currency
- * @param {bool} [get_value(&params, &Value::Str("reduceOnly".to_string()))] *contract only* Indicates if this order is to reduce the size of a position
- * @param {bool} [get_value(&params, &Value::Str("close".to_string()))] *contract only* Set as true to close the position, with size set to 0
- * @param {bool} [get_value(&params, &Value::Str("auto_size".to_string()))] *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
- * @param {int} [get_value(&params, &Value::Str("price_type".to_string()))] *contract only* 0 latest deal price, 1 mark price, 2 index price
- * @param {float} [get_value(&params, &Value::Str("cost".to_string()))] *spot market buy only* the quote quantity that can be used as an alternative for the amount
- * @param {bool} [get_value(&params, &Value::Str("unifiedAccount".to_string()))] set to true for creating an order in the unified account
- * @param {string} [get_value(&params, &Value::Str("clientOrderId".to_string()))] the clientOrderId of the order
- * @returns {object|undefined} [An order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+ * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
+ * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
+ * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
+ * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+ * @param {int} [params.iceberg] Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
+ * @param {string} [params.text] User defined information
+ * @param {string} [params.account] *spot and margin only* "spot", "margin" or "cross_margin"
+ * @param {bool} [params.auto_borrow] *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
+ * @param {string} [params.settle] *contract only* Unified Currency Code for settle currency
+ * @param {bool} [params.reduceOnly] *contract only* Indicates if this order is to reduce the size of a position
+ * @param {bool} [params.close] *contract only* Set as true to close the position, with size set to 0
+ * @param {bool} [params.auto_size] *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
+ * @param {int} [params.price_type] *contract only* 0 latest deal price, 1 mark price, 2 index price
+ * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+ * @param {bool} [params.unifiedAccount] set to true for creating an order in the unified account
+ * @param {string} [params.clientOrderId] the clientOrderId of the order
+ * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         self.load_unified_status(&[]).await;
         let mut market: Value = self.market(symbol.clone());
-        let mut trigger: Value = self.safe_value(params.clone(), Value::Str("trigger".to_string()), &[]);
+        let mut trigger: Value = self.safe_value_k(params.clone(), "trigger", &[]);
         let mut triggerPrice: Value = self.safe_value2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
-        let mut stopLossPrice: Value = self.safe_value(params.clone(), Value::Str("stopLossPrice".to_string()), &[triggerPrice.clone()]);
-        let mut takeProfitPrice: Value = self.safe_value(params.clone(), Value::Str("takeProfitPrice".to_string()), &[]);
+        let mut stopLossPrice: Value = self.safe_value_k(params.clone(), "stopLossPrice", &[triggerPrice.clone()]);
+        let mut takeProfitPrice: Value = self.safe_value_k(params.clone(), "takeProfitPrice", &[]);
         let mut isStopLossOrder: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null));
         let mut isTakeProfitOrder: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
         let mut isTpsl: Value = Value::Bool(is_true(&isStopLossOrder) || is_true(&isTakeProfitOrder));
@@ -4996,68 +5198,73 @@ impl GateCore {
             response = self.call_method(Value::Str("private_options_post_orders".to_string()), &[orderRequest.clone()]).await;
         }
         return self.parse_order(response.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn create_orders_request(&self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut ordersRequests: Value = Value::List(vec![]);
         let mut orderSymbols: Value = Value::List(vec![]);
         let mut ordersLength: Value = get_array_length(&orders);
         if is_equal(&ordersLength, &Value::Int(0)) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrders() requires at least one order".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrders() requires at least one order".to_string()))));
         }
         if is_greater_than(&ordersLength, &Value::Int(10)) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrders() accepts a maximum of 10 orders at a time".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrders() accepts a maximum of 10 orders at a time".to_string()))));
         }
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&orders)) {
+            let mut __for_first_699: bool = true;
+            while { if !__for_first_699 { i = add(&i, &Value::Int(1)); } __for_first_699 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
-            let mut marketId: Value = self.safe_string(rawOrder.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut rawOrder: Value = get_value(&orders, &i);
+            let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             append_to_array(&mut orderSymbols, marketId.clone());
-            let mut type_var: Value = self.safe_string(rawOrder.clone(), Value::Str("type".to_string()), &[]);
-            let mut side: Value = self.safe_string(rawOrder.clone(), Value::Str("side".to_string()), &[]);
-            let mut amount: Value = self.safe_value(rawOrder.clone(), Value::Str("amount".to_string()), &[]);
-            let mut price: Value = self.safe_value(rawOrder.clone(), Value::Str("price".to_string()), &[]);
-            let mut orderParams: Value = self.safe_value(rawOrder.clone(), Value::Str("params".to_string()), &[Value::Map({
-                let mut m = std::collections::HashMap::new();
+            let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
+            let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
+            let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
+            let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
+            let mut orderParams: Value = self.safe_value_k(rawOrder.clone(), "params", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
                 m
             })]);
             let mut extendedParams: Value = self.extend(orderParams.clone(), &[params.clone()]); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             let mut triggerValue: Value = self.safe_value_n(orderParams.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("stopLossPrice".to_string())]), &[]);
             if !is_equal(&triggerValue, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)".to_string()))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)".to_string()))));
             }
             add_element_to_object(&mut extendedParams, &Value::Str("textIsRequired".to_string()), Value::Bool(true)); // the exchange requires a text parameter for each order here
             let mut orderRequest: Value = self.create_order_request(marketId.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), extendedParams.clone()]);
             append_to_array(&mut ordersRequests, orderRequest.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut symbols: Value = self.market_symbols(&[orderSymbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut market: Value = self.market(get_value(&symbols, &Value::Int(0)));
         if is_true(&get_value(&market, &Value::Str("future".to_string()))) || is_true(&get_value(&market, &Value::Str("option".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrders() does not support futures or options markets".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrders() does not support futures or options markets".to_string()))));
         }
         return ordersRequests;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#createOrders
  * @description create a list of trade orders
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#batch-place-orders
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#place-batch-futures-orders
+ * @see https://www.gate.com/docs/developers/apiv4/en/#batch-place-orders
+ * @see https://www.gate.com/docs/developers/apiv4/en/#place-batch-futures-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5072,27 +5279,29 @@ impl GateCore {
             response = self.call_method(Value::Str("private_futures_post_settle_batch_orders".to_string()), &[ordersRequests.clone()]).await;
         }
         return self.parse_orders(response.clone(), &[]);
+
+    Value::Null
 }
 
     pub fn create_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut market: Value = self.market(symbol.clone());
         let mut contract: Value = get_value(&market, &Value::Str("contract".to_string()));
-        let mut trigger: Value = self.safe_value(params.clone(), Value::Str("trigger".to_string()), &[]);
+        let mut trigger: Value = self.safe_value_k(params.clone(), "trigger", &[]);
         let mut triggerPrice: Value = self.safe_value2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
-        let mut stopLossPrice: Value = self.safe_value(params.clone(), Value::Str("stopLossPrice".to_string()), &[triggerPrice.clone()]);
-        let mut takeProfitPrice: Value = self.safe_value(params.clone(), Value::Str("takeProfitPrice".to_string()), &[]);
+        let mut stopLossPrice: Value = self.safe_value_k(params.clone(), "stopLossPrice", &[triggerPrice.clone()]);
+        let mut takeProfitPrice: Value = self.safe_value_k(params.clone(), "takeProfitPrice", &[]);
         let mut isStopLossOrder: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null));
         let mut isTakeProfitOrder: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
         let mut isTpsl: Value = Value::Bool(is_true(&isStopLossOrder) || is_true(&isTakeProfitOrder));
         if is_true(&isStopLossOrder) && is_true(&isTakeProfitOrder) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" createOrder() stopLossPrice and takeProfitPrice cannot both be defined".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" createOrder() stopLossPrice and takeProfitPrice cannot both be defined".to_string()))));
         }
-        let mut reduceOnly: Value = self.safe_value(params.clone(), Value::Str("reduceOnly".to_string()), &[]);
+        let mut reduceOnly: Value = self.safe_value_k(params.clone(), "reduceOnly", &[]);
         let mut exchangeSpecificTimeInForce: Value = self.safe_string_lower_n(params.clone(), Value::List(vec![Value::Str("timeInForce".to_string()), Value::Str("tif".to_string()), Value::Str("time_in_force".to_string())]), &[]);
         let mut postOnly: Value = Value::Null;
         { let __destr_tmp = self.handle_post_only(Value::Bool(is_equal(&type_var, &Value::Str("market".to_string()))), Value::Bool(is_equal(&exchangeSpecificTimeInForce, &Value::Str("poc".to_string()))), &[params.clone()]); postOnly = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -5107,14 +5316,14 @@ impl GateCore {
         let mut isLimitOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("limit".to_string())));
         let mut isMarketOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("market".to_string())));
         if is_true(&isLimitOrder) && is_equal(&price, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" createOrder () requires a price argument for ".to_string())), &type_var), &Value::Str(" orders".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" createOrder () requires a price argument for ".to_string())), &type_var), &Value::Str(" orders".to_string()))));
         }
         if is_true(&isMarketOrder) {
             if is_true(&(is_equal(&timeInForce, &Value::Str("poc".to_string())))) || is_true(&(is_equal(&timeInForce, &Value::Str("gtc".to_string())))) {
-                panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" createOrder () timeInForce for market order can only be \"FOK\" or \"IOC\"".to_string()))));
+                panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" createOrder () timeInForce for market order can only be \"FOK\" or \"IOC\"".to_string()))));
             }  else {
                 if is_equal(&timeInForce, &Value::Null) {
-                    let mut defaultTif: Value = self.safe_string(self.options.clone(), Value::Str("defaultTimeInForce".to_string()), &[Value::Str("IOC".to_string())]);
+                    let mut defaultTif: Value = self.safe_string_k(self.options.clone(), "defaultTimeInForce", &[Value::Str("IOC".to_string())]);
                     let mut exchangeSpecificTif: Value = self.safe_string(get_value(&self.options, &Value::Str("timeInForce".to_string())), defaultTif.clone(), &[Value::Str("ioc".to_string())]);
                     timeInForce = exchangeSpecificTif.clone();
                 }
@@ -5124,7 +5333,7 @@ impl GateCore {
             }
         }
         if is_true(&contract) {
-            let mut isClose: Value = self.safe_value(params.clone(), Value::Str("close".to_string()), &[]);
+            let mut isClose: Value = self.safe_value_k(params.clone(), "close", &[]);
             if is_true(&isClose) {
                 amount = Value::Int(0);
             }  else {
@@ -5139,7 +5348,7 @@ impl GateCore {
             if is_true(&contract) {
                 // contract order
                 request = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("contract".to_string(), get_value(&market, &Value::Str("id".to_string())));
                         m.insert("size".to_string(), amount.clone());
                     m
@@ -5163,7 +5372,7 @@ impl GateCore {
                 { let __destr_tmp = self.get_margin_mode(Value::Bool(false), params.clone()); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
                 // spot order
                 request = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("currency_pair".to_string(), get_value(&market, &Value::Str("id".to_string())));
                         m.insert("type".to_string(), type_var.clone());
                         m.insert("account".to_string(), marginMode.clone());
@@ -5174,13 +5383,13 @@ impl GateCore {
                     let mut quoteAmount: Value = Value::Null;
                     let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
                     { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("createMarketBuyOrderRequiresPrice".to_string()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-                    let mut cost: Value = self.safe_number(params.clone(), Value::Str("cost".to_string()), &[]);
+                    let mut cost: Value = self.safe_number_k(params.clone(), "cost", &[]);
                     params = self.omit(params.clone(), Value::Str("cost".to_string()), &[]);
                     if !is_equal(&cost, &Value::Null) {
                         quoteAmount = self.cost_to_precision(symbol.clone(), cost.clone());
                     }  else if is_true(&createMarketBuyOrderRequiresPrice) {
                         if is_equal(&price, &Value::Null) {
-                            panic!("{:?}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument".to_string()))));
+                            panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument".to_string()))));
                         }  else {
                             let mut amountString: Value = self.number_to_string(amount.clone());
                             let mut priceString: Value = self.number_to_string(price.clone());
@@ -5201,14 +5410,14 @@ impl GateCore {
                     add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), timeInForce.clone());
                 }
             }
-            let mut textIsRequired: Value = self.safe_bool(params.clone(), Value::Str("textIsRequired".to_string()), &[Value::Bool(false)]);
+            let mut textIsRequired: Value = self.safe_bool_k(params.clone(), "textIsRequired", &[Value::Bool(false)]);
             if !is_equal(&clientOrderId, &Value::Null) {
                 // user-defined, must follow the rules if not empty
                 //     prefixed with t-
                 //     no longer than 28 bytes without t- prefix
                 //     can only include 0-9, A-Z, a-z, underscores (_), hyphens (-) or dots (.)
                 if is_greater_than(&get_array_length(&clientOrderId), &Value::Int(28)) {
-                    panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrder () clientOrderId or text param must be up to 28 characters".to_string()))));
+                    panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrder () clientOrderId or text param must be up to 28 characters".to_string()))));
                 }
                 params = self.omit(params.clone(), Value::Str("textIsRequired".to_string()), &[]);
                 if !is_equal(&get_value(&clientOrderId, &Value::Int(0)), &Value::Str("t".to_string())) {
@@ -5218,19 +5427,19 @@ impl GateCore {
             }  else {
                 if is_true(&textIsRequired) {
                     // batchOrders requires text in the request
-                    add_element_to_object(&mut request, &Value::Str("text".to_string()), add(&Value::Str("t-".to_string()), &self.uuid16()));
+                    add_element_to_object(&mut request, &Value::Str("text".to_string()), add(&Value::Str("t-".to_string()), &self.uuid16(&[])));
                 }
             }
         }  else {
             if is_true(&get_value(&market, &Value::Str("option".to_string()))) {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() conditional option orders are not supported".to_string()))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() conditional option orders are not supported".to_string()))));
             }
             if is_true(&contract) {
                 // contract conditional order
                 request = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("initial".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("contract".to_string(), get_value(&market, &Value::Str("id".to_string())));
         m.insert("size".to_string(), amount.clone());
     m
@@ -5255,13 +5464,13 @@ impl GateCore {
                         rule = ternary(is_true(&(is_equal(&side, &Value::Str("buy".to_string())))), Value::Int(2), Value::Int(1));
                         triggerOrderPrice = self.price_to_precision(symbol.clone(), takeProfitPrice.clone());
                     }
-                    let mut priceType: Value = self.safe_integer(params.clone(), Value::Str("price_type".to_string()), &[Value::Int(0)]);
+                    let mut priceType: Value = self.safe_integer_k(params.clone(), "price_type", &[Value::Int(0)]);
                     if is_less_than(&priceType, &Value::Int(0)) || is_greater_than(&priceType, &Value::Int(2)) {
-                        panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price".to_string()))));
+                        panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price".to_string()))));
                     }
                     params = self.omit(params.clone(), Value::List(vec![Value::Str("price_type".to_string())]), &[]);
                     add_element_to_object(&mut request, &Value::Str("trigger".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("price_type".to_string(), priceType.clone());
         m.insert("price".to_string(), self.price_to_precision(symbol.clone(), triggerOrderPrice.clone()));
         m.insert("rule".to_string(), rule.clone());
@@ -5279,8 +5488,8 @@ impl GateCore {
                 }
             }  else {
                 // spot conditional order
-                let mut options: Value = self.safe_value(self.options.clone(), Value::Str("createOrder".to_string()), &[Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                let mut options: Value = self.safe_value_k(self.options.clone(), "createOrder", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
                     m
                 })]);
                 let mut marginMode: Value = Value::Null;
@@ -5289,9 +5498,9 @@ impl GateCore {
                     timeInForce = Value::Str("gtc".to_string());
                 }
                 request = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("put".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), type_var.clone());
         m.insert("side".to_string(), side.clone());
         m.insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone()));
@@ -5304,8 +5513,8 @@ impl GateCore {
                     m
                 });
                 if is_equal(&trigger, &Value::Null) {
-                    let mut defaultExpiration: Value = self.safe_integer(options.clone(), Value::Str("expiration".to_string()), &[]);
-                    let mut expiration: Value = self.safe_integer(params.clone(), Value::Str("expiration".to_string()), &[defaultExpiration.clone()]);
+                    let mut defaultExpiration: Value = self.safe_integer_k(options.clone(), "expiration", &[]);
+                    let mut expiration: Value = self.safe_integer_k(params.clone(), "expiration", &[defaultExpiration.clone()]);
                     let mut rule: Value = Value::Null;
                     let mut triggerOrderPrice: Value = Value::Null;
                     if is_true(&isStopLossOrder) {
@@ -5318,7 +5527,7 @@ impl GateCore {
                         triggerOrderPrice = self.price_to_precision(symbol.clone(), takeProfitPrice.clone());
                     }
                     add_element_to_object(&mut request, &Value::Str("trigger".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("price".to_string(), self.price_to_precision(symbol.clone(), triggerOrderPrice.clone()));
         m.insert("rule".to_string(), rule.clone());
         m.insert("expiration".to_string(), expiration.clone());
@@ -5331,43 +5540,47 @@ impl GateCore {
             }
         }
         return self.extend(request.clone(), &[params.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol and cost
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#create-an-order
+ * @see https://www.gate.com/docs/developers/apiv4/en/#create-an-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {bool} [get_value(&params, &Value::Str("unifiedAccount".to_string()))] set to true for creating a unified account order
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {bool} [params.unifiedAccount] set to true for creating a unified account order
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_market_buy_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         self.load_unified_status(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string()))));
         }
         params = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(false));
             m
         })]);
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Null, params.clone()]).await;
+
+    Value::Null
 }
 
     pub fn edit_order_request(&self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut market: Value = self.market(symbol.clone());
@@ -5382,11 +5595,11 @@ impl GateCore {
         let mut isLimitOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("limit".to_string())));
         if is_equal(&account, &Value::Str("spot".to_string())) {
             if !is_true(&isLimitOrder) {
-                panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&add(&add(&add(&self.id, &Value::Str(" editOrder() does not support ".to_string())), &type_var), &Value::Str(" orders for ".to_string())), &marketType), &Value::Str(" markets".to_string()))));
+                panic!("{}", crate::exchange_errors::invalid_order(add(&add(&add(&add(&add(&self.id, &Value::Str(" editOrder() does not support ".to_string())), &type_var), &Value::Str(" orders for ".to_string())), &marketType), &Value::Str(" markets".to_string()))));
             }
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), to_string_val(&id));
                 m.insert("currency_pair".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("account".to_string(), account.clone());
@@ -5410,14 +5623,16 @@ impl GateCore {
             add_element_to_object(&mut request, &Value::Str("settle".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
         }
         return self.extend(request.clone(), &[params.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#editOrder
  * @description edit a trade order, gate currently only supports the modification of the price or amount fields
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#amend-single-order
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#amend-single-order-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#amend-single-order
+ * @see https://www.gate.com/docs/developers/apiv4/en/#amend-single-order-2
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -5425,14 +5640,14 @@ impl GateCore {
  * @param {float} amount how much of the currency you want to trade in units of the base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {bool} [get_value(&params, &Value::Str("unifiedAccount".to_string()))] set to true for editing an order in a unified account
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {bool} [params.unifiedAccount] set to true for editing an order in a unified account
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn edit_order(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5446,11 +5661,13 @@ impl GateCore {
             response = self.call_method(Value::Str("private_futures_put_settle_orders_order_id".to_string()), &[extendedRequest.clone()]).await;
         }
         return self.parse_order(response.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("open".to_string(), Value::Str("open".to_string()));
                 m.insert("_new".to_string(), Value::Str("open".to_string()));
                 m.insert("filled".to_string(), Value::Str("closed".to_string()));
@@ -5465,6 +5682,8 @@ impl GateCore {
             m
         });
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -5666,44 +5885,44 @@ impl GateCore {
         //         "amend_text": "-"
         //     }
         //
-        let mut succeeded: Value = self.safe_bool(order.clone(), Value::Str("succeeded".to_string()), &[Value::Bool(true)]);
+        let mut succeeded: Value = self.safe_bool_k(order.clone(), "succeeded", &[Value::Bool(true)]);
         if !is_true(&succeeded) {
             return self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("clientOrderId".to_string(), self.safe_string(order.clone(), Value::Str("text".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "text", &[]));
         m.insert("info".to_string(), order.clone());
         m.insert("status".to_string(), Value::Str("rejected".to_string()));
-        m.insert("id".to_string(), self.safe_string(order.clone(), Value::Str("id".to_string()), &[]));
+        m.insert("id".to_string(), self.safe_string_k(order.clone(), "id", &[]));
     m
 }), &[]);
         }
         let mut put: Value = self.safe_value2(order.clone(), Value::Str("put".to_string()), Value::Str("initial".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut trigger: Value = self.safe_value(order.clone(), Value::Str("trigger".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut trigger: Value = self.safe_value_k(order.clone(), "trigger", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut contract: Value = self.safe_string(put.clone(), Value::Str("contract".to_string()), &[]);
-        let mut type_var: Value = self.safe_string(put.clone(), Value::Str("type".to_string()), &[]);
+        let mut contract: Value = self.safe_string_k(put.clone(), "contract", &[]);
+        let mut type_var: Value = self.safe_string_k(put.clone(), "type", &[]);
         let mut timeInForce: Value = self.safe_string_upper2(put.clone(), Value::Str("time_in_force".to_string()), Value::Str("tif".to_string()), &[]);
         let mut amount: Value = self.safe_string2(put.clone(), Value::Str("amount".to_string()), Value::Str("size".to_string()), &[]);
-        let mut side: Value = self.safe_string(put.clone(), Value::Str("side".to_string()), &[]);
-        let mut price: Value = self.safe_string(put.clone(), Value::Str("price".to_string()), &[]);
-        contract = self.safe_string(order.clone(), Value::Str("contract".to_string()), &[contract.clone()]);
-        type_var = self.safe_string(order.clone(), Value::Str("type".to_string()), &[type_var.clone()]);
+        let mut side: Value = self.safe_string_k(put.clone(), "side", &[]);
+        let mut price: Value = self.safe_string_k(put.clone(), "price", &[]);
+        contract = self.safe_string_k(order.clone(), "contract", &[contract.clone()]);
+        type_var = self.safe_string_k(order.clone(), "type", &[type_var.clone()]);
         timeInForce = self.safe_string_upper2(order.clone(), Value::Str("time_in_force".to_string()), Value::Str("tif".to_string()), &[timeInForce.clone()]);
         if is_equal(&timeInForce, &Value::Str("POC".to_string())) {
             timeInForce = Value::Str("PO".to_string());
         }
         let mut postOnly: Value = Value::Bool(is_equal(&timeInForce, &Value::Str("PO".to_string())));
         amount = self.safe_string2(order.clone(), Value::Str("amount".to_string()), Value::Str("size".to_string()), &[amount.clone()]);
-        side = self.safe_string(order.clone(), Value::Str("side".to_string()), &[side.clone()]);
-        price = self.safe_string(order.clone(), Value::Str("price".to_string()), &[price.clone()]);
-        let mut remainingString: Value = self.safe_string(order.clone(), Value::Str("left".to_string()), &[]);
-        let mut cost: Value = self.safe_string(order.clone(), Value::Str("filled_total".to_string()), &[]);
-        let mut triggerPrice: Value = self.safe_number(trigger.clone(), Value::Str("price".to_string()), &[]);
+        side = self.safe_string_k(order.clone(), "side", &[side.clone()]);
+        price = self.safe_string_k(order.clone(), "price", &[price.clone()]);
+        let mut remainingString: Value = self.safe_string_k(order.clone(), "left", &[]);
+        let mut cost: Value = self.safe_string_k(order.clone(), "filled_total", &[]);
+        let mut triggerPrice: Value = self.safe_number_k(trigger.clone(), "price", &[]);
         let mut average: Value = self.safe_number2(order.clone(), Value::Str("avg_deal_price".to_string()), Value::Str("fill_price".to_string()), &[]);
         if is_true(&triggerPrice) {
             remainingString = amount.clone();
@@ -5715,7 +5934,7 @@ impl GateCore {
             side = ternary(is_true(&crate::precise::Precise::stringGt(&amount, &Value::Str("0".to_string()))), Value::Str("buy".to_string()), Value::Str("sell".to_string()));
         }
         let mut rawStatus: Value = self.safe_string_n(order.clone(), Value::List(vec![Value::Str("finish_as".to_string()), Value::Str("status".to_string()), Value::Str("open".to_string())]), &[]);
-        let mut timestampStr: Value = self.safe_string(order.clone(), Value::Str("create_time_ms".to_string()), &[]);
+        let mut timestampStr: Value = self.safe_string_k(order.clone(), "create_time_ms", &[]);
         if is_equal(&timestampStr, &Value::Null) {
             timestampStr = self.safe_string2(order.clone(), Value::Str("create_time".to_string()), Value::Str("ctime".to_string()), &[]);
             if !is_equal(&timestampStr, &Value::Null) {
@@ -5728,7 +5947,7 @@ impl GateCore {
                 }
             }
         }
-        let mut lastTradeTimestampStr: Value = self.safe_string(order.clone(), Value::Str("update_time_ms".to_string()), &[]);
+        let mut lastTradeTimestampStr: Value = self.safe_string_k(order.clone(), "update_time_ms", &[]);
         if is_equal(&lastTradeTimestampStr, &Value::Null) {
             lastTradeTimestampStr = self.safe_string2(order.clone(), Value::Str("update_time".to_string()), Value::Str("finish_time".to_string()), &[]);
             if !is_equal(&lastTradeTimestampStr, &Value::Null) {
@@ -5748,29 +5967,29 @@ impl GateCore {
         let mut exchangeSymbol: Value = self.safe_string2(order.clone(), Value::Str("currency_pair".to_string()), Value::Str("market".to_string()), &[contract.clone()]);
         let mut symbol: Value = self.safe_symbol(exchangeSymbol.clone(), &[market.clone(), Value::Str("_".to_string()), marketType.clone()]);
         let mut fees: Value = Value::List(vec![]);
-        let mut gtFee: Value = self.safe_string(order.clone(), Value::Str("gt_fee".to_string()), &[]);
+        let mut gtFee: Value = self.safe_string_k(order.clone(), "gt_fee", &[]);
         if !is_equal(&gtFee, &Value::Null) {
             append_to_array(&mut fees, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), Value::Str("GT".to_string()));
                     m.insert("cost".to_string(), gtFee.clone());
                 m
             }));
         }
-        let mut fee: Value = self.safe_string(order.clone(), Value::Str("fee".to_string()), &[]);
+        let mut fee: Value = self.safe_string_k(order.clone(), "fee", &[]);
         if !is_equal(&fee, &Value::Null) {
             append_to_array(&mut fees, Value::Map({
-                let mut m = std::collections::HashMap::new();
-                    m.insert("currency".to_string(), self.safe_currency_code(self.safe_string(order.clone(), Value::Str("fee_currency".to_string()), &[]), &[]));
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(order.clone(), "fee_currency", &[]), &[]));
                     m.insert("cost".to_string(), fee.clone());
                 m
             }));
         }
-        let mut rebate: Value = self.safe_string(order.clone(), Value::Str("rebated_fee".to_string()), &[]);
+        let mut rebate: Value = self.safe_string_k(order.clone(), "rebated_fee", &[]);
         if !is_equal(&rebate, &Value::Null) {
             append_to_array(&mut fees, Value::Map({
-                let mut m = std::collections::HashMap::new();
-                    m.insert("currency".to_string(), self.safe_currency_code(self.safe_string(order.clone(), Value::Str("rebated_fee_currency".to_string()), &[]), &[]));
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(order.clone(), "rebated_fee_currency", &[]), &[]));
                     m.insert("cost".to_string(), crate::precise::Precise::stringNeg(&rebate));
                 m
             }));
@@ -5780,9 +5999,9 @@ impl GateCore {
         let mut status: Value = self.parse_order_status(rawStatus.clone());
         let mut remaining: Value = crate::precise::Precise::stringAbs(&remainingString);
         // handle spot market buy
-        let mut account: Value = self.safe_string(order.clone(), Value::Str("account".to_string()), &[]); // using this instead of market type because of the conflicting ids
+        let mut account: Value = self.safe_string_k(order.clone(), "account", &[]); // using this instead of market type because of the conflicting ids
         if is_true(&(is_equal(&account, &Value::Str("spot".to_string())))) || is_true(&(is_equal(&account, &Value::Str("unified".to_string())))) {
-            let mut averageString: Value = self.safe_string(order.clone(), Value::Str("avg_deal_price".to_string()), &[]);
+            let mut averageString: Value = self.safe_string_k(order.clone(), "avg_deal_price", &[]);
             average = self.parse_number(averageString.clone(), &[]);
             if is_true(&(is_equal(&type_var, &Value::Str("market".to_string())))) && is_true(&(is_equal(&side, &Value::Str("buy".to_string())))) {
                 remaining = crate::precise::Precise::stringDiv(&remainingString, &averageString);
@@ -5799,13 +6018,13 @@ impl GateCore {
         if !is_equal(&lastTradeTimestampStr, &Value::Null) {
             lastTradeTimestamp = self.parse_to_int(lastTradeTimestampStr.clone());
         }
-        let mut initial: Value = self.safe_dict(order.clone(), Value::Str("initial".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut initial: Value = self.safe_dict_k(order.clone(), "initial", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut reduceOnlyInitial: Value = self.safe_bool(initial.clone(), Value::Str("is_reduce_only".to_string()), &[]);
-        let mut reduceOnly: Value = self.safe_bool(order.clone(), Value::Str("is_reduce_only".to_string()), &[reduceOnlyInitial.clone()]);
-        let mut clientOrderId: Value = self.safe_string(order.clone(), Value::Str("text".to_string()), &[]);
+        let mut reduceOnlyInitial: Value = self.safe_bool_k(initial.clone(), "is_reduce_only", &[]);
+        let mut reduceOnly: Value = self.safe_bool_k(order.clone(), "is_reduce_only", &[reduceOnlyInitial.clone()]);
+        let mut clientOrderId: Value = self.safe_string_k(order.clone(), "text", &[]);
         if is_equal(&clientOrderId, &Value::Null) {
             if is_true(&Value::Bool(in_op(&order, &Value::Str("initial".to_string())))) {
                 clientOrderId = self.safe_string(get_value(&order, &Value::Str("initial".to_string())), Value::Str("text".to_string()), &[]);
@@ -5814,8 +6033,8 @@ impl GateCore {
             }
         }
         return self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("id".to_string(), self.safe_string(order.clone(), Value::Str("id".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), self.safe_string_k(order.clone(), "id", &[]));
         m.insert("clientOrderId".to_string(), clientOrderId.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
@@ -5840,12 +6059,14 @@ impl GateCore {
         m.insert("info".to_string(), order.clone());
     m
 }), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn fetch_order_request(&self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut market: Value = ternary(is_true(&(is_equal(&symbol, &Value::Null))), Value::Null, self.market(symbol.clone()));
@@ -5869,33 +6090,35 @@ impl GateCore {
         let mut requestParams: Value = get_value(&requestrequestParamsVariable, &Value::Int(1));
         add_element_to_object(&mut request, &Value::Str("order_id".to_string()), to_string_val(&orderId));
         return Value::List(vec![request.clone(), requestParams.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchOrder
  * @description Retrieves information on an order
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-single-order-details
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-single-auto-order-details
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-single-order-details-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-single-auto-order-details-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-single-order-details-3
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-single-auto-order-details-3
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-single-order-details-4
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-single-auto-order-details
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-single-auto-order-details-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details-3
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-single-auto-order-details-3
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details-4
  * @param {string} id Order id
  * @param {string} symbol Unified market symbol, *required for spot and margin*
  * @param {object} [params] Parameters specified by the exchange api
- * @param {bool} [get_value(&params, &Value::Str("trigger".to_string()))] True if the order being fetched is a trigger order
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated' - marginMode for margin trading if not provided get_value(&this, &Value::Str("options".to_string()))['defaultMarginMode'] is used
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] 'spot', 'swap', or 'future', if not provided get_value(&this, &Value::Str("options".to_string()))['defaultMarginMode'] is used
- * @param {string} [get_value(&params, &Value::Str("settle".to_string()))] 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
- * @param {bool} [get_value(&params, &Value::Str("unifiedAccount".to_string()))] set to true for fetching a unified account order
- * @returns An [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {bool} [params.trigger] True if the order being fetched is a trigger order
+ * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+ * @param {string} [params.type] 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
+ * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
+ * @param {bool} [params.unifiedAccount] set to true for fetching a unified account order
+ * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5929,71 +6152,75 @@ impl GateCore {
         }  else if is_equal(&type_var, &Value::Str("option".to_string())) {
             response = self.call_method(Value::Str("private_options_get_orders_order_id".to_string()), &[self.extend(request.clone(), &[requestParams.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrder() not support this market type".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrder() not support this market type".to_string()))));
         }
         return self.parse_order(response.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#list-all-open-orders
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-all-open-orders
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {bool} [get_value(&params, &Value::Str("trigger".to_string()))] true for fetching trigger orders
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] spot, margin, swap or future, if not provided get_value(&this, &Value::Str("options".to_string()))['defaultType'] is used
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated' - marginMode for type='margin', if not provided get_value(&this, &Value::Str("options".to_string()))['defaultMarginMode'] is used
- * @param {bool} [get_value(&params, &Value::Str("unifiedAccount".to_string()))] set to true for fetching unified account orders
- * @returns {Order[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {bool} [params.trigger] true for fetching trigger orders
+ * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
+ * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
+ * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_open_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.fetch_orders_by_status(Value::Str("open".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/en-eu/docs/developers/apiv4/#list-orders
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/en-eu/docs/developers/apiv4/#retrieve-running-auto-order-list
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-futures-order-list
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-auto-order-list
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-futures-order-list-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-auto-order-list-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#list-options-orders
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-futures-order-list-by-time-range
+ * @see https://www.gate.com/en-eu/docs/developers/apiv4/#list-orders
+ * @see https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-running-auto-order-list
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-futures-order-list
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-auto-order-list
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-futures-order-list-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-auto-order-list-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-options-orders
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-futures-order-list-by-time-range
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {bool} [get_value(&params, &Value::Str("trigger".to_string()))] true for fetching trigger orders
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] spot, swap or future, if not provided get_value(&this, &Value::Str("options".to_string()))['defaultType'] is used
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated' - marginMode for margin trading if not provided get_value(&this, &Value::Str("options".to_string()))['defaultMarginMode'] is used
- * @param {boolean} [get_value(&params, &Value::Str("historical".to_string()))] *swap only* true for using historical endpoint
- * @param {bool} [get_value(&params, &Value::Str("unifiedAccount".to_string()))] set to true for fetching unified account orders
- * @returns {Order[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {bool} [params.trigger] true for fetching trigger orders
+ * @param {string} [params.type] spot, swap or future, if not provided this.options['defaultType'] is used
+ * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+ * @param {boolean} [params.historical] *swap only* true for using historical endpoint
+ * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_closed_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         self.load_unified_status(&[]).await;
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -6008,7 +6235,7 @@ impl GateCore {
         }
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         { let __destr_tmp = self.prepare_request(&[market.clone(), type_var.clone(), params.clone()]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -6024,6 +6251,8 @@ impl GateCore {
         }
         let mut response: Value = self.call_method(Value::Str("private_futures_get_settle_orders_timerange".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn prepare_orders_by_status_request(&self, mut status: Value, optional_args: &[Value]) -> Value {
@@ -6031,7 +6260,7 @@ impl GateCore {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut market: Value = Value::Null;
@@ -6045,7 +6274,7 @@ impl GateCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOrdersByStatus".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut spot: Value = Value::Bool(is_true(&(is_equal(&type_var, &Value::Str("spot".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("margin".to_string())))));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         { let __destr_tmp = ternary(is_true(&spot), self.multi_order_spot_prepare_request(&[market.clone(), trigger.clone(), params.clone()]), self.prepare_request(&[market.clone(), type_var.clone(), params.clone()])); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -6063,7 +6292,7 @@ impl GateCore {
             if !is_equal(&since, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("from".to_string()), self.parse_to_int(divide(&since, &Value::Int(1000))));
             }
-            let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+            let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
             if !is_equal(&until, &Value::Null) {
                 params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
                 add_element_to_object(&mut request, &Value::Str("to".to_string()), self.parse_to_int(divide(&until, &Value::Int(1000))));
@@ -6076,6 +6305,8 @@ impl GateCore {
             add_element_to_object(&mut request, &Value::Str("last_id".to_string()), lastId.clone());
         }
         return Value::List(vec![request.clone(), finalParams.clone()]);
+
+    Value::Null
 }
 
     pub async fn fetch_orders_by_status(&mut self, mut status: Value, optional_args: &[Value]) -> Value {
@@ -6083,7 +6314,7 @@ impl GateCore {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6129,7 +6360,7 @@ impl GateCore {
         }  else if is_equal(&type_var, &Value::Str("option".to_string())) {
             response = self.call_method(Value::Str("private_options_get_orders".to_string()), &[self.extend(request.clone(), &[requestParams.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrders() not support this market type".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrders() not support this market type".to_string()))));
         }
         //
         // spot open orders
@@ -6282,39 +6513,41 @@ impl GateCore {
             result = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&response)) {
-                let mut ordersInner: Value = self.safe_value(get_value(&response, &i), Value::Str("orders".to_string()), &[]);
+                let mut __for_first_700: bool = true;
+                while { if !__for_first_700 { i = add(&i, &Value::Int(1)); } __for_first_700 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut ordersInner: Value = self.safe_value_k(get_value(&response, &i), "orders", &[]);
                 result = self.array_concat(result.clone(), ordersInner.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
         }
         let mut orders: Value = self.parse_orders(result.clone(), &[market.clone(), since.clone(), limit.clone()]);
         return self.filter_by_symbol_since_limit(orders.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#cancelOrder
  * @description Cancels an open order
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#cancel-single-order
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#cancel-single-auto-order
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#cancel-single-order-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#cancel-single-auto-order-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#cancel-single-order-3
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#cancel-single-auto-order-3
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#cancel-single-order-4
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-single-auto-order
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-single-auto-order-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order-3
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-single-auto-order-3
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order-4
  * @param {string} id Order id
  * @param {string} symbol Unified market symbol
  * @param {object} [params] Parameters specified by the exchange api
- * @param {bool} [get_value(&params, &Value::Str("trigger".to_string()))] True if the order to be cancelled is a trigger order
- * @param {bool} [get_value(&params, &Value::Str("unifiedAccount".to_string()))] set to true for canceling unified account orders
- * @returns An [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {bool} [params.trigger] True if the order to be cancelled is a trigger order
+ * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
+ * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6351,27 +6584,29 @@ impl GateCore {
         }  else if is_equal(&type_var, &Value::Str("option".to_string())) {
             response = self.call_method(Value::Str("private_options_delete_orders_order_id".to_string()), &[self.extend(request.clone(), &[requestParams.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrder() not support this market type".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrder() not support this market type".to_string()))));
         }
         return self.parse_order(response.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#cancelOrders
  * @description cancel multiple orders
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#cancel-batch-orders-by-specified-id-list
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#cancel-batch-orders-by-specified-id-list-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-batch-orders-by-specified-id-list
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-batch-orders-by-specified-id-list-2
  * @param {string[]} ids order ids
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {bool} [get_value(&params, &Value::Str("unifiedAccount".to_string()))] set to true for canceling unified account orders
- * @returns {object} an list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6386,57 +6621,60 @@ impl GateCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelOrders".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isSpot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
         if is_true(&isSpot) && is_true(&(is_equal(&symbol, &Value::Null))) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders requires a symbol argument for spot markets".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders requires a symbol argument for spot markets".to_string()))));
         }
         if is_true(&isSpot) {
             let mut ordersRequests: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&ids)) {
+                let mut __for_first_701: bool = true;
+                while { if !__for_first_701 { i = add(&i, &Value::Int(1)); } __for_first_701 = false; is_less_than(&i, &get_array_length(&ids)) } {
+                let mut id: Value = get_value(&ids, &i);
                 let mut id: Value = get_value(&ids, &i);
                 let mut orderItem: Value = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), id.clone());
                         m.insert("symbol".to_string(), symbol.clone());
                     m
                 });
                 append_to_array(&mut ordersRequests, orderItem.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
             return self.cancel_orders_for_symbols(ordersRequests.clone(), &[params.clone()]).await;
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("settle".to_string(), settle.clone());
             m
         });
         let mut finalList: Value = Value::List(vec![request.clone()]); // hacky but needs to be done here
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&ids)) {
+            let mut __for_first_702: bool = true;
+            while { if !__for_first_702 { i = add(&i, &Value::Int(1)); } __for_first_702 = false; is_less_than(&i, &get_array_length(&ids)) } {
             append_to_array(&mut finalList, get_value(&ids, &i));
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut response: Value = self.call_method(Value::Str("private_futures_post_settle_batch_cancel_orders".to_string()), &[finalList.clone()]).await;
         return self.parse_orders(response.clone(), &[]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#cancelOrdersForSymbols
  * @description cancel multiple orders for multiple symbols
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/en-eu/docs/developers/apiv4/#cancel-a-batch-of-orders-with-an-id-list
+ * @see https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-batch-of-orders-with-an-id-list
  * @param {CancellationRequest[]} orders list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string[]} [get_value(&params, &Value::Str("clientOrderIds".to_string()))] client order ids
- * @param {bool} [get_value(&params, &Value::Str("unifiedAccount".to_string()))] set to true for canceling unified account orders
- * @returns {object} an list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string[]} [params.clientOrderIds] client order ids
+ * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_orders_for_symbols(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6444,48 +6682,51 @@ impl GateCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&orders)) {
+            let mut __for_first_703: bool = true;
+            while { if !__for_first_703 { i = add(&i, &Value::Int(1)); } __for_first_703 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = get_value(&orders, &i);
-            let mut symbol: Value = self.safe_string(order.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut order: Value = get_value(&orders, &i);
+            let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[]);
             let mut market: Value = self.market(symbol.clone());
             if !is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrdersForSymbols() supports only spot markets".to_string()))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrdersForSymbols() supports only spot markets".to_string()))));
             }
-            let mut id: Value = self.safe_string(order.clone(), Value::Str("id".to_string()), &[]);
+            let mut id: Value = self.safe_string_k(order.clone(), "id", &[]);
             let mut orderItem: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
                     m.insert("currency_pair".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m
             });
             append_to_array(&mut ordersRequests, orderItem.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut response: Value = self.call_method(Value::Str("private_spot_post_cancel_batch_orders".to_string()), &[ordersRequests.clone()]).await;
         return self.parse_orders(response.clone(), &[]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#cancelAllOrders
  * @description cancel all open orders
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#cancel-all-auto-orders
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#cancel-all-auto-orders-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#cancel-all-auto-orders-3
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-3
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders-3
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-3
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {bool} [get_value(&params, &Value::Str("unifiedAccount".to_string()))] set to true for canceling unified account orders
- * @returns {object[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_all_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6521,27 +6762,29 @@ impl GateCore {
         }  else if is_equal(&type_var, &Value::Str("option".to_string())) {
             response = self.call_method(Value::Str("private_options_delete_orders".to_string()), &[self.extend(request.clone(), &[requestParams.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrders() not support this market type".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrders() not support this market type".to_string()))));
         }
         return self.parse_orders(response.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#transfer-between-trading-accounts
+ * @see https://www.gate.com/docs/developers/apiv4/en/#transfer-between-trading-accounts
  * @param {string} code unified currency code for currency being transferred
  * @param {float} amount the amount of currency to transfer
  * @param {string} fromAccount the account to transfer currency from
  * @param {string} toAccount the account to transfer currency to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("symbol".to_string()))] Unified market symbol *required for type == margin*
- * @returns A [transfer structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transfer-structure}
+ * @param {string} [params.symbol] Unified market symbol *required for type == margin*
+ * @returns A [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
     pub async fn transfer(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6550,7 +6793,7 @@ impl GateCore {
         let mut toId: Value = self.convert_type_to_account(toAccount.clone());
         let mut truncated: Value = self.currency_to_precision(code.clone(), amount.clone(), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("amount".to_string(), truncated.clone());
             m
@@ -6570,7 +6813,7 @@ impl GateCore {
         if is_equal(&fromId, &Value::Str("margin".to_string())) || is_equal(&toId, &Value::Str("margin".to_string())) {
             let mut symbol: Value = self.safe_string2(params.clone(), Value::Str("symbol".to_string()), Value::Str("currency_pair".to_string()), &[]);
             if is_equal(&symbol, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" transfer requires params[\"symbol\"] for isolated margin transfers".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" transfer requires params[\"symbol\"] for isolated margin transfers".to_string()))));
             }
             let mut market: Value = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("currency_pair".to_string()), get_value(&market, &Value::Str("id".to_string())));
@@ -6581,13 +6824,15 @@ impl GateCore {
         }
         let mut response: Value = self.call_method(Value::Str("private_wallet_post_transfers".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_transfer(response.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_transfer(&self, mut transfer: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("id".to_string(), self.safe_string(transfer.clone(), Value::Str("tx_id".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), self.safe_string_k(transfer.clone(), "tx_id", &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("currency".to_string(), self.safe_currency_code(Value::Null, &[currency.clone()]));
@@ -6598,14 +6843,16 @@ impl GateCore {
         m.insert("info".to_string(), transfer.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#setLeverage
  * @description set the level of leverage for a market
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#update-position-leverage
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#update-position-leverage-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#update-position-leverage
+ * @see https://www.gate.com/docs/developers/apiv4/en/#update-position-leverage-2
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6614,16 +6861,16 @@ impl GateCore {
     pub async fn set_leverage(&mut self, mut leverage: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage() requires a symbol argument".to_string()))));
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if is_true(&(is_less_than(&leverage, &Value::Int(0)))) || is_true(&(is_greater_than(&leverage, &Value::Int(100)))) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" setLeverage() leverage should be between 1 and 100".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" setLeverage() leverage should be between 1 and 100".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
@@ -6631,8 +6878,8 @@ impl GateCore {
         let mut request: Value = get_value(&requestqueryVariable, &Value::Int(0));
         let mut query: Value = get_value(&requestqueryVariable, &Value::Int(1));
         let mut defaultMarginMode: Value = self.safe_string2(self.options.clone(), Value::Str("marginMode".to_string()), Value::Str("defaultMarginMode".to_string()), &[]);
-        let mut crossLeverageLimit: Value = self.safe_string(query.clone(), Value::Str("cross_leverage_limit".to_string()), &[]);
-        let mut marginMode: Value = self.safe_string(query.clone(), Value::Str("marginMode".to_string()), &[defaultMarginMode.clone()]);
+        let mut crossLeverageLimit: Value = self.safe_string_k(query.clone(), "cross_leverage_limit", &[]);
+        let mut marginMode: Value = self.safe_string_k(query.clone(), "marginMode", &[defaultMarginMode.clone()]);
         let mut stringifiedMargin: Value = self.number_to_string(leverage.clone());
         if !is_equal(&crossLeverageLimit, &Value::Null) {
             marginMode = Value::Str("cross".to_string());
@@ -6650,9 +6897,11 @@ impl GateCore {
         }  else if is_true(&get_value(&market, &Value::Str("future".to_string()))) {
             response = self.call_method(Value::Str("private_delivery_post_settle_positions_contract_leverage".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setLeverage() not support this market type".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setLeverage() not support this market type".to_string()))));
         }
         return response;
+
+    Value::Null
 }
 
     pub fn parse_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
@@ -6731,10 +6980,10 @@ impl GateCore {
         //        "first_open_time": 1711037985     // First Open Time
         //    }
         //
-        let mut contract: Value = self.safe_string(position.clone(), Value::Str("contract".to_string()), &[]);
+        let mut contract: Value = self.safe_string_k(position.clone(), "contract", &[]);
         market = self.safe_market(&[contract.clone(), market.clone(), Value::Str("_".to_string()), Value::Str("contract".to_string())]);
         let mut size: Value = self.safe_string2(position.clone(), Value::Str("size".to_string()), Value::Str("accum_size".to_string()), &[]);
-        let mut side: Value = self.safe_string(position.clone(), Value::Str("side".to_string()), &[]);
+        let mut side: Value = self.safe_string_k(position.clone(), "side", &[]);
         if is_equal(&side, &Value::Null) {
             if is_true(&crate::precise::Precise::stringGt(&size, &Value::Str("0".to_string()))) {
                 side = Value::Str("long".to_string());
@@ -6742,9 +6991,9 @@ impl GateCore {
                 side = Value::Str("short".to_string());
             }
         }
-        let mut maintenanceRate: Value = self.safe_string(position.clone(), Value::Str("maintenance_rate".to_string()), &[]);
-        let mut notional: Value = self.safe_string(position.clone(), Value::Str("value".to_string()), &[]);
-        let mut leverage: Value = self.safe_string(position.clone(), Value::Str("leverage".to_string()), &[]);
+        let mut maintenanceRate: Value = self.safe_string_k(position.clone(), "maintenance_rate", &[]);
+        let mut notional: Value = self.safe_string_k(position.clone(), "value", &[]);
+        let mut leverage: Value = self.safe_string_k(position.clone(), "leverage", &[]);
         let mut marginMode: Value = Value::Null;
         if !is_equal(&leverage, &Value::Null) {
             if is_equal(&leverage, &Value::Str("0".to_string())) {
@@ -6756,7 +7005,7 @@ impl GateCore {
         // Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
         // *The default leverage under the full position is the highest leverage in the market.
         // *Trading fee is charged as Taker Fee Rate (0.075%).
-        let mut feePaid: Value = self.safe_string(position.clone(), Value::Str("pnl_fee".to_string()), &[]);
+        let mut feePaid: Value = self.safe_string_k(position.clone(), "pnl_fee", &[]);
         let mut initialMarginString: Value = Value::Null;
         if is_equal(&feePaid, &Value::Null) {
             let mut takerFee: Value = Value::Str("0.00075".to_string());
@@ -6768,10 +7017,10 @@ impl GateCore {
             timestamp = Value::Null;
         }
         return self.safe_position(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
-        m.insert("symbol".to_string(), self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp2(position.clone(), Value::Str("update_time".to_string()), Value::Str("time".to_string()), &[]));
@@ -6779,18 +7028,18 @@ impl GateCore {
         m.insert("initialMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&initialMarginString, &notional), &[]));
         m.insert("maintenanceMargin".to_string(), self.parse_number(crate::precise::Precise::stringMul(&maintenanceRate, &notional), &[]));
         m.insert("maintenanceMarginPercentage".to_string(), self.parse_number(maintenanceRate.clone(), &[]));
-        m.insert("entryPrice".to_string(), self.safe_number(position.clone(), Value::Str("entry_price".to_string()), &[]));
+        m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "entry_price", &[]));
         m.insert("notional".to_string(), self.parse_number(notional.clone(), &[]));
-        m.insert("leverage".to_string(), self.safe_number(position.clone(), Value::Str("leverage".to_string()), &[]));
-        m.insert("unrealizedPnl".to_string(), self.safe_number(position.clone(), Value::Str("unrealised_pnl".to_string()), &[]));
+        m.insert("leverage".to_string(), self.safe_number_k(position.clone(), "leverage", &[]));
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealised_pnl", &[]));
         m.insert("realizedPnl".to_string(), self.safe_number2(position.clone(), Value::Str("realised_pnl".to_string()), Value::Str("pnl".to_string()), &[]));
         m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&size), &[]));
-        m.insert("contractSize".to_string(), self.safe_number(market.clone(), Value::Str("contractSize".to_string()), &[]));
+        m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractSize", &[]));
         m.insert("marginRatio".to_string(), Value::Null);
-        m.insert("liquidationPrice".to_string(), self.safe_number(position.clone(), Value::Str("liq_price".to_string()), &[]));
-        m.insert("markPrice".to_string(), self.safe_number(position.clone(), Value::Str("mark_price".to_string()), &[]));
+        m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liq_price", &[]));
+        m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "mark_price", &[]));
         m.insert("lastPrice".to_string(), Value::Null);
-        m.insert("collateral".to_string(), self.safe_number(position.clone(), Value::Str("margin".to_string()), &[]));
+        m.insert("collateral".to_string(), self.safe_number_k(position.clone(), "margin", &[]));
         m.insert("marginMode".to_string(), marginMode.clone());
         m.insert("side".to_string(), side.clone());
         m.insert("percentage".to_string(), Value::Null);
@@ -6798,31 +7047,33 @@ impl GateCore {
         m.insert("takeProfitPrice".to_string(), Value::Null);
     m
 }));
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchPosition
  * @description fetch data on an open contract position
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-single-position-information
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-single-position-information-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-specified-contract-position
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-single-position-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-single-position-information-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-specified-contract-position
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchPosition() supports contract markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchPosition() supports contract markets only".to_string()))));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         { let __destr_tmp = self.prepare_request(&[market.clone(), get_value(&market, &Value::Str("type".to_string())), params.clone()]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -6836,25 +7087,27 @@ impl GateCore {
             response = self.call_method(Value::Str("private_options_get_positions_contract".to_string()), &[extendedRequest.clone()]).await;
         }
         return self.parse_position(response.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchPositions
  * @description fetch all open positions
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-user-position-list
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-user-position-list-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#list-user-s-positions-of-specified-underlying
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-user-position-list
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-user-position-list-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-user-s-positions-of-specified-underlying
  * @param {string[]|undefined} symbols Not used by gate, but parsed internally by CCXT
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("settle".to_string()))] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] swap, future or option, if not provided get_value(&this, &Value::Str("options".to_string()))['defaultType'] is used
- * @returns {object[]} a list of [position structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
+ * @param {string} [params.type] swap, future or option, if not provided this.options['defaultType'] is used
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_positions(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6868,7 +7121,7 @@ impl GateCore {
         }
         let mut type_var: Value = Value::Null;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchPositions".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -6893,22 +7146,24 @@ impl GateCore {
             response = self.call_method(Value::Str("private_options_get_positions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
         return self.parse_positions(response.clone(), &[symbols.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchLeverageTiers
  * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-all-futures-contracts
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-all-futures-contracts-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [leverage tiers structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=leverage-tiers-structure}, indexed by market symbols
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
     pub async fn fetch_leverage_tiers(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6919,7 +7174,7 @@ impl GateCore {
         let mut request: Value = get_value(&requestrequestParamsVariable, &Value::Int(0));
         let mut requestParams: Value = get_value(&requestrequestParamsVariable, &Value::Int(1));
         if !is_equal(&type_var, &Value::Str("future".to_string())) && !is_equal(&type_var, &Value::Str("swap".to_string())) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchLeverageTiers only supports swap and future".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchLeverageTiers only supports swap and future".to_string()))));
         }
         let mut response: Value = Value::Null;
         if is_equal(&type_var, &Value::Str("swap".to_string())) {
@@ -6927,24 +7182,26 @@ impl GateCore {
         }  else if is_equal(&type_var, &Value::Str("future".to_string())) {
             response = self.call_method(Value::Str("public_delivery_get_settle_contracts".to_string()), &[self.extend(request.clone(), &[requestParams.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLeverageTiers() not support this market type".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLeverageTiers() not support this market type".to_string()))));
         }
         return self.parse_leverage_tiers(response.clone(), &[symbols.clone(), Value::Str("name".to_string())]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchMarketLeverageTiers
  * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-risk-limit-tiers
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-risk-limit-tiers-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers-2
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage tiers structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=leverage-tiers-structure}
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
     pub async fn fetch_market_leverage_tiers(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6956,7 +7213,7 @@ impl GateCore {
         let mut request: Value = get_value(&requestrequestParamsVariable, &Value::Int(0));
         let mut requestParams: Value = get_value(&requestrequestParamsVariable, &Value::Int(1));
         if !is_equal(&type_var, &Value::Str("future".to_string())) && !is_equal(&type_var, &Value::Str("swap".to_string())) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchMarketLeverageTiers only supports swap and future".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchMarketLeverageTiers only supports swap and future".to_string()))));
         }
         let mut response: Value = Value::Null;
         if is_equal(&type_var, &Value::Str("swap".to_string())) {
@@ -6976,15 +7233,17 @@ impl GateCore {
             response = self.call_method(Value::Str("public_delivery_get_settle_risk_limit_tiers".to_string()), &[self.extend(request.clone(), &[requestParams.clone()])]).await;
         }
         return self.parse_market_leverage_tiers(response.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_emulated_leverage_tiers(&self, mut info: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut marketId: Value = self.safe_string(info.clone(), Value::Str("name".to_string()), &[]);
-        let mut maintenanceMarginUnit: Value = self.safe_string(info.clone(), Value::Str("maintenance_rate".to_string()), &[]); // '0.005',
-        let mut leverageMax: Value = self.safe_string(info.clone(), Value::Str("leverage_max".to_string()), &[]); // '100',
-        let mut riskLimitStep: Value = self.safe_string(info.clone(), Value::Str("risk_limit_step".to_string()), &[]); // '1000000',
-        let mut riskLimitMax: Value = self.safe_string(info.clone(), Value::Str("risk_limit_max".to_string()), &[]); // '16000000',
+        let mut marketId: Value = self.safe_string_k(info.clone(), "name", &[]);
+        let mut maintenanceMarginUnit: Value = self.safe_string_k(info.clone(), "maintenance_rate", &[]); // '0.005',
+        let mut leverageMax: Value = self.safe_string_k(info.clone(), "leverage_max", &[]); // '100',
+        let mut riskLimitStep: Value = self.safe_string_k(info.clone(), "risk_limit_step", &[]); // '1000000',
+        let mut riskLimitMax: Value = self.safe_string_k(info.clone(), "risk_limit_max", &[]); // '16000000',
         let mut initialMarginUnit: Value = crate::precise::Precise::stringDiv(&Value::Str("1".to_string()), &leverageMax);
         let mut maintenanceMarginRate: Value = maintenanceMarginUnit.clone();
         let mut initialMarginRatio: Value = initialMarginUnit.clone();
@@ -6993,10 +7252,10 @@ impl GateCore {
         while is_true(&crate::precise::Precise::stringLt(&floor, &riskLimitMax)) {
             let mut cap: Value = crate::precise::Precise::stringAdd(&floor, &riskLimitStep);
             append_to_array(&mut tiers, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&cap, &riskLimitStep), &[]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("contract".to_string())]));
-                    m.insert("currency".to_string(), self.safe_string(market.clone(), Value::Str("settle".to_string()), &[]));
+                    m.insert("currency".to_string(), self.safe_string_k(market.clone(), "settle", &[]));
                     m.insert("minNotional".to_string(), self.parse_number(floor.clone(), &[]));
                     m.insert("maxNotional".to_string(), self.parse_number(cap.clone(), &[]));
                     m.insert("maintenanceMarginRate".to_string(), self.parse_number(maintenanceMarginRate.clone(), &[]));
@@ -7009,6 +7268,8 @@ impl GateCore {
             floor = cap.clone();
         }
         return tiers;
+
+    Value::Null
 }
 
     pub fn parse_market_leverage_tiers(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -7031,50 +7292,53 @@ impl GateCore {
         let mut tiers: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&info)) {
+            let mut __for_first_704: bool = true;
+            while { if !__for_first_704 { i = add(&i, &Value::Int(1)); } __for_first_704 = false; is_less_than(&i, &get_array_length(&info)) } {
             let mut item: Value = get_value(&info, &i);
-            let mut maxNotional: Value = self.safe_number(item.clone(), Value::Str("risk_limit".to_string()), &[]);
+            let mut item: Value = get_value(&info, &i);
+            let mut maxNotional: Value = self.safe_number_k(item.clone(), "risk_limit", &[]);
             append_to_array(&mut tiers, Value::Map({
-                let mut m = std::collections::HashMap::new();
-                    m.insert("tier".to_string(), self.sum(i.clone(), Value::Int(1), &[]));
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("tier".to_string(), self.sum(&[i.clone(), Value::Int(1)]));
                     m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
                     m.insert("currency".to_string(), get_value(&market, &Value::Str("base".to_string())));
                     m.insert("minNotional".to_string(), minNotional.clone());
                     m.insert("maxNotional".to_string(), maxNotional.clone());
-                    m.insert("maintenanceMarginRate".to_string(), self.safe_number(item.clone(), Value::Str("maintenance_rate".to_string()), &[]));
-                    m.insert("maxLeverage".to_string(), self.safe_number(item.clone(), Value::Str("leverage_max".to_string()), &[]));
+                    m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(item.clone(), "maintenance_rate", &[]));
+                    m.insert("maxLeverage".to_string(), self.safe_number_k(item.clone(), "leverage_max", &[]));
                     m.insert("info".to_string(), item.clone());
                 m
             }));
             minNotional = maxNotional.clone();
-            i = add(&i, &Value::Int(1));
         }
         }
         return tiers;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#repayIsolatedMargin
  * @description repay borrowed margin and interest
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#borrow-or-repay-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay-2
  * @param {string} symbol unified market symbol
  * @param {string} code unified currency code of the currency to repay
  * @param {float} amount the amount to repay
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("mode".to_string()))] 'all' or 'partial' payment mode, extra parameter required for isolated margin
- * @param {string} [get_value(&params, &Value::Str("id".to_string()))] '34267567' loan id, extra parameter required for isolated margin
- * @returns {object} a [margin loan structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @param {string} [params.mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
+ * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn repay_isolated_margin(&mut self, mut symbol: Value, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), to_upper(&get_value(&currency, &Value::Str("id".to_string()))));
                 m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
@@ -7084,31 +7348,33 @@ impl GateCore {
         add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("repay".to_string()));
         let mut response: Value = self.call_method(Value::Str("private_margin_post_uni_loans".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_margin_loan(response.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#repayCrossMargin
  * @description repay cross margin borrowed margin and interest
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#borrow-or-repay
+ * @see https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay
  * @param {string} code unified currency code of the currency to repay
  * @param {float} amount the amount to repay
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("mode".to_string()))] 'all' or 'partial' payment mode, extra parameter required for isolated margin
- * @param {string} [get_value(&params, &Value::Str("id".to_string()))] '34267567' loan id, extra parameter required for isolated margin
- * @param {boolean} [get_value(&params, &Value::Str("unifiedAccount".to_string()))] set to true for repaying in the unified account
- * @returns {object} a [margin loan structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @param {string} [params.mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
+ * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
+ * @param {boolean} [params.unifiedAccount] set to true for repaying in the unified account
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn repay_cross_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         self.load_unified_status(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), to_upper(&get_value(&currency, &Value::Str("id".to_string()))));
                 m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
@@ -7125,29 +7391,31 @@ impl GateCore {
             response = self.safe_dict(response.clone(), Value::Int(0), &[]);
         }
         return self.parse_margin_loan(response.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#borrowIsolatedMargin
  * @description create a loan to borrow margin
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#borrow-or-repay-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay-2
  * @param {string} symbol unified market symbol, required for isolated margin
  * @param {string} code unified currency code of the currency to borrow
  * @param {float} amount the amount to borrow
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("rate".to_string()))] '0.0002' or '0.002' extra parameter required for isolated margin
- * @returns {object} a [margin loan structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn borrow_isolated_margin(&mut self, mut symbol: Value, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), to_upper(&get_value(&currency, &Value::Str("id".to_string()))));
                 m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
@@ -7158,30 +7426,32 @@ impl GateCore {
         add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("borrow".to_string()));
         response = self.call_method(Value::Str("private_margin_post_uni_loans".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_margin_loan(response.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#borrowCrossMargin
  * @description create a loan to borrow margin
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#borrow-or-repay
+ * @see https://www.gate.com/docs/developers/apiv4/en/#borrow-or-repay
  * @param {string} code unified currency code of the currency to borrow
  * @param {float} amount the amount to borrow
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("rate".to_string()))] '0.0002' or '0.002' extra parameter required for isolated margin
- * @param {boolean} [get_value(&params, &Value::Str("unifiedAccount".to_string()))] default true (set to false to use deprecated privateMarginPostCrossLoans method)
- * @returns {object} a [margin loan structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
+ * @param {boolean} [params.unifiedAccount] default true (set to false to use deprecated privateMarginPostCrossLoans method)
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn borrow_cross_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         self.load_unified_status(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), to_upper(&get_value(&currency, &Value::Str("id".to_string()))));
                 m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
@@ -7198,6 +7468,8 @@ impl GateCore {
             response = self.call_method(Value::Str("private_margin_post_cross_loans".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
         return self.parse_margin_loan(response.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_margin_loan(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -7239,38 +7511,40 @@ impl GateCore {
         //     }
         //
         let mut marginMode: Value = self.safe_string2(self.options.clone(), Value::Str("defaultMarginMode".to_string()), Value::Str("marginMode".to_string()), &[Value::Str("cross".to_string())]);
-        let mut timestamp: Value = self.safe_integer(info.clone(), Value::Str("create_time".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(info.clone(), "create_time", &[]);
         if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
             timestamp = self.safe_timestamp(info.clone(), Value::Str("create_time".to_string()), &[]);
         }
-        let mut currencyId: Value = self.safe_string(info.clone(), Value::Str("currency".to_string()), &[]);
-        let mut marketId: Value = self.safe_string(info.clone(), Value::Str("currency_pair".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(info.clone(), "currency", &[]);
+        let mut marketId: Value = self.safe_string_k(info.clone(), "currency_pair", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("id".to_string(), self.safe_integer(info.clone(), Value::Str("id".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), self.safe_integer_k(info.clone(), "id", &[]));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
-        m.insert("amount".to_string(), self.safe_number(info.clone(), Value::Str("amount".to_string()), &[]));
+        m.insert("amount".to_string(), self.safe_number_k(info.clone(), "amount", &[]));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("_".to_string()), Value::Str("margin".to_string())]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("info".to_string(), info.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchBorrowInterest
  * @description fetch the interest owed by the user for borrowing currency for margin trading
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-interest-deduction-records
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-interest-deduction-records-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-interest-deduction-records
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-interest-deduction-records-2
  * @param {string} [code] unified currency code
  * @param {string} [symbol] unified market symbol when fetching interest in isolated markets
  * @param {int} [since] the earliest time in ms to fetch borrow interest for
  * @param {int} [limit] the maximum number of structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("unifiedAccount".to_string()))] set to true for fetching borrow interest in the unified account
- * @returns {object[]} a list of [borrow interest structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=borrow-interest-structure}
+ * @param {boolean} [params.unifiedAccount] set to true for fetching borrow interest in the unified account
+ * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
     pub async fn fetch_borrow_interest(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
@@ -7278,7 +7552,7 @@ impl GateCore {
         let mut since = get_arg(optional_args, 2, Value::Null);
         let mut limit = get_arg(optional_args, 3, Value::Null);
         let mut params = get_arg(optional_args, 4, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -7286,7 +7560,7 @@ impl GateCore {
         let mut isUnifiedAccount: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchBorrowInterest".to_string()), Value::Str("unifiedAccount".to_string()), &[]); isUnifiedAccount = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         { let __destr_tmp = self.handle_until_option(Value::Str("to".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -7321,38 +7595,44 @@ impl GateCore {
         }
         let mut interest: Value = self.parse_borrow_interests(response.clone(), &[market.clone()]);
         return self.filter_by_currency_since_limit(interest.clone(), &[code.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_borrow_interest(&self, mut info: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut marketId: Value = self.safe_string(info.clone(), Value::Str("currency_pair".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(info.clone(), "currency_pair", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut marginMode: Value = ternary(is_true(&(!is_equal(&marketId, &Value::Null))), Value::Str("isolated".to_string()), Value::Str("cross".to_string()));
-        let mut timestamp: Value = self.safe_integer(info.clone(), Value::Str("create_time".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(info.clone(), "create_time", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
-        m.insert("symbol".to_string(), self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]));
-        m.insert("currency".to_string(), self.safe_currency_code(self.safe_string(info.clone(), Value::Str("currency".to_string()), &[]), &[]));
-        m.insert("interest".to_string(), self.safe_number(info.clone(), Value::Str("interest".to_string()), &[]));
-        m.insert("interestRate".to_string(), self.safe_number(info.clone(), Value::Str("actual_rate".to_string()), &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
+        m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(info.clone(), "currency", &[]), &[]));
+        m.insert("interest".to_string(), self.safe_number_k(info.clone(), "interest", &[]));
+        m.insert("interestRate".to_string(), self.safe_number_k(info.clone(), "actual_rate", &[]));
         m.insert("amountBorrowed".to_string(), Value::Null);
         m.insert("marginMode".to_string(), marginMode.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
 });
+
+    Value::Null
 }
 
     pub fn nonce(&self) -> Value {
         return subtract(&self.milliseconds(), &get_value(&self.options, &Value::Str("timeDifference".to_string())));
+
+    Value::Null
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
         let mut api = get_arg(optional_args, 0, Value::List(vec![]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
@@ -7371,9 +7651,9 @@ impl GateCore {
             let mut anyParams: Value = params.clone();
             {
                                 let mut i: Value = Value::Int(1);
-                while is_less_than(&i, &get_array_length(&anyParams)) {
+                let mut __for_first_705: bool = true;
+                while { if !__for_first_705 { i = add(&i, &Value::Int(1)); } __for_first_705 = false; is_less_than(&i, &get_array_length(&anyParams)) } {
                 append_to_array(&mut newParams, get_value(&params, &i));
-                i = add(&i, &Value::Int(1));
             }
             }
             params = newParams.clone();
@@ -7383,7 +7663,7 @@ impl GateCore {
             // so we infer the settle from one of the elements
             // they have to be all the same so relying on the first one is fine
             let mut first: Value = self.safe_value(params.clone(), Value::Int(0), &[Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m
             })]);
             path = self.implode_params(path.clone(), first.clone());
@@ -7397,7 +7677,7 @@ impl GateCore {
         }
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &authentication), &type_var);
         if is_equal(&url, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" does not have a testnet for the ".to_string())), &type_var), &Value::Str(" market type.".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" does not have a testnet for the ".to_string())), &type_var), &Value::Str(" market type.".to_string()))));
         }
         url = add(&url, &entirePath);
         if is_equal(&authentication, &Value::Str("public".to_string())) {
@@ -7416,10 +7696,10 @@ impl GateCore {
             }
             if is_true(&(is_equal(&method, &Value::Str("GET".to_string())))) || is_true(&(is_equal(&method, &Value::Str("DELETE".to_string())))) || is_true(&requiresURLEncoding) || is_true(&(is_equal(&method, &Value::Str("PATCH".to_string())))) {
                 if is_true(&get_array_length(&object_keys(&query))) {
-                    // https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/issues/27663
+                    // https://github.com/ccxt/ccxt/issues/27663
                     rawQueryString = self.rawencode(query.clone(), &[]);
                     queryString = self.urlencode(query.clone(), &[]);
-                    // https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/issues/25570
+                    // https://github.com/ccxt/ccxt/issues/25570
                     if is_greater_than_or_equal(&get_index_of(&queryString, &Value::Str("currencies=".to_string())), &Value::Int(0)) && is_greater_than_or_equal(&get_index_of(&queryString, &Value::Str("%2C".to_string())), &Value::Int(0)) {
                         queryString = replace_all_str(&queryString, &Value::Str("%2C".to_string()), &Value::Str(",".to_string()));
                     }
@@ -7429,8 +7709,8 @@ impl GateCore {
                     body = self.json(query.clone());
                 }
             }  else {
-                let mut urlQueryParams: Value = self.safe_value(query.clone(), Value::Str("query".to_string()), &[Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                let mut urlQueryParams: Value = self.safe_value_k(query.clone(), "query", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
                     m
                 })]);
                 if is_true(&get_array_length(&object_keys(&urlQueryParams))) {
@@ -7451,7 +7731,7 @@ impl GateCore {
             let mut payload: Value = join(&payloadArray, &Value::Str("\n".to_string()));
             let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha512".to_string()), &[]);
             headers = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("KEY".to_string(), self.apiKey.clone());
                     m.insert("Timestamp".to_string(), timestampString.clone());
                     m.insert("SIGN".to_string(), signature.clone());
@@ -7460,18 +7740,20 @@ impl GateCore {
             });
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.clone());
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), body.clone());
         m.insert("headers".to_string(), headers.clone());
     m
 });
+
+    Value::Null
 }
 
     pub async fn modify_margin_helper(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -7486,9 +7768,11 @@ impl GateCore {
         }  else if is_true(&get_value(&market, &Value::Str("future".to_string()))) {
             response = self.call_method(Value::Str("private_delivery_post_settle_positions_contract_margin".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" modifyMarginHelper() not support this market type".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" modifyMarginHelper() not support this market type".to_string()))));
         }
         return self.parse_margin_modification(response.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_margin_modification(&self, mut data: Value, optional_args: &[Value]) -> Value {
@@ -7520,82 +7804,88 @@ impl GateCore {
         //         "liq_price": "665.69"
         //     }
         //
-        let mut contract: Value = self.safe_string(data.clone(), Value::Str("contract".to_string()), &[]);
+        let mut contract: Value = self.safe_string_k(data.clone(), "contract", &[]);
         market = self.safe_market(&[contract.clone(), market.clone(), Value::Str("_".to_string()), Value::Str("contract".to_string())]);
-        let mut total: Value = self.safe_number(data.clone(), Value::Str("margin".to_string()), &[]);
+        let mut total: Value = self.safe_number_k(data.clone(), "margin", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
         m.insert("amount".to_string(), Value::Null);
         m.insert("total".to_string(), total.clone());
-        m.insert("code".to_string(), self.safe_value(market.clone(), Value::Str("quote".to_string()), &[]));
+        m.insert("code".to_string(), self.safe_value_k(market.clone(), "quote", &[]));
         m.insert("status".to_string(), Value::Str("ok".to_string()));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#reduceMargin
  * @description remove margin from a position
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#update-position-margin
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#update-position-margin-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#update-position-margin
+ * @see https://www.gate.com/docs/developers/apiv4/en/#update-position-margin-2
  * @param {string} symbol unified market symbol
  * @param {float} amount the amount of margin to remove
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
     pub async fn reduce_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.modify_margin_helper(symbol.clone(), negate(&amount), &[params.clone()]).await;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#addMargin
  * @description add margin
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#update-position-margin
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#update-position-margin-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#update-position-margin
+ * @see https://www.gate.com/docs/developers/apiv4/en/#update-position-margin-2
  * @param {string} symbol unified market symbol
  * @param {float} amount amount of margin to add
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
     pub async fn add_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.modify_margin_helper(symbol.clone(), amount.clone(), &[params.clone()]).await;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchOpenInterest
  * @description Retrieves the open interest of a currency
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#futures-statistics
+ * @see https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} timeframe "5m", "15m", "30m", "1h", "4h", "1d"
  * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
  * @param {int} [limit] default 30
  * @param {object} [params] exchange specific parameters
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} an open interest structure{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=open-interest-structure}
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
     pub async fn fetch_open_interest_history(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("5m".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -7606,10 +7896,10 @@ impl GateCore {
         }
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOpenInterest() supports swap markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOpenInterest() supports swap markets only".to_string()))));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("contract".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("settle".to_string(), get_value(&market, &Value::Str("settleId".to_string())));
                 m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
@@ -7623,6 +7913,8 @@ impl GateCore {
         }
         let mut response: Value = self.call_method(Value::Str("public_futures_get_settle_contract_stats".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_open_interests_history(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_open_interest(&self, mut interest: Value, optional_args: &[Value]) -> Value {
@@ -7647,50 +7939,52 @@ impl GateCore {
         //
         let mut timestamp: Value = self.safe_timestamp(interest.clone(), Value::Str("time".to_string()), &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("symbol".to_string(), self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]));
-        m.insert("openInterestAmount".to_string(), self.safe_number(interest.clone(), Value::Str("open_interest".to_string()), &[]));
-        m.insert("openInterestValue".to_string(), self.safe_number(interest.clone(), Value::Str("open_interest_usd".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
+        m.insert("openInterestAmount".to_string(), self.safe_number_k(interest.clone(), "open_interest", &[]));
+        m.insert("openInterestValue".to_string(), self.safe_number_k(interest.clone(), "open_interest_usd", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("info".to_string(), interest.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchSettlementHistory
  * @description fetches historical settlement records
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#list-settlement-history
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-settlement-history
  * @param {string} symbol unified market symbol of the settlement history, required on gate
  * @param {int} [since] timestamp in ms
  * @param {int} [limit] number of records
  * @param {object} [params] exchange specific params
- * @returns {object[]} a list of [settlement history objects]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=settlement-history-structure}
+ * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
     pub async fn fetch_settlement_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchSettlementHistory() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchSettlementHistory() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchSettlementHistory".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if !is_equal(&type_var, &Value::Str("option".to_string())) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchSettlementHistory() supports option markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchSettlementHistory() supports option markets only".to_string()))));
         }
         let mut marketId: Value = get_value(&market, &Value::Str("id".to_string()));
         let mut optionParts: Value = split(&marketId, &Value::Str("-".to_string()));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("underlying".to_string(), self.safe_string(optionParts.clone(), Value::Int(0), &[]));
             m
         });
@@ -7716,14 +8010,16 @@ impl GateCore {
         let mut settlements: Value = self.parse_settlements(response.clone(), market.clone());
         let mut sorted: Value = self.sort_by(settlements.clone(), Value::Str("timestamp".to_string()), &[]);
         return self.filter_by_symbol_since_limit(sorted.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchMySettlementHistory
  * @description fetches historical settlement records of the user
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-personal-settlement-records
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-settlement-records
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-settlement-records
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-settlement-records
  * @param {string} symbol unified market symbol of the settlement history
  * @param {int} [since] timestamp in ms
  * @param {int} [limit] number of records
@@ -7735,7 +8031,7 @@ impl GateCore {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -7749,7 +8045,7 @@ impl GateCore {
         let mut isOption: Value = Value::Bool(is_equal(&type_var, &Value::Str("option".to_string())));
         let mut isFuture: Value = Value::Bool(is_equal(&type_var, &Value::Str("future".to_string())));
         if !is_true(&isOption) && !is_true(&isFuture) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMySettlementHistory() supports option and future markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMySettlementHistory() supports option and future markets only".to_string()))));
         }
         let mut requestqueryVariable = self.prepare_request(&[market.clone(), type_var.clone(), params.clone()]);
         let mut request: Value = get_value(&requestqueryVariable, &Value::Int(0));
@@ -7780,9 +8076,9 @@ impl GateCore {
                 add_element_to_object(&mut request, &Value::Str("from".to_string()), since.clone());
             }
             if is_equal(&market, &Value::Null) {
-                let mut underlying: Value = self.safe_string(params.clone(), Value::Str("underlying".to_string()), &[]);
+                let mut underlying: Value = self.safe_string_k(params.clone(), "underlying", &[]);
                 if is_equal(&underlying, &Value::Null) {
-                    panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMySettlementHistory() requires a symbol argument or an underlying parameter in params".to_string()))));
+                    panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMySettlementHistory() requires a symbol argument or an underlying parameter in params".to_string()))));
                 }
             }  else {
                 let mut marketId: Value = get_value(&market, &Value::Str("id".to_string()));
@@ -7806,14 +8102,16 @@ impl GateCore {
             //
             response = self.call_method(Value::Str("private_options_get_my_settlements".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
-        let mut result: Value = self.safe_value(response.clone(), Value::Str("result".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut data: Value = self.safe_value(result.clone(), Value::Str("list".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(result.clone(), "list", &[Value::List(vec![])]);
         let mut settlements: Value = self.parse_settlements(data.clone(), market.clone());
         let mut sorted: Value = self.sort_by(settlements.clone(), Value::Str("timestamp".to_string()), &[]);
         return self.filter_by_symbol_since_limit(sorted.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_settlement(&self, mut settlement: Value, mut market: Value) -> Value {
@@ -7857,16 +8155,18 @@ impl GateCore {
         //     }
         //
         let mut timestamp: Value = self.safe_timestamp(settlement.clone(), Value::Str("time".to_string()), &[]);
-        let mut marketId: Value = self.safe_string(settlement.clone(), Value::Str("contract".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(settlement.clone(), "contract", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), settlement.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-        m.insert("price".to_string(), self.safe_number(settlement.clone(), Value::Str("settle_price".to_string()), &[]));
+        m.insert("price".to_string(), self.safe_number_k(settlement.clone(), "settle_price", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
 });
+
+    Value::Null
 }
 
     pub fn parse_settlements(&self, mut settlements: Value, mut market: Value) -> Value {
@@ -7903,37 +8203,39 @@ impl GateCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&settlements)) {
+            let mut __for_first_706: bool = true;
+            while { if !__for_first_706 { i = add(&i, &Value::Int(1)); } __for_first_706 = false; is_less_than(&i, &get_array_length(&settlements)) } {
             append_to_array(&mut result, self.parse_settlement(get_value(&settlements, &i), market.clone()));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-spot-account-transaction-history
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-margin-account-balance-change-history
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-futures-account-change-history
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-futures-account-change-history-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-account-change-history
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-spot-account-transaction-history
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-margin-account-balance-change-history
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-account-change-history
  * @param {string} [code] unified currency code
  * @param {int} [since] timestamp in ms of the earliest ledger entry
  * @param {int} [limit] max number of ledger entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] end time in ms
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [ledger structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ledger-entry-structure}
+ * @param {int} [params.until] end time in ms
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
     pub async fn fetch_ledger(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -7946,7 +8248,7 @@ impl GateCore {
         let mut currency: Value = Value::Null;
         let mut response: Value = Value::Null;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchLedger".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -7981,6 +8283,8 @@ impl GateCore {
             response = self.call_method(Value::Str("private_options_get_account_book".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
         return self.parse_ledger(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_ledger_entry(&self, mut item: Value, optional_args: &[Value]) -> Value {
@@ -8030,30 +8334,30 @@ impl GateCore {
         //     }
         //
         let mut direction: Value = Value::Null;
-        let mut amount: Value = self.safe_string(item.clone(), Value::Str("change".to_string()), &[]);
+        let mut amount: Value = self.safe_string_k(item.clone(), "change", &[]);
         if is_true(&crate::precise::Precise::stringLt(&amount, &Value::Str("0".to_string()))) {
             direction = Value::Str("out".to_string());
             amount = crate::precise::Precise::stringAbs(&amount);
         }  else {
             direction = Value::Str("in".to_string());
         }
-        let mut currencyId: Value = self.safe_string(item.clone(), Value::Str("currency".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(item.clone(), "currency", &[]);
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
-        let mut type_var: Value = self.safe_string(item.clone(), Value::Str("type".to_string()), &[]);
-        let mut rawTimestamp: Value = self.safe_string(item.clone(), Value::Str("time".to_string()), &[]);
+        let mut type_var: Value = self.safe_string_k(item.clone(), "type", &[]);
+        let mut rawTimestamp: Value = self.safe_string_k(item.clone(), "time", &[]);
         let mut timestamp: Value = Value::Null;
         if is_greater_than(&get_array_length(&rawTimestamp), &Value::Int(10)) {
             timestamp = crate::runtime::parse_int(&rawTimestamp);
         }  else {
             timestamp = multiply(&crate::runtime::parse_int(&rawTimestamp), &Value::Int(1000));
         }
-        let mut balanceString: Value = self.safe_string(item.clone(), Value::Str("balance".to_string()), &[]);
-        let mut changeString: Value = self.safe_string(item.clone(), Value::Str("change".to_string()), &[]);
+        let mut balanceString: Value = self.safe_string_k(item.clone(), "balance", &[]);
+        let mut changeString: Value = self.safe_string_k(item.clone(), "change", &[]);
         let mut before: Value = self.parse_number(crate::precise::Precise::stringSub(&balanceString, &changeString), &[]);
         return self.safe_ledger_entry(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
-        m.insert("id".to_string(), self.safe_string(item.clone(), Value::Str("id".to_string()), &[]));
+        m.insert("id".to_string(), self.safe_string_k(item.clone(), "id", &[]));
         m.insert("direction".to_string(), direction.clone());
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), Value::Null);
@@ -8064,16 +8368,18 @@ impl GateCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("before".to_string(), before.clone());
-        m.insert("after".to_string(), self.safe_number(item.clone(), Value::Str("balance".to_string()), &[]));
+        m.insert("after".to_string(), self.safe_number_k(item.clone(), "balance", &[]));
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
 }), &[currency.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Value {
         let mut ledgerType: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("deposit".to_string(), Value::Str("deposit".to_string()));
                 m.insert("withdraw".to_string(), Value::Str("withdrawal".to_string()));
                 m.insert("sub_account_transfer".to_string(), Value::Str("transfer".to_string()));
@@ -8115,23 +8421,25 @@ impl GateCore {
             m
         });
         return self.safe_string(ledgerType.clone(), type_var.clone(), &[type_var.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#setPositionMode
  * @description set dual/hedged mode to true or false for a swap market, make sure all positions are closed and no orders are open before setting dual mode
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#set-position-mode
+ * @see https://www.gate.com/docs/developers/apiv4/en/#set-position-mode
  * @param {bool} hedged set to true to enable dual mode
  * @param {string|undefined} symbol if passed, dual mode is set for all markets with the same settle currency
  * @param {object} params extra parameters specific to the exchange API endpoint
- * @param {string} get_value(&params, &Value::Str("settle".to_string())) settle currency
+ * @param {string} params.settle settle currency
  * @returns {object} response from the exchange
  */
     pub async fn set_position_mode(&mut self, mut hedged: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut market: Value = ternary(is_true(&(!is_equal(&symbol, &Value::Null))), self.market(symbol.clone()), Value::Null);
@@ -8140,20 +8448,22 @@ impl GateCore {
         let mut query: Value = get_value(&requestqueryVariable, &Value::Int(1));
         add_element_to_object(&mut request, &Value::Str("dual_mode".to_string()), hedged.clone());
         return self.call_method(Value::Str("private_futures_post_settle_dual_mode".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchUnderlyingAssets
  * @description fetches the market ids of underlying assets for a specific contract market type
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#list-all-underlying-assets
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-all-underlying-assets
  * @param {object} [params] exchange specific params
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] the contract market type, 'option', 'swap' or 'future', the default is 'option'
- * @returns {object[]} a list of [underlying assets]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=underlying-assets-structure}
+ * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
+ * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
  */
     pub async fn fetch_underlying_assets(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -8163,7 +8473,7 @@ impl GateCore {
             marketType = Value::Str("option".to_string());
         }
         if !is_equal(&marketType, &Value::Str("option".to_string())) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchUnderlyingAssets() supports option markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchUnderlyingAssets() supports option markets only".to_string()))));
         }
         let mut response: Value = self.call_method(Value::Str("public_options_get_underlyings".to_string()), &[params.clone()]).await;
         //
@@ -8178,44 +8488,47 @@ impl GateCore {
         let mut underlyings: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_707: bool = true;
+            while { if !__for_first_707 { i = add(&i, &Value::Int(1)); } __for_first_707 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut underlying: Value = get_value(&response, &i);
-            let mut name: Value = self.safe_string(underlying.clone(), Value::Str("name".to_string()), &[]);
+            let mut underlying: Value = get_value(&response, &i);
+            let mut name: Value = self.safe_string_k(underlying.clone(), "name", &[]);
             if !is_equal(&name, &Value::Null) {
                 append_to_array(&mut underlyings, name.clone());
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return underlyings;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchLiquidations
  * @description retrieves the public liquidations of a trading pair
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-liquidation-order-history
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-liquidation-order-history
  * @param {string} symbol unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
  * @param {object} [params] exchange specific parameters for the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest liquidation
- * @returns {object} an array of [liquidation structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=liquidation-structure}
+ * @param {int} [params.until] timestamp in ms of the latest liquidation
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
     pub async fn fetch_liquidations(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLiquidations() supports swap markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLiquidations() supports swap markets only".to_string()))));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("settle".to_string(), get_value(&market, &Value::Str("settleId".to_string())));
                 m.insert("contract".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
@@ -8229,36 +8542,38 @@ impl GateCore {
         { let __destr_tmp = self.handle_until_option(Value::Str("to".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = self.call_method(Value::Str("public_futures_get_settle_liq_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_liquidations(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchMyLiquidations
  * @description retrieves the users liquidated positions
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-liquidation-history
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-liquidation-history-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-liquidation-history
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-liquidation-history-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying
  * @param {string} symbol unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
  * @param {object} [params] exchange specific parameters for the exchange API endpoint
- * @returns {object} an array of [liquidation structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=liquidation-structure}
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
     pub async fn fetch_my_liquidations(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyLiquidations() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyLiquidations() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("contract".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -8280,9 +8595,11 @@ impl GateCore {
         }  else if is_true(&get_value(&market, &Value::Str("option".to_string()))) {
             response = self.call_method(Value::Str("private_options_get_position_close".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchMyLiquidations() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchMyLiquidations() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
         }
         return self.parse_liquidations(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_liquidation(&self, mut liquidation: Value, optional_args: &[Value]) -> Value {
@@ -8327,15 +8644,15 @@ impl GateCore {
         //         "text": "settled"
         //     }
         //
-        let mut marketId: Value = self.safe_string(liquidation.clone(), Value::Str("contract".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(liquidation.clone(), "contract", &[]);
         let mut timestamp: Value = self.safe_timestamp(liquidation.clone(), Value::Str("time".to_string()), &[]);
         let mut size: Value = self.safe_string2(liquidation.clone(), Value::Str("size".to_string()), Value::Str("settle_size".to_string()), &[]);
-        let mut left: Value = self.safe_string(liquidation.clone(), Value::Str("left".to_string()), &[Value::Str("0".to_string())]);
+        let mut left: Value = self.safe_string_k(liquidation.clone(), "left", &[Value::Str("0".to_string())]);
         let mut contractsString: Value = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&size, &left));
-        let mut contractSizeString: Value = self.safe_string(market.clone(), Value::Str("contractSize".to_string()), &[]);
+        let mut contractSizeString: Value = self.safe_string_k(market.clone(), "contractSize", &[]);
         let mut priceString: Value = self.safe_string2(liquidation.clone(), Value::Str("liq_price".to_string()), Value::Str("fill_price".to_string()), &[]);
         let mut baseValueString: Value = crate::precise::Precise::stringMul(&contractsString, &contractSizeString);
-        let mut quoteValueString: Value = self.safe_string(liquidation.clone(), Value::Str("pnl".to_string()), &[]);
+        let mut quoteValueString: Value = self.safe_string_k(liquidation.clone(), "pnl", &[]);
         if is_equal(&quoteValueString, &Value::Null) {
             quoteValueString = crate::precise::Precise::stringMul(&baseValueString, &priceString);
         }
@@ -8357,7 +8674,7 @@ impl GateCore {
             }
         }
         return self.safe_liquidation(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
         m.insert("contracts".to_string(), self.parse_number(contractsString.clone(), &[]));
@@ -8370,26 +8687,28 @@ impl GateCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
 }), &[]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchGreeks
  * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-options-market-ticker-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-options-market-ticker-information
  * @param {string} symbol unified symbol of the market to fetch greeks for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [greeks structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=greeks-structure}
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
     pub async fn fetch_greeks(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("underlying".to_string(), get_value(&get_value(&market, &Value::Str("info".to_string())), &Value::Str("underlying".to_string())));
             m
         });
@@ -8419,16 +8738,19 @@ impl GateCore {
         let mut marketId: Value = get_value(&market, &Value::Str("id".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_708: bool = true;
+            while { if !__for_first_708 { i = add(&i, &Value::Int(1)); } __for_first_708 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
-            let mut entryMarketId: Value = self.safe_string(entry.clone(), Value::Str("name".to_string()), &[]);
+            let mut entry: Value = get_value(&response, &i);
+            let mut entryMarketId: Value = self.safe_string_k(entry.clone(), "name", &[]);
             if is_equal(&entryMarketId, &marketId) {
                 return self.parse_greeks(entry.clone(), &[market.clone()]);
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return Value::Null;
+
+    Value::Null
 }
 
     pub fn parse_greeks(&self, mut greeks: Value, optional_args: &[Value]) -> Value {
@@ -8453,53 +8775,55 @@ impl GateCore {
         //         "gamma": "0.00116"
         //     }
         //
-        let mut marketId: Value = self.safe_string(greeks.clone(), Value::Str("name".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(greeks.clone(), "name", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("delta".to_string(), self.safe_number(greeks.clone(), Value::Str("delta".to_string()), &[]));
-        m.insert("gamma".to_string(), self.safe_number(greeks.clone(), Value::Str("gamma".to_string()), &[]));
-        m.insert("theta".to_string(), self.safe_number(greeks.clone(), Value::Str("theta".to_string()), &[]));
-        m.insert("vega".to_string(), self.safe_number(greeks.clone(), Value::Str("vega".to_string()), &[]));
+        m.insert("delta".to_string(), self.safe_number_k(greeks.clone(), "delta", &[]));
+        m.insert("gamma".to_string(), self.safe_number_k(greeks.clone(), "gamma", &[]));
+        m.insert("theta".to_string(), self.safe_number_k(greeks.clone(), "theta", &[]));
+        m.insert("vega".to_string(), self.safe_number_k(greeks.clone(), "vega", &[]));
         m.insert("rho".to_string(), Value::Null);
-        m.insert("bidSize".to_string(), self.safe_number(greeks.clone(), Value::Str("bid1_size".to_string()), &[]));
-        m.insert("askSize".to_string(), self.safe_number(greeks.clone(), Value::Str("ask1_size".to_string()), &[]));
-        m.insert("bidImpliedVolatility".to_string(), self.safe_number(greeks.clone(), Value::Str("bid_iv".to_string()), &[]));
-        m.insert("askImpliedVolatility".to_string(), self.safe_number(greeks.clone(), Value::Str("ask_iv".to_string()), &[]));
-        m.insert("markImpliedVolatility".to_string(), self.safe_number(greeks.clone(), Value::Str("mark_iv".to_string()), &[]));
-        m.insert("bidPrice".to_string(), self.safe_number(greeks.clone(), Value::Str("bid1_price".to_string()), &[]));
-        m.insert("askPrice".to_string(), self.safe_number(greeks.clone(), Value::Str("ask1_price".to_string()), &[]));
-        m.insert("markPrice".to_string(), self.safe_number(greeks.clone(), Value::Str("mark_price".to_string()), &[]));
-        m.insert("lastPrice".to_string(), self.safe_number(greeks.clone(), Value::Str("last_price".to_string()), &[]));
+        m.insert("bidSize".to_string(), self.safe_number_k(greeks.clone(), "bid1_size", &[]));
+        m.insert("askSize".to_string(), self.safe_number_k(greeks.clone(), "ask1_size", &[]));
+        m.insert("bidImpliedVolatility".to_string(), self.safe_number_k(greeks.clone(), "bid_iv", &[]));
+        m.insert("askImpliedVolatility".to_string(), self.safe_number_k(greeks.clone(), "ask_iv", &[]));
+        m.insert("markImpliedVolatility".to_string(), self.safe_number_k(greeks.clone(), "mark_iv", &[]));
+        m.insert("bidPrice".to_string(), self.safe_number_k(greeks.clone(), "bid1_price", &[]));
+        m.insert("askPrice".to_string(), self.safe_number_k(greeks.clone(), "ask1_price", &[]));
+        m.insert("markPrice".to_string(), self.safe_number_k(greeks.clone(), "mark_price", &[]));
+        m.insert("lastPrice".to_string(), self.safe_number_k(greeks.clone(), "last_price", &[]));
         m.insert("underlyingPrice".to_string(), self.parse_number(get_value(&get_value(&market, &Value::Str("info".to_string())), &Value::Str("underlying_price".to_string())), &[]));
         m.insert("info".to_string(), greeks.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#closePosition
  * @description closes open positions for a market
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#place-futures-order
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#place-futures-order-2
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#create-an-options-order
+ * @see https://www.gate.com/docs/developers/apiv4/en/#place-futures-order
+ * @see https://www.gate.com/docs/developers/apiv4/en/#place-futures-order-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#create-an-options-order
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} side 'buy' or 'sell'
  * @param {object} [params] extra parameters specific to the okx api endpoint
- * @returns {object[]} [A list of position structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn close_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut side = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("close".to_string(), Value::Bool(true));
             m
         });
@@ -8508,22 +8832,24 @@ impl GateCore {
             side = Value::Str("".to_string()); // side is not used but needs to be present, otherwise crashes in php
         }
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), side.clone(), Value::Int(0), &[Value::Null, params.clone()]).await;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-unified-account-information
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#get-lending-market-details
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-lending-market-details
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("unified".to_string()))] default false, set to true for fetching the unified accounts leverage
- * @returns {object} a [leverage structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=leverage-structure}
+ * @param {boolean} [params.unified] default false, set to true for fetching the unified accounts leverage
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
     pub async fn fetch_leverage(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -8533,11 +8859,11 @@ impl GateCore {
             market = self.market(symbol.clone());
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Value = Value::Null;
-        let mut isUnified: Value = self.safe_bool(params.clone(), Value::Str("unified".to_string()), &[]);
+        let mut isUnified: Value = self.safe_bool_k(params.clone(), "unified", &[]);
         params = self.omit(params.clone(), Value::Str("unified".to_string()), &[]);
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             add_element_to_object(&mut request, &Value::Str("currency_pair".to_string()), get_value(&market, &Value::Str("id".to_string())));
@@ -8549,31 +8875,33 @@ impl GateCore {
         }  else if is_true(&isUnified) {
             response = self.call_method(Value::Str("private_unified_get_accounts".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchLeverage() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" markets".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchLeverage() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" markets".to_string()))));
         }
         return self.parse_leverage(response.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchLeverages
  * @description fetch the set leverage for all leverage markets, only spot margin is supported on gate
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#list-lending-markets
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-lending-markets
  * @param {string[]} symbols a list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("unified".to_string()))] default false, set to true for fetching unified account leverages
- * @returns {object} a list of [leverage structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=leverage-structure}
+ * @param {boolean} [params.unified] default false, set to true for fetching unified account leverages
+ * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
     pub async fn fetch_leverages(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = Value::Null;
-        let mut isUnified: Value = self.safe_bool(params.clone(), Value::Str("unified".to_string()), &[]);
+        let mut isUnified: Value = self.safe_bool_k(params.clone(), "unified", &[]);
         params = self.omit(params.clone(), Value::Str("unified".to_string()), &[]);
         let mut marketIdRequest: Value = Value::Str("id".to_string());
         if is_true(&isUnified) {
@@ -8583,14 +8911,16 @@ impl GateCore {
             response = self.call_method(Value::Str("public_margin_get_currency_pairs".to_string()), &[params.clone()]).await; // deprecated
         }
         return self.parse_leverages(response.clone(), &[symbols.clone(), marketIdRequest.clone(), Value::Str("spot".to_string())]);
+
+    Value::Null
 }
 
     pub fn parse_leverage(&self, mut leverage: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Value = self.safe_string2(leverage.clone(), Value::Str("currency_pair".to_string()), Value::Str("id".to_string()), &[]);
-        let mut leverageValue: Value = self.safe_integer(leverage.clone(), Value::Str("leverage".to_string()), &[]);
+        let mut leverageValue: Value = self.safe_integer_k(leverage.clone(), "leverage", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("_".to_string()), Value::Str("spot".to_string())]));
         m.insert("marginMode".to_string(), Value::Null);
@@ -8598,58 +8928,64 @@ impl GateCore {
         m.insert("shortLeverage".to_string(), leverageValue.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchOption
  * @description fetches option data that is commonly found in an option chain
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#query-specified-contract-details
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-specified-contract-details
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [option chain structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=option-chain-structure}
+ * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
     pub async fn fetch_option(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("contract".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
         let mut response: Value = self.call_method(Value::Str("public_options_get_contracts_contract".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_option(response.clone(), &[Value::Null, market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchOptionChain
  * @description fetches data for an underlying asset that is commonly found in an option chain
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/en/#list-all-contracts-for-specified-underlying-and-expiration-date
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-all-contracts-for-specified-underlying-and-expiration-date
  * @param {string} code base currency to fetch an option chain for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("underlying".to_string()))] the underlying asset, can be obtained from fetchUnderlyingAssets ()
- * @param {int} [get_value(&params, &Value::Str("expiration".to_string()))] unix timestamp of the expiration time
- * @returns {object} a list of [option chain structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=option-chain-structure}
+ * @param {string} [params.underlying] the underlying asset, can be obtained from fetchUnderlyingAssets ()
+ * @param {int} [params.expiration] unix timestamp of the expiration time
+ * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
     pub async fn fetch_option_chain(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("underlying".to_string(), add(&get_value(&currency, &Value::Str("code".to_string())), &Value::Str("_USDT".to_string())));
             m
         });
         let mut response: Value = self.call_method(Value::Str("public_options_get_contracts".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return self.parse_option_chain(response.clone(), &[Value::Null, Value::Str("name".to_string())]);
+
+    Value::Null
 }
 
     pub fn parse_option(&self, mut chain: Value, optional_args: &[Value]) -> Value {
@@ -8695,11 +9031,11 @@ impl GateCore {
         //         "bid1_price": "307"
         //     }
         //
-        let mut marketId: Value = self.safe_string(chain.clone(), Value::Str("name".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(chain.clone(), "name", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut timestamp: Value = self.safe_timestamp(chain.clone(), Value::Str("create_time".to_string()), &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
         m.insert("currency".to_string(), Value::Null);
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
@@ -8707,44 +9043,46 @@ impl GateCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("impliedVolatility".to_string(), Value::Null);
         m.insert("openInterest".to_string(), Value::Null);
-        m.insert("bidPrice".to_string(), self.safe_number(chain.clone(), Value::Str("bid1_price".to_string()), &[]));
-        m.insert("askPrice".to_string(), self.safe_number(chain.clone(), Value::Str("ask1_price".to_string()), &[]));
+        m.insert("bidPrice".to_string(), self.safe_number_k(chain.clone(), "bid1_price", &[]));
+        m.insert("askPrice".to_string(), self.safe_number_k(chain.clone(), "ask1_price", &[]));
         m.insert("midPrice".to_string(), Value::Null);
-        m.insert("markPrice".to_string(), self.safe_number(chain.clone(), Value::Str("mark_price".to_string()), &[]));
-        m.insert("lastPrice".to_string(), self.safe_number(chain.clone(), Value::Str("last_price".to_string()), &[]));
-        m.insert("underlyingPrice".to_string(), self.safe_number(chain.clone(), Value::Str("underlying_price".to_string()), &[]));
+        m.insert("markPrice".to_string(), self.safe_number_k(chain.clone(), "mark_price", &[]));
+        m.insert("lastPrice".to_string(), self.safe_number_k(chain.clone(), "last_price", &[]));
+        m.insert("underlyingPrice".to_string(), self.safe_number_k(chain.clone(), "underlying_price", &[]));
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), Value::Null);
         m.insert("quoteVolume".to_string(), Value::Null);
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name gate#fetchPositionsHistory
  * @description fetches historical positions
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/#query-position-close-history
- * @see https://get_value(&www, &Value::Str("gate".to_string())).com/docs/developers/apiv4/#query-position-close-history-2
+ * @see https://www.gate.com/docs/developers/apiv4/#query-position-close-history
+ * @see https://www.gate.com/docs/developers/apiv4/#query-position-close-history-2
  * @param {string[]} symbols unified conract symbols, must all have the same settle currency and the same market type
  * @param {int} [since] the earliest time in ms to fetch positions for
  * @param {int} [limit] the maximum amount of records to fetch, default=1000
  * @param {object} params extra parameters specific to the exchange api endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch positions for
+ * @param {int} [params.until] the latest time in ms to fetch positions for
  *
  * EXCHANGE SPECIFIC PARAMETERS
- * @param {int} [get_value(&params, &Value::Str("offset".to_string()))] list offset, starting from 0
- * @param {string} [get_value(&params, &Value::Str("side".to_string()))] long or short
- * @param {string} [get_value(&params, &Value::Str("pnl".to_string()))] query profit or loss
- * @returns {object[]} a list of [position structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @param {int} [params.offset] list offset, starting from 0
+ * @param {string} [params.side] long or short
+ * @param {string} [params.pnl] query profit or loss
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_positions_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -8757,10 +9095,10 @@ impl GateCore {
         }
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchPositionsHistory".to_string()), &[market.clone(), params.clone(), Value::Str("swap".to_string())]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         { let __destr_tmp = self.prepare_request(&[market.clone(), marketType.clone(), params.clone()]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -8779,9 +9117,11 @@ impl GateCore {
         }  else if is_equal(&marketType, &Value::Str("future".to_string())) {
             response = self.call_method(Value::Str("private_delivery_get_settle_position_close".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" fetchPositionsHistory() does not support markets of type ".to_string())), &marketType)));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" fetchPositionsHistory() does not support markets of type ".to_string())), &marketType)));
         }
         return self.parse_positions(response.clone(), &[symbols.clone(), params.clone()]);
+
+    Value::Null
 }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
@@ -8796,12 +9136,14 @@ impl GateCore {
         //    {"label": "INVALID_ARGUMENT", "detail": "invalid size"}
         //    {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
         //
-        let mut label: Value = self.safe_string(response.clone(), Value::Str("label".to_string()), &[]);
+        let mut label: Value = self.safe_string_k(response.clone(), "label", &[]);
         if !is_equal(&label, &Value::Null) {
             let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
             self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), label.clone(), feedback.clone());
-            panic!("{:?}", crate::exchange_errors::exchange_error(feedback));
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
+
+    Value::Null
 }
 }

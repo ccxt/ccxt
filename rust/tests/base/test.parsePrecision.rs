@@ -5,15 +5,16 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
 pub fn testParsePrecision() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.parse_precision(Value::Str("15".to_string())), &Value::Str("0.000000000000001".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.parse_precision(Value::Str("1".to_string())), &Value::Str("0.1".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.parse_precision(Value::Str("0".to_string())), &Value::Str("1".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.parse_precision(Value::Str("-5".to_string())), &Value::Str("100000".to_string())))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse_precision(&[Value::Str("15".to_string())]), &Value::Str("0.000000000000001".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse_precision(&[Value::Str("1".to_string())]), &Value::Str("0.1".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse_precision(&[Value::Str("0".to_string())]), &Value::Str("1".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse_precision(&[Value::Str("-5".to_string())]), &Value::Str("100000".to_string()))))));
 }

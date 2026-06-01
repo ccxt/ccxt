@@ -5,22 +5,23 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
 pub fn testToArray() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
     let mut obj1: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
             m.insert("b".to_string(), Value::Int(3));
             m.insert("c".to_string(), Value::Int(2));
         m
     });
     let mut obj2: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Str("x".to_string()));
             m.insert("b".to_string(), Value::Int(2));
         m
@@ -28,11 +29,11 @@ pub fn testToArray() {
     let mut result1: Value = exchange.to_array(obj1.clone());
     let mut result2: Value = exchange.to_array(obj2.clone());
     // we can't guarantee order of values in GO lang
-    // get_value(&testSharedMethods, &Value::Str("assertDeepEqual".to_string())) (exchange, undefined, 'testToArray', exchange.prop(&&Value::Str("toArray".to_string())) (obj1), [ 1, 3, 2 ]);
-    // get_value(&testSharedMethods, &Value::Str("assertDeepEqual".to_string())) (exchange, undefined, 'testToArray', exchange.prop(&&Value::Str("toArray".to_string())) (obj2), [ 'x', 2 ]);
+    // testSharedMethods.assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj1), [ 1, 3, 2 ]);
+    // testSharedMethods.assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj2), [ 'x', 2 ]);
     //
-    assert!(ccxt::runtime::is_true(&(is_equal(&get_array_length(&result1), &Value::Int(3)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&get_array_length(&result2), &Value::Int(2)))));
-    assert!(is_true(&exchange.in_array(Value::Int(1), result1.clone())) && is_true(&exchange.in_array(Value::Int(3), result1.clone())) && is_true(&exchange.in_array(Value::Int(2), result1.clone())));
-    assert!(is_true(&exchange.in_array(Value::Str("x".to_string()), result2.clone())) && is_true(&exchange.in_array(Value::Int(2), result2.clone())));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&result1), &Value::Int(3))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&result2), &Value::Int(2))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&exchange.in_array(Value::Int(1), result1.clone())) && is_true(&exchange.in_array(Value::Int(3), result1.clone())) && is_true(&exchange.in_array(Value::Int(2), result1.clone()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&exchange.in_array(Value::Str("x".to_string()), result2.clone())) && is_true(&exchange.in_array(Value::Int(2), result2.clone()))))));
 }

@@ -4,771 +4,126 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 #[path = "test.afterConstructor.rs"] pub mod test_afterConstructor;
+pub use test_afterConstructor::testAfterConstructor;
 #[path = "test.aggregate.rs"] pub mod test_aggregate;
+pub use test_aggregate::testAggregate;
 #[path = "test.arrayConcat.rs"] pub mod test_arrayConcat;
+pub use test_arrayConcat::testArrayConcat;
 #[path = "test.arraysConcat.rs"] pub mod test_arraysConcat;
+pub use test_arraysConcat::testArraysConcat;
 #[path = "test.base16ToBinary.rs"] pub mod test_base16ToBinary;
+pub use test_base16ToBinary::testBase16ToBinary;
 #[path = "test.base58ToBinary.rs"] pub mod test_base58ToBinary;
+pub use test_base58ToBinary::testBase58ToBinary;
 #[path = "test.base64ToBinary.rs"] pub mod test_base64ToBinary;
+pub use test_base64ToBinary::testBase64ToBinary;
 #[path = "test.binaryConcat.rs"] pub mod test_binaryConcat;
+pub use test_binaryConcat::testBinaryConcat;
 #[path = "test.binaryToBase16.rs"] pub mod test_binaryToBase16;
+pub use test_binaryToBase16::testBinaryToBase16;
 #[path = "test.binaryToBase58.rs"] pub mod test_binaryToBase58;
+pub use test_binaryToBase58::testBinaryToBase58;
 #[path = "test.binaryToBase64.rs"] pub mod test_binaryToBase64;
+pub use test_binaryToBase64::testBinaryToBase64;
 #[path = "test.capitalize.rs"] pub mod test_capitalize;
+pub use test_capitalize::testCapitalize;
 #[path = "test.clone.rs"] pub mod test_clone;
+pub use test_clone::testClone;
 #[path = "test.constants.rs"] pub mod test_constants;
+pub use test_constants::testConstants;
+#[path = "test.cryptography.rs"] pub mod test_cryptography;
+pub use test_cryptography::testCryptography;
 #[path = "test.datetime.rs"] pub mod test_datetime;
+pub use test_datetime::testDatetime;
 #[path = "test.decimalToPrecision.rs"] pub mod test_decimalToPrecision;
+pub use test_decimalToPrecision::testDecimalToPrecision;
 #[path = "test.deepExtend.rs"] pub mod test_deepExtend;
+pub use test_deepExtend::testDeepExtend;
 #[path = "test.encodeDecode.rs"] pub mod test_encodeDecode;
+pub use test_encodeDecode::testEncodeDecode;
 #[path = "test.ethMethods.rs"] pub mod test_ethMethods;
+pub use test_ethMethods::testEthMethods;
 #[path = "test.extend.rs"] pub mod test_extend;
+pub use test_extend::testExtend;
 #[path = "test.extractParams.rs"] pub mod test_extractParams;
+pub use test_extractParams::testExtractParams;
 #[path = "test.filterBy.rs"] pub mod test_filterBy;
+pub use test_filterBy::testFilterBy;
 #[path = "test.groupBy.rs"] pub mod test_groupBy;
+pub use test_groupBy::testGroupBy;
 #[path = "test.handleMethods.rs"] pub mod test_handleMethods;
+pub use test_handleMethods::testHandleMethods;
 #[path = "test.implodeParams.rs"] pub mod test_implodeParams;
+pub use test_implodeParams::testImplodeParams;
 #[path = "test.inArray.rs"] pub mod test_inArray;
+pub use test_inArray::testInArray;
 #[path = "test.indexBy.rs"] pub mod test_indexBy;
+pub use test_indexBy::testIndexBy;
 #[path = "test.io.rs"] pub mod test_io;
+pub use test_io::testIo;
 #[path = "test.isEmpty.rs"] pub mod test_isEmpty;
+pub use test_isEmpty::testIsEmpty;
 #[path = "test.isJsonEncodedObject.rs"] pub mod test_isJsonEncodedObject;
+pub use test_isJsonEncodedObject::testIsJsonEncodedObject;
 #[path = "test.json.rs"] pub mod test_json;
+pub use test_json::testJson;
 #[path = "test.keysort.rs"] pub mod test_keysort;
+pub use test_keysort::testKeysort;
+#[path = "test.networkMethods.rs"] pub mod test_networkMethods;
+pub use test_networkMethods::testNetworkMethods;
 #[path = "test.numberToBE.rs"] pub mod test_numberToBE;
+pub use test_numberToBE::testNumberToBE;
 #[path = "test.numberToString.rs"] pub mod test_numberToString;
+pub use test_numberToString::testNumberToString;
 #[path = "test.omit.rs"] pub mod test_omit;
+pub use test_omit::testOmit;
 #[path = "test.parsePrecision.rs"] pub mod test_parsePrecision;
+pub use test_parsePrecision::testParsePrecision;
 #[path = "test.precise.rs"] pub mod test_precise;
+pub use test_precise::testPrecise;
 #[path = "test.precisionFromString.rs"] pub mod test_precisionFromString;
+pub use test_precisionFromString::testPrecisionFromString;
 #[path = "test.rawencode.rs"] pub mod test_rawencode;
+pub use test_rawencode::testRawencode;
 #[path = "test.removeRepeatedElementsFromArray.rs"] pub mod test_removeRepeatedElementsFromArray;
+pub use test_removeRepeatedElementsFromArray::testRemoveRepeatedElementsFromArray;
 #[path = "test.safeMethods.rs"] pub mod test_safeMethods;
+pub use test_safeMethods::testSafeMethods;
 #[path = "test.safeTicker.rs"] pub mod test_safeTicker;
+pub use test_safeTicker::testSafeTicker;
 #[path = "test.setMarketsFromExchange.rs"] pub mod test_setMarketsFromExchange;
+pub use test_setMarketsFromExchange::testSetMarketsFromExchange;
 #[path = "test.sleep.rs"] pub mod test_sleep;
+pub use test_sleep::testSleep;
 #[path = "test.sort.rs"] pub mod test_sort;
+pub use test_sort::testSort;
 #[path = "test.sortBy.rs"] pub mod test_sortBy;
+pub use test_sortBy::testSortBy;
 #[path = "test.stringToBase16.rs"] pub mod test_stringToBase16;
+pub use test_stringToBase16::testStringToBase16;
 #[path = "test.stringToBase64.rs"] pub mod test_stringToBase64;
+pub use test_stringToBase64::testStringToBase64;
 #[path = "test.strip.rs"] pub mod test_strip;
+pub use test_strip::testStrip;
 #[path = "test.sum.rs"] pub mod test_sum;
+pub use test_sum::testSum;
 #[path = "test.timeframes.rs"] pub mod test_timeframes;
+pub use test_timeframes::testTimeframes;
 #[path = "test.toArray.rs"] pub mod test_toArray;
+pub use test_toArray::testToArray;
 #[path = "test.unique.rs"] pub mod test_unique;
+pub use test_unique::testUnique;
 #[path = "test.urlencode.rs"] pub mod test_urlencode;
+pub use test_urlencode::testUrlencode;
 #[path = "test.urlencodeBase64.rs"] pub mod test_urlencodeBase64;
+pub use test_urlencodeBase64::testUrlencodeBase64;
 #[path = "test.urlencodeNested.rs"] pub mod test_urlencodeNested;
+pub use test_urlencodeNested::testUrlencodeNested;
 #[path = "test.urlencodeWithArrayRepeat.rs"] pub mod test_urlencodeWithArrayRepeat;
+pub use test_urlencodeWithArrayRepeat::testUrlencodeWithArrayRepeat;
 #[path = "test.uuid.rs"] pub mod test_uuid;
+pub use test_uuid::testUuid;
 
-pub fn run_all() -> Result<(), String> {
-    // Silence panic backtraces — failures are tallied below.
-    std::panic::set_hook(Box::new(|_| {}));
-    let mut passed = 0;
-    let mut failed: Vec<String> = Vec::new();
-    match std::thread::spawn(|| {
-        test_afterConstructor::testAfterConstructor();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.afterConstructor"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.afterConstructor: {msg}"));
-            println!("  ✗ test.afterConstructor — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_aggregate::testAggregate();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.aggregate"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.aggregate: {msg}"));
-            println!("  ✗ test.aggregate — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_arrayConcat::testArrayConcat();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.arrayConcat"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.arrayConcat: {msg}"));
-            println!("  ✗ test.arrayConcat — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_arraysConcat::testArraysConcat();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.arraysConcat"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.arraysConcat: {msg}"));
-            println!("  ✗ test.arraysConcat — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_base16ToBinary::testBase16ToBinary();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.base16ToBinary"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.base16ToBinary: {msg}"));
-            println!("  ✗ test.base16ToBinary — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_base58ToBinary::testBase58ToBinary();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.base58ToBinary"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.base58ToBinary: {msg}"));
-            println!("  ✗ test.base58ToBinary — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_base64ToBinary::testBase64ToBinary();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.base64ToBinary"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.base64ToBinary: {msg}"));
-            println!("  ✗ test.base64ToBinary — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_binaryConcat::testBinaryConcat();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.binaryConcat"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.binaryConcat: {msg}"));
-            println!("  ✗ test.binaryConcat — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_binaryToBase16::testBinaryToBase16();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.binaryToBase16"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.binaryToBase16: {msg}"));
-            println!("  ✗ test.binaryToBase16 — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_binaryToBase58::testBinaryToBase58();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.binaryToBase58"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.binaryToBase58: {msg}"));
-            println!("  ✗ test.binaryToBase58 — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_binaryToBase64::testBinaryToBase64();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.binaryToBase64"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.binaryToBase64: {msg}"));
-            println!("  ✗ test.binaryToBase64 — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_capitalize::testCapitalize();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.capitalize"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.capitalize: {msg}"));
-            println!("  ✗ test.capitalize — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_clone::testClone();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.clone"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.clone: {msg}"));
-            println!("  ✗ test.clone — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_constants::testConstants();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.constants"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.constants: {msg}"));
-            println!("  ✗ test.constants — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_datetime::testDatetime();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.datetime"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.datetime: {msg}"));
-            println!("  ✗ test.datetime — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_decimalToPrecision::testDecimalToPrecision();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.decimalToPrecision"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.decimalToPrecision: {msg}"));
-            println!("  ✗ test.decimalToPrecision — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_deepExtend::testDeepExtend();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.deepExtend"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.deepExtend: {msg}"));
-            println!("  ✗ test.deepExtend — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_encodeDecode::testEncodeDecode();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.encodeDecode"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.encodeDecode: {msg}"));
-            println!("  ✗ test.encodeDecode — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_ethMethods::testEthMethods();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.ethMethods"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.ethMethods: {msg}"));
-            println!("  ✗ test.ethMethods — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_extend::testExtend();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.extend"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.extend: {msg}"));
-            println!("  ✗ test.extend — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_extractParams::testExtractParams();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.extractParams"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.extractParams: {msg}"));
-            println!("  ✗ test.extractParams — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_filterBy::testFilterBy();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.filterBy"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.filterBy: {msg}"));
-            println!("  ✗ test.filterBy — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_groupBy::testGroupBy();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.groupBy"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.groupBy: {msg}"));
-            println!("  ✗ test.groupBy — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_handleMethods::testHandleMethods();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.handleMethods"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.handleMethods: {msg}"));
-            println!("  ✗ test.handleMethods — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_implodeParams::testImplodeParams();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.implodeParams"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.implodeParams: {msg}"));
-            println!("  ✗ test.implodeParams — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_inArray::testInArray();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.inArray"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.inArray: {msg}"));
-            println!("  ✗ test.inArray — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_indexBy::testIndexBy();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.indexBy"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.indexBy: {msg}"));
-            println!("  ✗ test.indexBy — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_io::testIo();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.io"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.io: {msg}"));
-            println!("  ✗ test.io — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_isEmpty::testIsEmpty();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.isEmpty"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.isEmpty: {msg}"));
-            println!("  ✗ test.isEmpty — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_isJsonEncodedObject::testIsJsonEncodedObject();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.isJsonEncodedObject"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.isJsonEncodedObject: {msg}"));
-            println!("  ✗ test.isJsonEncodedObject — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_json::testJson();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.json"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.json: {msg}"));
-            println!("  ✗ test.json — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_keysort::testKeysort();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.keysort"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.keysort: {msg}"));
-            println!("  ✗ test.keysort — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_numberToBE::testNumberToBE();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.numberToBE"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.numberToBE: {msg}"));
-            println!("  ✗ test.numberToBE — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_numberToString::testNumberToString();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.numberToString"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.numberToString: {msg}"));
-            println!("  ✗ test.numberToString — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_omit::testOmit();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.omit"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.omit: {msg}"));
-            println!("  ✗ test.omit — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_parsePrecision::testParsePrecision();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.parsePrecision"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.parsePrecision: {msg}"));
-            println!("  ✗ test.parsePrecision — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_precise::testPrecise();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.precise"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.precise: {msg}"));
-            println!("  ✗ test.precise — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_precisionFromString::testPrecisionFromString();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.precisionFromString"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.precisionFromString: {msg}"));
-            println!("  ✗ test.precisionFromString — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_rawencode::testRawencode();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.rawencode"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.rawencode: {msg}"));
-            println!("  ✗ test.rawencode — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_removeRepeatedElementsFromArray::testRemoveRepeatedElementsFromArray();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.removeRepeatedElementsFromArray"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.removeRepeatedElementsFromArray: {msg}"));
-            println!("  ✗ test.removeRepeatedElementsFromArray — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_safeMethods::testSafeMethods();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.safeMethods"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.safeMethods: {msg}"));
-            println!("  ✗ test.safeMethods — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_safeTicker::testSafeTicker();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.safeTicker"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.safeTicker: {msg}"));
-            println!("  ✗ test.safeTicker — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        tokio::runtime::Runtime::new().unwrap().block_on(test_setMarketsFromExchange::testSetMarketsFromExchange());
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.setMarketsFromExchange"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.setMarketsFromExchange: {msg}"));
-            println!("  ✗ test.setMarketsFromExchange — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        tokio::runtime::Runtime::new().unwrap().block_on(test_sleep::testSleep());
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.sleep"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.sleep: {msg}"));
-            println!("  ✗ test.sleep — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_sort::testSort();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.sort"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.sort: {msg}"));
-            println!("  ✗ test.sort — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_sortBy::testSortBy();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.sortBy"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.sortBy: {msg}"));
-            println!("  ✗ test.sortBy — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_stringToBase16::testStringToBase16();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.stringToBase16"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.stringToBase16: {msg}"));
-            println!("  ✗ test.stringToBase16 — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_stringToBase64::testStringToBase64();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.stringToBase64"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.stringToBase64: {msg}"));
-            println!("  ✗ test.stringToBase64 — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_strip::testStrip();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.strip"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.strip: {msg}"));
-            println!("  ✗ test.strip — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_sum::testSum();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.sum"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.sum: {msg}"));
-            println!("  ✗ test.sum — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_timeframes::testTimeframes();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.timeframes"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.timeframes: {msg}"));
-            println!("  ✗ test.timeframes — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_toArray::testToArray();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.toArray"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.toArray: {msg}"));
-            println!("  ✗ test.toArray — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_unique::testUnique();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.unique"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.unique: {msg}"));
-            println!("  ✗ test.unique — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_urlencode::testUrlencode();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.urlencode"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.urlencode: {msg}"));
-            println!("  ✗ test.urlencode — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_urlencodeBase64::testUrlencodeBase64();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.urlencodeBase64"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.urlencodeBase64: {msg}"));
-            println!("  ✗ test.urlencodeBase64 — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_urlencodeNested::testUrlencodeNested();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.urlencodeNested"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.urlencodeNested: {msg}"));
-            println!("  ✗ test.urlencodeNested — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_urlencodeWithArrayRepeat::testUrlencodeWithArrayRepeat();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.urlencodeWithArrayRepeat"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.urlencodeWithArrayRepeat: {msg}"));
-            println!("  ✗ test.urlencodeWithArrayRepeat — {msg}");
-        }
-    }
-    match std::thread::spawn(|| {
-        test_uuid::testUuid();
-    }).join() {
-        Ok(_)  => { passed += 1; println!("  ✓ test.uuid"); }
-        Err(e) => {
-            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
-                .or_else(|| e.downcast_ref::<&str>().copied())
-                .unwrap_or("<non-string panic>");
-            failed.push(format!("test.uuid: {msg}"));
-            println!("  ✗ test.uuid — {msg}");
-        }
-    }
-    let _ = std::panic::take_hook();
-    let total = passed + failed.len();
-    println!("Transpiled base tests: {}/{} passed", passed, total);
-    if failed.is_empty() {
-        Ok(())
-    } else {
-        Err(format!("{} transpiled base test(s) failed:\n  {}", failed.len(), failed.join("\n  ")))
-    }
-}
+// Go-style aggregator — transpiled from ts/src/test/base/tests.init.ts.
+#[path = "tests.init.rs"] pub mod tests_init;
+pub use tests_init::baseTestsInit;

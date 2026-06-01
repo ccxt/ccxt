@@ -5,61 +5,62 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
 pub fn testFilterBy() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
     let mut sampleArray: Value = Value::List(vec![Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("a".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Null);
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("b".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("a".to_string()));
         m.insert("bar".to_string(), Value::Str("b".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("c".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("d".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("b".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("c".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("c".to_string()));
     m
 })]);
     let mut currentValue: Value = exchange.filter_by(sampleArray.clone(), Value::Str("foo".to_string()), Value::Str("a".to_string()), &[]);
     let mut storedValue: Value = Value::List(vec![Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("a".to_string()));
     m
 }), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("a".to_string()));
         m.insert("bar".to_string(), Value::Str("b".to_string()));
     m
 })]);
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Null, Value::Str("testFilterBy".to_string()), currentValue, storedValue);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testFilterBy".to_string()).clone(), currentValue.clone(), storedValue.clone()]);
 }

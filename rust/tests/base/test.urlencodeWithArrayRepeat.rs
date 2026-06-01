@@ -5,15 +5,16 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
 pub fn testUrlencodeWithArrayRepeat() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
     let mut dict2: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
             m.insert("product_ids".to_string(), Value::List(vec![Value::Str("AA".to_string()), Value::Str("BB".to_string())]));
         m
@@ -21,5 +22,5 @@ pub fn testUrlencodeWithArrayRepeat() {
     let mut expected2a: Value = Value::Str("a=1&product_ids=AA&product_ids=BB".to_string());
     let mut expected2b: Value = Value::Str("product_ids=AA&product_ids=BB&a=1".to_string());
     let mut result2: Value = exchange.urlencode_with_array_repeat(dict2.clone());
-    assert!(ccxt::runtime::is_true(&(is_equal(&result2, &expected2a) || is_equal(&result2, &expected2b))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&result2, &expected2a) || is_equal(&result2, &expected2b)))));
 }

@@ -5,10 +5,11 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
 pub fn testIsJsonEncodedObject() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
@@ -16,15 +17,15 @@ pub fn testIsJsonEncodedObject() {
     assert!(ccxt::runtime::is_true(&(exchange.is_json_encoded_object(&[Value::Str("{}".to_string())]))));
     assert!(ccxt::runtime::is_true(&(exchange.is_json_encoded_object(&[Value::Str("[]".to_string())]))));
     // todo: the belows  are not ideal, but currently valid
-    assert!(ccxt::runtime::is_true(&(exchange.is_json_encoded_object())));
-    assert!(ccxt::runtime::is_true(&(exchange.is_json_encoded_object())));
-    assert!(ccxt::runtime::is_true(&(exchange.is_json_encoded_object())));
-    assert!(ccxt::runtime::is_true(&(exchange.is_json_encoded_object())));
+    assert!(ccxt::runtime::is_true(&(exchange.is_json_encoded_object(&[Value::Str("{x".to_string())]))));
+    assert!(ccxt::runtime::is_true(&(exchange.is_json_encoded_object(&[Value::Str("[x".to_string())]))));
+    assert!(ccxt::runtime::is_true(&(exchange.is_json_encoded_object(&[Value::Str("{".to_string())]))));
+    assert!(ccxt::runtime::is_true(&(exchange.is_json_encoded_object(&[Value::Str("[".to_string())]))));
     // invalid
-    assert!(ccxt::runtime::is_true(&(!is_true(&exchange.is_json_encoded_object(&[Value::Str("x".to_string())])))));
-    assert!(ccxt::runtime::is_true(&(!is_true(&exchange.is_json_encoded_object(&[Value::Str("".to_string())])))));
-    assert!(ccxt::runtime::is_true(&(!is_true(&exchange.is_json_encoded_object()))));
-    assert!(ccxt::runtime::is_true(&(!is_true(&exchange.is_json_encoded_object()))));
-    assert!(ccxt::runtime::is_true(&(!is_true(&exchange.is_json_encoded_object(&[Value::Str("null".to_string())])))));
-    assert!(ccxt::runtime::is_true(&(!is_true(&exchange.is_json_encoded_object(&[Value::Str("undefined".to_string())])))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("x".to_string())]))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("".to_string())]))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("}".to_string())]))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("]".to_string())]))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("null".to_string())]))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("undefined".to_string())]))))));
 }

@@ -5,19 +5,20 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
 pub fn testUrlencodeNested() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
     // todo: add nulls
     // todo: add key sort (for different langs)
     let mut dict2: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("b".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("c".to_string(), Value::Int(2));
         m.insert("target".to_string(), Value::Str("+&".to_string()));
     m
@@ -29,6 +30,6 @@ pub fn testUrlencodeNested() {
     let mut expected2c: Value = Value::Str("b[target]=%2B%26&b[c]=2&d[0]=1&d[1]=2".to_string());
     let mut expected2b: Value = Value::Str("d[0]=1&d[1]=2&b[c]=2&b[target]=%2B%26".to_string());
     let mut expected2d: Value = Value::Str("d[0]=1&d[1]=2&b[target]=%2B%26&b[c]=2".to_string());
-    let mut result2: Value = exchange.urlencode_nested(dict2.clone());
-    assert!(ccxt::runtime::is_true(&(is_equal(&result2, &expected2a) || is_equal(&result2, &expected2b) || is_equal(&result2, &expected2c) || is_equal(&result2, &expected2d))));
+    let mut result2: Value = exchange.urlencode_nested(dict2.clone(), &[]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&result2, &expected2a) || is_equal(&result2, &expected2b) || is_equal(&result2, &expected2c) || is_equal(&result2, &expected2d)))));
 }

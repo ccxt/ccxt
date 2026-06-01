@@ -36,22 +36,70 @@ impl KucoinCore {
         // (e.g. portfolioMargin via fixture) take precedence, then
         // describe()'s defaults fill in any gaps.
         let __described_options = crate::get_value(&described, &crate::Value::Str("options".to_string()));
-        if let (crate::Value::Map(existing), crate::Value::Map(defaults)) =
+        // Capture the describe()'s explicit networksById BEFORE the merge
+        // — the merge below overlays the base Exchange's options (whose
+        // after_construct left an EMPTY networksById), which would
+        // otherwise clobber the manual mappings like binance BSC to BEP20.
+        let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
+        if let (crate::Value::Dict(existing), crate::Value::Dict(defaults)) =
             (&self.exchange.options.clone(), &__described_options)
         {
-            let mut merged = defaults.clone();
-            for (k, v) in existing { merged.insert(k.clone(), v.clone()); }
+            let mut merged = (**defaults).clone();
+            for (k, v) in existing.iter() { merged.insert(k.clone(), v.clone()); }
             self.exchange.options = crate::Value::Map(merged);
-        } else if !matches!(self.exchange.options, crate::Value::Map(_)) {
+        } else if !matches!(self.exchange.options, crate::Value::Dict(_)) {
             self.exchange.options = __described_options;
+        }
+        // Derive options.networksById (CCXT's createNetworksByIdObject):
+        // start from the auto-inverted networks (generated), then overlay
+        // the describe()'s explicit networksById so manual mappings win —
+        // mirrors TS extend(generated, manual). Without the manual
+        // overlay, an exchange whose networks defines both BSC to BSC and
+        // BEP20 to BSC would invert to BSC to BSC (wrong) by iteration
+        // order instead of the intended BSC to BEP20.
+        if let crate::Value::Dict(opts_arc) = self.exchange.options.clone() {
+            let mut opts = std::sync::Arc::try_unwrap(opts_arc).unwrap_or_else(|a| (*a).clone());
+            let mut by_id: indexmap::IndexMap<String, crate::Value> = indexmap::IndexMap::new();
+            if let Some(crate::Value::Dict(networks)) = opts.get("networks") {
+                for (code, id) in networks.iter() {
+                    if let crate::Value::Str(id_s) = id {
+                        by_id.entry(id_s.clone())
+                             .or_insert_with(|| crate::Value::Str(code.clone()));
+                    }
+                }
+            }
+            if let crate::Value::Dict(manual) = &__described_networks_by_id {
+                for (k, v) in manual.iter() { by_id.insert(k.clone(), v.clone()); }
+            }
+            opts.insert("networksById".to_string(), crate::Value::Map(by_id));
+            self.exchange.options = crate::Value::Map(opts);
         }
         self.exchange.hostname = crate::get_value(&described, &crate::Value::Str("hostname".to_string()));
         self.exchange.version  = crate::get_value(&described, &crate::Value::Str("version".to_string()));
         self.exchange.id       = crate::get_value(&described, &crate::Value::Str("id".to_string()));
         self.exchange.name     = crate::get_value(&described, &crate::Value::Str("name".to_string()));
         self.exchange.exceptions = crate::get_value(&described, &crate::Value::Str("exceptions".to_string()));
-        self.exchange.requiredCredentials = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string()));
+        // Only override the base-default requiredCredentials when the
+        // exchange's describe() actually provides them (super.describe()
+        // is stubbed, so most exchanges' describe() omits this).
+        { let __rc = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string())); if !matches!(__rc, crate::Value::Null) { self.exchange.requiredCredentials = __rc; } }
+        // Merge describe()'s commonCurrencies over the base defaults so
+        // exchange-specific aliases (bitfinex UST to USDT, onetrading
+        // MIOTA to IOTA) reach commonCurrencyCode / safeCurrencyCode.
+        { let __cc = crate::get_value(&described, &crate::Value::Str("commonCurrencies".to_string())); if let crate::Value::Dict(extra) = __cc { let extra = std::sync::Arc::try_unwrap(extra).unwrap_or_else(|a| (*a).clone()); if let crate::Value::Dict(base) = &mut self.exchange.commonCurrencies { let base = std::sync::Arc::make_mut(base); for (k, v) in extra { base.insert(k, v); } } else { self.exchange.commonCurrencies = crate::Value::Map(extra); } } }
         self.exchange.precisionMode = crate::get_value(&described, &crate::Value::Str("precisionMode".to_string()));
+        self.exchange.timeframes = crate::get_value(&described, &crate::Value::Str("timeframes".to_string()));
+        self.exchange.fees = crate::get_value(&described, &crate::Value::Str("fees".to_string()));
+        // `features` carries the describe() block that drives
+        // unified-method tests (e.g. `features.spot.fetchCurrencies.private`
+        // tells testFetchCurrencies to skip the length check). It's set
+        // after `Exchange::new` because `features_generator` (in
+        // `after_construct`) bails when `features == Null` — so we
+        // assign and re-run the generator here.
+        self.exchange.features = crate::get_value(&described, &crate::Value::Str("features".to_string()));
+        if !matches!(self.exchange.features, crate::Value::Null) {
+            self.exchange.features_generator();
+        }
         // Markets and currencies may have been populated already by
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
@@ -76,7 +124,7 @@ impl KucoinCore {
     /// Casts the void pointer back to `*mut Self` and forwards to the
     /// real `call_dynamic`. Safety: the pointer must come from the
     /// matching Core's bind() — guaranteed by Exchange::bind_call_async.
-    fn __call_dynamic_dispatch<'a>(
+    pub fn __call_dynamic_dispatch<'a>(
         ptr: *mut (),
         method: &'a str,
         args: Vec<crate::Value>,
@@ -283,6 +331,10 @@ impl crate::exchange::DerivedExchange for KucoinCore {
         // Forward to the inherent method on KucoinCore.
         KucoinCore::parse_funding_rate(self, rate, &[market.clone()])
     }
+    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on KucoinCore.
+        KucoinCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+    }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
         KucoinCore::parse_ledger_entry(self, entry, &[currency.clone()])
@@ -307,6 +359,34 @@ impl crate::exchange::DerivedExchange for KucoinCore {
         // Forward to the inherent method on KucoinCore.
         KucoinCore::parse_margin_modification(self, data, &[market.clone()])
     }
+    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on KucoinCore.
+        KucoinCore::parse_transaction(self, transaction, &[currency.clone()])
+    }
+    fn parse_borrow_interest(&self, info: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on KucoinCore.
+        KucoinCore::parse_borrow_interest(self, info, &[market.clone()])
+    }
+    fn parse_adl_rank(&self, info: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on KucoinCore.
+        KucoinCore::parse_adl_rank(self, info, &[market.clone()])
+    }
+    fn parse_margin_mode(&self, margin_mode: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on KucoinCore.
+        KucoinCore::parse_margin_mode(self, margin_mode, &[market.clone()])
+    }
+    fn parse_borrow_rate(&self, info: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on KucoinCore.
+        KucoinCore::parse_borrow_rate(self, info, &[currency.clone()])
+    }
+    fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on KucoinCore.
+        KucoinCore::parse_market_leverage_tiers(self, info, &[market.clone()])
+    }
+    fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on KucoinCore.
+        KucoinCore::parse_deposit_withdraw_fee(self, fee, &[currency.clone()])
+    }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on KucoinCore.
         KucoinCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
@@ -329,7 +409,7 @@ impl std::ops::DerefMut for KucoinCore {
 impl KucoinCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("kucoin".to_string()));
         m.insert("name".to_string(), Value::Str("KuCoin".to_string()));
         m.insert("countries".to_string(), Value::List(vec![Value::Str("SC".to_string())]));
@@ -340,7 +420,7 @@ impl KucoinCore {
         m.insert("comment".to_string(), Value::Str("Platform 2.0".to_string()));
         m.insert("quoteJsonNumbers".to_string(), Value::Bool(false));
         m.insert("has".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("CORS".to_string(), Value::Null);
         m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Bool(true));
@@ -444,11 +524,11 @@ impl KucoinCore {
     m
 }));
         m.insert("urls".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg".to_string()));
         m.insert("referral".to_string(), Value::Str("https://www.kucoin.com/ucenter/signup?rcode=E5wkqe".to_string()));
         m.insert("api".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Str("https://api.kucoin.com".to_string()));
         m.insert("private".to_string(), Value::Str("https://api.kucoin.com".to_string()));
         m.insert("futuresPrivate".to_string(), Value::Str("https://api-futures.kucoin.com".to_string()));
@@ -465,18 +545,18 @@ impl KucoinCore {
     m
 }));
         m.insert("requiredCredentials".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("apiKey".to_string(), Value::Bool(true));
         m.insert("secret".to_string(), Value::Bool(true));
         m.insert("password".to_string(), Value::Bool(true));
     m
 }));
         m.insert("api".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("currencies".to_string(), Value::Int(3));
         m.insert("currencies/{currency}".to_string(), Value::Int(3));
         m.insert("symbols".to_string(), Value::Int(4));
@@ -502,16 +582,16 @@ impl KucoinCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("bullet-public".to_string(), Value::Int(10));
     m
 }));
     m
 }));
         m.insert("private".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("user-info".to_string(), Value::Int(20));
         m.insert("user/api-key".to_string(), Value::Int(20));
         m.insert("accounts".to_string(), Value::Int(5));
@@ -602,7 +682,7 @@ impl KucoinCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sub/user/created".to_string(), Value::Int(15));
         m.insert("sub/api-key".to_string(), Value::Int(20));
         m.insert("sub/api-key/update".to_string(), Value::Int(30));
@@ -644,7 +724,7 @@ impl KucoinCore {
     m
 }));
         m.insert("delete".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sub/api-key".to_string(), Value::Int(30));
         m.insert("withdrawals/{withdrawalId}".to_string(), Value::Int(20));
         m.insert("hf/orders/{orderId}".to_string(), Value::Int(1));
@@ -678,9 +758,9 @@ impl KucoinCore {
     m
 }));
         m.insert("futuresPublic".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("contracts/active".to_string(), Value::Int(6));
         m.insert("contracts/{symbol}".to_string(), Value::Int(6));
         m.insert("ticker".to_string(), Value::Int(4));
@@ -706,16 +786,16 @@ impl KucoinCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("bullet-public".to_string(), Value::Int(20));
     m
 }));
     m
 }));
         m.insert("futuresPrivate".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("transaction-history".to_string(), Value::Int(4));
         m.insert("account-overview".to_string(), Value::Int(10));
         m.insert("account-overview-all".to_string(), Value::Int(12));
@@ -750,7 +830,7 @@ impl KucoinCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("transfer-out".to_string(), Value::Int(20));
         m.insert("transfer-in".to_string(), Value::Int(20));
         m.insert("orders".to_string(), Value::Int(4));
@@ -782,7 +862,7 @@ impl KucoinCore {
     m
 }));
         m.insert("delete".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("orders/{orderId}".to_string(), Value::Int(2));
         m.insert("orders/client-order/{clientOid}".to_string(), Value::Int(2));
         m.insert("orders".to_string(), Value::Int(20));
@@ -798,9 +878,9 @@ impl KucoinCore {
     m
 }));
         m.insert("webExchange".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("currency/currency/chain-info".to_string(), Value::Int(1));
         m.insert("contract/{symbol}/funding-rates".to_string(), Value::Int(2));
     m
@@ -808,9 +888,9 @@ impl KucoinCore {
     m
 }));
         m.insert("broker".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("broker/nd/info".to_string(), Value::Int(4));
         m.insert("broker/nd/account".to_string(), Value::Int(4));
         m.insert("broker/nd/account/apikey".to_string(), Value::Int(4));
@@ -822,7 +902,7 @@ impl KucoinCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("broker/nd/transfer".to_string(), Value::Int(2));
         m.insert("broker/nd/account".to_string(), Value::Int(6));
         m.insert("broker/nd/account/apikey".to_string(), Value::Int(6));
@@ -830,16 +910,16 @@ impl KucoinCore {
     m
 }));
         m.insert("delete".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("broker/nd/account/apikey".to_string(), Value::Int(6));
     m
 }));
     m
 }));
         m.insert("earn".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("otc-loan/discount-rate-configs".to_string(), Value::Int(20));
         m.insert("otc-loan/loan".to_string(), Value::Int(2));
         m.insert("otc-loan/accounts".to_string(), Value::Int(2));
@@ -855,22 +935,22 @@ impl KucoinCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("earn/orders".to_string(), Value::Int(10));
         m.insert("struct-earn/orders".to_string(), Value::Int(10));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("earn/orders".to_string(), Value::Int(10));
     m
 }));
     m
 }));
         m.insert("uta".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("market/announcement".to_string(), Value::Int(40));
         m.insert("market/currency".to_string(), Value::Int(6));
         m.insert("asset/currencies".to_string(), Value::Int(6));
@@ -892,9 +972,9 @@ impl KucoinCore {
     m
 }));
         m.insert("utaPrivate".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("market/orderbook".to_string(), Value::Int(6));
         m.insert("account/balance".to_string(), Value::Int(10));
         m.insert("account/transfer-quota".to_string(), Value::Int(40));
@@ -922,7 +1002,7 @@ impl KucoinCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("account/transfer".to_string(), Value::Int(8));
         m.insert("account/mode".to_string(), Value::Int(60));
         m.insert("{accountMode}/account/modify-leverage".to_string(), Value::Int(40));
@@ -941,7 +1021,7 @@ impl KucoinCore {
     m
 }));
         m.insert("timeframes".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("1m".to_string(), Value::Str("1min".to_string()));
         m.insert("3m".to_string(), Value::Str("3min".to_string()));
         m.insert("5m".to_string(), Value::Str("5min".to_string()));
@@ -960,9 +1040,9 @@ impl KucoinCore {
 }));
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
         m.insert("exceptions".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("Order not exist or not allow to be cancelled".to_string(), Value::Str("OrderNotFound".to_string()).clone());
         m.insert("The order does not exist.".to_string(), Value::Str("OrderNotFound".to_string()).clone());
         m.insert("order not exist".to_string(), Value::Str("OrderNotFound".to_string()).clone());
@@ -1100,7 +1180,7 @@ impl KucoinCore {
     m
 }));
         m.insert("broad".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("pageSize should not greater than 500".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("Exceeded the access frequency".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
         m.insert("require more permission".to_string(), Value::Str("PermissionDenied".to_string()).clone());
@@ -1110,15 +1190,15 @@ impl KucoinCore {
     m
 }));
         m.insert("fees".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("trading".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.001".to_string()), &[]));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.001".to_string()), &[]));
         m.insert("tiers".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("taker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200".to_string()), &[]), self.parse_number(Value::Str("0.0009".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500".to_string()), &[]), self.parse_number(Value::Str("0.0008".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000".to_string()), &[]), self.parse_number(Value::Str("0.0007".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2000".to_string()), &[]), self.parse_number(Value::Str("0.0007".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("4000".to_string()), &[]), self.parse_number(Value::Str("0.0006".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("8000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("15000".to_string()), &[]), self.parse_number(Value::Str("0.00045".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("25000".to_string()), &[]), self.parse_number(Value::Str("0.0004".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("40000".to_string()), &[]), self.parse_number(Value::Str("0.00035".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("60000".to_string()), &[]), self.parse_number(Value::Str("0.0003".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("80000".to_string()), &[]), self.parse_number(Value::Str("0.00025".to_string()), &[])])]));
         m.insert("maker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50".to_string()), &[]), self.parse_number(Value::Str("0.0009".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200".to_string()), &[]), self.parse_number(Value::Str("0.0007".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000".to_string()), &[]), self.parse_number(Value::Str("0.0003".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("4000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("8000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("15000".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("25000".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("40000".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("60000".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("80000".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])])]));
     m
@@ -1126,13 +1206,13 @@ impl KucoinCore {
     m
 }));
         m.insert("spot".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.001".to_string()), &[]));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.001".to_string()), &[]));
         m.insert("tiers".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("taker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200".to_string()), &[]), self.parse_number(Value::Str("0.0009".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500".to_string()), &[]), self.parse_number(Value::Str("0.0008".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000".to_string()), &[]), self.parse_number(Value::Str("0.0007".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2000".to_string()), &[]), self.parse_number(Value::Str("0.0007".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("4000".to_string()), &[]), self.parse_number(Value::Str("0.0006".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("8000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("15000".to_string()), &[]), self.parse_number(Value::Str("0.00045".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("25000".to_string()), &[]), self.parse_number(Value::Str("0.0004".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("40000".to_string()), &[]), self.parse_number(Value::Str("0.00035".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("60000".to_string()), &[]), self.parse_number(Value::Str("0.0003".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("80000".to_string()), &[]), self.parse_number(Value::Str("0.00025".to_string()), &[])])]));
         m.insert("maker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50".to_string()), &[]), self.parse_number(Value::Str("0.0009".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200".to_string()), &[]), self.parse_number(Value::Str("0.0007".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000".to_string()), &[]), self.parse_number(Value::Str("0.0003".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("4000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("8000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("15000".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("25000".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("40000".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("60000".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("80000".to_string()), &[]), self.parse_number(Value::Str("-0.00005".to_string()), &[])])]));
     m
@@ -1140,13 +1220,13 @@ impl KucoinCore {
     m
 }));
         m.insert("contract".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.0006".to_string()), &[]));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.0002".to_string()), &[]));
         m.insert("tiers".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("taker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.0006".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50".to_string()), &[]), self.parse_number(Value::Str("0.0006".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200".to_string()), &[]), self.parse_number(Value::Str("0.0006".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000".to_string()), &[]), self.parse_number(Value::Str("0.0004".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2000".to_string()), &[]), self.parse_number(Value::Str("0.0004".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("4000".to_string()), &[]), self.parse_number(Value::Str("0.00038".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("8000".to_string()), &[]), self.parse_number(Value::Str("0.00035".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("15000".to_string()), &[]), self.parse_number(Value::Str("0.00032".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("25000".to_string()), &[]), self.parse_number(Value::Str("0.0003".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("40000".to_string()), &[]), self.parse_number(Value::Str("0.0003".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("60000".to_string()), &[]), self.parse_number(Value::Str("0.0003".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("80000".to_string()), &[]), self.parse_number(Value::Str("0.0003".to_string()), &[])])]));
         m.insert("maker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.02".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50".to_string()), &[]), self.parse_number(Value::Str("0.015".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200".to_string()), &[]), self.parse_number(Value::Str("0.01".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500".to_string()), &[]), self.parse_number(Value::Str("0.01".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000".to_string()), &[]), self.parse_number(Value::Str("0.01".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("4000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("8000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("15000".to_string()), &[]), self.parse_number(Value::Str("-0.003".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("25000".to_string()), &[]), self.parse_number(Value::Str("-0.006".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("40000".to_string()), &[]), self.parse_number(Value::Str("-0.009".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("60000".to_string()), &[]), self.parse_number(Value::Str("-0.012".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("80000".to_string()), &[]), self.parse_number(Value::Str("-0.015".to_string()), &[])])]));
     m
@@ -1154,15 +1234,15 @@ impl KucoinCore {
     m
 }));
         m.insert("funding".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("tierBased".to_string(), Value::Bool(false));
         m.insert("percentage".to_string(), Value::Bool(false));
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
     m
@@ -1170,7 +1250,7 @@ impl KucoinCore {
     m
 }));
         m.insert("commonCurrencies".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("BIFI".to_string(), Value::Str("BIFIF".to_string()));
         m.insert("VAI".to_string(), Value::Str("VAIOT".to_string()));
         m.insert("WAX".to_string(), Value::Str("WAXP".to_string()));
@@ -1180,7 +1260,7 @@ impl KucoinCore {
     m
 }));
         m.insert("options".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("hf".to_string(), Value::Null);
         m.insert("uta".to_string(), Value::Null);
         m.insert("version".to_string(), Value::Str("v1".to_string()));
@@ -1189,38 +1269,38 @@ impl KucoinCore {
         m.insert("timeDifference".to_string(), Value::Int(0));
         m.insert("adjustForTimeDifference".to_string(), Value::Bool(false));
         m.insert("fetchCurrencies".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("brokenCurrencies".to_string(), Value::List(vec![Value::Str("00".to_string()), Value::Str("OPEN_ERROR".to_string()), Value::Str("HUF".to_string()), Value::Str("BDT".to_string())]));
     m
 }));
         m.insert("fetchMarkets".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("types".to_string(), Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("contract".to_string())]));
         m.insert("fetchTickersFees".to_string(), Value::Bool(true));
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("includeFee".to_string(), Value::Bool(false));
     m
 }));
         m.insert("transfer".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fillResponseFromRequest".to_string(), Value::Bool(true));
     m
 }));
         m.insert("fetchBalance".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("code".to_string(), Value::Str("USDT".to_string()));
     m
 }));
         m.insert("setLeverage".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("code".to_string(), Value::Str("USDT".to_string()));
     m
 }));
         m.insert("timeInForce".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("IOC".to_string(), Value::Str("IOC".to_string()));
         m.insert("FOK".to_string(), Value::Str("FOK".to_string()));
         m.insert("PO".to_string(), Value::Str("PO".to_string()));
@@ -1229,9 +1309,9 @@ impl KucoinCore {
     m
 }));
         m.insert("timeframes".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("swap".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("1m".to_string(), Value::Int(1));
         m.insert("3m".to_string(), Value::Null);
         m.insert("5m".to_string(), Value::Int(5));
@@ -1250,11 +1330,11 @@ impl KucoinCore {
     m
 }));
         m.insert("versions".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("GET".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("currencies".to_string(), Value::Str("v3".to_string()));
         m.insert("currencies/{currency}".to_string(), Value::Str("v3".to_string()));
         m.insert("symbols".to_string(), Value::Str("v2".to_string()));
@@ -1265,9 +1345,9 @@ impl KucoinCore {
     m
 }));
         m.insert("private".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("GET".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("user-info".to_string(), Value::Str("v2".to_string()));
         m.insert("hf/margin/account/ledgers".to_string(), Value::Str("v3".to_string()));
         m.insert("sub/user".to_string(), Value::Str("v2".to_string()));
@@ -1311,7 +1391,7 @@ impl KucoinCore {
     m
 }));
         m.insert("POST".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sub/user/created".to_string(), Value::Str("v2".to_string()));
         m.insert("accounts/universal-transfer".to_string(), Value::Str("v3".to_string()));
         m.insert("accounts/sub-transfer".to_string(), Value::Str("v2".to_string()));
@@ -1333,7 +1413,7 @@ impl KucoinCore {
     m
 }));
         m.insert("DELETE".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("hf/margin/orders/{orderId}".to_string(), Value::Str("v3".to_string()));
         m.insert("hf/margin/orders/client-order/{clientOid}".to_string(), Value::Str("v3".to_string()));
         m.insert("hf/margin/orders".to_string(), Value::Str("v3".to_string()));
@@ -1351,9 +1431,9 @@ impl KucoinCore {
     m
 }));
         m.insert("futuresPrivate".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("GET".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("getMaxOpenSize".to_string(), Value::Str("v2".to_string()));
         m.insert("getCrossUserLeverage".to_string(), Value::Str("v2".to_string()));
         m.insert("position/getMarginMode".to_string(), Value::Str("v2".to_string()));
@@ -1361,7 +1441,7 @@ impl KucoinCore {
     m
 }));
         m.insert("POST".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("transfer-out".to_string(), Value::Str("v2".to_string()));
         m.insert("changeCrossUserLeverage".to_string(), Value::Str("v2".to_string()));
         m.insert("position/changeMarginMode".to_string(), Value::Str("v2".to_string()));
@@ -1371,9 +1451,9 @@ impl KucoinCore {
     m
 }));
         m.insert("futuresPublic".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("GET".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("level3/snapshot".to_string(), Value::Str("v2".to_string()));
     m
 }));
@@ -1382,15 +1462,15 @@ impl KucoinCore {
     m
 }));
         m.insert("partner".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("ccxt".to_string()));
         m.insert("key".to_string(), Value::Str("9e58cc35-5b5e-4133-92ec-166e3f077cb8".to_string()));
     m
 }));
         m.insert("future".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("ccxtfutures".to_string()));
         m.insert("key".to_string(), Value::Str("1b327198-f30c-4f14-a0ac-918871282f15".to_string()));
     m
@@ -1398,7 +1478,7 @@ impl KucoinCore {
     m
 }));
         m.insert("accountsByType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Str("trade".to_string()));
         m.insert("margin".to_string(), Value::Str("margin".to_string()));
         m.insert("cross".to_string(), Value::Str("margin".to_string()));
@@ -1416,7 +1496,7 @@ impl KucoinCore {
     m
 }));
         m.insert("utaAccountsByType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("trade".to_string(), Value::Str("SPOT".to_string()));
         m.insert("spot".to_string(), Value::Str("SPOT".to_string()));
         m.insert("margin".to_string(), Value::Str("CROSS".to_string()));
@@ -1432,7 +1512,7 @@ impl KucoinCore {
     m
 }));
         m.insert("networks".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("BTC".to_string(), Value::Str("btc".to_string()));
         m.insert("BRC20".to_string(), Value::Str("btc".to_string()));
         m.insert("BTCNATIVESEGWIT".to_string(), Value::Str("bech32".to_string()));
@@ -1577,7 +1657,7 @@ impl KucoinCore {
     m
 }));
         m.insert("networksById".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("btc".to_string(), Value::Str("BTC".to_string()));
         m.insert("trx".to_string(), Value::Str("TRC20".to_string()));
         m.insert("eth".to_string(), Value::Str("ERC20".to_string()));
@@ -1587,7 +1667,7 @@ impl KucoinCore {
     m
 }));
         m.insert("marginModes".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cross".to_string(), Value::Str("MARGIN_TRADE".to_string()));
         m.insert("isolated".to_string(), Value::Str("MARGIN_ISOLATED_TRADE".to_string()));
         m.insert("spot".to_string(), Value::Str("TRADE".to_string()));
@@ -1596,12 +1676,12 @@ impl KucoinCore {
     m
 }));
         m.insert("features".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sandbox".to_string(), Value::Bool(false));
         m.insert("createOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("triggerPrice".to_string(), Value::Bool(true));
         m.insert("triggerPriceType".to_string(), Value::Null);
@@ -1610,7 +1690,7 @@ impl KucoinCore {
         m.insert("takeProfitPrice".to_string(), Value::Bool(true));
         m.insert("attachedStopLossTakeProfit".to_string(), Value::Null);
         m.insert("timeInForce".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("IOC".to_string(), Value::Bool(true));
         m.insert("FOK".to_string(), Value::Bool(true));
         m.insert("PO".to_string(), Value::Bool(true));
@@ -1627,12 +1707,12 @@ impl KucoinCore {
     m
 }));
         m.insert("createOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("max".to_string(), Value::Int(5));
     m
 }));
         m.insert("fetchMyTrades".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("limit".to_string(), Value::Null);
         m.insert("daysBack".to_string(), Value::Null);
@@ -1641,7 +1721,7 @@ impl KucoinCore {
     m
 }));
         m.insert("fetchOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("trigger".to_string(), Value::Bool(true));
         m.insert("trailing".to_string(), Value::Bool(false));
@@ -1649,7 +1729,7 @@ impl KucoinCore {
     m
 }));
         m.insert("fetchOpenOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("limit".to_string(), Value::Int(500));
         m.insert("trigger".to_string(), Value::Bool(true));
@@ -1659,7 +1739,7 @@ impl KucoinCore {
 }));
         m.insert("fetchOrders".to_string(), Value::Null);
         m.insert("fetchClosedOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("limit".to_string(), Value::Int(500));
         m.insert("daysBack".to_string(), Value::Null);
@@ -1671,21 +1751,21 @@ impl KucoinCore {
     m
 }));
         m.insert("fetchOHLCV".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("limit".to_string(), Value::Int(1500));
     m
 }));
     m
 }));
         m.insert("forDerivs".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sandbox".to_string(), Value::Bool(false));
         m.insert("createOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("triggerPrice".to_string(), Value::Bool(true));
         m.insert("triggerPriceType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("last".to_string(), Value::Bool(true));
         m.insert("mark".to_string(), Value::Bool(true));
         m.insert("index".to_string(), Value::Bool(true));
@@ -1695,9 +1775,9 @@ impl KucoinCore {
         m.insert("stopLossPrice".to_string(), Value::Bool(true));
         m.insert("takeProfitPrice".to_string(), Value::Bool(true));
         m.insert("attachedStopLossTakeProfit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("triggerPriceType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("last".to_string(), Value::Bool(true));
         m.insert("mark".to_string(), Value::Bool(true));
         m.insert("index".to_string(), Value::Bool(true));
@@ -1707,7 +1787,7 @@ impl KucoinCore {
     m
 }));
         m.insert("timeInForce".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("IOC".to_string(), Value::Bool(true));
         m.insert("FOK".to_string(), Value::Bool(false));
         m.insert("PO".to_string(), Value::Bool(true));
@@ -1724,12 +1804,12 @@ impl KucoinCore {
     m
 }));
         m.insert("createOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("max".to_string(), Value::Int(20));
     m
 }));
         m.insert("fetchMyTrades".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("limit".to_string(), Value::Int(1000));
         m.insert("daysBack".to_string(), Value::Null);
@@ -1738,7 +1818,7 @@ impl KucoinCore {
     m
 }));
         m.insert("fetchOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("trigger".to_string(), Value::Bool(false));
         m.insert("trailing".to_string(), Value::Bool(false));
@@ -1746,7 +1826,7 @@ impl KucoinCore {
     m
 }));
         m.insert("fetchOpenOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("limit".to_string(), Value::Int(1000));
         m.insert("trigger".to_string(), Value::Bool(true));
@@ -1756,7 +1836,7 @@ impl KucoinCore {
 }));
         m.insert("fetchOrders".to_string(), Value::Null);
         m.insert("fetchClosedOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("limit".to_string(), Value::Int(1000));
         m.insert("daysBack".to_string(), Value::Null);
@@ -1768,35 +1848,35 @@ impl KucoinCore {
     m
 }));
         m.insert("fetchOHLCV".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("limit".to_string(), Value::Int(500));
     m
 }));
     m
 }));
         m.insert("swap".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("linear".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forDerivs".to_string()));
     m
 }));
         m.insert("inverse".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forDerivs".to_string()));
     m
 }));
     m
 }));
         m.insert("future".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("linear".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forDerivs".to_string()));
     m
 }));
         m.insert("inverse".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("forDerivs".to_string()));
     m
 }));
@@ -1821,14 +1901,14 @@ impl KucoinCore {
  * @method
  * @name kucoin#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/market-data/get-server-time
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/market-data/get-server-time
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-server-time
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-server-time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
     pub async fn fetch_time(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut type_var: Value = Value::Null;
@@ -1852,7 +1932,7 @@ impl KucoinCore {
             //
             response = self.call_method(Value::Str("public_get_timestamp".to_string()), &[params.clone()]).await;
         }
-        return self.safe_integer(response.clone(), Value::Str("data".to_string()), &[]);
+        return self.safe_integer_k(response.clone(), "data", &[]);
 
     Value::Null
 }
@@ -1861,18 +1941,18 @@ impl KucoinCore {
  * @method
  * @name kucoin#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/market-data/get-service-status
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/market-data/get-service-status
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-service-status
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-service-status
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-service-status
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-service-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] spot or swap
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @param {string} [get_value(&params, &Value::Str("tradeType".to_string()))] *uta only* set to SPOT or FUTURES
- * @returns {object} a [status structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=exchange-status-structure}
+ * @param {string} [params.type] spot or swap
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {string} [params.tradeType] *uta only* set to SPOT or FUTURES
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
     pub async fn fetch_status(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut uta: Value = Value::Bool(false);
@@ -1881,11 +1961,11 @@ impl KucoinCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchStatus".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         if is_true(&uta) {
-            let mut defaultType: Value = self.safe_string(self.options.clone(), Value::Str("defaultType".to_string()), &[Value::Str("spot".to_string())]);
+            let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("spot".to_string())]);
             let mut defaultTradeType: Value = ternary(is_true(&(is_equal(&defaultType, &Value::Str("spot".to_string())))), Value::Str("SPOT".to_string()), Value::Str("FUTURES".to_string()));
             let mut tradeType: Value = self.safe_string_upper(params.clone(), Value::Str("tradeType".to_string()), &[defaultTradeType.clone()]);
             let mut request: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("tradeType".to_string(), tradeType.clone());
                 m
             });
@@ -1895,13 +1975,13 @@ impl KucoinCore {
         }  else {
             response = self.call_method(Value::Str("public_get_status".to_string()), &[params.clone()]).await;
         }
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut status: Value = self.safe_string2(data.clone(), Value::Str("status".to_string()), Value::Str("serverStatus".to_string()), &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), ternary(is_true(&(is_equal(&status, &Value::Str("open".to_string())))), Value::Str("ok".to_string()), Value::Str("maintenance".to_string())));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
@@ -1917,16 +1997,16 @@ impl KucoinCore {
  * @method
  * @name kucoin#fetchMarkets
  * @description retrieves data on all markets for kucoin
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/market-data/get-all-symbols
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-symbol
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/market-data/get-all-symbols
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-symbols
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-symbol
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object[]} an array of objects representing market data
  */
     pub async fn fetch_markets(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut fetchTickersFees: Value = Value::Null;
@@ -1937,10 +2017,10 @@ impl KucoinCore {
             return self.fetch_uta_markets(&[params.clone()]).await;
         }
         let mut defaultTypes: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("contract".to_string())]);
-        let mut fetchMarketsOptions: Value = self.safe_dict(self.options.clone(), Value::Str("fetchMarkets".to_string()), &[]);
-        let mut types: Value = self.safe_list(fetchMarketsOptions.clone(), Value::Str("types".to_string()), &[defaultTypes.clone()]);
+        let mut fetchMarketsOptions: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
+        let mut types: Value = self.safe_list_k(fetchMarketsOptions.clone(), "types", &[defaultTypes.clone()]);
         let mut credentialsSet: Value = self.check_required_credentials(&[Value::Bool(false)]);
-        let mut requestMarginables: Value = Value::Bool(is_true(&credentialsSet) && is_true(&self.safe_bool(params.clone(), Value::Str("marginables".to_string()), &[Value::Bool(true)])));
+        let mut requestMarginables: Value = Value::Bool(is_true(&credentialsSet) && is_true(&self.safe_bool_k(params.clone(), "marginables", &[Value::Bool(true)])));
         params = self.omit(params.clone(), Value::Str("marginables".to_string()), &[]);
         let mut fetchContractMarkets: Value = Value::Bool(false);
         if is_true(&self.in_array(Value::Str("swap".to_string()), types.clone())) || is_true(&self.in_array(Value::Str("future".to_string()), types.clone())) || is_true(&self.in_array(Value::Str("contract".to_string()), types.clone())) {
@@ -2014,68 +2094,70 @@ impl KucoinCore {
         }
         if is_true(&requestMarginables) {
             crossIndex = nextIndex.clone();
-            nextIndex = self.sum(nextIndex.clone(), Value::Int(2), &[]);
-            isolatedIndex = self.sum(crossIndex.clone(), Value::Int(1), &[]);
+            nextIndex = self.sum(&[nextIndex.clone(), Value::Int(2)]);
+            isolatedIndex = self.sum(&[crossIndex.clone(), Value::Int(1)]);
         }
         if is_true(&fetchTickersFees) {
             tickersIndex = nextIndex.clone();
-            nextIndex = self.sum(nextIndex.clone(), Value::Int(1), &[]);
+            nextIndex = self.sum(&[nextIndex.clone(), Value::Int(1)]);
         }
         if is_true(&fetchContractMarkets) {
             contractIndex = nextIndex.clone();
         }
-        let mut crossData: Value = ternary(is_true(&requestMarginables), self.safe_dict(get_value(&responses, &crossIndex), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut crossData: Value = ternary(is_true(&requestMarginables), self.safe_dict_k(get_value(&responses, &crossIndex), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut crossItems: Value = self.safe_list(crossData.clone(), Value::Str("items".to_string()), &[Value::List(vec![])]);
+        let mut crossItems: Value = self.safe_list_k(crossData.clone(), "items", &[Value::List(vec![])]);
         let mut crossById: Value = self.index_by(crossItems.clone(), Value::Str("symbol".to_string()));
         let mut isolatedData: Value = ternary(is_true(&requestMarginables), get_value(&responses, &isolatedIndex), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut isolatedItems: Value = self.safe_list(isolatedData.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut isolatedItems: Value = self.safe_list_k(isolatedData.clone(), "data", &[Value::List(vec![])]);
         let mut isolatedById: Value = self.index_by(isolatedItems.clone(), Value::Str("symbol".to_string()));
         let mut tickersResponse: Value = ternary(is_true(&fetchTickersFees), self.safe_dict(responses.clone(), tickersIndex.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut tickerItems: Value = self.safe_list(self.safe_dict(tickersResponse.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut tickerItems: Value = self.safe_list(self.safe_dict_k(tickersResponse.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ticker".to_string()), &[Value::List(vec![])]);
         let mut tickersById: Value = self.index_by(tickerItems.clone(), Value::Str("symbol".to_string()));
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&symbolsData)) {
+            let mut __for_first_885: bool = true;
+            while { if !__for_first_885 { i = add(&i, &Value::Int(1)); } __for_first_885 = false; is_less_than(&i, &get_array_length(&symbolsData)) } {
             let mut market: Value = get_value(&symbolsData, &i);
-            let mut id: Value = self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut market: Value = get_value(&symbolsData, &i);
+            let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut baseIdquoteIdVariable = split(&id, &Value::Str("-".to_string()));
             let mut baseId: Value = get_value(&baseIdquoteIdVariable, &Value::Int(0));
             let mut quoteId: Value = get_value(&baseIdquoteIdVariable, &Value::Int(1));
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            // const quoteIncrement = get_value(&this, &Value::Str("safeNumber".to_string())) (market, 'quoteIncrement');
+            // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
             let mut ticker: Value = self.safe_dict(tickersById.clone(), id.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut makerFeeRate: Value = self.safe_string(ticker.clone(), Value::Str("makerFeeRate".to_string()), &[]);
-            let mut takerFeeRate: Value = self.safe_string(ticker.clone(), Value::Str("takerFeeRate".to_string()), &[]);
-            let mut makerCoefficient: Value = self.safe_string(ticker.clone(), Value::Str("makerCoefficient".to_string()), &[]);
-            let mut takerCoefficient: Value = self.safe_string(ticker.clone(), Value::Str("takerCoefficient".to_string()), &[]);
+            let mut makerFeeRate: Value = self.safe_string_k(ticker.clone(), "makerFeeRate", &[]);
+            let mut takerFeeRate: Value = self.safe_string_k(ticker.clone(), "takerFeeRate", &[]);
+            let mut makerCoefficient: Value = self.safe_string_k(ticker.clone(), "makerCoefficient", &[]);
+            let mut takerCoefficient: Value = self.safe_string_k(ticker.clone(), "takerCoefficient", &[]);
             let mut hasCrossMargin: Value = (Value::Bool(in_op(&crossById, &id)));
             let mut hasIsolatedMargin: Value = (Value::Bool(in_op(&isolatedById, &id)));
-            let mut isMarginable: Value = Value::Bool(is_true(&self.safe_bool(market.clone(), Value::Str("isMarginEnabled".to_string()), &[Value::Bool(false)])) || is_true(&hasCrossMargin) || is_true(&hasIsolatedMargin));
+            let mut isMarginable: Value = Value::Bool(is_true(&self.safe_bool_k(market.clone(), "isMarginEnabled", &[Value::Bool(false)])) || is_true(&hasCrossMargin) || is_true(&hasIsolatedMargin));
             append_to_array(&mut result, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
                     m.insert("symbol".to_string(), add(&add(&base, &Value::Str("/".to_string())), &quote));
                     m.insert("base".to_string(), base.clone());
@@ -2088,7 +2170,7 @@ impl KucoinCore {
                     m.insert("spot".to_string(), Value::Bool(true));
                     m.insert("margin".to_string(), isMarginable.clone());
                     m.insert("marginModes".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cross".to_string(), hasCrossMargin.clone());
         m.insert("isolated".to_string(), hasIsolatedMargin.clone());
     m
@@ -2096,7 +2178,7 @@ impl KucoinCore {
                     m.insert("swap".to_string(), Value::Bool(false));
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
-                    m.insert("active".to_string(), self.safe_bool(market.clone(), Value::Str("enableTrading".to_string()), &[]));
+                    m.insert("active".to_string(), self.safe_bool_k(market.clone(), "enableTrading", &[]));
                     m.insert("contract".to_string(), Value::Bool(false));
                     m.insert("linear".to_string(), Value::Null);
                     m.insert("inverse".to_string(), Value::Null);
@@ -2108,35 +2190,35 @@ impl KucoinCore {
                     m.insert("strike".to_string(), Value::Null);
                     m.insert("optionType".to_string(), Value::Null);
                     m.insert("precision".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("amount".to_string(), self.safe_number(market.clone(), Value::Str("baseIncrement".to_string()), &[]));
-        m.insert("price".to_string(), self.safe_number(market.clone(), Value::Str("priceIncrement".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("amount".to_string(), self.safe_number_k(market.clone(), "baseIncrement", &[]));
+        m.insert("price".to_string(), self.safe_number_k(market.clone(), "priceIncrement", &[]));
     m
 }));
                     m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(market.clone(), Value::Str("baseMinSize".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(market.clone(), Value::Str("baseMaxSize".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(market.clone(), "baseMinSize", &[]));
+        m.insert("max".to_string(), self.safe_number_k(market.clone(), "baseMaxSize", &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("cost".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(market.clone(), Value::Str("quoteMinSize".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(market.clone(), Value::Str("quoteMaxSize".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(market.clone(), "quoteMinSize", &[]));
+        m.insert("max".to_string(), self.safe_number_k(market.clone(), "quoteMaxSize", &[]));
     m
 }));
     m
@@ -2145,7 +2227,6 @@ impl KucoinCore {
                     m.insert("info".to_string(), market.clone());
                 m
             }));
-            i = add(&i, &Value::Int(1));
         }
         }
         if is_true(&fetchContractMarkets) {
@@ -2156,11 +2237,13 @@ impl KucoinCore {
             self.load_time_difference(&[]).await;
         }
         return result;
+
+    Value::Null
 }
 
     pub async fn fetch_contract_markets(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut response: Value = self.call_method(Value::Str("futures_public_get_contracts_active".to_string()), &[params.clone()]).await;
@@ -2227,18 +2310,20 @@ impl KucoinCore {
         //    }
         //
         let mut result: Value = Value::List(vec![]);
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&data)) {
+            let mut __for_first_886: bool = true;
+            while { if !__for_first_886 { i = add(&i, &Value::Int(1)); } __for_first_886 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut market: Value = get_value(&data, &i);
-            let mut id: Value = self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]);
-            let mut expiry: Value = self.safe_integer(market.clone(), Value::Str("expireDate".to_string()), &[]);
-            let mut future: Value = Value::Bool(is_equal(&self.safe_string(market.clone(), Value::Str("nextFundingRateTime".to_string()), &[]), &Value::Null));
+            let mut market: Value = get_value(&data, &i);
+            let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+            let mut expiry: Value = self.safe_integer_k(market.clone(), "expireDate", &[]);
+            let mut future: Value = Value::Bool(is_equal(&self.safe_string_k(market.clone(), "nextFundingRateTime", &[]), &Value::Null));
             let mut swap: Value = Value::Bool(!is_true(&future));
-            let mut baseId: Value = self.safe_string(market.clone(), Value::Str("baseCurrency".to_string()), &[]);
-            let mut quoteId: Value = self.safe_string(market.clone(), Value::Str("quoteCurrency".to_string()), &[]);
-            let mut settleId: Value = self.safe_string(market.clone(), Value::Str("settleCurrency".to_string()), &[]);
+            let mut baseId: Value = self.safe_string_k(market.clone(), "baseCurrency", &[]);
+            let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteCurrency", &[]);
+            let mut settleId: Value = self.safe_string_k(market.clone(), "settleCurrency", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
@@ -2248,27 +2333,27 @@ impl KucoinCore {
                 symbol = add(&add(&symbol, &Value::Str("-".to_string())), &self.yymmdd(expiry.clone(), &[Value::Str("".to_string())]));
                 type_var = Value::Str("future".to_string());
             }
-            let mut inverse: Value = self.safe_value(market.clone(), Value::Str("isInverse".to_string()), &[]);
-            let mut status: Value = self.safe_string(market.clone(), Value::Str("status".to_string()), &[]);
-            let mut multiplier: Value = self.safe_string(market.clone(), Value::Str("multiplier".to_string()), &[]);
-            let mut tickSize: Value = self.safe_number(market.clone(), Value::Str("tickSize".to_string()), &[]);
-            let mut lotSize: Value = self.safe_number(market.clone(), Value::Str("lotSize".to_string()), &[]);
+            let mut inverse: Value = self.safe_value_k(market.clone(), "isInverse", &[]);
+            let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
+            let mut multiplier: Value = self.safe_string_k(market.clone(), "multiplier", &[]);
+            let mut tickSize: Value = self.safe_number_k(market.clone(), "tickSize", &[]);
+            let mut lotSize: Value = self.safe_number_k(market.clone(), "lotSize", &[]);
             let mut limitAmountMin: Value = lotSize.clone();
             if is_equal(&limitAmountMin, &Value::Null) {
-                limitAmountMin = self.safe_number(market.clone(), Value::Str("baseMinSize".to_string()), &[]);
+                limitAmountMin = self.safe_number_k(market.clone(), "baseMinSize", &[]);
             }
-            let mut limitAmountMax: Value = self.safe_number(market.clone(), Value::Str("maxOrderQty".to_string()), &[]);
+            let mut limitAmountMax: Value = self.safe_number_k(market.clone(), "maxOrderQty", &[]);
             if is_equal(&limitAmountMax, &Value::Null) {
-                limitAmountMax = self.safe_number(market.clone(), Value::Str("baseMaxSize".to_string()), &[]);
+                limitAmountMax = self.safe_number_k(market.clone(), "baseMaxSize", &[]);
             }
-            let mut limitPriceMax: Value = self.safe_number(market.clone(), Value::Str("maxPrice".to_string()), &[]);
+            let mut limitPriceMax: Value = self.safe_number_k(market.clone(), "maxPrice", &[]);
             if is_equal(&limitPriceMax, &Value::Null) {
-                let mut baseMinSizeString: Value = self.safe_string(market.clone(), Value::Str("baseMinSize".to_string()), &[]);
-                let mut quoteMaxSizeString: Value = self.safe_string(market.clone(), Value::Str("quoteMaxSize".to_string()), &[]);
+                let mut baseMinSizeString: Value = self.safe_string_k(market.clone(), "baseMinSize", &[]);
+                let mut quoteMaxSizeString: Value = self.safe_string_k(market.clone(), "quoteMaxSize", &[]);
                 limitPriceMax = self.parse_number(crate::precise::Precise::stringDiv(&quoteMaxSizeString, &baseMinSizeString), &[]);
             }
             append_to_array(&mut result, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
                     m.insert("symbol".to_string(), symbol.clone());
                     m.insert("base".to_string(), base.clone());
@@ -2287,65 +2372,66 @@ impl KucoinCore {
                     m.insert("contract".to_string(), Value::Bool(true));
                     m.insert("linear".to_string(), Value::Bool(!is_true(&inverse)));
                     m.insert("inverse".to_string(), inverse.clone());
-                    m.insert("taker".to_string(), self.safe_number(market.clone(), Value::Str("takerFeeRate".to_string()), &[]));
-                    m.insert("maker".to_string(), self.safe_number(market.clone(), Value::Str("makerFeeRate".to_string()), &[]));
+                    m.insert("taker".to_string(), self.safe_number_k(market.clone(), "takerFeeRate", &[]));
+                    m.insert("maker".to_string(), self.safe_number_k(market.clone(), "makerFeeRate", &[]));
                     m.insert("contractSize".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&multiplier), &[]));
                     m.insert("expiry".to_string(), expiry.clone());
                     m.insert("expiryDatetime".to_string(), self.iso8601(expiry.clone()));
                     m.insert("strike".to_string(), Value::Null);
                     m.insert("optionType".to_string(), Value::Null);
                     m.insert("precision".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), lotSize.clone());
         m.insert("price".to_string(), tickSize.clone());
     m
 }));
                     m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.parse_number(Value::Str("1".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(market.clone(), Value::Str("maxLeverage".to_string()), &[]));
+        m.insert("max".to_string(), self.safe_number_k(market.clone(), "maxLeverage", &[]));
     m
 }));
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), limitAmountMin.clone());
         m.insert("max".to_string(), limitAmountMax.clone());
     m
 }));
         m.insert("price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), tickSize.clone());
         m.insert("max".to_string(), limitPriceMax.clone());
     m
 }));
         m.insert("cost".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(market.clone(), Value::Str("quoteMinSize".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(market.clone(), Value::Str("quoteMaxSize".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(market.clone(), "quoteMinSize", &[]));
+        m.insert("max".to_string(), self.safe_number_k(market.clone(), "quoteMaxSize", &[]));
     m
 }));
     m
 }));
-                    m.insert("created".to_string(), self.safe_integer(market.clone(), Value::Str("firstOpenDate".to_string()), &[]));
+                    m.insert("created".to_string(), self.safe_integer_k(market.clone(), "firstOpenDate", &[]));
                     m.insert("info".to_string(), market.clone());
                 m
             }));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
     pub async fn fetch_uta_markets(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut promises: Value = Value::List(vec![]);
         append_to_array(&mut promises, self.call_method(Value::Str("uta_get_market_instrument".to_string()), &[self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("tradeType".to_string(), Value::Str("SPOT".to_string()));
             m
         })])]).await);
@@ -2382,7 +2468,7 @@ impl KucoinCore {
         //     }
         //
         append_to_array(&mut promises, self.call_method(Value::Str("uta_get_market_instrument".to_string()), &[self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("tradeType".to_string(), Value::Str("FUTURES".to_string()));
             m
         })])]).await);
@@ -2425,37 +2511,39 @@ impl KucoinCore {
         //
         let mut responses: Value = promise_all(&promises).await;
         let mut data: Value = self.safe_dict(get_value(&responses, &Value::Int(0)), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut contractData: Value = self.safe_dict(get_value(&responses, &Value::Int(1)), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut spotData: Value = self.safe_list(data.clone(), Value::Str("list".to_string()), &[Value::List(vec![])]);
-        let mut contractSymbolsData: Value = self.safe_list(contractData.clone(), Value::Str("list".to_string()), &[Value::List(vec![])]);
+        let mut spotData: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
+        let mut contractSymbolsData: Value = self.safe_list_k(contractData.clone(), "list", &[Value::List(vec![])]);
         let mut symbolsData: Value = self.array_concat(spotData.clone(), contractSymbolsData.clone());
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&symbolsData)) {
+            let mut __for_first_887: bool = true;
+            while { if !__for_first_887 { i = add(&i, &Value::Int(1)); } __for_first_887 = false; is_less_than(&i, &get_array_length(&symbolsData)) } {
             let mut market: Value = get_value(&symbolsData, &i);
-            let mut id: Value = self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]);
-            let mut baseId: Value = self.safe_string(market.clone(), Value::Str("baseCurrency".to_string()), &[]);
-            let mut quoteId: Value = self.safe_string(market.clone(), Value::Str("quoteCurrency".to_string()), &[]);
-            let mut settleId: Value = self.safe_string(market.clone(), Value::Str("settlementCurrency".to_string()), &[]);
+            let mut market: Value = get_value(&symbolsData, &i);
+            let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+            let mut baseId: Value = self.safe_string_k(market.clone(), "baseCurrency", &[]);
+            let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteCurrency", &[]);
+            let mut settleId: Value = self.safe_string_k(market.clone(), "settlementCurrency", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-            let mut hasMargin: Value = self.safe_string(market.clone(), Value::Str("marginMode".to_string()), &[]);
+            let mut hasMargin: Value = self.safe_string_k(market.clone(), "marginMode", &[]);
             let mut isMarginable: Value = ternary(is_true(&(is_equal(&hasMargin, &Value::Str("1".to_string())))), Value::Bool(true), Value::Bool(false));
             let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
             if !is_equal(&settle, &Value::Null) {
                 symbol = add(&symbol, &add(&Value::Str(":".to_string()), &settle));
             }
-            let mut contractType: Value = self.safe_string(market.clone(), Value::Str("contractType".to_string()), &[]);
-            let mut expiry: Value = self.safe_integer(market.clone(), Value::Str("expiryTime".to_string()), &[]);
-            let mut active: Value = self.safe_string(market.clone(), Value::Str("tradingStatus".to_string()), &[]);
+            let mut contractType: Value = self.safe_string_k(market.clone(), "contractType", &[]);
+            let mut expiry: Value = self.safe_integer_k(market.clone(), "expiryTime", &[]);
+            let mut active: Value = self.safe_string_k(market.clone(), "tradingStatus", &[]);
             let mut type_var: Value = Value::Null;
             let mut spot: Value = Value::Bool(false);
             let mut swap: Value = Value::Bool(false);
@@ -2482,7 +2570,7 @@ impl KucoinCore {
                 spot = Value::Bool(true);
             }
             append_to_array(&mut result, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
                     m.insert("symbol".to_string(), symbol.clone());
                     m.insert("base".to_string(), base.clone());
@@ -2501,58 +2589,59 @@ impl KucoinCore {
                     m.insert("contract".to_string(), contract.clone());
                     m.insert("linear".to_string(), linear.clone());
                     m.insert("inverse".to_string(), inverse.clone());
-                    m.insert("taker".to_string(), self.safe_number(market.clone(), Value::Str("makerFeeRate".to_string()), &[]));
-                    m.insert("maker".to_string(), self.safe_number(market.clone(), Value::Str("takerFeeRate".to_string()), &[]));
-                    m.insert("contractSize".to_string(), self.safe_number(market.clone(), Value::Str("unitSize".to_string()), &[]));
+                    m.insert("taker".to_string(), self.safe_number_k(market.clone(), "makerFeeRate", &[]));
+                    m.insert("maker".to_string(), self.safe_number_k(market.clone(), "takerFeeRate", &[]));
+                    m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "unitSize", &[]));
                     m.insert("expiry".to_string(), expiry.clone());
                     m.insert("expiryDatetime".to_string(), self.iso8601(expiry.clone()));
                     m.insert("strike".to_string(), Value::Null);
                     m.insert("optionType".to_string(), Value::Null);
                     m.insert("precision".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.safe_number2(market.clone(), Value::Str("lotSize".to_string()), Value::Str("baseOrderStep".to_string()), &[]));
-        m.insert("price".to_string(), self.safe_number(market.clone(), Value::Str("tickSize".to_string()), &[]));
+        m.insert("price".to_string(), self.safe_number_k(market.clone(), "tickSize", &[]));
     m
 }));
                     m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
-        m.insert("max".to_string(), self.safe_integer(market.clone(), Value::Str("maxLeverage".to_string()), &[]));
+        m.insert("max".to_string(), self.safe_integer_k(market.clone(), "maxLeverage", &[]));
     m
 }));
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(market.clone(), Value::Str("minBaseOrderSize".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(market.clone(), Value::Str("maxBaseOrderSize".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(market.clone(), "minBaseOrderSize", &[]));
+        m.insert("max".to_string(), self.safe_number_k(market.clone(), "maxBaseOrderSize", &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
-        m.insert("max".to_string(), self.safe_number(market.clone(), Value::Str("maxPrice".to_string()), &[]));
+        m.insert("max".to_string(), self.safe_number_k(market.clone(), "maxPrice", &[]));
     m
 }));
         m.insert("cost".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(market.clone(), Value::Str("minQuoteOrderSize".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(market.clone(), Value::Str("maxQuoteOrderSize".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(market.clone(), "minQuoteOrderSize", &[]));
+        m.insert("max".to_string(), self.safe_number_k(market.clone(), "maxQuoteOrderSize", &[]));
     m
 }));
     m
 }));
-                    m.insert("created".to_string(), self.safe_integer(market.clone(), Value::Str("launchTime".to_string()), &[]));
+                    m.insert("created".to_string(), self.safe_integer_k(market.clone(), "launchTime", &[]));
                     m.insert("info".to_string(), market.clone());
                 m
             }));
-            i = add(&i, &Value::Int(1));
         }
         }
         if is_true(&get_value(&self.options, &Value::Str("adjustForTimeDifference".to_string()))) {
             self.load_time_difference(&[]).await;
         }
         return result;
+
+    Value::Null
 }
 
 /*
@@ -2560,24 +2649,26 @@ impl KucoinCore {
  * @name kucoin#loadMigrationStatus
  * @param {boolean} force load account state for non hf
  * @description loads the migration status for the account (hf or not)
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
+ * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
  * @returns {any} ignore
  */
     pub async fn load_migration_status(&mut self, optional_args: &[Value]) -> Value {
         let mut force = get_arg(optional_args, 0, Value::Bool(false));
         if !is_true(&(Value::Bool(in_op(&self.options, &Value::Str("hf".to_string()))))) || is_true(&(is_equal(&get_value(&self.options, &Value::Str("hf".to_string())), &Value::Null))) || is_true(&force) {
             let mut result: Value = self.call_method(Value::Str("private_get_hf_accounts_opened".to_string()), &[]).await;
-            add_element_to_object(&mut self.options.clone(), &Value::Str("hf".to_string()), self.safe_bool(result.clone(), Value::Str("data".to_string()), &[]));
+            { let __be_tmp = self.safe_bool_k(result.clone(), "data", &[]); add_element_to_object(&mut self.options, &Value::Str("hf".to_string()), __be_tmp); };
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub fn handle_hf_and_params(&self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut migrated: Value = self.safe_bool(self.options.clone(), Value::Str("hf".to_string()), &[Value::Bool(false)]);
+        let mut migrated: Value = self.safe_bool_k(self.options.clone(), "hf", &[Value::Bool(false)]);
         let mut loadedHf: Value = Value::Null;
         if !is_equal(&migrated, &Value::Null) {
             if is_true(&migrated) {
@@ -2586,24 +2677,26 @@ impl KucoinCore {
                 loadedHf = Value::Bool(false);
             }
         }
-        let mut hf: Value = self.safe_bool(params.clone(), Value::Str("hf".to_string()), &[loadedHf.clone()]);
+        let mut hf: Value = self.safe_bool_k(params.clone(), "hf", &[loadedHf.clone()]);
         params = self.omit(params.clone(), Value::Str("hf".to_string()), &[]);
         return Value::List(vec![hf.clone(), params.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/market-data/get-all-currencies
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-currencies
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-currencies
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-currencies
  * @param {object} params extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} an associative dictionary of currencies
  */
     pub async fn fetch_currencies(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut uta: Value = Value::Bool(false);
@@ -2654,49 +2747,53 @@ impl KucoinCore {
             //
             response = self.call_method(Value::Str("public_get_currencies".to_string()), &[params.clone()]).await;
         }
-        let mut currenciesData: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut currenciesData: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut brokenCurrencies: Value = self.handle_option(Value::Str("fetchCurrencies".to_string()), Value::Str("brokenCurrencies".to_string()), &[Value::List(vec![])]);
         let mut filteredCurrencies: Value = self.filter_out_by_array(currenciesData.clone(), Value::Str("currency".to_string()), &[brokenCurrencies.clone()]); // remove broken entries
         return self.parse_currencies(filteredCurrencies.clone());
+
+    Value::Null
 }
 
     pub fn parse_currency(&self, mut currency: Value) -> Value {
         let mut entry: Value = currency.clone();
-        let mut id: Value = self.safe_string(entry.clone(), Value::Str("currency".to_string()), &[]);
+        let mut id: Value = self.safe_string_k(entry.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
         let mut networks: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut chains: Value = self.safe_list2(entry.clone(), Value::Str("chains".to_string()), Value::Str("items".to_string()), &[Value::List(vec![])]);
         let mut chainsLength: Value = get_array_length(&chains);
         {
                         let mut j: Value = Value::Int(0);
-            while is_less_than(&j, &chainsLength) {
+            let mut __for_first_888: bool = true;
+            while { if !__for_first_888 { j = add(&j, &Value::Int(1)); } __for_first_888 = false; is_less_than(&j, &chainsLength) } {
             let mut chain: Value = get_value(&chains, &j);
-            let mut chainId: Value = self.safe_string(chain.clone(), Value::Str("chainId".to_string()), &[]);
+            let mut chain: Value = get_value(&chains, &j);
+            let mut chainId: Value = self.safe_string_k(chain.clone(), "chainId", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[chainId.clone(), code.clone()]);
             add_element_to_object(&mut networks, &networkCode, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
         m.insert("id".to_string(), chainId.clone());
-        m.insert("name".to_string(), self.safe_string(chain.clone(), Value::Str("chainName".to_string()), &[]));
+        m.insert("name".to_string(), self.safe_string_k(chain.clone(), "chainName", &[]));
         m.insert("code".to_string(), networkCode.clone());
         m.insert("active".to_string(), Value::Null);
         m.insert("fee".to_string(), self.safe_number2(chain.clone(), Value::Str("withdrawalMinFee".to_string()), Value::Str("minWithdrawFee".to_string()), &[]));
-        m.insert("deposit".to_string(), self.safe_bool(chain.clone(), Value::Str("isDepositEnabled".to_string()), &[]));
-        m.insert("withdraw".to_string(), self.safe_bool(chain.clone(), Value::Str("isWithdrawEnabled".to_string()), &[]));
-        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string(chain.clone(), Value::Str("withdrawPrecision".to_string()), &[])]), &[]));
+        m.insert("deposit".to_string(), self.safe_bool_k(chain.clone(), "isDepositEnabled", &[]));
+        m.insert("withdraw".to_string(), self.safe_bool_k(chain.clone(), "isWithdrawEnabled", &[]));
+        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(chain.clone(), "withdrawPrecision", &[])]), &[]));
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number2(chain.clone(), Value::Str("withdrawalMinSize".to_string()), Value::Str("minWithdrawSize".to_string()), &[]));
         m.insert("max".to_string(), self.safe_number2(chain.clone(), Value::Str("maxWithdraw".to_string()), Value::Str("maxWithdrawSize".to_string()), &[]));
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number2(chain.clone(), Value::Str("depositMinSize".to_string()), Value::Str("minDepositSize".to_string()), &[]));
         m.insert("max".to_string(), self.safe_number2(chain.clone(), Value::Str("maxDeposit".to_string()), Value::Str("maxDepositSize".to_string()), &[]));
     m
@@ -2705,17 +2802,16 @@ impl KucoinCore {
 }));
     m
 }));
-            j = add(&j, &Value::Int(1));
         }
         }
         // kucoin has determined 'fiat' currencies with below logic
-        let mut rawPrecision: Value = self.safe_string(entry.clone(), Value::Str("precision".to_string()), &[]);
+        let mut rawPrecision: Value = self.safe_string_k(entry.clone(), "precision", &[]);
         let mut precision: Value = self.parse_number(self.parse_precision(&[rawPrecision.clone()]), &[]);
         let mut isFiat: Value = Value::Bool(is_equal(&chainsLength, &Value::Int(0)));
         return self.safe_currency_structure(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
-        m.insert("name".to_string(), self.safe_string(entry.clone(), Value::Str("fullName".to_string()), &[]));
+        m.insert("name".to_string(), self.safe_string_k(entry.clone(), "fullName", &[]));
         m.insert("code".to_string(), code.clone());
         m.insert("type".to_string(), ternary(is_true(&isFiat), Value::Str("fiat".to_string()), Value::Str("crypto".to_string())));
         m.insert("precision".to_string(), precision.clone());
@@ -2728,20 +2824,22 @@ impl KucoinCore {
         m.insert("limits".to_string(), Value::Null);
     m
 }));
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchAccounts
  * @description fetch all the accounts associated with a profile
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/account-funding/get-account-list-spot
+ * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-list-spot
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object} a dictionary of [account structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=account-structure} indexed by the account type
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
     pub async fn fetch_accounts(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut uta: Value = self.is_uta_enabled(&[]).await;
@@ -2750,7 +2848,7 @@ impl KucoinCore {
         let mut data: Value = Value::List(vec![]);
         if is_true(&uta) {
             response = self.call_method(Value::Str("uta_private_get_account_mode_account_overview".to_string()), &[self.extend(params.clone(), &[Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("accountMode".to_string(), Value::Str("unified".to_string()));
                 m
             })])]).await;
@@ -2769,8 +2867,8 @@ impl KucoinCore {
             //         }
             //     }
             //
-            let mut dataDict: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut dataDict: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             data = Value::List(vec![dataDict.clone()]);
@@ -2799,19 +2897,21 @@ impl KucoinCore {
             //     }
             //
             response = self.call_method(Value::Str("private_get_accounts".to_string()), &[params.clone()]).await;
-            data = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+            data = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         }
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&data)) {
+            let mut __for_first_889: bool = true;
+            while { if !__for_first_889 { i = add(&i, &Value::Int(1)); } __for_first_889 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut account: Value = get_value(&data, &i);
-            let mut accountId: Value = self.safe_string(account.clone(), Value::Str("id".to_string()), &[]);
-            let mut currencyId: Value = self.safe_string(account.clone(), Value::Str("currency".to_string()), &[]);
+            let mut account: Value = get_value(&data, &i);
+            let mut accountId: Value = self.safe_string_k(account.clone(), "id", &[]);
+            let mut currencyId: Value = self.safe_string_k(account.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut type_var: Value = self.safe_string_lower2(account.clone(), Value::Str("type".to_string()), Value::Str("accountType".to_string()), &[]); // main or trade or unified
             append_to_array(&mut result, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), accountId.clone());
                     m.insert("type".to_string(), type_var.clone());
                     m.insert("currency".to_string(), code.clone());
@@ -2819,30 +2919,31 @@ impl KucoinCore {
                     m.insert("info".to_string(), account.clone());
                 m
             }));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchTransactionFee
  * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
- * @see https://get_value(&docs, &Value::Str("kucoin".to_string())).com/#get-withdrawal-quotas
+ * @see https://docs.kucoin.com/#get-withdrawal-quotas
  * @param {string} code unified currency code
  * @param {object} params extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
     pub async fn fetch_transaction_fee(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
@@ -2852,46 +2953,48 @@ impl KucoinCore {
             add_element_to_object(&mut request, &Value::Str("chain".to_string()), to_lower(&self.network_code_to_id(networkCode.clone(), &[get_value(&currency, &Value::Str("code".to_string()))])));
         }
         let mut response: Value = self.call_method(Value::Str("private_get_withdrawals_quotas".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut withdrawFees: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
-        add_element_to_object(&mut withdrawFees, &code, self.safe_number(data.clone(), Value::Str("withdrawMinFee".to_string()), &[]));
+        add_element_to_object(&mut withdrawFees, &code, self.safe_number_k(data.clone(), "withdrawMinFee", &[]));
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("withdraw".to_string(), withdrawFees.clone());
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchDepositWithdrawFee
  * @description fetch the fee for deposits and withdrawals
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/withdrawals/get-withdrawal-quotas
+ * @see https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-quotas
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("network".to_string()))] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
- * @returns {object} a [fee structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=fee-structure}
+ * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
     pub async fn fetch_deposit_withdraw_fee(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
@@ -2919,8 +3022,10 @@ impl KucoinCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
         return self.parse_deposit_withdraw_fee(data.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_deposit_withdraw_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
@@ -2943,85 +3048,86 @@ impl KucoinCore {
         if is_true(&Value::Bool(in_op(&fee, &Value::Str("chains".to_string())))) {
             // if data obtained through `currencies` endpoint
             let mut resultNew: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), fee.clone());
                     m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Bool(false));
     m
 }));
                     m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
     m
 }));
                     m.insert("networks".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
                 m
             });
-            let mut chains: Value = self.safe_list(fee.clone(), Value::Str("chains".to_string()), &[Value::List(vec![])]);
+            let mut chains: Value = self.safe_list_k(fee.clone(), "chains", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&chains)) {
+                let mut __for_first_890: bool = true;
+                while { if !__for_first_890 { i = add(&i, &Value::Int(1)); } __for_first_890 = false; is_less_than(&i, &get_array_length(&chains)) } {
                 let mut chain: Value = get_value(&chains, &i);
-                let mut chainId: Value = self.safe_string(chain.clone(), Value::Str("chainId".to_string()), &[]);
-                let mut networkCodeNew: Value = self.network_id_to_code(&[chainId.clone(), self.safe_string(currency.clone(), Value::Str("code".to_string()), &[])]);
+                let mut chain: Value = get_value(&chains, &i);
+                let mut chainId: Value = self.safe_string_k(chain.clone(), "chainId", &[]);
+                let mut networkCodeNew: Value = self.network_id_to_code(&[chainId.clone(), self.safe_string_k(currency.clone(), "code", &[])]);
                 add_element_to_object(get_value_mut(&mut resultNew, &Value::Str("networks".to_string())), &networkCodeNew, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), self.safe_number2(chain.clone(), Value::Str("withdrawalMinFee".to_string()), Value::Str("withdrawMinFee".to_string()), &[]));
         m.insert("percentage".to_string(), Value::Bool(false));
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
     m
 }));
     m
 }));
-                i = add(&i, &Value::Int(1));
             }
             }
             return resultNew;
         }
-        let mut minWithdrawFee: Value = self.safe_number(fee.clone(), Value::Str("withdrawMinFee".to_string()), &[]);
+        let mut minWithdrawFee: Value = self.safe_number_k(fee.clone(), "withdrawMinFee", &[]);
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), fee.clone());
                 m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), minWithdrawFee.clone());
         m.insert("percentage".to_string(), Value::Bool(false));
     m
 }));
                 m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
     m
 }));
                 m.insert("networks".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
             m
         });
-        let mut networkId: Value = self.safe_string(fee.clone(), Value::Str("chain".to_string()), &[]);
-        let mut currencyId: Value = self.safe_string(fee.clone(), Value::Str("currency".to_string()), &[]);
+        let mut networkId: Value = self.safe_string_k(fee.clone(), "chain", &[]);
+        let mut currencyId: Value = self.safe_string_k(fee.clone(), "currency", &[]);
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
         let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), get_value(&currency, &Value::Str("code".to_string()))]);
         add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".to_string())), &networkCode, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), minWithdrawFee.clone());
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
     m
@@ -3029,6 +3135,8 @@ impl KucoinCore {
     m
 }));
         return result;
+
+    Value::Null
 }
 
     pub fn is_futures_method(&self, mut methodName: Value, mut params: Value) -> Value {
@@ -3039,15 +3147,17 @@ impl KucoinCore {
         // @return: true if the method used is meant for futures trading, false otherwise
         //
         let mut defaultType: Value = self.safe_string2(self.options.clone(), methodName.clone(), Value::Str("defaultType".to_string()), &[Value::Str("trade".to_string())]);
-        let mut requestedType: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[defaultType.clone()]);
-        let mut accountsByType: Value = self.safe_dict(self.options.clone(), Value::Str("accountsByType".to_string()), &[]);
+        let mut requestedType: Value = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
+        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[]);
         let mut type_var: Value = self.safe_string(accountsByType.clone(), requestedType.clone(), &[]);
         if is_equal(&type_var, &Value::Null) {
             let mut keys: Value = object_keys(&accountsByType);
-            panic!("{:?}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" isFuturesMethod() type must be one of ".to_string())), &join(&keys, &Value::Str(", ".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" isFuturesMethod() type must be one of ".to_string())), &join(&keys, &Value::Str(", ".to_string())))));
         }
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
         return Value::Bool(is_true(&(is_equal(&type_var, &Value::Str("contract".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("futures".to_string())))));
+
+    Value::Null
 }
 
     pub fn parse_spot_or_uta_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -3125,48 +3235,52 @@ impl KucoinCore {
         //         "quoteVolume": "207325626.822922498"
         //     }
         //
-        let mut percentage: Value = self.safe_string(ticker.clone(), Value::Str("changeRate".to_string()), &[]);
+        let mut percentage: Value = self.safe_string_k(ticker.clone(), "changeRate", &[]);
         if !is_equal(&percentage, &Value::Null) {
             percentage = crate::precise::Precise::stringMul(&percentage, &Value::Str("100".to_string()));
         }
         let mut last: Value = self.safe_string_n(ticker.clone(), Value::List(vec![Value::Str("last".to_string()), Value::Str("lastTradedPrice".to_string()), Value::Str("lastPrice".to_string())]), &[]);
-        last = self.safe_string(ticker.clone(), Value::Str("price".to_string()), &[last.clone()]);
-        let mut marketId: Value = self.safe_string(ticker.clone(), Value::Str("symbol".to_string()), &[]);
+        last = self.safe_string_k(ticker.clone(), "price", &[last.clone()]);
+        let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("-".to_string())]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut baseVolume: Value = self.safe_string2(ticker.clone(), Value::Str("vol".to_string()), Value::Str("baseVolume".to_string()), &[]);
         let mut quoteVolume: Value = self.safe_string2(ticker.clone(), Value::Str("volValue".to_string()), Value::Str("quoteVolume".to_string()), &[]);
         let mut timestamp: Value = self.safe_integer_n(ticker.clone(), Value::List(vec![Value::Str("time".to_string()), Value::Str("datetime".to_string()), Value::Str("timePoint".to_string())]), &[]);
         return self.safe_ticker(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("high".to_string(), self.safe_string(ticker.clone(), Value::Str("high".to_string()), &[]));
-        m.insert("low".to_string(), self.safe_string(ticker.clone(), Value::Str("low".to_string()), &[]));
+        m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
+        m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
         m.insert("bid".to_string(), self.safe_string_n(ticker.clone(), Value::List(vec![Value::Str("buy".to_string()), Value::Str("bestBid".to_string()), Value::Str("bestBidPrice".to_string())]), &[]));
-        m.insert("bidVolume".to_string(), self.safe_string(ticker.clone(), Value::Str("bestBidSize".to_string()), &[]));
+        m.insert("bidVolume".to_string(), self.safe_string_k(ticker.clone(), "bestBidSize", &[]));
         m.insert("ask".to_string(), self.safe_string_n(ticker.clone(), Value::List(vec![Value::Str("sell".to_string()), Value::Str("bestAsk".to_string()), Value::Str("bestAskPrice".to_string())]), &[]));
-        m.insert("askVolume".to_string(), self.safe_string(ticker.clone(), Value::Str("bestAskSize".to_string()), &[]));
+        m.insert("askVolume".to_string(), self.safe_string_k(ticker.clone(), "bestAskSize", &[]));
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), self.safe_string(ticker.clone(), Value::Str("open".to_string()), &[]));
+        m.insert("open".to_string(), self.safe_string_k(ticker.clone(), "open", &[]));
         m.insert("close".to_string(), last.clone());
         m.insert("last".to_string(), last.clone());
         m.insert("previousClose".to_string(), Value::Null);
-        m.insert("change".to_string(), self.safe_string(ticker.clone(), Value::Str("changePrice".to_string()), &[]));
+        m.insert("change".to_string(), self.safe_string_k(ticker.clone(), "changePrice", &[]));
         m.insert("percentage".to_string(), percentage.clone());
-        m.insert("average".to_string(), self.safe_string(ticker.clone(), Value::Str("averagePrice".to_string()), &[]));
+        m.insert("average".to_string(), self.safe_string_k(ticker.clone(), "averagePrice", &[]));
         m.insert("baseVolume".to_string(), baseVolume.clone());
         m.insert("quoteVolume".to_string(), quoteVolume.clone());
-        m.insert("markPrice".to_string(), self.safe_string(ticker.clone(), Value::Str("value".to_string()), &[]));
+        m.insert("markPrice".to_string(), self.safe_string_k(ticker.clone(), "value", &[]));
         m.insert("info".to_string(), ticker.clone());
     m
 }), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         return self.parse_contract_ticker(ticker.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_contract_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -3257,78 +3371,82 @@ impl KucoinCore {
         //     priceChg: 2878.7
         // }
         //
-        let mut marketId: Value = self.safe_string(ticker.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("-".to_string())]);
         let mut last: Value = self.safe_string2(ticker.clone(), Value::Str("price".to_string()), Value::Str("lastTradePrice".to_string()), &[]);
         let mut timestamp: Value = self.safe_integer_product(ticker.clone(), Value::Str("ts".to_string()), Value::Float(0.000001), &[]);
         return self.safe_ticker(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("high".to_string(), self.safe_string(ticker.clone(), Value::Str("highPrice".to_string()), &[]));
-        m.insert("low".to_string(), self.safe_string(ticker.clone(), Value::Str("lowPrice".to_string()), &[]));
-        m.insert("bid".to_string(), self.safe_string(ticker.clone(), Value::Str("bestBidPrice".to_string()), &[]));
-        m.insert("bidVolume".to_string(), self.safe_string(ticker.clone(), Value::Str("bestBidSize".to_string()), &[]));
-        m.insert("ask".to_string(), self.safe_string(ticker.clone(), Value::Str("bestAskPrice".to_string()), &[]));
-        m.insert("askVolume".to_string(), self.safe_string(ticker.clone(), Value::Str("bestAskSize".to_string()), &[]));
+        m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "highPrice", &[]));
+        m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "lowPrice", &[]));
+        m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bestBidPrice", &[]));
+        m.insert("bidVolume".to_string(), self.safe_string_k(ticker.clone(), "bestBidSize", &[]));
+        m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "bestAskPrice", &[]));
+        m.insert("askVolume".to_string(), self.safe_string_k(ticker.clone(), "bestAskSize", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
         m.insert("close".to_string(), last.clone());
         m.insert("last".to_string(), last.clone());
         m.insert("previousClose".to_string(), Value::Null);
-        m.insert("change".to_string(), self.safe_string(ticker.clone(), Value::Str("priceChg".to_string()), &[]));
-        m.insert("percentage".to_string(), self.safe_string(ticker.clone(), Value::Str("priceChgPct".to_string()), &[]));
+        m.insert("change".to_string(), self.safe_string_k(ticker.clone(), "priceChg", &[]));
+        m.insert("percentage".to_string(), self.safe_string_k(ticker.clone(), "priceChgPct", &[]));
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string(ticker.clone(), Value::Str("volumeOf24h".to_string()), &[]));
-        m.insert("quoteVolume".to_string(), self.safe_string(ticker.clone(), Value::Str("turnoverOf24h".to_string()), &[]));
+        m.insert("baseVolume".to_string(), self.safe_string_k(ticker.clone(), "volumeOf24h", &[]));
+        m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "turnoverOf24h", &[]));
         m.insert("markPrice".to_string(), self.safe_string2(ticker.clone(), Value::Str("markPrice".to_string()), Value::Str("value".to_string()), &[]));
-        m.insert("indexPrice".to_string(), self.safe_string(ticker.clone(), Value::Str("indexPrice".to_string()), &[]));
+        m.insert("indexPrice".to_string(), self.safe_string_k(ticker.clone(), "indexPrice", &[]));
         m.insert("info".to_string(), ticker.clone());
     m
 }), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn type_to_trade_type(&self, mut type_var: Value) -> Value {
         let mut tradeTypes: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("SPOT".to_string()));
                 m.insert("margin".to_string(), Value::Str("MARGIN".to_string()));
                 m.insert("swap".to_string(), Value::Str("FUTURES".to_string()));
             m
         });
         return self.safe_string(tradeTypes.clone(), type_var.clone(), &[type_var.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/market-data/get-all-tickers
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/market-data/get-all-tickers
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-ticker
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-tickers
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-tickers
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-ticker
  * @param {string[]|undefined} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] spot or swap (default is spot)
- * @param {string} [get_value(&params, &Value::Str("method".to_string()))] *swap only* the method to use, futuresPublicGetContractsActive or futuresPublicGetAllTickers (default is futuresPublicGetContractsActive)
- * @returns {object} a dictionary of [ticker structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ticker-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {string} [params.type] spot or swap (default is spot)
+ * @param {string} [params.method] *swap only* the method to use, futuresPublicGetContractsActive or futuresPublicGetAllTickers (default is futuresPublicGetContractsActive)
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true)]);
         let mut uta: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTickers".to_string()), Value::Str("uta".to_string()), &[uta.clone()]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut tradeType: Value = self.safe_string(params.clone(), Value::Str("tradeType".to_string()), &[]);
+        let mut tradeType: Value = self.safe_string_k(params.clone(), "tradeType", &[]);
         let mut firstMarket: Value = Value::Null;
         if !is_equal(&symbols, &Value::Null) {
             let mut firstSymbol: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
@@ -3347,35 +3465,37 @@ impl KucoinCore {
         }  else {
             response = self.call_method(Value::Str("public_get_market_all_tickers".to_string()), &[params.clone()]).await;
         }
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut tickers: Value = self.safe_list2(data.clone(), Value::Str("ticker".to_string()), Value::Str("list".to_string()), &[Value::List(vec![])]);
         let mut time: Value = self.safe_integer2(data.clone(), Value::Str("time".to_string()), Value::Str("ts".to_string()), &[]);
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&tickers)) {
+            let mut __for_first_891: bool = true;
+            while { if !__for_first_891 { i = add(&i, &Value::Int(1)); } __for_first_891 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             add_element_to_object(get_value_mut(&mut tickers, &i), &Value::Str("time".to_string()), time.clone());
             let mut ticker: Value = self.parse_spot_or_uta_ticker(get_value(&tickers, &i), &[]);
-            let mut symbol: Value = self.safe_string(ticker.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
             if !is_equal(&symbol, &Value::Null) {
                 add_element_to_object(&mut result, &symbol, ticker.clone());
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.filter_by_array_tickers(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
+
+    Value::Null
 }
 
     pub async fn fetch_contract_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut method: Value = Value::Null;
@@ -3448,54 +3568,58 @@ impl KucoinCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
         let mut tickers: Value = self.parse_tickers(data.clone(), &[symbols.clone()]);
         return self.filter_by_array_tickers(tickers.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchMarkPrices
  * @description fetches the mark price for multiple markets
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/market-data/get-mark-price-list
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/market-data/get-mark-price-list
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_mark_prices(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.call_method(Value::Str("public_get_mark_price_all_symbols".to_string()), &[params.clone()]).await;
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_tickers(data.clone(), &[]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/market-data/get-24hr-stats
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/market-data/get-ticker
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-ticker
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-24hr-stats
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-ticker
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object} a [ticker structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ticker-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -3534,13 +3658,13 @@ impl KucoinCore {
             //         }
             //     }
             //
-            let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut resultList: Value = self.safe_list(data.clone(), Value::Str("list".to_string()), &[Value::List(vec![])]);
+            let mut resultList: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
             result = self.safe_dict(resultList.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         }  else if is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
@@ -3563,8 +3687,8 @@ impl KucoinCore {
             //        }
             //    }
             //
-            let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             return self.parse_ticker(data.clone(), &[market.clone()]);
@@ -3593,52 +3717,56 @@ impl KucoinCore {
             //         }
             //     }
             //
-            result = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            result = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         }
         return self.parse_spot_or_uta_ticker(result.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchMarkPrice
  * @description fetches the mark price for a specific market
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/market-data/get-mark-price-detail
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/market-data/get-mark-price
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/market-data/get-mark-price-detail
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-mark-price
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
             response = self.call_method(Value::Str("futures_public_get_mark_price_symbol_current".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
-            let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             return self.parse_ticker(data.clone(), &[market.clone()]);
         }  else {
             response = self.call_method(Value::Str("public_get_mark_price_symbol_current".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
-            let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             return self.parse_spot_or_uta_ticker(data.clone(), &[market.clone()]);
         }
+
+    Value::Null
 }
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
@@ -3660,22 +3788,24 @@ impl KucoinCore {
         }  else {
             return Value::List(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
         }
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/market-data/get-klines
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/market-data/get-klines
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-klines
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-klines
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-klines
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-klines
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -3683,7 +3813,7 @@ impl KucoinCore {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -3704,7 +3834,7 @@ impl KucoinCore {
  * @ignore
  * @name kucoin#fetchUTAOHLCV
  * @description helper method for fetchOHLCV
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-klines
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-klines
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -3717,7 +3847,7 @@ impl KucoinCore {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -3729,7 +3859,7 @@ impl KucoinCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
@@ -3742,9 +3872,9 @@ impl KucoinCore {
             if is_equal(&limit, &Value::Null) {
                 // For each query, the system would return at most 1500 pieces of data.
                 // To obtain more data, please page the data by time.
-                limit = self.safe_integer(self.options.clone(), Value::Str("fetchOHLCVLimit".to_string()), &[maxLimit.clone()]);
+                limit = self.safe_integer_k(self.options.clone(), "fetchOHLCVLimit", &[maxLimit.clone()]);
             }
-            endAt = self.sum(since.clone(), multiply(&limit, &duration), &[]);
+            endAt = self.sum(&[since.clone(), multiply(&limit, &duration)]);
         }  else if !is_equal(&limit, &Value::Null) {
             since = subtract(&endAt, &multiply(&limit, &duration));
             add_element_to_object(&mut request, &Value::Str("startAt".to_string()), self.parse_to_int(math_floor(&divide(&since, &denominator))));
@@ -3772,12 +3902,14 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut result: Value = self.safe_list(data.clone(), Value::Str("list".to_string()), &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(result.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
@@ -3785,7 +3917,7 @@ impl KucoinCore {
  * @ignore
  * @name kucoin#fetchSpotOHLCV
  * @description helper method for fetchOHLCV
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/market-data/get-klines
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-klines
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -3798,7 +3930,7 @@ impl KucoinCore {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -3810,7 +3942,7 @@ impl KucoinCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("type".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
@@ -3823,9 +3955,9 @@ impl KucoinCore {
             if is_equal(&limit, &Value::Null) {
                 // For each query, the system would return at most 1500 pieces of data.
                 // To obtain more data, please page the data by time.
-                limit = self.safe_integer(self.options.clone(), Value::Str("fetchOHLCVLimit".to_string()), &[maxLimit.clone()]);
+                limit = self.safe_integer_k(self.options.clone(), "fetchOHLCVLimit", &[maxLimit.clone()]);
             }
-            endAt = self.sum(since.clone(), multiply(&limit, &duration), &[]);
+            endAt = self.sum(&[since.clone(), multiply(&limit, &duration)]);
         }  else if !is_equal(&limit, &Value::Null) {
             since = subtract(&endAt, &multiply(&limit, &duration));
             add_element_to_object(&mut request, &Value::Str("startAt".to_string()), self.parse_to_int(math_floor(&divide(&since, &denominator))));
@@ -3842,8 +3974,10 @@ impl KucoinCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
@@ -3851,7 +3985,7 @@ impl KucoinCore {
  * @ignore
  * @name kucoin#fetchContractOHLCV
  * @description helper method for fetchOHLCV
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/market-data/get-klines
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-klines
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -3864,7 +3998,7 @@ impl KucoinCore {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -3876,16 +4010,16 @@ impl KucoinCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut timeframeOptions: Value = self.safe_dict(self.options.clone(), Value::Str("timeframes".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut timeframeOptions: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut swapTimeframes: Value = self.safe_dict(timeframeOptions.clone(), Value::Str("swap".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut swapTimeframes: Value = self.safe_dict_k(timeframeOptions.clone(), "swap", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut parsedTimeframe: Value = self.safe_integer(swapTimeframes.clone(), timeframe.clone(), &[]);
@@ -3901,9 +4035,9 @@ impl KucoinCore {
             if is_equal(&limit, &Value::Null) {
                 // For each query, the system would return at most 200 pieces of data.
                 // To obtain more data, please page the data by time.
-                limit = self.safe_integer(self.options.clone(), Value::Str("fetchOHLCVLimit".to_string()), &[maxLimit.clone()]);
+                limit = self.safe_integer_k(self.options.clone(), "fetchOHLCVLimit", &[maxLimit.clone()]);
             }
-            endAt = self.sum(since.clone(), multiply(&limit, &duration), &[]);
+            endAt = self.sum(&[since.clone(), multiply(&limit, &duration)]);
         }  else if !is_equal(&limit, &Value::Null) {
             since = subtract(&endAt, &multiply(&limit, &duration));
             add_element_to_object(&mut request, &Value::Str("from".to_string()), since.clone());
@@ -3920,29 +4054,31 @@ impl KucoinCore {
         //        ]
         //    }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#createDepositAddress
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/deposit/add-deposit-address-v3
+ * @see https://www.kucoin.com/docs-new/rest/account-info/deposit/add-deposit-address-v3
  * @description create a currency deposit address
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("network".to_string()))] the blockchain network name
- * @returns {object} an [address structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=address-structure}
+ * @param {string} [params.network] the blockchain network name
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
     pub async fn create_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
@@ -3967,36 +4103,38 @@ impl KucoinCore {
         //     }
         //   }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_deposit_address(data.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-deposit-address
+ * @see https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-deposit-address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("network".to_string()))] the blockchain network name
- * @param {string} [get_value(&params, &Value::Str("accountType".to_string()))] 'main', 'contract' or 'uta' (default is 'main')
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta) endpoint, defaults to false
- * @returns {object} an [address structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=address-structure}
+ * @param {string} [params.network] the blockchain network name
+ * @param {string} [params.accountType] 'main', 'contract' or 'uta' (default is 'main')
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
     pub async fn fetch_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut accountType: Value = Value::Str("main".to_string());
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchDepositAddress".to_string()), Value::Str("accountType".to_string()), &[accountType.clone()]); accountType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut accountsByType: Value = self.safe_dict(self.options.clone(), Value::Str("accountsByType".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         accountType = self.safe_string(accountsByType.clone(), accountType.clone(), &[accountType.clone()]);
@@ -4006,14 +4144,14 @@ impl KucoinCore {
             return self.fetch_contract_deposit_address(code.clone(), &[params.clone()]).await;
         }  else if is_true(&uta) || is_true(&(is_equal(&accountType, &Value::Str("uta".to_string())))) || is_true(&(is_equal(&accountType, &Value::Str("unified".to_string())))) {
             return self.super_fetch_deposit_address(code.clone(), self.extend(params.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("uta".to_string(), Value::Bool(true));
     m
 })])).await;
         }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
@@ -4023,37 +4161,39 @@ impl KucoinCore {
             add_element_to_object(&mut request, &Value::Str("chain".to_string()), to_lower(&self.network_code_to_id(networkCode.clone(), &[get_value(&currency, &Value::Str("code".to_string()))])));
         }
         let mut version: Value = get_value(&get_value(&get_value(&get_value(&self.options, &Value::Str("versions".to_string())), &Value::Str("private".to_string())), &Value::Str("GET".to_string())), &Value::Str("deposit-addresses".to_string()));
-        add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options.clone(), &Value::Str("versions".to_string())), &Value::Str("private".to_string())), &Value::Str("GET".to_string())), &Value::Str("deposit-addresses".to_string()), Value::Str("v1".to_string()));
+        add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("versions".to_string())), &Value::Str("private".to_string())), &Value::Str("GET".to_string())), &Value::Str("deposit-addresses".to_string()), Value::Str("v1".to_string()));
         let mut response: Value = self.call_method(Value::Str("private_get_deposit_addresses".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
-        add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options.clone(), &Value::Str("versions".to_string())), &Value::Str("private".to_string())), &Value::Str("GET".to_string())), &Value::Str("deposit-addresses".to_string()), version.clone());
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[]);
+        add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("versions".to_string())), &Value::Str("private".to_string())), &Value::Str("GET".to_string())), &Value::Str("deposit-addresses".to_string()), version.clone());
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
         if is_equal(&data, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again".to_string()))));
         }
         return self.parse_deposit_address(data.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchContractDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs/rest/funding/deposit/get-deposit-address
+ * @see https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
     pub async fn fetch_contract_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut currencyId: Value = get_value(&currency, &Value::Str("id".to_string()));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currencyId.clone());
             m
         });
@@ -4067,29 +4207,31 @@ impl KucoinCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut address: Value = self.safe_string(data.clone(), Value::Str("address".to_string()), &[]);
+        let mut address: Value = self.safe_string_k(data.clone(), "address", &[]);
         if !is_equal(&currencyId, &Value::Str("NIM".to_string())) {
             // contains spaces
             self.check_address(&[address.clone()]);
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("currency".to_string(), currencyId.clone());
-        m.insert("network".to_string(), self.safe_string(data.clone(), Value::Str("chain".to_string()), &[]));
+        m.insert("network".to_string(), self.safe_string_k(data.clone(), "chain", &[]));
         m.insert("address".to_string(), address.clone());
-        m.insert("tag".to_string(), self.safe_string(data.clone(), Value::Str("memo".to_string()), &[]));
+        m.insert("tag".to_string(), self.safe_string_k(data.clone(), "memo", &[]));
     m
 });
+
+    Value::Null
 }
 
     pub fn parse_deposit_address(&self, mut depositAddress: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
-        let mut address: Value = self.safe_string(depositAddress.clone(), Value::Str("address".to_string()), &[]);
+        let mut address: Value = self.safe_string_k(depositAddress.clone(), "address", &[]);
         // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
         if !is_equal(&address, &Value::Null) {
             address = replace_str(&address, &Value::Str("bitcoincash:".to_string()), &Value::Str("".to_string()));
@@ -4102,38 +4244,40 @@ impl KucoinCore {
                 self.check_address(&[address.clone()]);
             }
         }
-        let mut chainId: Value = self.safe_string(depositAddress.clone(), Value::Str("chainId".to_string()), &[]);
+        let mut chainId: Value = self.safe_string_k(depositAddress.clone(), "chainId", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
         m.insert("currency".to_string(), code.clone());
         m.insert("network".to_string(), self.network_id_to_code(&[chainId.clone(), code.clone()]));
         m.insert("address".to_string(), address.clone());
-        m.insert("tag".to_string(), self.safe_string(depositAddress.clone(), Value::Str("memo".to_string()), &[]));
+        m.insert("tag".to_string(), self.safe_string_k(depositAddress.clone(), "memo", &[]));
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchDepositAddressesByNetwork
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-deposit-address
+ * @see https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-deposit-address
  * @description fetch the deposit address for a currency associated with this account
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta) endpoint, defaults to false
- * @returns {object} an array of [address structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=address-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
+ * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
  */
     pub async fn fetch_deposit_addresses_by_network(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
@@ -4167,7 +4311,7 @@ impl KucoinCore {
             response = self.call_method(Value::Str("uta_private_get_asset_deposit_address".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
             let mut version: Value = get_value(&get_value(&get_value(&get_value(&self.options, &Value::Str("versions".to_string())), &Value::Str("private".to_string())), &Value::Str("GET".to_string())), &Value::Str("deposit-addresses".to_string()));
-            add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options.clone(), &Value::Str("versions".to_string())), &Value::Str("private".to_string())), &Value::Str("GET".to_string())), &Value::Str("deposit-addresses".to_string()), Value::Str("v2".to_string()));
+            add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("versions".to_string())), &Value::Str("private".to_string())), &Value::Str("GET".to_string())), &Value::Str("deposit-addresses".to_string()), Value::Str("v2".to_string()));
             response = self.call_method(Value::Str("private_get_deposit_addresses".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             //
             //     {
@@ -4184,42 +4328,44 @@ impl KucoinCore {
             //         ]
             //     }
             //
-            add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options.clone(), &Value::Str("versions".to_string())), &Value::Str("private".to_string())), &Value::Str("GET".to_string())), &Value::Str("deposit-addresses".to_string()), version.clone());
+            add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("versions".to_string())), &Value::Str("private".to_string())), &Value::Str("GET".to_string())), &Value::Str("deposit-addresses".to_string()), version.clone());
         }
-        let mut chains: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut chains: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut parsed: Value = self.parse_deposit_addresses(chains.clone(), &[Value::List(vec![get_value(&currency, &Value::Str("code".to_string()))]), Value::Bool(false), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), get_value(&currency, &Value::Str("code".to_string())));
     m
 })]);
         return self.index_by(parsed.clone(), Value::Str("network".to_string()));
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/market-data/get-part-orderbook
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/market-data/get-full-orderbook
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/market-data/get-part-orderbook
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-orderbook
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-part-orderbook
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-full-orderbook
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-part-orderbook
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-orderbook
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object} A dictionary of [order book structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-book-structure} indexed by market symbols
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
-        let mut level: Value = self.safe_integer(params.clone(), Value::Str("level".to_string()), &[Value::Int(2)]);
+        let mut level: Value = self.safe_integer_k(params.clone(), "level", &[Value::Int(2)]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -4246,7 +4392,7 @@ impl KucoinCore {
             response = self.call_method(Value::Str("uta_private_get_market_orderbook".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else if is_true(&(!is_equal(&type_var, &Value::Str("spot".to_string())))) && is_true(&(!is_equal(&type_var, &Value::Str("margin".to_string())))) {
             if !is_equal(&level, &Value::Int(2)) && !is_equal(&level, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOrderBook() can only return level 2".to_string()))));
+                panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOrderBook() can only return level 2".to_string()))));
             }
             if is_true(&(is_equal(&limit, &Value::Null))) || is_equal(&limit, &Value::Int(20)) {
                 //
@@ -4271,7 +4417,7 @@ impl KucoinCore {
             }  else if is_equal(&limit, &Value::Int(100)) {
                 response = self.call_method(Value::Str("futures_public_get_level2_depth100".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }  else {
-                panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOrderBook() limit argument must be 20 or 100".to_string()))));
+                panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOrderBook() limit argument must be 20 or 100".to_string()))));
             }
         }  else if !is_true(&isAuthenticated) || !is_equal(&limit, &Value::Null) {
             if is_equal(&level, &Value::Int(2)) {
@@ -4280,7 +4426,7 @@ impl KucoinCore {
                     if is_true(&(is_equal(&limit, &Value::Int(20)))) || is_true(&(is_equal(&limit, &Value::Int(100)))) {
                         add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
                     }  else {
-                        panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchOrderBook() limit argument must be 20 or 100".to_string()))));
+                        panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchOrderBook() limit argument must be 20 or 100".to_string()))));
                     }
                 }
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), ternary(is_true(&limit), limit.clone(), Value::Int(100)));
@@ -4320,63 +4466,67 @@ impl KucoinCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timestamp: Value = self.safe_integer(data.clone(), Value::Str("time".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(data.clone(), "time", &[]);
         if is_equal(&timestamp, &Value::Null) {
-            let mut nanoseconds: Value = self.safe_integer(data.clone(), Value::Str("ts".to_string()), &[]);
+            let mut nanoseconds: Value = self.safe_integer_k(data.clone(), "ts", &[]);
             if !is_equal(&nanoseconds, &Value::Null) {
                 timestamp = self.parse_to_int(divide(&nanoseconds, &Value::Int(1000000)));
             }
         }
         let mut orderbook: Value = self.parse_order_book(data.clone(), get_value(&market, &Value::Str("symbol".to_string())), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string()), subtract(&level, &Value::Int(2)), subtract(&level, &Value::Int(1))]);
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer(data.clone(), Value::Str("sequence".to_string()), &[]));
+        add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_k(data.clone(), "sequence", &[]));
         return orderbook;
+
+    Value::Null
 }
 
     pub fn handle_trigger_prices(&self, mut params: Value) -> Value {
         let mut triggerPrice: Value = self.safe_value2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
-        let mut stopLossPrice: Value = self.safe_value(params.clone(), Value::Str("stopLossPrice".to_string()), &[]);
-        let mut takeProfitPrice: Value = self.safe_value(params.clone(), Value::Str("takeProfitPrice".to_string()), &[]);
+        let mut stopLossPrice: Value = self.safe_value_k(params.clone(), "stopLossPrice", &[]);
+        let mut takeProfitPrice: Value = self.safe_value_k(params.clone(), "takeProfitPrice", &[]);
         let mut isStopLoss: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null));
         let mut isTakeProfit: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
         if is_true(&(is_true(&isStopLoss) && is_true(&isTakeProfit))) || is_true(&(is_true(&triggerPrice) && is_true(&stopLossPrice))) || is_true(&(is_true(&triggerPrice) && is_true(&isTakeProfit))) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice".to_string()))));
         }
         return Value::List(vec![triggerPrice.clone(), stopLossPrice.clone(), takeProfitPrice.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#createOrder
  * @description Create an order on the exchange
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/add-order
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/add-order-sync
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/add-order-test
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/add-stop-order
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/add-order
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/add-order-test
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/add-stop-order
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/add-order
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/add-order-test
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/place-order
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-sync
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-test
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-stop-order
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order-test
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-stop-order
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order
+ * @see https://www.kucoin.com/docs-new/rest/ua/place-order
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} type 'limit' or 'market'
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount the amount of currency to trade
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params]  extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta) endpoint, defaults to false
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
  * Check createSpotOrder(), createContractOrder() and createUtaOrder () for more details on the extra parameters that can be used in params
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -4390,7 +4540,7 @@ impl KucoinCore {
         }  else if is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
             return self.create_contract_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" createOrder() does not support market ".to_string())), &get_value(&market, &Value::Str("type".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" createOrder() does not support market ".to_string())), &get_value(&market, &Value::Str("type".to_string())))));
         }
 }
 
@@ -4398,55 +4548,55 @@ impl KucoinCore {
  * @method
  * @name kucoin#createSpotOrder
  * @description helper method for creating spot orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/add-order
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/add-order-sync
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/add-order-test
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/add-stop-order
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/add-order
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/add-order-test
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/add-stop-order
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-sync
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-test
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-stop-order
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order-test
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-stop-order
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} type 'limit' or 'market'
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount the amount of currency to trade
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params]  extra parameters specific to the exchange API endpoint
- * @param {float} [get_value(&params, &Value::Str("triggerPrice".to_string()))] The price at which a trigger order is triggered at
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
- * @param {string} [get_value(&params, &Value::Str("timeInForce".to_string()))] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
- * @param {bool} [get_value(&params, &Value::Str("postOnly".to_string()))] Post only flag, invalid when timeInForce is IOC or FOK
+ * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+ * @param {string} [params.marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
+ * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+ * @param {bool} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
  *
  * EXCHANGE SPECIFIC PARAMETERS
- * @param {string} [get_value(&params, &Value::Str("clientOid".to_string()))] client order id, defaults to uuid if not passed
- * @param {string} [get_value(&params, &Value::Str("remark".to_string()))] remark for the order, length cannot exceed 100 utf8 characters
- * @param {string} [get_value(&params, &Value::Str("tradeType".to_string()))] 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
+ * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
+ * @param {string} [params.remark] remark for the order, length cannot exceed 100 utf8 characters
+ * @param {string} [params.tradeType] 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
  * limit orders ---------------------------------------------------
- * @param {float} [get_value(&params, &Value::Str("cancelAfter".to_string()))] long, // cancel after n seconds, requires timeInForce to be GTT
- * @param {bool} [get_value(&params, &Value::Str("hidden".to_string()))] false, // Order will not be displayed in the order book
- * @param {bool} [get_value(&params, &Value::Str("iceberg".to_string()))] false, // Only a portion of the order is displayed in the order book
- * @param {string} [get_value(&params, &Value::Str("visibleSize".to_string()))] get_value(&this, &Value::Str("amountToPrecision".to_string())) (symbol, visibleSize), // The maximum visible size of an iceberg order
+ * @param {float} [params.cancelAfter] long, // cancel after n seconds, requires timeInForce to be GTT
+ * @param {bool} [params.hidden] false, // Order will not be displayed in the order book
+ * @param {bool} [params.iceberg] false, // Only a portion of the order is displayed in the order book
+ * @param {string} [params.visibleSize] this.amountToPrecision (symbol, visibleSize), // The maximum visible size of an iceberg order
  * market orders --------------------------------------------------
- * @param {string} [get_value(&params, &Value::Str("funds".to_string()))] // Amount of quote currency to use
+ * @param {string} [params.funds] // Amount of quote currency to use
  * stop orders ----------------------------------------------------
- * @param {string} [get_value(&params, &Value::Str("stop".to_string()))]  Either loss or entry, the default is loss. Requires triggerPrice to be defined
+ * @param {string} [params.stop]  Either loss or entry, the default is loss. Requires triggerPrice to be defined
  * margin orders --------------------------------------------------
- * @param {float} [get_value(&params, &Value::Str("leverage".to_string()))] Leverage size of the order
- * @param {string} [get_value(&params, &Value::Str("stp".to_string()))] '', // self trade prevention, CN, CO, CB or DC
- * @param {bool} [get_value(&params, &Value::Str("autoBorrow".to_string()))] false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
- * @param {bool} [get_value(&params, &Value::Str("hf".to_string()))] false, // true for hf order
- * @param {bool} [get_value(&params, &Value::Str("test".to_string()))] set to true to test an order, no order will be created but the request will be validated
- * @param {bool} [get_value(&params, &Value::Str("sync".to_string()))] set to true to use the hf sync call
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {float} [params.leverage] Leverage size of the order
+ * @param {string} [params.stp] '', // self trade prevention, CN, CO, CB or DC
+ * @param {bool} [params.autoBorrow] false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
+ * @param {bool} [params.hf] false, // true for hf order
+ * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
+ * @param {bool} [params.sync] set to true to use the hf sync call
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_spot_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
-        let mut testOrder: Value = self.safe_bool(params.clone(), Value::Str("test".to_string()), &[Value::Bool(false)]);
+        let mut testOrder: Value = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::Str("test".to_string()), &[]);
         let mut hf: Value = Value::Null;
         { let __destr_tmp = self.handle_hf_and_params(&[params.clone()]); hf = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -4456,7 +4606,7 @@ impl KucoinCore {
         let mut triggerPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPriceVariable, &Value::Int(0));
         let mut stopLossPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPriceVariable, &Value::Int(1));
         let mut takeProfitPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPriceVariable, &Value::Int(2));
-        let mut tradeType: Value = self.safe_string(params.clone(), Value::Str("tradeType".to_string()), &[]); // keep it for backward compatibility
+        let mut tradeType: Value = self.safe_string_k(params.clone(), "tradeType", &[]); // keep it for backward compatibility
         let mut isTriggerOrder: Value = Value::Bool(is_true(&triggerPrice) || is_true(&stopLossPrice) || is_true(&takeProfitPrice));
         let mut marginResult: Value = self.handle_margin_mode_and_params(Value::Str("createOrder".to_string()), &[params.clone()]);
         let mut marginMode: Value = self.safe_string(marginResult.clone(), Value::Int(0), &[]);
@@ -4503,25 +4653,27 @@ impl KucoinCore {
         //         }
         //    }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_order(data.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn create_spot_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut market: Value = self.market(symbol.clone());
         // required param, cannot be used twice
-        let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOid".to_string()), Value::Str("clientOrderId".to_string()), &[self.uuid()]);
+        let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOid".to_string()), Value::Str("clientOrderId".to_string()), &[self.uuid(&[])]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOid".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("clientOid".to_string(), clientOrderId.clone());
                 m.insert("side".to_string(), side.clone());
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -4548,7 +4700,7 @@ impl KucoinCore {
             add_element_to_object(&mut request, &Value::Str("size".to_string()), amountString.clone());
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
-        let mut tradeType: Value = self.safe_string(params.clone(), Value::Str("tradeType".to_string()), &[]); // keep it for backward compatibility
+        let mut tradeType: Value = self.safe_string_k(params.clone(), "tradeType", &[]); // keep it for backward compatibility
         let mut triggerPricestopLossPricetakeProfitPriceVariable = self.handle_trigger_prices(params.clone());
         let mut triggerPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPriceVariable, &Value::Int(0));
         let mut stopLossPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPriceVariable, &Value::Int(1));
@@ -4569,7 +4721,7 @@ impl KucoinCore {
                 }
             }
             if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-                panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrder does not support isolated margin for stop orders".to_string()))));
+                panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrder does not support isolated margin for stop orders".to_string()))));
             }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
                 add_element_to_object(&mut request, &Value::Str("tradeType".to_string()), get_value(&get_value(&self.options, &Value::Str("marginModes".to_string())), &marginMode));
             }
@@ -4584,65 +4736,69 @@ impl KucoinCore {
             add_element_to_object(&mut request, &Value::Str("postOnly".to_string()), Value::Bool(true));
         }
         return self.extend(request.clone(), &[params.clone()]);
+
+    Value::Null
 }
 
     pub fn market_order_amount_to_precision(&self, mut symbol: Value, mut amount: Value) -> Value {
         let mut market: Value = self.market(symbol.clone());
         let mut result: Value = self.decimal_to_precision(amount.clone(), Value::Int(crate::runtime::TRUNCATE), get_value(&get_value(&market, &Value::Str("info".to_string())), &Value::Str("quoteIncrement".to_string())), &[self.precisionMode.clone(), self.paddingMode.clone()]);
         if is_equal(&result, &Value::Str("0".to_string())) {
-            panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&add(&add(&self.id, &Value::Str(" amount of ".to_string())), &get_value(&market, &Value::Str("symbol".to_string()))), &Value::Str(" must be greater than minimum amount precision of ".to_string())), &self.number_to_string(get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("amount".to_string()))))));
+            panic!("{}", crate::exchange_errors::invalid_order(add(&add(&add(&add(&self.id, &Value::Str(" amount of ".to_string())), &get_value(&market, &Value::Str("symbol".to_string()))), &Value::Str(" must be greater than minimum amount precision of ".to_string())), &self.number_to_string(get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("amount".to_string()))))));
         }
         return result;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#createContractOrder
  * @description helper method for creating contract orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/add-order
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/add-order-test
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} type 'limit' or 'market'
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount the amount of currency to trade
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params]  extra parameters specific to the exchange API endpoint
- * @param {object} [get_value(&params, &Value::Str("takeProfit".to_string()))] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
- * @param {object} [get_value(&params, &Value::Str("stopLoss".to_string()))] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
- * @param {float} [get_value(&params, &Value::Str("triggerPrice".to_string()))] The price a trigger order is triggered at
- * @param {float} [get_value(&params, &Value::Str("stopLossPrice".to_string()))] price to trigger stop-loss orders
- * @param {float} [get_value(&params, &Value::Str("takeProfitPrice".to_string()))] price to trigger take-profit orders
- * @param {bool} [get_value(&params, &Value::Str("reduceOnly".to_string()))] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
- * @param {string} [get_value(&params, &Value::Str("timeInForce".to_string()))] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
- * @param {bool} [get_value(&params, &Value::Str("postOnly".to_string()))] Post only flag, invalid when timeInForce is IOC or FOK
- * @param {float} [get_value(&params, &Value::Str("cost".to_string()))] the cost of the order in units of USDT
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', default is 'isolated'
- * @param {bool} [get_value(&params, &Value::Str("hedged".to_string()))] *swap and future only* true for hedged mode, false for one way mode, default is false
+ * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
+ * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
+ * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+ * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
+ * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
+ * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
+ * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+ * @param {bool} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
+ * @param {float} [params.cost] the cost of the order in units of USDT
+ * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'isolated'
+ * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
  * ----------------- Exchange Specific Parameters -----------------
- * @param {float} [get_value(&params, &Value::Str("leverage".to_string()))] Leverage size of the order (mandatory param in request, default is 1)
- * @param {string} [get_value(&params, &Value::Str("clientOid".to_string()))] client order id, defaults to uuid if not passed
- * @param {string} [get_value(&params, &Value::Str("remark".to_string()))] remark for the order, length cannot exceed 100 utf8 characters
- * @param {string} [get_value(&params, &Value::Str("stop".to_string()))] 'up' or 'down', the direction the triggerPrice is triggered from, requires triggerPrice. down: Triggers when the price reaches or goes below the triggerPrice. up: Triggers when the price reaches or goes above the triggerPrice.
- * @param {string} [get_value(&params, &Value::Str("triggerPriceType".to_string()))] "last", "mark", "index" - defaults to "mark"
- * @param {string} [get_value(&params, &Value::Str("stopPriceType".to_string()))] exchange-specific alternative for triggerPriceType: TP, IP or MP
- * @param {bool} [get_value(&params, &Value::Str("closeOrder".to_string()))] set to true to close position
- * @param {bool} [get_value(&params, &Value::Str("test".to_string()))] set to true to use the test order endpoint (does not submit order, use to validate params)
- * @param {bool} [get_value(&params, &Value::Str("forceHold".to_string()))] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.\
- * @param {string} [get_value(&params, &Value::Str("positionSide".to_string()))] *swap and future only* hedged two-way position side, LONG or SHORT
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {float} [params.leverage] Leverage size of the order (mandatory param in request, default is 1)
+ * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
+ * @param {string} [params.remark] remark for the order, length cannot exceed 100 utf8 characters
+ * @param {string} [params.stop] 'up' or 'down', the direction the triggerPrice is triggered from, requires triggerPrice. down: Triggers when the price reaches or goes below the triggerPrice. up: Triggers when the price reaches or goes above the triggerPrice.
+ * @param {string} [params.triggerPriceType] "last", "mark", "index" - defaults to "mark"
+ * @param {string} [params.stopPriceType] exchange-specific alternative for triggerPriceType: TP, IP or MP
+ * @param {bool} [params.closeOrder] set to true to close position
+ * @param {bool} [params.test] set to true to use the test order endpoint (does not submit order, use to validate params)
+ * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.\
+ * @param {string} [params.positionSide] *swap and future only* hedged two-way position side, LONG or SHORT
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_contract_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
-        let mut testOrder: Value = self.safe_bool(params.clone(), Value::Str("test".to_string()), &[Value::Bool(false)]);
+        let mut testOrder: Value = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::Str("test".to_string()), &[]);
-        let mut hasTpOrSlOrder: Value = Value::Bool(is_true(&(!is_equal(&self.safe_value(params.clone(), Value::Str("stopLoss".to_string()), &[]), &Value::Null))) || is_true(&(!is_equal(&self.safe_value(params.clone(), Value::Str("takeProfit".to_string()), &[]), &Value::Null))));
+        let mut hasTpOrSlOrder: Value = Value::Bool(is_true(&(!is_equal(&self.safe_value_k(params.clone(), "stopLoss", &[]), &Value::Null))) || is_true(&(!is_equal(&self.safe_value_k(params.clone(), "takeProfit", &[]), &Value::Null))));
         let mut orderRequest: Value = self.create_contract_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut response: Value = Value::Null;
         if is_true(&testOrder) {
@@ -4662,25 +4818,27 @@ impl KucoinCore {
         //        },
         //    }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_order(data.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn create_contract_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut market: Value = self.market(symbol.clone());
         // required param, cannot be used twice
-        let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOid".to_string()), Value::Str("clientOrderId".to_string()), &[self.uuid()]);
+        let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOid".to_string()), Value::Str("clientOrderId".to_string()), &[self.uuid(&[])]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOid".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("clientOid".to_string(), clientOrderId.clone());
                 m.insert("side".to_string(), side.clone());
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -4693,13 +4851,13 @@ impl KucoinCore {
             params = self.omit(params.clone(), Value::Str("marginMode".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("marginMode".to_string()), marginModeUpper.clone());
         }
-        let mut cost: Value = self.safe_string(params.clone(), Value::Str("cost".to_string()), &[]);
+        let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
         params = self.omit(params.clone(), Value::Str("cost".to_string()), &[]);
         if !is_equal(&cost, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("valueQty".to_string()), self.cost_to_precision(symbol.clone(), cost.clone()));
         }  else {
             if is_less_than(&amount, &Value::Int(1)) {
-                panic!("{:?}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() minimum contract order amount is 1".to_string()))));
+                panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() minimum contract order amount is 1".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("size".to_string()), crate::runtime::parse_int(&self.amount_to_precision(symbol.clone(), amount.clone())));
         }
@@ -4707,19 +4865,19 @@ impl KucoinCore {
         let mut triggerPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPriceVariable, &Value::Int(0));
         let mut stopLossPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPriceVariable, &Value::Int(1));
         let mut takeProfitPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPriceVariable, &Value::Int(2));
-        let mut stopLoss: Value = self.safe_dict(params.clone(), Value::Str("stopLoss".to_string()), &[]);
-        let mut takeProfit: Value = self.safe_dict(params.clone(), Value::Str("takeProfit".to_string()), &[]);
+        let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
+        let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
         let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
         let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
         // const isTpAndSl = stopLossPrice && takeProfitPrice;
         let mut triggerPriceTypes: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("mark".to_string(), Value::Str("MP".to_string()));
                 m.insert("last".to_string(), Value::Str("TP".to_string()));
                 m.insert("index".to_string(), Value::Str("IP".to_string()));
             m
         });
-        let mut triggerPriceType: Value = self.safe_string(params.clone(), Value::Str("triggerPriceType".to_string()), &[Value::Str("mark".to_string())]);
+        let mut triggerPriceType: Value = self.safe_string_k(params.clone(), "triggerPriceType", &[Value::Str("mark".to_string())]);
         let mut triggerPriceTypeValue: Value = self.safe_string(triggerPriceTypes.clone(), triggerPriceType.clone(), &[triggerPriceType.clone()]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("takeProfit".to_string()), Value::Str("stopLoss".to_string())]), &[]);
         if is_true(&triggerPrice) {
@@ -4731,13 +4889,13 @@ impl KucoinCore {
             if is_true(&hasStopLoss) {
                 let mut slPrice: Value = self.safe_string2(stopLoss.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
                 add_element_to_object(&mut request, &Value::Str("triggerStopDownPrice".to_string()), self.price_to_precision(symbol.clone(), slPrice.clone()));
-                priceType = self.safe_string(stopLoss.clone(), Value::Str("triggerPriceType".to_string()), &[Value::Str("mark".to_string())]);
+                priceType = self.safe_string_k(stopLoss.clone(), "triggerPriceType", &[Value::Str("mark".to_string())]);
                 priceType = self.safe_string(triggerPriceTypes.clone(), priceType.clone(), &[priceType.clone()]);
             }
             if is_true(&hasTakeProfit) {
                 let mut tpPrice: Value = self.safe_string2(takeProfit.clone(), Value::Str("triggerPrice".to_string()), Value::Str("takeProfitPrice".to_string()), &[]);
                 add_element_to_object(&mut request, &Value::Str("triggerStopUpPrice".to_string()), self.price_to_precision(symbol.clone(), tpPrice.clone()));
-                priceType = self.safe_string(takeProfit.clone(), Value::Str("triggerPriceType".to_string()), &[Value::Str("mark".to_string())]);
+                priceType = self.safe_string_k(takeProfit.clone(), "triggerPriceType", &[Value::Str("mark".to_string())]);
                 priceType = self.safe_string(triggerPriceTypes.clone(), priceType.clone(), &[priceType.clone()]);
             }
             add_element_to_object(&mut request, &Value::Str("stopPriceType".to_string()), priceType.clone());
@@ -4756,7 +4914,7 @@ impl KucoinCore {
         let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
         if is_equal(&uppercaseType, &Value::Str("LIMIT".to_string())) {
             if is_equal(&price, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a price argument for limit orders".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a price argument for limit orders".to_string()))));
             }  else {
                 add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
             }
@@ -4769,18 +4927,18 @@ impl KucoinCore {
         if is_true(&postOnly) {
             add_element_to_object(&mut request, &Value::Str("postOnly".to_string()), Value::Bool(true));
         }
-        let mut hidden: Value = self.safe_value(params.clone(), Value::Str("hidden".to_string()), &[]);
+        let mut hidden: Value = self.safe_value_k(params.clone(), "hidden", &[]);
         if is_true(&postOnly) && is_true(&(!is_equal(&hidden, &Value::Null))) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrder() does not support the postOnly parameter together with a hidden parameter".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrder() does not support the postOnly parameter together with a hidden parameter".to_string()))));
         }
-        let mut iceberg: Value = self.safe_value(params.clone(), Value::Str("iceberg".to_string()), &[]);
+        let mut iceberg: Value = self.safe_value_k(params.clone(), "iceberg", &[]);
         if is_true(&iceberg) {
-            let mut visibleSize: Value = self.safe_value(params.clone(), Value::Str("visibleSize".to_string()), &[]);
+            let mut visibleSize: Value = self.safe_value_k(params.clone(), "visibleSize", &[]);
             if is_equal(&visibleSize, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a visibleSize parameter for iceberg orders".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a visibleSize parameter for iceberg orders".to_string()))));
             }
         }
-        let mut reduceOnly: Value = self.safe_bool(params.clone(), Value::Str("reduceOnly".to_string()), &[Value::Bool(false)]);
+        let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
         let mut hedged: Value = Value::Null;
         { let __destr_tmp = self.handle_param_bool(params.clone(), Value::Str("hedged".to_string()), &[Value::Bool(false)]); hedged = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&reduceOnly) {
@@ -4797,48 +4955,50 @@ impl KucoinCore {
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("timeInForce".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("reduceOnly".to_string()), Value::Str("hedged".to_string())]), &[]); // Time in force only valid for limit orders, exchange error when gtc for market orders
         return self.extend(request.clone(), &[params.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#createUtaOrder
  * @description helper method for creating uta orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/place-order
+ * @see https://www.kucoin.com/docs-new/rest/ua/place-order
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} type 'limit' or 'market'
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount the amount of currency to trade
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params]  extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("clientOrderId".to_string()))] client order id, defaults to uuid if not passed
- * @param {float} [get_value(&params, &Value::Str("cost".to_string()))] the cost of the order in units of quote currency
- * @param {string} [get_value(&params, &Value::Str("timeInForce".to_string()))] GTC, GTD, IOC, FOK or PO
- * @param {bool} [get_value(&params, &Value::Str("postOnly".to_string()))] Post only flag, invalid when timeInForce is IOC or FOK (default is false)
- * @param {bool} [get_value(&params, &Value::Str("reduceOnly".to_string()))] *contract markets only* A mark to reduce the position size only. Set to false by default
- * @param {float} [get_value(&params, &Value::Str("triggerPrice".to_string()))] The price a trigger order is triggered at
- * @param {string} [get_value(&params, &Value::Str("triggerDirection".to_string()))] 'ascending' or 'descending', the direction the triggerPrice is triggered from, requires triggerPrice
- * @param {string} [get_value(&params, &Value::Str("triggerPriceType".to_string()))] *contract markets only* "last", "mark", "index" - defaults to "mark"
- * @param {float} [get_value(&params, &Value::Str("stopLossPrice".to_string()))] price to trigger stop-loss orders
- * @param {float} [get_value(&params, &Value::Str("takeProfitPrice".to_string()))] price to trigger take-profit orders
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', (default is 'cross' for margin orders, default is 'isolated' for contract orders)
+ * @param {string} [params.clientOrderId] client order id, defaults to uuid if not passed
+ * @param {float} [params.cost] the cost of the order in units of quote currency
+ * @param {string} [params.timeInForce] GTC, GTD, IOC, FOK or PO
+ * @param {bool} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK (default is false)
+ * @param {bool} [params.reduceOnly] *contract markets only* A mark to reduce the position size only. Set to false by default
+ * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+ * @param {string} [params.triggerDirection] 'ascending' or 'descending', the direction the triggerPrice is triggered from, requires triggerPrice
+ * @param {string} [params.triggerPriceType] *contract markets only* "last", "mark", "index" - defaults to "mark"
+ * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
+ * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
+ * @param {string} [params.marginMode] 'cross' or 'isolated', (default is 'cross' for margin orders, default is 'isolated' for contract orders)
  *
  * Exchange-specific parameters -------------------------------------------------
- * @param {string} [get_value(&params, &Value::Str("accountMode".to_string()))] 'unified' or 'classic', default is 'unified'
- * @param {string} [get_value(&params, &Value::Str("stp".to_string()))] '', // self trade prevention, CN, CO, CB or DC
- * @param {int} [get_value(&params, &Value::Str("cancelAfter".to_string()))] - Cancel After N Seconds (Calculated from the time of entering the matching engine), only effective when timeInForce is GTD
- * @param {string} [get_value(&params, &Value::Str("sizeUnit".to_string()))] *contracts only* 'BASECCY' (amount of base currency) or 'UNIT' (number of contracts), default is 'UNIT'
+ * @param {string} [params.accountMode] 'unified' or 'classic', default is 'unified'
+ * @param {string} [params.stp] '', // self trade prevention, CN, CO, CB or DC
+ * @param {int} [params.cancelAfter] - Cancel After N Seconds (Calculated from the time of entering the matching engine), only effective when timeInForce is GTD
+ * @param {string} [params.sizeUnit] *contracts only* 'BASECCY' (amount of base currency) or 'UNIT' (number of contracts), default is 'UNIT'
  *
  * Classic account parameters
- * @param {bool} [get_value(&params, &Value::Str("autoBorrow".to_string()))] *classic margin orders only*
- * @param {bool} [get_value(&params, &Value::Str("autoRepay".to_string()))] *classic margin orders only*
- * @param {string} [get_value(&params, &Value::Str("hedged".to_string()))] *classic contract orders only* true for hedged mode, false for one way mode, default is false
- * @param {int} [get_value(&params, &Value::Str("leverage".to_string()))] *classic contract orders with isolated marginMode only* Leverage size of the order
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {bool} [params.autoBorrow] *classic margin orders only*
+ * @param {bool} [params.autoRepay] *classic margin orders only*
+ * @param {string} [params.hedged] *classic contract orders only* true for hedged mode, false for one way mode, default is false
+ * @param {int} [params.leverage] *classic contract orders with isolated marginMode only* Leverage size of the order
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_uta_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -4855,17 +5015,19 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_order(data.clone(), &[]);
+
+    Value::Null
 }
 
     pub fn create_uta_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut market: Value = self.market(symbol.clone());
@@ -4878,10 +5040,10 @@ impl KucoinCore {
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("createOrder".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut marginModeDefined: Value = Value::Bool(!is_equal(&marginMode, &Value::Null));
         let mut tradeType: Value = self.handle_trade_type(&[isContract.clone(), marginMode.clone(), isUnified.clone(), params.clone()]);
-        let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOid".to_string()), Value::Str("clientOrderId".to_string()), &[self.uuid()]);
+        let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOid".to_string()), Value::Str("clientOrderId".to_string()), &[self.uuid(&[])]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOid".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("accountMode".to_string(), accountMode.clone());
                 m.insert("tradeType".to_string(), tradeType.clone());
                 m.insert("clientOid".to_string(), clientOrderId.clone());
@@ -4895,14 +5057,14 @@ impl KucoinCore {
         }
         add_element_to_object(&mut request, &Value::Str("clientOid".to_string()), clientOrderId.clone());
         let mut isMarketOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("market".to_string())));
-        let mut cost: Value = self.safe_string(params.clone(), Value::Str("cost".to_string()), &[]);
+        let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
         if !is_equal(&cost, &Value::Null) {
             params = self.omit(params.clone(), Value::Str("cost".to_string()), &[]);
             if is_true(&isSpot) && is_true(&isMarketOrder) {
                 add_element_to_object(&mut request, &Value::Str("sizeUnit".to_string()), Value::Str("QUOTECCY".to_string()));
                 add_element_to_object(&mut request, &Value::Str("size".to_string()), self.market_order_amount_to_precision(symbol.clone(), cost.clone()));
             }  else {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() with cost is supported for spot market orders only".to_string()))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() with cost is supported for spot market orders only".to_string()))));
             }
         }  else {
             let mut sizeUnit: Value = Value::Str("BASECCY".to_string());
@@ -4930,13 +5092,13 @@ impl KucoinCore {
                 if is_true(&marginModeDefined) {
                     add_element_to_object(&mut request, &Value::Str("marginMode".to_string()), to_upper(&marginMode));
                     if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-                        let mut leverage: Value = self.safe_integer(params.clone(), Value::Str("leverage".to_string()), &[]);
+                        let mut leverage: Value = self.safe_integer_k(params.clone(), "leverage", &[]);
                         if is_equal(&leverage, &Value::Null) {
                             add_element_to_object(&mut request, &Value::Str("leverage".to_string()), Value::Int(1));
                         }
                     }
                 }
-                let mut reduceOnly: Value = self.safe_bool(params.clone(), Value::Str("reduceOnly".to_string()), &[Value::Bool(false)]);
+                let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
                 let mut hedged: Value = Value::Bool(false);
                 { let __destr_tmp = self.handle_param_bool(params.clone(), Value::Str("hedged".to_string()), &[hedged.clone()]); hedged = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
                 if is_true(&hedged) {
@@ -4953,37 +5115,37 @@ impl KucoinCore {
         let mut triggerPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPriceVariable, &Value::Int(0));
         let mut stopLossPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPriceVariable, &Value::Int(1));
         let mut takeProfitPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPriceVariable, &Value::Int(2));
-        let mut stopLoss: Value = self.safe_dict(params.clone(), Value::Str("stopLoss".to_string()), &[]);
-        let mut takeProfit: Value = self.safe_dict(params.clone(), Value::Str("takeProfit".to_string()), &[]);
+        let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
+        let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
         let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
         let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
         let mut triggerPriceTypes: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("mark".to_string(), Value::Str("MP".to_string()));
                 m.insert("last".to_string(), Value::Str("TP".to_string()));
                 m.insert("index".to_string(), Value::Str("IP".to_string()));
             m
         });
         if is_true(&triggerPrice) {
-            let mut triggerDirection: Value = self.safe_string(params.clone(), Value::Str("triggerDirection".to_string()), &[]);
+            let mut triggerDirection: Value = self.safe_string_k(params.clone(), "triggerDirection", &[]);
             if is_equal(&triggerDirection, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a triggerDirection parameter for trigger orders. Provide params.tringgerDirection or use params.stopLossPrice or params.takeProfitPrice instead of params.triggerPrice".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a triggerDirection parameter for trigger orders. Provide params.tringgerDirection or use params.stopLossPrice or params.takeProfitPrice instead of params.triggerPrice".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("triggerDirection".to_string()), ternary(is_true(&(is_equal(&triggerDirection, &Value::Str("ascending".to_string())))), Value::Str("UP".to_string()), Value::Str("DOWN".to_string())));
             add_element_to_object(&mut request, &Value::Str("triggerPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
         }  else if is_true(&hasStopLoss) || is_true(&hasTakeProfit) {
             if !is_true(&isContract) {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() stopLoss and takeProfit parameters are only supported for contract orders".to_string()))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() stopLoss and takeProfit parameters are only supported for contract orders".to_string()))));
             }
             if is_true(&hasStopLoss) {
                 let mut slTriggerPrice: Value = self.safe_string2(stopLoss.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
-                let mut slTriggerPriceType: Value = self.safe_string(stopLoss.clone(), Value::Str("triggerPriceType".to_string()), &[Value::Str("mark".to_string())]);
+                let mut slTriggerPriceType: Value = self.safe_string_k(stopLoss.clone(), "triggerPriceType", &[Value::Str("mark".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("slTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), slTriggerPrice.clone()));
                 add_element_to_object(&mut request, &Value::Str("slTriggerPriceType".to_string()), self.safe_string(triggerPriceTypes.clone(), slTriggerPriceType.clone(), &[slTriggerPriceType.clone()]));
             }
             if is_true(&hasTakeProfit) {
                 let mut tpTriggerPrice: Value = self.safe_string2(takeProfit.clone(), Value::Str("triggerPrice".to_string()), Value::Str("takeProfitPrice".to_string()), &[]);
-                let mut tpTriggerPriceType: Value = self.safe_string(takeProfit.clone(), Value::Str("triggerPriceType".to_string()), &[Value::Str("mark".to_string())]);
+                let mut tpTriggerPriceType: Value = self.safe_string_k(takeProfit.clone(), "triggerPriceType", &[Value::Str("mark".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("tpTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), tpTriggerPrice.clone()));
                 add_element_to_object(&mut request, &Value::Str("tpTriggerPriceType".to_string()), self.safe_string(triggerPriceTypes.clone(), tpTriggerPriceType.clone(), &[tpTriggerPriceType.clone()]));
             }
@@ -5006,88 +5168,96 @@ impl KucoinCore {
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("stopPriceType".to_string()), Value::Str("stopLossPriceType".to_string()), Value::Str("takeProfitPriceType".to_string()), Value::Str("triggerPriceType".to_string()), Value::Str("triggerDirection".to_string()), Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string()), Value::Str("hedged".to_string())]), &[]);
         return self.extend(request.clone(), &[params.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#createMarketOrderWithCost
  * @description create a market order by providing the symbol, side and cost
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/add-order
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/add-order
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} side 'buy' or 'sell'
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_market_order_with_cost(&mut self, mut symbol: Value, mut side: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut req: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), cost.clone());
             m
         });
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), side.clone(), cost.clone(), &[Value::Null, self.extend(req.clone(), &[params.clone()])]).await;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol and cost
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/add-order
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/add-order
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_market_buy_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         return self.create_market_order_with_cost(symbol.clone(), Value::Str("buy".to_string()), cost.clone(), &[params.clone()]).await;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#createMarketSellOrderWithCost
  * @description create a market sell order by providing the symbol and cost
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/add-order
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/add-order
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_market_sell_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         return self.create_market_order_with_cost(symbol.clone(), Value::Str("sell".to_string()), cost.clone(), &[params.clone()]).await;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#createOrders
  * @description create a list of trade orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/batch-add-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/batch-add-orders-sync
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders-sync
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params]  extra parameters specific to the exchange API endpoint
  * Check createSpotOrders() and createContractOrders() for more details on the extra parameters that can be used in params
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5095,26 +5265,26 @@ impl KucoinCore {
         let mut isContract: Value = Value::Bool(false);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&orders)) {
+            let mut __for_first_892: bool = true;
+            while { if !__for_first_892 { i = add(&i, &Value::Int(1)); } __for_first_892 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
-            let mut symbol: Value = self.safe_string(order.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[]);
             let mut market: Value = self.market(symbol.clone());
             if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
                 isSpot = Value::Bool(true);
             }  else if is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
                 isContract = Value::Bool(true);
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         if is_true(&isSpot) && is_true(&isContract) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrders() requires all orders to be either spot or contract".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrders() requires all orders to be either spot or contract".to_string()))));
         }  else if is_true(&isSpot) {
             return self.create_spot_orders(orders.clone(), &[params.clone()]).await;
         }  else if is_true(&isContract) {
             return self.create_contract_orders(orders.clone(), &[params.clone()]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrders() does not support the markets of the orders provided".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrders() does not support the markets of the orders provided".to_string()))));
         }
 }
 
@@ -5122,18 +5292,18 @@ impl KucoinCore {
  * @method
  * @name kucoin#createSpotOrders
  * @description helper method for creating spot orders in batch
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/batch-add-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/batch-add-orders-sync
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/batch-add-orders
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders-sync
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/batch-add-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params]  extra parameters specific to the exchange API endpoint
- * @param {bool} [get_value(&params, &Value::Str("hf".to_string()))] false, // true for hf orders
- * @param {bool} [get_value(&params, &Value::Str("sync".to_string()))] false, // true to use the hf sync call
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {bool} [params.hf] false, // true for hf orders
+ * @param {bool} [params.sync] false, // true to use the hf sync call
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_spot_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5141,35 +5311,36 @@ impl KucoinCore {
         let mut symbol: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&orders)) {
+            let mut __for_first_893: bool = true;
+            while { if !__for_first_893 { i = add(&i, &Value::Int(1)); } __for_first_893 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
-            let mut marketId: Value = self.safe_string(rawOrder.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut rawOrder: Value = get_value(&orders, &i);
+            let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             if is_equal(&symbol, &Value::Null) {
                 symbol = marketId.clone();
             }  else {
                 if !is_equal(&symbol, &marketId) {
-                    panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrders() requires all orders to have the same symbol".to_string()))));
+                    panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrders() requires all orders to have the same symbol".to_string()))));
                 }
             }
-            let mut type_var: Value = self.safe_string(rawOrder.clone(), Value::Str("type".to_string()), &[]);
+            let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
             if !is_equal(&type_var, &Value::Str("limit".to_string())) {
-                panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrders() only supports limit orders".to_string()))));
+                panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrders() only supports limit orders".to_string()))));
             }
-            let mut side: Value = self.safe_string(rawOrder.clone(), Value::Str("side".to_string()), &[]);
-            let mut amount: Value = self.safe_value(rawOrder.clone(), Value::Str("amount".to_string()), &[]);
-            let mut price: Value = self.safe_value(rawOrder.clone(), Value::Str("price".to_string()), &[]);
-            let mut orderParams: Value = self.safe_value(rawOrder.clone(), Value::Str("params".to_string()), &[Value::Map({
-                let mut m = std::collections::HashMap::new();
+            let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
+            let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
+            let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
+            let mut orderParams: Value = self.safe_value_k(rawOrder.clone(), "params", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
                 m
             })]);
             let mut orderRequest: Value = self.create_spot_order_request(marketId.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), orderParams.clone()]);
             append_to_array(&mut ordersRequests, orderRequest.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("orderList".to_string(), ordersRequests.clone());
             m
@@ -5216,47 +5387,50 @@ impl KucoinCore {
         //           },
         // }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        data = self.safe_list(data.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        data = self.safe_list_k(data.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#createContractOrders
  * @description helper method for creating contract orders in batch
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/batch-add-orders
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/batch-add-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params]  extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_contract_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&orders)) {
+            let mut __for_first_894: bool = true;
+            while { if !__for_first_894 { i = add(&i, &Value::Int(1)); } __for_first_894 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
-            let mut symbol: Value = self.safe_string(rawOrder.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut rawOrder: Value = get_value(&orders, &i);
+            let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             let mut market: Value = self.market(symbol.clone());
-            let mut type_var: Value = self.safe_string(rawOrder.clone(), Value::Str("type".to_string()), &[]);
-            let mut side: Value = self.safe_string(rawOrder.clone(), Value::Str("side".to_string()), &[]);
-            let mut amount: Value = self.safe_value(rawOrder.clone(), Value::Str("amount".to_string()), &[]);
-            let mut price: Value = self.safe_value(rawOrder.clone(), Value::Str("price".to_string()), &[]);
-            let mut orderParams: Value = self.safe_value(rawOrder.clone(), Value::Str("params".to_string()), &[Value::Map({
-                let mut m = std::collections::HashMap::new();
+            let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
+            let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
+            let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
+            let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
+            let mut orderParams: Value = self.safe_value_k(rawOrder.clone(), "params", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
                 m
             })]);
             let mut orderRequest: Value = self.create_contract_order_request(get_value(&market, &Value::Str("id".to_string())), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), orderParams.clone()]);
             append_to_array(&mut ordersRequests, orderRequest.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut response: Value = self.call_method(Value::Str("futures_private_post_orders_multi".to_string()), &[ordersRequests.clone()]).await;
@@ -5281,15 +5455,17 @@ impl KucoinCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#editOrder
  * @description edit an order, kucoin currently only supports the modification of HF orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/modify-order
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/modify-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type not used
@@ -5297,20 +5473,20 @@ impl KucoinCore {
  * @param {float} amount how much of the currency you want to trade in units of the base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("clientOrderId".to_string()))] client order id, defaults to id if not passed
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.clientOrderId] client order id, defaults to id if not passed
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn edit_order(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -5335,43 +5511,45 @@ impl KucoinCore {
         //     }
         // }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_order(data.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#cancelOrder
  * @description cancels an open order
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld-sync
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid-sync
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-clientoid
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/cancel-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/cancel-order-by-clientoid
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/cancel-order
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld-sync
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid-sync
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/ua/cancel-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] *spot only* 'cross' or 'isolated'
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] true for cancelling order with unified account endpoint (default is false)
+ * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+ * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated'
+ * @param {boolean} [params.uta] true for cancelling order with unified account endpoint (default is false)
  * Check cancelSpotOrder() and cancelContractOrder() for more details on the extra parameters that can be used in params
  * @returns Response from the exchange
  */
     pub async fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5391,40 +5569,42 @@ impl KucoinCore {
         }  else {
             return self.cancel_contract_order(id.clone(), &[symbol.clone(), params.clone()]).await;
         }
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#cancelSpotOrder
  * @description helper method for cancelling spot orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld-sync
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid-sync
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-clientoid
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/cancel-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/cancel-order-by-clientoid
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld-sync
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid-sync
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {bool} [get_value(&params, &Value::Str("trigger".to_string()))] True if cancelling a stop order
- * @param {bool} [get_value(&params, &Value::Str("hf".to_string()))] false, // true for hf order
- * @param {bool} [get_value(&params, &Value::Str("sync".to_string()))] false, // true to use the hf sync call
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated'
+ * @param {bool} [params.trigger] True if cancelling a stop order
+ * @param {bool} [params.hf] false, // true for hf order
+ * @param {bool} [params.sync] false, // true to use the hf sync call
+ * @param {string} [params.marginMode] 'cross' or 'isolated'
  * @returns Response from the exchange
  */
     pub async fn cancel_spot_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOid".to_string()), Value::Str("clientOrderId".to_string()), &[]);
@@ -5435,12 +5615,12 @@ impl KucoinCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("cancelOrder".to_string()), Value::Str("sync".to_string()), &[Value::Bool(false)]); useSync = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("createOrder".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut tradeType: Value = self.safe_string(params.clone(), Value::Str("tradeType".to_string()), &[]); // keep it for backward compatibility
+        let mut tradeType: Value = self.safe_string_k(params.clone(), "tradeType", &[]); // keep it for backward compatibility
         let mut isMarginOrder: Value = Value::Bool(is_equal(&tradeType, &Value::Str("MARGIN_TRADE".to_string())) || !is_equal(&marginMode, &Value::Null));
         if is_true(&hf) || is_true(&useSync) || is_true(&isMarginOrder) {
             if !is_true(&trigger) {
                 if is_equal(&symbol, &Value::Null) {
-                    panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol parameter for hf orders".to_string()))));
+                    panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol parameter for hf orders".to_string()))));
                 }
                 let mut market: Value = self.market(symbol.clone());
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
@@ -5453,11 +5633,11 @@ impl KucoinCore {
             if is_true(&trigger) {
                 if is_true(&isMarginOrder) {
                     response = self.call_method(Value::Str("private_delete_hf_margin_stop_order_cancel_by_client_oid".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
-                    let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[]);
-                    let mut orderIds: Value = self.safe_list(data.clone(), Value::Str("cancelledOrderIds".to_string()), &[Value::List(vec![])]);
+                    let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+                    let mut orderIds: Value = self.safe_list_k(data.clone(), "cancelledOrderIds", &[Value::List(vec![])]);
                     let mut orderId: Value = self.safe_string(orderIds.clone(), Value::Int(0), &[]);
                     return self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
         m.insert("id".to_string(), orderId.clone());
     m
@@ -5483,7 +5663,7 @@ impl KucoinCore {
             }  else {
                 response = self.call_method(Value::Str("private_delete_order_client_order_client_oid".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }
-            response = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[]);
+            response = self.safe_dict_k(response.clone(), "data", &[]);
             return self.parse_order(response.clone(), &[]);
         }  else {
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
@@ -5513,53 +5693,55 @@ impl KucoinCore {
                 //        }
                 //    }
                 //
-                response = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[]);
+                response = self.safe_dict_k(response.clone(), "data", &[]);
                 return self.parse_order(response.clone(), &[]);
             }  else {
                 response = self.call_method(Value::Str("private_delete_orders_order_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }
-            let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[]);
-            let mut orderId: Value = self.safe_string(data.clone(), Value::Str("orderId".to_string()), &[]);
-            let mut orderIds: Value = self.safe_list(data.clone(), Value::Str("cancelledOrderIds".to_string()), &[Value::List(vec![])]);
+            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+            let mut orderId: Value = self.safe_string_k(data.clone(), "orderId", &[]);
+            let mut orderIds: Value = self.safe_list_k(data.clone(), "cancelledOrderIds", &[Value::List(vec![])]);
             orderId = self.safe_string(orderIds.clone(), Value::Int(0), &[orderId.clone()]);
             return self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
         m.insert("id".to_string(), orderId.clone());
     m
 }), &[]);
         }
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#cancelContractOrder
  * @description helper method for cancelling contract orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("clientOrderId".to_string()))] cancel order by client order id
- * @returns {object} An [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.clientOrderId] cancel order by client order id
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_contract_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOid".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string())]), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Value = Value::Null;
         if !is_equal(&clientOrderId, &Value::Null) {
             if is_equal(&symbol, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol argument when cancelling by clientOrderId".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol argument when cancelling by clientOrderId".to_string()))));
             }
             let mut market: Value = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
@@ -5570,37 +5752,39 @@ impl KucoinCore {
             response = self.call_method(Value::Str("futures_private_delete_orders_order_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
         return self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
     m
 }), &[]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#cancelUtaOrder
  * @description helper method for cancelling uta orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/cancel-order
+ * @see https://www.kucoin.com/docs-new/rest/ua/cancel-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("accountMode".to_string()))] 'unified' or 'classic' (default is 'unified')
- * @param {string} [get_value(&params, &Value::Str("clientOrderId".to_string()))] client order id, required if id is not provided
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin)
+ * @param {string} [params.accountMode] 'unified' or 'classic' (default is 'unified')
+ * @param {string} [params.clientOrderId] client order id, required if id is not provided
+ * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin)
  * @returns Response from the exchange
  */
     pub async fn cancel_uta_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol argument for uta endpoint".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol argument for uta endpoint".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOid".to_string()), Value::Str("clientOrderId".to_string()), &[]);
@@ -5609,7 +5793,7 @@ impl KucoinCore {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOid".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         }  else {
             if is_equal(&id, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires an id argument or clientOrderId parameter".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires an id argument or clientOrderId parameter".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
         }
@@ -5636,37 +5820,39 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_order(data.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#cancelAllOrders
  * @description cancel all open orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/cancel-all-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/batch-cancel-stop-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/cancel-all-orders-by-symbol
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/cancel-all-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/batch-cancel-order-by-symbol
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-cancel-stop-orders
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-all-orders-by-symbol
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
+ * @see https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] *spot only* 'cross' or 'isolated'
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] true for cancelling orders with unified account endpoint (default is false)
+ * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+ * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated'
+ * @param {boolean} [params.uta] true for cancelling orders with unified account endpoint (default is false)
  * Check cancelAllSpotOrders(), cancelAllContractOrders() and cancelAllUtaOrders() for more details on the extra parameters that can be used in params
  * @returns Response from the exchange
  */
     pub async fn cancel_all_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5686,34 +5872,36 @@ impl KucoinCore {
         }  else {
             return self.cancel_all_contract_orders(&[symbol.clone(), params.clone()]).await;
         }
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#cancelAllSpotOrders
  * @description helper method for cancelling all spot orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/cancel-all-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/batch-cancel-stop-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/cancel-all-orders-by-symbol
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-cancel-stop-orders
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-all-orders-by-symbol
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {bool} [get_value(&params, &Value::Str("trigger".to_string()))] *invalid for isolated margin* true if cancelling all stop orders
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated'
- * @param {string} [get_value(&params, &Value::Str("orderIds".to_string()))] *stop orders only* Comma separated order IDs
- * @param {bool} [get_value(&params, &Value::Str("hf".to_string()))] false, // true for hf order
+ * @param {bool} [params.trigger] *invalid for isolated margin* true if cancelling all stop orders
+ * @param {string} [params.marginMode] 'cross' or 'isolated'
+ * @param {string} [params.orderIds] *stop orders only* Comma separated order IDs
+ * @param {bool} [params.hf] false, // true for hf order
  * @returns Response from the exchange
  */
     pub async fn cancel_all_spot_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[Value::Bool(false)]);
@@ -5727,12 +5915,12 @@ impl KucoinCore {
         if !is_equal(&symbol, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.market_id(symbol.clone()));
         }  else if !is_true(&trigger) && is_true(&isMarginOrders) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelAllOrders() requires a symbol argument for margin non-trigger orders".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelAllOrders() requires a symbol argument for margin non-trigger orders".to_string()))));
         }
         if is_true(&isMarginOrders) {
             add_element_to_object(&mut request, &Value::Str("tradeType".to_string()), get_value(&get_value(&self.options, &Value::Str("marginModes".to_string())), &marginMode));
             if is_equal(&marginMode, &Value::Str("isolated".to_string())) && is_true(&trigger) {
-                panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" cancelAllOrders does not support isolated margin for stop orders".to_string()))));
+                panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" cancelAllOrders does not support isolated margin for stop orders".to_string()))));
             }
         }
         let mut response: Value = Value::Null;
@@ -5754,32 +5942,34 @@ impl KucoinCore {
             response = self.call_method(Value::Str("private_delete_orders".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
         }
         return Value::List(vec![self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
     m
 }), &[])]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#cancelAllContractOrders
  * @description helper method for cancelling all contract orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/cancel-all-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {object} [get_value(&params, &Value::Str("trigger".to_string()))] When true, all the trigger orders will be cancelled
+ * @param {object} [params.trigger] When true, all the trigger orders will be cancelled
  * @returns Response from the exchange
  */
     pub async fn cancel_all_contract_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if !is_equal(&symbol, &Value::Null) {
@@ -5803,33 +5993,35 @@ impl KucoinCore {
         //       },
         //   }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
         return Value::List(vec![self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
     m
 }), &[])]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#cancelAllUtaOrders
  * @description helper method for cancelling all uta orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/batch-cancel-order-by-symbol
+ * @see https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {bool} [get_value(&params, &Value::Str("trigger".to_string()))] true if cancelling all stop orders
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'CROSS' or 'ISOLATED'
+ * @param {bool} [params.trigger] true if cancelling all stop orders
+ * @param {string} [params.marginMode] 'CROSS' or 'ISOLATED'
  * @returns Response from the exchange
  */
     pub async fn cancel_all_uta_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelAllOrders() requires a symbol argument for uta endpoint".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelAllOrders() requires a symbol argument for uta endpoint".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
@@ -5839,7 +6031,7 @@ impl KucoinCore {
         { let __destr_tmp = self.handle_param_bool(params.clone(), Value::Str("trigger".to_string()), &[trigger.clone()]); trigger = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut orderFilter: Value = ternary(is_true(&trigger), Value::Str("ADVANCED".to_string()), Value::Str("NORMAL".to_string()));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("accountMode".to_string(), Value::Str("unified".to_string()));
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("tradeType".to_string(), tradeType.clone());
@@ -5861,47 +6053,49 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut orders: Value = self.safe_list(data.clone(), Value::Str("items".to_string()), &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), Value::Null, Value::Null, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("canceled".to_string()));
     m
 })]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchOrdersByStatus
  * @description fetches a list of orders placed on the exchange
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/get-open-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/get-closed-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/get-stop-orders-list
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-open-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-closed-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-stop-order-list
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/get-order-list
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/get-stop-order-list
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-open-order-list
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-order-history
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-order-history
  * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
  * @param {string} symbol unified symbol for the market to retrieve orders from
  * @param {int} [since] timestamp in ms of the earliest order to retrieve
  * @param {int} [limit] The maximum number of orders to retrieve
  * @param {object} [params] exchange specific parameters
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] true for fetch orders with uta endpoint (default is false)
+ * @param {boolean} [params.uta] true for fetch orders with uta endpoint (default is false)
  * Check fetchSpotOrdersByStatus(), fetchContractOrdersByStatus() and fetchUtaOrdersByStatus() for more details on the extra parameters that can be used in params
- * @returns An [array of order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_orders_by_status(&mut self, mut status: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5909,14 +6103,14 @@ impl KucoinCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrdersByStatus".to_string()), Value::Str("uta".to_string()), &[uta.clone()]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut marketType: Value = Value::Null;
         if is_equal(&symbol, &Value::Null) {
-            let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[]); // exchange has specific param for order type
+            let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[]); // exchange has specific param for order type
             // todo check for better way to determine market type without symbol
             if is_equal(&type_var, &Value::Str("spot".to_string())) || is_equal(&type_var, &Value::Str("margin".to_string())) || is_equal(&type_var, &Value::Str("swap".to_string())) || is_equal(&type_var, &Value::Str("future".to_string())) || is_equal(&type_var, &Value::Str("contract".to_string())) {
                 marketType = type_var.clone();
                 params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
             }  else {
-                let mut methodOptions: Value = self.safe_dict(self.options.clone(), Value::Str("fetchOrdersByStatus".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+                let mut methodOptions: Value = self.safe_dict_k(self.options.clone(), "fetchOrdersByStatus", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
                 let mut methodDefaultType: Value = self.safe_string2(methodOptions.clone(), Value::Str("defaultType".to_string()), Value::Str("type".to_string()), &[]);
@@ -5933,7 +6127,7 @@ impl KucoinCore {
         if is_true(&uta) {
             params = self.omit(params.clone(), Value::Str("uta".to_string()), &[]);
             params = self.extend(params.clone(), &[Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("marketType".to_string(), marketType.clone());
                 m
             })]);
@@ -5943,50 +6137,52 @@ impl KucoinCore {
         }  else {
             return self.fetch_contract_orders_by_status(status.clone(), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchSpotOrdersByStatus
  * @description fetch a list of spot orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/get-open-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/get-closed-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/get-stop-orders-list
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-open-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-closed-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-stop-order-list
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
  * @param {string} status *not used for stop orders* 'open' or 'closed'
  * @param {string} symbol unified market symbol
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] max number of orders to return
  * @param {object} [params] exchange specific params
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] end time in ms
- * @param {string} [get_value(&params, &Value::Str("side".to_string()))] buy or sell
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] limit, market, limit_stop or market_stop
- * @param {string} [get_value(&params, &Value::Str("tradeType".to_string()))] TRADE for spot trading, MARGIN_TRADE or MARGIN_ISOLATED_TRADE for Margin Trading
- * @param {int} [get_value(&params, &Value::Str("currentPage".to_string()))] *trigger orders only* current page
- * @param {string} [get_value(&params, &Value::Str("orderIds".to_string()))] *trigger orders only* comma separated order ID list
- * @param {bool} [get_value(&params, &Value::Str("trigger".to_string()))] True if fetching a trigger order
- * @param {bool} [get_value(&params, &Value::Str("hf".to_string()))] false, // true for hf order
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', only for margin orders
- * @returns An [array of order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {int} [params.until] end time in ms
+ * @param {string} [params.side] buy or sell
+ * @param {string} [params.type] limit, market, limit_stop or market_stop
+ * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE or MARGIN_ISOLATED_TRADE for Margin Trading
+ * @param {int} [params.currentPage] *trigger orders only* current page
+ * @param {string} [params.orderIds] *trigger orders only* comma separated order ID list
+ * @param {bool} [params.trigger] True if fetching a trigger order
+ * @param {bool} [params.hf] false, // true for hf order
+ * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin orders
+ * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_spot_orders_by_status(&mut self, mut status: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut lowercaseStatus: Value = to_lower(&status);
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[Value::Bool(false)]);
         let mut hf: Value = Value::Null;
         { let __destr_tmp = self.handle_hf_and_params(&[params.clone()]); hf = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&hf) && is_true(&(is_equal(&symbol, &Value::Null))) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrdersByStatus() requires a symbol parameter for hf orders".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrdersByStatus() requires a symbol parameter for hf orders".to_string()))));
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("till".to_string()), Value::Str("until".to_string())]), &[]);
         let mut marginModequeryVariable = self.handle_margin_mode_and_params(Value::Str("fetchOrdersByStatus".to_string()), &[params.clone()]);
@@ -5999,7 +6195,7 @@ impl KucoinCore {
             lowercaseStatus = Value::Str("done".to_string());
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
@@ -6043,42 +6239,44 @@ impl KucoinCore {
                 response = self.call_method(Value::Str("private_get_orders".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
             }
         }
-        let mut listData: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut listData: Value = self.safe_list_k(response.clone(), "data", &[]);
         if !is_equal(&listData, &Value::Null) {
             return self.parse_orders(listData.clone(), &[market.clone(), since.clone(), limit.clone()]);
         }
-        let mut responseData: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut responseData: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut orders: Value = self.safe_list(responseData.clone(), Value::Str("items".to_string()), &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(responseData.clone(), "items", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchContractOrdersByStatus
  * @description fetches a list of contract orders placed on the exchange
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/get-order-list
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/get-stop-order-list
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
  * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
  * @param {string} symbol unified symbol for the market to retrieve orders from
  * @param {int} [since] timestamp in ms of the earliest order to retrieve
  * @param {int} [limit] The maximum number of orders to retrieve
  * @param {object} [params] exchange specific parameters
- * @param {bool} [get_value(&params, &Value::Str("trigger".to_string()))] set to true to retrieve untriggered stop orders
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] End time in ms
- * @param {string} [get_value(&params, &Value::Str("side".to_string()))] buy or sell
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] limit or market
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns An [array of order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {bool} [params.trigger] set to true to retrieve untriggered stop orders
+ * @param {int} [params.until] End time in ms
+ * @param {string} [params.side] buy or sell
+ * @param {string} [params.type] limit or market
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_contract_orders_by_status(&mut self, mut status: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6088,7 +6286,7 @@ impl KucoinCore {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchOrdersByStatus".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("until".to_string()), Value::Str("trigger".to_string())]), &[]);
         if is_equal(&status, &Value::Str("closed".to_string())) {
             status = Value::Str("done".to_string());
@@ -6096,13 +6294,13 @@ impl KucoinCore {
             status = Value::Str("active".to_string());
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if !is_true(&trigger) {
             add_element_to_object(&mut request, &Value::Str("status".to_string()), status.clone());
         }  else if !is_equal(&status, &Value::Str("active".to_string())) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOrdersByStatus() can only fetch untriggered stop orders".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOrdersByStatus() can only fetch untriggered stop orders".to_string()))));
         }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
@@ -6172,38 +6370,40 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut responseData: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut responseData: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut orders: Value = self.safe_list(responseData.clone(), Value::Str("items".to_string()), &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(responseData.clone(), "items", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchUtaOrdersByStatus
  * @description helper method for fetching orders by status with uta endpoint
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-open-order-list
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-order-history
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-order-history
  * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
  * @param {string} symbol unified symbol for the market to retrieve orders from
  * @param {int} [since] timestamp in ms of the earliest order to retrieve
  * @param {int} [limit] The maximum number of orders to retrieve
  * @param {object} [params] exchange specific parameters
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] End time in ms
- * @param {string} [get_value(&params, &Value::Str("side".to_string()))] *closed orders only* 'BUY' or 'SELL'
- * @param {string} [get_value(&params, &Value::Str("accountMode".to_string()))] 'unified' or 'classic' (default is unified)
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', only for margin orders (unified accountMode supports only cross margin)
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns An [array of order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {int} [params.until] End time in ms
+ * @param {string} [params.side] *closed orders only* 'BUY' or 'SELL'
+ * @param {string} [params.accountMode] 'unified' or 'classic' (default is unified)
+ * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin orders (unified accountMode supports only cross margin)
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_uta_orders_by_status(&mut self, mut status: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6216,7 +6416,7 @@ impl KucoinCore {
         let mut accountMode: Value = Value::Str("unified".to_string());
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchUtaOrdersByStatus".to_string()), Value::Str("accountMode".to_string()), &[accountMode.clone()]); accountMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("accountMode".to_string(), accountMode.clone());
             m
         });
@@ -6227,12 +6427,12 @@ impl KucoinCore {
             marketType = get_value(&market, &Value::Str("type".to_string()));
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
         }  else {
-            marketType = self.safe_string(params.clone(), Value::Str("marketType".to_string()), &[]);
+            marketType = self.safe_string_k(params.clone(), "marketType", &[]);
         }
         params = self.omit(params.clone(), Value::Str("marketType".to_string()), &[]);
         let mut isContract: Value = Value::Bool(is_true(&(!is_equal(&marketType, &Value::Str("spot".to_string())))) && is_true(&(!is_equal(&marketType, &Value::Str("margin".to_string())))));
         if !is_true(&isContract) && is_true(&(is_equal(&symbol, &Value::Null))) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrdersByStatus() requires a symbol argument for spot and margin markets when using uta endpoint".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrdersByStatus() requires a symbol argument for spot and margin markets when using uta endpoint".to_string()))));
         }
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchOrdersByStatus".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -6306,44 +6506,46 @@ impl KucoinCore {
         }  else {
             response = self.call_method(Value::Str("uta_private_get_account_mode_order_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut orders: Value = self.safe_list(data.clone(), Value::Str("items".to_string()), &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/get-closed-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/get-stop-orders-list
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/get-order-list
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/get-stop-order-list
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-open-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-closed-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-order-history
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-order-history
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] end time in ms
- * @param {string} [get_value(&params, &Value::Str("side".to_string()))] buy or sell
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] limit, market, limit_stop or market_stop
- * @param {string} [get_value(&params, &Value::Str("tradeType".to_string()))] TRADE for spot trading, MARGIN_TRADE for Margin Trading
- * @param {bool} [get_value(&params, &Value::Str("trigger".to_string()))] True if fetching a trigger order
- * @param {bool} [get_value(&params, &Value::Str("hf".to_string()))] false, // true for hf order
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {int} [params.until] end time in ms
+ * @param {string} [params.side] buy or sell
+ * @param {string} [params.type] limit, market, limit_stop or market_stop
+ * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
+ * @param {bool} [params.trigger] True if fetching a trigger order
+ * @param {bool} [params.hf] false, // true for hf order
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_closed_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6353,41 +6555,43 @@ impl KucoinCore {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchClosedOrders".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
         return self.fetch_orders_by_status(Value::Str("done".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/get-open-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/get-stop-orders-list
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/get-order-list
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/get-stop-order-list
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-open-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-closed-orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-stop-order-list
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-open-order-list
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-open-order-list
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] end time in ms
- * @param {bool} [get_value(&params, &Value::Str("trigger".to_string()))] true if fetching trigger orders
- * @param {string} [get_value(&params, &Value::Str("side".to_string()))] buy or sell
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] limit, market, limit_stop or market_stop
- * @param {string} [get_value(&params, &Value::Str("tradeType".to_string()))] TRADE for spot trading, MARGIN_TRADE for Margin Trading
- * @param {int} [get_value(&params, &Value::Str("currentPage".to_string()))] *trigger orders only* current page
- * @param {string} [get_value(&params, &Value::Str("orderIds".to_string()))] *trigger orders only* comma separated order ID list
- * @param {bool} [get_value(&params, &Value::Str("hf".to_string()))] false, // true for hf order
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {int} [params.until] end time in ms
+ * @param {bool} [params.trigger] true if fetching trigger orders
+ * @param {string} [params.side] buy or sell
+ * @param {string} [params.type] limit, market, limit_stop or market_stop
+ * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
+ * @param {int} [params.currentPage] *trigger orders only* current page
+ * @param {string} [params.orderIds] *trigger orders only* comma separated order ID list
+ * @param {bool} [params.hf] false, // true for hf order
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_open_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6397,35 +6601,37 @@ impl KucoinCore {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchOpenOrders".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
         return self.fetch_orders_by_status(Value::Str("active".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/get-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/get-order-by-clientoid
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/get-stop-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/get-stop-order-by-clientoid
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-order-by-clientoid
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-stop-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/get-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/get-stop-order-by-clientoid
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-order-details
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/get-stop-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/get-stop-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-order-details
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
- * @param {bool} [get_value(&params, &Value::Str("uta".to_string()))] true if fetching an order with uta endpoint (default is false)
+ * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+ * @param {bool} [params.uta] true if fetching an order with uta endpoint (default is false)
  * Check fetchSpotOrder(), fetchContractOrder() and fetchUtaOrder() for more details on the extra parameters that can be used in params
- * @returns {object} An [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6447,38 +6653,40 @@ impl KucoinCore {
         }  else {
             return self.fetch_contract_order(id.clone(), &[symbol.clone(), params.clone()]).await;
         }
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchSpotOrder
  * @description fetch a spot order
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/get-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/get-order-by-clientoid
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/get-stop-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/get-stop-order-by-clientoid
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-order-by-clientoid
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-stop-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/get-stop-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid
  * @param {string} id Order id
  * @param {string} symbol not sent to exchange except for trigger orders with clientOid, but used internally by CCXT to filter
  * @param {object} [params] exchange specific parameters
- * @param {bool} [get_value(&params, &Value::Str("trigger".to_string()))] true if fetching a trigger order
- * @param {bool} [get_value(&params, &Value::Str("hf".to_string()))] false, // true for hf order
- * @param {bool} [get_value(&params, &Value::Str("clientOid".to_string()))] unique order id created by users to identify their orders
- * @param {object} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated'
- * @returns An [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {bool} [params.trigger] true if fetching a trigger order
+ * @param {bool} [params.hf] false, // true for hf order
+ * @param {bool} [params.clientOid] unique order id created by users to identify their orders
+ * @param {object} [params.marginMode] 'cross' or 'isolated'
+ * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_spot_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOid".to_string()), Value::Str("clientOrderId".to_string()), &[]);
@@ -6495,7 +6703,7 @@ impl KucoinCore {
         if is_true(&hf) || is_true(&isMarginOrder) {
             if !is_true(&trigger) {
                 if is_equal(&symbol, &Value::Null) {
-                    panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires a symbol parameter for hf and margin orders".to_string()))));
+                    panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires a symbol parameter for hf and margin orders".to_string()))));
                 }
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             }
@@ -6523,9 +6731,9 @@ impl KucoinCore {
         }  else {
             // a special case for undefined ids
             // otherwise a wrong endpoint for all orders will be triggered
-            // https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/issues/7234
+            // https://github.com/ccxt/ccxt/issues/7234
             if is_equal(&id, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" fetchOrder() requires an order id".to_string()))));
+                panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" fetchOrder() requires an order id".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
             if is_true(&trigger) {
@@ -6542,36 +6750,38 @@ impl KucoinCore {
                 response = self.call_method(Value::Str("private_get_orders_order_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             }
         }
-        let mut responseData: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut responseData: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         if is_true(&Value::Bool(is_array(&responseData))) {
             responseData = self.safe_value(responseData.clone(), Value::Int(0), &[]);
         }
         return self.parse_order(responseData.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchContractOrder
  * @description fetc contract order
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/get-order-by-orderld
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/get-stop-order-by-clientoid
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-by-orderld
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/get-stop-order-by-clientoid
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_contract_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Value = Value::Null;
@@ -6582,7 +6792,7 @@ impl KucoinCore {
             response = self.call_method(Value::Str("futures_private_get_orders_by_client_oid".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
             if is_equal(&id, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires an order id argument or clientOrderId in params".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires an order id argument or clientOrderId in params".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
             response = self.call_method(Value::Str("futures_private_get_orders_order_id".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
@@ -6631,34 +6841,36 @@ impl KucoinCore {
         //     }
         //
         let mut market: Value = ternary(is_true(&(!is_equal(&symbol, &Value::Null))), self.market(symbol.clone()), Value::Null);
-        let mut responseData: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut responseData: Value = self.safe_dict_k(response.clone(), "data", &[]);
         return self.parse_order(responseData.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchUtaOrder
  * @description fetch uta order
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-order-details
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-order-details
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("accountMode".to_string()))] 'unified' or 'classic' (default is 'unified')
- * @param {string} [get_value(&params, &Value::Str("clientOrderId".to_string()))] client order id, required if id is not provided
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin)
- * @returns {object} An [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.accountMode] 'unified' or 'classic' (default is 'unified')
+ * @param {string} [params.clientOrderId] client order id, required if id is not provided
+ * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin)
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_uta_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires a symbol argument for uta orders".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires a symbol argument for uta orders".to_string()))));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOid".to_string()), Value::Str("clientOrderId".to_string()), &[]);
@@ -6667,7 +6879,7 @@ impl KucoinCore {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOid".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         }  else {
             if is_equal(&id, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires an id argument or clientOrderId parameter".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires an id argument or clientOrderId parameter".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
         }
@@ -6724,11 +6936,13 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_order(data.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn handle_trade_type(&self, optional_args: &[Value]) -> Value {
@@ -6736,10 +6950,10 @@ impl KucoinCore {
         let mut marginMode = get_arg(optional_args, 1, Value::Null);
         let mut isUnified = get_arg(optional_args, 2, Value::Bool(false));
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut tradeType: Value = self.safe_string(params.clone(), Value::Str("tradeType".to_string()), &[]);
+        let mut tradeType: Value = self.safe_string_k(params.clone(), "tradeType", &[]);
         if is_equal(&tradeType, &Value::Null) {
             if is_true(&isContractMarket) {
                 tradeType = Value::Str("FUTURES".to_string());
@@ -6747,7 +6961,7 @@ impl KucoinCore {
                 tradeType = to_upper(&marginMode);
                 if is_true(&isUnified) {
                     if is_equal(&tradeType, &Value::Str("ISOLATED".to_string())) {
-                        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" spot isolated margin is not supported for unified accountMode".to_string()))));
+                        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" spot isolated margin is not supported for unified accountMode".to_string()))));
                     }  else {
                         tradeType = Value::Str("MARGIN".to_string());
                     }
@@ -6757,11 +6971,13 @@ impl KucoinCore {
             }
         }
         return tradeType;
+
+    Value::Null
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut tradeType: Value = self.safe_string(order.clone(), Value::Str("tradeType".to_string()), &[]);
+        let mut tradeType: Value = self.safe_string_k(order.clone(), "tradeType", &[]);
         let mut utaTradeTypes: Value = Value::List(vec![Value::Str("SPOT".to_string()), Value::Str("CROSS".to_string()), Value::Str("ISOLATED".to_string()), Value::Str("FUTURES".to_string())]); // tradeType specific for uta endpoint
         let mut isUtaOrder: Value = self.in_array(tradeType.clone(), utaTradeTypes.clone());
         if is_true(&Value::Bool(in_op(&order, &Value::Str("sizeUnit".to_string())))) {
@@ -6770,13 +6986,15 @@ impl KucoinCore {
         if is_true(&isUtaOrder) {
             return self.parse_uta_order(order.clone(), &[market.clone()]);
         }
-        let mut marketId: Value = self.safe_string(order.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         if is_true(&(!is_equal(&market, &Value::Null))) && is_true(&(get_value(&market, &Value::Str("contract".to_string())))) {
             return self.parse_contract_order(order.clone(), &[market.clone()]);
         }  else {
             return self.parse_spot_order(order.clone(), &[market.clone()]);
         }
+
+    Value::Null
 }
 
     pub fn parse_contract_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -6839,37 +7057,37 @@ impl KucoinCore {
         //         "msg": "success"
         //     }
         //
-        let mut marketId: Value = self.safe_string(order.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut orderId: Value = self.safe_string2(order.clone(), Value::Str("id".to_string()), Value::Str("orderId".to_string()), &[]);
-        let mut type_var: Value = self.safe_string(order.clone(), Value::Str("type".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer(order.clone(), Value::Str("createdAt".to_string()), &[]);
+        let mut type_var: Value = self.safe_string_k(order.clone(), "type", &[]);
+        let mut timestamp: Value = self.safe_integer_k(order.clone(), "createdAt", &[]);
         let mut datetime: Value = self.iso8601(timestamp.clone());
-        let mut price: Value = self.safe_string(order.clone(), Value::Str("price".to_string()), &[]);
+        let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
         // price is zero for market order
         // omitZero is called in safeOrder2
-        let mut side: Value = self.safe_string(order.clone(), Value::Str("side".to_string()), &[]);
-        let mut feeCurrencyId: Value = self.safe_string(order.clone(), Value::Str("feeCurrency".to_string()), &[]);
+        let mut side: Value = self.safe_string_k(order.clone(), "side", &[]);
+        let mut feeCurrencyId: Value = self.safe_string_k(order.clone(), "feeCurrency", &[]);
         let mut feeCurrency: Value = self.safe_currency_code(feeCurrencyId.clone(), &[]);
-        let mut feeCost: Value = self.safe_number(order.clone(), Value::Str("fee".to_string()), &[]);
-        let mut amount: Value = self.safe_string(order.clone(), Value::Str("size".to_string()), &[]);
-        let mut filled: Value = self.safe_string(order.clone(), Value::Str("filledSize".to_string()), &[]);
-        let mut cost: Value = self.safe_string(order.clone(), Value::Str("filledValue".to_string()), &[]);
-        let mut average: Value = self.safe_string(order.clone(), Value::Str("avgDealPrice".to_string()), &[]);
+        let mut feeCost: Value = self.safe_number_k(order.clone(), "fee", &[]);
+        let mut amount: Value = self.safe_string_k(order.clone(), "size", &[]);
+        let mut filled: Value = self.safe_string_k(order.clone(), "filledSize", &[]);
+        let mut cost: Value = self.safe_string_k(order.clone(), "filledValue", &[]);
+        let mut average: Value = self.safe_string_k(order.clone(), "avgDealPrice", &[]);
         if is_true(&(is_equal(&average, &Value::Null))) && is_true(&crate::precise::Precise::stringGt(&filled, &Value::Str("0".to_string()))) {
-            let mut contractSize: Value = self.safe_string(market.clone(), Value::Str("contractSize".to_string()), &[]);
+            let mut contractSize: Value = self.safe_string_k(market.clone(), "contractSize", &[]);
             if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
                 average = crate::precise::Precise::stringDiv(&cost, &crate::precise::Precise::stringMul(&contractSize, &filled));
             }  else {
                 average = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&contractSize, &filled), &cost);
             }
         }
-        // precision reported by their api is 8 get_value(&d, &Value::Str("p".to_string())).
+        // precision reported by their api is 8 d.p.
         // const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         // bool
-        let mut isActive: Value = self.safe_value(order.clone(), Value::Str("isActive".to_string()), &[]);
-        let mut cancelExist: Value = self.safe_bool(order.clone(), Value::Str("cancelExist".to_string()), &[Value::Bool(false)]);
+        let mut isActive: Value = self.safe_value_k(order.clone(), "isActive", &[]);
+        let mut cancelExist: Value = self.safe_bool_k(order.clone(), "cancelExist", &[Value::Bool(false)]);
         let mut status: Value = Value::Null;
         if !is_equal(&isActive, &Value::Null) {
             status = ternary(is_true(&isActive), Value::Str("open".to_string()), Value::Str("closed".to_string()));
@@ -6878,19 +7096,19 @@ impl KucoinCore {
         let mut fee: Value = Value::Null;
         if !is_equal(&feeCost, &Value::Null) {
             fee = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), feeCurrency.clone());
                     m.insert("cost".to_string(), feeCost.clone());
                 m
             });
         }
-        let mut clientOrderId: Value = self.safe_string(order.clone(), Value::Str("clientOid".to_string()), &[]);
-        let mut timeInForce: Value = self.safe_string(order.clone(), Value::Str("timeInForce".to_string()), &[]);
-        let mut postOnly: Value = self.safe_value(order.clone(), Value::Str("postOnly".to_string()), &[]);
-        let mut reduceOnly: Value = self.safe_value(order.clone(), Value::Str("reduceOnly".to_string()), &[]);
-        let mut lastUpdateTimestamp: Value = self.safe_integer(order.clone(), Value::Str("updatedAt".to_string()), &[]);
+        let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clientOid", &[]);
+        let mut timeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
+        let mut postOnly: Value = self.safe_value_k(order.clone(), "postOnly", &[]);
+        let mut reduceOnly: Value = self.safe_value_k(order.clone(), "reduceOnly", &[]);
+        let mut lastUpdateTimestamp: Value = self.safe_integer_k(order.clone(), "updatedAt", &[]);
         return self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.clone());
         m.insert("clientOrderId".to_string(), clientOrderId.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -6901,7 +7119,7 @@ impl KucoinCore {
         m.insert("side".to_string(), side.clone());
         m.insert("amount".to_string(), amount.clone());
         m.insert("price".to_string(), price.clone());
-        m.insert("triggerPrice".to_string(), self.safe_number(order.clone(), Value::Str("stopPrice".to_string()), &[]));
+        m.insert("triggerPrice".to_string(), self.safe_number_k(order.clone(), "stopPrice", &[]));
         m.insert("cost".to_string(), cost.clone());
         m.insert("filled".to_string(), filled.clone());
         m.insert("remaining".to_string(), Value::Null);
@@ -6916,6 +7134,8 @@ impl KucoinCore {
         m.insert("trades".to_string(), Value::Null);
     m
 }), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_spot_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -7041,15 +7261,15 @@ impl KucoinCore {
         //        "active":true
         //    }
         //
-        let mut marketId: Value = self.safe_string(order.clone(), Value::Str("symbol".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer(order.clone(), Value::Str("createdAt".to_string()), &[]);
-        let mut feeCurrencyId: Value = self.safe_string(order.clone(), Value::Str("feeCurrency".to_string()), &[]);
-        let mut cancelExist: Value = self.safe_bool(order.clone(), Value::Str("cancelExist".to_string()), &[Value::Bool(false)]);
-        let mut responseStop: Value = self.safe_string(order.clone(), Value::Str("stop".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
+        let mut timestamp: Value = self.safe_integer_k(order.clone(), "createdAt", &[]);
+        let mut feeCurrencyId: Value = self.safe_string_k(order.clone(), "feeCurrency", &[]);
+        let mut cancelExist: Value = self.safe_bool_k(order.clone(), "cancelExist", &[Value::Bool(false)]);
+        let mut responseStop: Value = self.safe_string_k(order.clone(), "stop", &[]);
         let mut trigger: Value = Value::Bool(!is_equal(&responseStop, &Value::Null));
-        let mut stopTriggered: Value = self.safe_bool(order.clone(), Value::Str("stopTriggered".to_string()), &[Value::Bool(false)]);
+        let mut stopTriggered: Value = self.safe_bool_k(order.clone(), "stopTriggered", &[Value::Bool(false)]);
         let mut isActive: Value = self.safe_bool2(order.clone(), Value::Str("isActive".to_string()), Value::Str("active".to_string()), &[]);
-        let mut responseStatus: Value = self.safe_string(order.clone(), Value::Str("status".to_string()), &[]);
+        let mut responseStatus: Value = self.safe_string_k(order.clone(), "status", &[]);
         let mut status: Value = Value::Null;
         if !is_equal(&isActive, &Value::Null) {
             if is_equal(&isActive, &Value::Bool(true)) {
@@ -7072,35 +7292,37 @@ impl KucoinCore {
             status = Value::Str("rejected".to_string());
         }
         return self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_n(order.clone(), Value::List(vec![Value::Str("id".to_string()), Value::Str("orderId".to_string()), Value::Str("newOrderId".to_string()), Value::Str("cancelledOrderId".to_string())]), &[]));
-        m.insert("clientOrderId".to_string(), self.safe_string(order.clone(), Value::Str("clientOid".to_string()), &[]));
+        m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "clientOid", &[]));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("-".to_string())]));
-        m.insert("type".to_string(), self.safe_string(order.clone(), Value::Str("type".to_string()), &[]));
-        m.insert("timeInForce".to_string(), self.safe_string(order.clone(), Value::Str("timeInForce".to_string()), &[]));
-        m.insert("postOnly".to_string(), self.safe_bool(order.clone(), Value::Str("postOnly".to_string()), &[]));
-        m.insert("side".to_string(), self.safe_string(order.clone(), Value::Str("side".to_string()), &[]));
-        m.insert("amount".to_string(), self.safe_string(order.clone(), Value::Str("size".to_string()), &[]));
-        m.insert("price".to_string(), self.safe_string(order.clone(), Value::Str("price".to_string()), &[]));
-        m.insert("triggerPrice".to_string(), self.safe_number(order.clone(), Value::Str("stopPrice".to_string()), &[]));
-        m.insert("cost".to_string(), self.safe_string(order.clone(), Value::Str("dealFunds".to_string()), &[]));
-        m.insert("filled".to_string(), self.safe_string(order.clone(), Value::Str("dealSize".to_string()), &[]));
+        m.insert("type".to_string(), self.safe_string_k(order.clone(), "type", &[]));
+        m.insert("timeInForce".to_string(), self.safe_string_k(order.clone(), "timeInForce", &[]));
+        m.insert("postOnly".to_string(), self.safe_bool_k(order.clone(), "postOnly", &[]));
+        m.insert("side".to_string(), self.safe_string_k(order.clone(), "side", &[]));
+        m.insert("amount".to_string(), self.safe_string_k(order.clone(), "size", &[]));
+        m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));
+        m.insert("triggerPrice".to_string(), self.safe_number_k(order.clone(), "stopPrice", &[]));
+        m.insert("cost".to_string(), self.safe_string_k(order.clone(), "dealFunds", &[]));
+        m.insert("filled".to_string(), self.safe_string_k(order.clone(), "dealSize", &[]));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("fee".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), self.safe_currency_code(feeCurrencyId.clone(), &[]));
-        m.insert("cost".to_string(), self.safe_number(order.clone(), Value::Str("fee".to_string()), &[]));
+        m.insert("cost".to_string(), self.safe_number_k(order.clone(), "fee", &[]));
     m
 }));
         m.insert("status".to_string(), status.clone());
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("average".to_string(), self.safe_string(order.clone(), Value::Str("avgDealPrice".to_string()), &[]));
+        m.insert("average".to_string(), self.safe_string_k(order.clone(), "avgDealPrice", &[]));
         m.insert("trades".to_string(), Value::Null);
     m
 }), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_uta_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -7152,19 +7374,19 @@ impl KucoinCore {
         //         "status": 2
         //     }
         //
-        let mut marketId: Value = self.safe_string(order.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut timestamp: Value = self.safe_integer_product2(order.clone(), Value::Str("orderTime".to_string()), Value::Str("ts".to_string()), Value::Float(0.000001), &[]);
         let mut lastUpdateTimestamp: Value = self.safe_integer_product(order.clone(), Value::Str("updatedTime".to_string()), Value::Float(0.000001), &[]);
-        let mut rawTimeInForce: Value = self.safe_string(order.clone(), Value::Str("timeInForce".to_string()), &[]);
+        let mut rawTimeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
         let mut amount: Value = Value::Null;
         let mut cost: Value = Value::Null;
-        let mut sizeUnit: Value = self.safe_string(order.clone(), Value::Str("sizeUnit".to_string()), &[]);
-        let mut size: Value = self.safe_string(order.clone(), Value::Str("size".to_string()), &[]);
-        let mut rawStatus: Value = self.safe_string(order.clone(), Value::Str("status".to_string()), &[]);
-        let mut average: Value = self.safe_string(order.clone(), Value::Str("avgPrice".to_string()), &[]);
-        let mut filled: Value = self.safe_string(order.clone(), Value::Str("filledSize".to_string()), &[]); // might be in base or quote, need to check sizeUnit
+        let mut sizeUnit: Value = self.safe_string_k(order.clone(), "sizeUnit", &[]);
+        let mut size: Value = self.safe_string_k(order.clone(), "size", &[]);
+        let mut rawStatus: Value = self.safe_string_k(order.clone(), "status", &[]);
+        let mut average: Value = self.safe_string_k(order.clone(), "avgPrice", &[]);
+        let mut filled: Value = self.safe_string_k(order.clone(), "filledSize", &[]); // might be in base or quote, need to check sizeUnit
         if is_true(&(is_equal(&sizeUnit, &Value::Str("BASECCY".to_string())))) || is_true(&(is_equal(&sizeUnit, &Value::Str("UNIT".to_string())))) {
             amount = size.clone();
         }  else {
@@ -7173,23 +7395,23 @@ impl KucoinCore {
             filled = self.amount_to_precision(symbol.clone(), filled.clone());
         }
         let mut fee: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
-                m.insert("currency".to_string(), self.safe_currency_code(self.safe_string(order.clone(), Value::Str("feeCurrency".to_string()), &[]), &[]));
-                m.insert("cost".to_string(), self.safe_string(order.clone(), Value::Str("fee".to_string()), &[]));
+            let mut m = indexmap::IndexMap::new();
+                m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(order.clone(), "feeCurrency", &[]), &[]));
+                m.insert("cost".to_string(), self.safe_string_k(order.clone(), "fee", &[]));
             m
         });
         return self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("id".to_string(), self.safe_string(order.clone(), Value::Str("orderId".to_string()), &[]));
-        m.insert("clientOrderId".to_string(), self.safe_string(order.clone(), Value::Str("clientOid".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), self.safe_string_k(order.clone(), "orderId", &[]));
+        m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "clientOid", &[]));
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("type".to_string(), self.safe_string_lower(order.clone(), Value::Str("orderType".to_string()), &[]));
         m.insert("timeInForce".to_string(), self.parse_order_time_in_force(rawTimeInForce.clone()));
-        m.insert("postOnly".to_string(), self.safe_bool(order.clone(), Value::Str("postOnly".to_string()), &[]));
-        m.insert("reduceOnly".to_string(), self.safe_bool(order.clone(), Value::Str("reduceOnly".to_string()), &[]));
+        m.insert("postOnly".to_string(), self.safe_bool_k(order.clone(), "postOnly", &[]));
+        m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduceOnly", &[]));
         m.insert("side".to_string(), self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]));
         m.insert("amount".to_string(), amount.clone());
-        m.insert("price".to_string(), self.safe_string(order.clone(), Value::Str("price".to_string()), &[]));
+        m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), self.safe_string2(order.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]));
         m.insert("cost".to_string(), cost.clone());
         m.insert("filled".to_string(), filled.clone());
@@ -7202,16 +7424,18 @@ impl KucoinCore {
         m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp.clone());
         m.insert("average".to_string(), average.clone());
         m.insert("trades".to_string(), Value::Null);
-        m.insert("stopLossPrice".to_string(), self.safe_string(order.clone(), Value::Str("slTriggerPrice".to_string()), &[]));
-        m.insert("takeProfitPrice".to_string(), self.safe_string(order.clone(), Value::Str("tpTriggerPrice".to_string()), &[]));
+        m.insert("stopLossPrice".to_string(), self.safe_string_k(order.clone(), "slTriggerPrice", &[]));
+        m.insert("takeProfitPrice".to_string(), self.safe_string_k(order.clone(), "tpTriggerPrice", &[]));
         m.insert("info".to_string(), order.clone());
     m
 }), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_order_time_in_force(&self, mut timeInForce: Value) -> Value {
         let mut timeInForces: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("GTC".to_string(), Value::Str("GTC".to_string()));
                 m.insert("IOC".to_string(), Value::Str("IOC".to_string()));
                 m.insert("FOK".to_string(), Value::Str("FOK".to_string()));
@@ -7219,11 +7443,13 @@ impl KucoinCore {
             m
         });
         return self.safe_string(timeInForces.clone(), timeInForce.clone(), &[timeInForce.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("0".to_string(), Value::Str("open".to_string()));
                 m.insert("1".to_string(), Value::Str("open".to_string()));
                 m.insert("2".to_string(), Value::Str("open".to_string()));
@@ -7234,63 +7460,67 @@ impl KucoinCore {
             m
         });
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://get_value(&docs, &Value::Str("kucoin".to_string())).com/#list-fills
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/get-trade-history
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-trade-history
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-trade-history
+ * @see https://docs.kucoin.com/#list-fills
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-trade-history
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true if fetching trades from uta endpoint, default is false.
- * @returns {object[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=trade-structure}
+ * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+ * @param {boolean} [params.uta] set to true if fetching trades from uta endpoint, default is false.
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
     pub async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), id.clone());
             m
         });
         return self.fetch_my_trades(&[symbol.clone(), since.clone(), limit.clone(), self.extend(request.clone(), &[params.clone()])]).await;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchMyTrades
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/get-trade-history
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-trade-history
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-trade-history
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-trade-history
  * @description fetch all trades made by the user
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
  * Check fetchMySpotTrades() and fetchMyContractTrades() for more details on the extra parameters that can be used in params
- * @returns {Trade[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
     pub async fn fetch_my_trades(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -7304,7 +7534,7 @@ impl KucoinCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMyTrades".to_string()), Value::Str("uta".to_string()), &[uta.clone()]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             params = self.extend(params.clone(), &[Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("marketType".to_string(), marketType.clone());
                 m
             })]);
@@ -7320,25 +7550,25 @@ impl KucoinCore {
 /*
  * @method
  * @name kucoin#fetchMySpotTrades
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/orders/get-trade-history
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/orders/get-trade-history
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
  * @description fetch all spot trades made by the user
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch entries for
- * @param {bool} [get_value(&params, &Value::Str("hf".to_string()))] false, // true for hf order
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', only for margin trades
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=trade-structure}
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {bool} [params.hf] false, // true for hf order
+ * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin trades
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
     pub async fn fetch_my_spot_trades(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -7348,7 +7578,7 @@ impl KucoinCore {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut hf: Value = Value::Null;
@@ -7361,7 +7591,7 @@ impl KucoinCore {
             add_element_to_object(&mut request, &Value::Str("tradeType".to_string()), self.safe_string(get_value(&self.options, &Value::Str("marginModes".to_string())), marginMode.clone(), &[marginMode.clone()]));
         }
         if is_true(&hf) && is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyTrades() requires a symbol parameter for hf or margin orders".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyTrades() requires a symbol parameter for hf or margin orders".to_string()))));
         }
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
@@ -7400,7 +7630,7 @@ impl KucoinCore {
             parseResponseData = Value::Bool(true);
             response = self.call_method(Value::Str("private_get_limit_fills".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchMyTradesMethod() invalid method".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchMyTradesMethod() invalid method".to_string()))));
         }
         //
         //     {
@@ -7424,7 +7654,7 @@ impl KucoinCore {
         //                 "feeRate":"0",             // fee rate
         //                 "feeCurrency":"USDT",      // charge fee currency
         //                 "stop":"",                 // stop type
-        //                 "type":"limit",            // order type, get_value(&e, &Value::Str("g".to_string())). limit, market, stop_limit.
+        //                 "type":"limit",            // order type, e.g. limit, market, stop_limit.
         //                 "createdAt":1547026472000  // time
         //             },
         //             //------------------------------------------------------
@@ -7442,38 +7672,40 @@ impl KucoinCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut trades: Value = Value::Null;
         if is_true(&parseResponseData) {
             trades = data.clone();
         }  else {
-            trades = self.safe_list(data.clone(), Value::Str("items".to_string()), &[Value::List(vec![])]);
+            trades = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
         }
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchMyContractTrades
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/get-trade-history
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
  * @description fetch all contract trades made by the user
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] End time in ms
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=trade-structure}
+ * @param {int} [params.until] End time in ms
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
     pub async fn fetch_my_contract_trades(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -7483,7 +7715,7 @@ impl KucoinCore {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
@@ -7532,36 +7764,38 @@ impl KucoinCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut trades: Value = self.safe_list(data.clone(), Value::Str("items".to_string()), &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchMyUtaTrades
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-trade-history
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-trade-history
  * @description fetch all trades made by the user
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve (default is 50, max is 200)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch entries for
- * @param {string} [get_value(&params, &Value::Str("accountMode".to_string()))] 'unified' or 'classic', defaults to 'unified'
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', only for margin trades (unified accountMode support only cross margin)
- * @param {string} [get_value(&params, &Value::Str("side".to_string()))] 'BUY' or 'SELL' (both if not provided)
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=trade-structure}
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {string} [params.accountMode] 'unified' or 'classic', defaults to 'unified'
+ * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin trades (unified accountMode support only cross margin)
+ * @param {string} [params.side] 'BUY' or 'SELL' (both if not provided)
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
     pub async fn fetch_my_uta_trades(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -7570,12 +7804,12 @@ impl KucoinCore {
         if is_true(&paginate) {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
-        let mut marketType: Value = self.safe_string(params.clone(), Value::Str("marketType".to_string()), &[]);
+        let mut marketType: Value = self.safe_string_k(params.clone(), "marketType", &[]);
         if !is_equal(&marketType, &Value::Null) {
             params = self.omit(params.clone(), Value::Str("marketType".to_string()), &[]);
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut isContract: Value = Value::Bool(false);
@@ -7585,7 +7819,7 @@ impl KucoinCore {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             isContract = get_value(&market, &Value::Str("contract".to_string()));
         }  else if is_true(&(is_equal(&marketType, &Value::Str("spot".to_string())))) || is_true(&(is_equal(&marketType, &Value::Str("margin".to_string())))) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyTrades() requires a symbol parameter for uta spot or margin trades".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyTrades() requires a symbol parameter for uta spot or margin trades".to_string()))));
         }  else {
             isContract = Value::Bool(true);
         }
@@ -7632,39 +7866,41 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut trades: Value = self.safe_list(data.clone(), Value::Str("items".to_string()), &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/spot-trading/market-data/get-trade-history
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-trades
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/market-data/get-trade-history
+ * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-trade-history
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-trades
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-trade-history
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {Trade[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=public-trades}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
     pub async fn fetch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -7706,11 +7942,11 @@ impl KucoinCore {
             //         }
             //     }
             //
-            let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            trades = self.safe_list(data.clone(), Value::Str("list".to_string()), &[Value::List(vec![])]);
+            trades = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
         }  else if is_true(&(is_equal(&type_var, &Value::Str("spot".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("margin".to_string())))) {
             response = self.call_method(Value::Str("public_get_market_histories".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             //
@@ -7727,7 +7963,7 @@ impl KucoinCore {
             //         ]
             //     }
             //
-            trades = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+            trades = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         }  else {
             response = self.call_method(Value::Str("futures_public_get_trade_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
             //
@@ -7747,9 +7983,11 @@ impl KucoinCore {
             //          ]
             //      }
             //
-            trades = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+            trades = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         }
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -7757,13 +7995,15 @@ impl KucoinCore {
         if is_true(&Value::Bool(in_op(&trade, &Value::Str("liquidityRole".to_string())))) {
             return self.parse_my_uta_trade(trade.clone(), &[market.clone()]);
         }
-        let mut marketId: Value = self.safe_string(trade.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         if is_true(&(is_equal(&market, &Value::Null))) || is_true(&(get_value(&market, &Value::Str("spot".to_string())))) {
             return self.parse_spot_or_uta_trade(trade.clone(), &[market.clone()]);
         }  else {
             return self.parse_contract_trade(trade.clone(), &[market.clone()]);
         }
+
+    Value::Null
 }
 
     pub fn parse_spot_or_uta_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -7813,7 +8053,7 @@ impl KucoinCore {
         //         "createdAt":1547026472000
         //     }
         //
-        // fetchMyTrades v2 alternative format since 2019-05-21 https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/pull/5162
+        // fetchMyTrades v2 alternative format since 2019-05-21 https://github.com/ccxt/ccxt/pull/5162
         //
         //     {
         //         "symbol": "OPEN-BTC",
@@ -7855,16 +8095,16 @@ impl KucoinCore {
         //         "ts": 1762242540829000000
         //     }
         //
-        let mut marketId: Value = self.safe_string(trade.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("-".to_string())]);
         let mut id: Value = self.safe_string2(trade.clone(), Value::Str("tradeId".to_string()), Value::Str("id".to_string()), &[]);
-        let mut orderId: Value = self.safe_string(trade.clone(), Value::Str("orderId".to_string()), &[]);
-        let mut takerOrMaker: Value = self.safe_string(trade.clone(), Value::Str("liquidity".to_string()), &[]);
+        let mut orderId: Value = self.safe_string_k(trade.clone(), "orderId", &[]);
+        let mut takerOrMaker: Value = self.safe_string_k(trade.clone(), "liquidity", &[]);
         let mut timestamp: Value = self.safe_integer2(trade.clone(), Value::Str("time".to_string()), Value::Str("ts".to_string()), &[]);
         if !is_equal(&timestamp, &Value::Null) {
             timestamp = self.parse_to_int(divide(&timestamp, &Value::Int(1000000)));
         }  else {
-            timestamp = self.safe_integer(trade.clone(), Value::Str("createdAt".to_string()), &[]);
+            timestamp = self.safe_integer_k(trade.clone(), "createdAt", &[]);
             // if it's a historical v1 trade, the exchange returns timestamp in seconds
             if is_true(&(Value::Bool(in_op(&trade, &Value::Str("dealValue".to_string()))))) && is_true(&(!is_equal(&timestamp, &Value::Null))) {
                 timestamp = multiply(&timestamp, &Value::Int(1000));
@@ -7872,30 +8112,30 @@ impl KucoinCore {
         }
         let mut priceString: Value = self.safe_string2(trade.clone(), Value::Str("price".to_string()), Value::Str("dealPrice".to_string()), &[]);
         let mut amountString: Value = self.safe_string2(trade.clone(), Value::Str("size".to_string()), Value::Str("amount".to_string()), &[]);
-        let mut side: Value = self.safe_string(trade.clone(), Value::Str("side".to_string()), &[]);
+        let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
         let mut fee: Value = Value::Null;
-        let mut feeCostString: Value = self.safe_string(trade.clone(), Value::Str("fee".to_string()), &[]);
+        let mut feeCostString: Value = self.safe_string_k(trade.clone(), "fee", &[]);
         if !is_equal(&feeCostString, &Value::Null) {
-            let mut feeCurrencyId: Value = self.safe_string(trade.clone(), Value::Str("feeCurrency".to_string()), &[]);
+            let mut feeCurrencyId: Value = self.safe_string_k(trade.clone(), "feeCurrency", &[]);
             let mut feeCurrency: Value = self.safe_currency_code(feeCurrencyId.clone(), &[]);
             if is_equal(&feeCurrency, &Value::Null) {
                 feeCurrency = ternary(is_true(&(is_equal(&side, &Value::Str("sell".to_string())))), get_value(&market, &Value::Str("quote".to_string())), get_value(&market, &Value::Str("base".to_string())));
             }
             fee = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString.clone());
                     m.insert("currency".to_string(), feeCurrency.clone());
-                    m.insert("rate".to_string(), self.safe_string(trade.clone(), Value::Str("feeRate".to_string()), &[]));
+                    m.insert("rate".to_string(), self.safe_string_k(trade.clone(), "feeRate", &[]));
                 m
             });
         }
-        let mut type_var: Value = self.safe_string(trade.clone(), Value::Str("type".to_string()), &[]);
+        let mut type_var: Value = self.safe_string_k(trade.clone(), "type", &[]);
         if is_equal(&type_var, &Value::Str("match".to_string())) {
             type_var = Value::Null;
         }
         let mut costString: Value = self.safe_string2(trade.clone(), Value::Str("funds".to_string()), Value::Str("dealValue".to_string()), &[]);
         return self.safe_trade(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), id.clone());
         m.insert("order".to_string(), orderId.clone());
@@ -7911,6 +8151,8 @@ impl KucoinCore {
         m.insert("fee".to_string(), fee.clone());
     m
 }), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_contract_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -7990,16 +8232,16 @@ impl KucoinCore {
         //        "ts": 1668143578987357700
         //    }
         //
-        let mut marketId: Value = self.safe_string(trade.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("-".to_string())]);
         let mut id: Value = self.safe_string2(trade.clone(), Value::Str("tradeId".to_string()), Value::Str("id".to_string()), &[]);
-        let mut orderId: Value = self.safe_string(trade.clone(), Value::Str("orderId".to_string()), &[]);
-        let mut takerOrMaker: Value = self.safe_string(trade.clone(), Value::Str("liquidity".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer(trade.clone(), Value::Str("ts".to_string()), &[]);
+        let mut orderId: Value = self.safe_string_k(trade.clone(), "orderId", &[]);
+        let mut takerOrMaker: Value = self.safe_string_k(trade.clone(), "liquidity", &[]);
+        let mut timestamp: Value = self.safe_integer_k(trade.clone(), "ts", &[]);
         if !is_equal(&timestamp, &Value::Null) {
             timestamp = self.parse_to_int(divide(&timestamp, &Value::Int(1000000)));
         }  else {
-            timestamp = self.safe_integer(trade.clone(), Value::Str("createdAt".to_string()), &[]);
+            timestamp = self.safe_integer_k(trade.clone(), "createdAt", &[]);
             // if it's a historical v1 trade, the exchange returns timestamp in seconds
             if is_true(&(Value::Bool(in_op(&trade, &Value::Str("dealValue".to_string()))))) && is_true(&(!is_equal(&timestamp, &Value::Null))) {
                 timestamp = multiply(&timestamp, &Value::Int(1000));
@@ -8007,20 +8249,20 @@ impl KucoinCore {
         }
         let mut priceString: Value = self.safe_string2(trade.clone(), Value::Str("price".to_string()), Value::Str("dealPrice".to_string()), &[]);
         let mut amountString: Value = self.safe_string2(trade.clone(), Value::Str("size".to_string()), Value::Str("amount".to_string()), &[]);
-        let mut side: Value = self.safe_string(trade.clone(), Value::Str("side".to_string()), &[]);
+        let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
         let mut fee: Value = Value::Null;
-        let mut feeCostString: Value = self.safe_string(trade.clone(), Value::Str("fee".to_string()), &[]);
+        let mut feeCostString: Value = self.safe_string_k(trade.clone(), "fee", &[]);
         if !is_equal(&feeCostString, &Value::Null) {
-            let mut feeCurrencyId: Value = self.safe_string(trade.clone(), Value::Str("feeCurrency".to_string()), &[]);
+            let mut feeCurrencyId: Value = self.safe_string_k(trade.clone(), "feeCurrency", &[]);
             let mut feeCurrency: Value = self.safe_currency_code(feeCurrencyId.clone(), &[]);
             if is_equal(&feeCurrency, &Value::Null) {
                 feeCurrency = ternary(is_true(&(is_equal(&side, &Value::Str("sell".to_string())))), get_value(&market, &Value::Str("quote".to_string())), get_value(&market, &Value::Str("base".to_string())));
             }
             fee = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString.clone());
                     m.insert("currency".to_string(), feeCurrency.clone());
-                    m.insert("rate".to_string(), self.safe_string(trade.clone(), Value::Str("feeRate".to_string()), &[]));
+                    m.insert("rate".to_string(), self.safe_string_k(trade.clone(), "feeRate", &[]));
                 m
             });
         }
@@ -8030,12 +8272,12 @@ impl KucoinCore {
         }
         let mut costString: Value = self.safe_string2(trade.clone(), Value::Str("funds".to_string()), Value::Str("value".to_string()), &[]);
         if is_equal(&costString, &Value::Null) {
-            let mut contractSize: Value = self.safe_string(market.clone(), Value::Str("contractSize".to_string()), &[]);
+            let mut contractSize: Value = self.safe_string_k(market.clone(), "contractSize", &[]);
             let mut contractCost: Value = crate::precise::Precise::stringMul(&priceString, &amountString);
             costString = crate::precise::Precise::stringMul(&contractCost, &contractSize);
         }
         return self.safe_trade(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), id.clone());
         m.insert("order".to_string(), orderId.clone());
@@ -8051,6 +8293,8 @@ impl KucoinCore {
         m.insert("fee".to_string(), fee.clone());
     m
 }), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_my_uta_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -8073,49 +8317,51 @@ impl KucoinCore {
         //         "fillType": "NORMAL"
         //     }
         //
-        let mut marketId: Value = self.safe_string(trade.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut timestamp: Value = self.safe_integer_product(trade.clone(), Value::Str("executionTime".to_string()), Value::Float(0.000001), &[]);
         let mut fee: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
-                m.insert("cost".to_string(), self.safe_string(trade.clone(), Value::Str("fee".to_string()), &[]));
-                m.insert("currency".to_string(), self.safe_currency_code(self.safe_string(trade.clone(), Value::Str("feeCurrency".to_string()), &[]), &[]));
+            let mut m = indexmap::IndexMap::new();
+                m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "fee", &[]));
+                m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(trade.clone(), "feeCurrency", &[]), &[]));
             m
         });
         return self.safe_trade(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
-        m.insert("id".to_string(), self.safe_string(trade.clone(), Value::Str("tradeId".to_string()), &[]));
-        m.insert("order".to_string(), self.safe_string(trade.clone(), Value::Str("orderId".to_string()), &[]));
+        m.insert("id".to_string(), self.safe_string_k(trade.clone(), "tradeId", &[]));
+        m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderId", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
         m.insert("type".to_string(), self.safe_string_lower(trade.clone(), Value::Str("orderType".to_string()), &[]));
         m.insert("takerOrMaker".to_string(), self.safe_string_lower(trade.clone(), Value::Str("liquidityRole".to_string()), &[]));
         m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("side".to_string()), &[]));
-        m.insert("price".to_string(), self.safe_string(trade.clone(), Value::Str("price".to_string()), &[]));
-        m.insert("amount".to_string(), self.safe_string(trade.clone(), Value::Str("size".to_string()), &[]));
-        m.insert("cost".to_string(), self.safe_string(trade.clone(), Value::Str("value".to_string()), &[]));
+        m.insert("price".to_string(), self.safe_string_k(trade.clone(), "price", &[]));
+        m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "size", &[]));
+        m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "value", &[]));
         m.insert("fee".to_string(), fee.clone());
     m
 }), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchTradingFee
  * @description fetch the trading fees for a market
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/trade-fee/get-actual-fee-spot-margin
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/trade-fee/get-actual-fee-futures
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-actual-fee
+ * @see https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-spot-margin
+ * @see https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-futures
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-actual-fee
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta) endpoint, defaults to false
- * @returns {object} a [fee structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=fee-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
     pub async fn fetch_trading_fee(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -8123,7 +8369,7 @@ impl KucoinCore {
         let mut uta: Value = self.is_uta_enabled(&[]).await;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTradingFee".to_string()), Value::Str("uta".to_string()), &[uta.clone()]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Value = Value::Null;
@@ -8151,11 +8397,11 @@ impl KucoinCore {
             //         }
             //     }
             //
-            let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut dataList: Value = self.safe_list(data.clone(), Value::Str("list".to_string()), &[Value::List(vec![])]);
+            let mut dataList: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
             entry = self.safe_dict(dataList.clone(), Value::Int(0), &[]);
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             add_element_to_object(&mut request, &Value::Str("symbols".to_string()), get_value(&market, &Value::Str("id".to_string())));
@@ -8172,7 +8418,7 @@ impl KucoinCore {
             //         ]
             //     }
             //
-            let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+            let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
             entry = self.safe_dict(data.clone(), Value::Int(0), &[]);
         }  else {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
@@ -8188,37 +8434,39 @@ impl KucoinCore {
             //         }
             //     }
             //
-            entry = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[]);
+            entry = self.safe_dict_k(response.clone(), "data", &[]);
         }
-        let mut marketId: Value = self.safe_string(entry.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-        m.insert("maker".to_string(), self.safe_number(entry.clone(), Value::Str("makerFeeRate".to_string()), &[]));
-        m.insert("taker".to_string(), self.safe_number(entry.clone(), Value::Str("takerFeeRate".to_string()), &[]));
+        m.insert("maker".to_string(), self.safe_number_k(entry.clone(), "makerFeeRate", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(entry.clone(), "takerFeeRate", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#withdraw
  * @description make a withdrawal
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/withdrawals/withdraw-v3
+ * @see https://www.kucoin.com/docs-new/rest/account-info/withdrawals/withdraw-v3
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
         let mut tag = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -8226,7 +8474,7 @@ impl KucoinCore {
         self.check_address(&[address.clone()]);
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("toAddress".to_string(), address.clone());
                 m.insert("withdrawType".to_string(), Value::Str("ADDRESS".to_string()));
@@ -8257,16 +8505,18 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_transaction(data.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_transaction_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("SUCCESS".to_string(), Value::Str("ok".to_string()));
                 m.insert("PROCESSING".to_string(), Value::Str("pending".to_string()));
                 m.insert("WALLET_PROCESSING".to_string(), Value::Str("pending".to_string()));
@@ -8274,6 +8524,8 @@ impl KucoinCore {
             m
         });
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -8320,11 +8572,11 @@ impl KucoinCore {
         //         "withdrawalId":  "5bffb63303aa675e8bbe18f9"
         //     }
         //
-        let mut currencyId: Value = self.safe_string(transaction.clone(), Value::Str("currency".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(transaction.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
-        let mut address: Value = self.safe_string(transaction.clone(), Value::Str("address".to_string()), &[]);
-        let mut amount: Value = self.safe_string(transaction.clone(), Value::Str("amount".to_string()), &[]);
-        let mut txid: Value = self.safe_string(transaction.clone(), Value::Str("walletTxId".to_string()), &[]);
+        let mut address: Value = self.safe_string_k(transaction.clone(), "address", &[]);
+        let mut amount: Value = self.safe_string_k(transaction.clone(), "amount", &[]);
+        let mut txid: Value = self.safe_string_k(transaction.clone(), "walletTxId", &[]);
         if !is_equal(&txid, &Value::Null) {
             let mut txidParts: Value = split(&txid, &Value::Str("@".to_string()));
             let mut numTxidParts: Value = get_array_length(&txidParts);
@@ -8338,16 +8590,16 @@ impl KucoinCore {
             txid = get_value(&txidParts, &Value::Int(0));
         }
         let mut type_var: Value = ternary(is_true(&(is_equal(&txid, &Value::Null))), Value::Str("withdrawal".to_string()), Value::Str("deposit".to_string()));
-        let mut rawStatus: Value = self.safe_string(transaction.clone(), Value::Str("status".to_string()), &[]);
+        let mut rawStatus: Value = self.safe_string_k(transaction.clone(), "status", &[]);
         let mut fee: Value = Value::Null;
-        let mut feeCost: Value = self.safe_string(transaction.clone(), Value::Str("fee".to_string()), &[]);
+        let mut feeCost: Value = self.safe_string_k(transaction.clone(), "fee", &[]);
         if !is_equal(&feeCost, &Value::Null) {
             let mut rate: Value = Value::Null;
             if !is_equal(&amount, &Value::Null) {
                 rate = crate::precise::Precise::stringDiv(&feeCost, &amount);
             }
             fee = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.parse_number(feeCost.clone(), &[]));
                     m.insert("rate".to_string(), self.parse_number(rate.clone(), &[]));
                     m.insert("currency".to_string(), code.clone());
@@ -8355,7 +8607,7 @@ impl KucoinCore {
             });
         }
         let mut timestamp: Value = self.safe_integer2(transaction.clone(), Value::Str("createdAt".to_string()), Value::Str("createAt".to_string()), &[]);
-        let mut updated: Value = self.safe_integer(transaction.clone(), Value::Str("updatedAt".to_string()), &[]);
+        let mut updated: Value = self.safe_integer_k(transaction.clone(), "updatedAt", &[]);
         let mut isV1: Value = Value::Bool(!is_true(&(Value::Bool(in_op(&transaction, &Value::Str("createdAt".to_string()))))));
         // if it's a v1 structure
         if is_true(&isV1) {
@@ -8367,11 +8619,11 @@ impl KucoinCore {
                 updated = multiply(&updated, &Value::Int(1000));
             }
         }
-        let mut internal: Value = self.safe_bool(transaction.clone(), Value::Str("isInner".to_string()), &[]);
-        let mut tag: Value = self.safe_string(transaction.clone(), Value::Str("memo".to_string()), &[]);
-        let mut chainId: Value = self.safe_string(transaction.clone(), Value::Str("chain".to_string()), &[]);
+        let mut internal: Value = self.safe_bool_k(transaction.clone(), "isInner", &[]);
+        let mut tag: Value = self.safe_string_k(transaction.clone(), "memo", &[]);
+        let mut chainId: Value = self.safe_string_k(transaction.clone(), "chain", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string2(transaction.clone(), Value::Str("id".to_string()), Value::Str("withdrawalId".to_string()), &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -8388,43 +8640,45 @@ impl KucoinCore {
         m.insert("txid".to_string(), txid.clone());
         m.insert("type".to_string(), type_var.clone());
         m.insert("status".to_string(), self.parse_transaction_status(rawStatus.clone()));
-        m.insert("comment".to_string(), self.safe_string(transaction.clone(), Value::Str("remark".to_string()), &[]));
+        m.insert("comment".to_string(), self.safe_string_k(transaction.clone(), "remark", &[]));
         m.insert("internal".to_string(), internal.clone());
         m.insert("fee".to_string(), fee.clone());
         m.insert("updated".to_string(), updated.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/deposit/get-deposit-history
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs/rest/funding/deposit/get-deposit-list
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs/rest/funding/deposit/get-v1-historical-deposits-list
+ * @see https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-history
+ * @see https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-list
+ * @see https://www.kucoin.com/docs/rest/funding/deposit/get-v1-historical-deposits-list
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch entries for
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] *main account only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {string} [get_value(&params, &Value::Str("accountType".to_string()))] 'main' or 'contract' (default is 'main')
- * @returns {object[]} a list of [transaction structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {boolean} [params.paginate] *main account only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {string} [params.accountType] 'main' or 'contract' (default is 'main')
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_deposits(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut accountType: Value = Value::Str("main".to_string());
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchDeposits".to_string()), Value::Str("accountType".to_string()), &[accountType.clone()]); accountType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut accountsByType: Value = self.safe_dict(self.options.clone(), Value::Str("accountsByType".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         accountType = self.safe_string(accountsByType.clone(), accountType.clone(), &[accountType.clone()]);
@@ -8437,7 +8691,7 @@ impl KucoinCore {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchDeposits".to_string()), &[code.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut currency: Value = Value::Null;
@@ -8498,16 +8752,18 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut items: Value = self.safe_list(data.clone(), Value::Str("items".to_string()), &[Value::List(vec![])]);
+        let mut items: Value = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
         return self.parse_transactions(items.clone(), &[currency.clone(), since.clone(), limit.clone(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("deposit".to_string()));
     m
 })]);
+
+    Value::Null
 }
 
 /*
@@ -8518,19 +8774,19 @@ impl KucoinCore {
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_contract_deposits(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut currency: Value = Value::Null;
@@ -8574,41 +8830,43 @@ impl KucoinCore {
         //
         let mut responseData: Value = get_value(&get_value(&response, &Value::Str("data".to_string())), &Value::Str("items".to_string()));
         return self.parse_transactions(responseData.clone(), &[currency.clone(), since.clone(), limit.clone(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("deposit".to_string()));
     m
 })]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/withdrawals/get-withdrawal-history
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs/rest/funding/withdrawals/get-withdrawals-list
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs/rest/funding/withdrawals/get-v1-historical-withdrawals-list
+ * @see https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-history
+ * @see https://www.kucoin.com/docs/rest/funding/withdrawals/get-withdrawals-list
+ * @see https://www.kucoin.com/docs/rest/funding/withdrawals/get-v1-historical-withdrawals-list
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch entries for
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] *main account only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {string} [get_value(&params, &Value::Str("accountType".to_string()))] 'main' or 'contract' (default is 'main')
- * @returns {object[]} a list of [transaction structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {boolean} [params.paginate] *main account only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {string} [params.accountType] 'main' or 'contract' (default is 'main')
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_withdrawals(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut accountType: Value = Value::Str("main".to_string());
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchWithdrawals".to_string()), Value::Str("accountType".to_string()), &[accountType.clone()]); accountType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut accountsByType: Value = self.safe_dict(self.options.clone(), Value::Str("accountsByType".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         accountType = self.safe_string(accountsByType.clone(), accountType.clone(), &[accountType.clone()]);
@@ -8622,7 +8880,7 @@ impl KucoinCore {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchWithdrawals".to_string()), &[code.clone(), since.clone(), limit.clone(), params.clone(), maxLimit.clone()]).await;
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut currency: Value = Value::Null;
@@ -8684,16 +8942,18 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut items: Value = self.safe_list(data.clone(), Value::Str("items".to_string()), &[Value::List(vec![])]);
+        let mut items: Value = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
         return self.parse_transactions(items.clone(), &[currency.clone(), since.clone(), limit.clone(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("withdrawal".to_string()));
     m
 })]);
+
+    Value::Null
 }
 
 /*
@@ -8704,19 +8964,19 @@ impl KucoinCore {
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_contract_withdrawals(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut currency: Value = Value::Null;
@@ -8760,10 +9020,12 @@ impl KucoinCore {
         //
         let mut responseData: Value = get_value(&get_value(&response, &Value::Str("data".to_string())), &Value::Str("items".to_string()));
         return self.parse_transactions(responseData.clone(), &[currency.clone(), since.clone(), limit.clone(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("withdrawal".to_string()));
     m
 })]);
+
+    Value::Null
 }
 
     pub fn parse_balance_helper(&self, mut entry: Value) -> Value {
@@ -8771,32 +9033,34 @@ impl KucoinCore {
         add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string2(entry.clone(), Value::Str("holdBalance".to_string()), Value::Str("hold".to_string()), &[]));
         add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string2(entry.clone(), Value::Str("availableBalance".to_string()), Value::Str("available".to_string()), &[]));
         add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string2(entry.clone(), Value::Str("totalBalance".to_string()), Value::Str("total".to_string()), &[]));
-        let mut debt: Value = self.safe_string(entry.clone(), Value::Str("liability".to_string()), &[]);
-        let mut interest: Value = self.safe_string(entry.clone(), Value::Str("interest".to_string()), &[]);
+        let mut debt: Value = self.safe_string_k(entry.clone(), "liability", &[]);
+        let mut interest: Value = self.safe_string_k(entry.clone(), "interest", &[]);
         add_element_to_object(&mut account, &Value::Str("debt".to_string()), crate::precise::Precise::stringAdd(&debt, &interest));
         return account;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/account-funding/get-account-detail-spot
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/account-funding/get-account-cross-margin
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/account-funding/get-account-isolated-margin
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/account-funding/get-account-futures
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-account-currency-assets-uta
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-account-currency-assets-classic
+ * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-detail-spot
+ * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-cross-margin
+ * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin
+ * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {object} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', margin type for fetching margin balance
- * @param {object} [get_value(&params, &Value::Str("type".to_string()))] extra parameters specific to the exchange API endpoint
- * @param {object} [get_value(&params, &Value::Str("hf".to_string()))] *default if false* if true, the result includes the balance of the high frequency account
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta) endpoint, defaults to false
- * @returns {object} a [balance structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=balance-structure}
+ * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
+ * @param {object} [params.type] extra parameters specific to the exchange API endpoint
+ * @param {object} [params.hf] *default if false* if true, the result includes the balance of the high frequency account
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
     pub async fn fetch_balance(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -8807,18 +9071,18 @@ impl KucoinCore {
         }
         let mut response: Value = Value::Null;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut code: Value = self.safe_string(params.clone(), Value::Str("code".to_string()), &[]);
+        let mut code: Value = self.safe_string_k(params.clone(), "code", &[]);
         let mut currency: Value = Value::Null;
         if !is_equal(&code, &Value::Null) {
             currency = self.currency(code.clone());
         }
         let mut requestedType: Value = Value::Str("spot".to_string());
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchBalance".to_string()), &[Value::Null, params.clone()]); requestedType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut accountsByType: Value = self.safe_dict(self.options.clone(), Value::Str("accountsByType".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut type_var: Value = self.safe_string(accountsByType.clone(), requestedType.clone(), &[requestedType.clone()]);
@@ -8928,77 +9192,80 @@ impl KucoinCore {
         //
         let mut data: Value = Value::Null;
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
                 m.insert("timestamp".to_string(), Value::Null);
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
         if is_true(&isolated) {
-            data = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            data = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut assets: Value = self.safe_value(data.clone(), Value::Str("assets".to_string()), &[data.clone()]);
+            let mut assets: Value = self.safe_value_k(data.clone(), "assets", &[data.clone()]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&assets)) {
+                let mut __for_first_895: bool = true;
+                while { if !__for_first_895 { i = add(&i, &Value::Int(1)); } __for_first_895 = false; is_less_than(&i, &get_array_length(&assets)) } {
                 let mut entry: Value = get_value(&assets, &i);
-                let mut marketId: Value = self.safe_string(entry.clone(), Value::Str("symbol".to_string()), &[]);
+                let mut entry: Value = get_value(&assets, &i);
+                let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
                 let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("_".to_string())]);
-                let mut base: Value = self.safe_dict(entry.clone(), Value::Str("baseAsset".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+                let mut base: Value = self.safe_dict_k(entry.clone(), "baseAsset", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut quote: Value = self.safe_dict(entry.clone(), Value::Str("quoteAsset".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+                let mut quote: Value = self.safe_dict_k(entry.clone(), "quoteAsset", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut baseCode: Value = self.safe_currency_code(self.safe_string(base.clone(), Value::Str("currency".to_string()), &[]), &[]);
-                let mut quoteCode: Value = self.safe_currency_code(self.safe_string(quote.clone(), Value::Str("currency".to_string()), &[]), &[]);
+                let mut baseCode: Value = self.safe_currency_code(self.safe_string_k(base.clone(), "currency", &[]), &[]);
+                let mut quoteCode: Value = self.safe_currency_code(self.safe_string_k(quote.clone(), "currency", &[]), &[]);
                 let mut subResult: Value = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                     m
                 });
                 add_element_to_object(&mut subResult, &baseCode, self.parse_balance_helper(base.clone()));
                 add_element_to_object(&mut subResult, &quoteCode, self.parse_balance_helper(quote.clone()));
                 add_element_to_object(&mut result, &symbol, self.safe_balance(subResult.clone()));
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else if is_true(&cross) {
-            data = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            data = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut accounts: Value = self.safe_list(data.clone(), Value::Str("accounts".to_string()), &[Value::List(vec![])]);
+            let mut accounts: Value = self.safe_list_k(data.clone(), "accounts", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&accounts)) {
+                let mut __for_first_896: bool = true;
+                while { if !__for_first_896 { i = add(&i, &Value::Int(1)); } __for_first_896 = false; is_less_than(&i, &get_array_length(&accounts)) } {
                 let mut balance: Value = get_value(&accounts, &i);
-                let mut currencyId: Value = self.safe_string(balance.clone(), Value::Str("currency".to_string()), &[]);
+                let mut balance: Value = get_value(&accounts, &i);
+                let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
                 let mut codeInner: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 add_element_to_object(&mut result, &codeInner, self.parse_balance_helper(balance.clone()));
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else {
-            data = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+            data = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&data)) {
+                let mut __for_first_897: bool = true;
+                while { if !__for_first_897 { i = add(&i, &Value::Int(1)); } __for_first_897 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut balance: Value = get_value(&data, &i);
-                let mut balanceType: Value = self.safe_string(balance.clone(), Value::Str("type".to_string()), &[]);
+                let mut balance: Value = get_value(&data, &i);
+                let mut balanceType: Value = self.safe_string_k(balance.clone(), "type", &[]);
                 if is_equal(&balanceType, &type_var) {
-                    let mut currencyId: Value = self.safe_string(balance.clone(), Value::Str("currency".to_string()), &[]);
+                    let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
                     let mut codeInner2: Value = self.safe_currency_code(currencyId.clone(), &[]);
                     let mut account: Value = self.account();
-                    add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(balance.clone(), Value::Str("balance".to_string()), &[]));
-                    add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(balance.clone(), Value::Str("available".to_string()), &[]));
-                    add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(balance.clone(), Value::Str("holds".to_string()), &[]));
+                    add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "balance", &[]));
+                    add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "available", &[]));
+                    add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "holds", &[]));
                     add_element_to_object(&mut result, &codeInner2, account.clone());
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }
@@ -9007,34 +9274,36 @@ impl KucoinCore {
             returnType = self.safe_balance(result.clone());
         }
         return returnType;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchContractBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/account-funding/get-account-futures
+ * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {object} [get_value(&params, &Value::Str("code".to_string()))] the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
- * @returns {object} a [balance structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=balance-structure}
+ * @param {object} [params.code] the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
     pub async fn fetch_contract_balance(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         // only fetches one balance at a time
-        let mut defaultCode: Value = self.safe_string(self.options.clone(), Value::Str("code".to_string()), &[]);
-        let mut fetchBalanceOptions: Value = self.safe_value(self.options.clone(), Value::Str("fetchBalance".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut defaultCode: Value = self.safe_string_k(self.options.clone(), "code", &[]);
+        let mut fetchBalanceOptions: Value = self.safe_value_k(self.options.clone(), "fetchBalance", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
-        defaultCode = self.safe_string(fetchBalanceOptions.clone(), Value::Str("code".to_string()), &[defaultCode.clone()]);
-        let mut code: Value = self.safe_string(params.clone(), Value::Str("code".to_string()), &[defaultCode.clone()]);
+        defaultCode = self.safe_string_k(fetchBalanceOptions.clone(), "code", &[defaultCode.clone()]);
+        let mut code: Value = self.safe_string_k(params.clone(), "code", &[defaultCode.clone()]);
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
@@ -9055,36 +9324,38 @@ impl KucoinCore {
         //     }
         //
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
                 m.insert("timestamp".to_string(), Value::Null);
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[]);
-        let mut currencyId: Value = self.safe_string(data.clone(), Value::Str("currency".to_string()), &[]);
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
+        let mut currencyId: Value = self.safe_string_k(data.clone(), "currency", &[]);
         let mut currencyCode: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut account: Value = self.account();
-        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(data.clone(), Value::Str("availableBalance".to_string()), &[]));
-        add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(data.clone(), Value::Str("accountEquity".to_string()), &[]));
+        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(data.clone(), "availableBalance", &[]));
+        add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(data.clone(), "accountEquity", &[]));
         add_element_to_object(&mut result, &currencyCode, account.clone());
         return self.safe_balance(result.clone());
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchUtaBalance
  * @description helper method for fetching balance with unified trading account (uta) endpoint
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-account-currency-assets-uta
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-account-currency-assets-classic
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-uta
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-account-currency-assets-classic
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] 'unified', 'spot', 'funding', 'cross', 'isolated' or 'swap' (default is 'unified')
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', margin type for fetching margin balance, only applicable if type is margin (default is cross)
- * @returns {object} a [balance structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=balance-structure}
+ * @param {string} [params.type] 'unified', 'spot', 'funding', 'cross', 'isolated' or 'swap' (default is 'unified')
+ * @param {string} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance, only applicable if type is margin (default is cross)
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
     pub async fn fetch_uta_balance(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -9096,15 +9367,15 @@ impl KucoinCore {
             { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchUtaBalance".to_string()), &[params.clone(), marginMode.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             requestedType = marginMode.clone();
         }
-        let mut utaAccountsByType: Value = self.safe_dict(self.options.clone(), Value::Str("utaAccountsByType".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut utaAccountsByType: Value = self.safe_dict_k(self.options.clone(), "utaAccountsByType", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut type_var: Value = Value::Null;
         type_var = self.safe_string(utaAccountsByType.clone(), requestedType.clone(), &[requestedType.clone()]);
         let mut isIsolated: Value = Value::Bool(is_equal(&type_var, &Value::Str("ISOLATED".to_string())));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Value = Value::Null;
@@ -9178,65 +9449,66 @@ impl KucoinCore {
             //
             response = self.call_method(Value::Str("uta_private_get_account_balance".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timestamp: Value = self.safe_integer(data.clone(), Value::Str("ts".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(data.clone(), "ts", &[]);
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
                 m.insert("timestamp".to_string(), timestamp.clone());
                 m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
             m
         });
-        let mut accounts: Value = self.safe_list(data.clone(), Value::Str("accounts".to_string()), &[Value::List(vec![])]);
+        let mut accounts: Value = self.safe_list_k(data.clone(), "accounts", &[Value::List(vec![])]);
         if is_true(&isIsolated) {
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&accounts)) {
+                let mut __for_first_899: bool = true;
+                while { if !__for_first_899 { i = add(&i, &Value::Int(1)); } __for_first_899 = false; is_less_than(&i, &get_array_length(&accounts)) } {
                 let mut entry: Value = get_value(&accounts, &i);
-                let mut marketId: Value = self.safe_string(entry.clone(), Value::Str("accountSubtype".to_string()), &[]);
+                let mut entry: Value = get_value(&accounts, &i);
+                let mut marketId: Value = self.safe_string_k(entry.clone(), "accountSubtype", &[]);
                 let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);
                 let mut subResult: Value = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                     m
                 });
-                let mut currencies: Value = self.safe_list(entry.clone(), Value::Str("currencies".to_string()), &[Value::List(vec![])]);
+                let mut currencies: Value = self.safe_list_k(entry.clone(), "currencies", &[Value::List(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
-                    while is_less_than(&j, &get_array_length(&currencies)) {
+                    let mut __for_first_898: bool = true;
+                    while { if !__for_first_898 { j = add(&j, &Value::Int(1)); } __for_first_898 = false; is_less_than(&j, &get_array_length(&currencies)) } {
                     let mut currencyEntry: Value = self.safe_dict(currencies.clone(), j.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-                    let mut currencyId: Value = self.safe_string(currencyEntry.clone(), Value::Str("currency".to_string()), &[]);
+                    let mut currencyId: Value = self.safe_string_k(currencyEntry.clone(), "currency", &[]);
                     let mut currencyCode: Value = self.safe_currency_code(currencyId.clone(), &[]);
                     add_element_to_object(&mut subResult, &currencyCode, self.parse_balance_helper(currencyEntry.clone()));
-                    j = add(&j, &Value::Int(1));
                 }
                 }
                 add_element_to_object(&mut result, &symbol, self.safe_balance(subResult.clone()));
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else {
             let mut firstAccount: Value = self.safe_dict(accounts.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut currencies: Value = self.safe_list(firstAccount.clone(), Value::Str("currencies".to_string()), &[Value::List(vec![])]);
+            let mut currencies: Value = self.safe_list_k(firstAccount.clone(), "currencies", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&currencies)) {
+                let mut __for_first_900: bool = true;
+                while { if !__for_first_900 { i = add(&i, &Value::Int(1)); } __for_first_900 = false; is_less_than(&i, &get_array_length(&currencies)) } {
                 let mut currencyEntry: Value = self.safe_dict(currencies.clone(), i.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut currencyId: Value = self.safe_string(currencyEntry.clone(), Value::Str("currency".to_string()), &[]);
+                let mut currencyId: Value = self.safe_string_k(currencyEntry.clone(), "currency", &[]);
                 let mut currencyCode: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 add_element_to_object(&mut result, &currencyCode, self.parse_balance_helper(currencyEntry.clone()));
-                i = add(&i, &Value::Int(1));
             }
             }
         }
@@ -9245,26 +9517,28 @@ impl KucoinCore {
             returnType = self.safe_balance(result.clone());
         }
         return returnType;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/flex-transfer
+ * @see https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
+ * @see https://www.kucoin.com/docs-new/rest/ua/flex-transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta) endpoint, defaults to false
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
  * Check transferClassic() and transferUta() for more details on params
- * @returns {object} a [transfer structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
     pub async fn transfer(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -9274,33 +9548,35 @@ impl KucoinCore {
             return self.transfer_uta(code.clone(), amount.clone(), fromAccount.clone(), toAccount.clone(), &[params.clone()]).await;
         }
         return self.transfer_classic(code.clone(), amount.clone(), fromAccount.clone(), toAccount.clone(), &[params.clone()]).await;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#transferUta
  * @description transfer currency internally between wallets on the same account with uta endpoint
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/flex-transfer
+ * @see https://www.kucoin.com/docs-new/rest/ua/flex-transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("transferType".to_string()))] INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT, SUB_TO_SUB (default is INTERNAL)
- * @param {string} [get_value(&params, &Value::Str("fromUserId".to_string()))] required if transferType is SUB_TO_PARENT or SUB_TO_SUB
- * @param {string} [get_value(&params, &Value::Str("toUserId".to_string()))] required if transferType is PARENT_TO_SUB or SUB_TO_SUB
- * @returns {object} a [transfer structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transfer-structure}
+ * @param {string} [params.transferType] INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT, SUB_TO_SUB (default is INTERNAL)
+ * @param {string} [params.fromUserId] required if transferType is SUB_TO_PARENT or SUB_TO_SUB
+ * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB or SUB_TO_SUB
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
     pub async fn transfer_uta(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut requestedAmount: Value = self.currency_to_precision(code.clone(), amount.clone(), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("amount".to_string(), requestedAmount.clone());
             m
@@ -9313,18 +9589,18 @@ impl KucoinCore {
         { let __destr_tmp = self.handle_param_string2(params.clone(), Value::Str("toUserId".to_string()), Value::Str("toUid".to_string()), &[toUserId.clone()]); toUserId = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&transferType, &Value::Str("PARENT_TO_SUB".to_string())) || is_equal(&transferType, &Value::Str("SUB_TO_SUB".to_string())) {
             if is_equal(&toUserId, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" transfer() requires a toUserId param for PARENT_TO_SUB or SUB_TO_SUB transfers".to_string()))));
+                panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" transfer() requires a toUserId param for PARENT_TO_SUB or SUB_TO_SUB transfers".to_string()))));
             }  else {
                 add_element_to_object(&mut request, &Value::Str("toUid".to_string()), toUserId.clone());
             }
         }  else if is_equal(&transferType, &Value::Str("SUB_TO_PARENT".to_string())) || is_equal(&transferType, &Value::Str("SUB_TO_SUB".to_string())) {
             if is_equal(&fromUserId, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" transfer() requires a fromUserId param for SUB_TO_PARENT or SUB_TO_SUB transfers".to_string()))));
+                panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" transfer() requires a fromUserId param for SUB_TO_PARENT or SUB_TO_SUB transfers".to_string()))));
             }  else {
                 add_element_to_object(&mut request, &Value::Str("fromUid".to_string()), fromUserId.clone());
             }
         }
-        let mut clientOid: Value = self.uuid();
+        let mut clientOid: Value = self.uuid(&[]);
         { let __destr_tmp = self.handle_param_string2(params.clone(), Value::Str("clientOid".to_string()), Value::Str("clientOrderId".to_string()), &[clientOid.clone()]); clientOid = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         add_element_to_object(&mut request, &Value::Str("clientOid".to_string()), clientOid.clone());
         let mut fromId: Value = self.convert_type_to_account(fromAccount.clone());
@@ -9339,8 +9615,8 @@ impl KucoinCore {
             add_element_to_object(&mut request, &Value::Str("toAccountSymbol".to_string()), toId.clone());
             toId = Value::Str("ISOLATED".to_string());
         }
-        let mut utaAccountsByType: Value = self.safe_dict(self.options.clone(), Value::Str("utaAccountsByType".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut utaAccountsByType: Value = self.safe_dict_k(self.options.clone(), "utaAccountsByType", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         fromId = self.safe_string(utaAccountsByType.clone(), fromId.clone(), &[fromId.clone()]);
@@ -9348,7 +9624,7 @@ impl KucoinCore {
         add_element_to_object(&mut request, &Value::Str("fromAccountType".to_string()), to_upper(&fromId));
         add_element_to_object(&mut request, &Value::Str("toAccountType".to_string()), to_upper(&toId));
         let mut types: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("INTERNAL".to_string(), Value::Str("0".to_string()));
                 m.insert("PARENT_TO_SUB".to_string(), Value::Str("1".to_string()));
                 m.insert("SUB_TO_PARENT".to_string(), Value::Str("2".to_string()));
@@ -9359,13 +9635,13 @@ impl KucoinCore {
         let mut response: Value = self.call_method(Value::Str("uta_private_post_account_transfer".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         //
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
         let mut transfer: Value = self.parse_transfer(data.clone(), &[currency.clone()]);
-        let mut transferOptions: Value = self.safe_dict(self.options.clone(), Value::Str("transfer".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut transferOptions: Value = self.safe_dict_k(self.options.clone(), "transfer", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fillResponseFromRequest: Value = self.safe_bool(transferOptions.clone(), Value::Str("fillResponseFromRequest".to_string()), &[Value::Bool(true)]);
+        let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions.clone(), "fillResponseFromRequest", &[Value::Bool(true)]);
         if is_true(&fillResponseFromRequest) {
             add_element_to_object(&mut transfer, &Value::Str("amount".to_string()), amount.clone());
             add_element_to_object(&mut transfer, &Value::Str("fromAccount".to_string()), fromAccount.clone());
@@ -9373,33 +9649,35 @@ impl KucoinCore {
             add_element_to_object(&mut transfer, &Value::Str("status".to_string()), Value::Str("ok".to_string()));
         }
         return transfer;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#transferClassic
  * @description transfer currency internally between wallets on the same account with classic endpoints
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
+ * @see https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("transferType".to_string()))] INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT (default is INTERNAL)
- * @param {string} [get_value(&params, &Value::Str("fromUserId".to_string()))] required if transferType is SUB_TO_PARENT
- * @param {string} [get_value(&params, &Value::Str("toUserId".to_string()))] required if transferType is PARENT_TO_SUB
- * @returns {object} a [transfer structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transfer-structure}
+ * @param {string} [params.transferType] INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT (default is INTERNAL)
+ * @param {string} [params.fromUserId] required if transferType is SUB_TO_PARENT
+ * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
     pub async fn transfer_classic(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut requestedAmount: Value = self.currency_to_precision(code.clone(), amount.clone(), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("amount".to_string(), requestedAmount.clone());
             m
@@ -9408,15 +9686,15 @@ impl KucoinCore {
         { let __destr_tmp = self.handle_param_string2(params.clone(), Value::Str("transferType".to_string()), Value::Str("type".to_string()), &[transferType.clone()]); transferType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&transferType, &Value::Str("PARENT_TO_SUB".to_string())) {
             if !is_true(&(Value::Bool(in_op(&params, &Value::Str("toUserId".to_string()))))) {
-                panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" transfer() requires a toUserId param for PARENT_TO_SUB transfers".to_string()))));
+                panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" transfer() requires a toUserId param for PARENT_TO_SUB transfers".to_string()))));
             }
         }  else if is_equal(&transferType, &Value::Str("SUB_TO_PARENT".to_string())) {
             if !is_true(&(Value::Bool(in_op(&params, &Value::Str("fromUserId".to_string()))))) {
-                panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" transfer() requires a fromUserId param for SUB_TO_PARENT transfers".to_string()))));
+                panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" transfer() requires a fromUserId param for SUB_TO_PARENT transfers".to_string()))));
             }
         }
         if !is_true(&(Value::Bool(in_op(&params, &Value::Str("clientOid".to_string()))))) {
-            add_element_to_object(&mut request, &Value::Str("clientOid".to_string()), self.uuid());
+            add_element_to_object(&mut request, &Value::Str("clientOid".to_string()), self.uuid(&[]));
         }
         let mut fromId: Value = self.convert_type_to_account(fromAccount.clone());
         let mut toId: Value = self.convert_type_to_account(toAccount.clone());
@@ -9452,13 +9730,13 @@ impl KucoinCore {
             //
             response = self.call_method(Value::Str("private_post_accounts_universal_transfer".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
         let mut transfer: Value = self.parse_transfer(data.clone(), &[currency.clone()]);
-        let mut transferOptions: Value = self.safe_dict(self.options.clone(), Value::Str("transfer".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut transferOptions: Value = self.safe_dict_k(self.options.clone(), "transfer", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fillResponseFromRequest: Value = self.safe_bool(transferOptions.clone(), Value::Str("fillResponseFromRequest".to_string()), &[Value::Bool(true)]);
+        let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions.clone(), "fillResponseFromRequest", &[Value::Bool(true)]);
         if is_true(&fillResponseFromRequest) {
             add_element_to_object(&mut transfer, &Value::Str("amount".to_string()), amount.clone());
             add_element_to_object(&mut transfer, &Value::Str("fromAccount".to_string()), fromAccount.clone());
@@ -9466,10 +9744,14 @@ impl KucoinCore {
             add_element_to_object(&mut transfer, &Value::Str("status".to_string()), Value::Str("ok".to_string()));
         }
         return transfer;
+
+    Value::Null
 }
 
     pub fn is_hf_or_mining(&self, mut fromId: Value, mut toId: Value) -> Value {
         return Value::Bool(is_equal(&fromId, &Value::Str("trade_hf".to_string())) || is_equal(&toId, &Value::Str("trade_hf".to_string())) || is_equal(&fromId, &Value::Str("pool".to_string())) || is_equal(&toId, &Value::Str("pool".to_string())));
+
+    Value::Null
 }
 
     pub fn parse_transfer(&self, mut transfer: Value, optional_args: &[Value]) -> Value {
@@ -9536,16 +9818,16 @@ impl KucoinCore {
         //         "currency": "USDT"
         //     }
         let mut timestamp: Value = self.safe_integer2(transfer.clone(), Value::Str("createdAt".to_string()), Value::Str("time".to_string()), &[]);
-        let mut currencyId: Value = self.safe_string(transfer.clone(), Value::Str("currency".to_string()), &[]);
-        let mut rawStatus: Value = self.safe_string(transfer.clone(), Value::Str("status".to_string()), &[]);
-        let mut bizType: Value = self.safe_string(transfer.clone(), Value::Str("bizType".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(transfer.clone(), "currency", &[]);
+        let mut rawStatus: Value = self.safe_string_k(transfer.clone(), "status", &[]);
+        let mut bizType: Value = self.safe_string_k(transfer.clone(), "bizType", &[]);
         let mut isLedgerEntry: Value = Value::Bool(!is_equal(&bizType, &Value::Null));
         let mut accountFromRaw: Value = Value::Null;
         let mut accountToRaw: Value = Value::Null;
         if is_true(&isLedgerEntry) {
             // Ledger entry format: uses accountType + direction
             let mut accountType: Value = self.safe_string_lower(transfer.clone(), Value::Str("accountType".to_string()), &[]);
-            let mut direction: Value = self.safe_string(transfer.clone(), Value::Str("direction".to_string()), &[]);
+            let mut direction: Value = self.safe_string_k(transfer.clone(), "direction", &[]);
             if is_equal(&direction, &Value::Str("out".to_string())) {
                 accountFromRaw = accountType.clone();
             }  else if is_equal(&direction, &Value::Str("in".to_string())) {
@@ -9556,36 +9838,40 @@ impl KucoinCore {
             accountFromRaw = self.safe_string_lower(transfer.clone(), Value::Str("payAccountType".to_string()), &[]);
             accountToRaw = self.safe_string_lower(transfer.clone(), Value::Str("recAccountType".to_string()), &[]);
         }
-        let mut accountsByType: Value = self.safe_dict(self.options.clone(), Value::Str("accountsByType".to_string()), &[]);
+        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[]);
         let mut accountFrom: Value = self.safe_string(accountsByType.clone(), accountFromRaw.clone(), &[accountFromRaw.clone()]);
         let mut accountTo: Value = self.safe_string(accountsByType.clone(), accountToRaw.clone(), &[accountToRaw.clone()]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_n(transfer.clone(), Value::List(vec![Value::Str("id".to_string()), Value::Str("applyId".to_string()), Value::Str("orderId".to_string())]), &[]));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("amount".to_string(), self.safe_number(transfer.clone(), Value::Str("amount".to_string()), &[]));
+        m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
         m.insert("fromAccount".to_string(), accountFrom.clone());
         m.insert("toAccount".to_string(), accountTo.clone());
         m.insert("status".to_string(), self.parse_transfer_status(rawStatus.clone()));
         m.insert("info".to_string(), transfer.clone());
     m
 });
+
+    Value::Null
 }
 
     pub fn parse_transfer_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("PROCESSING".to_string(), Value::Str("pending".to_string()));
             m
         });
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Value {
         let mut types: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("Assets Transferred in After Upgrading".to_string(), Value::Str("transfer".to_string()));
                 m.insert("Deposit".to_string(), Value::Str("transaction".to_string()));
                 m.insert("Withdrawal".to_string(), Value::Str("transaction".to_string()));
@@ -9630,11 +9916,13 @@ impl KucoinCore {
             m
         });
         return self.safe_string(types.clone(), type_var.clone(), &[type_var.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_ledger_direction(&self, mut direction: Value) -> Value {
         let mut directions: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("in".to_string(), Value::Str("in".to_string()));
                 m.insert("out".to_string(), Value::Str("out".to_string()));
                 m.insert("TransferIn".to_string(), Value::Str("in".to_string()));
@@ -9644,16 +9932,20 @@ impl KucoinCore {
             m
         });
         return self.safe_string(directions.clone(), direction.clone(), &[direction.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_ledger_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("Completed".to_string(), Value::Str("ok".to_string()));
                 m.insert("Pending".to_string(), Value::Str("pending".to_string()));
             m
         });
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_ledger_entry(&self, mut item: Value, optional_args: &[Value]) -> Value {
@@ -9700,19 +9992,19 @@ impl KucoinCore {
         //         "ts": 1774241648267000000
         //     }
         //
-        let mut id: Value = self.safe_string(item.clone(), Value::Str("id".to_string()), &[]);
-        let mut currencyId: Value = self.safe_string(item.clone(), Value::Str("currency".to_string()), &[]);
+        let mut id: Value = self.safe_string_k(item.clone(), "id", &[]);
+        let mut currencyId: Value = self.safe_string_k(item.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
-        let mut amount: Value = self.safe_string(item.clone(), Value::Str("amount".to_string()), &[]);
+        let mut amount: Value = self.safe_string_k(item.clone(), "amount", &[]);
         let mut balanceAfter: Value = self.safe_number_omit_zero(item.clone(), Value::Str("balance".to_string()), &[]);
         let mut bizType: Value = self.safe_string_n(item.clone(), Value::List(vec![Value::Str("bizType".to_string()), Value::Str("businessType".to_string()), Value::Str("type".to_string())]), &[]);
         let mut type_var: Value = self.parse_ledger_entry_type(bizType.clone());
         let mut direction: Value = self.safe_string2(item.clone(), Value::Str("direction".to_string()), Value::Str("type".to_string()), &[]);
-        let mut account: Value = self.safe_string(item.clone(), Value::Str("accountType".to_string()), &[]); // MAIN, TRADE, MARGIN, or CONTRACT
-        let mut timestamp: Value = self.safe_integer(item.clone(), Value::Str("createdAt".to_string()), &[]);
+        let mut account: Value = self.safe_string_k(item.clone(), "accountType", &[]); // MAIN, TRADE, MARGIN, or CONTRACT
+        let mut timestamp: Value = self.safe_integer_k(item.clone(), "createdAt", &[]);
         if is_equal(&timestamp, &Value::Null) {
-            timestamp = self.safe_integer(item.clone(), Value::Str("time".to_string()), &[]);
+            timestamp = self.safe_integer_k(item.clone(), "time", &[]);
             if !is_equal(&timestamp, &Value::Null) {
                 account = Value::Str("CONTRACT".to_string()); // contract ledger entries do not have an accountType field, so we set it to CONTRACT if the time field is present
             }  else {
@@ -9720,7 +10012,7 @@ impl KucoinCore {
             }
         }
         let mut datetime: Value = self.iso8601(timestamp.clone());
-        let mut context: Value = self.safe_string(item.clone(), Value::Str("context".to_string()), &[]); // contains other information about the ledger entry
+        let mut context: Value = self.safe_string_k(item.clone(), "context", &[]); // contains other information about the ledger entry
         //
         // withdrawal transaction
         //
@@ -9736,33 +10028,36 @@ impl KucoinCore {
         //
         let mut referenceId: Value = Value::Null;
         if !is_equal(&context, &Value::Null) && !is_equal(&context, &Value::Str("".to_string())) {
-            {
+            let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 let mut parsed: Value = json_parse(&context);
-                let mut orderId: Value = self.safe_string(parsed.clone(), Value::Str("orderId".to_string()), &[]);
-                let mut tradeId: Value = self.safe_string(parsed.clone(), Value::Str("tradeId".to_string()), &[]);
+                let mut orderId: Value = self.safe_string_k(parsed.clone(), "orderId", &[]);
+                let mut tradeId: Value = self.safe_string_k(parsed.clone(), "tradeId", &[]);
                 // transactions only have an orderId but for trades we wish to use tradeId
                 if !is_equal(&tradeId, &Value::Null) {
                     referenceId = tradeId.clone();
                 }  else {
                     referenceId = orderId.clone();
                 }
+             #[allow(unreachable_code)] { Value::Null }}));
+if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
+                referenceId = context.clone();
             }
         }
         let mut fee: Value = Value::Null;
-        let mut feeCost: Value = self.omit_zero(self.safe_string(item.clone(), Value::Str("fee".to_string()), &[]));
+        let mut feeCost: Value = self.omit_zero(self.safe_string_k(item.clone(), "fee", &[]));
         let mut feeCurrency: Value = Value::Null;
         if !is_equal(&feeCost, &Value::Null) {
             feeCurrency = code.clone();
             fee = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.parse_number(feeCost.clone(), &[]));
                     m.insert("currency".to_string(), feeCurrency.clone());
                 m
             });
         }
-        let mut status: Value = self.safe_string(item.clone(), Value::Str("status".to_string()), &[]);
+        let mut status: Value = self.safe_string_k(item.clone(), "status", &[]);
         return self.safe_ledger_entry(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), id.clone());
         m.insert("direction".to_string(), self.parse_ledger_direction(direction.clone()));
@@ -9780,34 +10075,36 @@ impl KucoinCore {
         m.insert("fee".to_string(), fee.clone());
     m
 }), &[currency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/account-funding/get-account-ledgers-tradehf
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/account-funding/get-account-ledgers-marginhf
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/account-funding/get-account-ledgers-futures
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-account-ledger
+ * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
+ * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-tradehf
+ * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-marginhf
+ * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-futures
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-account-ledger
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {object} [get_value(&params, &Value::Str("type".to_string()))] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("hf".to_string()))] default false, when true will fetch ledger entries for the high frequency trading account
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch entries for
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] default false, when true will fetch ledger entries for the unified trading account (UTA) instead of the regular accounts endpoint
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [ledger structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ledger-entry-structure}
+ * @param {object} [params.type] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {boolean} [params.uta] default false, when true will fetch ledger entries for the unified trading account (UTA) instead of the regular accounts endpoint
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
     pub async fn fetch_ledger(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -9827,9 +10124,9 @@ impl KucoinCore {
             marginMode = ternary(is_true(&(is_equal(&marginMode, &Value::Null))), Value::Str("cross".to_string()), marginMode.clone()); // default to cross margin for UTA if margin is requested but marginMode is not specified
             requestedType = marginMode.clone();
         }
-        let mut accountsByType: Value = self.safe_dict(self.options.clone(), Value::Str("accountsByType".to_string()), &[]);
+        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[]);
         if is_true(&uta) {
-            accountsByType = self.safe_dict(self.options.clone(), Value::Str("utaAccountsByType".to_string()), &[]);
+            accountsByType = self.safe_dict_k(self.options.clone(), "utaAccountsByType", &[]);
         }
         let mut type_var: Value = Value::Null;
         type_var = self.safe_string(accountsByType.clone(), requestedType.clone(), &[requestedType.clone()]);
@@ -9851,7 +10148,7 @@ impl KucoinCore {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchLedger".to_string()), &[code.clone(), since.clone(), limit.clone(), params.clone(), maxLimit.clone()]).await;
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if !is_equal(&since, &Value::Null) {
@@ -9946,34 +10243,36 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut dataList: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut dataList: Value = self.safe_list_k(response.clone(), "data", &[]);
         if !is_equal(&dataList, &Value::Null) {
             return self.parse_ledger(dataList.clone(), &[currency.clone(), since.clone(), limit.clone()]);
         }
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
         let mut items: Value = self.safe_list2(data.clone(), Value::Str("items".to_string()), Value::Str("dataList".to_string()), &[Value::List(vec![])]);
         return self.parse_ledger(items.clone(), &[currency.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn calculate_rate_limiter_cost(&self, mut api: Value, mut method: Value, mut path: Value, mut params: Value, optional_args: &[Value]) -> Value {
         let mut config = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut versions: Value = self.safe_dict(self.options.clone(), Value::Str("versions".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut versions: Value = self.safe_dict_k(self.options.clone(), "versions", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut apiVersions: Value = self.safe_dict(versions.clone(), api.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut methodVersions: Value = self.safe_dict(apiVersions.clone(), method.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut defaultVersion: Value = self.safe_string(methodVersions.clone(), path.clone(), &[get_value(&self.options, &Value::Str("version".to_string()))]);
-        let mut version: Value = self.safe_string(params.clone(), Value::Str("version".to_string()), &[defaultVersion.clone()]);
+        let mut version: Value = self.safe_string_k(params.clone(), "version", &[defaultVersion.clone()]);
         if is_equal(&version, &Value::Str("v3".to_string())) && is_true(&(Value::Bool(in_op(&config, &Value::Str("v3".to_string()))))) {
             return get_value(&config, &Value::Str("v3".to_string()));
         }  else if is_equal(&version, &Value::Str("v2".to_string())) && is_true(&(Value::Bool(in_op(&config, &Value::Str("v2".to_string()))))) {
@@ -9981,7 +10280,9 @@ impl KucoinCore {
         }  else if is_equal(&version, &Value::Str("v1".to_string())) && is_true(&(Value::Bool(in_op(&config, &Value::Str("v1".to_string()))))) {
             return get_value(&config, &Value::Str("v1".to_string()));
         }
-        return self.safe_value(config.clone(), Value::Str("cost".to_string()), &[Value::Int(1)]);
+        return self.safe_value_k(config.clone(), "cost", &[Value::Int(1)]);
+
+    Value::Null
 }
 
     pub fn parse_borrow_rate(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -10018,9 +10319,9 @@ impl KucoinCore {
         if !is_equal(&timestampId, &Value::Null) {
             timestamp = self.parse_to_int(slice(&timestampId, &Value::Int(0), &Value::Int(13)));
         }
-        let mut currencyId: Value = self.safe_string(info.clone(), Value::Str("currency".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(info.clone(), "currency", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
         m.insert("rate".to_string(), self.safe_number_n(info.clone(), Value::List(vec![Value::Str("dailyIntRate".to_string()), Value::Str("dayRatio".to_string()), Value::Str("currentRateDaily".to_string())]), &[]));
         m.insert("period".to_string(), Value::Int(86400000));
@@ -10029,21 +10330,23 @@ impl KucoinCore {
         m.insert("info".to_string(), info.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchBorrowInterest
  * @description fetch the interest owed by the user for borrowing currency for margin trading
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/account-funding/get-account-cross-margin
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/account-funding/get-account-isolated-margin
+ * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-cross-margin
+ * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin
  * @param {string} [code] unified currency code
  * @param {string} [symbol] unified market symbol, required for isolated margin
  * @param {int} [since] the earliest time in ms to fetch borrrow interest for
  * @param {int} [limit] the maximum number of structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated' default is 'cross'
- * @returns {object[]} a list of [borrow interest structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=borrow-interest-structure}
+ * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
+ * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
     pub async fn fetch_borrow_interest(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
@@ -10051,14 +10354,14 @@ impl KucoinCore {
         let mut since = get_arg(optional_args, 2, Value::Null);
         let mut limit = get_arg(optional_args, 3, Value::Null);
         let mut params = get_arg(optional_args, 4, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchBorrowInterest".to_string()), &[params.clone(), Value::Str("cross".to_string())]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut currency: Value = Value::Null;
@@ -10144,14 +10447,16 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut assets: Value = ternary(is_true(&(is_equal(&marginMode, &Value::Str("isolated".to_string())))), self.safe_list(data.clone(), Value::Str("assets".to_string()), &[Value::List(vec![])]), self.safe_list(data.clone(), Value::Str("accounts".to_string()), &[Value::List(vec![])]));
+        let mut assets: Value = ternary(is_true(&(is_equal(&marginMode, &Value::Str("isolated".to_string())))), self.safe_list_k(data.clone(), "assets", &[Value::List(vec![])]), self.safe_list_k(data.clone(), "accounts", &[Value::List(vec![])]));
         let mut interest: Value = self.parse_borrow_interests(assets.clone(), &[market.clone()]);
         let mut filteredByCurrency: Value = self.filter_by_currency_since_limit(interest.clone(), &[code.clone(), since.clone(), limit.clone()]);
         return self.filter_by_symbol_since_limit(filteredByCurrency.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_borrow_interest(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -10204,60 +10509,62 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut marketId: Value = self.safe_string(info.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
         let mut marginMode: Value = ternary(is_true(&(is_equal(&marketId, &Value::Null))), Value::Str("cross".to_string()), Value::Str("isolated".to_string()));
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut symbol: Value = self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]);
-        let mut isolatedBase: Value = self.safe_dict(info.clone(), Value::Str("baseAsset".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+        let mut isolatedBase: Value = self.safe_dict_k(info.clone(), "baseAsset", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut amountBorrowed: Value = Value::Null;
         let mut interest: Value = Value::Null;
         let mut currencyId: Value = Value::Null;
         if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-            amountBorrowed = self.safe_number(isolatedBase.clone(), Value::Str("liabilityPrincipal".to_string()), &[]);
-            interest = self.safe_number(isolatedBase.clone(), Value::Str("liabilityInterest".to_string()), &[]);
-            currencyId = self.safe_string(isolatedBase.clone(), Value::Str("currency".to_string()), &[]);
+            amountBorrowed = self.safe_number_k(isolatedBase.clone(), "liabilityPrincipal", &[]);
+            interest = self.safe_number_k(isolatedBase.clone(), "liabilityInterest", &[]);
+            currencyId = self.safe_string_k(isolatedBase.clone(), "currency", &[]);
         }  else {
-            amountBorrowed = self.safe_number(info.clone(), Value::Str("liabilityPrincipal".to_string()), &[]);
-            interest = self.safe_number(info.clone(), Value::Str("liabilityInterest".to_string()), &[]);
-            currencyId = self.safe_string(info.clone(), Value::Str("currency".to_string()), &[]);
+            amountBorrowed = self.safe_number_k(info.clone(), "liabilityPrincipal", &[]);
+            interest = self.safe_number_k(info.clone(), "liabilityInterest", &[]);
+            currencyId = self.safe_string_k(info.clone(), "currency", &[]);
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[]));
         m.insert("interest".to_string(), interest.clone());
-        m.insert("interestRate".to_string(), self.safe_number(info.clone(), Value::Str("dailyIntRate".to_string()), &[]));
+        m.insert("interestRate".to_string(), self.safe_number_k(info.clone(), "dailyIntRate", &[]));
         m.insert("amountBorrowed".to_string(), amountBorrowed.clone());
         m.insert("marginMode".to_string(), marginMode.clone());
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchBorrowRateHistories
  * @description retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/debit/get-interest-history
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/get-interest-history
  * @param {string[]|undefined} codes list of unified currency codes, default is undefined
  * @param {int} [since] timestamp in ms of the earliest borrowRate, default is undefined
  * @param {int} [limit] max number of borrow rate prices to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated' default is 'cross'
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch entries for
- * @returns {object} a dictionary of [borrow rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=borrow-rate-structure} indexed by the market symbol
+ * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
  */
     pub async fn fetch_borrow_rate_histories(&mut self, optional_args: &[Value]) -> Value {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -10265,7 +10572,7 @@ impl KucoinCore {
         let mut marginMode: Value = self.safe_string(marginResult.clone(), Value::Int(0), &[Value::Str("cross".to_string())]);
         let mut isIsolated: Value = Value::Bool(is_equal(&marginMode, &Value::Str("isolated".to_string()))); // true-isolated, false-cross
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("isIsolated".to_string(), isIsolated.clone());
             m
         });
@@ -10297,29 +10604,31 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[]);
-        let mut rows: Value = self.safe_list(data.clone(), Value::Str("items".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+        let mut rows: Value = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
         return self.parse_borrow_rate_histories(rows.clone(), codes.clone(), since.clone(), limit.clone());
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchBorrowRateHistory
  * @description retrieves a history of a currencies borrow interest rate at specific time slots
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/debit/get-interest-history
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/get-interest-history
  * @param {string} code unified currency code
  * @param {int} [since] timestamp for the earliest borrow rate
- * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=borrow-rate-structure} to retrieve
+ * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated' default is 'cross'
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch entries for
- * @returns {object[]} an array of [borrow rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=borrow-rate-structure}
+ * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
     pub async fn fetch_borrow_rate_history(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -10328,7 +10637,7 @@ impl KucoinCore {
         let mut isIsolated: Value = Value::Bool(is_equal(&marginMode, &Value::Str("isolated".to_string()))); // true-isolated, false-cross
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("isIsolated".to_string(), isIsolated.clone());
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
@@ -10361,9 +10670,11 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[]);
-        let mut rows: Value = self.safe_list(data.clone(), Value::Str("items".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+        let mut rows: Value = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
         return self.parse_borrow_rate_history(rows.clone(), code.clone(), since.clone(), limit.clone());
+
+    Value::Null
 }
 
     pub fn parse_borrow_rate_histories(&self, mut response: Value, mut codes: Value, mut since: Value, mut limit: Value) -> Value {
@@ -10378,14 +10689,16 @@ impl KucoinCore {
         //     ]
         //
         let mut borrowRateHistories: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_901: bool = true;
+            while { if !__for_first_901 { i = add(&i, &Value::Int(1)); } __for_first_901 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut item: Value = get_value(&response, &i);
-            let mut code: Value = self.safe_currency_code(self.safe_string(item.clone(), Value::Str("currency".to_string()), &[]), &[]);
+            let mut item: Value = get_value(&response, &i);
+            let mut code: Value = self.safe_currency_code(self.safe_string_k(item.clone(), "currency", &[]), &[]);
             if is_equal(&codes, &Value::Null) || is_true(&self.in_array(code.clone(), codes.clone())) {
                 if !is_true(&(Value::Bool(in_op(&borrowRateHistories, &code)))) {
                     add_element_to_object(&mut borrowRateHistories, &code, Value::List(vec![]));
@@ -10394,39 +10707,41 @@ impl KucoinCore {
                 let mut borrowRateHistoriesCode: Value = get_value(&borrowRateHistories, &code);
                 append_to_array(&mut borrowRateHistoriesCode, borrowRateStructure.clone());
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut keys: Value = object_keys(&borrowRateHistories);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&keys)) {
+            let mut __for_first_902: bool = true;
+            while { if !__for_first_902 { i = add(&i, &Value::Int(1)); } __for_first_902 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut code: Value = get_value(&keys, &i);
             let mut code: Value = get_value(&keys, &i);
             { let __be_tmp = self.filter_by_currency_since_limit(get_value(&borrowRateHistories, &code), &[code.clone(), since.clone(), limit.clone()]); add_element_to_object(&mut borrowRateHistories, &code, __be_tmp); };
-            i = add(&i, &Value::Int(1));
         }
         }
         return borrowRateHistories;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchCrossBorrowRate
  * @description fetch the rate of interest to borrow a currency for margin trading
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-borrowing-rates-and-limits
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-borrowing-rates-and-limits
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [borrow rate structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=borrow-rate-structure}
+ * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
     pub async fn fetch_cross_borrow_rate(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
@@ -10444,33 +10759,35 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_borrow_rate(data.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#borrowCrossMargin
  * @description create a loan to borrow margin
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/debit/borrow
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/borrow
  * @param {string} code unified currency code of the currency to borrow
  * @param {float} amount the amount to borrow
  * @param {object} [params] extra parameters specific to the exchange API endpoints
- * @param {string} [get_value(&params, &Value::Str("timeInForce".to_string()))] either IOC or FOK
- * @returns {object} a [margin loan structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @param {string} [params.timeInForce] either IOC or FOK
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn borrow_cross_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("size".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
                 m.insert("timeInForce".to_string(), Value::Str("FOK".to_string()));
@@ -10489,35 +10806,37 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_margin_loan(data.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#borrowIsolatedMargin
  * @description create a loan to borrow margin
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/debit/borrow
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/borrow
  * @param {string} symbol unified market symbol, required for isolated margin
  * @param {string} code unified currency code of the currency to borrow
  * @param {float} amount the amount to borrow
  * @param {object} [params] extra parameters specific to the exchange API endpoints
- * @param {string} [get_value(&params, &Value::Str("timeInForce".to_string()))] either IOC or FOK
- * @returns {object} a [margin loan structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @param {string} [params.timeInForce] either IOC or FOK
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn borrow_isolated_margin(&mut self, mut symbol: Value, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("size".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -10538,32 +10857,34 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_margin_loan(data.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#repayCrossMargin
  * @description repay borrowed margin and interest
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/debit/repay
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/repay
  * @param {string} code unified currency code of the currency to repay
  * @param {float} amount the amount to repay
  * @param {object} [params] extra parameters specific to the exchange API endpoints
- * @returns {object} a [margin loan structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn repay_cross_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("size".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
@@ -10581,34 +10902,36 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_margin_loan(data.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#repayIsolatedMargin
  * @description repay borrowed margin and interest
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/debit/repay
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/repay
  * @param {string} symbol unified market symbol
  * @param {string} code unified currency code of the currency to repay
  * @param {float} amount the amount to repay
  * @param {object} [params] extra parameters specific to the exchange API endpoints
- * @returns {object} a [margin loan structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn repay_isolated_margin(&mut self, mut symbol: Value, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("size".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -10628,11 +10951,13 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_margin_loan(data.clone(), &[currency.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_margin_loan(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -10644,33 +10969,35 @@ impl KucoinCore {
         //     }
         //
         let mut timestamp: Value = self.milliseconds();
-        let mut currencyId: Value = self.safe_string(info.clone(), Value::Str("currency".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(info.clone(), "currency", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("id".to_string(), self.safe_string(info.clone(), Value::Str("orderNo".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), self.safe_string_k(info.clone(), "orderNo", &[]));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
-        m.insert("amount".to_string(), self.safe_number(info.clone(), Value::Str("actualSize".to_string()), &[]));
+        m.insert("amount".to_string(), self.safe_number_k(info.clone(), "actualSize", &[]));
         m.insert("symbol".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("info".to_string(), info.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchDepositWithdrawFees
  * @description fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get more in-depth info
- * @see https://get_value(&docs, &Value::Str("kucoin".to_string())).com/#get-currencies
+ * @see https://docs.kucoin.com/#get-currencies
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
     pub async fn fetch_deposit_withdraw_fees(&mut self, optional_args: &[Value]) -> Value {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -10693,36 +11020,38 @@ impl KucoinCore {
         //      },
         //  ]
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_deposit_withdraw_fees(data.clone(), &[codes.clone(), Value::Str("currency".to_string())]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/positions/get-cross-margin-leverage
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-cross-margin-leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
     pub async fn fetch_leverage(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(symbol.clone(), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if !is_equal(&marginMode, &Value::Str("cross".to_string())) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLeverage() currently supports only params[\"marginMode\"] = \"cross\"".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLeverage() currently supports only params[\"marginMode\"] = \"cross\"".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLeverage() supports contract markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLeverage() supports contract markets only".to_string()))));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -10736,38 +11065,40 @@ impl KucoinCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut parsed: Value = self.parse_leverage(data.clone(), &[market.clone()]);
         return self.extend(parsed.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), marginMode.clone());
     m
 })]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#setLeverage
  * @description set the level of leverage for a market
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/margin-trading/debit/modify-leverage // margin
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage // contract
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/modify-cross-margin-leverage-uta // margin uta
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/modify-leverage-uta // contract uta
+ * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage // margin
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage // contract
+ * @see https://www.kucoin.com/docs-new/rest/ua/modify-cross-margin-leverage-uta // margin uta
+ * @see https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta // contract uta
  * @param {int } [leverage] New leverage multiplier. Must be greater than 1 and up to two decimal places, and cannot be less than the user's current debt leverage or greater than the system's maximum leverage
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta)
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] *spot non-uta only* 'cross' or 'isolated' default is 'cross'
- * @param {string} [get_value(&params, &Value::Str("code".to_string()))] *uta margin only* the unified currency code for the margin to set the leverage for
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta)
+ * @param {string} [params.marginMode] *spot non-uta only* 'cross' or 'isolated' default is 'cross'
+ * @param {string} [params.code] *uta margin only* the unified currency code for the margin to set the leverage for
  * @returns {object} response from the exchange
  */
     pub async fn set_leverage(&mut self, mut leverage: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -10776,7 +11107,7 @@ impl KucoinCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("setLeverage".to_string()), &[Value::Null, params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&(!is_equal(&symbol, &Value::Null))) || is_true(&(is_true(&(!is_equal(&marketType, &Value::Str("spot".to_string())))) && is_true(&(!is_equal(&marketType, &Value::Str("margin".to_string())))))) {
             if is_equal(&symbol, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage requires a symbol argument for contract markets".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage requires a symbol argument for contract markets".to_string()))));
             }
             market = self.market(symbol.clone());
             if is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
@@ -10784,7 +11115,7 @@ impl KucoinCore {
             }
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("leverage".to_string(), self.number_to_string(leverage.clone()));
             m
         });
@@ -10795,22 +11126,22 @@ impl KucoinCore {
         let mut response: Value = Value::Null;
         if is_true(&uta) {
             if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unified trading account does not support isolated margin".to_string()))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unified trading account does not support isolated margin".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("accountMode".to_string()), Value::Str("unified".to_string()));
             let mut code: Value = Value::Null;
             { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("setLeverage".to_string()), Value::Str("currency".to_string()), Value::Str("code".to_string()), &[]); code = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             if is_equal(&code, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage requires a currency code in the params[\"code\"] for unified trading account".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage requires a currency code in the params[\"code\"] for unified trading account".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("currency".to_string()), self.currency_id(code.clone()));
             response = self.call_method(Value::Str("uta_private_post_account_mode_account_modify_leverage_margin_cross".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
             if is_equal(&marginMode, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage requires a marginMode parameter".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage requires a marginMode parameter".to_string()))));
             }
             if is_equal(&marginMode, &Value::Str("isolated".to_string())) && is_equal(&symbol, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage requires a symbol parameter for isolated margin".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage requires a symbol parameter for isolated margin".to_string()))));
             }
             if !is_equal(&symbol, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
@@ -10819,35 +11150,37 @@ impl KucoinCore {
             response = self.call_method(Value::Str("private_post_position_update_user_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
         return response;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#setContractLeverage
  * @description set the level of leverage for a market
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/modify-leverage-uta
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage
+ * @see https://www.kucoin.com/docs-new/rest/ua/modify-leverage-uta
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta)
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta)
  * @returns {object} response from the exchange
  */
     pub async fn set_contract_leverage(&mut self, mut leverage: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(symbol.clone(), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&(!is_equal(&marginMode, &Value::Null))) && is_true(&(!is_equal(&marginMode, &Value::Str("cross".to_string())))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setLeverage() currently supports only params[\"marginMode\"] = \"cross\" for contracts".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setLeverage() currently supports only params[\"marginMode\"] = \"cross\" for contracts".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("leverage".to_string(), to_string_val(&leverage));
             m
@@ -10867,13 +11200,13 @@ impl KucoinCore {
             //
             response = self.call_method(Value::Str("futures_private_post_change_cross_user_leverage".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut leverageNum: Value = self.safe_number(data.clone(), Value::Str("leverage".to_string()), &[]);
+        let mut leverageNum: Value = self.safe_number_k(data.clone(), "leverage", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
         m.insert("marginMode".to_string(), Value::Null);
@@ -10881,46 +11214,50 @@ impl KucoinCore {
         m.insert("shortLeverage".to_string(), leverageNum.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchFundingInterval
  * @description fetch the current funding rate interval
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-current-funding-rate
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
     pub async fn fetch_funding_interval(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.fetch_funding_rate(symbol.clone(), &[params.clone()]).await;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-current-funding-rate
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta)
- * @returns {object} a [funding rate structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta)
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
     pub async fn fetch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -10963,11 +11300,13 @@ impl KucoinCore {
             //
             response = self.call_method(Value::Str("futures_public_get_funding_rate_symbol_current".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_funding_rate(data.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_funding_rate(&self, mut data: Value, optional_args: &[Value]) -> Value {
@@ -10997,18 +11336,18 @@ impl KucoinCore {
         //         "fundingTime": 1776700800000
         //     }
         //
-        let mut fundingTimestamp: Value = self.safe_integer(data.clone(), Value::Str("fundingTime".to_string()), &[]);
-        let mut previousFundingTimestamp: Value = self.safe_integer(data.clone(), Value::Str("timePoint".to_string()), &[]);
-        let mut nextFundingTimestamp: Value = self.safe_integer(data.clone(), Value::Str("newGranularityStartTime".to_string()), &[]);
-        let mut marketId: Value = self.safe_string(data.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut fundingTimestamp: Value = self.safe_integer_k(data.clone(), "fundingTime", &[]);
+        let mut previousFundingTimestamp: Value = self.safe_integer_k(data.clone(), "timePoint", &[]);
+        let mut nextFundingTimestamp: Value = self.safe_integer_k(data.clone(), "newGranularityStartTime", &[]);
+        let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
         let mut granularity: Value = self.safe_string2(data.clone(), Value::Str("granularity".to_string()), Value::Str("currentGranularity".to_string()), &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("contract".to_string())]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("indexPrice".to_string(), Value::Null);
-        m.insert("interestRate".to_string(), self.safe_number(data.clone(), Value::Str("dailyInterestRate".to_string()), &[]));
+        m.insert("interestRate".to_string(), self.safe_number_k(data.clone(), "dailyInterestRate", &[]));
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
@@ -11024,11 +11363,13 @@ impl KucoinCore {
         m.insert("interval".to_string(), self.parse_funding_interval(granularity.clone()));
     m
 });
+
+    Value::Null
 }
 
     pub fn parse_funding_interval(&self, mut interval: Value) -> Value {
         let mut intervals: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("3600000".to_string(), Value::Str("1h".to_string()));
                 m.insert("14400000".to_string(), Value::Str("4h".to_string()));
                 m.insert("28800000".to_string(), Value::Str("8h".to_string()));
@@ -11037,41 +11378,43 @@ impl KucoinCore {
             m
         });
         return self.safe_string(intervals.clone(), interval.clone(), &[interval.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/funding-fees/get-public-funding-history
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-history-funding-rate
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-public-funding-history
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-history-funding-rate
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] not used by kucuoinfutures
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] end time in ms
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to true
- * @returns {object[]} a list of [funding rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-history-structure}
+ * @param {int} [params.until] end time in ms
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to true
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
     pub async fn fetch_funding_rate_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         let mut uta: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRateHistory".to_string()), Value::Str("uta".to_string()), &[uta.clone()]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
@@ -11103,8 +11446,8 @@ impl KucoinCore {
             //     }
             //
             let mut utaResponse: Value = self.call_method(Value::Str("uta_get_market_funding_rate_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
-            response = self.safe_dict(utaResponse.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            response = self.safe_dict_k(utaResponse.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             resultKey = Value::Str("list".to_string());
@@ -11127,6 +11470,8 @@ impl KucoinCore {
         }
         let mut result: Value = self.safe_list(response.clone(), resultKey.clone(), &[Value::List(vec![])]);
         return self.parse_funding_rate_histories(result.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_funding_rate_history(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -11145,44 +11490,46 @@ impl KucoinCore {
         //         "timepoint": 1702296000000
         //     }
         //
-        let mut marketId: Value = self.safe_string(info.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
         let mut timestamp: Value = self.safe_integer2(info.clone(), Value::Str("ts".to_string()), Value::Str("timepoint".to_string()), &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-        m.insert("fundingRate".to_string(), self.safe_number(info.clone(), Value::Str("fundingRate".to_string()), &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(info.clone(), "fundingRate", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/funding-fees/get-private-funding-history
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-private-funding-history
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object} a [funding history structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-history-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
     pub async fn fetch_funding_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut uta: Value = self.is_uta_enabled(&[]).await;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingHistory".to_string()), Value::Str("uta".to_string()), &[uta.clone()]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
@@ -11190,7 +11537,7 @@ impl KucoinCore {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
         }  else if !is_true(&uta) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingHistory() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingHistory() requires a symbol argument".to_string()))));
         }
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startAt".to_string()), since.clone());
@@ -11222,8 +11569,8 @@ impl KucoinCore {
             //             ]
             //         }
             //     }
-            let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[]);
-            dataList = self.safe_list(data.clone(), Value::Str("items".to_string()), &[Value::List(vec![])]);
+            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+            dataList = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
         }  else {
             if !is_equal(&limit, &Value::Null) {
                 // * Since is ignored if limit is defined
@@ -11252,59 +11599,62 @@ impl KucoinCore {
             //        }
             //    }
             //
-            let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[]);
-            dataList = self.safe_list(data.clone(), Value::Str("dataList".to_string()), &[Value::List(vec![])]);
+            let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
+            dataList = self.safe_list_k(data.clone(), "dataList", &[Value::List(vec![])]);
         }
         let mut fees: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&dataList)) {
+            let mut __for_first_903: bool = true;
+            while { if !__for_first_903 { i = add(&i, &Value::Int(1)); } __for_first_903 = false; is_less_than(&i, &get_array_length(&dataList)) } {
+            let mut listItem: Value = get_value(&dataList, &i);
             let mut listItem: Value = get_value(&dataList, &i);
             let mut timestamp: Value = self.safe_integer2(listItem.clone(), Value::Str("timePoint".to_string()), Value::Str("settlementTime".to_string()), &[]);
-            let mut marketId: Value = self.safe_string(listItem.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut marketId: Value = self.safe_string_k(listItem.clone(), "symbol", &[]);
             append_to_array(&mut fees, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), listItem.clone());
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-                    m.insert("code".to_string(), self.safe_currency_code(self.safe_string(listItem.clone(), Value::Str("settleCurrency".to_string()), &[]), &[]));
+                    m.insert("code".to_string(), self.safe_currency_code(self.safe_string_k(listItem.clone(), "settleCurrency", &[]), &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-                    m.insert("id".to_string(), self.safe_number(listItem.clone(), Value::Str("id".to_string()), &[]));
+                    m.insert("id".to_string(), self.safe_number_k(listItem.clone(), "id", &[]));
                     m.insert("amount".to_string(), self.safe_number2(listItem.clone(), Value::Str("funding".to_string()), Value::Str("fundingFee".to_string()), &[]));
-                    m.insert("fundingRate".to_string(), self.safe_number(listItem.clone(), Value::Str("fundingRate".to_string()), &[]));
-                    m.insert("markPrice".to_string(), self.safe_number(listItem.clone(), Value::Str("markPrice".to_string()), &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(listItem.clone(), "fundingRate", &[]));
+                    m.insert("markPrice".to_string(), self.safe_number_k(listItem.clone(), "markPrice", &[]));
                     m.insert("positionQty".to_string(), self.safe_number2(listItem.clone(), Value::Str("positionQty".to_string()), Value::Str("size".to_string()), &[]));
                     m.insert("positionCost".to_string(), self.safe_number2(listItem.clone(), Value::Str("positionCost".to_string()), Value::Str("positionValue".to_string()), &[]));
                 m
             }));
-            i = add(&i, &Value::Int(1));
         }
         }
         return fees;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchPosition
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/positions/get-position-details
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-position-list-uta
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-details
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta
  * @description fetch data on an open position
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @param {integer} [get_value(&params, &Value::Str("pageSize".to_string()))] *uta only* page size for the uta endpoint (default 50, max 200)
- * @param {integer} [get_value(&params, &Value::Str("pageNumber".to_string()))] *uta only* page number for the uta endpoint (default 1)
- * @returns {object} a [position structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {integer} [params.pageSize] *uta only* page size for the uta endpoint (default 50, max 200)
+ * @param {integer} [params.pageNumber] *uta only* page number for the uta endpoint (default 1)
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -11338,9 +11688,9 @@ impl KucoinCore {
             //         ]
             //     }
             //
-            let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+            let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
             position = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         }  else {
@@ -11389,31 +11739,33 @@ impl KucoinCore {
             //        }
             //    }
             //
-            position = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            position = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         }
         return self.parse_position(position.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchPositions
  * @description fetch all open positions
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/positions/get-position-list
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-position-list-uta
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-position-list-uta
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @param {integer} [get_value(&params, &Value::Str("pageSize".to_string()))] *uta only* page size for the uta endpoint (default 50, max 200)
- * @param {integer} [get_value(&params, &Value::Str("pageNumber".to_string()))] *uta only* page number for the uta endpoint (default 1)
- * @returns {object[]} a list of [position structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {integer} [params.pageSize] *uta only* page size for the uta endpoint (default 50, max 200)
+ * @param {integer} [params.pageNumber] *uta only* page number for the uta endpoint (default 1)
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_positions(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -11422,7 +11774,7 @@ impl KucoinCore {
         let mut response: Value = Value::Null;
         if is_true(&uta) {
             response = self.call_method(Value::Str("uta_private_get_account_mode_position_open_list".to_string()), &[self.extend(Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("accountMode".to_string(), Value::Str("unified".to_string()));
                     m.insert("limit".to_string(), Value::Int(200));
                 m
@@ -11430,31 +11782,33 @@ impl KucoinCore {
         }  else {
             response = self.call_method(Value::Str("futures_private_get_positions".to_string()), &[params.clone()]).await;
         }
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
         return self.parse_positions(data.clone(), &[symbols.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchPositionsHistory
  * @description fetches historical positions
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/positions/get-positions-history
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-position-history-uta
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-positions-history
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-position-history-uta
  * @param {string[]} [symbols] list of unified market symbols
  * @param {int} [since] the earliest time in ms to fetch position history for
  * @param {int} [limit] the maximum number of entries to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] closing end time
- * @param {int} [get_value(&params, &Value::Str("pageId".to_string()))] page id
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true for the unified trading account (uta), defaults to false
- * @returns {object[]} a list of [position structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @param {int} [params.until] closing end time
+ * @param {int} [params.pageId] page id
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_positions_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -11462,7 +11816,7 @@ impl KucoinCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchPositionsHistory".to_string()), Value::Str("uta".to_string()), &[uta.clone()]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         symbols = self.market_symbols(&[symbols.clone()]);
@@ -11517,7 +11871,7 @@ impl KucoinCore {
             if !is_equal(&since, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("from".to_string()), since.clone());
             }
-            let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+            let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
             if !is_equal(&until, &Value::Null) {
                 params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
                 add_element_to_object(&mut request, &Value::Str("to".to_string()), until.clone());
@@ -11562,9 +11916,11 @@ impl KucoinCore {
             //
             response = self.call_method(Value::Str("futures_private_get_history_positions".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[]);
-        let mut items: Value = self.safe_list(data.clone(), Value::Str("items".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+        let mut items: Value = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
         return self.parse_positions(items.clone(), &[symbols.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
@@ -11675,9 +12031,9 @@ impl KucoinCore {
         //         "creationTime": 1774468501294000000
         //     }
         //
-        let mut symbol: Value = self.safe_string(position.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut symbol: Value = self.safe_string_k(position.clone(), "symbol", &[]);
         market = self.safe_market(&[symbol.clone(), market.clone()]);
-        let mut timestamp: Value = self.safe_integer(position.clone(), Value::Str("currentTimestamp".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(position.clone(), "currentTimestamp", &[]);
         if is_equal(&timestamp, &Value::Null) {
             timestamp = self.safe_integer_product(position.clone(), Value::Str("creationTime".to_string()), Value::Float(0.000001), &[]);
         }
@@ -11704,21 +12060,21 @@ impl KucoinCore {
         let mut initialMarginPercentage: Value = crate::precise::Precise::stringDiv(&initialMargin, &notional);
         // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
         let mut unrealisedPnl: Value = self.safe_string2(position.clone(), Value::Str("unrealisedPnl".to_string()), Value::Str("unrealizedPnL".to_string()), &[]);
-        let mut crossMode: Value = self.safe_value(position.clone(), Value::Str("crossMode".to_string()), &[]);
+        let mut crossMode: Value = self.safe_value_k(position.clone(), "crossMode", &[]);
         // currently crossMode is always set to false and only isolated positions are supported
         let mut marginMode: Value = self.safe_string_lower(position.clone(), Value::Str("marginMode".to_string()), &[]);
         if !is_equal(&crossMode, &Value::Null) {
             marginMode = ternary(is_true(&crossMode), Value::Str("cross".to_string()), Value::Str("isolated".to_string()));
         }
-        let mut lastUpdateTimestamp: Value = self.safe_integer(position.clone(), Value::Str("closeTime".to_string()), &[]);
+        let mut lastUpdateTimestamp: Value = self.safe_integer_k(position.clone(), "closeTime", &[]);
         if is_equal(&lastUpdateTimestamp, &Value::Null) {
             lastUpdateTimestamp = self.safe_integer_product(position.clone(), Value::Str("closingTime".to_string()), Value::Float(0.000001), &[]);
         }
         return self.safe_position(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_n(position.clone(), Value::List(vec![Value::Str("id".to_string()), Value::Str("positionId".to_string()), Value::Str("closeId".to_string())]), &[]));
-        m.insert("symbol".to_string(), self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp.clone());
@@ -11731,13 +12087,13 @@ impl KucoinCore {
         m.insert("leverage".to_string(), self.safe_number2(position.clone(), Value::Str("realLeverage".to_string()), Value::Str("leverage".to_string()), &[]));
         m.insert("unrealizedPnl".to_string(), self.parse_number(unrealisedPnl.clone(), &[]));
         m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&size), &[]));
-        m.insert("contractSize".to_string(), self.safe_value(market.clone(), Value::Str("contractSize".to_string()), &[]));
+        m.insert("contractSize".to_string(), self.safe_value_k(market.clone(), "contractSize", &[]));
         m.insert("realizedPnl".to_string(), self.safe_number_n(position.clone(), Value::List(vec![Value::Str("realisedPnl".to_string()), Value::Str("pnl".to_string()), Value::Str("realizedPnL".to_string())]), &[]));
         m.insert("marginRatio".to_string(), Value::Null);
-        m.insert("liquidationPrice".to_string(), self.safe_number(position.clone(), Value::Str("liquidationPrice".to_string()), &[]));
-        m.insert("markPrice".to_string(), self.safe_number(position.clone(), Value::Str("markPrice".to_string()), &[]));
-        m.insert("lastPrice".to_string(), self.safe_number(position.clone(), Value::Str("closePrice".to_string()), &[]));
-        m.insert("collateral".to_string(), self.safe_number(position.clone(), Value::Str("maintMargin".to_string()), &[]));
+        m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidationPrice", &[]));
+        m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "markPrice", &[]));
+        m.insert("lastPrice".to_string(), self.safe_number_k(position.clone(), "closePrice", &[]));
+        m.insert("collateral".to_string(), self.safe_number_k(position.clone(), "maintMargin", &[]));
         m.insert("marginMode".to_string(), marginMode.clone());
         m.insert("side".to_string(), side.clone());
         m.insert("percentage".to_string(), Value::Null);
@@ -11745,27 +12101,29 @@ impl KucoinCore {
         m.insert("takeProfitPrice".to_string(), Value::Null);
     m
 }));
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#cancelOrders
  * @description cancel multiple orders for contract markets
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/3470241e0
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/batch-cancel-order-by-id
+ * @see https://www.kucoin.com/docs-new/3470241e0
+ * @see https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-id
  * @param {string[]} ids order ids
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string[]} [get_value(&params, &Value::Str("clientOrderIds".to_string()))] client order ids
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true to use the unified trading account (uta) endpoint, defaults to false for the contract orders
- * @param {string} [get_value(&params, &Value::Str("accountMode".to_string()))] *for uta endpoint only* 'unified' or 'classic' (default is 'unified')
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] *for margin orders only* 'cross' or 'isolated' (unified accountMode supports cross margin only)
- * @returns {object} an list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string[]} [params.clientOrderIds] client order ids
+ * @param {boolean} [params.uta] set to true to use the unified trading account (uta) endpoint, defaults to false for the contract orders
+ * @param {string} [params.accountMode] *for uta endpoint only* 'unified' or 'classic' (default is 'unified')
+ * @param {string} [params.marginMode] *for margin orders only* 'cross' or 'isolated' (unified accountMode supports cross margin only)
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -11780,7 +12138,7 @@ impl KucoinCore {
                 uta = Value::Bool(true); // spot market orders can only be cancelled via the uta endpoint
             }
         }  else if is_true(&uta) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a symbol argument for uta endpoint".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a symbol argument for uta endpoint".to_string()))));
         }
         let mut ordersRequests: Value = Value::List(vec![]);
         let mut clientOrderIds: Value = self.safe_list2(params.clone(), Value::Str("clientOrderIds".to_string()), Value::Str("clientOids".to_string()), &[Value::List(vec![])]);
@@ -11788,27 +12146,29 @@ impl KucoinCore {
         let mut useClientorderId: Value = Value::Bool(false);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&clientOrderIds)) {
+            let mut __for_first_904: bool = true;
+            while { if !__for_first_904 { i = add(&i, &Value::Int(1)); } __for_first_904 = false; is_less_than(&i, &get_array_length(&clientOrderIds)) } {
             useClientorderId = Value::Bool(true);
             if is_equal(&symbol, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a symbol argument when cancelling by clientOrderIds".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a symbol argument when cancelling by clientOrderIds".to_string()))));
             }
             append_to_array(&mut ordersRequests, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                     m.insert("clientOid".to_string(), self.safe_string(clientOrderIds.clone(), i.clone(), &[]));
                 m
             }));
-            i = add(&i, &Value::Int(1));
         }
         }
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&ids)) {
+            let mut __for_first_905: bool = true;
+            while { if !__for_first_905 { i = add(&i, &Value::Int(1)); } __for_first_905 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut orderId: Value = get_value(&ids, &i);
             let mut orderId: Value = get_value(&ids, &i);
             if is_true(&uta) {
                 append_to_array(&mut ordersRequests, Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("orderId".to_string(), orderId.clone());
                         m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                     m
@@ -11816,11 +12176,10 @@ impl KucoinCore {
             }  else {
                 append_to_array(&mut ordersRequests, get_value(&ids, &i));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Value = Value::Null;
@@ -11836,11 +12195,11 @@ impl KucoinCore {
             add_element_to_object(&mut request, &Value::Str("tradeType".to_string()), tradeType.clone());
             add_element_to_object(&mut request, &Value::Str("cancelOrderList".to_string()), ordersRequests.clone());
             response = self.call_method(Value::Str("uta_private_post_account_mode_order_cancel_batch".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
-            let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            orders = self.safe_list(data.clone(), Value::Str("items".to_string()), &[Value::List(vec![])]);
+            orders = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
         }  else {
             let mut requestKey: Value = ternary(is_true(&useClientorderId), Value::Str("clientOidsList".to_string()), Value::Str("orderIdsList".to_string()));
             add_element_to_object(&mut request, &requestKey, ordersRequests.clone());
@@ -11865,32 +12224,34 @@ impl KucoinCore {
             //       ]
             //   }
             //
-            orders = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+            orders = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         }
         return self.parse_orders(orders.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#addMargin
  * @description add margin
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/positions/add-isolated-margin
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/add-isolated-margin
  * @param {string} symbol unified market symbol
  * @param {float} amount amount of margin to add
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("positionSide".to_string()))] *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
- * @returns {object} a [margin structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-structure}
+ * @param {string} [params.positionSide] *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
     pub async fn add_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
-        let mut uuid: Value = self.uuid();
+        let mut uuid: Value = self.uuid(&[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("margin".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
                 m.insert("bizNo".to_string(), uuid.clone());
@@ -11946,13 +12307,15 @@ impl KucoinCore {
         //        "msg":"Position does not exist"
         //    }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
         return self.extend(self.parse_margin_modification(data.clone(), &[market.clone()]), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
         m.insert("direction".to_string(), Value::Str("in".to_string()));
     m
 })]);
+
+    Value::Null
 }
 
     pub fn parse_margin_modification(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -12002,15 +12365,15 @@ impl KucoinCore {
         //        "msg":"Position does not exist"
         //    }
         //
-        let mut id: Value = self.safe_string(info.clone(), Value::Str("id".to_string()), &[]);
+        let mut id: Value = self.safe_string_k(info.clone(), "id", &[]);
         market = self.safe_market(&[id.clone(), market.clone()]);
-        let mut currencyId: Value = self.safe_string(info.clone(), Value::Str("settleCurrency".to_string()), &[]);
-        let mut crossMode: Value = self.safe_value(info.clone(), Value::Str("crossMode".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(info.clone(), "settleCurrency", &[]);
+        let mut crossMode: Value = self.safe_value_k(info.clone(), "crossMode", &[]);
         let mut mode: Value = ternary(is_true(&crossMode), Value::Str("cross".to_string()), Value::Str("isolated".to_string()));
-        let mut marketId: Value = self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer(info.clone(), Value::Str("currentTimestamp".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+        let mut timestamp: Value = self.safe_integer_k(info.clone(), "currentTimestamp", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
         m.insert("type".to_string(), Value::Null);
@@ -12023,26 +12386,28 @@ impl KucoinCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchMarginMode
  * @description fetches the margin mode of a trading pair
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/positions/get-margin-mode
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-margin-mode
  * @param {string} symbol unified symbol of the market to fetch the margin mode for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin mode structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-mode-structure}
+ * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
     pub async fn fetch_margin_mode(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -12056,31 +12421,35 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_margin_mode(data.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_margin_mode(&self, mut marginMode: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut marginType: Value = self.safe_string(marginMode.clone(), Value::Str("marginMode".to_string()), &[]);
+        let mut marginType: Value = self.safe_string_k(marginMode.clone(), "marginMode", &[]);
         marginType = ternary(is_true(&(is_equal(&marginType, &Value::Str("ISOLATED".to_string())))), Value::Str("isolated".to_string()), Value::Str("cross".to_string()));
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), marginMode.clone());
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
         m.insert("marginMode".to_string(), marginType.clone());
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#setMarginMode
  * @description set margin mode to 'cross' or 'isolated'
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/positions/switch-margin-mode
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-margin-mode
  * @param {string} marginMode 'cross' or 'isolated'
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -12089,20 +12458,20 @@ impl KucoinCore {
     pub async fn set_margin_mode(&mut self, mut marginMode: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setMarginMode() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setMarginMode() requires a symbol argument".to_string()))));
         }
         self.check_required_argument(Value::Str("setMarginMode".to_string()), marginMode.clone(), Value::Str("marginMode".to_string()), &[Value::List(vec![Value::Str("cross".to_string()), Value::Str("isolated".to_string())])]);
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setMarginMode() supports contract markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setMarginMode() supports contract markets only".to_string()))));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("marginMode".to_string(), to_upper(&marginMode));
             m
@@ -12117,18 +12486,20 @@ impl KucoinCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_margin_mode(data.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#setPositionMode
  * @description set hedged to true or false for a market
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/positions/switch-position-mode
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-position-mode
  * @param {bool} hedged set to true to use two way position
  * @param {string} [symbol] not used by bybit setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -12137,25 +12508,27 @@ impl KucoinCore {
     pub async fn set_position_mode(&mut self, mut hedged: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut posMode: Value = ternary(is_true(&hedged), Value::Str("1".to_string()), Value::Str("0".to_string()));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("positionMode".to_string(), posMode.clone());
             m
         });
         let mut response: Value = self.call_method(Value::Str("futures_private_post_position_switch_position_mode".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         return response;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchPositionMode
  * @description fetchs the position mode, hedged or one way
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/positions/get-position-mode
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-mode
  * @param {string} [symbol] unified symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
@@ -12163,51 +12536,53 @@ impl KucoinCore {
     pub async fn fetch_position_mode(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut response: Value = self.call_method(Value::Str("futures_private_get_position_get_position_mode".to_string()), &[params.clone()]).await;
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut positionMode: Value = self.safe_integer(data.clone(), Value::Str("positionMode".to_string()), &[]);
+        let mut positionMode: Value = self.safe_integer_k(data.clone(), "positionMode", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
         m.insert("hedged".to_string(), Value::Bool(is_equal(&positionMode, &Value::Int(1))));
     m
 });
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#closePosition
  * @description closes open positions for a market
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/add-order
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/orders/add-order-test
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} side not used by kucoin closePositions
  * @param {object} [params] extra parameters specific to the okx api endpoint
- * @param {string} [get_value(&params, &Value::Str("clientOrderId".to_string()))] client order id of the order
- * @returns {object[]} [A list of position structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @param {string} [params.clientOrderId] client order id of the order
+ * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn close_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut side = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
-        let mut clientOrderId: Value = self.safe_string(params.clone(), Value::Str("clientOrderId".to_string()), &[]);
-        let mut testOrder: Value = self.safe_bool(params.clone(), Value::Str("test".to_string()), &[Value::Bool(false)]);
+        let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
+        let mut testOrder: Value = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("test".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         if is_equal(&clientOrderId, &Value::Null) {
             clientOrderId = self.number_to_string(self.nonce());
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("closeOrder".to_string(), Value::Bool(true));
                 m.insert("clientOid".to_string(), clientOrderId.clone());
@@ -12221,27 +12596,29 @@ impl KucoinCore {
             response = self.call_method(Value::Str("futures_private_post_orders".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }
         return self.parse_order(response.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchMarketLeverageTiers
  * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/positions/get-isolated-margin-risk-limit
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-isolated-margin-risk-limit
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("uta".to_string()))] set to true to fetch leverage tiers for unified trading account instead of futures account (default is false)
- * @returns {object} a [leverage tiers structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=leverage-tiers-structure}
+ * @param {boolean} [params.uta] set to true to fetch leverage tiers for unified trading account instead of futures account (default is false)
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
     pub async fn fetch_market_leverage_tiers(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchMarketLeverageTiers() supports contract markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchMarketLeverageTiers() supports contract markets only".to_string()))));
         }
         let mut uta: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMarketLeverageTiers".to_string()), Value::Str("uta".to_string()), &[uta.clone()]); uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -12250,7 +12627,7 @@ impl KucoinCore {
             return self.safe_list(result.clone(), symbol.clone(), &[Value::List(vec![])]);
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -12272,8 +12649,10 @@ impl KucoinCore {
         //        ]
         //    }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_market_leverage_tiers(data.clone(), &[market.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_market_leverage_tiers(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -12311,57 +12690,59 @@ impl KucoinCore {
         let mut tiers: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&info)) {
+            let mut __for_first_906: bool = true;
+            while { if !__for_first_906 { i = add(&i, &Value::Int(1)); } __for_first_906 = false; is_less_than(&i, &get_array_length(&info)) } {
             let mut tier: Value = self.safe_dict(info.clone(), i.clone(), &[]);
-            let mut marketId: Value = self.safe_string(tier.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut marketId: Value = self.safe_string_k(tier.clone(), "symbol", &[]);
             market = self.safe_market(&[marketId.clone(), market.clone()]);
             append_to_array(&mut tiers, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.safe_number2(tier.clone(), Value::Str("level".to_string()), Value::Str("tier".to_string()), &[]));
                     m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
                     m.insert("currency".to_string(), get_value(&market, &Value::Str("base".to_string())));
                     m.insert("minNotional".to_string(), self.safe_number2(tier.clone(), Value::Str("minRiskLimit".to_string()), Value::Str("minSize".to_string()), &[]));
                     m.insert("maxNotional".to_string(), self.safe_number2(tier.clone(), Value::Str("maxRiskLimit".to_string()), Value::Str("maxSize".to_string()), &[]));
                     m.insert("maintenanceMarginRate".to_string(), self.safe_number2(tier.clone(), Value::Str("maintainMargin".to_string()), Value::Str("maintainMarginRate".to_string()), &[]));
-                    m.insert("maxLeverage".to_string(), self.safe_number(tier.clone(), Value::Str("maxLeverage".to_string()), &[]));
+                    m.insert("maxLeverage".to_string(), self.safe_number_k(tier.clone(), "maxLeverage", &[]));
                     m.insert("info".to_string(), tier.clone());
                 m
             }));
-            i = add(&i, &Value::Int(1));
         }
         }
         return tiers;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchLeverageTiers
  * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-position-tiers
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-position-tiers
  * @param {string[]} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [leverage tiers structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=leverage-tiers-structure}, indexed by market symbols
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
     pub async fn fetch_leverage_tiers(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         if is_equal(&symbols, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchLeverageTiers() requires a symbols argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchLeverageTiers() requires a symbols argument".to_string()))));
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Str("swap".to_string()), Value::Bool(false), Value::Bool(true)]);
         let mut marginMode: Value = Value::Str("cross".to_string());
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchLeverageTiers".to_string()), &[params.clone(), marginMode.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         marginMode = to_upper(&marginMode);
         if !is_equal(&marginMode, &Value::Str("CROSS".to_string())) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchLeverageTiers() supports cross margin only".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchLeverageTiers() supports cross margin only".to_string()))));
         }
         let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("tradeType".to_string(), Value::Str("FUTURES".to_string()));
                 m.insert("marginMode".to_string(), marginMode.clone());
                 m.insert("data".to_string(), Value::Str("RISK_LIMIT".to_string()));
@@ -12395,48 +12776,50 @@ impl KucoinCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut tiers: Value = self.parse_market_leverage_tiers(data.clone(), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&tiers)) {
+            let mut __for_first_907: bool = true;
+            while { if !__for_first_907 { i = add(&i, &Value::Int(1)); } __for_first_907 = false; is_less_than(&i, &get_array_length(&tiers)) } {
             let mut tier: Value = self.safe_dict(tiers.clone(), i.clone(), &[]);
-            let mut symbol: Value = self.safe_string(tier.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut symbol: Value = self.safe_string_k(tier.clone(), "symbol", &[]);
             if !is_equal(&symbol, &Value::Null) {
                 if !is_true(&(Value::Bool(in_op(&result, &symbol)))) {
                     add_element_to_object(&mut result, &symbol, Value::List(vec![]));
                 }
                 append_to_array(&mut get_value(&result, &symbol), tier);
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchOpenInterests
  * @description Retrieves the open interest for a list of symbols
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-futures-open-interset
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset
  * @param {string[]} [symbols] Unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an open interest structure{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
     pub async fn fetch_open_interests(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if !is_equal(&symbols, &Value::Null) {
@@ -12461,8 +12844,10 @@ impl KucoinCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_open_interests(data.clone(), &[symbols.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_open_interest(&self, mut interest: Value, optional_args: &[Value]) -> Value {
@@ -12474,45 +12859,47 @@ impl KucoinCore {
         //         "ts": 1774007467050
         //     }
         //
-        let mut marketId: Value = self.safe_string(interest.clone(), Value::Str("symbol".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(interest.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut timestamp: Value = self.safe_integer(interest.clone(), Value::Str("ts".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(interest.clone(), "ts", &[]);
         return self.safe_open_interest(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[]));
-        m.insert("openInterestAmount".to_string(), self.safe_number(interest.clone(), Value::Str("openInterest".to_string()), &[]));
+        m.insert("openInterestAmount".to_string(), self.safe_number_k(interest.clone(), "openInterest", &[]));
         m.insert("openInterestValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("info".to_string(), interest.clone());
     m
 }), &[market.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchOpenInterestHistory
  * @description Retrieves the open interest history of a currency
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-futures-open-interset
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} timeframe '5m', '15m', '30m', '1h', '4h' or '1d'
  * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
  * @param {int} [limit] default 30，max 200
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch entries for
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} an array of [open interest structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=open-interest-structure}
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
     pub async fn fetch_open_interest_history(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("5m".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut timeframes: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("5m".to_string(), Value::Str("5min".to_string()));
                 m.insert("15m".to_string(), Value::Str("15min".to_string()));
                 m.insert("30m".to_string(), Value::Str("30min".to_string()));
@@ -12529,7 +12916,7 @@ impl KucoinCore {
         });
         let mut interval: Value = self.safe_string(timeframes.clone(), timeframe.clone(), &[]);
         if is_equal(&interval, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOpenInterestHistory() invalid timeframe, supported are 5m, 15m, 30m, 1h, 4h, 1d".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOpenInterestHistory() invalid timeframe, supported are 5m, 15m, 30m, 1h, 4h, 1d".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
@@ -12540,7 +12927,7 @@ impl KucoinCore {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOpenInterestHistory".to_string()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), params.clone(), maxLimit.clone()]).await;
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("interval".to_string(), interval.clone());
             m
@@ -12553,65 +12940,69 @@ impl KucoinCore {
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endAt".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = self.call_method(Value::Str("uta_get_market_open_interest".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
         return self.parse_open_interests_history(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#isUTAEnabled
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/ua/get-account-mode
+ * @see https://www.kucoin.com/docs-new/rest/ua/get-account-mode
  * @description returns true or false so the user can check if unified account is enabled
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {boolean} true if unified account is enabled, false otherwise
  */
     pub async fn is_uta_enabled(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut uta: Value = self.safe_bool(self.options.clone(), Value::Str("uta".to_string()), &[]);
+        let mut uta: Value = self.safe_bool_k(self.options.clone(), "uta", &[]);
         if is_equal(&uta, &Value::Null) {
             let mut response: Value = self.call_method(Value::Str("uta_private_get_account_mode".to_string()), &[params.clone()]).await;
-            let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut accountMode: Value = self.safe_string(data.clone(), Value::Str("selfAccountMode".to_string()), &[]);
+            let mut accountMode: Value = self.safe_string_k(data.clone(), "selfAccountMode", &[]);
             uta = Value::Bool(is_equal(&accountMode, &Value::Str("UNIFIED".to_string())));
-            add_element_to_object(&mut self.options.clone(), &Value::Str("uta".to_string()), uta.clone());
+            add_element_to_object(&mut self.options, &Value::Str("uta".to_string()), uta.clone());
         }
-        return self.safe_bool(self.options.clone(), Value::Str("uta".to_string()), &[Value::Bool(false)]);
+        return self.safe_bool_k(self.options.clone(), "uta", &[Value::Bool(false)]);
+
+    Value::Null
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
         let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         //
-        // the v2 URL is https://openapi-get_value(&v2, &Value::Str("kucoin".to_string())).com/api/v1/endpoint
+        // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑
         //                                ↑                 ↑
         //
-        let mut versions: Value = self.safe_dict(self.options.clone(), Value::Str("versions".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut versions: Value = self.safe_dict_k(self.options.clone(), "versions", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut apiVersions: Value = self.safe_dict(versions.clone(), api.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut methodVersions: Value = self.safe_dict(apiVersions.clone(), method.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut defaultVersion: Value = self.safe_string(methodVersions.clone(), path.clone(), &[get_value(&self.options, &Value::Str("version".to_string()))]);
-        let mut version: Value = self.safe_string(params.clone(), Value::Str("version".to_string()), &[defaultVersion.clone()]);
+        let mut version: Value = self.safe_string_k(params.clone(), "version", &[defaultVersion.clone()]);
         params = self.omit(params.clone(), Value::Str("version".to_string()), &[]);
         let mut endpoint: Value = add(&add(&add(&Value::Str("/api/".to_string()), &version), &Value::Str("/".to_string())), &self.implode_params(path.clone(), params.clone()));
         if is_equal(&api, &Value::Str("webExchange".to_string())) {
@@ -12630,11 +13021,11 @@ impl KucoinCore {
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut endpart: Value = Value::Str("".to_string());
         headers = ternary(is_true(&(!is_equal(&headers, &Value::Null))), headers.clone(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &api);
-        let mut tradeType: Value = self.safe_string(query.clone(), Value::Str("tradeType".to_string()), &[]);
+        let mut tradeType: Value = self.safe_string_k(query.clone(), "tradeType", &[]);
         if !is_true(&self.is_empty(query.clone())) {
             if is_true(&(is_true(&(is_equal(&method, &Value::Str("GET".to_string())))) || is_true(&(is_equal(&method, &Value::Str("DELETE".to_string())))))) && is_true(&(!is_equal(&path, &Value::Str("orders/multi-cancel".to_string())))) {
                 endpoint = add(&endpoint, &add(&Value::Str("?".to_string()), &self.rawencode(query.clone(), &[])));
@@ -12656,13 +13047,13 @@ impl KucoinCore {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = to_string_val(&self.nonce());
             headers = self.extend(Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("KC-API-KEY-VERSION".to_string(), Value::Str("2".to_string()));
                     m.insert("KC-API-KEY".to_string(), self.apiKey.clone());
                     m.insert("KC-API-TIMESTAMP".to_string(), timestamp.clone());
                 m
             }), &[headers.clone()]);
-            let mut apiKeyVersion: Value = self.safe_string(headers.clone(), Value::Str("KC-API-KEY-VERSION".to_string()), &[]);
+            let mut apiKeyVersion: Value = self.safe_string_k(headers.clone(), "KC-API-KEY-VERSION", &[]);
             if is_equal(&apiKeyVersion, &Value::Str("2".to_string())) {
                 let mut passphrase: Value = self.hmac(self.encode(self.password.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[Value::Str("base64".to_string())]);
                 add_element_to_object(&mut headers, &Value::Str("KC-API-PASSPHRASE".to_string()), passphrase.clone());
@@ -12672,14 +13063,14 @@ impl KucoinCore {
             let mut payload: Value = add(&add(&add(&timestamp, &method), &endpoint), &endpart);
             let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[Value::Str("base64".to_string())]);
             add_element_to_object(&mut headers, &Value::Str("KC-API-SIGN".to_string()), signature.clone());
-            let mut partner: Value = self.safe_dict(self.options.clone(), Value::Str("partner".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut partner: Value = self.safe_dict_k(self.options.clone(), "partner", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut isUtaFuturePrivate: Value = Value::Bool(is_true(&isUtaPrivate) && is_true(&(is_equal(&tradeType, &Value::Str("FUTURES".to_string())))));
             let mut isFuturePartner: Value = Value::Bool(is_true(&isFuturePrivate) || is_true(&isUtaFuturePrivate));
-            partner = ternary(is_true(&isFuturePartner), self.safe_value(partner.clone(), Value::Str("future".to_string()), &[partner.clone()]), self.safe_value(partner.clone(), Value::Str("spot".to_string()), &[partner.clone()]));
-            let mut partnerId: Value = self.safe_string(partner.clone(), Value::Str("id".to_string()), &[]);
+            partner = ternary(is_true(&isFuturePartner), self.safe_value_k(partner.clone(), "future", &[partner.clone()]), self.safe_value_k(partner.clone(), "spot", &[partner.clone()]));
+            let mut partnerId: Value = self.safe_string_k(partner.clone(), "id", &[]);
             let mut partnerSecret: Value = self.safe_string2(partner.clone(), Value::Str("secret".to_string()), Value::Str("key".to_string()), &[]);
             if is_true(&(!is_equal(&partnerId, &Value::Null))) && is_true(&(!is_equal(&partnerSecret, &Value::Null))) {
                 let mut partnerPayload: Value = add(&add(&timestamp, &partnerId), &self.apiKey);
@@ -12689,20 +13080,22 @@ impl KucoinCore {
                 add_element_to_object(&mut headers, &Value::Str("KC-API-PARTNER-VERIFY".to_string()), Value::Str("true".to_string()));
             }
             if is_true(&isBroker) {
-                let mut brokerName: Value = self.safe_string(partner.clone(), Value::Str("name".to_string()), &[]);
+                let mut brokerName: Value = self.safe_string_k(partner.clone(), "name", &[]);
                 if !is_equal(&brokerName, &Value::Null) {
                     add_element_to_object(&mut headers, &Value::Str("KC-BROKER-NAME".to_string()), brokerName.clone());
                 }
             }
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.clone());
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), body.clone());
         m.insert("headers".to_string(), headers.clone());
     m
 });
+
+    Value::Null
 }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
@@ -12716,37 +13109,39 @@ impl KucoinCore {
         // good
         //     { code: '200000', data: { ... }}
         //
-        let mut errorCode: Value = self.safe_string(response.clone(), Value::Str("code".to_string()), &[]);
+        let mut errorCode: Value = self.safe_string_k(response.clone(), "code", &[]);
         let mut message: Value = self.safe_string2(response.clone(), Value::Str("msg".to_string()), Value::Str("data".to_string()), &[Value::Str("".to_string())]);
         let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
         self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), message.clone(), feedback.clone());
         self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), errorCode.clone(), feedback.clone());
         self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), body.clone(), feedback.clone());
         if !is_equal(&errorCode, &Value::Str("200000".to_string())) && !is_equal(&errorCode, &Value::Str("200".to_string())) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(feedback));
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoin#fetchTransfers
  * @description fetch a history of internal transfers made on an account
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
+ * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
  * @param {string} [code] unified currency code of the currency transferred
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of transfer structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch transfers for
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transfer structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transfer-structure}
+ * @param {int} [params.until] the latest time in ms to fetch transfers for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
     pub async fn fetch_transfers(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -12756,11 +13151,11 @@ impl KucoinCore {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".to_string()), &[code.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("bizType".to_string(), Value::Str("TRANSFER".to_string()));
             m
         });
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if !is_equal(&until, &Value::Null) {
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("endAt".to_string()), until.clone());
@@ -12805,27 +13200,29 @@ impl KucoinCore {
         //     }
         // }
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Str("data".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut items: Value = self.safe_list(data.clone(), Value::Str("items".to_string()), &[Value::List(vec![])]);
+        let mut items: Value = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
         return self.parse_transfers(items.clone(), &[currency.clone(), since.clone(), limit.clone()]);
+
+    Value::Null
 }
 
 /*
  * @method
  * @name kucoinfutures#fetchPositionsADLRank
  * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
- * @see https://get_value(&www, &Value::Str("kucoin".to_string())).com/docs-new/rest/futures-trading/positions/get-position-list
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} an array of [auto de leverage structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=auto-de-leverage-structure}
+ * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
  */
     pub async fn fetch_positions_adl_rank(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -12877,8 +13274,10 @@ impl KucoinCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_adl_ranks(data.clone(), &[symbols.clone()]);
+
+    Value::Null
 }
 
     pub fn parse_adl_rank(&self, mut info: Value, optional_args: &[Value]) -> Value {
@@ -12926,11 +13325,11 @@ impl KucoinCore {
         //         "tax": 0
         //     }
         //
-        let mut marketId: Value = self.safe_string(info.clone(), Value::Str("symbol".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer(info.clone(), Value::Str("openingTimestamp".to_string()), &[]);
-        let mut percentage: Value = self.safe_string(info.clone(), Value::Str("delevPercentage".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
+        let mut timestamp: Value = self.safe_integer_k(info.clone(), "openingTimestamp", &[]);
+        let mut percentage: Value = self.safe_string_k(info.clone(), "delevPercentage", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("contract".to_string())]));
         m.insert("rank".to_string(), Value::Null);
@@ -12940,5 +13339,7 @@ impl KucoinCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
 });
+
+    Value::Null
 }
 }

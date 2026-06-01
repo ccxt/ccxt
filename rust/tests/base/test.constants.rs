@@ -5,16 +5,17 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
 pub fn testConstants() {
     // assert all
-    assert!(ccxt::runtime::is_true(&(is_equal(&Value::Int(ccxt::runtime::ROUND), &Value::Int(1)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&Value::Int(ccxt::runtime::TRUNCATE), &Value::Int(0)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&Value::Int(ccxt::runtime::ROUND_UP), &Value::Int(2)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&Value::Int(ccxt::runtime::ROUND_DOWN), &Value::Int(3)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&Value::Int(ccxt::runtime::DECIMAL_PLACES), &Value::Int(2)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&Value::Int(ccxt::runtime::SIGNIFICANT_DIGITS), &Value::Int(3)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&Value::Int(ccxt::runtime::TICK_SIZE), &Value::Int(4)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&Value::Int(ccxt::runtime::NO_PADDING), &Value::Int(5)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&Value::Int(ccxt::runtime::PAD_WITH_ZERO), &Value::Int(6)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&Value::Int(ccxt::runtime::ROUND), &Value::Int(1))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&Value::Int(ccxt::runtime::TRUNCATE), &Value::Int(0))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&Value::Int(ccxt::runtime::ROUND_UP), &Value::Int(2))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&Value::Int(ccxt::runtime::ROUND_DOWN), &Value::Int(3))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&Value::Int(ccxt::runtime::DECIMAL_PLACES), &Value::Int(2))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&Value::Int(ccxt::runtime::SIGNIFICANT_DIGITS), &Value::Int(3))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&Value::Int(ccxt::runtime::TICK_SIZE), &Value::Int(4))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&Value::Int(ccxt::runtime::NO_PADDING), &Value::Int(5))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&Value::Int(ccxt::runtime::PAD_WITH_ZERO), &Value::Int(6))))));
 }

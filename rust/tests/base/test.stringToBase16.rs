@@ -5,17 +5,18 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
 pub fn testStringToBase16() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
     let mut result1: Value = exchange.string_to_base16(Value::Str("hello".to_string()));
     let mut expected1: Value = Value::Str("0x68656c6c6f".to_string());
-    assert!(ccxt::runtime::is_true(&(is_equal(&result1, &expected1))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&result1, &expected1)))));
     let mut result2: Value = exchange.string_to_base16(Value::Str("world 1!@#$%^&*()".to_string()));
     let mut expected2: Value = Value::Str("0x776f726c64203121402324255e262a2829".to_string());
-    assert!(ccxt::runtime::is_true(&(is_equal(&result2, &expected2))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&result2, &expected2)))));
 }

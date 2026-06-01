@@ -21,3 +21,12 @@ path = "src/exchanges_smoke.rs"
 [[bin]]
 name = "cli"
 path = "src/cli.rs"
+
+[[bin]]
+name = "bench_parse_markets"
+path = "src/bench_parse_markets.rs"
+
+# Keep debug symbols in release so `sample`/Instruments can attribute
+# hot frames. Negligible perf impact, larger binary.
+[profile.release]
+debug = true

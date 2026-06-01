@@ -367,6 +367,26 @@ fn live_lookup_get() -> Option<LiveLookupFn> {
     }
 }
 
+/// Hot-path `get_value` variant that takes the key as a `&str` directly,
+/// skipping a `Value::Str` heap allocation. Used by the `safe_*_k`
+/// fast-path readers the transpiler routes literal-key calls through.
+#[inline]
+pub fn get_value_k(obj: &Value, key: &str) -> Value {
+    if let Value::Dict(m) = obj {
+        if let Some(v) = m.get(key) {
+            if !matches!(v, Value::Null) {
+                return v.clone();
+            }
+        }
+        if let Some(id_val) = m.get("__live_id") {
+            if let (Value::Str(id), Some(cb)) = (id_val, live_lookup_get()) {
+                if let Some(v) = cb(id, key) { return v; }
+            }
+        }
+    }
+    Value::Null
+}
+
 /// Access a value in a map by string key, or array by integer key encoded as
 /// a `Value::Str` / `Value::Int`. Returns `Value::Null` on miss.
 pub fn get_value(obj: &Value, key: &Value) -> Value {

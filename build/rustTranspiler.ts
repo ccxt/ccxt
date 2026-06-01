@@ -2280,6 +2280,28 @@ class RustTranspilerBuilder {
      * is flattened into the vec — `dispatch(&ex, "m", vec![a, b])`
      * rather than `vec![a, b, &[a, b]]`.
      */
+    /**
+     * Hot-path rewrite: when a `safe_*` reader is called with a literal
+     * string key wrapped in `Value::Str("KEY".to_string())`, route it to
+     * a `_k` variant that takes `&str` directly. Saves two String
+     * allocations per call (the key Value + the key_str re-extraction
+     * inside `safe_value`) — meaningful in parsers that loop over
+     * thousands of items, where every parsed field is a `safe_*` call.
+     */
+    rewriteLiteralKeySafeCalls(content: string): string {
+        const variants = ['value', 'string', 'integer', 'float', 'number', 'bool', 'dict', 'list'];
+        const variantRe = variants.join('|');
+        const re = new RegExp(
+            'self\\.safe_(' + variantRe + ')\\(' +
+            '([^()]*(?:\\([^()]*\\)[^()]*)*?), ' +
+            'Value::Str\\("([^"\\\\]*)"\\.to_string\\(\\)\\), ' +
+            '(&\\[[^\\]]*\\])\\)',
+            'g',
+        );
+        return content.replace(re, (_, name, obj, key, tail) =>
+            `self.safe_${name}_k(${obj}, "${key}", ${tail})`);
+    }
+
     rewriteExchangeMethodCalls(content: string): string {
         const LIVE_METHODS = new Set([
             'cancel_all_orders', 'cancel_order', 'cancel_orders',
@@ -4269,6 +4291,7 @@ impl std::ops::DerefMut for ${coreName} {
             try {
                 result = this.transpiler.transpileRustByPath(tsPath);
                 rustContent = this.createRustExchange(exchangeName, result, ws);
+                rustContent = this.rewriteLiteralKeySafeCalls(rustContent);
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -4576,7 +4599,8 @@ impl std::ops::DerefMut for ${coreName} {
             // serialization in URL/JSON payloads).
             .replace(/\bstd::collections::HashMap\b/g, 'indexmap::IndexMap');
 
-        fs.writeFileSync(BASE_METHODS_FILE, file);
+        const finalFile = this.rewriteLiteralKeySafeCalls(file);
+        fs.writeFileSync(BASE_METHODS_FILE, finalFile);
         log.green('Transpiled base methods to', (BASE_METHODS_FILE as any).yellow);
     }
 

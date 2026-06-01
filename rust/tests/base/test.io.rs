@@ -5,10 +5,11 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
 pub fn testIo() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleex".to_string()));
         m
     }));
@@ -16,11 +17,11 @@ pub fn testIo() {
     let mut fileName: Value = add(&add(&Value::Str("ccxt-test-io-".to_string()), &to_string_val(&ms)), &Value::Str(".ccxtfile".to_string()));
     // upper tmp dir
     let mut tempDir: Value = exchange.get_temp_dir();
-    assert!(ccxt::runtime::is_true(&(!is_equal(&tempDir, &Value::Null) && !is_equal(&tempDir, &Value::Str("".to_string())))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&tempDir, &Value::Null) && !is_equal(&tempDir, &Value::Str("".to_string()))))));
     let mut filePath: Value = add(&tempDir, &fileName); // '../../../../../../../../../../../../tmp/' + fileName;
     let mut fileContent: Value = Value::Str("hello world".to_string());
     assert!(ccxt::runtime::is_true(&(exchange.write_file(filePath.clone(), fileContent.clone()))));
     assert!(ccxt::runtime::is_true(&(exchange.exists_file(filePath.clone()))));
     let mut readContent: Value = exchange.read_file(filePath.clone());
-    assert!(ccxt::runtime::is_true(&(is_equal(&readContent, &fileContent))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&readContent, &fileContent)))));
 }

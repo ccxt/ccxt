@@ -9,57 +9,57 @@ use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbol
 
 fn helperTestInitThrottler() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
             m.insert("rateLimit".to_string(), Value::Float(10.8));
         m
     }));
-    // todo: assert!(ccxt::runtime::is_true(&(exchange.prop(&&Value::Str("MAX_VALUE".to_string())) !== undefined)));
-    let mut tokenBucket: Value = crate::tests_support::shared::exchange_prop(&exchange, Value::Str("tokenBucket".to_string())); // trick for uncamelcase transpilation
-    assert!(ccxt::runtime::is_true(&(!is_equal(&tokenBucket, &Value::Null))));
-    let mut rateLimit: Value = crate::tests_support::shared::exchange_prop(&exchange, Value::Str("rateLimit".to_string()));
-    assert!(ccxt::runtime::is_true(&(is_equal(&rateLimit, &Value::Float(10.8)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&get_value(&tokenBucket, &Value::Str("delay".to_string())), &Value::Float(0.001)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&get_value(&tokenBucket, &Value::Str("refillRate".to_string())), &divide(&Value::Int(1), &rateLimit)))));
+    // todo: assert!(ccxt::runtime::is_true(&(exchange.MAX_VALUE !== undefined)));
+    let mut tokenBucket: Value = crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("tokenBucket".to_string())); // trick for uncamelcase transpilation
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&tokenBucket, &Value::Null)))));
+    let mut rateLimit: Value = crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("rateLimit".to_string()));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&rateLimit, &Value::Float(10.8))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&tokenBucket, &Value::Str("delay".to_string())), &Value::Float(0.001))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&tokenBucket, &Value::Str("refillRate".to_string())), &divide(&Value::Int(1), &rateLimit))))));
     // fix decimal/integer issues across langs
     assert!(ccxt::runtime::is_true(&(exchange.in_array(get_value(&tokenBucket, &Value::Str("capacity".to_string())), Value::List(vec![Value::Int(1), Value::Int(1)])))));
     let mut cost: Value = exchange.parse_to_numeric(exchange.safeString2(tokenBucket.clone(), Value::Str("cost".to_string()), Value::Str("defaultCost".to_string()), &[])); // python sync, todo fix
     assert!(ccxt::runtime::is_true(&(exchange.in_array(cost.clone(), Value::List(vec![Value::Int(1), Value::Int(1)])))));
-    assert!(ccxt::runtime::is_true(&(!is_true(&(Value::Bool(in_op(&tokenBucket, &Value::Str("maxCapacity".to_string()))))) || is_true(&exchange.in_array(get_value(&tokenBucket, &Value::Str("maxCapacity".to_string())), Value::List(vec![Value::Int(1000), Value::Int(1000)]))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(Value::Bool(in_op(&tokenBucket, &Value::Str("maxCapacity".to_string()))))) || is_true(&exchange.in_array(get_value(&tokenBucket, &Value::Str("maxCapacity".to_string())), Value::List(vec![Value::Int(1000), Value::Int(1000)])))))));
 }
 fn helperTestSandboxState(mut exchange: ccxt::exchange::Exchange, mut expectEnabled: Value) {
-    assert!(ccxt::runtime::is_true(&(!is_equal(&exchange.prop(&&Value::Str("urls".to_string())), &Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&exchange.prop(&&Value::Str("urls".to_string())), &Value::Null)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&exchange.prop(&&Value::Str("urls".to_string())), &Value::Str("test".to_string()))))));
-    let mut isSandboxModeEnabled: Value = crate::tests_support::shared::exchange_prop(&exchange, Value::Str("isSandboxModeEnabled".to_string()));
+    let mut isSandboxModeEnabled: Value = crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("isSandboxModeEnabled".to_string()));
     if is_true(&expectEnabled) {
-        assert!(ccxt::runtime::is_true(&(isSandboxModeEnabled)));
-        assert!(ccxt::runtime::is_true(&(is_equal(&get_value(&get_value(&exchange.prop(&&Value::Str("urls".to_string())), &Value::Str("api".to_string())), &Value::Str("public".to_string())), &Value::Str("https://testnet.org".to_string())))));
-        assert!(ccxt::runtime::is_true(&(is_equal(&get_value(&get_value(&exchange.prop(&&Value::Str("urls".to_string())), &Value::Str("apiBackup".to_string())), &Value::Str("public".to_string())), &Value::Str("https://example.com".to_string())))));
+        assert!(ccxt::runtime::is_true(&(isSandboxModeEnabled.clone())));
+        assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&exchange.prop(&&Value::Str("urls".to_string())), &Value::Str("api".to_string())), &Value::Str("public".to_string())), &Value::Str("https://testnet.org".to_string()))))));
+        assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&exchange.prop(&&Value::Str("urls".to_string())), &Value::Str("apiBackup".to_string())), &Value::Str("public".to_string())), &Value::Str("https://example.com".to_string()))))));
     }  else {
-        assert!(ccxt::runtime::is_true(&(!is_true(&isSandboxModeEnabled))));
-        assert!(ccxt::runtime::is_true(&(is_equal(&get_value(&get_value(&exchange.prop(&&Value::Str("urls".to_string())), &Value::Str("api".to_string())), &Value::Str("public".to_string())), &Value::Str("https://example.com".to_string())))));
-        assert!(ccxt::runtime::is_true(&(is_equal(&get_value(&get_value(&exchange.prop(&&Value::Str("urls".to_string())), &Value::Str("test".to_string())), &Value::Str("public".to_string())), &Value::Str("https://testnet.org".to_string())))));
+        assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&isSandboxModeEnabled)))));
+        assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&exchange.prop(&&Value::Str("urls".to_string())), &Value::Str("api".to_string())), &Value::Str("public".to_string())), &Value::Str("https://example.com".to_string()))))));
+        assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&exchange.prop(&&Value::Str("urls".to_string())), &Value::Str("test".to_string())), &Value::Str("public".to_string())), &Value::Str("https://testnet.org".to_string()))))));
     }
 }
 fn helperTestInitSandbox() {
     // todo: sandbox for real exchanges
     let mut opts: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
             m.insert("options".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sandbox".to_string(), Value::Bool(false));
     m
 }));
             m.insert("urls".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("api".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Str("https://example.com".to_string()));
     m
 }));
         m.insert("test".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Str("https://testnet.org".to_string()));
     m
 }));
@@ -86,7 +86,7 @@ fn helperTestInitSandbox() {
 fn helperTestInitMarket() {
     // ############# markets ############# //
     let mut sampleMarket: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("BtcUsd".to_string()));
             m.insert("symbol".to_string(), Value::Str("BTC/USD".to_string()));
             m.insert("base".to_string(), Value::Str("BTC".to_string()));
@@ -98,82 +98,61 @@ fn helperTestInitMarket() {
         m
     });
     let mut exchange2 = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
             m.insert("markets".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("BTC/USD".to_string(), sampleMarket.clone());
     m
 }));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(!is_equal(&get_value(&exchange2.prop(&&Value::Str("markets".to_string())), &Value::Str("BTC/USD".to_string())), &Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&get_value(&exchange2.prop(&&Value::Str("markets".to_string())), &Value::Str("BTC/USD".to_string())), &Value::Null)))));
 }
 fn helperTestProperties() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
         m
     }));
     //
     // userAgents
     //
     let mut keys: Value = Value::List(vec![Value::Str("chrome".to_string()), Value::Str("chrome39".to_string()), Value::Str("chrome100".to_string())]);
-    assert!(ccxt::runtime::is_true(&(!is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("userAgents".to_string())), &Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("userAgents".to_string())), &Value::Null)))));
     {
                 let mut i: Value = Value::Int(0);
-        while is_less_than(&i, &get_array_length(&keys)) {
+        let mut __for_first_1168: bool = true;
+        while { if !__for_first_1168 { i = add(&i, &Value::Int(1)); } __for_first_1168 = false; is_less_than(&i, &get_array_length(&keys)) } {
         let mut key: Value = get_value(&keys, &i);
-        let mut userAgent: Value = get_value(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("userAgents".to_string())), &key);
-        assert!(ccxt::runtime::is_true(&(!is_equal(&userAgent, &Value::Null))));
-        i = add(&i, &Value::Int(1));
+        let mut userAgent: Value = get_value(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("userAgents".to_string())), &key);
+        assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&userAgent, &Value::Null)))));
     }
     }
     //
     // options
     //
-    assert!(ccxt::runtime::is_true(&(!is_equal(&exchange.prop(&&Value::Str("options".to_string())), &Value::Null))));
-    let mut defaultNetworkCodeReplacements: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
-            m.insert("ETH".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("ERC20".to_string(), Value::Str("ETH".to_string()));
-    m
-}));
-            m.insert("TRX".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("TRC20".to_string(), Value::Str("TRX".to_string()));
-    m
-}));
-            m.insert("CRO".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("CRC20".to_string(), Value::Str("CRONOS".to_string()));
-    m
-}));
-            m.insert("BRC20".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("BRC20".to_string(), Value::Str("BTC".to_string()));
-    m
-}));
-        m
-    });
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
-        let mut m = std::collections::HashMap::new();
-        m
-    }), Value::Str("options".to_string()), get_value(&exchange.prop(&&Value::Str("options".to_string())), &Value::Str("defaultNetworkCodeReplacements".to_string())), defaultNetworkCodeReplacements.clone());
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&exchange.prop(&&Value::Str("options".to_string())), &Value::Null)))));
+    // const defaultNetworkCodeReplacements = [
+    //     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
+    //     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
+    //     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
+    //     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
+    // ];
+    // testSharedMethods.assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
     //
     // credentials
     //
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("apiKey".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("secret".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("uid".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("login".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("password".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("twofa".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("privateKey".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("walletAddress".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("token".to_string())), &Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("apiKey".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("secret".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("uid".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("login".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("password".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("twofa".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("privateKey".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("walletAddress".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("token".to_string())), &Value::Null)))));
     let mut requiredCredentials: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("apiKey".to_string(), Value::Bool(true));
             m.insert("secret".to_string(), Value::Bool(true));
             m.insert("uid".to_string(), Value::Bool(false));
@@ -186,107 +165,107 @@ fn helperTestProperties() {
             m.insert("token".to_string(), Value::Bool(false));
         m
     });
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
-        let mut m = std::collections::HashMap::new();
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }), Value::Str("requiredCredentials".to_string()), crate::tests_support::shared::exchange_prop(&exchange, Value::Str("requiredCredentials".to_string())), requiredCredentials.clone());
+    }).clone(), Value::Str("requiredCredentials".to_string()).clone(), crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("requiredCredentials".to_string())).clone(), requiredCredentials.clone()]);
     //
     // proxies
     //
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("proxy".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("proxyUrl".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("proxy_url".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("proxyUrlCallback".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("proxy_url_callback".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("httpProxy".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("http_proxy".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("httpProxyCallback".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("http_proxy_callback".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("httpsProxy".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("https_proxy".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("httpsProxyCallback".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("https_proxy_callback".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("socksProxy".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("socks_proxy".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("socksProxyCallback".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("socks_proxy_callback".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("wsProxy".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("ws_proxy".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("wssProxy".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("wss_proxy".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("wsSocksProxy".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("ws_socks_proxy".to_string())), &Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("proxy".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("proxyUrl".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("proxy_url".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("proxyUrlCallback".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("proxy_url_callback".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("httpProxy".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("http_proxy".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("httpProxyCallback".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("http_proxy_callback".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("httpsProxy".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("https_proxy".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("httpsProxyCallback".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("https_proxy_callback".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("socksProxy".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("socks_proxy".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("socksProxyCallback".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("socks_proxy_callback".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("wsProxy".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("ws_proxy".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("wssProxy".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("wss_proxy".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("wsSocksProxy".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("ws_socks_proxy".to_string())), &Value::Null)))));
     //
     // request-response
     //
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("lastRestRequestTimestamp".to_string())), &Value::Int(0)))));
-    // assert!(ccxt::runtime::is_true(&(exchange.prop(&&Value::Str("enableLastJsonResponse".to_string())) === false)));
-    // assert!(ccxt::runtime::is_true(&(exchange.prop(&&Value::Str("enableLastHttpResponse".to_string())) === true)));
-    // assert!(ccxt::runtime::is_true(&(exchange.prop(&&Value::Str("enableLastResponseHeaders".to_string())) === true)));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("last_http_response".to_string())), &Value::Null))));
-    // assert!(ccxt::runtime::is_true(&(exchange.prop(&&Value::Str("last_json_response".to_string())) === undefined)));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("last_response_headers".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("last_request_headers".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("last_request_body".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("last_request_url".to_string())), &Value::Null))));
-    // assert!(ccxt::runtime::is_true(&(exchange.prop(&&Value::Str("last_request_path".to_string())) === undefined)));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("returnResponseHeaders".to_string())), &Value::Bool(false)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("lastRestRequestTimestamp".to_string())), &Value::Int(0))))));
+    // assert!(ccxt::runtime::is_true(&(exchange.enableLastJsonResponse === false)));
+    // assert!(ccxt::runtime::is_true(&(exchange.enableLastHttpResponse === true)));
+    // assert!(ccxt::runtime::is_true(&(exchange.enableLastResponseHeaders === true)));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("last_http_response".to_string())), &Value::Null)))));
+    // assert!(ccxt::runtime::is_true(&(exchange.last_json_response === undefined)));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("last_response_headers".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("last_request_headers".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("last_request_body".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("last_request_url".to_string())), &Value::Null)))));
+    // assert!(ccxt::runtime::is_true(&(exchange.last_request_path === undefined)));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("returnResponseHeaders".to_string())), &Value::Bool(false))))));
     //
     // common props
     //
     // @SKIP_START_GO
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("id".to_string())), &add(&Value::Str("Exch".to_string()), &Value::Str("ange".to_string()))))));
-    assert!(ccxt::runtime::is_true(&(!is_equal(&exchange.prop(&&Value::Str("has".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("api".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("features".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_greater_than_or_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("minFundingAddressLength".to_string())), &Value::Int(1)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("isSandboxModeEnabled".to_string())), &Value::Bool(false)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("enableRateLimit".to_string())), &Value::Bool(true)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("rateLimiterAlgorithm".to_string())), &Value::Str("leakyBucket".to_string())))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("rateLimit".to_string())), &Value::Int(2000)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("certified".to_string())), &Value::Bool(false)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("pro".to_string())), &Value::Bool(false)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("alias".to_string())), &Value::Bool(false)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("id".to_string())), &add(&Value::Str("Exch".to_string()), &Value::Str("ange".to_string())))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&exchange.prop(&&Value::Str("has".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("api".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("features".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than_or_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("minFundingAddressLength".to_string())), &Value::Int(1))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("isSandboxModeEnabled".to_string())), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("enableRateLimit".to_string())), &Value::Bool(true))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("rateLimiterAlgorithm".to_string())), &Value::Str("leakyBucket".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("rateLimit".to_string())), &Value::Int(2000))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("certified".to_string())), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("pro".to_string())), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("alias".to_string())), &Value::Bool(false))))));
     let mut httpExceptionKeys: Value = Value::List(vec![Value::Str("400".to_string()), Value::Str("401".to_string()), Value::Str("403".to_string()), Value::Str("404".to_string()), Value::Str("405".to_string()), Value::Str("407".to_string()), Value::Str("408".to_string()), Value::Str("409".to_string()), Value::Str("410".to_string()), Value::Str("418".to_string()), Value::Str("422".to_string()), Value::Str("429".to_string()), Value::Str("451".to_string()), Value::Str("500".to_string()), Value::Str("501".to_string()), Value::Str("502".to_string()), Value::Str("503".to_string()), Value::Str("504".to_string()), Value::Str("511".to_string()), Value::Str("520".to_string()), Value::Str("521".to_string()), Value::Str("522".to_string()), Value::Str("525".to_string()), Value::Str("526".to_string()), Value::Str("530".to_string())]);
     // php errors with below, bcz integer key cast
-    // get_value(&testSharedMethods, &Value::Str("assertDeepEqual".to_string())) (exchange, {}, 'httpExceptionKeys', Object.keys (get_value(&testSharedMethods, &Value::Str("exchangeProp".to_string())) (exchange, 'httpExceptions')), httpExceptionKeys); // todo: add better deepAssert with error classes
-    assert!(ccxt::runtime::is_true(&(is_equal(&get_array_length(&(object_keys(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("httpExceptions".to_string()))))), &get_array_length(&httpExceptionKeys)))));
+    // testSharedMethods.assertDeepEqual (exchange, {}, 'httpExceptionKeys', Object.keys (testSharedMethods.exchangeProp (exchange, 'httpExceptions')), httpExceptionKeys); // todo: add better deepAssert with error classes
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&(object_keys(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("httpExceptions".to_string()))))), &get_array_length(&httpExceptionKeys))))));
     let mut limits: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("leverage".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
             m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
             m.insert("price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
             m.insert("cost".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m
     });
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
-        let mut m = std::collections::HashMap::new();
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }), Value::Str("limits".to_string()), exchange.prop(&&Value::Str("limits".to_string())), limits.clone());
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("rollingWindowSize".to_string())), &Value::Int(60000)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("countries".to_string())), &Value::Null))));
+    }).clone(), Value::Str("limits".to_string()).clone(), exchange.prop(&&Value::Str("limits".to_string())).clone(), limits.clone()]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("rollingWindowSize".to_string())), &Value::Int(60000))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("countries".to_string())), &Value::Null)))));
     let mut urls: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("logo".to_string(), Value::Null);
             m.insert("api".to_string(), Value::Null);
             m.insert("test".to_string(), Value::Null);
@@ -297,30 +276,30 @@ fn helperTestProperties() {
             m.insert("referral".to_string(), Value::Null);
         m
     });
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
-        let mut m = std::collections::HashMap::new();
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }), Value::Str("urls".to_string()), exchange.prop(&&Value::Str("urls".to_string())), urls.clone());
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("precision".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("hostname".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("precisionMode".to_string())), &Value::Null) || is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("precisionMode".to_string())), &Value::Int(4)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("paddingMode".to_string())), &Value::Null) || is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("paddingMode".to_string())), &Value::Int(5)))));
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }).clone(), Value::Str("urls".to_string()).clone(), exchange.prop(&&Value::Str("urls".to_string())).clone(), urls.clone()]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("precision".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("hostname".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("precisionMode".to_string())), &Value::Null) || is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("precisionMode".to_string())), &Value::Int(4))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("paddingMode".to_string())), &Value::Null) || is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("paddingMode".to_string())), &Value::Int(5))))));
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }), Value::Str("headers".to_string()), exchange.prop(&&Value::Str("headers".to_string())), Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }).clone(), Value::Str("headers".to_string()).clone(), exchange.prop(&&Value::Str("headers".to_string())).clone(), Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }));
-    // assert!(ccxt::runtime::is_true(&(exchange.prop(&&Value::Str("origin".to_string())) === '*')));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("substituteCommonCurrencyCodes".to_string())), &Value::Bool(true)))));
-    // assert!(ccxt::runtime::is_true(&(get_value(&testSharedMethods, &Value::Str("exchangeProp".to_string())) (exchange, 'quoteJsonNumbers') === true)));
-    // assert!(ccxt::runtime::is_true(&(get_value(&testSharedMethods, &Value::Str("exchangeProp".to_string())) (exchange, 'handleContentTypeApplicationZip') === false)));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("reduceFees".to_string())), &Value::Bool(true)))));
+    }).clone()]);
+    // assert!(ccxt::runtime::is_true(&(exchange.origin === '*')));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("substituteCommonCurrencyCodes".to_string())), &Value::Bool(true))))));
+    // assert!(ccxt::runtime::is_true(&(testSharedMethods.exchangeProp (exchange, 'quoteJsonNumbers') === true)));
+    // assert!(ccxt::runtime::is_true(&(testSharedMethods.exchangeProp (exchange, 'handleContentTypeApplicationZip') === false)));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("reduceFees".to_string())), &Value::Bool(true))))));
     let mut fees: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("trading".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("tierBased".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("taker".to_string(), Value::Null);
@@ -328,27 +307,27 @@ fn helperTestProperties() {
     m
 }));
             m.insert("funding".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("tierBased".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
     m
 }));
         m
     });
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
-        let mut m = std::collections::HashMap::new();
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }), Value::Str("fees".to_string()), exchange.prop(&&Value::Str("fees".to_string())), fees.clone());
+    }).clone(), Value::Str("fees".to_string()).clone(), exchange.prop(&&Value::Str("fees".to_string())).clone(), fees.clone()]);
     let mut status: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("status".to_string(), Value::Str("ok".to_string()));
             m.insert("updated".to_string(), Value::Null);
             m.insert("eta".to_string(), Value::Null);
@@ -356,111 +335,111 @@ fn helperTestProperties() {
             m.insert("info".to_string(), Value::Null);
         m
     });
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
-        let mut m = std::collections::HashMap::new();
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }), Value::Str("status".to_string()), exchange.prop(&&Value::Str("status".to_string())), status.clone());
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("timeout".to_string())), &Value::Int(10000)))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("verbose".to_string())), &Value::Bool(false)))));
-    // assert!(ccxt::runtime::is_true(&(get_value(&testSharedMethods, &Value::Str("exchangeProp".to_string())) (exchange, 'newUpdates') === true))); // todo WS
-    // assert!(ccxt::runtime::is_true(&(exchange.prop(&&Value::Str("requiresEddsa".to_string())) === false)));
-    assert!(ccxt::runtime::is_true(&(!is_true(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("reloadingMarkets".to_string()))))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("marketsLoading".to_string())), &Value::Null))));
+    }).clone(), Value::Str("status".to_string()).clone(), exchange.prop(&&Value::Str("status".to_string())).clone(), status.clone()]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("timeout".to_string())), &Value::Int(10000))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("verbose".to_string())), &Value::Bool(false))))));
+    // assert!(ccxt::runtime::is_true(&(testSharedMethods.exchangeProp (exchange, 'newUpdates') === true))); // todo WS
+    // assert!(ccxt::runtime::is_true(&(exchange.requiresEddsa === false)));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("reloadingMarkets".to_string())))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("marketsLoading".to_string())), &Value::Null)))));
     // undefined or false
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("version".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("name".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("exceptions".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("timeframes".to_string())), &Value::Null))));
-    // get_value(&testSharedMethods, &Value::Str("assertDeepEqual".to_string())) (exchange, {}, 'clients', get_value(&testSharedMethods, &Value::Str("exchangeProp".to_string())) (exchange, 'clients'), {}); // todo WS
-    // get_value(&testSharedMethods, &Value::Str("assertDeepEqual".to_string())) (exchange, {}, 'streaming', get_value(&testSharedMethods, &Value::Str("exchangeProp".to_string())) (exchange, 'streaming'), {}); // todo WS
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("version".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("name".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("exceptions".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("timeframes".to_string())), &Value::Null)))));
+    // testSharedMethods.assertDeepEqual (exchange, {}, 'clients', testSharedMethods.exchangeProp (exchange, 'clients'), {}); // todo WS
+    // testSharedMethods.assertDeepEqual (exchange, {}, 'streaming', testSharedMethods.exchangeProp (exchange, 'streaming'), {}); // todo WS
     //
     // instance dynamic cache
     //
     // todo: remove initialization from GO
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
-        let mut m = std::collections::HashMap::new();
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }), Value::Str("balance".to_string()), exchange.prop(&&Value::Str("balance".to_string())), Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }).clone(), Value::Str("balance".to_string()).clone(), exchange.prop(&&Value::Str("balance".to_string())).clone(), Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }));
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }), Value::Str("bidsasks".to_string()), exchange.prop(&&Value::Str("bidsasks".to_string())), Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }).clone(), Value::Str("bidsasks".to_string()).clone(), exchange.prop(&&Value::Str("bidsasks".to_string())).clone(), Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }));
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }), Value::Str("orderbooks".to_string()), exchange.prop(&&Value::Str("orderbooks".to_string())), Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }).clone(), Value::Str("orderbooks".to_string()).clone(), exchange.prop(&&Value::Str("orderbooks".to_string())).clone(), Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }));
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }), Value::Str("tickers".to_string()), exchange.prop(&&Value::Str("tickers".to_string())), Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }).clone(), Value::Str("tickers".to_string()).clone(), exchange.prop(&&Value::Str("tickers".to_string())).clone(), Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("liquidations".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("orders".to_string())), &Value::Null))));
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }).clone()]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("liquidations".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("orders".to_string())), &Value::Null)))));
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }), Value::Str("trades".to_string()), exchange.prop(&&Value::Str("trades".to_string())), Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }).clone(), Value::Str("trades".to_string()).clone(), exchange.prop(&&Value::Str("trades".to_string())).clone(), Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }));
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }), Value::Str("transactions".to_string()), exchange.prop(&&Value::Str("transactions".to_string())), Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }).clone(), Value::Str("transactions".to_string()).clone(), exchange.prop(&&Value::Str("transactions".to_string())).clone(), Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }));
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }), Value::Str("ohlcvs".to_string()), exchange.prop(&&Value::Str("ohlcvs".to_string())), Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }).clone(), Value::Str("ohlcvs".to_string()).clone(), exchange.prop(&&Value::Str("ohlcvs".to_string())).clone(), Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("myLiquidations".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("myTrades".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("positions".to_string())), &Value::Null))));
+    }).clone()]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("myLiquidations".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("myTrades".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("positions".to_string())), &Value::Null)))));
     //
     // common props
     //
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("markets".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("symbols".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("markets_by_id".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("ids".to_string())), &Value::Null))));
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
-        let mut m = std::collections::HashMap::new();
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("markets".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("symbols".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("markets_by_id".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("ids".to_string())), &Value::Null)))));
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }), Value::Str("currencies".to_string()), exchange.prop(&&Value::Str("currencies".to_string())), Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }).clone(), Value::Str("currencies".to_string()).clone(), exchange.prop(&&Value::Str("currencies".to_string())).clone(), Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("baseCurrencies".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("quoteCurrencies".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("currencies_by_id".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("codes".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("accounts".to_string())), &Value::Null))));
-    assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("accountsById".to_string())), &Value::Null))));
+    }).clone()]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("baseCurrencies".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("quoteCurrencies".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("currencies_by_id".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("codes".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("accounts".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("accountsById".to_string())), &Value::Null)))));
     // @SKIP_END_GO
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
-        let mut m = std::collections::HashMap::new();
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }), Value::Str("commonCurrencies".to_string()), crate::tests_support::shared::exchange_prop(&exchange, Value::Str("commonCurrencies".to_string())), Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }).clone(), Value::Str("commonCurrencies".to_string()).clone(), crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("commonCurrencies".to_string())).clone(), Value::Map({
+        let mut m = indexmap::IndexMap::new();
             m.insert("XBT".to_string(), Value::Str("BTC".to_string()));
             m.insert("BCHSV".to_string(), Value::Str("BSV".to_string()));
         m
-    }));
+    }).clone()]);
 }
 pub fn testAfterConstructor() {
     // here should be added all needed tests

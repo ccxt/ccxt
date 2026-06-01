@@ -5,19 +5,20 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
 pub fn testDeepExtend() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
     let mut obj1: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
             m.insert("b".to_string(), Value::List(vec![Value::Int(1), Value::Int(2), Value::Int(3)]));
             m.insert("c".to_string(), Value::List(vec![Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("test1".to_string(), Value::Int(1));
         m.insert("test2".to_string(), Value::Int(1));
     m
@@ -25,11 +26,11 @@ pub fn testDeepExtend() {
             m.insert("d".to_string(), Value::Null);
             m.insert("e".to_string(), Value::Str("not_undefined".to_string()));
             m.insert("sub".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("a".to_string(), Value::Int(1));
         m.insert("b".to_string(), Value::List(vec![Value::Int(1), Value::Int(2)]));
         m.insert("c".to_string(), Value::List(vec![Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("test1".to_string(), Value::Int(1));
         m.insert("test2".to_string(), Value::Int(2));
     m
@@ -43,11 +44,11 @@ pub fn testDeepExtend() {
         m
     });
     let mut obj2: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(2));
             m.insert("b".to_string(), Value::List(vec![Value::Int(3), Value::Int(4)]));
             m.insert("c".to_string(), Value::List(vec![Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("test1".to_string(), Value::Int(2));
         m.insert("test3".to_string(), Value::Int(3));
     m
@@ -55,11 +56,11 @@ pub fn testDeepExtend() {
             m.insert("d".to_string(), Value::Str("not_undefined".to_string()));
             m.insert("e".to_string(), Value::Null);
             m.insert("sub".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("a".to_string(), Value::Int(2));
         m.insert("b".to_string(), Value::List(vec![Value::Int(3), Value::Int(4)]));
         m.insert("c".to_string(), Value::List(vec![Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("test1".to_string(), Value::Int(2));
         m.insert("test3".to_string(), Value::Int(3));
     m
@@ -75,11 +76,11 @@ pub fn testDeepExtend() {
     // deepExtend
     let mut deepExtended: Value = exchange.deep_extend(obj1.clone(), &[obj2.clone()]);
     let mut compareTo: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(2));
             m.insert("b".to_string(), Value::List(vec![Value::Int(3), Value::Int(4)]));
             m.insert("c".to_string(), Value::List(vec![Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("test1".to_string(), Value::Int(2));
         m.insert("test3".to_string(), Value::Int(3));
     m
@@ -87,11 +88,11 @@ pub fn testDeepExtend() {
             m.insert("d".to_string(), Value::Str("not_undefined".to_string()));
             m.insert("e".to_string(), Value::Null);
             m.insert("sub".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("a".to_string(), Value::Int(2));
         m.insert("b".to_string(), Value::List(vec![Value::Int(3), Value::Int(4)]));
         m.insert("c".to_string(), Value::List(vec![Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("test1".to_string(), Value::Int(2));
         m.insert("test3".to_string(), Value::Int(3));
     m
@@ -108,5 +109,5 @@ pub fn testDeepExtend() {
     });
     // todo: results are different across langs.
     // to avoid delay to this PR, I comment out this now, but will return to this after this PR merged
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Null, Value::Str("testDeepExtend".to_string()), deepExtended, compareTo);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testDeepExtend".to_string()).clone(), deepExtended.clone(), compareTo.clone()]);
 }

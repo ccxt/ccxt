@@ -5,46 +5,47 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
 pub fn testOmit() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Null, Value::Str("testOmit".to_string()), exchange.omit(Value::Map({
-        let mut m = std::collections::HashMap::new();
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testOmit".to_string()).clone(), exchange.omit(Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }), Value::Str("foo".to_string()), &[]), Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }), Value::Str("foo".to_string()), &[]).clone(), Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }));
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Null, Value::Str("testOmit".to_string()), exchange.omit(Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testOmit".to_string()).clone(), exchange.omit(Value::Map({
+        let mut m = indexmap::IndexMap::new();
             m.insert("foo".to_string(), Value::Int(2));
         m
-    }), Value::Str("foo".to_string()), &[]), Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }), Value::Str("foo".to_string()), &[]).clone(), Value::Map({
+        let mut m = indexmap::IndexMap::new();
         m
-    }));
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Null, Value::Str("testOmit".to_string()), exchange.omit(Value::Map({
-        let mut m = std::collections::HashMap::new();
-            m.insert("foo".to_string(), Value::Int(2));
-            m.insert("bar".to_string(), Value::Int(3));
-        m
-    }), Value::Str("foo".to_string()), &[]), Value::Map({
-        let mut m = std::collections::HashMap::new();
-            m.insert("bar".to_string(), Value::Int(3));
-        m
-    }));
-    crate::tests_support::shared::assert_deep_equal(&exchange, Value::Null, Value::Str("testOmit".to_string()), exchange.omit(Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testOmit".to_string()).clone(), exchange.omit(Value::Map({
+        let mut m = indexmap::IndexMap::new();
             m.insert("foo".to_string(), Value::Int(2));
             m.insert("bar".to_string(), Value::Int(3));
         m
-    }), Value::List(vec![Value::Str("foo".to_string())]), &[]), Value::Map({
-        let mut m = std::collections::HashMap::new();
+    }), Value::Str("foo".to_string()), &[]).clone(), Value::Map({
+        let mut m = indexmap::IndexMap::new();
             m.insert("bar".to_string(), Value::Int(3));
         m
-    }));
+    }).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testOmit".to_string()).clone(), exchange.omit(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("foo".to_string(), Value::Int(2));
+            m.insert("bar".to_string(), Value::Int(3));
+        m
+    }), Value::List(vec![Value::Str("foo".to_string())]), &[]).clone(), Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("bar".to_string(), Value::Int(3));
+        m
+    }).clone()]);
 }

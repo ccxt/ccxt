@@ -36,22 +36,70 @@ impl OkxCore {
         // (e.g. portfolioMargin via fixture) take precedence, then
         // describe()'s defaults fill in any gaps.
         let __described_options = crate::get_value(&described, &crate::Value::Str("options".to_string()));
-        if let (crate::Value::Map(existing), crate::Value::Map(defaults)) =
+        // Capture the describe()'s explicit networksById BEFORE the merge
+        // — the merge below overlays the base Exchange's options (whose
+        // after_construct left an EMPTY networksById), which would
+        // otherwise clobber the manual mappings like binance BSC to BEP20.
+        let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
+        if let (crate::Value::Dict(existing), crate::Value::Dict(defaults)) =
             (&self.exchange.options.clone(), &__described_options)
         {
-            let mut merged = defaults.clone();
-            for (k, v) in existing { merged.insert(k.clone(), v.clone()); }
+            let mut merged = (**defaults).clone();
+            for (k, v) in existing.iter() { merged.insert(k.clone(), v.clone()); }
             self.exchange.options = crate::Value::Map(merged);
-        } else if !matches!(self.exchange.options, crate::Value::Map(_)) {
+        } else if !matches!(self.exchange.options, crate::Value::Dict(_)) {
             self.exchange.options = __described_options;
+        }
+        // Derive options.networksById (CCXT's createNetworksByIdObject):
+        // start from the auto-inverted networks (generated), then overlay
+        // the describe()'s explicit networksById so manual mappings win —
+        // mirrors TS extend(generated, manual). Without the manual
+        // overlay, an exchange whose networks defines both BSC to BSC and
+        // BEP20 to BSC would invert to BSC to BSC (wrong) by iteration
+        // order instead of the intended BSC to BEP20.
+        if let crate::Value::Dict(opts_arc) = self.exchange.options.clone() {
+            let mut opts = std::sync::Arc::try_unwrap(opts_arc).unwrap_or_else(|a| (*a).clone());
+            let mut by_id: indexmap::IndexMap<String, crate::Value> = indexmap::IndexMap::new();
+            if let Some(crate::Value::Dict(networks)) = opts.get("networks") {
+                for (code, id) in networks.iter() {
+                    if let crate::Value::Str(id_s) = id {
+                        by_id.entry(id_s.clone())
+                             .or_insert_with(|| crate::Value::Str(code.clone()));
+                    }
+                }
+            }
+            if let crate::Value::Dict(manual) = &__described_networks_by_id {
+                for (k, v) in manual.iter() { by_id.insert(k.clone(), v.clone()); }
+            }
+            opts.insert("networksById".to_string(), crate::Value::Map(by_id));
+            self.exchange.options = crate::Value::Map(opts);
         }
         self.exchange.hostname = crate::get_value(&described, &crate::Value::Str("hostname".to_string()));
         self.exchange.version  = crate::get_value(&described, &crate::Value::Str("version".to_string()));
         self.exchange.id       = crate::get_value(&described, &crate::Value::Str("id".to_string()));
         self.exchange.name     = crate::get_value(&described, &crate::Value::Str("name".to_string()));
         self.exchange.exceptions = crate::get_value(&described, &crate::Value::Str("exceptions".to_string()));
-        self.exchange.requiredCredentials = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string()));
+        // Only override the base-default requiredCredentials when the
+        // exchange's describe() actually provides them (super.describe()
+        // is stubbed, so most exchanges' describe() omits this).
+        { let __rc = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string())); if !matches!(__rc, crate::Value::Null) { self.exchange.requiredCredentials = __rc; } }
+        // Merge describe()'s commonCurrencies over the base defaults so
+        // exchange-specific aliases (bitfinex UST to USDT, onetrading
+        // MIOTA to IOTA) reach commonCurrencyCode / safeCurrencyCode.
+        { let __cc = crate::get_value(&described, &crate::Value::Str("commonCurrencies".to_string())); if let crate::Value::Dict(extra) = __cc { let extra = std::sync::Arc::try_unwrap(extra).unwrap_or_else(|a| (*a).clone()); if let crate::Value::Dict(base) = &mut self.exchange.commonCurrencies { let base = std::sync::Arc::make_mut(base); for (k, v) in extra { base.insert(k, v); } } else { self.exchange.commonCurrencies = crate::Value::Map(extra); } } }
         self.exchange.precisionMode = crate::get_value(&described, &crate::Value::Str("precisionMode".to_string()));
+        self.exchange.timeframes = crate::get_value(&described, &crate::Value::Str("timeframes".to_string()));
+        self.exchange.fees = crate::get_value(&described, &crate::Value::Str("fees".to_string()));
+        // `features` carries the describe() block that drives
+        // unified-method tests (e.g. `features.spot.fetchCurrencies.private`
+        // tells testFetchCurrencies to skip the length check). It's set
+        // after `Exchange::new` because `features_generator` (in
+        // `after_construct`) bails when `features == Null` — so we
+        // assign and re-run the generator here.
+        self.exchange.features = crate::get_value(&described, &crate::Value::Str("features".to_string()));
+        if !matches!(self.exchange.features, crate::Value::Null) {
+            self.exchange.features_generator();
+        }
         // Markets and currencies may have been populated already by
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
@@ -76,7 +124,7 @@ impl OkxCore {
     /// Casts the void pointer back to `*mut Self` and forwards to the
     /// real `call_dynamic`. Safety: the pointer must come from the
     /// matching Core's bind() — guaranteed by Exchange::bind_call_async.
-    fn __call_dynamic_dispatch<'a>(
+    pub fn __call_dynamic_dispatch<'a>(
         ptr: *mut (),
         method: &'a str,
         args: Vec<crate::Value>,
@@ -259,6 +307,10 @@ impl crate::exchange::DerivedExchange for OkxCore {
         // Forward to the inherent method on OkxCore.
         OkxCore::parse_funding_rate(self, rate, &[market.clone()])
     }
+    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on OkxCore.
+        OkxCore::parse_deposit_address(self, depositAddress, &[currency.clone()])
+    }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on OkxCore.
         OkxCore::parse_ledger_entry(self, entry, &[currency.clone()])
@@ -278,6 +330,38 @@ impl crate::exchange::DerivedExchange for OkxCore {
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on OkxCore.
         OkxCore::parse_margin_modification(self, data, &[market.clone()])
+    }
+    fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on OkxCore.
+        OkxCore::parse_transaction(self, transaction, &[currency.clone()])
+    }
+    fn parse_borrow_interest(&self, info: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on OkxCore.
+        OkxCore::parse_borrow_interest(self, info, &[market.clone()])
+    }
+    fn parse_greeks(&self, greeks: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on OkxCore.
+        OkxCore::parse_greeks(self, greeks, &[market.clone()])
+    }
+    fn parse_conversion(&self, conversion: crate::Value, from_currency: crate::Value, to_currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on OkxCore.
+        OkxCore::parse_conversion(self, conversion, &[from_currency.clone(), to_currency.clone()])
+    }
+    fn parse_borrow_rate(&self, info: crate::Value, currency: crate::Value) -> crate::Value {
+        // Forward to the inherent method on OkxCore.
+        OkxCore::parse_borrow_rate(self, info, &[currency.clone()])
+    }
+    fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on OkxCore.
+        OkxCore::parse_leverage(self, leverage, &[market.clone()])
+    }
+    fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on OkxCore.
+        OkxCore::parse_market_leverage_tiers(self, info, &[market.clone()])
+    }
+    fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
+        // Forward to the inherent method on OkxCore.
+        OkxCore::create_expired_option_market(self, symbol)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on OkxCore.
@@ -301,7 +385,7 @@ impl std::ops::DerefMut for OkxCore {
 impl OkxCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("okx".to_string()));
         m.insert("name".to_string(), Value::Str("OKX".to_string()));
         m.insert("countries".to_string(), Value::List(vec![Value::Str("CN".to_string()), Value::Str("US".to_string())]));
@@ -310,7 +394,7 @@ impl OkxCore {
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("certified".to_string(), Value::Bool(true));
         m.insert("has".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("CORS".to_string(), Value::Null);
         m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Bool(true));
@@ -444,7 +528,7 @@ impl OkxCore {
     m
 }));
         m.insert("timeframes".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("1m".to_string(), Value::Str("1m".to_string()));
         m.insert("3m".to_string(), Value::Str("3m".to_string()));
         m.insert("5m".to_string(), Value::Str("5m".to_string()));
@@ -463,10 +547,10 @@ impl OkxCore {
 }));
         m.insert("hostname".to_string(), Value::Str("www.okx.com".to_string()));
         m.insert("urls".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg".to_string()));
         m.insert("api".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("rest".to_string(), Value::Str("https://{hostname}".to_string()));
     m
 }));
@@ -474,24 +558,24 @@ impl OkxCore {
         m.insert("doc".to_string(), Value::Str("https://www.okx.com/docs-v5/en/".to_string()));
         m.insert("fees".to_string(), Value::Str("https://www.okx.com/pages/products/fees.html".to_string()));
         m.insert("referral".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::Str("https://www.okx.com/join/CCXTCOM".to_string()));
         m.insert("discount".to_string(), Value::Float(0.2));
     m
 }));
         m.insert("test".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("rest".to_string(), Value::Str("https://{hostname}".to_string()));
     m
 }));
     m
 }));
         m.insert("api".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("market/tickers".to_string(), Value::Int(1));
         m.insert("market/ticker".to_string(), Value::Int(1));
         m.insert("market/books".to_string(), divide(&Value::Int(1), &Value::Int(2)));
@@ -595,16 +679,16 @@ impl OkxCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("tradingBot/grid/min-investment".to_string(), Value::Int(1));
     m
 }));
     m
 }));
         m.insert("private".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("rfq/counterparties".to_string(), Value::Int(4));
         m.insert("rfq/maker-instrument-settings".to_string(), Value::Int(4));
         m.insert("rfq/mmp-config".to_string(), Value::Int(4));
@@ -776,7 +860,7 @@ impl OkxCore {
     m
 }));
         m.insert("post".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("rfq/create-rfq".to_string(), Value::Int(4));
         m.insert("rfq/cancel-rfq".to_string(), Value::Int(4));
         m.insert("rfq/cancel-batch-rfqs".to_string(), Value::Int(10));
@@ -948,27 +1032,27 @@ impl OkxCore {
     m
 }));
         m.insert("fees".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("trading".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.0015".to_string()), &[]));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.0010".to_string()), &[]));
     m
 }));
         m.insert("spot".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.0015".to_string()), &[]));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.0010".to_string()), &[]));
     m
 }));
         m.insert("future".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.0005".to_string()), &[]));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.0002".to_string()), &[]));
     m
 }));
         m.insert("swap".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.00050".to_string()), &[]));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.00020".to_string()), &[]));
     m
@@ -976,16 +1060,16 @@ impl OkxCore {
     m
 }));
         m.insert("requiredCredentials".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("apiKey".to_string(), Value::Bool(true));
         m.insert("secret".to_string(), Value::Bool(true));
         m.insert("password".to_string(), Value::Bool(true));
     m
 }));
         m.insert("exceptions".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("1".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("2".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("4088".to_string(), Value::Str("ManualInteractionNeeded".to_string()).clone());
@@ -1374,7 +1458,7 @@ impl OkxCore {
     m
 }));
         m.insert("broad".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("Internal Server Error".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
         m.insert("server error".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
     m
@@ -1382,24 +1466,24 @@ impl OkxCore {
     m
 }));
         m.insert("httpExceptions".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("429".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
     m
 }));
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
         m.insert("options".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sandboxMode".to_string(), Value::Bool(false));
         m.insert("defaultNetwork".to_string(), Value::Str("ERC20".to_string()));
         m.insert("defaultNetworks".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("ETH".to_string(), Value::Str("ERC20".to_string()));
         m.insert("BTC".to_string(), Value::Str("BTC".to_string()));
         m.insert("USDT".to_string(), Value::Str("TRC20".to_string()));
     m
 }));
         m.insert("networks".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("BTC".to_string(), Value::Str("Bitcoin".to_string()));
         m.insert("BTCLIGHTNING".to_string(), Value::Str("Lightning".to_string()));
         m.insert("BSC".to_string(), Value::Str("BSC".to_string()));
@@ -1476,16 +1560,16 @@ impl OkxCore {
     m
 }));
         m.insert("networksById".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("ERC20".to_string(), Value::Str("ERC20".to_string()));
         m.insert("TRC20".to_string(), Value::Str("TRC20".to_string()));
         m.insert("BEP20".to_string(), Value::Str("BEP20".to_string()));
     m
 }));
         m.insert("fetchOpenInterestHistory".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("timeframes".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("5m".to_string(), Value::Str("5m".to_string()));
         m.insert("1h".to_string(), Value::Str("1H".to_string()));
         m.insert("8h".to_string(), Value::Str("8H".to_string()));
@@ -1499,19 +1583,19 @@ impl OkxCore {
     m
 }));
         m.insert("fetchOHLCV".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("timezone".to_string(), Value::Str("UTC".to_string()));
     m
 }));
         m.insert("fetchPositions".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), Value::Str("privateGetAccountPositions".to_string()));
     m
 }));
         m.insert("createOrder".to_string(), Value::Str("privatePostTradeBatchOrders".to_string()));
         m.insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(false));
         m.insert("fetchMarkets".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("types".to_string(), Value::List(vec![Value::Str("spot".to_string()), Value::Str("future".to_string()), Value::Str("swap".to_string()), Value::Str("option".to_string())]));
     m
 }));
@@ -1519,43 +1603,43 @@ impl OkxCore {
         m.insert("adjustForTimeDifference".to_string(), Value::Bool(false));
         m.insert("defaultType".to_string(), Value::Str("spot".to_string()));
         m.insert("fetchLedger".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), Value::Str("privateGetAccountBills".to_string()));
     m
 }));
         m.insert("fetchOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), Value::Str("privateGetTradeOrder".to_string()));
     m
 }));
         m.insert("fetchOpenOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), Value::Str("privateGetTradeOrdersPending".to_string()));
     m
 }));
         m.insert("cancelOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), Value::Str("privatePostTradeCancelBatchOrders".to_string()));
     m
 }));
         m.insert("fetchCanceledOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), Value::Str("privateGetTradeOrdersHistory".to_string()));
     m
 }));
         m.insert("fetchClosedOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), Value::Str("privateGetTradeOrdersHistory".to_string()));
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("password".to_string(), Value::Null);
         m.insert("pwd".to_string(), Value::Null);
     m
 }));
         m.insert("algoOrderTypes".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("conditional".to_string(), Value::Bool(true));
         m.insert("trigger".to_string(), Value::Bool(true));
         m.insert("oco".to_string(), Value::Bool(true));
@@ -1565,7 +1649,7 @@ impl OkxCore {
     m
 }));
         m.insert("accountsByType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("funding".to_string(), Value::Str("6".to_string()));
         m.insert("trading".to_string(), Value::Str("18".to_string()));
         m.insert("spot".to_string(), Value::Str("18".to_string()));
@@ -1577,13 +1661,13 @@ impl OkxCore {
     m
 }));
         m.insert("accountsById".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("6".to_string(), Value::Str("funding".to_string()));
         m.insert("18".to_string(), Value::Str("trading".to_string()));
     m
 }));
         m.insert("exchangeType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Str("SPOT".to_string()));
         m.insert("margin".to_string(), Value::Str("MARGIN".to_string()));
         m.insert("swap".to_string(), Value::Str("SWAP".to_string()));
@@ -1601,16 +1685,16 @@ impl OkxCore {
     m
 }));
         m.insert("features".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("default".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("sandbox".to_string(), Value::Bool(true));
         m.insert("createOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(true));
         m.insert("triggerPrice".to_string(), Value::Bool(true));
         m.insert("triggerPriceType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("last".to_string(), Value::Bool(true));
         m.insert("mark".to_string(), Value::Bool(true));
         m.insert("index".to_string(), Value::Bool(true));
@@ -1620,9 +1704,9 @@ impl OkxCore {
         m.insert("stopLossPrice".to_string(), Value::Bool(true));
         m.insert("takeProfitPrice".to_string(), Value::Bool(true));
         m.insert("attachedStopLossTakeProfit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("triggerPriceType".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("last".to_string(), Value::Bool(true));
         m.insert("mark".to_string(), Value::Bool(true));
         m.insert("index".to_string(), Value::Bool(true));
@@ -1632,7 +1716,7 @@ impl OkxCore {
     m
 }));
         m.insert("timeInForce".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("IOC".to_string(), Value::Bool(true));
         m.insert("FOK".to_string(), Value::Bool(true));
         m.insert("PO".to_string(), Value::Bool(true));
@@ -1649,12 +1733,12 @@ impl OkxCore {
     m
 }));
         m.insert("createOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("max".to_string(), Value::Int(20));
     m
 }));
         m.insert("fetchMyTrades".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("daysBack".to_string(), Value::Int(90));
         m.insert("limit".to_string(), Value::Int(100));
@@ -1663,7 +1747,7 @@ impl OkxCore {
     m
 }));
         m.insert("fetchOrder".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("trigger".to_string(), Value::Bool(true));
         m.insert("trailing".to_string(), Value::Bool(true));
@@ -1671,7 +1755,7 @@ impl OkxCore {
     m
 }));
         m.insert("fetchOpenOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("limit".to_string(), Value::Int(100));
         m.insert("trigger".to_string(), Value::Bool(true));
@@ -1681,7 +1765,7 @@ impl OkxCore {
 }));
         m.insert("fetchOrders".to_string(), Value::Null);
         m.insert("fetchClosedOrders".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("limit".to_string(), Value::Int(100));
         m.insert("daysBack".to_string(), Value::Int(90));
@@ -1693,7 +1777,7 @@ impl OkxCore {
     m
 }));
         m.insert("fetchOHLCV".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("limit".to_string(), Value::Int(300));
         m.insert("mark".to_string(), Value::Int(100));
         m.insert("index".to_string(), Value::Int(100));
@@ -1702,38 +1786,38 @@ impl OkxCore {
     m
 }));
         m.insert("spot".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("default".to_string()));
         m.insert("fetchCurrencies".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("private".to_string(), Value::Bool(true));
     m
 }));
     m
 }));
         m.insert("swap".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("linear".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("default".to_string()));
     m
 }));
         m.insert("inverse".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("default".to_string()));
     m
 }));
     m
 }));
         m.insert("future".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("linear".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("default".to_string()));
     m
 }));
         m.insert("inverse".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("default".to_string()));
     m
 }));
@@ -1742,37 +1826,37 @@ impl OkxCore {
     m
 }));
         m.insert("currencies".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("USD".to_string(), self.safe_currency_structure(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("USD".to_string()));
         m.insert("code".to_string(), Value::Str("USD".to_string()));
         m.insert("precision".to_string(), self.parse_number(Value::Str("0.0001".to_string()), &[]));
     m
 })));
         m.insert("EUR".to_string(), self.safe_currency_structure(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("EUR".to_string()));
         m.insert("code".to_string(), Value::Str("EUR".to_string()));
         m.insert("precision".to_string(), self.parse_number(Value::Str("0.0001".to_string()), &[]));
     m
 })));
         m.insert("AED".to_string(), self.safe_currency_structure(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("AED".to_string()));
         m.insert("code".to_string(), Value::Str("AED".to_string()));
         m.insert("precision".to_string(), self.parse_number(Value::Str("0.0001".to_string()), &[]));
     m
 })));
         m.insert("GBP".to_string(), self.safe_currency_structure(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("GBP".to_string()));
         m.insert("code".to_string(), Value::Str("GBP".to_string()));
         m.insert("precision".to_string(), self.parse_number(Value::Str("0.0001".to_string()), &[]));
     m
 })));
         m.insert("AUD".to_string(), self.safe_currency_structure(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("AUD".to_string()));
         m.insert("code".to_string(), Value::Str("AUD".to_string()));
         m.insert("precision".to_string(), self.parse_number(Value::Str("0.0001".to_string()), &[]));
@@ -1781,7 +1865,7 @@ impl OkxCore {
     m
 }));
         m.insert("commonCurrencies".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("AE".to_string(), Value::Str("AET".to_string()));
     m
 }));
@@ -1795,13 +1879,13 @@ impl OkxCore {
     pub fn handle_market_type_and_params(&self, mut methodName: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut defaultValue = get_arg(optional_args, 2, Value::Null);
-        let mut instType: Value = self.safe_string(params.clone(), Value::Str("instType".to_string()), &[]);
+        let mut instType: Value = self.safe_string_k(params.clone(), "instType", &[]);
         params = self.omit(params.clone(), Value::Str("instType".to_string()), &[]);
-        let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[]);
         if is_true(&(is_equal(&type_var, &Value::Null))) && is_true(&(!is_equal(&instType, &Value::Null))) {
             add_element_to_object(&mut params, &Value::Str("type".to_string()), instType.clone());
         }
@@ -1811,8 +1895,8 @@ impl OkxCore {
 }
 
     pub fn convert_to_instrument_type(&self, mut type_var: Value) -> Value {
-        let mut exchangeTypes: Value = self.safe_dict(self.options.clone(), Value::Str("exchangeType".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut exchangeTypes: Value = self.safe_dict_k(self.options.clone(), "exchangeType", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.safe_string(exchangeTypes.clone(), type_var.clone(), &[type_var.clone()]);
@@ -1838,7 +1922,7 @@ impl OkxCore {
         let mut datetime: Value = self.convert_expire_date(expiry.clone());
         let mut timestamp: Value = self.parse8601(datetime.clone());
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), add(&add(&add(&add(&add(&add(&add(&add(&base, &Value::Str("-".to_string())), &quote), &Value::Str("-".to_string())), &expiry), &Value::Str("-".to_string())), &strike), &Value::Str("-".to_string())), &optionType));
         m.insert("symbol".to_string(), add(&add(&add(&add(&add(&add(&add(&add(&add(&add(&base, &Value::Str("/".to_string())), &quote), &Value::Str(":".to_string())), &settle), &Value::Str("-".to_string())), &expiry), &Value::Str("-".to_string())), &strike), &Value::Str("-".to_string())), &optionType));
         m.insert("base".to_string(), base.clone());
@@ -1863,27 +1947,27 @@ impl OkxCore {
         m.insert("optionType".to_string(), ternary(is_true(&(is_equal(&optionType, &Value::Str("C".to_string())))), Value::Str("call".to_string()), Value::Str("put".to_string())));
         m.insert("strike".to_string(), self.parse_number(strike.clone(), &[]));
         m.insert("precision".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Null);
         m.insert("price".to_string(), Value::Null);
     m
 }));
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("cost".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
@@ -1915,13 +1999,13 @@ impl OkxCore {
  * @method
  * @name okx#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#status-get-status
+ * @see https://www.okx.com/docs-v5/en/#status-get-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
     pub async fn fetch_status(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut response: Value = self.call_method(Value::Str("public_get_system_status".to_string()), &[params.clone()]).await;
@@ -1945,10 +2029,10 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut dataLength: Value = get_array_length(&data);
         let mut update: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("updated".to_string(), Value::Null);
                 m.insert("status".to_string(), ternary(is_true(&(is_equal(&dataLength, &Value::Int(0)))), Value::Str("ok".to_string()), Value::Str("maintenance".to_string())));
                 m.insert("eta".to_string(), Value::Null);
@@ -1958,11 +2042,13 @@ impl OkxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&data)) {
+            let mut __for_first_973: bool = true;
+            while { if !__for_first_973 { i = add(&i, &Value::Int(1)); } __for_first_973 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut event: Value = get_value(&data, &i);
-            let mut state: Value = self.safe_string(event.clone(), Value::Str("state".to_string()), &[]);
-            add_element_to_object(&mut update, &Value::Str("eta".to_string()), self.safe_integer(event.clone(), Value::Str("end".to_string()), &[]));
-            add_element_to_object(&mut update, &Value::Str("url".to_string()), self.safe_string(event.clone(), Value::Str("href".to_string()), &[]));
+            let mut event: Value = get_value(&data, &i);
+            let mut state: Value = self.safe_string_k(event.clone(), "state", &[]);
+            add_element_to_object(&mut update, &Value::Str("eta".to_string()), self.safe_integer_k(event.clone(), "end", &[]));
+            add_element_to_object(&mut update, &Value::Str("url".to_string()), self.safe_string_k(event.clone(), "href", &[]));
             if is_equal(&state, &Value::Str("ongoing".to_string())) {
                 add_element_to_object(&mut update, &Value::Str("status".to_string()), Value::Str("maintenance".to_string()));
             }  else if is_equal(&state, &Value::Str("scheduled".to_string())) {
@@ -1972,7 +2058,6 @@ impl OkxCore {
             }  else if is_equal(&state, &Value::Str("canceled".to_string())) {
                 add_element_to_object(&mut update, &Value::Str("status".to_string()), Value::Str("ok".to_string()));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return update;
@@ -1984,13 +2069,13 @@ impl OkxCore {
  * @method
  * @name okx#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#public-data-rest-api-get-system-time
+ * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-system-time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
     pub async fn fetch_time(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut response: Value = self.call_method(Value::Str("public_get_public_time".to_string()), &[params.clone()]).await;
@@ -2003,12 +2088,12 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.safe_integer(first.clone(), Value::Str("ts".to_string()), &[]);
+        return self.safe_integer_k(first.clone(), "ts", &[]);
 
     Value::Null
 }
@@ -2017,13 +2102,13 @@ impl OkxCore {
  * @method
  * @name okx#fetchAccounts
  * @description fetch all the accounts associated with a profile
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#trading-account-rest-api-get-account-configuration
+ * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [account structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=account-structure} indexed by the account type
+ * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
     pub async fn fetch_accounts(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut response: Value = self.call_method(Value::Str("private_get_account_config".to_string()), &[params.clone()]).await;
@@ -2065,16 +2150,18 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&data)) {
+            let mut __for_first_974: bool = true;
+            while { if !__for_first_974 { i = add(&i, &Value::Int(1)); } __for_first_974 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut account: Value = get_value(&data, &i);
-            let mut accountId: Value = self.safe_string(account.clone(), Value::Str("uid".to_string()), &[]);
-            let mut type_var: Value = self.safe_string(account.clone(), Value::Str("acctLv".to_string()), &[]);
+            let mut account: Value = get_value(&data, &i);
+            let mut accountId: Value = self.safe_string_k(account.clone(), "uid", &[]);
+            let mut type_var: Value = self.safe_string_k(account.clone(), "acctLv", &[]);
             append_to_array(&mut result, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), accountId.clone());
                     m.insert("type".to_string(), type_var.clone());
                     m.insert("currency".to_string(), Value::Null);
@@ -2082,7 +2169,6 @@ impl OkxCore {
                     m.insert("code".to_string(), Value::Null);
                 m
             }));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -2100,40 +2186,40 @@ impl OkxCore {
  * @method
  * @name okx#fetchMarkets
  * @description retrieves data on all markets for okx
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-public-data-get-instruments
+ * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-instruments
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
     pub async fn fetch_markets(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.options, &Value::Str("adjustForTimeDifference".to_string()))) {
             self.load_time_difference(&[]).await;
         }
         let mut types: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("future".to_string()), Value::Str("swap".to_string()), Value::Str("option".to_string())]);
-        let mut fetchMarketsOption: Value = self.safe_dict(self.options.clone(), Value::Str("fetchMarkets".to_string()), &[]);
+        let mut fetchMarketsOption: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
         if !is_equal(&fetchMarketsOption, &Value::Null) {
-            types = self.safe_list(fetchMarketsOption.clone(), Value::Str("types".to_string()), &[types.clone()]);
+            types = self.safe_list_k(fetchMarketsOption.clone(), "types", &[types.clone()]);
         }  else {
-            types = self.safe_list(self.options.clone(), Value::Str("fetchMarkets".to_string()), &[types.clone()]); // backward-support
+            types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[types.clone()]); // backward-support
         }
         let mut promises: Value = Value::List(vec![]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&types)) {
+            let mut __for_first_975: bool = true;
+            while { if !__for_first_975 { i = add(&i, &Value::Int(1)); } __for_first_975 = false; is_less_than(&i, &get_array_length(&types)) } {
             append_to_array(&mut promises, self.fetch_markets_by_type(get_value(&types, &i), &[params.clone()]).await);
-            i = add(&i, &Value::Int(1));
         }
         }
         promises = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&promises)) {
+            let mut __for_first_976: bool = true;
+            while { if !__for_first_976 { i = add(&i, &Value::Int(1)); } __for_first_976 = false; is_less_than(&i, &get_array_length(&promises)) } {
             result = self.array_concat(result.clone(), get_value(&promises, &i));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -2198,7 +2284,7 @@ impl OkxCore {
         //         instType: "SWAP",
         //         state: "preopen",
         //
-        let mut id: Value = self.safe_string(market.clone(), Value::Str("instId".to_string()), &[]);
+        let mut id: Value = self.safe_string_k(market.clone(), "instId", &[]);
         let mut type_var: Value = self.safe_string_lower(market.clone(), Value::Str("instType".to_string()), &[]);
         if is_equal(&type_var, &Value::Str("futures".to_string())) {
             type_var = Value::Str("future".to_string());
@@ -2208,18 +2294,18 @@ impl OkxCore {
         let mut swap: Value = Value::Bool(is_equal(&type_var, &Value::Str("swap".to_string())));
         let mut option: Value = Value::Bool(is_equal(&type_var, &Value::Str("option".to_string())));
         let mut contract: Value = Value::Bool(is_true(&swap) || is_true(&future) || is_true(&option));
-        let mut baseId: Value = self.safe_string(market.clone(), Value::Str("baseCcy".to_string()), &[Value::Str("".to_string())]); // defaulting to '' because some weird preopen markets have empty baseId
-        let mut quoteId: Value = self.safe_string(market.clone(), Value::Str("quoteCcy".to_string()), &[Value::Str("".to_string())]);
-        let mut settleId: Value = self.safe_string(market.clone(), Value::Str("settleCcy".to_string()), &[]);
+        let mut baseId: Value = self.safe_string_k(market.clone(), "baseCcy", &[Value::Str("".to_string())]); // defaulting to '' because some weird preopen markets have empty baseId
+        let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteCcy", &[Value::Str("".to_string())]);
+        let mut settleId: Value = self.safe_string_k(market.clone(), "settleCcy", &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-        let mut underlying: Value = self.safe_string(market.clone(), Value::Str("uly".to_string()), &[]);
+        let mut underlying: Value = self.safe_string_k(market.clone(), "uly", &[]);
         if is_true(&(!is_equal(&underlying, &Value::Null))) && !is_true(&spot) {
             let mut parts: Value = split(&underlying, &Value::Str("-".to_string()));
             baseId = self.safe_string(parts.clone(), Value::Int(0), &[]);
             quoteId = self.safe_string(parts.clone(), Value::Int(1), &[]);
         }
         if is_true(&(is_true(&(is_equal(&baseId, &Value::Str("".to_string())))) || is_true(&(is_equal(&quoteId, &Value::Str("".to_string())))))) && is_true(&spot) {
-            let mut instId: Value = self.safe_string(market.clone(), Value::Str("instId".to_string()), &[Value::Str("".to_string())]);
+            let mut instId: Value = self.safe_string_k(market.clone(), "instId", &[Value::Str("".to_string())]);
             let mut parts: Value = split(&instId, &Value::Str("-".to_string()));
             baseId = self.safe_string(parts.clone(), Value::Int(0), &[]);
             quoteId = self.safe_string(parts.clone(), Value::Int(1), &[]);
@@ -2239,15 +2325,15 @@ impl OkxCore {
                 symbol = add(&add(&symbol, &Value::Str(":".to_string())), &settle);
             }
             if is_true(&future) {
-                expiry = self.safe_integer(market.clone(), Value::Str("expTime".to_string()), &[]);
+                expiry = self.safe_integer_k(market.clone(), "expTime", &[]);
                 if !is_equal(&expiry, &Value::Null) {
                     let mut ymd: Value = self.yymmdd(expiry.clone(), &[]);
                     symbol = add(&add(&symbol, &Value::Str("-".to_string())), &ymd);
                 }
             }  else if is_true(&option) {
-                expiry = self.safe_integer(market.clone(), Value::Str("expTime".to_string()), &[]);
-                strikePrice = self.safe_string(market.clone(), Value::Str("stk".to_string()), &[]);
-                optionType = self.safe_string(market.clone(), Value::Str("optType".to_string()), &[]);
+                expiry = self.safe_integer_k(market.clone(), "expTime", &[]);
+                strikePrice = self.safe_string_k(market.clone(), "stk", &[]);
+                optionType = self.safe_string_k(market.clone(), "optType", &[]);
                 if !is_equal(&expiry, &Value::Null) {
                     let mut ymd: Value = self.yymmdd(expiry.clone(), &[]);
                     symbol = add(&add(&add(&add(&add(&add(&symbol, &Value::Str("-".to_string())), &ymd), &Value::Str("-".to_string())), &strikePrice), &Value::Str("-".to_string())), &optionType);
@@ -2256,16 +2342,16 @@ impl OkxCore {
             }
         }
         let mut fees: Value = self.safe_dict2(self.fees.clone(), type_var.clone(), Value::Str("trading".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut maxLeverage: Value = self.safe_string(market.clone(), Value::Str("lever".to_string()), &[Value::Str("1".to_string())]);
+        let mut maxLeverage: Value = self.safe_string_k(market.clone(), "lever", &[Value::Str("1".to_string())]);
         maxLeverage = crate::precise::Precise::stringMax(&maxLeverage, &Value::Str("1".to_string()));
-        let mut maxSpotCost: Value = self.safe_number(market.clone(), Value::Str("maxMktSz".to_string()), &[]);
-        let mut status: Value = self.safe_string(market.clone(), Value::Str("state".to_string()), &[]);
-        let mut instIdCode: Value = self.safe_integer(market.clone(), Value::Str("instIdCode".to_string()), &[]);
+        let mut maxSpotCost: Value = self.safe_number_k(market.clone(), "maxMktSz", &[]);
+        let mut status: Value = self.safe_string_k(market.clone(), "state", &[]);
+        let mut instIdCode: Value = self.safe_integer_k(market.clone(), "instIdCode", &[]);
         return self.extend(fees.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("instIdCode".to_string(), instIdCode.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -2285,40 +2371,40 @@ impl OkxCore {
         m.insert("contract".to_string(), contract.clone());
         m.insert("linear".to_string(), ternary(is_true(&contract), Value::Bool((is_equal(&quoteId, &settleId))), Value::Null));
         m.insert("inverse".to_string(), ternary(is_true(&contract), Value::Bool((is_equal(&baseId, &settleId))), Value::Null));
-        m.insert("contractSize".to_string(), ternary(is_true(&contract), self.safe_number(market.clone(), Value::Str("ctVal".to_string()), &[]), Value::Null));
+        m.insert("contractSize".to_string(), ternary(is_true(&contract), self.safe_number_k(market.clone(), "ctVal", &[]), Value::Null));
         m.insert("expiry".to_string(), expiry.clone());
         m.insert("expiryDatetime".to_string(), self.iso8601(expiry.clone()));
         m.insert("strike".to_string(), self.parse_number(strikePrice.clone(), &[]));
         m.insert("optionType".to_string(), optionType.clone());
         m.insert("created".to_string(), self.safe_integer2(market.clone(), Value::Str("contTdSwTime".to_string()), Value::Str("listTime".to_string()), &[]));
         m.insert("precision".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("amount".to_string(), self.safe_number(market.clone(), Value::Str("lotSz".to_string()), &[]));
-        m.insert("price".to_string(), self.safe_number(market.clone(), Value::Str("tickSz".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("amount".to_string(), self.safe_number_k(market.clone(), "lotSz", &[]));
+        m.insert("price".to_string(), self.safe_number_k(market.clone(), "tickSz", &[]));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.parse_number(Value::Str("1".to_string()), &[]));
         m.insert("max".to_string(), self.parse_number(maxLeverage.clone(), &[]));
     m
 }));
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(market.clone(), Value::Str("minSz".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(market.clone(), "minSz", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("cost".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), ternary(is_true(&contract), Value::Null, maxSpotCost.clone()));
     m
@@ -2334,38 +2420,39 @@ impl OkxCore {
 
     pub async fn fetch_markets_by_type(&mut self, mut type_var: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), self.convert_to_instrument_type(type_var.clone()));
             m
         });
         if is_equal(&type_var, &Value::Str("option".to_string())) {
-            let mut optionsUnderlying: Value = self.safe_list(self.options.clone(), Value::Str("defaultUnderlying".to_string()), &[Value::List(vec![Value::Str("BTC-USD".to_string()), Value::Str("ETH-USD".to_string())])]);
+            let mut optionsUnderlying: Value = self.safe_list_k(self.options.clone(), "defaultUnderlying", &[Value::List(vec![Value::Str("BTC-USD".to_string()), Value::Str("ETH-USD".to_string())])]);
             let mut promises: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&optionsUnderlying)) {
+                let mut __for_first_977: bool = true;
+                while { if !__for_first_977 { i = add(&i, &Value::Int(1)); } __for_first_977 = false; is_less_than(&i, &get_array_length(&optionsUnderlying)) } {
+                let mut underlying: Value = get_value(&optionsUnderlying, &i);
                 let mut underlying: Value = get_value(&optionsUnderlying, &i);
                 add_element_to_object(&mut request, &Value::Str("uly".to_string()), underlying.clone());
                 append_to_array(&mut promises, self.call_method(Value::Str("public_get_public_instruments".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await);
-                i = add(&i, &Value::Int(1));
             }
             }
             let mut promisesResult: Value = promise_all(&promises).await;
             let mut markets: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&promisesResult)) {
+                let mut __for_first_978: bool = true;
+                while { if !__for_first_978 { i = add(&i, &Value::Int(1)); } __for_first_978 = false; is_less_than(&i, &get_array_length(&promisesResult)) } {
                 let mut res: Value = self.safe_dict(promisesResult.clone(), i.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut options: Value = self.safe_list(res.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+                let mut options: Value = self.safe_list_k(res.clone(), "data", &[Value::List(vec![])]);
                 markets = self.array_concat(markets.clone(), options.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
             return self.parse_markets(markets.clone());
@@ -2404,20 +2491,21 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut dataResponse: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut dataResponse: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut marketsWithoutTest: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&dataResponse)) {
+            let mut __for_first_979: bool = true;
+            while { if !__for_first_979 { i = add(&i, &Value::Int(1)); } __for_first_979 = false; is_less_than(&i, &get_array_length(&dataResponse)) } {
+            let mut data: Value = get_value(&dataResponse, &i);
             let mut data: Value = get_value(&dataResponse, &i);
             if is_true(&self.isSandboxModeEnabled) {
-                let mut instFamily: Value = self.safe_string(data.clone(), Value::Str("instFamily".to_string()), &[Value::Str("".to_string())]);
+                let mut instFamily: Value = self.safe_string_k(data.clone(), "instFamily", &[Value::Str("".to_string())]);
                 if is_true(&Value::Bool(starts_with(&instFamily, &Value::Str("TEST".to_string())))) {
                     continue;
                 }
             }
             append_to_array(&mut marketsWithoutTest, data.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.parse_markets(marketsWithoutTest.clone());
@@ -2429,23 +2517,23 @@ impl OkxCore {
  * @method
  * @name okx#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-funding-get-currencies
+ * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
     pub async fn fetch_currencies(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
-        let mut isSandboxMode: Value = self.safe_bool(self.options.clone(), Value::Str("sandboxMode".to_string()), &[Value::Bool(false)]);
+        let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         if !is_true(&self.check_required_credentials(&[Value::Bool(false)])) || is_true(&isSandboxMode) {
             return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 });
         }
@@ -2498,7 +2586,7 @@ impl OkxCore {
         //        "msg": ""
         //    }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut dataByCurrencyId: Value = self.group_by(data.clone(), Value::Str("ccy".to_string()), &[]);
         let mut currencies: Value = object_values(&dataByCurrencyId);
         return self.parse_currencies(currencies.clone());
@@ -2510,23 +2598,25 @@ impl OkxCore {
         let mut chains: Value = currency.clone();
         // currencies are grouped by chain entries, so there is at least one entry
         let mut firstChain: Value = self.safe_dict(chains.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut currencyId: Value = self.safe_string(firstChain.clone(), Value::Str("ccy".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(firstChain.clone(), "ccy", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut networks: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut type_var: Value = Value::Str("crypto".to_string());
         let mut chainsLength: Value = get_array_length(&chains);
         {
                         let mut j: Value = Value::Int(0);
-            while is_less_than(&j, &chainsLength) {
+            let mut __for_first_980: bool = true;
+            while { if !__for_first_980 { j = add(&j, &Value::Int(1)); } __for_first_980 = false; is_less_than(&j, &chainsLength) } {
             let mut chain: Value = get_value(&chains, &j);
-            // allow empty string for rare fiat-currencies, get_value(&e, &Value::Str("g".to_string())). TRY
-            let mut networkId: Value = self.safe_string(chain.clone(), Value::Str("chain".to_string()), &[Value::Str("".to_string())]); // USDT-BEP20, USDT-Avalance-C, etc
+            let mut chain: Value = get_value(&chains, &j);
+            // allow empty string for rare fiat-currencies, e.g. TRY
+            let mut networkId: Value = self.safe_string_k(chain.clone(), "chain", &[Value::Str("".to_string())]); // USDT-BEP20, USDT-Avalance-C, etc
             if is_equal(&networkId, &Value::Str("".to_string())) {
                 // only happens for fiat 'TRY' currency
                 type_var = Value::Str("fiat".to_string());
@@ -2536,20 +2626,20 @@ impl OkxCore {
             let mut chainPart: Value = join(&parts, &Value::Str("-".to_string()));
             let mut networkCode: Value = self.network_id_to_code(&[chainPart.clone(), code.clone()]);
             add_element_to_object(&mut networks, &networkCode, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.clone());
         m.insert("network".to_string(), networkCode.clone());
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), self.safe_bool(chain.clone(), Value::Str("canDep".to_string()), &[]));
-        m.insert("withdraw".to_string(), self.safe_bool(chain.clone(), Value::Str("canWd".to_string()), &[]));
-        m.insert("fee".to_string(), self.safe_number(chain.clone(), Value::Str("fee".to_string()), &[]));
-        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string(chain.clone(), Value::Str("wdTickSz".to_string()), &[])]), &[]));
+        m.insert("deposit".to_string(), self.safe_bool_k(chain.clone(), "canDep", &[]));
+        m.insert("withdraw".to_string(), self.safe_bool_k(chain.clone(), "canWd", &[]));
+        m.insert("fee".to_string(), self.safe_number_k(chain.clone(), "fee", &[]));
+        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(chain.clone(), "wdTickSz", &[])]), &[]));
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(chain.clone(), Value::Str("minWd".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(chain.clone(), Value::Str("maxWd".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(chain.clone(), "minWd", &[]));
+        m.insert("max".to_string(), self.safe_number_k(chain.clone(), "maxWd", &[]));
     m
 }));
     m
@@ -2557,24 +2647,23 @@ impl OkxCore {
         m.insert("info".to_string(), chain.clone());
     m
 }));
-            j = add(&j, &Value::Int(1));
         }
         }
         return self.safe_currency_structure(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chains.clone());
         m.insert("code".to_string(), code.clone());
         m.insert("id".to_string(), currencyId.clone());
-        m.insert("name".to_string(), self.safe_string(firstChain.clone(), Value::Str("name".to_string()), &[]));
+        m.insert("name".to_string(), self.safe_string_k(firstChain.clone(), "name", &[]));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
@@ -2593,23 +2682,23 @@ impl OkxCore {
  * @method
  * @name okx#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-market-data-get-order-book
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("method".to_string()))] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
- * @returns {object} A dictionary of [order book structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-book-structure} indexed by market symbols
+ * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
     pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -2649,12 +2738,12 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timestamp: Value = self.safe_integer(first.clone(), Value::Str("ts".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(first.clone(), "ts", &[]);
         return self.parse_order_book(first.clone(), symbol.clone(), &[timestamp.clone()]);
 
     Value::Null
@@ -2699,28 +2788,28 @@ impl OkxCore {
         //          ts: '1728467346900'
         //     },
         //
-        let mut timestamp: Value = self.safe_integer(ticker.clone(), Value::Str("ts".to_string()), &[]);
-        let mut marketId: Value = self.safe_string(ticker.clone(), Value::Str("instId".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "ts", &[]);
+        let mut marketId: Value = self.safe_string_k(ticker.clone(), "instId", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("-".to_string())]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
-        let mut last: Value = self.safe_string(ticker.clone(), Value::Str("last".to_string()), &[]);
-        let mut open: Value = self.safe_string(ticker.clone(), Value::Str("open24h".to_string()), &[]);
-        let mut spot: Value = self.safe_bool(market.clone(), Value::Str("spot".to_string()), &[Value::Bool(false)]);
-        let mut quoteVolume: Value = ternary(is_true(&spot), self.safe_string(ticker.clone(), Value::Str("volCcy24h".to_string()), &[]), Value::Null);
-        let mut baseVolume: Value = self.safe_string(ticker.clone(), Value::Str("vol24h".to_string()), &[]);
-        let mut high: Value = self.safe_string(ticker.clone(), Value::Str("high24h".to_string()), &[]);
-        let mut low: Value = self.safe_string(ticker.clone(), Value::Str("low24h".to_string()), &[]);
+        let mut last: Value = self.safe_string_k(ticker.clone(), "last", &[]);
+        let mut open: Value = self.safe_string_k(ticker.clone(), "open24h", &[]);
+        let mut spot: Value = self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]);
+        let mut quoteVolume: Value = ternary(is_true(&spot), self.safe_string_k(ticker.clone(), "volCcy24h", &[]), Value::Null);
+        let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "vol24h", &[]);
+        let mut high: Value = self.safe_string_k(ticker.clone(), "high24h", &[]);
+        let mut low: Value = self.safe_string_k(ticker.clone(), "low24h", &[]);
         return self.safe_ticker(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("high".to_string(), high.clone());
         m.insert("low".to_string(), low.clone());
-        m.insert("bid".to_string(), self.safe_string(ticker.clone(), Value::Str("bidPx".to_string()), &[]));
-        m.insert("bidVolume".to_string(), self.safe_string(ticker.clone(), Value::Str("bidSz".to_string()), &[]));
-        m.insert("ask".to_string(), self.safe_string(ticker.clone(), Value::Str("askPx".to_string()), &[]));
-        m.insert("askVolume".to_string(), self.safe_string(ticker.clone(), Value::Str("askSz".to_string()), &[]));
+        m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bidPx", &[]));
+        m.insert("bidVolume".to_string(), self.safe_string_k(ticker.clone(), "bidSz", &[]));
+        m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "askPx", &[]));
+        m.insert("askVolume".to_string(), self.safe_string_k(ticker.clone(), "askSz", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), open.clone());
         m.insert("close".to_string(), last.clone());
@@ -2731,8 +2820,8 @@ impl OkxCore {
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), baseVolume.clone());
         m.insert("quoteVolume".to_string(), quoteVolume.clone());
-        m.insert("markPrice".to_string(), self.safe_string(ticker.clone(), Value::Str("markPx".to_string()), &[]));
-        m.insert("indexPrice".to_string(), self.safe_string(ticker.clone(), Value::Str("idxPx".to_string()), &[]));
+        m.insert("markPrice".to_string(), self.safe_string_k(ticker.clone(), "markPx", &[]));
+        m.insert("indexPrice".to_string(), self.safe_string_k(ticker.clone(), "idxPx", &[]));
         m.insert("info".to_string(), ticker.clone());
     m
 }), &[market.clone()]);
@@ -2744,20 +2833,20 @@ impl OkxCore {
  * @method
  * @name okx#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-market-data-get-ticker
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -2788,9 +2877,9 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_ticker(first.clone(), &[market.clone()]);
@@ -2802,15 +2891,15 @@ impl OkxCore {
  * @method
  * @name okx#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-market-data-get-tickers
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -2819,15 +2908,15 @@ impl OkxCore {
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTickers".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), self.convert_to_instrument_type(marketType.clone()));
             m
         });
         if is_equal(&marketType, &Value::Str("option".to_string())) {
-            let mut defaultUnderlying: Value = self.safe_string(self.options.clone(), Value::Str("defaultUnderlying".to_string()), &[Value::Str("BTC-USD".to_string())]);
+            let mut defaultUnderlying: Value = self.safe_string_k(self.options.clone(), "defaultUnderlying", &[Value::Str("BTC-USD".to_string())]);
             let mut currencyId: Value = self.safe_string2(params.clone(), Value::Str("uly".to_string()), Value::Str("marketId".to_string()), &[defaultUnderlying.clone()]);
             if is_equal(&currencyId, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchTickers() requires an underlying uly or marketId parameter for options markets".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchTickers() requires an underlying uly or marketId parameter for options markets".to_string()))));
             }  else {
                 add_element_to_object(&mut request, &Value::Str("uly".to_string()), currencyId.clone());
             }
@@ -2859,7 +2948,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut tickers: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_tickers(tickers.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -2869,20 +2958,20 @@ impl OkxCore {
  * @method
  * @name okx#fetchMarkPrice
  * @description fetches mark price for the market
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#public-data-rest-api-get-mark-price
+ * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -2901,7 +2990,7 @@ impl OkxCore {
         //     "msg": ""
         // }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
         return self.parse_ticker(self.safe_dict(data.clone(), Value::Int(0), &[]), &[market.clone()]);
 
     Value::Null
@@ -2911,15 +3000,15 @@ impl OkxCore {
  * @method
  * @name okx#fetchMarkPrices
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#public-data-rest-api-get-mark-price
+ * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_mark_prices(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -2928,21 +3017,21 @@ impl OkxCore {
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTickers".to_string()), &[market.clone(), params.clone(), Value::Str("swap".to_string())]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), self.convert_to_instrument_type(marketType.clone()));
             m
         });
         if is_equal(&marketType, &Value::Str("option".to_string())) {
-            let mut defaultUnderlying: Value = self.safe_string(self.options.clone(), Value::Str("defaultUnderlying".to_string()), &[Value::Str("BTC-USD".to_string())]);
+            let mut defaultUnderlying: Value = self.safe_string_k(self.options.clone(), "defaultUnderlying", &[Value::Str("BTC-USD".to_string())]);
             let mut currencyId: Value = self.safe_string2(params.clone(), Value::Str("uly".to_string()), Value::Str("marketId".to_string()), &[defaultUnderlying.clone()]);
             if is_equal(&currencyId, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMarkPrices() requires an underlying uly or marketId parameter for options markets".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMarkPrices() requires an underlying uly or marketId parameter for options markets".to_string()))));
             }  else {
                 add_element_to_object(&mut request, &Value::Str("uly".to_string()), currencyId.clone());
             }
         }
         let mut response: Value = self.call_method(Value::Str("public_get_public_mark_price".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
-        let mut tickers: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_tickers(tickers.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -2999,36 +3088,36 @@ impl OkxCore {
         //         "ts": "1621927314985"
         //     }
         //
-        let mut id: Value = self.safe_string(trade.clone(), Value::Str("tradeId".to_string()), &[]);
-        let mut marketId: Value = self.safe_string(trade.clone(), Value::Str("instId".to_string()), &[]);
+        let mut id: Value = self.safe_string_k(trade.clone(), "tradeId", &[]);
+        let mut marketId: Value = self.safe_string_k(trade.clone(), "instId", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("-".to_string())]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
-        let mut timestamp: Value = self.safe_integer(trade.clone(), Value::Str("ts".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(trade.clone(), "ts", &[]);
         let mut price: Value = self.safe_string2(trade.clone(), Value::Str("fillPx".to_string()), Value::Str("px".to_string()), &[]);
         let mut amount: Value = self.safe_string2(trade.clone(), Value::Str("fillSz".to_string()), Value::Str("sz".to_string()), &[]);
-        let mut side: Value = self.safe_string(trade.clone(), Value::Str("side".to_string()), &[]);
-        let mut orderId: Value = self.safe_string(trade.clone(), Value::Str("ordId".to_string()), &[]);
-        let mut feeCostString: Value = self.safe_string(trade.clone(), Value::Str("fee".to_string()), &[]);
+        let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
+        let mut orderId: Value = self.safe_string_k(trade.clone(), "ordId", &[]);
+        let mut feeCostString: Value = self.safe_string_k(trade.clone(), "fee", &[]);
         let mut fee: Value = Value::Null;
         if !is_equal(&feeCostString, &Value::Null) {
             let mut feeCostSigned: Value = crate::precise::Precise::stringNeg(&feeCostString);
-            let mut feeCurrencyId: Value = self.safe_string(trade.clone(), Value::Str("feeCcy".to_string()), &[]);
+            let mut feeCurrencyId: Value = self.safe_string_k(trade.clone(), "feeCcy", &[]);
             let mut feeCurrencyCode: Value = self.safe_currency_code(feeCurrencyId.clone(), &[]);
             fee = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostSigned.clone());
                     m.insert("currency".to_string(), feeCurrencyCode.clone());
                 m
             });
         }
-        let mut takerOrMaker: Value = self.safe_string(trade.clone(), Value::Str("execType".to_string()), &[]);
+        let mut takerOrMaker: Value = self.safe_string_k(trade.clone(), "execType", &[]);
         if is_equal(&takerOrMaker, &Value::Str("T".to_string())) {
             takerOrMaker = Value::Str("taker".to_string());
         }  else if is_equal(&takerOrMaker, &Value::Str("M".to_string())) {
             takerOrMaker = Value::Str("maker".to_string());
         }
         return self.safe_trade(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
@@ -3052,21 +3141,21 @@ impl OkxCore {
  * @method
  * @name okx#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-market-data-get-trades
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-public-data-get-option-trades
+ * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades
+ * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-option-trades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("method".to_string()))] 'publicGetMarketTrades' or 'publicGetMarketHistoryTrades' default is 'publicGetMarketTrades'
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
- * @returns {Trade[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=public-trades}
+ * @param {string} [params.method] 'publicGetMarketTrades' or 'publicGetMarketHistoryTrades' default is 'publicGetMarketTrades'
+ * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
     pub async fn fetch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -3077,7 +3166,7 @@ impl OkxCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -3130,7 +3219,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3163,22 +3252,22 @@ impl OkxCore {
  * @method
  * @name okx#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-market-data-get-candlesticks
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-market-data-get-candlesticks-history
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks-history
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-market-data-get-index-candlesticks
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-market-data-get-index-candlesticks-history
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-market-data-get-candlesticks-history
+ * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-candlesticks
+ * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-candlesticks-history
+ * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks
+ * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks-history
+ * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks
+ * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks-history
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-candlesticks-history
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("price".to_string()))] "mark" or "index" for mark price and index price candles
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest candle to fetch
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] "Candles" or "HistoryCandles", default is "Candles" for recent candles, "HistoryCandles" for older candles
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+ * @param {string} [params.type] "Candles" or "HistoryCandles", default is "Candles" for recent candles, "HistoryCandles" for older candles
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -3186,7 +3275,7 @@ impl OkxCore {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -3196,14 +3285,14 @@ impl OkxCore {
         if is_true(&paginate) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".to_string()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), params.clone(), Value::Int(200)]).await;
         }
-        let mut priceType: Value = self.safe_string(params.clone(), Value::Str("price".to_string()), &[]);
+        let mut priceType: Value = self.safe_string_k(params.clone(), "price", &[]);
         let mut isMarkOrIndex: Value = self.in_array(priceType.clone(), Value::List(vec![Value::Str("mark".to_string()), Value::Str("index".to_string())]));
         params = self.omit(params.clone(), Value::Str("price".to_string()), &[]);
-        let mut options: Value = self.safe_dict(self.options.clone(), Value::Str("fetchOHLCV".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchOHLCV", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timezone: Value = self.safe_string(options.clone(), Value::Str("timezone".to_string()), &[Value::Str("UTC".to_string())]);
+        let mut timezone: Value = self.safe_string_k(options.clone(), "timezone", &[Value::Str("UTC".to_string())]);
         let mut limitIsUndefined: Value = Value::Bool(is_equal(&limit, &Value::Null));
         if is_equal(&limit, &Value::Null) {
             limit = Value::Int(100); // default 100, max 300
@@ -3217,7 +3306,7 @@ impl OkxCore {
             bar = add(&bar, &to_lower(&timezone));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("bar".to_string(), bar.clone());
                 m.insert("limit".to_string(), limit.clone());
@@ -3236,15 +3325,15 @@ impl OkxCore {
             }
             let mut startTime: Value = crate::runtime::Math::max(&subtract(&since, &Value::Int(1)), &Value::Int(0));
             add_element_to_object(&mut request, &Value::Str("before".to_string()), startTime.clone());
-            add_element_to_object(&mut request, &Value::Str("after".to_string()), self.sum(since.clone(), multiply(&durationInMilliseconds, &limit), &[]));
+            add_element_to_object(&mut request, &Value::Str("after".to_string()), self.sum(&[since.clone(), multiply(&durationInMilliseconds, &limit)]));
         }
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if !is_equal(&until, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("after".to_string()), until.clone());
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         }
-        defaultType = self.safe_string(options.clone(), Value::Str("type".to_string()), &[defaultType.clone()]); // Candles or HistoryCandles
-        let mut type_var: Value = self.safe_string(params.clone(), Value::Str("type".to_string()), &[defaultType.clone()]);
+        defaultType = self.safe_string_k(options.clone(), "type", &[defaultType.clone()]); // Candles or HistoryCandles
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
         let mut isHistoryCandles: Value = Value::Bool(is_equal(&type_var, &Value::Str("HistoryCandles".to_string())));
         let mut response: Value = Value::Null;
@@ -3283,7 +3372,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3293,24 +3382,24 @@ impl OkxCore {
  * @method
  * @name okx#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#public-data-rest-api-get-funding-rate-history
+ * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate-history
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-history-structure}
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
     pub async fn fetch_funding_rate_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut paginate: Value = Value::Bool(false);
@@ -3320,7 +3409,7 @@ impl OkxCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -3354,22 +3443,23 @@ impl OkxCore {
         //     }
         //
         let mut rates: Value = Value::List(vec![]);
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&data)) {
+            let mut __for_first_981: bool = true;
+            while { if !__for_first_981 { i = add(&i, &Value::Int(1)); } __for_first_981 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rate: Value = get_value(&data, &i);
-            let mut timestamp: Value = self.safe_integer(rate.clone(), Value::Str("fundingTime".to_string()), &[]);
+            let mut rate: Value = get_value(&data, &i);
+            let mut timestamp: Value = self.safe_integer_k(rate.clone(), "fundingTime", &[]);
             append_to_array(&mut rates, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), rate.clone());
-                    m.insert("symbol".to_string(), self.safe_symbol(self.safe_string(rate.clone(), Value::Str("instId".to_string()), &[]), &[]));
-                    m.insert("fundingRate".to_string(), self.safe_number(rate.clone(), Value::Str("realizedRate".to_string()), &[]));
+                    m.insert("symbol".to_string(), self.safe_symbol(self.safe_string_k(rate.clone(), "instId", &[]), &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(rate.clone(), "realizedRate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
                 m
             }));
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut sorted: Value = self.sort_by(rates.clone(), Value::Str("timestamp".to_string()), &[]);
@@ -3384,40 +3474,43 @@ impl OkxCore {
         }  else {
             return self.parse_trading_balance(response.clone());
         }
+
+    Value::Null
 }
 
     pub fn parse_trading_balance(&self, mut response: Value) -> Value {
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timestamp: Value = self.safe_integer(first.clone(), Value::Str("uTime".to_string()), &[]);
-        let mut details: Value = self.safe_list(first.clone(), Value::Str("details".to_string()), &[Value::List(vec![])]);
+        let mut timestamp: Value = self.safe_integer_k(first.clone(), "uTime", &[]);
+        let mut details: Value = self.safe_list_k(first.clone(), "details", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&details)) {
+            let mut __for_first_982: bool = true;
+            while { if !__for_first_982 { i = add(&i, &Value::Int(1)); } __for_first_982 = false; is_less_than(&i, &get_array_length(&details)) } {
             let mut balance: Value = get_value(&details, &i);
-            let mut currencyId: Value = self.safe_string(balance.clone(), Value::Str("ccy".to_string()), &[]);
+            let mut balance: Value = get_value(&details, &i);
+            let mut currencyId: Value = self.safe_string_k(balance.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
             // it may be incorrect to use total, free and used for swap accounts
-            let mut eq: Value = self.safe_string(balance.clone(), Value::Str("eq".to_string()), &[]);
-            let mut availEq: Value = self.safe_string(balance.clone(), Value::Str("availEq".to_string()), &[]);
+            let mut eq: Value = self.safe_string_k(balance.clone(), "eq", &[]);
+            let mut availEq: Value = self.safe_string_k(balance.clone(), "availEq", &[]);
             add_element_to_object(&mut account, &Value::Str("total".to_string()), eq.clone());
             if is_equal(&availEq, &Value::Null) {
-                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(balance.clone(), Value::Str("availBal".to_string()), &[]));
-                add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(balance.clone(), Value::Str("frozenBal".to_string()), &[]));
+                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "availBal", &[]));
+                add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "frozenBal", &[]));
             }  else {
                 add_element_to_object(&mut account, &Value::Str("free".to_string()), availEq.clone());
             }
             add_element_to_object(&mut result, &code, account.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         add_element_to_object(&mut result, &Value::Str("timestamp".to_string()), timestamp.clone());
@@ -3429,24 +3522,25 @@ impl OkxCore {
 
     pub fn parse_funding_balance(&self, mut response: Value) -> Value {
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&data)) {
+            let mut __for_first_983: bool = true;
+            while { if !__for_first_983 { i = add(&i, &Value::Int(1)); } __for_first_983 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut balance: Value = get_value(&data, &i);
-            let mut currencyId: Value = self.safe_string(balance.clone(), Value::Str("ccy".to_string()), &[]);
+            let mut balance: Value = get_value(&data, &i);
+            let mut currencyId: Value = self.safe_string_k(balance.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
             // it may be incorrect to use total, free and used for swap accounts
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(balance.clone(), Value::Str("bal".to_string()), &[]));
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(balance.clone(), Value::Str("availBal".to_string()), &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(balance.clone(), Value::Str("frozenBal".to_string()), &[]));
+            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "bal", &[]));
+            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "availBal", &[]));
+            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "frozenBal", &[]));
             add_element_to_object(&mut result, &code, account.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.safe_balance(result.clone());
@@ -3457,7 +3551,7 @@ impl OkxCore {
     pub fn parse_trading_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
         m.insert("maker".to_string(), self.parse_number(crate::precise::Precise::stringNeg(&self.safe_string2(fee.clone(), Value::Str("maker".to_string()), Value::Str("makerU".to_string()), &[])), &[]));
@@ -3474,20 +3568,20 @@ impl OkxCore {
  * @method
  * @name okx#fetchTradingFee
  * @description fetch the trading fees for a market
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#trading-account-rest-api-get-fee-rates
+ * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-fee-rates
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
     pub async fn fetch_trading_fee(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), self.convert_to_instrument_type(get_value(&market, &Value::Str("type".to_string()))));
             m
         });
@@ -3496,7 +3590,7 @@ impl OkxCore {
         }  else if is_true(&get_value(&market, &Value::Str("swap".to_string()))) || is_true(&get_value(&market, &Value::Str("future".to_string()))) || is_true(&get_value(&market, &Value::Str("option".to_string()))) {
             add_element_to_object(&mut request, &Value::Str("uly".to_string()), add(&add(&get_value(&market, &Value::Str("baseId".to_string())), &Value::Str("-".to_string())), &get_value(&market, &Value::Str("quoteId".to_string()))));
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradingFee() supports spot, swap, future or option markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradingFee() supports spot, swap, future or option markets only".to_string()))));
         }
         let mut response: Value = self.call_method(Value::Str("private_get_account_trade_fee".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         //
@@ -3517,9 +3611,9 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_trading_fee(first.clone(), &[market.clone()]);
@@ -3531,15 +3625,15 @@ impl OkxCore {
  * @method
  * @name okx#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#funding-account-rest-api-get-balance
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#trading-account-rest-api-get-balance
+ * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-balance
+ * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] wallet type, ['funding' or 'trading'] default is 'trading'
- * @returns {object} a [balance structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=balance-structure}
+ * @param {string} [params.type] wallet type, ['funding' or 'trading'] default is 'trading'
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
     pub async fn fetch_balance(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -3547,7 +3641,7 @@ impl OkxCore {
         let mut marketType: Value = get_value(&marketTypequeryVariable, &Value::Int(0));
         let mut query: Value = get_value(&marketTypequeryVariable, &Value::Int(1));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Value = Value::Null;
@@ -3565,24 +3659,24 @@ impl OkxCore {
  * @method
  * @name okx#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol and cost
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-trade-post-place-order
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_market_buy_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketBuyOrderWithCost() supports spot markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketBuyOrderWithCost() supports spot markets only".to_string()))));
         }
         let mut req: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(false));
                 m.insert("tgtCcy".to_string(), Value::Str("quote_ccy".to_string()));
             m
@@ -3596,24 +3690,24 @@ impl OkxCore {
  * @method
  * @name okx#createMarketSellOrderWithCost
  * @description create a market buy order by providing the symbol and cost
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-trade-post-place-order
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_market_sell_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketSellOrderWithCost() supports spot markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketSellOrderWithCost() supports spot markets only".to_string()))));
         }
         let mut req: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(false));
                 m.insert("tgtCcy".to_string(), Value::Str("quote_ccy".to_string()));
             m
@@ -3626,7 +3720,7 @@ impl OkxCore {
     pub fn create_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut market: Value = self.market(symbol.clone());
@@ -3634,14 +3728,14 @@ impl OkxCore {
         let mut stopLossPrice: Value = self.safe_value2(params.clone(), Value::Str("stopLossPrice".to_string()), Value::Str("slTriggerPx".to_string()), &[]);
         let mut conditional: Value = Value::Bool(is_true(&(!is_equal(&stopLossPrice, &Value::Null))) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("conditional".to_string())))));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("side".to_string(), side.clone());
                 m.insert("ordType".to_string(), type_var.clone());
             m
         });
         let mut isConditionalOrOCO: Value = Value::Bool(is_true(&conditional) || is_true(&(is_equal(&type_var, &Value::Str("oco".to_string())))));
-        let mut closeFraction: Value = self.safe_string(params.clone(), Value::Str("closeFraction".to_string()), &[]);
+        let mut closeFraction: Value = self.safe_string_k(params.clone(), "closeFraction", &[]);
         let mut shouldOmitSize: Value = Value::Bool(is_true(&isConditionalOrOCO) && !is_equal(&closeFraction, &Value::Null));
         if !is_true(&shouldOmitSize) {
             add_element_to_object(&mut request, &Value::Str("sz".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
@@ -3649,16 +3743,16 @@ impl OkxCore {
         let mut spot: Value = get_value(&market, &Value::Str("spot".to_string()));
         let mut contract: Value = get_value(&market, &Value::Str("contract".to_string()));
         let mut triggerPrice: Value = self.safe_value_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPx".to_string())]), &[]);
-        let mut timeInForce: Value = self.safe_string(params.clone(), Value::Str("timeInForce".to_string()), &[Value::Str("GTC".to_string())]);
-        // const takeProfitPrice = get_value(&this, &Value::Str("safeValue2".to_string())) (params, 'takeProfitPrice', 'tpTriggerPx');
-        let mut tpOrdPx: Value = self.safe_value(params.clone(), Value::Str("tpOrdPx".to_string()), &[price.clone()]);
-        let mut tpTriggerPxType: Value = self.safe_string(params.clone(), Value::Str("tpTriggerPxType".to_string()), &[Value::Str("last".to_string())]);
-        // const stopLossPrice = get_value(&this, &Value::Str("safeValue2".to_string())) (params, 'stopLossPrice', 'slTriggerPx');
-        let mut slOrdPx: Value = self.safe_value(params.clone(), Value::Str("slOrdPx".to_string()), &[price.clone()]);
-        let mut slTriggerPxType: Value = self.safe_string(params.clone(), Value::Str("slTriggerPxType".to_string()), &[Value::Str("last".to_string())]);
+        let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[Value::Str("GTC".to_string())]);
+        // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
+        let mut tpOrdPx: Value = self.safe_value_k(params.clone(), "tpOrdPx", &[price.clone()]);
+        let mut tpTriggerPxType: Value = self.safe_string_k(params.clone(), "tpTriggerPxType", &[Value::Str("last".to_string())]);
+        // const stopLossPrice = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
+        let mut slOrdPx: Value = self.safe_value_k(params.clone(), "slOrdPx", &[price.clone()]);
+        let mut slTriggerPxType: Value = self.safe_string_k(params.clone(), "slTriggerPxType", &[Value::Str("last".to_string())]);
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string()), &[]);
-        let mut stopLoss: Value = self.safe_value(params.clone(), Value::Str("stopLoss".to_string()), &[]);
-        let mut takeProfit: Value = self.safe_value(params.clone(), Value::Str("takeProfit".to_string()), &[]);
+        let mut stopLoss: Value = self.safe_value_k(params.clone(), "stopLoss", &[]);
+        let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
         let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
         let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
         let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".to_string()), Value::Str("callbackRatio".to_string()), &[]);
@@ -3666,7 +3760,7 @@ impl OkxCore {
         let mut trailingPrice: Value = self.safe_string2(params.clone(), Value::Str("trailingPrice".to_string()), Value::Str("callbackSpread".to_string()), &[]);
         let mut isTrailingPriceOrder: Value = Value::Bool(!is_equal(&trailingPrice, &Value::Null));
         let mut trigger: Value = Value::Bool(is_true(&(!is_equal(&triggerPrice, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("trigger".to_string())))));
-        let mut isReduceOnly: Value = Value::Bool(is_true(&self.safe_value(params.clone(), Value::Str("reduceOnly".to_string()), &[Value::Bool(false)])) || is_true(&(!is_equal(&closeFraction, &Value::Null))));
+        let mut isReduceOnly: Value = Value::Bool(is_true(&self.safe_value_k(params.clone(), "reduceOnly", &[Value::Bool(false)])) || is_true(&(!is_equal(&closeFraction, &Value::Null))));
         let mut defaultMarginMode: Value = self.safe_string2(self.options.clone(), Value::Str("defaultMarginMode".to_string()), Value::Str("marginMode".to_string()), &[Value::Str("cross".to_string())]);
         let mut marginMode: Value = self.safe_string2(params.clone(), Value::Str("marginMode".to_string()), Value::Str("tdMode".to_string()), &[]); // cross or isolated, tdMode not ommited so as to be extended into the request
         let mut margin: Value = Value::Bool(false);
@@ -3674,12 +3768,12 @@ impl OkxCore {
             margin = Value::Bool(true);
         }  else {
             marginMode = defaultMarginMode.clone();
-            margin = self.safe_bool(params.clone(), Value::Str("margin".to_string()), &[Value::Bool(false)]);
+            margin = self.safe_bool_k(params.clone(), "margin", &[Value::Bool(false)]);
         }
         if is_true(&spot) {
             if is_true(&margin) {
                 let mut defaultCurrency: Value = ternary(is_true(&(is_equal(&side, &Value::Str("buy".to_string())))), get_value(&market, &Value::Str("quote".to_string())), get_value(&market, &Value::Str("base".to_string())));
-                let mut currency: Value = self.safe_string(params.clone(), Value::Str("ccy".to_string()), &[defaultCurrency.clone()]);
+                let mut currency: Value = self.safe_string_k(params.clone(), "ccy", &[defaultCurrency.clone()]);
                 add_element_to_object(&mut request, &Value::Str("ccy".to_string()), self.safe_currency_code(currency.clone(), &[]));
             }
             let mut tradeMode: Value = ternary(is_true(&margin), marginMode.clone(), Value::Str("cash".to_string()));
@@ -3719,8 +3813,8 @@ impl OkxCore {
         let mut fok: Value = Value::Bool(is_true(&(is_equal(&timeInForce, &Value::Str("FOK".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("fok".to_string())))));
         // const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         let mut marketIOC: Value = Value::Bool(is_true(&(is_true(&isMarketOrder) && is_true(&ioc))) || is_true(&(is_equal(&type_var, &Value::Str("optimal_limit_ioc".to_string())))));
-        let mut defaultTgtCcy: Value = self.safe_string(self.options.clone(), Value::Str("tgtCcy".to_string()), &[Value::Str("base_ccy".to_string())]);
-        let mut tgtCcy: Value = self.safe_string(params.clone(), Value::Str("tgtCcy".to_string()), &[defaultTgtCcy.clone()]);
+        let mut defaultTgtCcy: Value = self.safe_string_k(self.options.clone(), "tgtCcy", &[Value::Str("base_ccy".to_string())]);
+        let mut tgtCcy: Value = self.safe_string_k(params.clone(), "tgtCcy", &[defaultTgtCcy.clone()]);
         if is_true(&(!is_true(&contract))) && is_true(&(!is_true(&margin))) {
             add_element_to_object(&mut request, &Value::Str("tgtCcy".to_string()), tgtCcy.clone());
         }
@@ -3728,7 +3822,7 @@ impl OkxCore {
             add_element_to_object(&mut request, &Value::Str("ordType".to_string()), Value::Str("market".to_string()));
             if is_true(&spot) && is_true(&(is_equal(&side, &Value::Str("buy".to_string())))) {
                 // spot market buy: "sz" can refer either to base currency units or to quote currency units
-                // see documentation: https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-trade-place-order
+                // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if is_equal(&tgtCcy, &Value::Str("quote_ccy".to_string())) {
                     // quote_ccy: sz refers to units of quote currency
                     let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
@@ -3744,7 +3838,7 @@ impl OkxCore {
                                 notional = self.parse_number(quoteAmount.clone(), &[]);
                             }
                         }  else if is_equal(&notional, &Value::Null) {
-                            panic!("{:?}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)".to_string()))));
+                            panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)".to_string()))));
                         }
                     }  else {
                         notional = ternary(is_true(&(is_equal(&notional, &Value::Null))), amount.clone(), notional.clone());
@@ -3776,30 +3870,30 @@ impl OkxCore {
             add_element_to_object(&mut request, &Value::Str("ordType".to_string()), Value::Str("move_order_stop".to_string()));
         }  else if is_true(&hasStopLoss) || is_true(&hasTakeProfit) {
             let mut attachAlgoOrd: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m
             });
             if is_true(&hasStopLoss) {
                 let mut stopLossTriggerPrice: Value = self.safe_value_n(stopLoss.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("slTriggerPx".to_string())]), &[]);
                 if is_equal(&stopLossTriggerPrice, &Value::Null) {
-                    panic!("{:?}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order".to_string()))));
+                    panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order".to_string()))));
                 }
                 let mut slTriggerPx: Value = self.price_to_precision(symbol.clone(), stopLossTriggerPrice.clone());
                 let mut slOrder: Value = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                     m
                 });
                 add_element_to_object(&mut slOrder, &Value::Str("slTriggerPx".to_string()), slTriggerPx.clone());
                 let mut stopLossLimitPrice: Value = self.safe_value_n(stopLoss.clone(), Value::List(vec![Value::Str("price".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("slOrdPx".to_string())]), &[]);
-                let mut stopLossOrderType: Value = self.safe_string(stopLoss.clone(), Value::Str("type".to_string()), &[]);
+                let mut stopLossOrderType: Value = self.safe_string_k(stopLoss.clone(), "type", &[]);
                 if !is_equal(&stopLossOrderType, &Value::Null) {
                     let mut stopLossLimitOrderType: Value = Value::Bool(is_equal(&stopLossOrderType, &Value::Str("limit".to_string())));
                     let mut stopLossMarketOrderType: Value = Value::Bool(is_equal(&stopLossOrderType, &Value::Str("market".to_string())));
                     if is_true(&(!is_true(&stopLossLimitOrderType))) && is_true(&(!is_true(&stopLossMarketOrderType))) {
-                        panic!("{:?}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() params[\"stopLoss\"][\"type\"] must be either \"limit\" or \"market\"".to_string()))));
+                        panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() params[\"stopLoss\"][\"type\"] must be either \"limit\" or \"market\"".to_string()))));
                     }  else if is_true(&stopLossLimitOrderType) {
                         if is_equal(&stopLossLimitPrice, &Value::Null) {
-                            panic!("{:?}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() requires a limit price in params[\"stopLoss\"][\"price\"] or params[\"stopLoss\"][\"slOrdPx\"] for a stop loss limit order".to_string()))));
+                            panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() requires a limit price in params[\"stopLoss\"][\"price\"] or params[\"stopLoss\"][\"slOrdPx\"] for a stop loss limit order".to_string()))));
                         }  else {
                             add_element_to_object(&mut slOrder, &Value::Str("slOrdPx".to_string()), self.price_to_precision(symbol.clone(), stopLossLimitPrice.clone()));
                         }
@@ -3814,7 +3908,7 @@ impl OkxCore {
                 let mut stopLossTriggerPriceType: Value = self.safe_string2(stopLoss.clone(), Value::Str("triggerPriceType".to_string()), Value::Str("slTriggerPxType".to_string()), &[Value::Str("last".to_string())]);
                 if !is_equal(&stopLossTriggerPriceType, &Value::Null) {
                     if is_true(&(!is_equal(&stopLossTriggerPriceType, &Value::Str("last".to_string())))) && is_true(&(!is_equal(&stopLossTriggerPriceType, &Value::Str("index".to_string())))) && is_true(&(!is_equal(&stopLossTriggerPriceType, &Value::Str("mark".to_string())))) {
-                        panic!("{:?}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() stop loss trigger price type must be one of \"last\", \"index\" or \"mark\"".to_string()))));
+                        panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() stop loss trigger price type must be one of \"last\", \"index\" or \"mark\"".to_string()))));
                     }
                     add_element_to_object(&mut slOrder, &Value::Str("slTriggerPxType".to_string()), stopLossTriggerPriceType.clone());
                 }
@@ -3823,10 +3917,10 @@ impl OkxCore {
             if is_true(&hasTakeProfit) {
                 let mut takeProfitTriggerPrice: Value = self.safe_value_n(takeProfit.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("tpTriggerPx".to_string())]), &[]);
                 if is_equal(&takeProfitTriggerPrice, &Value::Null) {
-                    panic!("{:?}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"], or params[\"takeProfit\"][\"tpTriggerPx\"] for a take profit order".to_string()))));
+                    panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"], or params[\"takeProfit\"][\"tpTriggerPx\"] for a take profit order".to_string()))));
                 }
                 let mut tpOrder: Value = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                     m
                 });
                 add_element_to_object(&mut tpOrder, &Value::Str("tpTriggerPx".to_string()), self.price_to_precision(symbol.clone(), takeProfitTriggerPrice.clone()));
@@ -3836,10 +3930,10 @@ impl OkxCore {
                     let mut takeProfitLimitOrderType: Value = Value::Bool(is_equal(&takeProfitOrderType, &Value::Str("limit".to_string())));
                     let mut takeProfitMarketOrderType: Value = Value::Bool(is_equal(&takeProfitOrderType, &Value::Str("market".to_string())));
                     if is_true(&(!is_true(&takeProfitLimitOrderType))) && is_true(&(!is_true(&takeProfitMarketOrderType))) {
-                        panic!("{:?}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() params[\"takeProfit\"][\"type\"] must be either \"limit\" or \"market\"".to_string()))));
+                        panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() params[\"takeProfit\"][\"type\"] must be either \"limit\" or \"market\"".to_string()))));
                     }  else if is_true(&takeProfitLimitOrderType) {
                         if is_equal(&takeProfitLimitPrice, &Value::Null) {
-                            panic!("{:?}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() requires a limit price in params[\"takeProfit\"][\"price\"] or params[\"takeProfit\"][\"tpOrdPx\"] for a take profit limit order".to_string()))));
+                            panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() requires a limit price in params[\"takeProfit\"][\"price\"] or params[\"takeProfit\"][\"tpOrdPx\"] for a take profit limit order".to_string()))));
                         }  else {
                             add_element_to_object(&mut tpOrder, &Value::Str("tpOrdKind".to_string()), takeProfitOrderType.clone());
                             add_element_to_object(&mut tpOrder, &Value::Str("tpOrdPx".to_string()), self.price_to_precision(symbol.clone(), takeProfitLimitPrice.clone()));
@@ -3856,7 +3950,7 @@ impl OkxCore {
                 let mut takeProfitTriggerPriceType: Value = self.safe_string2(takeProfit.clone(), Value::Str("triggerPriceType".to_string()), Value::Str("tpTriggerPxType".to_string()), &[Value::Str("last".to_string())]);
                 if !is_equal(&takeProfitTriggerPriceType, &Value::Null) {
                     if is_true(&(!is_equal(&takeProfitTriggerPriceType, &Value::Str("last".to_string())))) && is_true(&(!is_equal(&takeProfitTriggerPriceType, &Value::Str("index".to_string())))) && is_true(&(!is_equal(&takeProfitTriggerPriceType, &Value::Str("mark".to_string())))) {
-                        panic!("{:?}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() take profit trigger price type must be one of \"last\", \"index\" or \"mark\"".to_string()))));
+                        panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() take profit trigger price type must be one of \"last\", \"index\" or \"mark\"".to_string()))));
                     }
                     add_element_to_object(&mut tpOrder, &Value::Str("tpTriggerPxType".to_string()), takeProfitTriggerPriceType.clone());
                 }
@@ -3885,7 +3979,7 @@ impl OkxCore {
             if is_equal(&side, &Value::Str("sell".to_string())) {
                 request = self.omit(request.clone(), Value::Str("tgtCcy".to_string()), &[]);
             }
-            if is_equal(&self.safe_string(request.clone(), Value::Str("tdMode".to_string()), &[]), &Value::Str("cash".to_string())) {
+            if is_equal(&self.safe_string_k(request.clone(), "tdMode", &[]), &Value::Str("cash".to_string())) {
                 // for some reason tdMode = cash throws
                 // {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
                 add_element_to_object(&mut request, &Value::Str("tdMode".to_string()), marginMode.clone());
@@ -3910,9 +4004,9 @@ impl OkxCore {
             }
         }
         if is_equal(&clientOrderId, &Value::Null) {
-            let mut brokerId: Value = self.safe_string(self.options.clone(), Value::Str("brokerId".to_string()), &[]);
+            let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[]);
             if !is_equal(&brokerId, &Value::Null) {
-                add_element_to_object(&mut request, &Value::Str("clOrdId".to_string()), add(&brokerId, &self.uuid16()));
+                add_element_to_object(&mut request, &Value::Str("clOrdId".to_string()), add(&brokerId, &self.uuid16(&[])));
                 add_element_to_object(&mut request, &Value::Str("tag".to_string()), brokerId.clone());
             }
         }  else {
@@ -3928,48 +4022,48 @@ impl OkxCore {
  * @method
  * @name okx#createOrder
  * @description create a trade order
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-trade-post-place-order
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-algo-trading-post-place-algo-order
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-place-algo-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {bool} [get_value(&params, &Value::Str("reduceOnly".to_string()))] a mark to reduce the position size for margin, swap and future orders
- * @param {bool} [get_value(&params, &Value::Str("postOnly".to_string()))] true to place a post only order
- * @param {object} [get_value(&params, &Value::Str("takeProfit".to_string()))] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
- * @param {float} [get_value(&params, &Value::Str("takeProfit".to_string())).triggerPrice] take profit trigger price
- * @param {float} [get_value(&params, &Value::Str("takeProfit".to_string())).price] used for take profit limit orders, not used for take profit market price orders
- * @param {string} [get_value(&params, &Value::Str("takeProfit".to_string())).type] 'market' or 'limit' used to specify the take profit price type
- * @param {object} [get_value(&params, &Value::Str("stopLoss".to_string()))] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
- * @param {float} [get_value(&params, &Value::Str("stopLoss".to_string())).triggerPrice] stop loss trigger price
- * @param {float} [get_value(&params, &Value::Str("stopLoss".to_string())).price] used for stop loss limit orders, not used for stop loss market price orders
- * @param {string} [get_value(&params, &Value::Str("stopLoss".to_string())).type] 'market' or 'limit' used to specify the stop loss price type
- * @param {string} [get_value(&params, &Value::Str("positionSide".to_string()))] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
- * @param {string} [get_value(&params, &Value::Str("trailingPercent".to_string()))] the percent to trail away from the current market price
- * @param {string} [get_value(&params, &Value::Str("tpOrdKind".to_string()))] 'condition' or 'limit', the default is 'condition'
- * @param {bool} [get_value(&params, &Value::Str("hedged".to_string()))] *swap and future only* true for hedged mode, false for one way mode
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', the default is 'cross'
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
+ * @param {bool} [params.postOnly] true to place a post only order
+ * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+ * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+ * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
+ * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
+ * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+ * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+ * @param {float} [params.stopLoss.price] used for stop loss limit orders, not used for stop loss market price orders
+ * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
+ * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
+ * @param {string} [params.trailingPercent] the percent to trail away from the current market price
+ * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
+ * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode
+ * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
-        let mut method: Value = self.safe_string(self.options.clone(), Value::Str("createOrder".to_string()), &[Value::Str("privatePostTradeBatchOrders".to_string())]);
-        let mut requestOrdType: Value = self.safe_string(request.clone(), Value::Str("ordType".to_string()), &[]);
+        let mut method: Value = self.safe_string_k(self.options.clone(), "createOrder", &[Value::Str("privatePostTradeBatchOrders".to_string())]);
+        let mut requestOrdType: Value = self.safe_string_k(request.clone(), "ordType", &[]);
         if is_true(&(is_equal(&requestOrdType, &Value::Str("trigger".to_string())))) || is_true(&(is_equal(&requestOrdType, &Value::Str("conditional".to_string())))) || is_true(&(is_equal(&requestOrdType, &Value::Str("move_order_stop".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("move_order_stop".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("oco".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("iceberg".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("twap".to_string())))) {
             method = Value::Str("privatePostTradeOrderAlgo".to_string());
         }
         if is_true(&(!is_equal(&method, &Value::Str("privatePostTradeOrder".to_string())))) && is_true(&(!is_equal(&method, &Value::Str("privatePostTradeOrderAlgo".to_string())))) && is_true(&(!is_equal(&method, &Value::Str("privatePostTradeBatchOrders".to_string())))) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" createOrder() this.options[\"createOrder\"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" createOrder() this.options[\"createOrder\"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo".to_string()))));
         }
         if is_equal(&method, &Value::Str("privatePostTradeBatchOrders".to_string())) {
             // keep the request body the same
@@ -3985,9 +4079,9 @@ impl OkxCore {
         }  else {
             response = self.call_method(Value::Str("private_post_trade_batch_orders".to_string()), &[request.clone()]).await;
         }
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut order: Value = self.parse_order(first.clone(), &[market.clone()]);
@@ -4002,35 +4096,36 @@ impl OkxCore {
  * @method
  * @name okx#createOrders
  * @description create a list of trade orders
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&orders)) {
+            let mut __for_first_984: bool = true;
+            while { if !__for_first_984 { i = add(&i, &Value::Int(1)); } __for_first_984 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
-            let mut marketId: Value = self.safe_string(rawOrder.clone(), Value::Str("symbol".to_string()), &[]);
-            let mut type_var: Value = self.safe_string(rawOrder.clone(), Value::Str("type".to_string()), &[]);
-            let mut side: Value = self.safe_string(rawOrder.clone(), Value::Str("side".to_string()), &[]);
-            let mut amount: Value = self.safe_value(rawOrder.clone(), Value::Str("amount".to_string()), &[]);
-            let mut price: Value = self.safe_value(rawOrder.clone(), Value::Str("price".to_string()), &[]);
-            let mut orderParams: Value = self.safe_dict(rawOrder.clone(), Value::Str("params".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut rawOrder: Value = get_value(&orders, &i);
+            let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
+            let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
+            let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
+            let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
+            let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
+            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut extendedParams: Value = self.extend(orderParams.clone(), &[params.clone()]); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             let mut orderRequest: Value = self.create_order_request(marketId.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), extendedParams.clone()]);
             append_to_array(&mut ordersRequests, orderRequest.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut response: Value = self.call_method(Value::Str("private_post_trade_batch_orders".to_string()), &[ordersRequests.clone()]).await;
@@ -4056,7 +4151,7 @@ impl OkxCore {
         //     "msg": "",
         //     "outTime": "1697979038586493"
         // }
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[]);
 
     Value::Null
@@ -4066,12 +4161,12 @@ impl OkxCore {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -4094,22 +4189,22 @@ impl OkxCore {
             }
         }
         let mut stopLossTriggerPrice: Value = self.safe_value2(params.clone(), Value::Str("stopLossPrice".to_string()), Value::Str("newSlTriggerPx".to_string()), &[]);
-        let mut stopLossPrice: Value = self.safe_value(params.clone(), Value::Str("newSlOrdPx".to_string()), &[]);
-        let mut stopLossTriggerPriceType: Value = self.safe_string(params.clone(), Value::Str("newSlTriggerPxType".to_string()), &[Value::Str("last".to_string())]);
+        let mut stopLossPrice: Value = self.safe_value_k(params.clone(), "newSlOrdPx", &[]);
+        let mut stopLossTriggerPriceType: Value = self.safe_string_k(params.clone(), "newSlTriggerPxType", &[Value::Str("last".to_string())]);
         let mut takeProfitTriggerPrice: Value = self.safe_value2(params.clone(), Value::Str("takeProfitPrice".to_string()), Value::Str("newTpTriggerPx".to_string()), &[]);
-        let mut takeProfitPrice: Value = self.safe_value(params.clone(), Value::Str("newTpOrdPx".to_string()), &[]);
-        let mut takeProfitTriggerPriceType: Value = self.safe_string(params.clone(), Value::Str("newTpTriggerPxType".to_string()), &[Value::Str("last".to_string())]);
-        let mut stopLoss: Value = self.safe_value(params.clone(), Value::Str("stopLoss".to_string()), &[]);
-        let mut takeProfit: Value = self.safe_value(params.clone(), Value::Str("takeProfit".to_string()), &[]);
+        let mut takeProfitPrice: Value = self.safe_value_k(params.clone(), "newTpOrdPx", &[]);
+        let mut takeProfitTriggerPriceType: Value = self.safe_string_k(params.clone(), "newTpTriggerPxType", &[Value::Str("last".to_string())]);
+        let mut stopLoss: Value = self.safe_value_k(params.clone(), "stopLoss", &[]);
+        let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
         let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
         let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
         if is_true(&isAlgoOrder) {
             if is_true(&(is_equal(&stopLossTriggerPrice, &Value::Null))) && is_true(&(is_equal(&takeProfitTriggerPrice, &Value::Null))) {
-                panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order".to_string()))));
+                panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order".to_string()))));
             }
             if !is_equal(&stopLossTriggerPrice, &Value::Null) {
                 if is_equal(&stopLossPrice, &Value::Null) {
-                    panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" editOrder() requires a newSlOrdPx parameter for editing an algo order".to_string()))));
+                    panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" editOrder() requires a newSlOrdPx parameter for editing an algo order".to_string()))));
                 }
                 add_element_to_object(&mut request, &Value::Str("newSlTriggerPx".to_string()), self.price_to_precision(symbol.clone(), stopLossTriggerPrice.clone()));
                 add_element_to_object(&mut request, &Value::Str("newSlOrdPx".to_string()), ternary(is_true(&(is_equal(&type_var, &Value::Str("market".to_string())))), Value::Str("-1".to_string()), self.price_to_precision(symbol.clone(), stopLossPrice.clone())));
@@ -4117,7 +4212,7 @@ impl OkxCore {
             }
             if !is_equal(&takeProfitTriggerPrice, &Value::Null) {
                 if is_equal(&takeProfitPrice, &Value::Null) {
-                    panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" editOrder() requires a newTpOrdPx parameter for editing an algo order".to_string()))));
+                    panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" editOrder() requires a newTpOrdPx parameter for editing an algo order".to_string()))));
                 }
                 add_element_to_object(&mut request, &Value::Str("newTpTriggerPx".to_string()), self.price_to_precision(symbol.clone(), takeProfitTriggerPrice.clone()));
                 add_element_to_object(&mut request, &Value::Str("newTpOrdPx".to_string()), ternary(is_true(&(is_equal(&type_var, &Value::Str("market".to_string())))), Value::Str("-1".to_string()), self.price_to_precision(symbol.clone(), takeProfitPrice.clone())));
@@ -4135,17 +4230,17 @@ impl OkxCore {
                 add_element_to_object(&mut request, &Value::Str("newTpTriggerPxType".to_string()), takeProfitTriggerPriceType.clone());
             }
             if is_true(&hasStopLoss) {
-                stopLossTriggerPrice = self.safe_value(stopLoss.clone(), Value::Str("triggerPrice".to_string()), &[]);
-                stopLossPrice = self.safe_value(stopLoss.clone(), Value::Str("price".to_string()), &[]);
-                let mut stopLossType: Value = self.safe_string(stopLoss.clone(), Value::Str("type".to_string()), &[]);
+                stopLossTriggerPrice = self.safe_value_k(stopLoss.clone(), "triggerPrice", &[]);
+                stopLossPrice = self.safe_value_k(stopLoss.clone(), "price", &[]);
+                let mut stopLossType: Value = self.safe_string_k(stopLoss.clone(), "type", &[]);
                 add_element_to_object(&mut request, &Value::Str("newSlTriggerPx".to_string()), self.price_to_precision(symbol.clone(), stopLossTriggerPrice.clone()));
                 add_element_to_object(&mut request, &Value::Str("newSlOrdPx".to_string()), ternary(is_true(&(is_equal(&stopLossType, &Value::Str("market".to_string())))), Value::Str("-1".to_string()), self.price_to_precision(symbol.clone(), stopLossPrice.clone())));
                 add_element_to_object(&mut request, &Value::Str("newSlTriggerPxType".to_string()), stopLossTriggerPriceType.clone());
             }
             if is_true(&hasTakeProfit) {
-                takeProfitTriggerPrice = self.safe_value(takeProfit.clone(), Value::Str("triggerPrice".to_string()), &[]);
-                takeProfitPrice = self.safe_value(takeProfit.clone(), Value::Str("price".to_string()), &[]);
-                let mut takeProfitType: Value = self.safe_string(takeProfit.clone(), Value::Str("type".to_string()), &[]);
+                takeProfitTriggerPrice = self.safe_value_k(takeProfit.clone(), "triggerPrice", &[]);
+                takeProfitPrice = self.safe_value_k(takeProfit.clone(), "price", &[]);
+                let mut takeProfitType: Value = self.safe_string_k(takeProfit.clone(), "type", &[]);
                 add_element_to_object(&mut request, &Value::Str("newTpOrdKind".to_string()), ternary(is_true(&(is_equal(&takeProfitType, &Value::Str("limit".to_string())))), takeProfitType.clone(), Value::Str("condition".to_string())));
                 add_element_to_object(&mut request, &Value::Str("newTpTriggerPx".to_string()), self.price_to_precision(symbol.clone(), takeProfitTriggerPrice.clone()));
                 add_element_to_object(&mut request, &Value::Str("newTpOrdPx".to_string()), ternary(is_true(&(is_equal(&takeProfitType, &Value::Str("market".to_string())))), Value::Str("-1".to_string()), self.price_to_precision(symbol.clone(), takeProfitPrice.clone())));
@@ -4170,8 +4265,8 @@ impl OkxCore {
  * @method
  * @name okx#editOrder
  * @description edit a trade order
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-trade-post-amend-order
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-algo-trading-post-amend-algo-order
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-amend-order
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-amend-algo-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -4179,29 +4274,29 @@ impl OkxCore {
  * @param {float} amount how much of the currency you want to trade in units of the base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("clientOrderId".to_string()))] client order id, uses id if not passed
- * @param {float} [get_value(&params, &Value::Str("stopLossPrice".to_string()))] stop loss trigger price
- * @param {float} [get_value(&params, &Value::Str("newSlOrdPx".to_string()))] the stop loss order price, set to stopLossPrice if the type is market
- * @param {string} [get_value(&params, &Value::Str("newSlTriggerPxType".to_string()))] 'last', 'index' or 'mark' used to specify the stop loss trigger price type, default is 'last'
- * @param {float} [get_value(&params, &Value::Str("takeProfitPrice".to_string()))] take profit trigger price
- * @param {float} [get_value(&params, &Value::Str("newTpOrdPx".to_string()))] the take profit order price, set to takeProfitPrice if the type is market
- * @param {string} [get_value(&params, &Value::Str("newTpTriggerPxType".to_string()))] 'last', 'index' or 'mark' used to specify the take profit trigger price type, default is 'last'
- * @param {object} [get_value(&params, &Value::Str("stopLoss".to_string()))] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
- * @param {float} [get_value(&params, &Value::Str("stopLoss".to_string())).triggerPrice] stop loss trigger price
- * @param {float} [get_value(&params, &Value::Str("stopLoss".to_string())).price] used for stop loss limit orders, not used for stop loss market price orders
- * @param {string} [get_value(&params, &Value::Str("stopLoss".to_string())).type] 'market' or 'limit' used to specify the stop loss price type
- * @param {object} [get_value(&params, &Value::Str("takeProfit".to_string()))] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
- * @param {float} [get_value(&params, &Value::Str("takeProfit".to_string())).triggerPrice] take profit trigger price
- * @param {float} [get_value(&params, &Value::Str("takeProfit".to_string())).price] used for take profit limit orders, not used for take profit market price orders
- * @param {string} [get_value(&params, &Value::Str("takeProfit".to_string())).type] 'market' or 'limit' used to specify the take profit price type
- * @param {string} [get_value(&params, &Value::Str("newTpOrdKind".to_string()))] 'condition' or 'limit', the default is 'condition'
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {string} [params.clientOrderId] client order id, uses id if not passed
+ * @param {float} [params.stopLossPrice] stop loss trigger price
+ * @param {float} [params.newSlOrdPx] the stop loss order price, set to stopLossPrice if the type is market
+ * @param {string} [params.newSlTriggerPxType] 'last', 'index' or 'mark' used to specify the stop loss trigger price type, default is 'last'
+ * @param {float} [params.takeProfitPrice] take profit trigger price
+ * @param {float} [params.newTpOrdPx] the take profit order price, set to takeProfitPrice if the type is market
+ * @param {string} [params.newTpTriggerPxType] 'last', 'index' or 'mark' used to specify the take profit trigger price type, default is 'last'
+ * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+ * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+ * @param {float} [params.stopLoss.price] used for stop loss limit orders, not used for stop loss market price orders
+ * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
+ * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+ * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+ * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
+ * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
+ * @param {string} [params.newTpOrdKind] 'condition' or 'limit', the default is 'condition'
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn edit_order(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -4232,9 +4327,9 @@ impl OkxCore {
         //        "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut order: Value = self.parse_order(first.clone(), &[market.clone()]);
@@ -4249,26 +4344,26 @@ impl OkxCore {
  * @method
  * @name okx#cancelOrder
  * @description cancels an open order
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-trade-post-cancel-order
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-order
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("trigger".to_string()))] true if trigger orders
- * @param {boolean} [get_value(&params, &Value::Str("trailing".to_string()))] set to true if you want to cancel a trailing order
- * @returns {object} An [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {boolean} [params.trigger] true if trigger orders
+ * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
         let mut trigger: Value = self.safe_value2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
-        let mut trailing: Value = self.safe_bool(params.clone(), Value::Str("trailing".to_string()), &[Value::Bool(false)]);
+        let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
         if is_true(&trigger) || is_true(&trailing) {
             let mut orderInner: Value = self.cancel_orders(Value::List(vec![id.clone()]), &[symbol.clone(), params.clone()]).await;
             return self.safe_dict(orderInner.clone(), Value::Int(0), &[]);
@@ -4276,7 +4371,7 @@ impl OkxCore {
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -4289,7 +4384,7 @@ impl OkxCore {
         let mut query: Value = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         let mut response: Value = self.call_method(Value::Str("private_post_trade_cancel_order".to_string()), &[self.extend(request.clone(), &[query.clone()])]).await;
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut order: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         return self.parse_order(order.clone(), &[market.clone()]);
 
@@ -4315,38 +4410,38 @@ impl OkxCore {
  * @method
  * @name okx#cancelOrders
  * @description cancel multiple orders
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
  * @param {string[]} ids order ids
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("trigger".to_string()))] whether the order is a stop/trigger order
- * @param {boolean} [get_value(&params, &Value::Str("trailing".to_string()))] set to true if you want to cancel trailing orders
- * @returns {object} an list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {boolean} [params.trigger] whether the order is a stop/trigger order
+ * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::List(vec![]);
-        let mut options: Value = self.safe_value(self.options.clone(), Value::Str("cancelOrders".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut options: Value = self.safe_value_k(self.options.clone(), "cancelOrders", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut defaultMethod: Value = self.safe_string(options.clone(), Value::Str("method".to_string()), &[Value::Str("privatePostTradeCancelBatchOrders".to_string())]);
-        let mut method: Value = self.safe_string(params.clone(), Value::Str("method".to_string()), &[defaultMethod.clone()]);
+        let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("privatePostTradeCancelBatchOrders".to_string())]);
+        let mut method: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]);
         let mut clientOrderIds: Value = self.parse_ids(self.safe_value2(params.clone(), Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string()), &[]));
-        let mut algoIds: Value = self.parse_ids(self.safe_value(params.clone(), Value::Str("algoId".to_string()), &[]));
+        let mut algoIds: Value = self.parse_ids(self.safe_value_k(params.clone(), "algoId", &[]));
         let mut trigger: Value = self.safe_value2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
-        let mut trailing: Value = self.safe_bool(params.clone(), Value::Str("trailing".to_string()), &[Value::Bool(false)]);
+        let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
         if is_true(&trigger) || is_true(&trailing) {
             method = Value::Str("privatePostTradeCancelAlgos".to_string());
         }
@@ -4355,58 +4450,58 @@ impl OkxCore {
             if !is_equal(&algoIds, &Value::Null) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    while is_less_than(&i, &get_array_length(&algoIds)) {
+                    let mut __for_first_985: bool = true;
+                    while { if !__for_first_985 { i = add(&i, &Value::Int(1)); } __for_first_985 = false; is_less_than(&i, &get_array_length(&algoIds)) } {
                     append_to_array(&mut request, Value::Map({
-                        let mut m = std::collections::HashMap::new();
+                        let mut m = indexmap::IndexMap::new();
                             m.insert("algoId".to_string(), get_value(&algoIds, &i));
                             m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
                         m
                     }));
-                    i = add(&i, &Value::Int(1));
                 }
                 }
             }
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&ids)) {
+                let mut __for_first_986: bool = true;
+                while { if !__for_first_986 { i = add(&i, &Value::Int(1)); } __for_first_986 = false; is_less_than(&i, &get_array_length(&ids)) } {
                 if is_true(&trailing) || is_true(&trigger) {
                     append_to_array(&mut request, Value::Map({
-                        let mut m = std::collections::HashMap::new();
+                        let mut m = indexmap::IndexMap::new();
                             m.insert("algoId".to_string(), get_value(&ids, &i));
                             m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
                         m
                     }));
                 }  else {
                     append_to_array(&mut request, Value::Map({
-                        let mut m = std::collections::HashMap::new();
+                        let mut m = indexmap::IndexMap::new();
                             m.insert("ordId".to_string(), get_value(&ids, &i));
                             m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
                         m
                     }));
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&clientOrderIds)) {
+                let mut __for_first_987: bool = true;
+                while { if !__for_first_987 { i = add(&i, &Value::Int(1)); } __for_first_987 = false; is_less_than(&i, &get_array_length(&clientOrderIds)) } {
                 if is_true(&trailing) || is_true(&trigger) {
                     append_to_array(&mut request, Value::Map({
-                        let mut m = std::collections::HashMap::new();
+                        let mut m = indexmap::IndexMap::new();
                             m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
                             m.insert("algoClOrdId".to_string(), get_value(&clientOrderIds, &i));
                         m
                     }));
                 }  else {
                     append_to_array(&mut request, Value::Map({
-                        let mut m = std::collections::HashMap::new();
+                        let mut m = indexmap::IndexMap::new();
                             m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
                             m.insert("clOrdId".to_string(), get_value(&clientOrderIds, &i));
                         m
                     }));
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }
@@ -4445,7 +4540,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut ordersData: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut ordersData: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(ordersData.clone(), &[market.clone(), Value::Null, Value::Null, params.clone()]);
 
     Value::Null
@@ -4455,40 +4550,42 @@ impl OkxCore {
  * @method
  * @name okx#cancelOrdersForSymbols
  * @description cancel multiple orders for multiple symbols
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
  * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [get_value(&params, &Value::Str("trigger".to_string()))] whether the order is a stop/trigger order
- * @param {boolean} [get_value(&params, &Value::Str("trailing".to_string()))] set to true if you want to cancel trailing orders
- * @returns {object} an list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {boolean} [params.trigger] whether the order is a stop/trigger order
+ * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_orders_for_symbols(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::List(vec![]);
-        let mut options: Value = self.safe_dict(self.options.clone(), Value::Str("cancelOrders".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "cancelOrders", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut defaultMethod: Value = self.safe_string(options.clone(), Value::Str("method".to_string()), &[Value::Str("privatePostTradeCancelBatchOrders".to_string())]);
-        let mut method: Value = self.safe_string(params.clone(), Value::Str("method".to_string()), &[defaultMethod.clone()]);
+        let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("privatePostTradeCancelBatchOrders".to_string())]);
+        let mut method: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]);
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
-        let mut trailing: Value = self.safe_bool(params.clone(), Value::Str("trailing".to_string()), &[Value::Bool(false)]);
+        let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
         let mut isStopOrTrailing: Value = Value::Bool(is_true(&trigger) || is_true(&trailing));
         if is_true(&isStopOrTrailing) {
             method = Value::Str("privatePostTradeCancelAlgos".to_string());
         }
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&orders)) {
+            let mut __for_first_988: bool = true;
+            while { if !__for_first_988 { i = add(&i, &Value::Int(1)); } __for_first_988 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = get_value(&orders, &i);
-            let mut id: Value = self.safe_string(order.clone(), Value::Str("id".to_string()), &[]);
+            let mut order: Value = get_value(&orders, &i);
+            let mut id: Value = self.safe_string_k(order.clone(), "id", &[]);
             let mut clientOrderId: Value = self.safe_string2(order.clone(), Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string()), &[]);
-            let mut symbol: Value = self.safe_string(order.clone(), Value::Str("symbol".to_string()), &[]);
+            let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[]);
             let mut market: Value = self.market(symbol.clone());
             let mut idKey: Value = Value::Str("ordId".to_string());
             if is_true(&isStopOrTrailing) {
@@ -4501,13 +4598,12 @@ impl OkxCore {
                 }
             }
             let mut requestItem: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m
             });
             add_element_to_object(&mut requestItem, &idKey, ternary(is_true(&(!is_equal(&clientOrderId, &Value::Null))), clientOrderId.clone(), id.clone()));
             append_to_array(&mut request, requestItem.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut response: Value = Value::Null;
@@ -4545,7 +4641,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut ordersData: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut ordersData: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(ordersData.clone(), &[Value::Null, Value::Null, Value::Null, params.clone()]);
 
     Value::Null
@@ -4555,19 +4651,19 @@ impl OkxCore {
  * @method
  * @name okx#cancelAllOrdersAfter
  * @description dead man's switch, cancel all orders after the given timeout
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-trade-post-cancel-all-after
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-all-after
  * @param {number} timeout time in milliseconds, 0 represents cancel the timer
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
     pub async fn cancel_all_orders_after(&mut self, mut timeout: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("timeOut".to_string(), ternary(is_true(&(is_greater_than(&timeout, &Value::Int(0)))), self.parse_to_int(divide(&timeout, &Value::Int(1000))), Value::Int(0)));
             m
         });
@@ -4579,7 +4675,7 @@ impl OkxCore {
 
     pub fn parse_order_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("canceled".to_string(), Value::Str("canceled".to_string()));
                 m.insert("order_failed".to_string(), Value::Str("canceled".to_string()));
                 m.insert("live".to_string(), Value::Str("open".to_string()));
@@ -4778,23 +4874,23 @@ impl OkxCore {
         //         "uly": "BTC-USDT"
         //     }
         //
-        let mut scode: Value = self.safe_string(order.clone(), Value::Str("sCode".to_string()), &[]);
+        let mut scode: Value = self.safe_string_k(order.clone(), "sCode", &[]);
         if is_true(&(!is_equal(&scode, &Value::Null))) && is_true(&(!is_equal(&scode, &Value::Str("0".to_string())))) {
             return self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("id".to_string(), self.safe_string(order.clone(), Value::Str("ordId".to_string()), &[]));
-        m.insert("clientOrderId".to_string(), self.safe_string(order.clone(), Value::Str("clOrdId".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), self.safe_string_k(order.clone(), "ordId", &[]));
+        m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "clOrdId", &[]));
         m.insert("status".to_string(), Value::Str("rejected".to_string()));
         m.insert("info".to_string(), order.clone());
     m
 }), &[]);
         }
         let mut id: Value = self.safe_string2(order.clone(), Value::Str("algoId".to_string()), Value::Str("ordId".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer(order.clone(), Value::Str("cTime".to_string()), &[]);
-        let mut lastUpdateTimestamp: Value = self.safe_integer(order.clone(), Value::Str("uTime".to_string()), &[]);
-        let mut lastTradeTimestamp: Value = self.safe_integer(order.clone(), Value::Str("fillTime".to_string()), &[]);
-        let mut side: Value = self.safe_string(order.clone(), Value::Str("side".to_string()), &[]);
-        let mut type_var: Value = self.safe_string(order.clone(), Value::Str("ordType".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(order.clone(), "cTime", &[]);
+        let mut lastUpdateTimestamp: Value = self.safe_integer_k(order.clone(), "uTime", &[]);
+        let mut lastTradeTimestamp: Value = self.safe_integer_k(order.clone(), "fillTime", &[]);
+        let mut side: Value = self.safe_string_k(order.clone(), "side", &[]);
+        let mut type_var: Value = self.safe_string_k(order.clone(), "ordType", &[]);
         let mut postOnly: Value = Value::Null;
         let mut timeInForce: Value = Value::Null;
         if is_equal(&type_var, &Value::Str("post_only".to_string())) {
@@ -4807,53 +4903,53 @@ impl OkxCore {
             timeInForce = Value::Str("IOC".to_string());
             type_var = Value::Str("limit".to_string());
         }
-        let mut marketId: Value = self.safe_string(order.clone(), Value::Str("instId".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(order.clone(), "instId", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("-".to_string())]);
-        let mut filled: Value = self.safe_string(order.clone(), Value::Str("accFillSz".to_string()), &[]);
+        let mut filled: Value = self.safe_string_k(order.clone(), "accFillSz", &[]);
         let mut price: Value = self.safe_string2(order.clone(), Value::Str("px".to_string()), Value::Str("ordPx".to_string()), &[]);
-        let mut average: Value = self.safe_string(order.clone(), Value::Str("avgPx".to_string()), &[]);
-        let mut status: Value = self.parse_order_status(self.safe_string(order.clone(), Value::Str("state".to_string()), &[]));
-        let mut feeCostString: Value = self.safe_string(order.clone(), Value::Str("fee".to_string()), &[]);
+        let mut average: Value = self.safe_string_k(order.clone(), "avgPx", &[]);
+        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[]));
+        let mut feeCostString: Value = self.safe_string_k(order.clone(), "fee", &[]);
         let mut amount: Value = Value::Null;
         let mut cost: Value = Value::Null;
         // spot market buy: "sz" can refer either to base currency units or to quote currency units
-        // see documentation: https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-trade-place-order
-        let mut defaultTgtCcy: Value = self.safe_string(self.options.clone(), Value::Str("tgtCcy".to_string()), &[Value::Str("base_ccy".to_string())]);
-        let mut tgtCcy: Value = self.safe_string(order.clone(), Value::Str("tgtCcy".to_string()), &[defaultTgtCcy.clone()]);
-        let mut instType: Value = self.safe_string(order.clone(), Value::Str("instType".to_string()), &[]);
+        // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
+        let mut defaultTgtCcy: Value = self.safe_string_k(self.options.clone(), "tgtCcy", &[Value::Str("base_ccy".to_string())]);
+        let mut tgtCcy: Value = self.safe_string_k(order.clone(), "tgtCcy", &[defaultTgtCcy.clone()]);
+        let mut instType: Value = self.safe_string_k(order.clone(), "instType", &[]);
         if is_true(&(is_equal(&side, &Value::Str("buy".to_string())))) && is_true(&(is_equal(&type_var, &Value::Str("market".to_string())))) && is_true(&(is_equal(&instType, &Value::Str("SPOT".to_string())))) && is_true(&(is_equal(&tgtCcy, &Value::Str("quote_ccy".to_string())))) {
             // "sz" refers to the cost
-            cost = self.safe_string(order.clone(), Value::Str("sz".to_string()), &[]);
+            cost = self.safe_string_k(order.clone(), "sz", &[]);
         }  else {
             // "sz" refers to the trade currency amount
-            amount = self.safe_string(order.clone(), Value::Str("sz".to_string()), &[]);
+            amount = self.safe_string_k(order.clone(), "sz", &[]);
         }
         let mut fee: Value = Value::Null;
         if !is_equal(&feeCostString, &Value::Null) {
             let mut feeCostSigned: Value = crate::precise::Precise::stringNeg(&feeCostString);
-            let mut feeCurrencyId: Value = self.safe_string(order.clone(), Value::Str("feeCcy".to_string()), &[]);
+            let mut feeCurrencyId: Value = self.safe_string_k(order.clone(), "feeCcy", &[]);
             let mut feeCurrencyCode: Value = self.safe_currency_code(feeCurrencyId.clone(), &[]);
             fee = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.parse_number(feeCostSigned.clone(), &[]));
                     m.insert("currency".to_string(), feeCurrencyCode.clone());
                 m
             });
         }
-        let mut clientOrderId: Value = self.safe_string(order.clone(), Value::Str("clOrdId".to_string()), &[]);
+        let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clOrdId", &[]);
         if is_true(&(!is_equal(&clientOrderId, &Value::Null))) && is_true(&(is_less_than(&get_array_length(&clientOrderId), &Value::Int(1)))) {
             clientOrderId = Value::Null; // fix empty clientOrderId string
         }
         let mut stopLossPrice: Value = self.safe_number2(order.clone(), Value::Str("slTriggerPx".to_string()), Value::Str("slOrdPx".to_string()), &[]);
         let mut takeProfitPrice: Value = self.safe_number2(order.clone(), Value::Str("tpTriggerPx".to_string()), Value::Str("tpOrdPx".to_string()), &[]);
-        let mut reduceOnlyRaw: Value = self.safe_string(order.clone(), Value::Str("reduceOnly".to_string()), &[]);
+        let mut reduceOnlyRaw: Value = self.safe_string_k(order.clone(), "reduceOnly", &[]);
         let mut reduceOnly: Value = Value::Bool(false);
         if !is_equal(&reduceOnly, &Value::Null) {
             reduceOnly = Value::Bool(is_equal(&reduceOnlyRaw, &Value::Str("true".to_string())));
         }
         return self.safe_order(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.clone());
         m.insert("clientOrderId".to_string(), clientOrderId.clone());
@@ -4889,37 +4985,37 @@ impl OkxCore {
  * @method
  * @name okx#fetchOrder
  * @description fetch an order by the id
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-trade-get-order-details
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-details
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-details
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-details
  * @param {string} id the order id
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra and exchange specific parameters
- * @param {boolean} [get_value(&params, &Value::Str("trigger".to_string()))] true if fetching trigger orders
- * @returns [an order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {boolean} [params.trigger] true if fetching trigger orders
+ * @returns [an order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOrder() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string()), &[]);
-        let mut options: Value = self.safe_value(self.options.clone(), Value::Str("fetchOrder".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut options: Value = self.safe_value_k(self.options.clone(), "fetchOrder", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut defaultMethod: Value = self.safe_string(options.clone(), Value::Str("method".to_string()), &[Value::Str("privateGetTradeOrder".to_string())]);
-        let mut method: Value = self.safe_string(params.clone(), Value::Str("method".to_string()), &[defaultMethod.clone()]);
+        let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("privateGetTradeOrder".to_string())]);
+        let mut method: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]);
         let mut trigger: Value = self.safe_value2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         if is_true(&trigger) {
             method = Value::Str("privateGetTradeOrderAlgo".to_string());
@@ -5038,7 +5134,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut order: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         return self.parse_order(order.clone(), &[market.clone()]);
 
@@ -5049,25 +5145,25 @@ impl OkxCore {
  * @method
  * @name okx#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-trade-get-order-list
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-list
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-list
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-list
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {bool} [get_value(&params, &Value::Str("trigger".to_string()))] True if fetching trigger or conditional orders
- * @param {string} [get_value(&params, &Value::Str("ordType".to_string()))] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
- * @param {string} [get_value(&params, &Value::Str("algoId".to_string()))] Algo ID "'433845797218942976'"
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {boolean} [get_value(&params, &Value::Str("trailing".to_string()))] set to true if you want to fetch trailing orders
- * @returns {Order[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {bool} [params.trigger] True if fetching trigger or conditional orders
+ * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+ * @param {string} [params.algoId] Algo ID "'433845797218942976'"
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_open_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5078,7 +5174,7 @@ impl OkxCore {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchOpenOrders".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone(), maxLimit.clone()]).await;
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
@@ -5089,19 +5185,19 @@ impl OkxCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &maxLimit)); // default 100, max 100
         }
-        let mut options: Value = self.safe_value(self.options.clone(), Value::Str("fetchOpenOrders".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut options: Value = self.safe_value_k(self.options.clone(), "fetchOpenOrders", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut algoOrderTypes: Value = self.safe_value(self.options.clone(), Value::Str("algoOrderTypes".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut algoOrderTypes: Value = self.safe_value_k(self.options.clone(), "algoOrderTypes", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut defaultMethod: Value = self.safe_string(options.clone(), Value::Str("method".to_string()), &[Value::Str("privateGetTradeOrdersPending".to_string())]);
-        let mut method: Value = self.safe_string(params.clone(), Value::Str("method".to_string()), &[defaultMethod.clone()]);
-        let mut ordType: Value = self.safe_string(params.clone(), Value::Str("ordType".to_string()), &[]);
+        let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("privateGetTradeOrdersPending".to_string())]);
+        let mut method: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]);
+        let mut ordType: Value = self.safe_string_k(params.clone(), "ordType", &[]);
         let mut trigger: Value = self.safe_value2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
-        let mut trailing: Value = self.safe_bool(params.clone(), Value::Str("trailing".to_string()), &[Value::Bool(false)]);
+        let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
         if is_true(&trailing) || is_true(&trigger) || is_true(&(Value::Bool(in_op(&algoOrderTypes, &ordType)))) {
             method = Value::Str("privateGetTradeOrdersAlgoPending".to_string());
         }
@@ -5212,7 +5308,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -5222,30 +5318,30 @@ impl OkxCore {
  * @method
  * @name okx#fetchCanceledOrders
  * @description fetches information on multiple canceled orders made by the user
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] max number of orders to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {bool} [get_value(&params, &Value::Str("trigger".to_string()))] True if fetching trigger or conditional orders
- * @param {string} [get_value(&params, &Value::Str("ordType".to_string()))] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
- * @param {string} [get_value(&params, &Value::Str("algoId".to_string()))] Algo ID "'433845797218942976'"
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms to fetch orders for
- * @param {boolean} [get_value(&params, &Value::Str("trailing".to_string()))] set to true if you want to fetch trailing orders
- * @returns {object} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {bool} [params.trigger] True if fetching trigger or conditional orders
+ * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+ * @param {string} [params.algoId] Algo ID "'433845797218942976'"
+ * @param {int} [params.until] timestamp in ms to fetch orders for
+ * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
@@ -5261,39 +5357,39 @@ impl OkxCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 100
         }
         add_element_to_object(&mut request, &Value::Str("state".to_string()), Value::Str("canceled".to_string()));
-        let mut options: Value = self.safe_value(self.options.clone(), Value::Str("fetchCanceledOrders".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut options: Value = self.safe_value_k(self.options.clone(), "fetchCanceledOrders", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut algoOrderTypes: Value = self.safe_value(self.options.clone(), Value::Str("algoOrderTypes".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut algoOrderTypes: Value = self.safe_value_k(self.options.clone(), "algoOrderTypes", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut defaultMethod: Value = self.safe_string(options.clone(), Value::Str("method".to_string()), &[Value::Str("privateGetTradeOrdersHistory".to_string())]);
-        let mut method: Value = self.safe_string(params.clone(), Value::Str("method".to_string()), &[defaultMethod.clone()]);
-        let mut ordType: Value = self.safe_string(params.clone(), Value::Str("ordType".to_string()), &[]);
+        let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("privateGetTradeOrdersHistory".to_string())]);
+        let mut method: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]);
+        let mut ordType: Value = self.safe_string_k(params.clone(), "ordType", &[]);
         let mut trigger: Value = self.safe_value2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
-        let mut trailing: Value = self.safe_bool(params.clone(), Value::Str("trailing".to_string()), &[Value::Bool(false)]);
+        let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
         if is_true(&trailing) {
             method = Value::Str("privateGetTradeOrdersAlgoHistory".to_string());
             add_element_to_object(&mut request, &Value::Str("ordType".to_string()), Value::Str("move_order_stop".to_string()));
         }  else if is_true(&trigger) || is_true(&(Value::Bool(in_op(&algoOrderTypes, &ordType)))) {
             method = Value::Str("privateGetTradeOrdersAlgoHistory".to_string());
-            let mut algoId: Value = self.safe_string(params.clone(), Value::Str("algoId".to_string()), &[]);
+            let mut algoId: Value = self.safe_string_k(params.clone(), "algoId", &[]);
             if !is_equal(&algoId, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("algoId".to_string()), algoId.clone());
                 params = self.omit(params.clone(), Value::Str("algoId".to_string()), &[]);
             }
             if is_true(&trigger) {
                 if is_equal(&ordType, &Value::Null) {
-                    panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchCanceledOrders() requires an \"ordType\" string parameter, \"conditional\", \"oco\", \"trigger\", \"move_order_stop\", \"iceberg\", or \"twap\"".to_string()))));
+                    panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchCanceledOrders() requires an \"ordType\" string parameter, \"conditional\", \"oco\", \"trigger\", \"move_order_stop\", \"iceberg\", or \"twap\"".to_string()))));
                 }
             }
         }  else {
             if !is_equal(&since, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("begin".to_string()), since.clone());
             }
-            let mut until: Value = self.safe_integer(query.clone(), Value::Str("until".to_string()), &[]);
+            let mut until: Value = self.safe_integer_k(query.clone(), "until", &[]);
             if !is_equal(&until, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("end".to_string()), until.clone());
                 query = self.omit(query.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
@@ -5405,7 +5501,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -5415,28 +5511,28 @@ impl OkxCore {
  * @method
  * @name okx#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-trade-get-order-history-last-3-months
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-3-months
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {bool} [get_value(&params, &Value::Str("trigger".to_string()))] True if fetching trigger or conditional orders
- * @param {string} [get_value(&params, &Value::Str("ordType".to_string()))] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
- * @param {string} [get_value(&params, &Value::Str("algoId".to_string()))] Algo ID "'433845797218942976'"
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms to fetch orders for
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @param {string} [get_value(&params, &Value::Str("method".to_string()))] method to be used, either 'privateGetTradeOrdersHistory', 'privateGetTradeOrdersHistoryArchive' or 'privateGetTradeOrdersAlgoHistory' default is 'privateGetTradeOrdersHistory'
- * @param {boolean} [get_value(&params, &Value::Str("trailing".to_string()))] set to true if you want to fetch trailing orders
- * @returns {Order[]} a list of [order structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @param {bool} [params.trigger] True if fetching trigger or conditional orders
+ * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+ * @param {string} [params.algoId] Algo ID "'433845797218942976'"
+ * @param {int} [params.until] timestamp in ms to fetch orders for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {string} [params.method] method to be used, either 'privateGetTradeOrdersHistory', 'privateGetTradeOrdersHistoryArchive' or 'privateGetTradeOrdersAlgoHistory' default is 'privateGetTradeOrdersHistory'
+ * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_closed_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5447,7 +5543,7 @@ impl OkxCore {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchClosedOrders".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone(), maxLimit.clone()]).await;
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
@@ -5462,19 +5558,19 @@ impl OkxCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &maxLimit)); // default 100, max 100
         }
-        let mut options: Value = self.safe_dict(self.options.clone(), Value::Str("fetchClosedOrders".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchClosedOrders", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut algoOrderTypes: Value = self.safe_dict(self.options.clone(), Value::Str("algoOrderTypes".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut algoOrderTypes: Value = self.safe_dict_k(self.options.clone(), "algoOrderTypes", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut defaultMethod: Value = self.safe_string(options.clone(), Value::Str("method".to_string()), &[Value::Str("privateGetTradeOrdersHistory".to_string())]);
-        let mut method: Value = self.safe_string(params.clone(), Value::Str("method".to_string()), &[defaultMethod.clone()]);
-        let mut ordType: Value = self.safe_string(params.clone(), Value::Str("ordType".to_string()), &[]);
+        let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("privateGetTradeOrdersHistory".to_string())]);
+        let mut method: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]);
+        let mut ordType: Value = self.safe_string_k(params.clone(), "ordType", &[]);
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
-        let mut trailing: Value = self.safe_bool(params.clone(), Value::Str("trailing".to_string()), &[Value::Bool(false)]);
+        let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
         if is_true(&trailing) || is_true(&trigger) || is_true(&(Value::Bool(in_op(&algoOrderTypes, &ordType)))) {
             method = Value::Str("privateGetTradeOrdersAlgoHistory".to_string());
             add_element_to_object(&mut request, &Value::Str("state".to_string()), Value::Str("effective".to_string()));
@@ -5489,7 +5585,7 @@ impl OkxCore {
             if !is_equal(&since, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("begin".to_string()), since.clone());
             }
-            let mut until: Value = self.safe_integer(query.clone(), Value::Str("until".to_string()), &[]);
+            let mut until: Value = self.safe_integer_k(query.clone(), "until", &[]);
             if !is_equal(&until, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("end".to_string()), until.clone());
                 query = self.omit(query.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
@@ -5600,7 +5696,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -5610,21 +5706,21 @@ impl OkxCore {
  * @method
  * @name okx#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-trade-get-transaction-details-last-3-months
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-transaction-details-last-3-months
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] Timestamp in ms of the latest time to retrieve trades for
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=trade-structure}
+ * @param {int} [params.until] Timestamp in ms of the latest time to retrieve trades for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
     pub async fn fetch_my_trades(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5634,7 +5730,7 @@ impl OkxCore {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Value = Value::Null;
@@ -5679,7 +5775,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone(), query.clone()]);
 
     Value::Null
@@ -5689,24 +5785,24 @@ impl OkxCore {
  * @method
  * @name okx#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-trade-get-transaction-details-last-3-months
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-transaction-details-last-3-months
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
     pub async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("ordId".to_string(), id.clone());
             m
         });
@@ -5719,24 +5815,24 @@ impl OkxCore {
  * @method
  * @name okx#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-funding-asset-bills-details
+ * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+ * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+ * @see https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated'
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch entries for
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [ledger structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=ledger-entry-structure}
+ * @param {string} [params.marginMode] 'cross' or 'isolated'
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
     pub async fn fetch_ledger(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -5745,21 +5841,21 @@ impl OkxCore {
         if is_true(&paginate) {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchLedger".to_string()), &[code.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
-        let mut options: Value = self.safe_dict(self.options.clone(), Value::Str("fetchLedger".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchLedger", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut method: Value = self.safe_string(options.clone(), Value::Str("method".to_string()), &[]);
-        method = self.safe_string(params.clone(), Value::Str("method".to_string()), &[method.clone()]);
+        let mut method: Value = self.safe_string_k(options.clone(), "method", &[]);
+        method = self.safe_string_k(params.clone(), "method", &[method.clone()]);
         params = self.omit(params.clone(), Value::Str("method".to_string()), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchLedger".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&marginMode, &Value::Null) {
-            marginMode = self.safe_string(params.clone(), Value::Str("mgnMode".to_string()), &[]);
+            marginMode = self.safe_string_k(params.clone(), "mgnMode", &[]);
         }
         if !is_equal(&method, &Value::Str("privateGetAssetBills".to_string())) {
             if !is_equal(&marginMode, &Value::Null) {
@@ -5837,7 +5933,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_ledger(data.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -5845,7 +5941,7 @@ impl OkxCore {
 
     pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Value {
         let mut types: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("1".to_string(), Value::Str("transfer".to_string()));
                 m.insert("2".to_string(), Value::Str("trade".to_string()));
                 m.insert("3".to_string(), Value::Str("trade".to_string()));
@@ -5902,37 +5998,37 @@ impl OkxCore {
         //         "ts": "1597026383085"
         //     }
         //
-        let mut currencyId: Value = self.safe_string(item.clone(), Value::Str("ccy".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(item.clone(), "ccy", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
-        let mut timestamp: Value = self.safe_integer(item.clone(), Value::Str("ts".to_string()), &[]);
-        let mut feeCostString: Value = self.safe_string(item.clone(), Value::Str("fee".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(item.clone(), "ts", &[]);
+        let mut feeCostString: Value = self.safe_string_k(item.clone(), "fee", &[]);
         let mut fee: Value = Value::Null;
         if !is_equal(&feeCostString, &Value::Null) {
             fee = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringNeg(&feeCostString), &[]));
                     m.insert("currency".to_string(), code.clone());
                 m
             });
         }
-        let mut marketId: Value = self.safe_string(item.clone(), Value::Str("instId".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(item.clone(), "instId", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);
         return self.safe_ledger_entry(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
-        m.insert("id".to_string(), self.safe_string(item.clone(), Value::Str("billId".to_string()), &[]));
+        m.insert("id".to_string(), self.safe_string_k(item.clone(), "billId", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("account".to_string(), Value::Null);
-        m.insert("referenceId".to_string(), self.safe_string(item.clone(), Value::Str("ordId".to_string()), &[]));
+        m.insert("referenceId".to_string(), self.safe_string_k(item.clone(), "ordId", &[]));
         m.insert("referenceAccount".to_string(), Value::Null);
-        m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string(item.clone(), Value::Str("type".to_string()), &[])));
+        m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string_k(item.clone(), "type", &[])));
         m.insert("currency".to_string(), code.clone());
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("amount".to_string(), self.safe_number(item.clone(), Value::Str("balChg".to_string()), &[]));
+        m.insert("amount".to_string(), self.safe_number_k(item.clone(), "balChg", &[]));
         m.insert("before".to_string(), Value::Null);
-        m.insert("after".to_string(), self.safe_number(item.clone(), Value::Str("bal".to_string()), &[]));
+        m.insert("after".to_string(), self.safe_number_k(item.clone(), "bal", &[]));
         m.insert("status".to_string(), Value::Str("ok".to_string()));
         m.insert("fee".to_string(), fee.clone());
     m
@@ -5971,21 +6067,21 @@ impl OkxCore {
         //        "selected": true
         //     }
         //
-        let mut address: Value = self.safe_string(depositAddress.clone(), Value::Str("addr".to_string()), &[]);
+        let mut address: Value = self.safe_string_k(depositAddress.clone(), "addr", &[]);
         let mut tag: Value = self.safe_string_n(depositAddress.clone(), Value::List(vec![Value::Str("tag".to_string()), Value::Str("pmtId".to_string()), Value::Str("memo".to_string())]), &[]);
         if is_equal(&tag, &Value::Null) {
-            let mut addrEx: Value = self.safe_value(depositAddress.clone(), Value::Str("addrEx".to_string()), &[Value::Map({
-                let mut m = std::collections::HashMap::new();
+            let mut addrEx: Value = self.safe_value_k(depositAddress.clone(), "addrEx", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            tag = self.safe_string(addrEx.clone(), Value::Str("comment".to_string()), &[]);
+            tag = self.safe_string_k(addrEx.clone(), "comment", &[]);
         }
-        let mut currencyId: Value = self.safe_string(depositAddress.clone(), Value::Str("ccy".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(depositAddress.clone(), "ccy", &[]);
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
         let mut code: Value = get_value(&currency, &Value::Str("code".to_string()));
-        let mut chain: Value = self.safe_string(depositAddress.clone(), Value::Str("chain".to_string()), &[]);
-        let mut networks: Value = self.safe_value(currency.clone(), Value::Str("networks".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+        let mut chain: Value = self.safe_string_k(depositAddress.clone(), "chain", &[]);
+        let mut networks: Value = self.safe_value_k(currency.clone(), "networks", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut networksById: Value = self.index_by(networks.clone(), Value::Str("id".to_string()));
@@ -6034,11 +6130,11 @@ impl OkxCore {
         if is_equal(&chain, &Value::Str("USDT-Polygon".to_string())) {
             networkData = self.safe_value2(networksById.clone(), Value::Str("USDT-Polygon-Bridge".to_string()), Value::Str("USDT-Polygon".to_string()), &[]);
         }
-        let mut network: Value = self.safe_string(networkData.clone(), Value::Str("network".to_string()), &[]);
+        let mut network: Value = self.safe_string_k(networkData.clone(), "network", &[]);
         let mut networkCode: Value = self.network_id_to_code(&[network.clone(), code.clone()]);
         self.check_address(&[address.clone()]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
         m.insert("currency".to_string(), code.clone());
         m.insert("network".to_string(), networkCode.clone());
@@ -6054,20 +6150,20 @@ impl OkxCore {
  * @method
  * @name okx#fetchDepositAddressesByNetwork
  * @description fetch a dictionary of addresses for a currency, indexed by network
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+ * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [address structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=address-structure} indexed by the network
+ * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
     pub async fn fetch_deposit_addresses_by_network(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("ccy".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
@@ -6093,7 +6189,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut filtered: Value = self.filter_by(data.clone(), Value::Str("selected".to_string()), Value::Bool(true), &[]);
         let mut parsed: Value = self.parse_deposit_addresses(filtered.clone(), &[Value::List(vec![get_value(&currency, &Value::Str("code".to_string()))]), Value::Bool(false)]);
         return self.index_by(parsed.clone(), Value::Str("network".to_string()));
@@ -6105,19 +6201,19 @@ impl OkxCore {
  * @method
  * @name okx#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+ * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("network".to_string()))] the network name for the deposit address
- * @returns {object} an [address structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=address-structure}
+ * @param {string} [params.network] the network name for the deposit address
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
     pub async fn fetch_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
-        let mut rawNetwork: Value = self.safe_string(params.clone(), Value::Str("network".to_string()), &[]); // some networks are like "Dora Vota Mainnet"
+        let mut rawNetwork: Value = self.safe_string_k(params.clone(), "network", &[]); // some networks are like "Dora Vota Mainnet"
         params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
         code = self.safe_currency_code(code.clone(), &[]);
         let mut network: Value = self.network_id_to_code(&[rawNetwork.clone(), code.clone()]);
@@ -6125,7 +6221,7 @@ impl OkxCore {
         if !is_equal(&network, &Value::Null) {
             let mut result: Value = self.safe_dict(response.clone(), network.clone(), &[]);
             if is_equal(&result, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::invalid_address(add(&add(&add(&add(&self.id, &Value::Str(" fetchDepositAddress() cannot find ".to_string())), &network), &Value::Str(" deposit address for ".to_string())), &code)));
+                panic!("{}", crate::exchange_errors::invalid_address(add(&add(&add(&add(&self.id, &Value::Str(" fetchDepositAddress() cannot find ".to_string())), &network), &Value::Str(" deposit address for ".to_string())), &code)));
             }
             return result;
         }
@@ -6145,18 +6241,18 @@ impl OkxCore {
  * @method
  * @name okx#withdraw
  * @description make a withdrawal
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#funding-account-rest-api-withdrawal
+ * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-withdrawal
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
         let mut tag = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -6167,34 +6263,34 @@ impl OkxCore {
             address = add(&add(&address, &Value::Str(":".to_string())), &tag);
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("ccy".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("toAddr".to_string(), address.clone());
                 m.insert("dest".to_string(), Value::Str("4".to_string()));
                 m.insert("amt".to_string(), self.number_to_string(amount.clone()));
             m
         });
-        let mut network: Value = self.safe_string(params.clone(), Value::Str("network".to_string()), &[]); // this line allows the user to specify either ERC20 or ETH
+        let mut network: Value = self.safe_string_k(params.clone(), "network", &[]); // this line allows the user to specify either ERC20 or ETH
         if !is_equal(&network, &Value::Null) {
-            let mut networks: Value = self.safe_dict(self.options.clone(), Value::Str("networks".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+            let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             network = self.safe_string(networks.clone(), to_upper(&network), &[network.clone()]); // handle ETH>ERC20 alias
             add_element_to_object(&mut request, &Value::Str("chain".to_string()), add(&add(&get_value(&currency, &Value::Str("id".to_string())), &Value::Str("-".to_string())), &network));
             params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
         }
-        let mut fee: Value = self.safe_string(params.clone(), Value::Str("fee".to_string()), &[]);
+        let mut fee: Value = self.safe_string_k(params.clone(), "fee", &[]);
         if is_equal(&fee, &Value::Null) {
             let mut currencies: Value = self.fetch_currencies(&[]).await;
             { let __t = self.map_to_safe_map(self.deep_extend(self.currencies.clone(), &[currencies.clone()])); self.currencies = __t; }
             let mut targetNetwork: Value = self.safe_dict(get_value(&currency, &Value::Str("networks".to_string())), self.network_id_to_code(&[network.clone(), get_value(&currency, &Value::Str("code".to_string()))]), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            fee = self.safe_string(targetNetwork.clone(), Value::Str("fee".to_string()), &[]);
+            fee = self.safe_string_k(targetNetwork.clone(), "fee", &[]);
             if is_equal(&fee, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" withdraw() requires a \"fee\" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set \"0\". Withdrawing to external digital asset address requires network transaction fee.".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" withdraw() requires a \"fee\" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set \"0\". Withdrawing to external digital asset address requires network transaction fee.".to_string()))));
             }
         }
         add_element_to_object(&mut request, &Value::Str("fee".to_string()), self.number_to_string(fee.clone())); // withdrawals to OKCoin or OKX are fee-free, please set 0
@@ -6213,7 +6309,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut transaction: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         return self.parse_transaction(transaction.clone(), &[currency.clone()]);
 
@@ -6224,21 +6320,21 @@ impl OkxCore {
  * @method
  * @name okx#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-funding-get-deposit-history
+ * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch entries for
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_deposits(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6248,7 +6344,7 @@ impl OkxCore {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchDeposits".to_string()), &[code.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut currency: Value = Value::Null;
@@ -6302,7 +6398,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_transactions(data.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -6312,21 +6408,21 @@ impl OkxCore {
  * @method
  * @name okx#fetchDeposit
  * @description fetch data on a currency deposit via the deposit id
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-funding-get-deposit-history
+ * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
  * @param {string} id deposit id
  * @param {string} code filter by currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_deposit(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("depId".to_string(), id.clone());
             m
         });
@@ -6336,9 +6432,9 @@ impl OkxCore {
             add_element_to_object(&mut request, &Value::Str("ccy".to_string()), get_value(&currency, &Value::Str("id".to_string())));
         }
         let mut response: Value = self.call_method(Value::Str("private_get_asset_deposit_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
-        let mut data: Value = self.safe_value(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
         let mut deposit: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_transaction(deposit.clone(), &[currency.clone()]);
@@ -6350,21 +6446,21 @@ impl OkxCore {
  * @method
  * @name okx#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-funding-get-withdrawal-history
+ * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] the latest time in ms to fetch entries for
- * @param {boolean} [get_value(&params, &Value::Str("paginate".to_string()))] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_withdrawals(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6374,7 +6470,7 @@ impl OkxCore {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchWithdrawals".to_string()), &[code.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut currency: Value = Value::Null;
@@ -6420,7 +6516,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_transactions(data.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -6430,21 +6526,21 @@ impl OkxCore {
  * @method
  * @name okx#fetchWithdrawal
  * @description fetch data on a currency withdrawal via the withdrawal id
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-funding-get-withdrawal-history
+ * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
  * @param {string} id withdrawal id
  * @param {string} code unified currency code of the currency withdrawn, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_withdrawal(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("wdId".to_string(), id.clone());
             m
         });
@@ -6475,9 +6571,9 @@ impl OkxCore {
         //        "msg": ''
         //    }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut withdrawal: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_transaction(withdrawal.clone(), &[]);
@@ -6510,7 +6606,7 @@ impl OkxCore {
         //     }
         //
         let mut statuses: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("-3".to_string(), Value::Str("pending".to_string()));
                 m.insert("-2".to_string(), Value::Str("canceled".to_string()));
                 m.insert("-1".to_string(), Value::Str("failed".to_string()));
@@ -6578,9 +6674,9 @@ impl OkxCore {
         //
         let mut type_var: Value = Value::Null;
         let mut id: Value = Value::Null;
-        let mut withdrawalId: Value = self.safe_string(transaction.clone(), Value::Str("wdId".to_string()), &[]);
-        let mut addressFrom: Value = self.safe_string(transaction.clone(), Value::Str("from".to_string()), &[]);
-        let mut addressTo: Value = self.safe_string(transaction.clone(), Value::Str("to".to_string()), &[]);
+        let mut withdrawalId: Value = self.safe_string_k(transaction.clone(), "wdId", &[]);
+        let mut addressFrom: Value = self.safe_string_k(transaction.clone(), "from", &[]);
+        let mut addressTo: Value = self.safe_string_k(transaction.clone(), "to", &[]);
         let mut address: Value = addressTo.clone();
         let mut tagTo: Value = self.safe_string2(transaction.clone(), Value::Str("tag".to_string()), Value::Str("memo".to_string()), &[]);
         tagTo = self.safe_string2(transaction.clone(), Value::Str("pmtId".to_string()), tagTo.clone(), &[]);
@@ -6589,13 +6685,13 @@ impl OkxCore {
             id = withdrawalId.clone();
         }  else {
             // the payment_id will appear on new deposits but appears to be removed from the response after 2 months
-            id = self.safe_string(transaction.clone(), Value::Str("depId".to_string()), &[]);
+            id = self.safe_string_k(transaction.clone(), "depId", &[]);
             type_var = Value::Str("deposit".to_string());
         }
-        let mut currencyId: Value = self.safe_string(transaction.clone(), Value::Str("ccy".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(transaction.clone(), "ccy", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut network: Value = Value::Null;
-        let mut chain: Value = self.safe_string(transaction.clone(), Value::Str("chain".to_string()), &[]);
+        let mut chain: Value = self.safe_string_k(transaction.clone(), "chain", &[]);
         if !is_equal(&chain, &Value::Null) {
             let mut chainParts: Value = split(&chain, &Value::Str("-".to_string()));
             let mut networkParts: Value = self.array_slice(chainParts.clone(), Value::Int(1), &[]);
@@ -6604,18 +6700,18 @@ impl OkxCore {
                 network = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             }
         }
-        let mut amount: Value = self.safe_number(transaction.clone(), Value::Str("amt".to_string()), &[]);
-        let mut status: Value = self.parse_transaction_status(self.safe_string(transaction.clone(), Value::Str("state".to_string()), &[]));
-        let mut txid: Value = self.safe_string(transaction.clone(), Value::Str("txId".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer(transaction.clone(), Value::Str("ts".to_string()), &[]);
+        let mut amount: Value = self.safe_number_k(transaction.clone(), "amt", &[]);
+        let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "state", &[]));
+        let mut txid: Value = self.safe_string_k(transaction.clone(), "txId", &[]);
+        let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "ts", &[]);
         let mut feeCost: Value = Value::Null;
         if is_equal(&type_var, &Value::Str("deposit".to_string())) {
             feeCost = Value::Int(0);
         }  else {
-            feeCost = self.safe_number(transaction.clone(), Value::Str("fee".to_string()), &[]);
+            feeCost = self.safe_number_k(transaction.clone(), "fee", &[]);
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), id.clone());
         m.insert("currency".to_string(), code.clone());
@@ -6636,7 +6732,7 @@ impl OkxCore {
         m.insert("internal".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code.clone());
         m.insert("cost".to_string(), feeCost.clone());
     m
@@ -6651,29 +6747,29 @@ impl OkxCore {
  * @method
  * @name okx#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-account-get-leverage
+ * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated'
- * @returns {object} a [leverage structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=leverage-structure}
+ * @param {string} [params.marginMode] 'cross' or 'isolated'
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
     pub async fn fetch_leverage(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchLeverage".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&marginMode, &Value::Null) {
-            marginMode = self.safe_string(params.clone(), Value::Str("mgnMode".to_string()), &[Value::Str("cross".to_string())]); // cross as default marginMode
+            marginMode = self.safe_string_k(params.clone(), "mgnMode", &[Value::Str("cross".to_string())]); // cross as default marginMode
         }
         if is_true(&(!is_equal(&marginMode, &Value::Str("cross".to_string())))) && is_true(&(!is_equal(&marginMode, &Value::Str("isolated".to_string())))) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchLeverage() requires a marginMode parameter that must be either cross or isolated".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchLeverage() requires a marginMode parameter that must be either cross or isolated".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("mgnMode".to_string(), marginMode.clone());
             m
@@ -6693,7 +6789,7 @@ impl OkxCore {
         //        "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_leverage(data.clone(), &[market.clone()]);
 
     Value::Null
@@ -6707,24 +6803,25 @@ impl OkxCore {
         let mut shortLeverage: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&leverage)) {
+            let mut __for_first_989: bool = true;
+            while { if !__for_first_989 { i = add(&i, &Value::Int(1)); } __for_first_989 = false; is_less_than(&i, &get_array_length(&leverage)) } {
+            let mut entry: Value = get_value(&leverage, &i);
             let mut entry: Value = get_value(&leverage, &i);
             marginMode = self.safe_string_lower(entry.clone(), Value::Str("mgnMode".to_string()), &[]);
-            marketId = self.safe_string(entry.clone(), Value::Str("instId".to_string()), &[]);
+            marketId = self.safe_string_k(entry.clone(), "instId", &[]);
             let mut positionSide: Value = self.safe_string_lower(entry.clone(), Value::Str("posSide".to_string()), &[]);
             if is_equal(&positionSide, &Value::Str("long".to_string())) {
-                longLeverage = self.safe_integer(entry.clone(), Value::Str("lever".to_string()), &[]);
+                longLeverage = self.safe_integer_k(entry.clone(), "lever", &[]);
             }  else if is_equal(&positionSide, &Value::Str("short".to_string())) {
-                shortLeverage = self.safe_integer(entry.clone(), Value::Str("lever".to_string()), &[]);
+                shortLeverage = self.safe_integer_k(entry.clone(), "lever", &[]);
             }  else {
-                longLeverage = self.safe_integer(entry.clone(), Value::Str("lever".to_string()), &[]);
-                shortLeverage = self.safe_integer(entry.clone(), Value::Str("lever".to_string()), &[]);
+                longLeverage = self.safe_integer_k(entry.clone(), "lever", &[]);
+                shortLeverage = self.safe_integer_k(entry.clone(), "lever", &[]);
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
         m.insert("marginMode".to_string(), marginMode.clone());
@@ -6740,15 +6837,15 @@ impl OkxCore {
  * @method
  * @name okx#fetchPosition
  * @description fetch data on a single open contract trade position
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-account-get-positions
+ * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("instType".to_string()))] MARGIN, SWAP, FUTURES, OPTION
- * @returns {object} a [position structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -6757,7 +6854,7 @@ impl OkxCore {
         let mut type_var: Value = get_value(&type_varqueryVariable, &Value::Int(0));
         let mut query: Value = get_value(&type_varqueryVariable, &Value::Int(1));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -6811,7 +6908,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut position: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         if is_equal(&position, &Value::Null) {
             return Value::Null;
@@ -6824,34 +6921,35 @@ impl OkxCore {
 /*
  * @method
  * @name okx#fetchPositions
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-account-get-positions
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#trading-account-rest-api-get-positions-history history
+ * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+ * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history history
  * @description fetch all open positions
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("instType".to_string()))] MARGIN, SWAP, FUTURES, OPTION
- * @returns {object[]} a list of [position structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_positions(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if !is_equal(&symbols, &Value::Null) {
             let mut marketIds: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&symbols)) {
+                let mut __for_first_990: bool = true;
+                while { if !__for_first_990 { i = add(&i, &Value::Int(1)); } __for_first_990 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut entry: Value = get_value(&symbols, &i);
                 let mut entry: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(entry.clone());
                 append_to_array(&mut marketIds, get_value(&market, &Value::Str("id".to_string())));
-                i = add(&i, &Value::Int(1));
             }
             }
             let mut marketIdsLength: Value = get_array_length(&marketIds);
@@ -6859,11 +6957,11 @@ impl OkxCore {
                 add_element_to_object(&mut request, &Value::Str("instId".to_string()), join(&marketIds, &Value::Str(",".to_string())));
             }
         }
-        let mut fetchPositionsOptions: Value = self.safe_dict(self.options.clone(), Value::Str("fetchPositions".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut fetchPositionsOptions: Value = self.safe_dict_k(self.options.clone(), "fetchPositions", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut method: Value = self.safe_string(fetchPositionsOptions.clone(), Value::Str("method".to_string()), &[Value::Str("privateGetAccountPositions".to_string())]);
+        let mut method: Value = self.safe_string_k(fetchPositionsOptions.clone(), "method", &[Value::Str("privateGetAccountPositions".to_string())]);
         let mut response: Value = Value::Null;
         if is_equal(&method, &Value::Str("privateGetAccountPositionsHistory".to_string())) {
             response = self.call_method(Value::Str("private_get_account_positions_history".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
@@ -6916,13 +7014,13 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut positions: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut positions: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&positions)) {
+            let mut __for_first_991: bool = true;
+            while { if !__for_first_991 { i = add(&i, &Value::Int(1)); } __for_first_991 = false; is_less_than(&i, &get_array_length(&positions)) } {
             append_to_array(&mut result, self.parse_position(get_value(&positions, &i), &[]));
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.filter_by_array_positions(result.clone(), Value::Str("symbol".to_string()), &[self.market_symbols(&[symbols.clone()]), Value::Bool(false)]);
@@ -6933,16 +7031,16 @@ impl OkxCore {
 /*
  * @method
  * @name okx#fetchPositionsForSymbol
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-account-get-positions
+ * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
  * @description fetch all open positions for specific symbol
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("instType".to_string()))] MARGIN (if needed)
- * @returns {object[]} a list of [position structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @param {string} [params.instType] MARGIN (if needed)
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_positions_for_symbol(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.fetch_positions(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
@@ -7018,10 +7116,10 @@ impl OkxCore {
         //        "uly":"SUSHI-USDT"
         //    }
         //
-        let mut marketId: Value = self.safe_string(position.clone(), Value::Str("instId".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(position.clone(), "instId", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("contract".to_string())]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
-        let mut pos: Value = self.safe_string(position.clone(), Value::Str("pos".to_string()), &[]); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
+        let mut pos: Value = self.safe_string_k(position.clone(), "pos", &[]); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         let mut contractsAbs: Value = crate::precise::Precise::stringAbs(&pos);
         let mut side: Value = self.safe_string2(position.clone(), Value::Str("posSide".to_string()), Value::Str("direction".to_string()), &[]);
         let mut hedged: Value = Value::Bool(!is_equal(&side, &Value::Str("net".to_string())));
@@ -7029,14 +7127,14 @@ impl OkxCore {
         if is_true(&get_value(&market, &Value::Str("margin".to_string()))) {
             // margin position
             if is_equal(&side, &Value::Str("net".to_string())) {
-                let mut posCcy: Value = self.safe_string(position.clone(), Value::Str("posCcy".to_string()), &[]);
+                let mut posCcy: Value = self.safe_string_k(position.clone(), "posCcy", &[]);
                 let mut parsedCurrency: Value = self.safe_currency_code(posCcy.clone(), &[]);
                 if !is_equal(&parsedCurrency, &Value::Null) {
                     side = ternary(is_true(&(is_equal(&get_value(&market, &Value::Str("base".to_string())), &parsedCurrency))), Value::Str("long".to_string()), Value::Str("short".to_string()));
                 }
             }
             if is_equal(&side, &Value::Null) {
-                side = self.safe_string(position.clone(), Value::Str("direction".to_string()), &[]);
+                side = self.safe_string_k(position.clone(), "direction", &[]);
             }
         }  else {
             if !is_equal(&pos, &Value::Null) {
@@ -7051,33 +7149,33 @@ impl OkxCore {
                 }
             }
         }
-        let mut contractSize: Value = self.safe_number(market.clone(), Value::Str("contractSize".to_string()), &[]);
+        let mut contractSize: Value = self.safe_number_k(market.clone(), "contractSize", &[]);
         let mut contractSizeString: Value = self.number_to_string(contractSize.clone());
-        let mut markPriceString: Value = self.safe_string(position.clone(), Value::Str("markPx".to_string()), &[]);
-        let mut notionalString: Value = self.safe_string(position.clone(), Value::Str("notionalUsd".to_string()), &[]);
+        let mut markPriceString: Value = self.safe_string_k(position.clone(), "markPx", &[]);
+        let mut notionalString: Value = self.safe_string_k(position.clone(), "notionalUsd", &[]);
         if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
             notionalString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString), &markPriceString);
         }
         let mut notional: Value = self.parse_number(notionalString.clone(), &[]);
-        let mut marginMode: Value = self.safe_string(position.clone(), Value::Str("mgnMode".to_string()), &[]);
+        let mut marginMode: Value = self.safe_string_k(position.clone(), "mgnMode", &[]);
         let mut initialMarginString: Value = Value::Null;
         let mut entryPriceString: Value = self.safe_string2(position.clone(), Value::Str("avgPx".to_string()), Value::Str("openAvgPx".to_string()), &[]);
-        let mut unrealizedPnlString: Value = self.safe_string(position.clone(), Value::Str("upl".to_string()), &[]);
-        let mut leverageString: Value = self.safe_string(position.clone(), Value::Str("lever".to_string()), &[]);
+        let mut unrealizedPnlString: Value = self.safe_string_k(position.clone(), "upl", &[]);
+        let mut leverageString: Value = self.safe_string_k(position.clone(), "lever", &[]);
         let mut initialMarginPercentage: Value = Value::Null;
         let mut collateralString: Value = Value::Null;
         if is_equal(&marginMode, &Value::Str("cross".to_string())) {
-            initialMarginString = self.safe_string(position.clone(), Value::Str("imr".to_string()), &[]);
+            initialMarginString = self.safe_string_k(position.clone(), "imr", &[]);
             collateralString = crate::precise::Precise::stringAdd(&initialMarginString, &unrealizedPnlString);
         }  else if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
             initialMarginPercentage = crate::precise::Precise::stringDiv(&Value::Str("1".to_string()), &leverageString);
-            collateralString = self.safe_string(position.clone(), Value::Str("margin".to_string()), &[]);
+            collateralString = self.safe_string_k(position.clone(), "margin", &[]);
         }
-        let mut maintenanceMarginString: Value = self.safe_string(position.clone(), Value::Str("mmr".to_string()), &[]);
+        let mut maintenanceMarginString: Value = self.safe_string_k(position.clone(), "mmr", &[]);
         let mut maintenanceMargin: Value = self.parse_number(maintenanceMarginString.clone(), &[]);
         let mut maintenanceMarginPercentageString: Value = crate::precise::Precise::stringDiv(&maintenanceMarginString, &notionalString);
         if is_equal(&initialMarginPercentage, &Value::Null) {
-            initialMarginPercentage = self.parse_number(crate::precise::Precise::stringDiv(&initialMarginString, &notionalString), &[]);
+            initialMarginPercentage = self.parse_number(crate::precise::Precise::stringDivPrec(&initialMarginString, &notionalString, &Value::Int(4)), &[]);
         }  else if is_equal(&initialMarginString, &Value::Null) {
             if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
                 initialMarginString = crate::precise::Precise::stringMul(&initialMarginPercentage, &notionalString);
@@ -7086,33 +7184,33 @@ impl OkxCore {
             }
         }
         let mut rounder: Value = Value::Str("0.00005".to_string()); // round to closest 0.01%
-        let mut maintenanceMarginPercentage: Value = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&maintenanceMarginPercentageString, &rounder), &Value::Str("1".to_string())), &[]);
-        let mut liquidationPrice: Value = self.safe_number(position.clone(), Value::Str("liqPx".to_string()), &[]);
-        let mut percentageString: Value = self.safe_string(position.clone(), Value::Str("uplRatio".to_string()), &[]);
+        let mut maintenanceMarginPercentage: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&maintenanceMarginPercentageString, &rounder), &Value::Str("1".to_string()), &Value::Int(4)), &[]);
+        let mut liquidationPrice: Value = self.safe_number_k(position.clone(), "liqPx", &[]);
+        let mut percentageString: Value = self.safe_string_k(position.clone(), "uplRatio", &[]);
         let mut percentage: Value = self.parse_number(crate::precise::Precise::stringMul(&percentageString, &Value::Str("100".to_string())), &[]);
-        let mut timestamp: Value = self.safe_integer(position.clone(), Value::Str("cTime".to_string()), &[]);
-        let mut marginRatio: Value = self.parse_number(crate::precise::Precise::stringDiv(&maintenanceMarginString, &collateralString), &[]);
+        let mut timestamp: Value = self.safe_integer_k(position.clone(), "cTime", &[]);
+        let mut marginRatio: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&maintenanceMarginString, &collateralString, &Value::Int(4)), &[]);
         return self.safe_position(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
-        m.insert("id".to_string(), self.safe_string(position.clone(), Value::Str("posId".to_string()), &[]));
+        m.insert("id".to_string(), self.safe_string_k(position.clone(), "posId", &[]));
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("notional".to_string(), notional.clone());
         m.insert("marginMode".to_string(), marginMode.clone());
         m.insert("liquidationPrice".to_string(), liquidationPrice.clone());
         m.insert("entryPrice".to_string(), self.parse_number(entryPriceString.clone(), &[]));
         m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnlString.clone(), &[]));
-        m.insert("realizedPnl".to_string(), self.safe_number(position.clone(), Value::Str("realizedPnl".to_string()), &[]));
+        m.insert("realizedPnl".to_string(), self.safe_number_k(position.clone(), "realizedPnl", &[]));
         m.insert("percentage".to_string(), percentage.clone());
         m.insert("contracts".to_string(), contracts.clone());
         m.insert("contractSize".to_string(), contractSize.clone());
         m.insert("markPrice".to_string(), self.parse_number(markPriceString.clone(), &[]));
-        m.insert("lastPrice".to_string(), self.safe_number(position.clone(), Value::Str("closeAvgPx".to_string()), &[]));
+        m.insert("lastPrice".to_string(), self.safe_number_k(position.clone(), "closeAvgPx", &[]));
         m.insert("side".to_string(), side.clone());
         m.insert("hedged".to_string(), hedged.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer(position.clone(), Value::Str("uTime".to_string()), &[]));
+        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(position.clone(), "uTime", &[]));
         m.insert("maintenanceMargin".to_string(), maintenanceMargin.clone());
         m.insert("maintenanceMarginPercentage".to_string(), maintenanceMarginPercentage.clone());
         m.insert("collateral".to_string(), self.parse_number(collateralString.clone(), &[]));
@@ -7132,29 +7230,29 @@ impl OkxCore {
  * @method
  * @name okx#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-funding-funds-transfer
+ * @see https://www.okx.com/docs-v5/en/#rest-api-funding-funds-transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
     pub async fn transfer(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
-        let mut accountsByType: Value = self.safe_dict(self.options.clone(), Value::Str("accountsByType".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut fromId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[fromAccount.clone()]);
         let mut toId: Value = self.safe_string(accountsByType.clone(), toAccount.clone(), &[toAccount.clone()]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("ccy".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("amt".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
                 m.insert("type".to_string(), Value::Str("0".to_string()));
@@ -7165,13 +7263,13 @@ impl OkxCore {
         if is_equal(&fromId, &Value::Str("master".to_string())) {
             add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("1".to_string()));
             add_element_to_object(&mut request, &Value::Str("subAcct".to_string()), toId.clone());
-            add_element_to_object(&mut request, &Value::Str("from".to_string()), self.safe_string(params.clone(), Value::Str("from".to_string()), &[Value::Str("6".to_string())]));
-            add_element_to_object(&mut request, &Value::Str("to".to_string()), self.safe_string(params.clone(), Value::Str("to".to_string()), &[Value::Str("6".to_string())]));
+            add_element_to_object(&mut request, &Value::Str("from".to_string()), self.safe_string_k(params.clone(), "from", &[Value::Str("6".to_string())]));
+            add_element_to_object(&mut request, &Value::Str("to".to_string()), self.safe_string_k(params.clone(), "to", &[Value::Str("6".to_string())]));
         }  else if is_equal(&toId, &Value::Str("master".to_string())) {
             add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("2".to_string()));
             add_element_to_object(&mut request, &Value::Str("subAcct".to_string()), fromId.clone());
-            add_element_to_object(&mut request, &Value::Str("from".to_string()), self.safe_string(params.clone(), Value::Str("from".to_string()), &[Value::Str("6".to_string())]));
-            add_element_to_object(&mut request, &Value::Str("to".to_string()), self.safe_string(params.clone(), Value::Str("to".to_string()), &[Value::Str("6".to_string())]));
+            add_element_to_object(&mut request, &Value::Str("from".to_string()), self.safe_string_k(params.clone(), "from", &[Value::Str("6".to_string())]));
+            add_element_to_object(&mut request, &Value::Str("to".to_string()), self.safe_string_k(params.clone(), "to", &[Value::Str("6".to_string())]));
         }
         let mut response: Value = self.call_method(Value::Str("private_post_asset_transfer".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         //
@@ -7189,9 +7287,9 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut rawTransfer: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_transfer(rawTransfer.clone(), &[currency.clone()]);
@@ -7254,22 +7352,22 @@ impl OkxCore {
         //     }
         //
         let mut id: Value = self.safe_string2(transfer.clone(), Value::Str("transId".to_string()), Value::Str("billId".to_string()), &[]);
-        let mut currencyId: Value = self.safe_string(transfer.clone(), Value::Str("ccy".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(transfer.clone(), "ccy", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
-        let mut amount: Value = self.safe_number(transfer.clone(), Value::Str("amt".to_string()), &[]);
-        let mut fromAccountId: Value = self.safe_string(transfer.clone(), Value::Str("from".to_string()), &[]);
-        let mut toAccountId: Value = self.safe_string(transfer.clone(), Value::Str("to".to_string()), &[]);
-        let mut accountsById: Value = self.safe_dict(self.options.clone(), Value::Str("accountsById".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut amount: Value = self.safe_number_k(transfer.clone(), "amt", &[]);
+        let mut fromAccountId: Value = self.safe_string_k(transfer.clone(), "from", &[]);
+        let mut toAccountId: Value = self.safe_string_k(transfer.clone(), "to", &[]);
+        let mut accountsById: Value = self.safe_dict_k(self.options.clone(), "accountsById", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timestamp: Value = self.safe_integer(transfer.clone(), Value::Str("ts".to_string()), &[]);
-        let mut balanceChange: Value = self.safe_string(transfer.clone(), Value::Str("sz".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(transfer.clone(), "ts", &[]);
+        let mut balanceChange: Value = self.safe_string_k(transfer.clone(), "sz", &[]);
         if !is_equal(&balanceChange, &Value::Null) {
             amount = self.parse_number(crate::precise::Precise::stringAbs(&balanceChange), &[]);
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), id.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -7278,7 +7376,7 @@ impl OkxCore {
         m.insert("amount".to_string(), amount.clone());
         m.insert("fromAccount".to_string(), self.safe_string(accountsById.clone(), fromAccountId.clone(), &[]));
         m.insert("toAccount".to_string(), self.safe_string(accountsById.clone(), toAccountId.clone(), &[]));
-        m.insert("status".to_string(), self.parse_transfer_status(self.safe_string(transfer.clone(), Value::Str("state".to_string()), &[])));
+        m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(transfer.clone(), "state", &[])));
     m
 });
 
@@ -7287,7 +7385,7 @@ impl OkxCore {
 
     pub fn parse_transfer_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("success".to_string(), Value::Str("ok".to_string()));
             m
         });
@@ -7299,12 +7397,12 @@ impl OkxCore {
     pub async fn fetch_transfer(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("transId".to_string(), id.clone());
             m
         });
@@ -7329,7 +7427,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut transfer: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         return self.parse_transfer(transfer.clone(), &[]);
 
@@ -7340,25 +7438,25 @@ impl OkxCore {
  * @method
  * @name okx#fetchTransfers
  * @description fetch a history of internal transfers made on an account
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+ * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
  * @param {string} code unified currency code of the currency transferred
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of transfers structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transfer structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
     pub async fn fetch_transfers(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = Value::Null;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("1".to_string()));
             m
         });
@@ -7405,7 +7503,7 @@ impl OkxCore {
         //        "msg": ""
         //    }
         //
-        let mut transfers: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut transfers: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_transfers(transfers.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -7415,7 +7513,7 @@ impl OkxCore {
         let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
@@ -7424,7 +7522,7 @@ impl OkxCore {
         let mut request: Value = add(&add(&add(&Value::Str("/api/".to_string()), &self.version), &Value::Str("/".to_string())), &self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut url: Value = add(&self.implode_hostname(get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("rest".to_string()))), &request);
-        // const type = get_value(&this, &Value::Str("getPathAuthenticationType".to_string())) (path);
+        // const type = this.getPathAuthenticationType (path);
         if is_equal(&api, &Value::Str("public".to_string())) {
             if is_true(&get_array_length(&object_keys(&query))) {
                 url = add(&url, &add(&Value::Str("?".to_string()), &self.urlencode(query.clone(), &[])));
@@ -7433,32 +7531,33 @@ impl OkxCore {
             self.check_required_credentials(&[]);
             // inject id in implicit api call
             if is_equal(&method, &Value::Str("POST".to_string())) && is_true(&(is_equal(&path, &Value::Str("trade/batch-orders".to_string())) || is_equal(&path, &Value::Str("trade/order-algo".to_string())) || is_equal(&path, &Value::Str("trade/order".to_string())))) {
-                let mut brokerId: Value = self.safe_string(self.options.clone(), Value::Str("brokerId".to_string()), &[Value::Str("6b9ad766b55dBCDE".to_string())]);
+                let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("6b9ad766b55dBCDE".to_string())]);
                 if is_true(&Value::Bool(is_array(&params))) {
                     {
                                                 let mut i: Value = Value::Int(0);
-                        while is_less_than(&i, &get_array_length(&params)) {
+                        let mut __for_first_992: bool = true;
+                        while { if !__for_first_992 { i = add(&i, &Value::Int(1)); } __for_first_992 = false; is_less_than(&i, &get_array_length(&params)) } {
                         let mut entry: Value = get_value(&params, &i);
-                        let mut clientOrderId: Value = self.safe_string(entry.clone(), Value::Str("clOrdId".to_string()), &[]);
+                        let mut entry: Value = get_value(&params, &i);
+                        let mut clientOrderId: Value = self.safe_string_k(entry.clone(), "clOrdId", &[]);
                         if is_equal(&clientOrderId, &Value::Null) {
-                            add_element_to_object(&mut entry, &Value::Str("clOrdId".to_string()), add(&brokerId, &self.uuid16()));
+                            add_element_to_object(&mut entry, &Value::Str("clOrdId".to_string()), add(&brokerId, &self.uuid16(&[])));
                             add_element_to_object(&mut entry, &Value::Str("tag".to_string()), brokerId.clone());
                             add_element_to_object(&mut params, &i, entry.clone());
                         }
-                        i = add(&i, &Value::Int(1));
                     }
                     }
                 }  else {
-                    let mut clientOrderId: Value = self.safe_string(params.clone(), Value::Str("clOrdId".to_string()), &[]);
+                    let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clOrdId", &[]);
                     if is_equal(&clientOrderId, &Value::Null) {
-                        add_element_to_object(&mut params, &Value::Str("clOrdId".to_string()), add(&brokerId, &self.uuid16()));
+                        add_element_to_object(&mut params, &Value::Str("clOrdId".to_string()), add(&brokerId, &self.uuid16(&[])));
                         add_element_to_object(&mut params, &Value::Str("tag".to_string()), brokerId.clone());
                     }
                 }
             }
             let mut timestamp: Value = self.iso8601(self.nonce());
             headers = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("OK-ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("OK-ACCESS-PASSPHRASE".to_string(), self.password.clone());
                     m.insert("OK-ACCESS-TIMESTAMP".to_string(), timestamp.clone());
@@ -7482,7 +7581,7 @@ impl OkxCore {
             add_element_to_object(&mut headers, &Value::Str("OK-ACCESS-SIGN".to_string()), signature.clone());
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.clone());
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), body.clone());
@@ -7523,16 +7622,16 @@ impl OkxCore {
         //
         // in the response above nextFundingRate is actually two funding rates from now
         //
-        let mut nextFundingRateTimestamp: Value = self.safe_integer(contract.clone(), Value::Str("nextFundingTime".to_string()), &[]);
-        let mut marketId: Value = self.safe_string(contract.clone(), Value::Str("instId".to_string()), &[]);
+        let mut nextFundingRateTimestamp: Value = self.safe_integer_k(contract.clone(), "nextFundingTime", &[]);
+        let mut marketId: Value = self.safe_string_k(contract.clone(), "instId", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
-        let mut nextFundingRate: Value = self.safe_number(contract.clone(), Value::Str("nextFundingRate".to_string()), &[]);
-        let mut fundingTime: Value = self.safe_integer(contract.clone(), Value::Str("fundingTime".to_string()), &[]);
-        let mut fundingTimeString: Value = self.safe_string(contract.clone(), Value::Str("fundingTime".to_string()), &[]);
-        let mut nextFundingTimeString: Value = self.safe_string(contract.clone(), Value::Str("nextFundingTime".to_string()), &[]);
+        let mut nextFundingRate: Value = self.safe_number_k(contract.clone(), "nextFundingRate", &[]);
+        let mut fundingTime: Value = self.safe_integer_k(contract.clone(), "fundingTime", &[]);
+        let mut fundingTimeString: Value = self.safe_string_k(contract.clone(), "fundingTime", &[]);
+        let mut nextFundingTimeString: Value = self.safe_string_k(contract.clone(), "nextFundingTime", &[]);
         let mut millisecondsInterval: Value = crate::precise::Precise::stringSub(&nextFundingTimeString, &fundingTimeString);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("markPrice".to_string(), Value::Null);
@@ -7541,7 +7640,7 @@ impl OkxCore {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("fundingRate".to_string(), self.safe_number(contract.clone(), Value::Str("fundingRate".to_string()), &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "fundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), fundingTime.clone());
         m.insert("fundingDatetime".to_string(), self.iso8601(fundingTime.clone()));
         m.insert("nextFundingRate".to_string(), nextFundingRate.clone());
@@ -7559,7 +7658,7 @@ impl OkxCore {
 
     pub fn parse_funding_interval(&self, mut interval: Value) -> Value {
         let mut intervals: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("3600000".to_string(), Value::Str("1h".to_string()));
                 m.insert("7200000".to_string(), Value::Str("2h".to_string()));
                 m.insert("14400000".to_string(), Value::Str("4h".to_string()));
@@ -7577,14 +7676,14 @@ impl OkxCore {
  * @method
  * @name okx#fetchFundingInterval
  * @description fetch the current funding rate interval
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#public-data-rest-api-get-funding-rate
+ * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
     pub async fn fetch_funding_interval(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.fetch_funding_rate(symbol.clone(), &[params.clone()]).await;
@@ -7596,23 +7695,23 @@ impl OkxCore {
  * @method
  * @name okx#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#public-data-rest-api-get-funding-rate
+ * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
     pub async fn fetch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchFundingRate() is only valid for swap markets".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchFundingRate() is only valid for swap markets".to_string()))));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -7633,9 +7732,9 @@ impl OkxCore {
         //        "msg": ""
         //    }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut entry: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_funding_rate(entry.clone(), &[market.clone()]);
@@ -7647,21 +7746,21 @@ impl OkxCore {
  * @method
  * @name okx#fetchFundingRates
  * @description fetches the current funding rates for multiple symbols
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#public-data-rest-api-get-funding-rate
+ * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
  * @param {string[]} symbols unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [funding rates structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-rates-structure}
+ * @returns {object} a dictionary of [funding rates structure]{@link https://docs.ccxt.com/?id=funding-rates-structure}
  */
     pub async fn fetch_funding_rates(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone(), Value::Str("swap".to_string()), Value::Bool(true)]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), Value::Str("ANY".to_string()));
             m
         });
@@ -7682,7 +7781,7 @@ impl OkxCore {
         //        "msg": ""
         //    }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_funding_rates(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -7692,24 +7791,24 @@ impl OkxCore {
  * @method
  * @name okx#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+ * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding history structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
     pub async fn fetch_funding_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("8".to_string()));
             m
         });
@@ -7762,19 +7861,21 @@ impl OkxCore {
         //        "type": "8"
         //    }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&data)) {
+            let mut __for_first_993: bool = true;
+            while { if !__for_first_993 { i = add(&i, &Value::Int(1)); } __for_first_993 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
-            let mut timestamp: Value = self.safe_integer(entry.clone(), Value::Str("ts".to_string()), &[]);
-            let mut instId: Value = self.safe_string(entry.clone(), Value::Str("instId".to_string()), &[]);
+            let mut entry: Value = get_value(&data, &i);
+            let mut timestamp: Value = self.safe_integer_k(entry.clone(), "ts", &[]);
+            let mut instId: Value = self.safe_string_k(entry.clone(), "instId", &[]);
             let mut marketInner: Value = self.safe_market(&[instId.clone()]);
-            let mut currencyId: Value = self.safe_string(entry.clone(), Value::Str("ccy".to_string()), &[]);
+            let mut currencyId: Value = self.safe_string_k(entry.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            let mut balanceChange: Value = self.safe_string(entry.clone(), Value::Str("balChg".to_string()), &[]);
-            let mut positionBalanceChange: Value = self.safe_string(entry.clone(), Value::Str("posBalChg".to_string()), &[]);
+            let mut balanceChange: Value = self.safe_string_k(entry.clone(), "balChg", &[]);
+            let mut positionBalanceChange: Value = self.safe_string_k(entry.clone(), "posBalChg", &[]);
             let mut amount: Value = Value::Null;
             if is_true(&(!is_equal(&balanceChange, &Value::Null))) && is_true(&(!is_true(&crate::precise::Precise::stringEq(&balanceChange, &Value::Str("0".to_string()))))) {
                 amount = balanceChange.clone();
@@ -7782,17 +7883,16 @@ impl OkxCore {
                 amount = positionBalanceChange.clone();
             }
             append_to_array(&mut result, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), get_value(&marketInner, &Value::Str("symbol".to_string())));
                     m.insert("code".to_string(), code.clone());
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-                    m.insert("id".to_string(), self.safe_string(entry.clone(), Value::Str("billId".to_string()), &[]));
+                    m.insert("id".to_string(), self.safe_string_k(entry.clone(), "billId", &[]));
                     m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
                 m
             }));
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut sorted: Value = self.sort_by(result.clone(), Value::Str("timestamp".to_string()), &[]);
@@ -7805,49 +7905,49 @@ impl OkxCore {
  * @method
  * @name okx#setLeverage
  * @description set the level of leverage for a market
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-account-set-leverage
+ * @see https://www.okx.com/docs-v5/en/#rest-api-account-set-leverage
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated'
- * @param {string} [get_value(&params, &Value::Str("posSide".to_string()))] 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
+ * @param {string} [params.marginMode] 'cross' or 'isolated'
+ * @param {string} [params.posSide] 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
  * @returns {object} response from the exchange
  */
     pub async fn set_leverage(&mut self, mut leverage: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage() requires a symbol argument".to_string()))));
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if is_true(&(is_less_than(&leverage, &Value::Int(1)))) || is_true(&(is_greater_than(&leverage, &Value::Int(125)))) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" setLeverage() leverage should be between 1 and 125".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" setLeverage() leverage should be between 1 and 125".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("setLeverage".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&marginMode, &Value::Null) {
-            marginMode = self.safe_string(params.clone(), Value::Str("mgnMode".to_string()), &[Value::Str("cross".to_string())]); // cross as default marginMode
+            marginMode = self.safe_string_k(params.clone(), "mgnMode", &[Value::Str("cross".to_string())]); // cross as default marginMode
         }
         if is_true(&(!is_equal(&marginMode, &Value::Str("cross".to_string())))) && is_true(&(!is_equal(&marginMode, &Value::Str("isolated".to_string())))) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" setLeverage() requires a marginMode parameter that must be either cross or isolated".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" setLeverage() requires a marginMode parameter that must be either cross or isolated".to_string()))));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("lever".to_string(), leverage.clone());
                 m.insert("mgnMode".to_string(), marginMode.clone());
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut posSide: Value = self.safe_string(params.clone(), Value::Str("posSide".to_string()), &[Value::Str("net".to_string())]);
+        let mut posSide: Value = self.safe_string_k(params.clone(), "posSide", &[Value::Str("net".to_string())]);
         if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
             if !is_equal(&posSide, &Value::Str("long".to_string())) && !is_equal(&posSide, &Value::Str("short".to_string())) && !is_equal(&posSide, &Value::Str("net".to_string())) {
-                panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" setLeverage() requires the posSide argument to be either \"long\", \"short\" or \"net\"".to_string()))));
+                panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" setLeverage() requires the posSide argument to be either \"long\", \"short\" or \"net\"".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("posSide".to_string()), posSide.clone());
         }
@@ -7860,27 +7960,27 @@ impl OkxCore {
 /*
  * @method
  * @name okx#fetchPositionMode
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#trading-account-rest-api-get-account-configuration
+ * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
  * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("accountId".to_string()))] if you have multiple accounts, you must specify the account id to fetch the position mode
+ * @param {string} [params.accountId] if you have multiple accounts, you must specify the account id to fetch the position mode
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
     pub async fn fetch_position_mode(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut accounts: Value = self.fetch_accounts(&[]).await;
         let mut length: Value = get_array_length(&accounts);
         let mut selectedAccount: Value = Value::Null;
         if is_greater_than(&length, &Value::Int(1)) {
-            let mut accountId: Value = self.safe_string(params.clone(), Value::Str("accountId".to_string()), &[]);
+            let mut accountId: Value = self.safe_string_k(params.clone(), "accountId", &[]);
             if is_equal(&accountId, &Value::Null) {
                 let mut accountIds: Value = self.get_list_from_object_values(accounts.clone(), Value::Str("id".to_string()));
-                panic!("{:?}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: ".to_string())), &join(&accountIds, &Value::Str(", ".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: ".to_string())), &join(&accountIds, &Value::Str(", ".to_string())))));
             }  else {
                 let mut accountsById: Value = self.index_by(accounts.clone(), Value::Str("id".to_string()));
                 selectedAccount = self.safe_dict(accountsById.clone(), accountId.clone(), &[]);
@@ -7889,10 +7989,10 @@ impl OkxCore {
             selectedAccount = get_value(&accounts, &Value::Int(0));
         }
         let mut mainAccount: Value = get_value(&selectedAccount, &Value::Str("info".to_string()));
-        let mut posMode: Value = self.safe_string(mainAccount.clone(), Value::Str("posMode".to_string()), &[]); // long_short_mode, net_mode
+        let mut posMode: Value = self.safe_string_k(mainAccount.clone(), "posMode", &[]); // long_short_mode, net_mode
         let mut isHedged: Value = Value::Bool(is_equal(&posMode, &Value::Str("long_short_mode".to_string())));
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), mainAccount.clone());
         m.insert("hedged".to_string(), isHedged.clone());
     m
@@ -7905,7 +8005,7 @@ impl OkxCore {
  * @method
  * @name okx#setPositionMode
  * @description set hedged to true or false for a market
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#trading-account-rest-api-set-position-mode
+ * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-position-mode
  * @param {bool} hedged set to true to use long_short_mode, false for net_mode
  * @param {string} symbol not used by okx setPositionMode
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -7914,7 +8014,7 @@ impl OkxCore {
     pub async fn set_position_mode(&mut self, mut hedged: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut hedgeMode: Value = Value::Null;
@@ -7924,7 +8024,7 @@ impl OkxCore {
             hedgeMode = Value::Str("net_mode".to_string());
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("posMode".to_string(), hedgeMode.clone());
             m
         });
@@ -7938,37 +8038,37 @@ impl OkxCore {
  * @method
  * @name okx#setMarginMode
  * @description set margin mode to 'cross' or 'isolated'
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#trading-account-rest-api-set-leverage
+ * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-leverage
  * @param {string} marginMode 'cross' or 'isolated'
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("leverage".to_string()))] leverage
+ * @param {int} [params.leverage] leverage
  * @returns {object} response from the exchange
  */
     pub async fn set_margin_mode(&mut self, mut marginMode: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setMarginMode() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setMarginMode() requires a symbol argument".to_string()))));
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         marginMode = to_lower(&marginMode);
         if is_true(&(!is_equal(&marginMode, &Value::Str("cross".to_string())))) && is_true(&(!is_equal(&marginMode, &Value::Str("isolated".to_string())))) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" setMarginMode() marginMode must be either cross or isolated".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" setMarginMode() marginMode must be either cross or isolated".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut lever: Value = self.safe_integer2(params.clone(), Value::Str("lever".to_string()), Value::Str("leverage".to_string()), &[]);
         if is_true(&(is_equal(&lever, &Value::Null))) || is_true(&(is_less_than(&lever, &Value::Int(1)))) || is_true(&(is_greater_than(&lever, &Value::Int(125)))) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" setMarginMode() params[\"lever\"] should be between 1 and 125".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" setMarginMode() params[\"lever\"] should be between 1 and 125".to_string()))));
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("leverage".to_string())]), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("lever".to_string(), lever.clone());
                 m.insert("mgnMode".to_string(), marginMode.clone());
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -7984,13 +8084,13 @@ impl OkxCore {
  * @method
  * @name okx#fetchCrossBorrowRates
  * @description fetch the borrow interest rates of all currencies
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#trading-account-rest-api-get-interest-rate
+ * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [borrow rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=borrow-rate-structure}
+ * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
     pub async fn fetch_cross_borrow_rates(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -8007,13 +8107,13 @@ impl OkxCore {
         //        ],
         //    }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&data)) {
+            let mut __for_first_994: bool = true;
+            while { if !__for_first_994 { i = add(&i, &Value::Int(1)); } __for_first_994 = false; is_less_than(&i, &get_array_length(&data)) } {
             append_to_array(&mut rates, self.parse_borrow_rate(get_value(&data, &i), &[]));
-            i = add(&i, &Value::Int(1));
         }
         }
         return rates;
@@ -8025,20 +8125,20 @@ impl OkxCore {
  * @method
  * @name okx#fetchCrossBorrowRate
  * @description fetch the rate of interest to borrow a currency for margin trading
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#trading-account-rest-api-get-interest-rate
+ * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [borrow rate structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=borrow-rate-structure}
+ * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
     pub async fn fetch_cross_borrow_rate(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("ccy".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
@@ -8056,9 +8156,9 @@ impl OkxCore {
         //        "msg": ""
         //    }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut rate: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_borrow_rate(rate.clone(), &[]);
@@ -8076,10 +8176,10 @@ impl OkxCore {
         //        "ts": "1643954400000"
         //    }
         //
-        let mut ccy: Value = self.safe_string(info.clone(), Value::Str("ccy".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer(info.clone(), Value::Str("ts".to_string()), &[]);
+        let mut ccy: Value = self.safe_string_k(info.clone(), "ccy", &[]);
+        let mut timestamp: Value = self.safe_integer_k(info.clone(), "ts", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), self.safe_currency_code(ccy.clone(), &[]));
         m.insert("rate".to_string(), self.safe_number2(info.clone(), Value::Str("interestRate".to_string()), Value::Str("rate".to_string()), &[]));
         m.insert("period".to_string(), Value::Int(86400000));
@@ -8105,14 +8205,16 @@ impl OkxCore {
         //    ]
         //
         let mut borrowRateHistories: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_995: bool = true;
+            while { if !__for_first_995 { i = add(&i, &Value::Int(1)); } __for_first_995 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut item: Value = get_value(&response, &i);
-            let mut code: Value = self.safe_currency_code(self.safe_string(item.clone(), Value::Str("ccy".to_string()), &[]), &[]);
+            let mut item: Value = get_value(&response, &i);
+            let mut code: Value = self.safe_currency_code(self.safe_string_k(item.clone(), "ccy", &[]), &[]);
             if is_equal(&codes, &Value::Null) || is_true(&self.in_array(code.clone(), codes.clone())) {
                 if !is_true(&(Value::Bool(in_op(&borrowRateHistories, &code)))) {
                     add_element_to_object(&mut borrowRateHistories, &code, Value::List(vec![]));
@@ -8121,16 +8223,16 @@ impl OkxCore {
                 let mut borrrowRateCode: Value = get_value(&borrowRateHistories, &code);
                 append_to_array(&mut borrrowRateCode, borrowRateStructure.clone());
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut keys: Value = object_keys(&borrowRateHistories);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&keys)) {
+            let mut __for_first_996: bool = true;
+            while { if !__for_first_996 { i = add(&i, &Value::Int(1)); } __for_first_996 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut code: Value = get_value(&keys, &i);
             let mut code: Value = get_value(&keys, &i);
             { let __be_tmp = self.filter_by_currency_since_limit(get_value(&borrowRateHistories, &code), &[code.clone(), since.clone(), limit.clone()]); add_element_to_object(&mut borrowRateHistories, &code, __be_tmp); };
-            i = add(&i, &Value::Int(1));
         }
         }
         return borrowRateHistories;
@@ -8142,24 +8244,24 @@ impl OkxCore {
  * @method
  * @name okx#fetchBorrowRateHistories
  * @description retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public
+ * @see https://www.okx.com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public
  * @param {string[]|undefined} codes list of unified currency codes, default is undefined
  * @param {int} [since] timestamp in ms of the earliest borrowRate, default is undefined
  * @param {int} [limit] max number of borrow rate prices to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [borrow rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=borrow-rate-structure} indexed by the market symbol
+ * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
  */
     pub async fn fetch_borrow_rate_histories(&mut self, optional_args: &[Value]) -> Value {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if !is_equal(&since, &Value::Null) {
@@ -8183,7 +8285,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_borrow_rate_histories(data.clone(), codes.clone(), since.clone(), limit.clone());
 
     Value::Null
@@ -8193,24 +8295,24 @@ impl OkxCore {
  * @method
  * @name okx#fetchBorrowRateHistory
  * @description retrieves a history of a currencies borrow interest rate at specific time slots
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public
+ * @see https://www.okx.com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public
  * @param {string} code unified currency code
  * @param {int} [since] timestamp for the earliest borrow rate
- * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=borrow-rate-structure} to retrieve
+ * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} an array of [borrow rate structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=borrow-rate-structure}
+ * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
     pub async fn fetch_borrow_rate_history(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("ccy".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
@@ -8235,7 +8337,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_borrow_rate_history(data.clone(), code.clone(), since.clone(), limit.clone());
 
     Value::Null
@@ -8243,15 +8345,15 @@ impl OkxCore {
 
     pub async fn modify_margin_helper(&mut self, mut symbol: Value, mut amount: Value, mut type_var: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
-        let mut posSide: Value = self.safe_string(params.clone(), Value::Str("posSide".to_string()), &[Value::Str("net".to_string())]);
+        let mut posSide: Value = self.safe_string_k(params.clone(), "posSide", &[Value::Str("net".to_string())]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("posSide".to_string())]), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("amt".to_string(), amount.clone());
                 m.insert("type".to_string(), type_var.clone());
@@ -8273,14 +8375,14 @@ impl OkxCore {
         //       "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut entry: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut errorCode: Value = self.safe_string(response.clone(), Value::Str("code".to_string()), &[]);
+        let mut errorCode: Value = self.safe_string_k(response.clone(), "code", &[]);
         return self.extend(self.parse_margin_modification(entry.clone(), &[market.clone()]), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), ternary(is_true(&(is_equal(&errorCode, &Value::Str("0".to_string())))), Value::Str("ok".to_string()), Value::Str("failed".to_string())));
     m
 })]);
@@ -8338,7 +8440,7 @@ impl OkxCore {
         //    }
         //
         let mut amountRaw: Value = self.safe_string2(data.clone(), Value::Str("amt".to_string()), Value::Str("posBalChg".to_string()), &[]);
-        let mut typeRaw: Value = self.safe_string(data.clone(), Value::Str("type".to_string()), &[]);
+        let mut typeRaw: Value = self.safe_string_k(data.clone(), "type", &[]);
         let mut type_var: Value = Value::Null;
         if is_equal(&typeRaw, &Value::Str("6".to_string())) {
             type_var = ternary(is_true(&crate::precise::Precise::stringGt(&amountRaw, &Value::Str("0".to_string()))), Value::Str("add".to_string()), Value::Str("reduce".to_string()));
@@ -8346,12 +8448,12 @@ impl OkxCore {
             type_var = typeRaw.clone();
         }
         let mut amount: Value = crate::precise::Precise::stringAbs(&amountRaw);
-        let mut marketId: Value = self.safe_string(data.clone(), Value::Str("instId".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(data.clone(), "instId", &[]);
         let mut responseMarket: Value = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut code: Value = ternary(is_true(&get_value(&responseMarket, &Value::Str("inverse".to_string()))), get_value(&responseMarket, &Value::Str("base".to_string())), get_value(&responseMarket, &Value::Str("quote".to_string())));
-        let mut timestamp: Value = self.safe_integer(data.clone(), Value::Str("ts".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(data.clone(), "ts", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
         m.insert("symbol".to_string(), get_value(&responseMarket, &Value::Str("symbol".to_string())));
         m.insert("type".to_string(), type_var.clone());
@@ -8372,15 +8474,15 @@ impl OkxCore {
  * @method
  * @name okx#reduceMargin
  * @description remove margin from a position
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
+ * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
  * @param {string} symbol unified market symbol
  * @param {float} amount the amount of margin to remove
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
     pub async fn reduce_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.modify_margin_helper(symbol.clone(), amount.clone(), Value::Str("reduce".to_string()), &[params.clone()]).await;
@@ -8392,15 +8494,15 @@ impl OkxCore {
  * @method
  * @name okx#addMargin
  * @description add margin
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
+ * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
  * @param {string} symbol unified market symbol
  * @param {float} amount amount of margin to add
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
     pub async fn add_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.modify_margin_helper(symbol.clone(), amount.clone(), Value::Str("add".to_string()), &[params.clone()]).await;
@@ -8412,15 +8514,15 @@ impl OkxCore {
  * @method
  * @name okx#fetchMarketLeverageTiers
  * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-public-data-get-position-tiers
+ * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-position-tiers
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated'
- * @returns {object} a [leverage tiers structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=leverage-tiers-structure}
+ * @param {string} [params.marginMode] 'cross' or 'isolated'
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
     pub async fn fetch_market_leverage_tiers(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -8429,16 +8531,16 @@ impl OkxCore {
         let mut uly: Value = self.safe_string(get_value(&market, &Value::Str("info".to_string())), Value::Str("uly".to_string()), &[]);
         if !is_true(&uly) {
             if !is_equal(&type_var, &Value::Str("MARGIN".to_string())) {
-                panic!("{:?}", crate::exchange_errors::bad_request(add(&add(&self.id, &Value::Str(" fetchMarketLeverageTiers() cannot fetch leverage tiers for ".to_string())), &symbol)));
+                panic!("{}", crate::exchange_errors::bad_request(add(&add(&self.id, &Value::Str(" fetchMarketLeverageTiers() cannot fetch leverage tiers for ".to_string())), &symbol)));
             }
         }
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchMarketLeverageTiers".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&marginMode, &Value::Null) {
-            marginMode = self.safe_string(params.clone(), Value::Str("tdMode".to_string()), &[Value::Str("cross".to_string())]); // cross as default marginMode
+            marginMode = self.safe_string_k(params.clone(), "tdMode", &[Value::Str("cross".to_string())]); // cross as default marginMode
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), type_var.clone());
                 m.insert("tdMode".to_string(), marginMode.clone());
                 m.insert("uly".to_string(), uly.clone());
@@ -8469,7 +8571,7 @@ impl OkxCore {
         //        ]
         //    }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_market_leverage_tiers(data.clone(), &[market.clone()]);
 
     Value::Null
@@ -8504,22 +8606,23 @@ impl OkxCore {
         let mut tiers: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&info)) {
+            let mut __for_first_997: bool = true;
+            while { if !__for_first_997 { i = add(&i, &Value::Int(1)); } __for_first_997 = false; is_less_than(&i, &get_array_length(&info)) } {
             let mut tier: Value = get_value(&info, &i);
-            let mut marketId: Value = self.safe_string(tier.clone(), Value::Str("instId".to_string()), &[]);
+            let mut tier: Value = get_value(&info, &i);
+            let mut marketId: Value = self.safe_string_k(tier.clone(), "instId", &[]);
             append_to_array(&mut tiers, Value::Map({
-                let mut m = std::collections::HashMap::new();
-                    m.insert("tier".to_string(), self.safe_integer(tier.clone(), Value::Str("tier".to_string()), &[]));
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("tier".to_string(), self.safe_integer_k(tier.clone(), "tier", &[]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
                     m.insert("currency".to_string(), get_value(&market, &Value::Str("quote".to_string())));
-                    m.insert("minNotional".to_string(), self.safe_number(tier.clone(), Value::Str("minSz".to_string()), &[]));
-                    m.insert("maxNotional".to_string(), self.safe_number(tier.clone(), Value::Str("maxSz".to_string()), &[]));
-                    m.insert("maintenanceMarginRate".to_string(), self.safe_number(tier.clone(), Value::Str("mmr".to_string()), &[]));
-                    m.insert("maxLeverage".to_string(), self.safe_number(tier.clone(), Value::Str("maxLever".to_string()), &[]));
+                    m.insert("minNotional".to_string(), self.safe_number_k(tier.clone(), "minSz", &[]));
+                    m.insert("maxNotional".to_string(), self.safe_number_k(tier.clone(), "maxSz", &[]));
+                    m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(tier.clone(), "mmr", &[]));
+                    m.insert("maxLeverage".to_string(), self.safe_number_k(tier.clone(), "maxLever", &[]));
                     m.insert("info".to_string(), tier.clone());
                 m
             }));
-            i = add(&i, &Value::Int(1));
         }
         }
         return tiers;
@@ -8531,15 +8634,15 @@ impl OkxCore {
  * @method
  * @name okx#fetchBorrowInterest
  * @description fetch the interest owed b the user for borrowing currency for margin trading
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-account-get-interest-accrued-data
+ * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-interest-accrued-data
  * @param {string} code the unified currency code for the currency of the interest
  * @param {string} symbol the market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
  * @param {int} [since] timestamp in ms of the earliest time to receive interest records for
- * @param {int} [limit] the number of [borrow interest structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=borrow-interest-structure} to retrieve
+ * @param {int} [limit] the number of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure} to retrieve
  * @param {object} [params] exchange specific parameters
- * @param {int} [get_value(&params, &Value::Str("type".to_string()))] Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated'
- * @returns {object[]} An list of [borrow interest structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=borrow-interest-structure}
+ * @param {int} [params.type] Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+ * @param {string} [params.marginMode] 'cross' or 'isolated'
+ * @returns {object[]} An list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
     pub async fn fetch_borrow_interest(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
@@ -8547,17 +8650,17 @@ impl OkxCore {
         let mut since = get_arg(optional_args, 2, Value::Null);
         let mut limit = get_arg(optional_args, 3, Value::Null);
         let mut params = get_arg(optional_args, 4, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchBorrowInterest".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&marginMode, &Value::Null) {
-            marginMode = self.safe_string(params.clone(), Value::Str("mgnMode".to_string()), &[Value::Str("cross".to_string())]); // cross as default marginMode
+            marginMode = self.safe_string_k(params.clone(), "mgnMode", &[Value::Str("cross".to_string())]); // cross as default marginMode
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("mgnMode".to_string(), marginMode.clone());
             m
         });
@@ -8596,7 +8699,7 @@ impl OkxCore {
         //        "msg": ""
         //    }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut interest: Value = self.parse_borrow_interests(data.clone(), &[]);
         return self.filter_by_currency_since_limit(interest.clone(), &[code.clone(), since.clone(), limit.clone()]);
 
@@ -8605,20 +8708,20 @@ impl OkxCore {
 
     pub fn parse_borrow_interest(&self, mut info: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut instId: Value = self.safe_string(info.clone(), Value::Str("instId".to_string()), &[]);
+        let mut instId: Value = self.safe_string_k(info.clone(), "instId", &[]);
         if !is_equal(&instId, &Value::Null) {
             market = self.safe_market(&[instId.clone(), market.clone()]);
         }
-        let mut timestamp: Value = self.safe_integer(info.clone(), Value::Str("ts".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(info.clone(), "ts", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
-        m.insert("symbol".to_string(), self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]));
-        m.insert("currency".to_string(), self.safe_currency_code(self.safe_string(info.clone(), Value::Str("ccy".to_string()), &[]), &[]));
-        m.insert("interest".to_string(), self.safe_number(info.clone(), Value::Str("interest".to_string()), &[]));
-        m.insert("interestRate".to_string(), self.safe_number(info.clone(), Value::Str("interestRate".to_string()), &[]));
-        m.insert("amountBorrowed".to_string(), self.safe_number(info.clone(), Value::Str("liab".to_string()), &[]));
-        m.insert("marginMode".to_string(), self.safe_string(info.clone(), Value::Str("mgnMode".to_string()), &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
+        m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(info.clone(), "ccy", &[]), &[]));
+        m.insert("interest".to_string(), self.safe_number_k(info.clone(), "interest", &[]));
+        m.insert("interestRate".to_string(), self.safe_number_k(info.clone(), "interestRate", &[]));
+        m.insert("amountBorrowed".to_string(), self.safe_number_k(info.clone(), "liab", &[]));
+        m.insert("marginMode".to_string(), self.safe_string_k(info.clone(), "mgnMode", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
@@ -8631,21 +8734,21 @@ impl OkxCore {
  * @method
  * @name okx#borrowCrossMargin
  * @description create a loan to borrow margin (need to be VIP 5 and above)
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
+ * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
  * @param {string} code unified currency code of the currency to borrow
  * @param {float} amount the amount to borrow
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin loan structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn borrow_cross_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("ccy".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("amt".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
                 m.insert("side".to_string(), Value::Str("borrow".to_string()));
@@ -8667,9 +8770,9 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut loan: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_margin_loan(loan.clone(), &[currency.clone()]);
@@ -8681,27 +8784,27 @@ impl OkxCore {
  * @method
  * @name okx#repayCrossMargin
  * @description repay borrowed margin and interest
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
+ * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
  * @param {string} code unified currency code of the currency to repay
  * @param {float} amount the amount to repay
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("id".to_string()))] the order ID of borrowing, it is necessary while repaying
- * @returns {object} a [margin loan structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @param {string} [params.id] the order ID of borrowing, it is necessary while repaying
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn repay_cross_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut id: Value = self.safe_string2(params.clone(), Value::Str("id".to_string()), Value::Str("ordId".to_string()), &[]);
         params = self.omit(params.clone(), Value::Str("id".to_string()), &[]);
         if is_equal(&id, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" repayCrossMargin() requires an id parameter".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" repayCrossMargin() requires an id parameter".to_string()))));
         }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("ccy".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("amt".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
                 m.insert("side".to_string(), Value::Str("repay".to_string()));
@@ -8724,9 +8827,9 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut loan: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_margin_loan(loan.clone(), &[currency.clone()]);
@@ -8747,12 +8850,12 @@ impl OkxCore {
         //         "usedLoan": "97"
         //     }
         //
-        let mut currencyId: Value = self.safe_string(info.clone(), Value::Str("ccy".to_string()), &[]);
+        let mut currencyId: Value = self.safe_string_k(info.clone(), "ccy", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Null);
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
-        m.insert("amount".to_string(), self.safe_number(info.clone(), Value::Str("amt".to_string()), &[]));
+        m.insert("amount".to_string(), self.safe_number_k(info.clone(), "amt", &[]));
         m.insert("symbol".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
@@ -8767,25 +8870,25 @@ impl OkxCore {
  * @method
  * @name okx#fetchOpenInterest
  * @description Retrieves the open interest of a currency
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-public-data-get-open-interest
+ * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
  * @param {string} symbol Unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an open interest structure{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
     pub async fn fetch_open_interest(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if !is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOpenInterest() supports contract markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOpenInterest() supports contract markets only".to_string()))));
         }
         let mut type_var: Value = self.convert_to_instrument_type(get_value(&market, &Value::Str("type".to_string())));
         let mut uly: Value = self.safe_string(get_value(&market, &Value::Str("info".to_string())), Value::Str("uly".to_string()), &[]);
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), type_var.clone());
                 m.insert("uly".to_string(), uly.clone());
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -8807,7 +8910,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_open_interest(get_value(&data, &Value::Int(0)), &[market.clone()]);
 
     Value::Null
@@ -8817,18 +8920,18 @@ impl OkxCore {
  * @method
  * @name okx#fetchOpenInterests
  * @description Retrieves the open interests of some currencies
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-public-data-get-open-interest
+ * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
  * @param {string[]} symbols Unified CCXT market symbols
  * @param {object} [params] exchange specific parameters
- * @param {string} get_value(&params, &Value::Str("instType".to_string())) Instrument type, options: 'SWAP', 'FUTURES', 'OPTION', default to 'SWAP'
- * @param {string} get_value(&params, &Value::Str("uly".to_string())) Underlying, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
- * @param {string} get_value(&params, &Value::Str("instFamily".to_string())) Instrument family, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
- * @returns {object} an dictionary of [open interest structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=open-interest-structure}
+ * @param {string} params.instType Instrument type, options: 'SWAP', 'FUTURES', 'OPTION', default to 'SWAP'
+ * @param {string} params.uly Underlying, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+ * @param {string} params.instFamily Instrument family, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+ * @returns {object} an dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
     pub async fn fetch_open_interests(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -8846,20 +8949,20 @@ impl OkxCore {
             instType = Value::Str("OPTION".to_string());
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), instType.clone());
             m
         });
-        let mut uly: Value = self.safe_string(params.clone(), Value::Str("uly".to_string()), &[]);
+        let mut uly: Value = self.safe_string_k(params.clone(), "uly", &[]);
         if !is_equal(&uly, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("uly".to_string()), uly.clone());
         }
-        let mut instFamily: Value = self.safe_string(params.clone(), Value::Str("instFamily".to_string()), &[]);
+        let mut instFamily: Value = self.safe_string_k(params.clone(), "instFamily", &[]);
         if !is_equal(&instFamily, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("instFamily".to_string()), instFamily.clone());
         }
         if is_equal(&instType, &Value::Str("OPTION".to_string())) && is_equal(&uly, &Value::Null) && is_equal(&instFamily, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets".to_string()))));
         }
         let mut response: Value = self.call_method(Value::Str("public_get_public_open_interest".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         //
@@ -8877,7 +8980,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_open_interests(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -8887,35 +8990,35 @@ impl OkxCore {
  * @method
  * @name okx#fetchOpenInterestHistory
  * @description Retrieves the open interest history of a currency
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-trading-data-get-contracts-open-interest-and-volume
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-trading-data-get-options-open-interest-and-volume
+ * @see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-contracts-open-interest-and-volume
+ * @see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-options-open-interest-and-volume
  * @param {string} symbol Unified CCXT currency code or unified symbol
  * @param {string} timeframe "5m", "1h", or "1d" for option only "1d" or "8h"
  * @param {int} [since] The time in ms of the earliest record to retrieve as a unix timestamp
  * @param {int} [limit] Not used by okx, but parsed internally by CCXT
  * @param {object} [params] Exchange specific parameters
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] The time in ms of the latest record to retrieve as a unix timestamp
- * @returns An array of [open interest structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=open-interest-structure}
+ * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
+ * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
     pub async fn fetch_open_interest_history(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1d".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut options: Value = self.safe_dict(self.options.clone(), Value::Str("fetchOpenInterestHistory".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchOpenInterestHistory", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timeframes: Value = self.safe_dict(options.clone(), Value::Str("timeframes".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut timeframes: Value = self.safe_dict_k(options.clone(), "timeframes", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         timeframe = self.safe_string(timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         if !is_equal(&timeframe, &Value::Str("5m".to_string())) && !is_equal(&timeframe, &Value::Str("1H".to_string())) && !is_equal(&timeframe, &Value::Str("1D".to_string())) {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe".to_string()))));
         }
         self.load_markets(&[]).await;
         // handle unified currency code or symbol
@@ -8929,7 +9032,7 @@ impl OkxCore {
             currencyId = get_value(&currency, &Value::Str("id".to_string()));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("ccy".to_string(), currencyId.clone());
                 m.insert("period".to_string(), timeframe.clone());
             m
@@ -8943,7 +9046,7 @@ impl OkxCore {
             if !is_equal(&since, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("begin".to_string()), since.clone());
             }
-            let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+            let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
             if !is_equal(&until, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("end".to_string()), until.clone());
                 params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
@@ -8964,7 +9067,7 @@ impl OkxCore {
         //        "msg": ''
         //    }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_open_interests_history(data.clone(), &[Value::Null, since.clone(), limit.clone()]);
 
     Value::Null
@@ -8992,15 +9095,15 @@ impl OkxCore {
         //         "ts": "1684551166251"
         //     }
         //
-        let mut id: Value = self.safe_string(interest.clone(), Value::Str("instId".to_string()), &[]);
+        let mut id: Value = self.safe_string_k(interest.clone(), "instId", &[]);
         market = self.safe_market(&[id.clone(), market.clone()]);
-        let mut time: Value = self.safe_integer(interest.clone(), Value::Str("ts".to_string()), &[]);
+        let mut time: Value = self.safe_integer_k(interest.clone(), "ts", &[]);
         let mut timestamp: Value = self.safe_integer(interest.clone(), Value::Int(0), &[time.clone()]);
         let mut baseVolume: Value = Value::Null;
         let mut quoteVolume: Value = Value::Null;
         let mut openInterestAmount: Value = Value::Null;
         let mut openInterestValue: Value = Value::Null;
-        let mut type_var: Value = self.safe_string(self.options.clone(), Value::Str("defaultType".to_string()), &[]);
+        let mut type_var: Value = self.safe_string_k(self.options.clone(), "defaultType", &[]);
         if is_true(&Value::Bool(is_array(&interest))) {
             if is_equal(&type_var, &Value::Str("option".to_string())) {
                 openInterestAmount = self.safe_number(interest.clone(), Value::Int(1), &[]);
@@ -9010,12 +9113,12 @@ impl OkxCore {
                 quoteVolume = self.safe_number(interest.clone(), Value::Int(2), &[]);
             }
         }  else {
-            baseVolume = self.safe_number(interest.clone(), Value::Str("oiCcy".to_string()), &[]);
-            openInterestAmount = self.safe_number(interest.clone(), Value::Str("oi".to_string()), &[]);
-            openInterestValue = self.safe_number(interest.clone(), Value::Str("oiUsd".to_string()), &[]);
+            baseVolume = self.safe_number_k(interest.clone(), "oiCcy", &[]);
+            openInterestAmount = self.safe_number_k(interest.clone(), "oi", &[]);
+            openInterestValue = self.safe_number_k(interest.clone(), "oiUsd", &[]);
         }
         return self.safe_open_interest(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(id.clone(), &[]));
         m.insert("baseVolume".to_string(), baseVolume.clone());
         m.insert("quoteVolume".to_string(), quoteVolume.clone());
@@ -9032,9 +9135,9 @@ impl OkxCore {
 
     pub fn set_sandbox_mode(&mut self, mut enable: Value) {
         self.super_set_sandbox_mode(enable.clone());
-        add_element_to_object(&mut self.options.clone(), &Value::Str("sandboxMode".to_string()), enable.clone());
+        add_element_to_object(&mut self.options, &Value::Str("sandboxMode".to_string()), enable.clone());
         if is_true(&enable) {
-            add_element_to_object(&mut self.headers.clone(), &Value::Str("x-simulated-trading".to_string()), Value::Str("1".to_string()));
+            add_element_to_object(&mut self.headers, &Value::Str("x-simulated-trading".to_string()), Value::Str("1".to_string()));
         }  else if is_true(&Value::Bool(in_op(&self.headers, &Value::Str("x-simulated-trading".to_string())))) {
             { let __t = self.omit(self.headers.clone(), Value::Str("x-simulated-trading".to_string()), &[]); self.headers = __t; }
         }
@@ -9044,20 +9147,20 @@ impl OkxCore {
  * @method
  * @name okx#fetchDepositWithdrawFees
  * @description fetch deposit and withdraw fees
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-funding-get-currencies
+ * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [fees structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=fee-structure}
+ * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
     pub async fn fetch_deposit_withdraw_fees(&mut self, optional_args: &[Value]) -> Value {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if !is_equal(&codes, &Value::Null) {
@@ -9108,7 +9211,7 @@ impl OkxCore {
         //        "msg": ""
         //    }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
         return self.parse_deposit_withdraw_fees(data.clone(), &[codes.clone()]);
 
     Value::Null
@@ -9139,63 +9242,65 @@ impl OkxCore {
         // ]
         //
         let mut depositWithdrawFees: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         codes = self.market_codes(&[codes.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_998: bool = true;
+            while { if !__for_first_998 { i = add(&i, &Value::Int(1)); } __for_first_998 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut feeInfo: Value = get_value(&response, &i);
-            let mut currencyId: Value = self.safe_string(feeInfo.clone(), Value::Str("ccy".to_string()), &[]);
+            let mut feeInfo: Value = get_value(&response, &i);
+            let mut currencyId: Value = self.safe_string_k(feeInfo.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             if is_true(&(is_equal(&codes, &Value::Null))) || is_true(&(self.in_array(code.clone(), codes.clone()))) {
                 let mut depositWithdrawFee: Value = self.safe_value(depositWithdrawFees.clone(), code.clone(), &[]);
                 if is_equal(&depositWithdrawFee, &Value::Null) {
                     add_element_to_object(&mut depositWithdrawFees, &code, self.deposit_withdraw_fee(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })));
                 }
                 add_element_to_object(get_value_mut(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("info".to_string())), &currencyId, feeInfo.clone());
-                let mut chain: Value = self.safe_string(feeInfo.clone(), Value::Str("chain".to_string()), &[]);
+                let mut chain: Value = self.safe_string_k(feeInfo.clone(), "chain", &[]);
                 if is_equal(&chain, &Value::Null) {
                     continue;
                 }
                 let mut chainSplit: Value = split(&chain, &Value::Str("-".to_string()));
                 let mut networkId: Value = self.safe_value(chainSplit.clone(), Value::Int(1), &[]);
-                let mut withdrawFee: Value = self.safe_number(feeInfo.clone(), Value::Str("fee".to_string()), &[]);
+                let mut withdrawFee: Value = self.safe_number_k(feeInfo.clone(), "fee", &[]);
                 let mut withdrawResult: Value = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("fee".to_string(), withdrawFee.clone());
                         m.insert("percentage".to_string(), ternary(is_true(&(!is_equal(&withdrawFee, &Value::Null))), Value::Bool(false), Value::Null));
                     m
                 });
                 let mut depositResult: Value = Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("fee".to_string(), Value::Null);
                         m.insert("percentage".to_string(), Value::Null);
                     m
                 });
                 let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
                 add_element_to_object(get_value_mut(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("networks".to_string())), &networkCode, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), withdrawResult.clone());
         m.insert("deposit".to_string(), depositResult.clone());
     m
 }));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut depositWithdrawCodes: Value = object_keys(&depositWithdrawFees);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&depositWithdrawCodes)) {
+            let mut __for_first_999: bool = true;
+            while { if !__for_first_999 { i = add(&i, &Value::Int(1)); } __for_first_999 = false; is_less_than(&i, &get_array_length(&depositWithdrawCodes)) } {
+            let mut code: Value = get_value(&depositWithdrawCodes, &i);
             let mut code: Value = get_value(&depositWithdrawCodes, &i);
             let mut currency: Value = self.currency(code.clone());
             { let __be_tmp = self.assign_default_deposit_withdraw_fees(get_value(&depositWithdrawFees, &code), &[currency.clone()]); add_element_to_object(&mut depositWithdrawFees, &code, __be_tmp); };
-            i = add(&i, &Value::Int(1));
         }
         }
         return depositWithdrawFees;
@@ -9207,33 +9312,33 @@ impl OkxCore {
  * @method
  * @name okx#fetchSettlementHistory
  * @description fetches historical settlement records
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#rest-api-public-data-get-delivery-exercise-history
+ * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-delivery-exercise-history
  * @param {string} symbol unified market symbol to fetch the settlement history for
  * @param {int} [since] timestamp in ms
  * @param {int} [limit] number of records
  * @param {object} [params] exchange specific params
- * @returns {object[]} a list of [settlement history objects]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=settlement-history-structure}
+ * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
     pub async fn fetch_settlement_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&symbol, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchSettlementHistory() requires a symbol argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchSettlementHistory() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchSettlementHistory".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if !is_equal(&type_var, &Value::Str("future".to_string())) && !is_equal(&type_var, &Value::Str("option".to_string())) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchSettlementHistory() supports futures and options markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchSettlementHistory() supports futures and options markets only".to_string()))));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), self.convert_to_instrument_type(type_var.clone()));
                 m.insert("uly".to_string(), add(&add(&get_value(&market, &Value::Str("baseId".to_string())), &Value::Str("-".to_string())), &get_value(&market, &Value::Str("quoteId".to_string()))));
             m
@@ -9263,7 +9368,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut settlements: Value = self.parse_settlements(data.clone(), market.clone());
         let mut sorted: Value = self.sort_by(settlements.clone(), Value::Str("timestamp".to_string()), &[]);
         return self.filter_by_symbol_since_limit(sorted.clone(), &[get_value(&market, &Value::Str("symbol".to_string())), since.clone(), limit.clone()]);
@@ -9279,12 +9384,12 @@ impl OkxCore {
         //         "type": "exercised"
         //     }
         //
-        let mut marketId: Value = self.safe_string(settlement.clone(), Value::Str("insId".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(settlement.clone(), "insId", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), settlement.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-        m.insert("price".to_string(), self.safe_number(settlement.clone(), Value::Str("px".to_string()), &[]));
+        m.insert("price".to_string(), self.safe_number_k(settlement.clone(), "px", &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
     m
@@ -9309,24 +9414,25 @@ impl OkxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&settlements)) {
+            let mut __for_first_1001: bool = true;
+            while { if !__for_first_1001 { i = add(&i, &Value::Int(1)); } __for_first_1001 = false; is_less_than(&i, &get_array_length(&settlements)) } {
             let mut entry: Value = get_value(&settlements, &i);
-            let mut timestamp: Value = self.safe_integer(entry.clone(), Value::Str("ts".to_string()), &[]);
-            let mut details: Value = self.safe_list(entry.clone(), Value::Str("details".to_string()), &[Value::List(vec![])]);
+            let mut entry: Value = get_value(&settlements, &i);
+            let mut timestamp: Value = self.safe_integer_k(entry.clone(), "ts", &[]);
+            let mut details: Value = self.safe_list_k(entry.clone(), "details", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                while is_less_than(&j, &get_array_length(&details)) {
+                let mut __for_first_1000: bool = true;
+                while { if !__for_first_1000 { j = add(&j, &Value::Int(1)); } __for_first_1000 = false; is_less_than(&j, &get_array_length(&details)) } {
                 let mut settlement: Value = self.parse_settlement(get_value(&details, &j), market.clone());
                 append_to_array(&mut result, self.extend(settlement.clone(), &[Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("timestamp".to_string(), timestamp.clone());
                         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
                     m
                 })]));
-                j = add(&j, &Value::Int(1));
             }
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -9338,14 +9444,14 @@ impl OkxCore {
  * @method
  * @name okx#fetchUnderlyingAssets
  * @description fetches the market ids of underlying assets for a specific contract market type
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#public-data-rest-api-get-underlying
+ * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying
  * @param {object} [params] exchange specific params
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] the contract market type, 'option', 'swap' or 'future', the default is 'option'
- * @returns {object[]} a list of [underlying assets]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=underlying-assets-structure}
+ * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
+ * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
  */
     pub async fn fetch_underlying_assets(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -9355,10 +9461,10 @@ impl OkxCore {
             marketType = Value::Str("option".to_string());
         }
         if is_true(&(!is_equal(&marketType, &Value::Str("option".to_string())))) && is_true(&(!is_equal(&marketType, &Value::Str("swap".to_string())))) && is_true(&(!is_equal(&marketType, &Value::Str("future".to_string())))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchUnderlyingAssets() supports contract markets only".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchUnderlyingAssets() supports contract markets only".to_string()))));
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), self.convert_to_instrument_type(marketType.clone()));
             m
         });
@@ -9375,7 +9481,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut underlyings: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut underlyings: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return get_value(&underlyings, &Value::Int(0));
 
     Value::Null
@@ -9385,14 +9491,14 @@ impl OkxCore {
  * @method
  * @name okx#fetchGreeks
  * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#public-data-rest-api-get-option-market-data
+ * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-option-market-data
  * @param {string} symbol unified symbol of the market to fetch greeks for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [greeks structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=greeks-structure}
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
     pub async fn fetch_greeks(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -9400,7 +9506,7 @@ impl OkxCore {
         let mut marketId: Value = get_value(&market, &Value::Str("id".to_string()));
         let mut optionParts: Value = split(&marketId, &Value::Str("-".to_string()));
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("uly".to_string(), get_value(&get_value(&market, &Value::Str("info".to_string())), &Value::Str("uly".to_string())));
                 m.insert("instFamily".to_string(), get_value(&get_value(&market, &Value::Str("info".to_string())), &Value::Str("instFamily".to_string())));
                 m.insert("expTime".to_string(), self.safe_string(optionParts.clone(), Value::Int(2), &[]));
@@ -9436,16 +9542,17 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&data)) {
+            let mut __for_first_1002: bool = true;
+            while { if !__for_first_1002 { i = add(&i, &Value::Int(1)); } __for_first_1002 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
-            let mut entryMarketId: Value = self.safe_string(entry.clone(), Value::Str("instId".to_string()), &[]);
+            let mut entry: Value = get_value(&data, &i);
+            let mut entryMarketId: Value = self.safe_string_k(entry.clone(), "instId", &[]);
             if is_equal(&entryMarketId, &marketId) {
                 return self.parse_greeks(entry.clone(), &[market.clone()]);
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return Value::Null;
@@ -9457,22 +9564,22 @@ impl OkxCore {
  * @method
  * @name okx#fetchAllGreeks
  * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#public-data-rest-api-get-option-market-data
+ * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-option-market-data
  * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} get_value(&params, &Value::Str("uly".to_string())) Underlying, either uly or instFamily is required
- * @param {string} get_value(&params, &Value::Str("instFamily".to_string())) Instrument family, either uly or instFamily is required
- * @returns {object} a [greeks structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=greeks-structure}
+ * @param {string} params.uly Underlying, either uly or instFamily is required
+ * @param {string} params.instFamily Instrument family, either uly or instFamily is required
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
     pub async fn fetch_all_greeks(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
@@ -9481,16 +9588,16 @@ impl OkxCore {
             symbolsLength = get_array_length(&symbols);
         }
         if is_true(&(is_equal(&symbols, &Value::Null))) || is_true(&(!is_equal(&symbolsLength, &Value::Int(1)))) {
-            let mut uly: Value = self.safe_string(params.clone(), Value::Str("uly".to_string()), &[]);
+            let mut uly: Value = self.safe_string_k(params.clone(), "uly", &[]);
             if !is_equal(&uly, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("uly".to_string()), uly.clone());
             }
-            let mut instFamily: Value = self.safe_string(params.clone(), Value::Str("instFamily".to_string()), &[]);
+            let mut instFamily: Value = self.safe_string_k(params.clone(), "instFamily", &[]);
             if !is_equal(&instFamily, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("instFamily".to_string()), instFamily.clone());
             }
             if is_true(&(is_equal(&uly, &Value::Null))) && is_true(&(is_equal(&instFamily, &Value::Null))) {
-                panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchAllGreeks() requires either a uly or instFamily parameter".to_string()))));
+                panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchAllGreeks() requires either a uly or instFamily parameter".to_string()))));
             }
         }
         let mut market: Value = Value::Null;
@@ -9535,7 +9642,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_all_greeks(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -9566,24 +9673,24 @@ impl OkxCore {
         //         "volLv": "0.5948549730405797"
         //     }
         //
-        let mut timestamp: Value = self.safe_integer(greeks.clone(), Value::Str("ts".to_string()), &[]);
-        let mut marketId: Value = self.safe_string(greeks.clone(), Value::Str("instId".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(greeks.clone(), "ts", &[]);
+        let mut marketId: Value = self.safe_string_k(greeks.clone(), "instId", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("delta".to_string(), self.safe_number(greeks.clone(), Value::Str("delta".to_string()), &[]));
-        m.insert("gamma".to_string(), self.safe_number(greeks.clone(), Value::Str("gamma".to_string()), &[]));
-        m.insert("theta".to_string(), self.safe_number(greeks.clone(), Value::Str("theta".to_string()), &[]));
-        m.insert("vega".to_string(), self.safe_number(greeks.clone(), Value::Str("vega".to_string()), &[]));
+        m.insert("delta".to_string(), self.safe_number_k(greeks.clone(), "delta", &[]));
+        m.insert("gamma".to_string(), self.safe_number_k(greeks.clone(), "gamma", &[]));
+        m.insert("theta".to_string(), self.safe_number_k(greeks.clone(), "theta", &[]));
+        m.insert("vega".to_string(), self.safe_number_k(greeks.clone(), "vega", &[]));
         m.insert("rho".to_string(), Value::Null);
         m.insert("bidSize".to_string(), Value::Null);
         m.insert("askSize".to_string(), Value::Null);
-        m.insert("bidImpliedVolatility".to_string(), self.safe_number(greeks.clone(), Value::Str("bidVol".to_string()), &[]));
-        m.insert("askImpliedVolatility".to_string(), self.safe_number(greeks.clone(), Value::Str("askVol".to_string()), &[]));
-        m.insert("markImpliedVolatility".to_string(), self.safe_number(greeks.clone(), Value::Str("markVol".to_string()), &[]));
+        m.insert("bidImpliedVolatility".to_string(), self.safe_number_k(greeks.clone(), "bidVol", &[]));
+        m.insert("askImpliedVolatility".to_string(), self.safe_number_k(greeks.clone(), "askVol", &[]));
+        m.insert("markImpliedVolatility".to_string(), self.safe_number_k(greeks.clone(), "markVol", &[]));
         m.insert("bidPrice".to_string(), Value::Null);
         m.insert("askPrice".to_string(), Value::Null);
         m.insert("markPrice".to_string(), Value::Null);
@@ -9600,33 +9707,33 @@ impl OkxCore {
  * @method
  * @name okx#closePosition
  * @description closes open positions for a market
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-trade-post-close-positions
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
  * @param {object} [params] extra parameters specific to the okx api endpoint
- * @param {string} [get_value(&params, &Value::Str("clientOrderId".to_string()))] a unique identifier for the order
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] 'cross' or 'isolated', default is 'cross;
- * @param {string} [get_value(&params, &Value::Str("code".to_string()))] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
+ * @param {string} [params.clientOrderId] a unique identifier for the order
+ * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
+ * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
  *
  * EXCHANGE SPECIFIC PARAMETERS
- * @param {boolean} [get_value(&params, &Value::Str("autoCxl".to_string()))] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
- * @param {string} [get_value(&params, &Value::Str("tag".to_string()))] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
- * @returns {object[]} [A list of position structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
+ * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
+ * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn close_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut side = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
-        let mut clientOrderId: Value = self.safe_string(params.clone(), Value::Str("clientOrderId".to_string()), &[]);
-        let mut code: Value = self.safe_string(params.clone(), Value::Str("code".to_string()), &[]);
+        let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
+        let mut code: Value = self.safe_string_k(params.clone(), "code", &[]);
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("closePosition".to_string()), &[params.clone(), Value::Str("cross".to_string())]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
                 m.insert("mgnMode".to_string(), marginMode.clone());
             m
@@ -9665,7 +9772,7 @@ impl OkxCore {
         //        "outTime": "1701877077102579"
         //    }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut order: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         return self.parse_order(order.clone(), &[market.clone()]);
 
@@ -9676,20 +9783,20 @@ impl OkxCore {
  * @method
  * @name okx#fetchOption
  * @description fetches option data that is commonly found in an option chain
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-market-data-get-ticker
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [option chain structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=option-chain-structure}
+ * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
     pub async fn fetch_option(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -9720,9 +9827,9 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut chain: Value = self.safe_dict(result.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return self.parse_option(chain.clone(), &[Value::Null, market.clone()]);
@@ -9734,21 +9841,21 @@ impl OkxCore {
  * @method
  * @name okx#fetchOptionChain
  * @description fetches data for an underlying asset that is commonly found in an option chain
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#order-book-trading-market-data-get-tickers
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
  * @param {string} code base currency to fetch an option chain for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [get_value(&params, &Value::Str("uly".to_string()))] the underlying asset, can be obtained from fetchUnderlyingAssets ()
- * @returns {object} a list of [option chain structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=option-chain-structure}
+ * @param {string} [params.uly] the underlying asset, can be obtained from fetchUnderlyingAssets ()
+ * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
     pub async fn fetch_option_chain(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("uly".to_string(), add(&get_value(&currency, &Value::Str("code".to_string())), &Value::Str("-USD".to_string())));
                 m.insert("instType".to_string(), Value::Str("OPTION".to_string()));
             m
@@ -9780,7 +9887,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_option_chain(result.clone(), &[Value::Null, Value::Str("instId".to_string())]);
 
     Value::Null
@@ -9809,11 +9916,11 @@ impl OkxCore {
         //         "sodUtc8": ""
         //     }
         //
-        let mut marketId: Value = self.safe_string(chain.clone(), Value::Str("instId".to_string()), &[]);
+        let mut marketId: Value = self.safe_string_k(chain.clone(), "instId", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut timestamp: Value = self.safe_integer(chain.clone(), Value::Str("ts".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(chain.clone(), "ts", &[]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
         m.insert("currency".to_string(), Value::Null);
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
@@ -9821,15 +9928,15 @@ impl OkxCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("impliedVolatility".to_string(), Value::Null);
         m.insert("openInterest".to_string(), Value::Null);
-        m.insert("bidPrice".to_string(), self.safe_number(chain.clone(), Value::Str("bidPx".to_string()), &[]));
-        m.insert("askPrice".to_string(), self.safe_number(chain.clone(), Value::Str("askPx".to_string()), &[]));
+        m.insert("bidPrice".to_string(), self.safe_number_k(chain.clone(), "bidPx", &[]));
+        m.insert("askPrice".to_string(), self.safe_number_k(chain.clone(), "askPx", &[]));
         m.insert("midPrice".to_string(), Value::Null);
         m.insert("markPrice".to_string(), Value::Null);
-        m.insert("lastPrice".to_string(), self.safe_number(chain.clone(), Value::Str("last".to_string()), &[]));
+        m.insert("lastPrice".to_string(), self.safe_number_k(chain.clone(), "last", &[]));
         m.insert("underlyingPrice".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_number(chain.clone(), Value::Str("volCcy24h".to_string()), &[]));
+        m.insert("baseVolume".to_string(), self.safe_number_k(chain.clone(), "volCcy24h", &[]));
         m.insert("quoteVolume".to_string(), Value::Null);
     m
 });
@@ -9841,22 +9948,22 @@ impl OkxCore {
  * @method
  * @name okx#fetchConvertQuote
  * @description fetch a quote for converting from one currency to another
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#funding-account-rest-api-estimate-quote
+ * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-estimate-quote
  * @param {string} fromCode the currency that you want to sell and convert from
  * @param {string} toCode the currency that you want to buy and convert into
  * @param {float} [amount] how much you want to trade in units of the from currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [conversion structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
     pub async fn fetch_convert_quote(&mut self, mut fromCode: Value, mut toCode: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("baseCcy".to_string(), to_upper(&fromCode));
                 m.insert("quoteCcy".to_string(), to_upper(&toCode));
                 m.insert("rfqSzCcy".to_string(), to_upper(&fromCode));
@@ -9888,14 +9995,14 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fromCurrencyId: Value = self.safe_string(result.clone(), Value::Str("baseCcy".to_string()), &[fromCode.clone()]);
+        let mut fromCurrencyId: Value = self.safe_string_k(result.clone(), "baseCcy", &[fromCode.clone()]);
         let mut fromCurrency: Value = self.currency(fromCurrencyId.clone());
-        let mut toCurrencyId: Value = self.safe_string(result.clone(), Value::Str("quoteCcy".to_string()), &[toCode.clone()]);
+        let mut toCurrencyId: Value = self.safe_string_k(result.clone(), "quoteCcy", &[toCode.clone()]);
         let mut toCurrency: Value = self.currency(toCurrencyId.clone());
         return self.parse_conversion(result.clone(), &[fromCurrency.clone(), toCurrency.clone()]);
 
@@ -9906,23 +10013,23 @@ impl OkxCore {
  * @method
  * @name okx#createConvertTrade
  * @description convert from one currency to another
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#funding-account-rest-api-convert-trade
+ * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-convert-trade
  * @param {string} id the id of the trade that you want to make
  * @param {string} fromCode the currency that you want to sell and convert from
  * @param {string} toCode the currency that you want to buy and convert into
  * @param {float} [amount] how much you want to trade in units of the from currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [conversion structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
     pub async fn create_convert_trade(&mut self, mut id: Value, mut fromCode: Value, mut toCode: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("quoteId".to_string(), id.clone());
                 m.insert("baseCcy".to_string(), fromCode.clone());
                 m.insert("quoteCcy".to_string(), toCode.clone());
@@ -9954,14 +10061,14 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fromCurrencyId: Value = self.safe_string(result.clone(), Value::Str("baseCcy".to_string()), &[fromCode.clone()]);
+        let mut fromCurrencyId: Value = self.safe_string_k(result.clone(), "baseCcy", &[fromCode.clone()]);
         let mut fromCurrency: Value = self.currency(fromCurrencyId.clone());
-        let mut toCurrencyId: Value = self.safe_string(result.clone(), Value::Str("quoteCcy".to_string()), &[toCode.clone()]);
+        let mut toCurrencyId: Value = self.safe_string_k(result.clone(), "quoteCcy", &[toCode.clone()]);
         let mut toCurrency: Value = self.currency(toCurrencyId.clone());
         return self.parse_conversion(result.clone(), &[fromCurrency.clone(), toCurrency.clone()]);
 
@@ -9972,21 +10079,21 @@ impl OkxCore {
  * @method
  * @name okx#fetchConvertTrade
  * @description fetch the data for a conversion trade
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#funding-account-rest-api-get-convert-history
+ * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history
  * @param {string} id the id of the trade that you want to fetch
  * @param {string} [code] the unified currency code of the conversion trade
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [conversion structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
     pub async fn fetch_convert_trade(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("clTReqId".to_string(), id.clone());
             m
         });
@@ -10012,13 +10119,13 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fromCurrencyId: Value = self.safe_string(result.clone(), Value::Str("baseCcy".to_string()), &[]);
-        let mut toCurrencyId: Value = self.safe_string(result.clone(), Value::Str("quoteCcy".to_string()), &[]);
+        let mut fromCurrencyId: Value = self.safe_string_k(result.clone(), "baseCcy", &[]);
+        let mut toCurrencyId: Value = self.safe_string_k(result.clone(), "quoteCcy", &[]);
         let mut fromCurrency: Value = Value::Null;
         let mut toCurrency: Value = Value::Null;
         if !is_equal(&fromCurrencyId, &Value::Null) {
@@ -10036,25 +10143,25 @@ impl OkxCore {
  * @method
  * @name okx#fetchConvertTradeHistory
  * @description fetch the users history of conversion trades
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#funding-account-rest-api-get-convert-history
+ * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history
  * @param {string} [code] the unified currency code
  * @param {int} [since] the earliest time in ms to fetch conversions for
  * @param {int} [limit] the maximum number of conversion structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest conversion to fetch
- * @returns {object[]} a list of [conversion structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=conversion-structure}
+ * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
+ * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
     pub async fn fetch_convert_trade_history(&mut self, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         { let __destr_tmp = self.handle_until_option(Value::Str("after".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -10086,7 +10193,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut rows: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_conversions(rows.clone(), &[code.clone(), Value::Str("baseCcy".to_string()), Value::Str("quoteCcy".to_string()), since.clone(), limit.clone()]);
 
     Value::Null
@@ -10148,12 +10255,12 @@ impl OkxCore {
         //     }
         //
         let mut timestamp: Value = self.safe_integer2(conversion.clone(), Value::Str("quoteTime".to_string()), Value::Str("ts".to_string()), &[]);
-        let mut fromCoin: Value = self.safe_string(conversion.clone(), Value::Str("baseCcy".to_string()), &[]);
+        let mut fromCoin: Value = self.safe_string_k(conversion.clone(), "baseCcy", &[]);
         let mut fromCode: Value = self.safe_currency_code(fromCoin.clone(), &[fromCurrency.clone()]);
-        let mut to: Value = self.safe_string(conversion.clone(), Value::Str("quoteCcy".to_string()), &[]);
+        let mut to: Value = self.safe_string_k(conversion.clone(), "quoteCcy", &[]);
         let mut toCode: Value = self.safe_currency_code(to.clone(), &[toCurrency.clone()]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), conversion.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
@@ -10174,13 +10281,13 @@ impl OkxCore {
  * @method
  * @name okx#fetchConvertCurrencies
  * @description fetches all available currencies that can be converted
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#funding-account-rest-api-get-convert-currencies
+ * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-currencies
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
     pub async fn fetch_convert_currencies(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
@@ -10199,18 +10306,20 @@ impl OkxCore {
         //     }
         //
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&data)) {
+            let mut __for_first_1003: bool = true;
+            while { if !__for_first_1003 { i = add(&i, &Value::Int(1)); } __for_first_1003 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
-            let mut id: Value = self.safe_string(entry.clone(), Value::Str("ccy".to_string()), &[]);
+            let mut entry: Value = get_value(&data, &i);
+            let mut id: Value = self.safe_string_k(entry.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
             add_element_to_object(&mut result, &code, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry.clone());
         m.insert("id".to_string(), id.clone());
         m.insert("code".to_string(), code.clone());
@@ -10223,21 +10332,21 @@ impl OkxCore {
         m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("min".to_string(), self.safe_number(entry.clone(), Value::Str("min".to_string()), &[]));
-        m.insert("max".to_string(), self.safe_number(entry.clone(), Value::Str("max".to_string()), &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(entry.clone(), "min", &[]));
+        m.insert("max".to_string(), self.safe_number_k(entry.clone(), "max", &[]));
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
@@ -10247,7 +10356,6 @@ impl OkxCore {
         m.insert("created".to_string(), Value::Null);
     m
 }));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -10279,23 +10387,24 @@ impl OkxCore {
         //        "msg": "Incorrect trade password"
         //    }
         //
-        let mut code: Value = self.safe_string(response.clone(), Value::Str("code".to_string()), &[]);
+        let mut code: Value = self.safe_string_k(response.clone(), "code", &[]);
         if is_true(&(!is_equal(&code, &Value::Str("0".to_string())))) && is_true(&(!is_equal(&code, &Value::Str("2".to_string())))) {
             let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
-            let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+            let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&data)) {
+                let mut __for_first_1004: bool = true;
+                while { if !__for_first_1004 { i = add(&i, &Value::Int(1)); } __for_first_1004 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut error: Value = get_value(&data, &i);
-                let mut errorCode: Value = self.safe_string(error.clone(), Value::Str("sCode".to_string()), &[]);
-                let mut message: Value = self.safe_string(error.clone(), Value::Str("sMsg".to_string()), &[]);
+                let mut error: Value = get_value(&data, &i);
+                let mut errorCode: Value = self.safe_string_k(error.clone(), "sCode", &[]);
+                let mut message: Value = self.safe_string_k(error.clone(), "sMsg", &[]);
                 self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), errorCode.clone(), feedback.clone());
                 self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), message.clone(), feedback.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
             self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), code.clone(), feedback.clone());
-            panic!("{:?}", crate::exchange_errors::exchange_error(feedback));
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
 
@@ -10306,15 +10415,15 @@ impl OkxCore {
  * @method
  * @name okx#fetchMarginAdjustmentHistory
  * @description fetches the history of margin added or reduced from contract isolated positions
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-7-days
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+ * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-7-days
+ * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
  * @param {string} [symbol] not used by okx fetchMarginAdjustmentHistory
  * @param {string} [type] "add" or "reduce"
  * @param {int} [since] the earliest time in ms to fetch margin adjustment history for
  * @param {int} [limit] the maximum number of entries to retrieve
  * @param {object} params extra parameters specific to the exchange api endpoint
- * @param {boolean} [get_value(&params, &Value::Str("auto".to_string()))] true if fetching auto margin increases
- * @returns {object[]} a list of [margin structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=margin-loan-structure}
+ * @param {boolean} [params.auto] true if fetching auto margin increases
+ * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
     pub async fn fetch_margin_adjustment_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
@@ -10322,13 +10431,13 @@ impl OkxCore {
         let mut since = get_arg(optional_args, 2, Value::Null);
         let mut limit = get_arg(optional_args, 3, Value::Null);
         let mut params = get_arg(optional_args, 4, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
-        let mut auto: Value = self.safe_bool(params.clone(), Value::Str("auto".to_string()), &[]);
+        let mut auto: Value = self.safe_bool_k(params.clone(), "auto", &[]);
         if is_equal(&type_var, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMarginAdjustmentHistory () requires a type argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMarginAdjustmentHistory () requires a type argument".to_string()))));
         }
         let mut isAdd: Value = Value::Bool(is_equal(&type_var, &Value::Str("add".to_string())));
         let mut subType: Value = ternary(is_true(&isAdd), Value::Str("160".to_string()), Value::Str("161".to_string()));
@@ -10336,16 +10445,16 @@ impl OkxCore {
             if is_true(&isAdd) {
                 subType = Value::Str("162".to_string());
             }  else {
-                panic!("{:?}", crate::exchange_errors::bad_request(add(&add(&self.id, &Value::Str(" cannot fetch margin adjustments for type ".to_string())), &type_var)));
+                panic!("{}", crate::exchange_errors::bad_request(add(&add(&self.id, &Value::Str(" cannot fetch margin adjustments for type ".to_string())), &type_var)));
             }
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("subType".to_string(), subType.clone());
                 m.insert("mgnMode".to_string(), Value::Str("isolated".to_string()));
             m
         });
-        let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
@@ -10365,7 +10474,7 @@ impl OkxCore {
         }  else if is_greater_than(&since, &threeMonthsAgo) {
             response = self.call_method(Value::Str("private_get_account_bills_archive".to_string()), &[self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months".to_string()))));
         }
         //
         //    {
@@ -10409,7 +10518,7 @@ impl OkxCore {
         //        msg: ''
         //    }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
         let mut modifications: Value = self.parse_margin_modifications(data.clone(), &[]);
         return self.filter_by_symbol_since_limit(modifications.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
 
@@ -10420,38 +10529,38 @@ impl OkxCore {
  * @method
  * @name okx#fetchPositionsHistory
  * @description fetches historical positions
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#trading-account-rest-api-get-positions-history
+ * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions-history
  * @param {string} [symbols] unified market symbols
  * @param {int} [since] timestamp in ms of the earliest position to fetch
  * @param {int} [limit] the maximum amount of records to fetch, default=100, max=100
  * @param {object} params extra parameters specific to the exchange api endpoint
- * @param {string} [get_value(&params, &Value::Str("marginMode".to_string()))] "cross" or "isolated"
+ * @param {string} [params.marginMode] "cross" or "isolated"
  *
  * EXCHANGE SPECIFIC PARAMETERS
- * @param {string} [get_value(&params, &Value::Str("instType".to_string()))] margin, swap, futures or option
- * @param {string} [get_value(&params, &Value::Str("type".to_string()))] the type of latest close position 1: close position partially, 2：close all, 3：liquidation, 4：partial liquidation; 5：adl, is it is the latest type if there are several types for the same position
- * @param {string} [get_value(&params, &Value::Str("posId".to_string()))] position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
- * @param {string} [get_value(&params, &Value::Str("before".to_string()))] timestamp in ms of the earliest position to fetch based on the last update time of the position
- * @param {string} [get_value(&params, &Value::Str("after".to_string()))] timestamp in ms of the latest position to fetch based on the last update time of the position
- * @returns {object[]} a list of [position structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+ * @param {string} [params.instType] margin, swap, futures or option
+ * @param {string} [params.type] the type of latest close position 1: close position partially, 2：close all, 3：liquidation, 4：partial liquidation; 5：adl, is it is the latest type if there are several types for the same position
+ * @param {string} [params.posId] position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
+ * @param {string} [params.before] timestamp in ms of the earliest position to fetch based on the last update time of the position
+ * @param {string} [params.after] timestamp in ms of the latest position to fetch based on the last update time of the position
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_positions_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
-        let mut marginMode: Value = self.safe_string(params.clone(), Value::Str("marginMode".to_string()), &[]);
+        let mut marginMode: Value = self.safe_string_k(params.clone(), "marginMode", &[]);
         let mut instType: Value = self.safe_string_upper(params.clone(), Value::Str("instType".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string()), Value::Str("marginMode".to_string()), Value::Str("instType".to_string())]), &[]);
         if is_equal(&limit, &Value::Null) {
             limit = Value::Int(100);
         }
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("limit".to_string(), limit.clone());
             m
         });
@@ -10502,7 +10611,7 @@ impl OkxCore {
         //        msg: ''
         //    }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
         let mut positions: Value = self.parse_positions(data.clone(), &[symbols.clone(), params.clone()]);
         return self.filter_by_since_limit(positions.clone(), &[since.clone(), limit.clone()]);
 
@@ -10513,14 +10622,14 @@ impl OkxCore {
  * @method
  * @name okx#fetchLongShortRatioHistory
  * @description fetches the long short ratio history for a unified market symbol
- * @see https://get_value(&www, &Value::Str("okx".to_string())).com/docs-v5/en/#trading-statistics-rest-api-get-contract-long-short-ratio
+ * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-long-short-ratio
  * @param {string} symbol unified symbol of the market to fetch the long short ratio for
  * @param {string} [timeframe] the period for the ratio
  * @param {int} [since] the earliest time in ms to fetch ratios for
  * @param {int} [limit] the maximum number of long short ratio structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [get_value(&params, &Value::Str("until".to_string()))] timestamp in ms of the latest ratio to fetch
- * @returns {object[]} an array of [long short ratio structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=long-short-ratio-structure}
+ * @param {int} [params.until] timestamp in ms of the latest ratio to fetch
+ * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
  */
     pub async fn fetch_long_short_ratio_history(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
@@ -10528,13 +10637,13 @@ impl OkxCore {
         let mut since = get_arg(optional_args, 2, Value::Null);
         let mut limit = get_arg(optional_args, 3, Value::Null);
         let mut params = get_arg(optional_args, 4, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
@@ -10564,19 +10673,20 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list(response.clone(), Value::Str("data".to_string()), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&data)) {
+            let mut __for_first_1005: bool = true;
+            while { if !__for_first_1005 { i = add(&i, &Value::Int(1)); } __for_first_1005 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             append_to_array(&mut result, Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), self.safe_string(entry.clone(), Value::Int(0), &[]));
                     m.insert("longShortRatio".to_string(), self.safe_string(entry.clone(), Value::Int(1), &[]));
                 m
             }));
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.parse_long_short_ratio_history(result.clone(), &[market.clone()]);
@@ -10586,19 +10696,19 @@ impl OkxCore {
 
     pub fn parse_long_short_ratio(&self, mut info: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut timestamp: Value = self.safe_integer(info.clone(), Value::Str("timestamp".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer_k(info.clone(), "timestamp", &[]);
         let mut symbol: Value = Value::Null;
         if !is_equal(&market, &Value::Null) {
             symbol = get_value(&market, &Value::Str("symbol".to_string()));
         }
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("timeframe".to_string(), Value::Null);
-        m.insert("longShortRatio".to_string(), self.safe_number(info.clone(), Value::Str("longShortRatio".to_string()), &[]));
+        m.insert("longShortRatio".to_string(), self.safe_number_k(info.clone(), "longShortRatio", &[]));
     m
 });
 

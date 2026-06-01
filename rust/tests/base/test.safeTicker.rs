@@ -5,19 +5,22 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
 fn preciseEqualStr(mut exchange: ccxt::exchange::Exchange, mut result: Value, mut key: Value, mut expected: Value) -> Value {
     return ccxt::precise::Precise::stringEq(&exchange.safe_string(result.clone(), key.clone(), &[]), &expected);
+
+    Value::Null
 }
 pub fn testSafeTicker() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
     // CASE 1 - by open
     let mut ticker1: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("open".to_string(), Value::Int(5));
             m.insert("change".to_string(), Value::Int(1));
         m
@@ -29,7 +32,7 @@ pub fn testSafeTicker() {
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result1.clone(), Value::Str("last".to_string()), Value::Str("6.0".to_string())))));
     // CASE 2 - by open
     let mut ticker2: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("open".to_string(), Value::Int(5));
             m.insert("percentage".to_string(), Value::Int(20));
         m
@@ -41,7 +44,7 @@ pub fn testSafeTicker() {
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result2.clone(), Value::Str("last".to_string()), Value::Str("6.0".to_string())))));
     // CASE 3 - by close
     let mut ticker3: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("close".to_string(), Value::Int(6));
             m.insert("change".to_string(), Value::Int(1));
         m
@@ -53,7 +56,7 @@ pub fn testSafeTicker() {
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result3.clone(), Value::Str("last".to_string()), Value::Str("6.0".to_string())))));
     // CASE 4 - by close
     let mut ticker4: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("close".to_string(), Value::Int(6));
             m.insert("percentage".to_string(), Value::Int(20));
         m
@@ -65,7 +68,7 @@ pub fn testSafeTicker() {
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result4.clone(), Value::Str("last".to_string()), Value::Str("6.0".to_string())))));
     // CASE 5 - by average
     let mut ticker5: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("average".to_string(), Value::Float(5.5));
             m.insert("percentage".to_string(), Value::Int(20));
         m
@@ -77,7 +80,7 @@ pub fn testSafeTicker() {
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result5.clone(), Value::Str("last".to_string()), Value::Str("6.0".to_string())))));
     // CASE 6
     let mut ticker6: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("average".to_string(), Value::Float(5.5));
             m.insert("change".to_string(), Value::Int(1));
         m
@@ -89,7 +92,7 @@ pub fn testSafeTicker() {
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result6.clone(), Value::Str("last".to_string()), Value::Str("6.0".to_string())))));
     // CASE 7 - by open and close
     let mut ticker7: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("open".to_string(), Value::Int(5));
             m.insert("close".to_string(), Value::Int(6));
         m
@@ -101,7 +104,7 @@ pub fn testSafeTicker() {
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result7.clone(), Value::Str("last".to_string()), Value::Str("6.0".to_string())))));
     // CASE 8 - full ticker
     let mut ticker8: Value = Value::Map({
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
             m.insert("open".to_string(), Value::Int(5));
             m.insert("close".to_string(), Value::Int(6));
             m.insert("last".to_string(), Value::Int(6));
@@ -121,7 +124,7 @@ pub fn testSafeTicker() {
             m.insert("indexPrice".to_string(), Value::Float(5.8));
             m.insert("markPrice".to_string(), Value::Float(5.9));
             m.insert("info".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         m
@@ -145,5 +148,5 @@ pub fn testSafeTicker() {
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result8.clone(), Value::Str("previousClose".to_string()), Value::Str("4.9".to_string())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result8.clone(), Value::Str("indexPrice".to_string()), Value::Str("5.8".to_string())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result8.clone(), Value::Str("markPrice".to_string()), Value::Str("5.9".to_string())))));
-    assert!(ccxt::runtime::is_true(&(!is_equal(&get_value(&result8, &Value::Str("info".to_string())), &Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&get_value(&result8, &Value::Str("info".to_string())), &Value::Null)))));
 }
