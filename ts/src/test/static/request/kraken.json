@@ -33,7 +33,7 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "description": "defaulttchCurrencies",
                 "method": "fetchCurrencies",
                 "url": "https://api.kraken.com/0/public/Assets",
                 "input": [],

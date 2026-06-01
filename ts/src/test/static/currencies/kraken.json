@@ -7,7 +7,8 @@
             "display_decimals": "5",
             "collateral_value": "0.99",
             "status": "enabled",
-            "margin_rate": "0.01"
+            "margin_rate": "0.01",
+            "_coin_id": "XXBT"
         },
         "id": "XXBT",
         "numericId": null,
@@ -40,7 +41,8 @@
             "display_decimals": "4",
             "collateral_value": "0.995",
             "status": "enabled",
-            "margin_rate": "0.02"
+            "margin_rate": "0.02",
+            "_coin_id": "USDT"
         },
         "id": "USDT",
         "numericId": null,
@@ -73,7 +75,8 @@
             "display_decimals": "2",
             "collateral_value": "1.0",
             "status": "enabled",
-            "margin_rate": "0.025"
+            "margin_rate": "0.02",
+            "_coin_id": "ZEUR"
         },
         "id": "ZEUR",
         "numericId": null,
@@ -106,7 +109,8 @@
             "display_decimals": "2",
             "collateral_value": "1.0",
             "status": "enabled",
-            "margin_rate": "0.034"
+            "margin_rate": "0.025",
+            "_coin_id": "ZUSD"
         },
         "id": "ZUSD",
         "numericId": null,
@@ -139,7 +143,8 @@
             "display_decimals": "5",
             "collateral_value": "0.925",
             "status": "enabled",
-            "margin_rate": "0.02"
+            "margin_rate": "0.04",
+            "_coin_id": "XLTC"
         },
         "id": "XLTC",
         "numericId": null,
@@ -172,7 +177,8 @@
             "display_decimals": "5",
             "collateral_value": "0.99",
             "status": "enabled",
-            "margin_rate": "0.02"
+            "margin_rate": "0.02",
+            "_coin_id": "XETH"
         },
         "id": "XETH",
         "numericId": null,
@@ -205,7 +211,8 @@
             "display_decimals": "6",
             "collateral_value": "0.925",
             "status": "enabled",
-            "margin_rate": "0.02"
+            "margin_rate": "0.02",
+            "_coin_id": "ADA"
         },
         "id": "ADA",
         "numericId": null,
@@ -238,7 +245,8 @@
             "display_decimals": "5",
             "collateral_value": "0.95",
             "status": "enabled",
-            "margin_rate": "0.02"
+            "margin_rate": "0.02",
+            "_coin_id": "XXRP"
         },
         "id": "XXRP",
         "numericId": null,
@@ -271,7 +279,8 @@
             "display_decimals": "4",
             "collateral_value": "0.995",
             "status": "enabled",
-            "margin_rate": "0.02"
+            "margin_rate": "0.02",
+            "_coin_id": "USDC"
         },
         "id": "USDC",
         "numericId": null,
@@ -303,7 +312,8 @@
             "decimals": "10",
             "display_decimals": "5",
             "status": "enabled",
-            "margin_rate": "0.02"
+            "margin_rate": "0.02",
+            "_coin_id": "MATIC"
         },
         "id": "MATIC",
         "numericId": null,
@@ -334,7 +344,8 @@
             "altname": "ALPHA",
             "decimals": "5",
             "display_decimals": "3",
-            "status": "enabled"
+            "status": "enabled",
+            "_coin_id": "ALPHA"
         },
         "id": "ALPHA",
         "numericId": null,
