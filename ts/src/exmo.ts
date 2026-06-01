@@ -725,14 +725,14 @@ export default class exmo extends Exchange {
             const currency = currencyList[i];
             const currencyId = this.safeString (currency, 'name');
             const providers = this.safeList (cryptoList, currencyId);
-            newArray.push ([ currency, providers ]);
+            newArray.push ({ 'currency': currency, 'providers': providers });
         }
         return this.parseCurrencies (newArray);
     }
 
     parseCurrency (rawCurrency: Dict): Currency {
-        const currency = rawCurrency[0];
-        const providers = rawCurrency[1];
+        const currency = this.safeDict (rawCurrency, 'currency', {});
+        const providers = this.safeList (rawCurrency, 'providers', []);
         const currencyId = this.safeString (currency, 'name');
         const code = this.safeCurrencyCode (currencyId);
         let type = 'crypto';
