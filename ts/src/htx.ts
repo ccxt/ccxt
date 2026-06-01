@@ -3440,12 +3440,16 @@ export default class htx extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []);
-        this.options['networkChainIdsByNames'] = {};
-        this.options['networkNamesByChainIds'] = {};
         return this.parseCurrencies (data);
     }
 
     parseCurrency (rawCurrency: Dict): Currency {
+        if (!('networkNamesByChainIds' in this.options)) {
+            this.options['networkNamesByChainIds'] = {};
+        }
+        if (!('networkChainIdsByNames' in this.options)) {
+            this.options['networkChainIdsByNames'] = {};
+        }
         const currencyId = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const assetType = this.safeString (rawCurrency, 'assetType');
