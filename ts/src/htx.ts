@@ -3449,7 +3449,7 @@ export default class htx extends Exchange {
         const currencyId = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const assetType = this.safeString (rawCurrency, 'assetType');
-        const type = assetType === '1' ? 'crypto' : 'fiat';
+        const type = (assetType === '1') ? 'crypto' : 'fiat';
         this.options['networkChainIdsByNames'][code] = {};
         const chains = this.safeList (rawCurrency, 'chains', []);
         const networks: Dict = {};
