@@ -877,6 +877,7 @@ export default class kraken extends Exchange {
             }
         }
         const isFiat = code.indexOf ('.HOLD') >= 0;
+        rawCurrency = this.omit (rawCurrency, '_coin_id');
         return this.safeCurrencyStructure ({
             'id': id,
             'code': code,
