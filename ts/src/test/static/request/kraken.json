@@ -91,7 +91,7 @@
                     50.12345678,
                     0.0123456789
                 ],
-                "output": "nonce=1749617742768&pair=ALPHAUSD&type=buy&ordertype=limit&volume=50.12345&price=0.01235"
+                "output": "nonce=1749617742768&pair=ALPHAUSD&type=buy&ordertype=limit&volume=50.12345&price=0.01236"
             },
             {
                 "description": "createOrder long precisions",
