@@ -1290,7 +1290,7 @@ export default class lighter extends Exchange {
         return this.parseCurrencies (data);
     }
 
-    parseCurrencys (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): Currency {
         const id = this.safeString (rawCurrency, 'asset_id');
         const code = this.safeCurrencyCode (this.safeString (rawCurrency, 'symbol'));
         const decimals = this.safeString (rawCurrency, 'decimals');
