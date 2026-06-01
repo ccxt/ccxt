@@ -3,6 +3,8 @@ module github.com/ccxt/ccxt/go/v4
 go 1.24.0
 
 require (
+	github.com/NethermindEth/juno v0.14.0
+	github.com/NethermindEth/starknet.go v0.14.0
 	github.com/elliottech/lighter-go v1.0.6
 	github.com/ethereum/go-ethereum v1.17.0
 	github.com/google/uuid v1.6.0
