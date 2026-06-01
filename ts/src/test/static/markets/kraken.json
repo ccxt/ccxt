@@ -6,7 +6,7 @@
         "base": "BTC",
         "quote": "USDT",
         "settle": null,
-        "baseId": "BTC",
+        "baseId": "XXBT",
         "quoteId": "USDT",
         "settleId": null,
         "type": "spot",
@@ -35,7 +35,7 @@
         "limits": {
             "leverage": {
                 "min": 1,
-                "max": 10
+                "max": 3
             },
             "amount": {
                 "min": 0.00005,
@@ -69,25 +69,11 @@
             "lot_multiplier": "1",
             "leverage_buy": [
                 2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10
+                3
             ],
             "leverage_sell": [
                 2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10
+                3
             ],
             "fees": [
                 [
@@ -129,14 +115,6 @@
                 [
                     10000000,
                     0.1
-                ],
-                [
-                    100000000,
-                    0.08
-                ],
-                [
-                    500000000,
-                    0.05
                 ]
             ],
             "fees_maker": [
@@ -179,14 +157,6 @@
                 [
                     10000000,
                     0
-                ],
-                [
-                    100000000,
-                    0
-                ],
-                [
-                    500000000,
-                    0
                 ]
             ],
             "fee_volume_currency": "ZUSD",
@@ -196,9 +166,8 @@
             "costmin": "0.5",
             "tick_size": "0.1",
             "status": "online",
-            "execution_venue": "international",
-            "long_position_limit": "80",
-            "short_position_limit": "80"
+            "long_position_limit": "43",
+            "short_position_limit": "40"
         },
         "tierBased": true,
         "percentage": true,
@@ -290,8 +259,8 @@
         "base": "BTC",
         "quote": "USD",
         "settle": null,
-        "baseId": "BTC",
-        "quoteId": "USD",
+        "baseId": "XXBT",
+        "quoteId": "ZUSD",
         "settleId": null,
         "type": "spot",
         "spot": true,
@@ -319,7 +288,7 @@
         "limits": {
             "leverage": {
                 "min": 1,
-                "max": 10
+                "max": 5
             },
             "amount": {
                 "min": 0.00005,
@@ -355,23 +324,13 @@
                 2,
                 3,
                 4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10
+                5
             ],
             "leverage_sell": [
                 2,
                 3,
                 4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10
+                5
             ],
             "fees": [
                 [
@@ -413,14 +372,6 @@
                 [
                     10000000,
                     0.1
-                ],
-                [
-                    100000000,
-                    0.08
-                ],
-                [
-                    500000000,
-                    0.05
                 ]
             ],
             "fees_maker": [
@@ -463,14 +414,6 @@
                 [
                     10000000,
                     0
-                ],
-                [
-                    100000000,
-                    0
-                ],
-                [
-                    500000000,
-                    0
                 ]
             ],
             "fee_volume_currency": "ZUSD",
@@ -480,9 +423,8 @@
             "costmin": "0.5",
             "tick_size": "0.1",
             "status": "online",
-            "execution_venue": "international",
-            "long_position_limit": "350",
-            "short_position_limit": "250"
+            "long_position_limit": "300",
+            "short_position_limit": "240"
         },
         "tierBased": true,
         "percentage": true,
@@ -574,7 +516,7 @@
         "base": "ETH",
         "quote": "USDT",
         "settle": null,
-        "baseId": "ETH",
+        "baseId": "XETH",
         "quoteId": "USDT",
         "settleId": null,
         "type": "spot",
@@ -603,10 +545,10 @@
         "limits": {
             "leverage": {
                 "min": 1,
-                "max": 10
+                "max": 3
             },
             "amount": {
-                "min": 0.001,
+                "min": 0.002,
                 "max": null
             },
             "price": {
@@ -637,25 +579,11 @@
             "lot_multiplier": "1",
             "leverage_buy": [
                 2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10
+                3
             ],
             "leverage_sell": [
                 2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10
+                3
             ],
             "fees": [
                 [
@@ -697,14 +625,6 @@
                 [
                     10000000,
                     0.1
-                ],
-                [
-                    100000000,
-                    0.08
-                ],
-                [
-                    500000000,
-                    0.05
                 ]
             ],
             "fees_maker": [
@@ -747,24 +667,15 @@
                 [
                     10000000,
                     0
-                ],
-                [
-                    100000000,
-                    0
-                ],
-                [
-                    500000000,
-                    0
                 ]
             ],
             "fee_volume_currency": "ZUSD",
             "margin_call": "80",
             "margin_stop": "40",
-            "ordermin": "0.001",
+            "ordermin": "0.002",
             "costmin": "0.5",
             "tick_size": "0.01",
             "status": "online",
-            "execution_venue": "international",
             "long_position_limit": "1500",
             "short_position_limit": "1500"
         },
@@ -887,10 +798,10 @@
         "limits": {
             "leverage": {
                 "min": 1,
-                "max": 10
+                "max": 4
             },
             "amount": {
-                "min": 20,
+                "min": 4.4,
                 "max": null
             },
             "price": {
@@ -922,24 +833,12 @@
             "leverage_buy": [
                 2,
                 3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10
+                4
             ],
             "leverage_sell": [
                 2,
                 3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10
+                4
             ],
             "fees": [
                 [
@@ -981,14 +880,6 @@
                 [
                     10000000,
                     0.1
-                ],
-                [
-                    100000000,
-                    0.08
-                ],
-                [
-                    500000000,
-                    0.05
                 ]
             ],
             "fees_maker": [
@@ -1031,26 +922,17 @@
                 [
                     10000000,
                     0
-                ],
-                [
-                    100000000,
-                    0
-                ],
-                [
-                    500000000,
-                    0
                 ]
             ],
             "fee_volume_currency": "ZUSD",
             "margin_call": "80",
             "margin_stop": "40",
-            "ordermin": "20",
+            "ordermin": "4.4",
             "costmin": "0.5",
             "tick_size": "0.000001",
             "status": "online",
-            "execution_venue": "international",
-            "long_position_limit": "1500000",
-            "short_position_limit": "1500000"
+            "long_position_limit": "400000",
+            "short_position_limit": "400000"
         },
         "tierBased": true,
         "percentage": true,
@@ -1142,7 +1024,7 @@
         "base": "LTC",
         "quote": "USDT",
         "settle": null,
-        "baseId": "LTC",
+        "baseId": "XLTC",
         "quoteId": "USDT",
         "settleId": null,
         "type": "spot",
@@ -1174,7 +1056,7 @@
                 "max": 3
             },
             "amount": {
-                "min": 0.1,
+                "min": 0.05,
                 "max": null
             },
             "price": {
@@ -1251,14 +1133,6 @@
                 [
                     10000000,
                     0.1
-                ],
-                [
-                    100000000,
-                    0.08
-                ],
-                [
-                    500000000,
-                    0.05
                 ]
             ],
             "fees_maker": [
@@ -1301,26 +1175,17 @@
                 [
                     10000000,
                     0
-                ],
-                [
-                    100000000,
-                    0
-                ],
-                [
-                    500000000,
-                    0
                 ]
             ],
             "fee_volume_currency": "ZUSD",
             "margin_call": "80",
             "margin_stop": "40",
-            "ordermin": "0.1",
+            "ordermin": "0.05",
             "costmin": "0.5",
             "tick_size": "0.00001",
             "status": "online",
-            "execution_venue": "international",
-            "long_position_limit": "2300",
-            "short_position_limit": "3000"
+            "long_position_limit": "1200",
+            "short_position_limit": "1200"
         },
         "tierBased": true,
         "percentage": true,
@@ -1412,7 +1277,7 @@
         "base": "XRP",
         "quote": "USDT",
         "settle": null,
-        "baseId": "XRP",
+        "baseId": "XXRP",
         "quoteId": "USDT",
         "settleId": null,
         "type": "spot",
@@ -1441,10 +1306,10 @@
         "limits": {
             "leverage": {
                 "min": 1,
-                "max": 10
+                "max": 3
             },
             "amount": {
-                "min": 1.65,
+                "min": 2,
                 "max": null
             },
             "price": {
@@ -1475,25 +1340,11 @@
             "lot_multiplier": "1",
             "leverage_buy": [
                 2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10
+                3
             ],
             "leverage_sell": [
                 2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10
+                3
             ],
             "fees": [
                 [
@@ -1535,14 +1386,6 @@
                 [
                     10000000,
                     0.1
-                ],
-                [
-                    100000000,
-                    0.08
-                ],
-                [
-                    500000000,
-                    0.05
                 ]
             ],
             "fees_maker": [
@@ -1585,26 +1428,17 @@
                 [
                     10000000,
                     0
-                ],
-                [
-                    100000000,
-                    0
-                ],
-                [
-                    500000000,
-                    0
                 ]
             ],
             "fee_volume_currency": "ZUSD",
             "margin_call": "80",
             "margin_stop": "40",
-            "ordermin": "1.65",
+            "ordermin": "2",
             "costmin": "0.5",
             "tick_size": "0.00001",
             "status": "online",
-            "execution_venue": "international",
-            "long_position_limit": "780000",
-            "short_position_limit": "860000"
+            "long_position_limit": "260000",
+            "short_position_limit": "220000"
         },
         "tierBased": true,
         "percentage": true,
@@ -1696,7 +1530,7 @@
         "base": "DOGE",
         "quote": "USDT",
         "settle": null,
-        "baseId": "DOGE",
+        "baseId": "XXDG",
         "quoteId": "USDT",
         "settleId": null,
         "type": "spot",
@@ -1725,10 +1559,10 @@
         "limits": {
             "leverage": {
                 "min": 1,
-                "max": 10
+                "max": 4
             },
             "amount": {
-                "min": 50,
+                "min": 13,
                 "max": null
             },
             "price": {
@@ -1760,24 +1594,12 @@
             "leverage_buy": [
                 2,
                 3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10
+                4
             ],
             "leverage_sell": [
                 2,
                 3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10
+                4
             ],
             "fees": [
                 [
@@ -1819,14 +1641,6 @@
                 [
                     10000000,
                     0.1
-                ],
-                [
-                    100000000,
-                    0.08
-                ],
-                [
-                    500000000,
-                    0.05
                 ]
             ],
             "fees_maker": [
@@ -1869,26 +1683,17 @@
                 [
                     10000000,
                     0
-                ],
-                [
-                    100000000,
-                    0
-                ],
-                [
-                    500000000,
-                    0
                 ]
             ],
             "fee_volume_currency": "ZUSD",
             "margin_call": "80",
             "margin_stop": "40",
-            "ordermin": "50",
+            "ordermin": "13",
             "costmin": "0.5",
             "tick_size": "0.00001",
             "status": "online",
-            "execution_venue": "international",
-            "long_position_limit": "4900000",
-            "short_position_limit": "4800000"
+            "long_position_limit": "1100000",
+            "short_position_limit": "1100000"
         },
         "tierBased": true,
         "percentage": true,
@@ -1980,8 +1785,8 @@
         "base": "XRP",
         "quote": "USD",
         "settle": null,
-        "baseId": "XRP",
-        "quoteId": "USD",
+        "baseId": "XXRP",
+        "quoteId": "ZUSD",
         "settleId": null,
         "type": "spot",
         "spot": true,
@@ -2009,10 +1814,10 @@
         "limits": {
             "leverage": {
                 "min": 1,
-                "max": 10
+                "max": 5
             },
             "amount": {
-                "min": 1.65,
+                "min": 2,
                 "max": null
             },
             "price": {
@@ -2045,23 +1850,13 @@
                 2,
                 3,
                 4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10
+                5
             ],
             "leverage_sell": [
                 2,
                 3,
                 4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10
+                5
             ],
             "fees": [
                 [
@@ -2103,14 +1898,6 @@
                 [
                     10000000,
                     0.1
-                ],
-                [
-                    100000000,
-                    0.08
-                ],
-                [
-                    500000000,
-                    0.05
                 ]
             ],
             "fees_maker": [
@@ -2153,26 +1940,17 @@
                 [
                     10000000,
                     0
-                ],
-                [
-                    100000000,
-                    0
-                ],
-                [
-                    500000000,
-                    0
                 ]
             ],
             "fee_volume_currency": "ZUSD",
             "margin_call": "80",
             "margin_stop": "40",
-            "ordermin": "1.65",
+            "ordermin": "2",
             "costmin": "0.5",
             "tick_size": "0.00001",
             "status": "online",
-            "execution_venue": "international",
-            "long_position_limit": "3200000",
-            "short_position_limit": "1800000"
+            "long_position_limit": "2000000",
+            "short_position_limit": "1200000"
         },
         "tierBased": true,
         "percentage": true,
@@ -2264,8 +2042,8 @@
         "base": "LTC",
         "quote": "USD",
         "settle": null,
-        "baseId": "LTC",
-        "quoteId": "USD",
+        "baseId": "XLTC",
+        "quoteId": "ZUSD",
         "settleId": null,
         "type": "spot",
         "spot": true,
@@ -2293,10 +2071,10 @@
         "limits": {
             "leverage": {
                 "min": 1,
-                "max": 10
+                "max": 3
             },
             "amount": {
-                "min": 0.1,
+                "min": 0.05,
                 "max": null
             },
             "price": {
@@ -2327,25 +2105,11 @@
             "lot_multiplier": "1",
             "leverage_buy": [
                 2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10
+                3
             ],
             "leverage_sell": [
                 2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10
+                3
             ],
             "fees": [
                 [
@@ -2387,14 +2151,6 @@
                 [
                     10000000,
                     0.1
-                ],
-                [
-                    100000000,
-                    0.08
-                ],
-                [
-                    500000000,
-                    0.05
                 ]
             ],
             "fees_maker": [
@@ -2437,26 +2193,17 @@
                 [
                     10000000,
                     0
-                ],
-                [
-                    100000000,
-                    0
-                ],
-                [
-                    500000000,
-                    0
                 ]
             ],
             "fee_volume_currency": "ZUSD",
             "margin_call": "80",
             "margin_stop": "40",
-            "ordermin": "0.1",
+            "ordermin": "0.05",
             "costmin": "0.5",
             "tick_size": "0.01",
             "status": "online",
-            "execution_venue": "international",
-            "long_position_limit": "24000",
-            "short_position_limit": "11000"
+            "long_position_limit": "5300",
+            "short_position_limit": "3600"
         },
         "tierBased": true,
         "percentage": true,
@@ -2549,7 +2296,7 @@
         "quote": "USD",
         "settle": null,
         "baseId": "ALPHA",
-        "quoteId": "USD",
+        "quoteId": "ZUSD",
         "settleId": null,
         "type": "spot",
         "spot": true,
@@ -2572,7 +2319,7 @@
         "optionType": null,
         "precision": {
             "amount": 0.00001,
-            "price": 0.000001
+            "price": 0.00001
         },
         "limits": {
             "leverage": {
@@ -2580,7 +2327,7 @@
                 "max": 1
             },
             "amount": {
-                "min": 16000,
+                "min": 50,
                 "max": null
             },
             "price": {
@@ -2606,7 +2353,7 @@
             "quote": "ZUSD",
             "lot": "unit",
             "cost_decimals": "9",
-            "pair_decimals": "6",
+            "pair_decimals": "5",
             "lot_decimals": "8",
             "lot_multiplier": "1",
             "leverage_buy": [],
@@ -2651,14 +2398,6 @@
                 [
                     10000000,
                     0.1
-                ],
-                [
-                    100000000,
-                    0.08
-                ],
-                [
-                    500000000,
-                    0.05
                 ]
             ],
             "fees_maker": [
@@ -2701,24 +2440,15 @@
                 [
                     10000000,
                     0
-                ],
-                [
-                    100000000,
-                    0
-                ],
-                [
-                    500000000,
-                    0
                 ]
             ],
             "fee_volume_currency": "ZUSD",
             "margin_call": "80",
             "margin_stop": "40",
-            "ordermin": "16000",
+            "ordermin": "50",
             "costmin": "0.5",
-            "tick_size": "0.000001",
-            "status": "online",
-            "execution_venue": "international"
+            "tick_size": "0.00001",
+            "status": "online"
         },
         "tierBased": true,
         "percentage": true,
@@ -2842,7 +2572,7 @@
                 "max": 10
             },
             "amount": {
-                "min": 20,
+                "min": 4.4,
                 "max": null
             },
             "price": {
@@ -2933,14 +2663,6 @@
                 [
                     10000000,
                     0.1
-                ],
-                [
-                    100000000,
-                    0.08
-                ],
-                [
-                    500000000,
-                    0.05
                 ]
             ],
             "fees_maker": [
@@ -2983,26 +2705,17 @@
                 [
                     10000000,
                     0
-                ],
-                [
-                    100000000,
-                    0
-                ],
-                [
-                    500000000,
-                    0
                 ]
             ],
             "fee_volume_currency": "ZUSD",
             "margin_call": "80",
             "margin_stop": "40",
-            "ordermin": "20",
+            "ordermin": "4.4",
             "costmin": "0.5",
             "tick_size": "0.000001",
             "status": "online",
-            "execution_venue": "international",
-            "long_position_limit": "1700000",
-            "short_position_limit": "1100000"
+            "long_position_limit": "1100000",
+            "short_position_limit": "1300000"
         },
         "tierBased": true,
         "percentage": true,
