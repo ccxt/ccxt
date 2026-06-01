@@ -527,69 +527,68 @@ public class DeltaCore extends DeltaApi
             //     }
             //
             Object currencies = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencies)); i++)
-            {
-                Object currency = Helpers.GetValue(currencies, i);
-                Object id = this.safeString(currency, "symbol");
-                Object numericId = this.safeInteger(currency, "id");
-                Object code = this.safeCurrencyCode(id);
-                Object chains = this.safeList(currency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object networks = new java.util.HashMap<String, Object>() {{}};
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
-                {
-                    Object chain = Helpers.GetValue(chains, j);
-                    Object networkId = this.safeString(chain, "network");
-                    Object networkCode = this.networkIdToCode(networkId);
-                    Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
-        put( "id", networkId );
-        put( "network", networkCode );
-        put( "name", DeltaCore.this.safeString(chain, "name") );
-        put( "info", chain );
-        put( "active", Helpers.isEqual(DeltaCore.this.safeString(chain, "status"), "enabled") );
-        put( "deposit", Helpers.isEqual(DeltaCore.this.safeString(chain, "deposit_status"), "enabled") );
-        put( "withdraw", Helpers.isEqual(DeltaCore.this.safeString(chain, "withdrawal_status"), "enabled") );
-        put( "fee", DeltaCore.this.safeNumber(chain, "base_withdrawal_fee") );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", DeltaCore.this.safeNumber(chain, "min_deposit_amount") );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", DeltaCore.this.safeNumber(chain, "min_withdrawal_amount") );
-                put( "max", null );
-            }} );
-        }} );
-    }});
-                }
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", id );
-        put( "numericId", numericId );
-        put( "code", code );
-        put( "name", DeltaCore.this.safeString(currency, "name") );
-        put( "info", currency );
-        put( "active", null );
-        put( "deposit", Helpers.isEqual(DeltaCore.this.safeString(currency, "deposit_status"), "enabled") );
-        put( "withdraw", Helpers.isEqual(DeltaCore.this.safeString(currency, "withdrawal_status"), "enabled") );
-        put( "fee", DeltaCore.this.safeNumber(currency, "base_withdrawal_fee") );
-        put( "precision", DeltaCore.this.parseNumber(DeltaCore.this.parsePrecision(DeltaCore.this.safeString(currency, "precision"))) );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", DeltaCore.this.safeNumber(currency, "min_withdrawal_amount") );
-                put( "max", null );
-            }} );
-        }} );
-        put( "networks", networks );
-        put( "type", "crypto" );
-    }}));
-            }
-            return result;
+            return this.parseCurrencies(currencies);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object id = this.safeString(rawCurrency, "symbol");
+        Object numericId = this.safeInteger(rawCurrency, "id");
+        Object code = this.safeCurrencyCode(id);
+        Object chains = this.safeList(rawCurrency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object networks = new java.util.HashMap<String, Object>() {{}};
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
+        {
+            Object chain = Helpers.GetValue(chains, j);
+            Object networkId = this.safeString(chain, "network");
+            Object networkCode = this.networkIdToCode(networkId);
+            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+    put( "id", networkId );
+    put( "network", networkCode );
+    put( "name", DeltaCore.this.safeString(chain, "name") );
+    put( "info", chain );
+    put( "active", Helpers.isEqual(DeltaCore.this.safeString(chain, "status"), "enabled") );
+    put( "deposit", Helpers.isEqual(DeltaCore.this.safeString(chain, "deposit_status"), "enabled") );
+    put( "withdraw", Helpers.isEqual(DeltaCore.this.safeString(chain, "withdrawal_status"), "enabled") );
+    put( "fee", DeltaCore.this.safeNumber(chain, "base_withdrawal_fee") );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "min", DeltaCore.this.safeNumber(chain, "min_deposit_amount") );
+            put( "max", null );
+        }} );
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", DeltaCore.this.safeNumber(chain, "min_withdrawal_amount") );
+            put( "max", null );
+        }} );
+    }} );
+}});
+        }
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", id );
+            put( "numericId", numericId );
+            put( "code", code );
+            put( "name", DeltaCore.this.safeString(rawCurrency, "name") );
+            put( "info", rawCurrency );
+            put( "active", null );
+            put( "deposit", Helpers.isEqual(DeltaCore.this.safeString(rawCurrency, "deposit_status"), "enabled") );
+            put( "withdraw", Helpers.isEqual(DeltaCore.this.safeString(rawCurrency, "withdrawal_status"), "enabled") );
+            put( "fee", DeltaCore.this.safeNumber(rawCurrency, "base_withdrawal_fee") );
+            put( "precision", DeltaCore.this.parseNumber(DeltaCore.this.parsePrecision(DeltaCore.this.safeString(rawCurrency, "precision"))) );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "amount", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", DeltaCore.this.safeNumber(rawCurrency, "min_withdrawal_amount") );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "networks", networks );
+            put( "type", "crypto" );
+        }});
     }
 
     public java.util.concurrent.CompletableFuture<Object> loadMarkets(Object... optionalArgs)
