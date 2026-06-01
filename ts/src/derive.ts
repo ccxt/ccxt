@@ -456,7 +456,6 @@ export default class derive extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const result: Dict = {};
         const tokenResponse = await this.publicGetGetAllCurrencies (params);
         //
         //    {
