@@ -324,6 +324,25 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
     crate::value::get_value(obj, key)
 }
 
+/// Forge a `&mut Value` from a `&Value`. Used by the transpiler to
+/// emit nested-key writes (`this.options['k1'][k2] = v` in TS) inside
+/// `&self` parser methods like `bitstamp.parseCurrency` that accumulate
+/// state into `self.options`. The naive `&mut self.options.clone()`
+/// mutably borrows a temporary — the write never reaches `self.options`,
+/// silently breaking the parser.
+///
+/// SAFETY: the caller must guarantee no concurrent readers of the same
+/// `Value` exist. In CCXT's transpiled parsers the only reader is the
+/// owning exchange (called sequentially from a single test or fetch),
+/// so this is sound. Wraps the pointer cast in a function so the
+/// `invalid_reference_casting` lint can be allowed in one place. Mirrors
+/// `coerce_to_mut_unsafe` in `exchange_stubs.rs`.
+#[allow(clippy::mut_from_ref, invalid_reference_casting)]
+pub unsafe fn coerce_value_to_mut(v: &Value) -> &mut Value {
+    let ptr = v as *const Value as *mut Value;
+    &mut *ptr
+}
+
 pub fn get_value_mut<'a>(obj: &'a mut Value, key: &Value) -> &'a mut Value {
     match (obj, key) {
         (Value::Dict(m), Value::Str(k)) => Arc::make_mut(m).entry(k.clone()).or_insert(Value::Null),
