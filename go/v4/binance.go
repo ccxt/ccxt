@@ -1652,7 +1652,7 @@ func (this *BinanceCore) Describe() any {
 					"symbolRequired":   true,
 				},
 				"fetchOHLCV": map[string]any{
-					"limit": 1500,
+					"limit": 500,
 				},
 			},
 			"swap": map[string]any{
