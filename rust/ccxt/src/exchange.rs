@@ -685,9 +685,46 @@ impl Exchange {
             let mut b = reqwest::Client::builder()
                 .timeout(std::time::Duration::from_millis(self.timeout_ms()));
             if let Some(ua) = self.user_agent_str() { b = b.user_agent(ua); }
-            if let Some(p)  = self.proxy_str() {
-                if let Ok(proxy) = reqwest::Proxy::all(p) { b = b.proxy(proxy); }
+            // Apply scheme-specific proxies. Order matters for reqwest's
+            // proxy matcher: SOCKS catches everything when set, HTTP/HTTPS
+            // only match their own scheme. The legacy `proxy` (and its
+            // snake_case alias) plus tests' `httpsProxy` use the catch-all
+            // form via Proxy::all(...). The `socks` feature on `reqwest`
+            // is what makes `socks5://...` URIs actually route — without
+            // it `Proxy::all` would build but the connection silently
+            // never goes through SOCKS.
+            let mut proxies: Vec<reqwest::Proxy> = Vec::new();
+            for field in [&self.socksProxy, &self.socks_proxy] {
+                if let Value::Str(s) = field {
+                    if !s.is_empty() {
+                        if let Ok(p) = reqwest::Proxy::all(s.as_str()) { proxies.push(p); }
+                    }
+                }
             }
+            for field in [&self.httpsProxy, &self.https_proxy] {
+                if let Value::Str(s) = field {
+                    if !s.is_empty() {
+                        if let Ok(p) = reqwest::Proxy::https(s.as_str()) { proxies.push(p); }
+                    }
+                }
+            }
+            for field in [&self.httpProxy, &self.http_proxy] {
+                if let Value::Str(s) = field {
+                    if !s.is_empty() {
+                        if let Ok(p) = reqwest::Proxy::http(s.as_str()) { proxies.push(p); }
+                    }
+                }
+            }
+            // Legacy single `proxy` setter (catch-all). Only honoured if
+            // none of the scheme-specific fields fired.
+            if proxies.is_empty() {
+                if let Value::Str(s) = &self.proxy {
+                    if !s.is_empty() {
+                        if let Ok(p) = reqwest::Proxy::all(s.as_str()) { proxies.push(p); }
+                    }
+                }
+            }
+            for p in proxies { b = b.proxy(p); }
             self.internals.http_client = Some(b.build().expect("reqwest client"));
         }
         self.internals.http_client.as_ref().unwrap()
