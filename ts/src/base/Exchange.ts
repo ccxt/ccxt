@@ -873,7 +873,7 @@ export default class Exchange {
         this.recentRequestsData.push(data);
     }
 
-    getRequestData () {
+    getRequestsData () {
         return this.recentRequestsData;
     }
 
