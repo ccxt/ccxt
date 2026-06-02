@@ -534,7 +534,8 @@ public partial class cryptocom : Exchange
             response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
         } catch(Exception e)
         {
-            if (isTrue(e is ExchangeError))
+            object erString = this.exceptionMessage(e);
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(erString, "\"msg\":\"SYS_ERROR\""), 0)))
             {
                 // sub-accounts can't access this endpoint
                 // {"code":"10001","msg":"SYS_ERROR"}
@@ -586,57 +587,69 @@ public partial class cryptocom : Exchange
         //
         object resultData = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object currencyMap = this.safeDict(resultData, "currency_map", new Dictionary<string, object>() {});
-        object keys = new List<object>(((IDictionary<string,object>)currencyMap).Keys);
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        object enhancedArray = this.addKeyInArrayItems(currencyMap, "_coin_id");
+        return this.parseCurrencies(enhancedArray);
+    }
+
+    public override object parseCurrency(object currency)
+    {
+        object id = this.safeString(currency, "_coin_id");
+        object code = this.safeCurrencyCode(id);
+        object networks = new Dictionary<string, object>() {};
+        object chains = this.safeList(currency, "network_list", new List<object>() {});
+        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
-            object key = getValue(keys, i);
-            object currency = getValue(currencyMap, key);
-            object id = key;
-            object code = this.safeCurrencyCode(id);
-            object networks = new Dictionary<string, object>() {};
-            object chains = this.safeList(currency, "network_list", new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
-            {
-                object chain = getValue(chains, j);
-                object networkId = this.safeString(chain, "network_id");
-                object network = this.networkIdToCode(networkId);
-                ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
-                    { "info", chain },
-                    { "id", networkId },
-                    { "network", network },
-                    { "active", null },
-                    { "deposit", this.safeBool(chain, "deposit_enabled", false) },
-                    { "withdraw", this.safeBool(chain, "withdraw_enabled", false) },
-                    { "fee", this.safeNumber(chain, "withdrawal_fee") },
-                    { "precision", null },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(chain, "min_withdrawal_amount") },
-                            { "max", null },
-                        } },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", currency },
-                { "id", id },
-                { "code", code },
-                { "name", this.safeString(currency, "full_name") },
+            object chain = getValue(chains, j);
+            object networkId = this.safeString(chain, "network_id");
+            object network = this.networkIdToCode(networkId, code);
+            ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
+                { "info", chain },
+                { "id", networkId },
+                { "network", network },
                 { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
+                { "deposit", this.safeBool(chain, "deposit_enabled", false) },
+                { "withdraw", this.safeBool(chain, "withdraw_enabled", false) },
+                { "fee", this.safeNumber(chain, "withdrawal_fee") },
                 { "precision", null },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(chain, "min_withdrawal_amount") },
                         { "max", null },
                     } },
                 } },
-                { "type", "crypto" },
-                { "networks", networks },
-            });
+            };
+        }
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", currency },
+            { "id", id },
+            { "code", code },
+            { "name", this.safeString(currency, "full_name") },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "type", "crypto" },
+            { "networks", networks },
+        });
+    }
+
+    public virtual object addKeyInArrayItems(object obj, object keyName)
+    {
+        object result = new List<object>() {};
+        object keys = new List<object>(((IDictionary<string,object>)obj).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object item = getValue(obj, key);
+            ((IDictionary<string,object>)item)[(string)keyName] = key;
+            ((IList<object>)result).Add(item);
         }
         return result;
     }
