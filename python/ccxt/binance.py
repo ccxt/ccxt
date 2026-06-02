@@ -1668,7 +1668,7 @@ class binance(Exchange, ImplicitAPI):
                         'symbolRequired': True,
                     },
                     'fetchOHLCV': {
-                        'limit': 1500,
+                        'limit': 500,
                     },
                 },
                 'swap': {
