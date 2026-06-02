@@ -311,7 +311,7 @@ export default class Exchange {
     last_request_url: string = undefined;
     last_request_path: string = undefined;
     recentRequestsData: Dictionary<any>[] = [];
-    recentRequestsDataSize: number = 0;
+    recentRequestsCacheSize: number = 0;
 
     id: string = 'Exchange';
 
@@ -864,10 +864,10 @@ export default class Exchange {
     }
 
     logRequestsData (data) {
-        if (this.recentRequestsDataSize <= 0) {
+        if (this.recentRequestsCacheSize <= 0) {
             return;
         }
-        if (this.recentRequestsData.length >= this.recentRequestsDataSize) {
+        if (this.recentRequestsData.length >= this.recentRequestsCacheSize) {
             this.recentRequestsData.shift ();
         }
         this.recentRequestsData.push (data);

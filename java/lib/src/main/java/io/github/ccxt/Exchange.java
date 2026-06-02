@@ -160,7 +160,7 @@ public class Exchange {
     public volatile Object last_request_body;
     public volatile Object last_request_url;
     public final ConcurrentLinkedQueue<Map<String, Object>> recentRequestsData = new ConcurrentLinkedQueue<>();
-    public int recentRequestsDataSize = 0;
+    public int recentRequestsCacheSize = 0;
 
     public boolean returnResponseHeaders = false;
     public Map<String, Object> headers = new HashMap<>();
@@ -538,11 +538,11 @@ public class Exchange {
     }
 
     public void logRequestData(Map<String, Object> data) {
-        if (recentRequestsDataSize <= 0) {
+        if (recentRequestsCacheSize <= 0) {
             return;
         }
         recentRequestsData.offer(data);
-        while (recentRequestsData.size() > recentRequestsDataSize)
+        while (recentRequestsData.size() > recentRequestsCacheSize)
             recentRequestsData.poll(); // drops oldest
     }
 

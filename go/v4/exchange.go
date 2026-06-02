@@ -2108,13 +2108,13 @@ type ConcurrentListForRequests struct {
 }
 
 // Set a realistic max size so your memory doesn't grow forever
-var RecentRequestsDataSize = 100
+var RecentRequestsCacheSize = 100
 
 func (cl *ConcurrentListForRequests) Add(item any) {
 	cl.mu.Lock()
 	defer cl.mu.Unlock()
 	cl.items = append(cl.items, item)
-	if RecentRequestsDataSize > 0 && len(cl.items) > RecentRequestsDataSize {
+	if RecentRequestsCacheSize > 0 && len(cl.items) > RecentRequestsCacheSize {
 		cl.items = cl.items[1:]
 	}
 }

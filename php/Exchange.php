@@ -304,7 +304,7 @@ class Exchange {
     public $last_request_body = null;
     public $last_request_url = null;
     public $recent_requests_data = [];
-    public $recent_requests_data_size = 0;
+    public $recent_requests_cache_size = 0;
 
     public $requiresEddsa = false;
     public $rateLimit = 2000;
@@ -1314,10 +1314,10 @@ class Exchange {
     }
 
     public function log_requests_data($data) {
-        if ($this->recent_requests_data_size <= 0) {
+        if ($this->recent_requests_cache_size <= 0) {
             return;
         }
-        if (count($this->recent_requests_data) >= $this->recent_requests_data_size) {
+        if (count($this->recent_requests_data) >= $this->recent_requests_cache_size) {
             array_shift($this->recent_requests_data);
         }
         $this->recent_requests_data[] = $data;

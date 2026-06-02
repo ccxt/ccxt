@@ -134,7 +134,7 @@ public partial class Exchange
 
     public readonly System.Collections.Concurrent.ConcurrentQueue<Dictionary<string, object>> recentRequestsData = new ();
 
-    public int recentRequestsDataSize = 0;
+    public int recentRequestsCacheSize = 0;
 
     public float MAX_VALUE = float.MaxValue;
 
