@@ -1336,8 +1336,7 @@ class testMainClass {
         const basePath = getRootDir () + 'ts/src/test/static/binaries/';
         if (exchangeName === 'lighter') {
             if (this.lang === 'JS') {
-                const basePathForWasm =  getRootDir () + '/src/test/static/binaries/'; // idk, this is working on POSIX
-                wasmExecPath = basePathForWasm + 'wasm_exec.js';
+                wasmExecPath = basePath + 'wasm_exec.js';
                 libraryPath = basePath + 'lighter.wasm';
             } else {
                 if (isWindows ()) {
