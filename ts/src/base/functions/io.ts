@@ -158,11 +158,12 @@ export function existsFile (path: string): boolean {
  */
 
 export function filePathToFileUrlForWindows (filePath: string): string {
-    if (filePath.startsWith ('file://')) {
+    if (!isNode || !filePath || filePath.startsWith ('file://') || osSyncModule === null || urlSyncModule === null) {
         return filePath;
     }
-    if (osSyncModule.platform () === 'win32') {
-        return urlSyncModule.pathToFileURL(filePath).href;
+    if (osSyncModule.platform () !== 'win32') {
+        return filePath;
     }
-    return filePath;
+    const looksLikeWindowsPath = /^[a-zA-Z]:[\\/]/.test (filePath) || filePath.startsWith ('\\\\');
+    return looksLikeWindowsPath ? urlSyncModule.pathToFileURL (filePath).href : filePath;
 }
