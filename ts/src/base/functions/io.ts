@@ -1,6 +1,8 @@
 /*  ------------------------------------------------------------------------ */
 
 import path from 'node:path';
+import os from 'node:os';
+import { pathToFileURL } from 'node:url';
 import { isNode } from './platform.js';
 
 /*  ------------------------------------------------------------------------ */
@@ -140,4 +142,21 @@ export function existsFile (path: string): boolean {
     } catch (e) {
         return false;
     }
+}
+
+
+/*  ------------------------------------------------------------------------ */
+
+/**
+ * Convert file-path to file-url format on Windows, to avoid ESM loader error when using absolute paths, like:
+   Error [ERR_UNSUPPORTED_ESM_URL_SCHEME]: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:' at throwIfUnsupportedURLScheme (node:internal/modules/esm/load:195:11)
+ * @param filePath File path to check
+ * @returns filepath original or converted to file URL format on Windows
+ */
+
+export function filePathToFileUrlForWindows (filePath: string): string {
+    if (os.platform() === 'win32') {
+        return pathToFileURL(filePath).href;
+    }
+    return filePath;
 }
