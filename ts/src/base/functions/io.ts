@@ -1,8 +1,5 @@
 /*  ------------------------------------------------------------------------ */
 
-import path from 'node:path';
-import os from 'node:os';
-import { pathToFileURL } from 'node:url';
 import { isNode } from './platform.js';
 
 /*  ------------------------------------------------------------------------ */
@@ -10,6 +7,7 @@ import { isNode } from './platform.js';
 let fsSyncModule: any = null;
 let osSyncModule: any = null;
 let pathSyncModule: any = null;
+let urlSyncModule: any = null;
 
 /*  ------------------------------------------------------------------------ */
 
@@ -34,6 +32,11 @@ export async function initFileSystem () {
             try {
                 pathSyncModule = await import(/* webpackIgnore: true */ 'node:path');
             } catch (e) { } // Silent fail in browser or if path is unavailable
+        }
+        if (urlSyncModule === null) {
+            try {
+                urlSyncModule = await import(/* webpackIgnore: true */ 'node:url');
+            } catch (e) { } // Silent fail in browser or if url is unavailable
         }
     }
 }
@@ -158,8 +161,8 @@ export function filePathToFileUrlForWindows (filePath: string): string {
     if (filePath.startsWith ('file://')) {
         return filePath;
     }
-    if (os.platform () === 'win32') {
-        return pathToFileURL (filePath).href;
+    if (osSyncModule.platform () === 'win32') {
+        return urlSyncModule.pathToFileURL(filePath).href;
     }
     return filePath;
 }
