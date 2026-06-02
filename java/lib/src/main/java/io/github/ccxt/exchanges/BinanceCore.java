@@ -1657,7 +1657,7 @@ public class BinanceCore extends BinanceApi
                         put( "symbolRequired", true );
                     }} );
                     put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
-                        put( "limit", 1500 );
+                        put( "limit", 500 );
                     }} );
                 }} );
                 put( "swap", new java.util.HashMap<String, Object>() {{

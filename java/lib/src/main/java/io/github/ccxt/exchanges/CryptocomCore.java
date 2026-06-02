@@ -3857,8 +3857,8 @@ public class CryptocomCore extends CryptocomApi
             paramsKeys = obj;
         } else
         {
-            Object sorted = this.keysort(obj);
-            paramsKeys = Helpers.objectKeys(sorted);
+            Object objectKeys = Helpers.objectKeys(obj);
+            paramsKeys = this.sort(objectKeys);
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(paramsKeys)); i++)
         {
