@@ -363,7 +363,49 @@ impl Precise {
         crate::Value::Str(reduce_string(&pick))
     }
     pub fn stringEquals(a: &crate::Value, b: &crate::Value) -> crate::Value { Self::stringEq(a, b) }
+    /// Mirrors TS `Precise.stringOr`: bitwise OR of the underlying
+    /// integer representations at a common decimal scale.
+    /// `stringOr("5", "3") == "7"`, `stringOr("5.5", "3") == "6.3"` etc.
+    /// Either undefined operand → undefined (matches TS).
     pub fn stringOr(a: &crate::Value, b: &crate::Value) -> crate::Value {
-        if !a.is_null() { a.clone() } else { b.clone() }
+        if matches!(a, crate::Value::Null) || matches!(b, crate::Value::Null) {
+            return crate::Value::Null;
+        }
+        let (sa, sb) = (Self::vstr(a), Self::vstr(b));
+        // Split each into (sign, integer-string, decimal-count). Mirrors
+        // the constructor in TS Precise — chop at `.`, count fractional
+        // digits, drop the `.` so the integer parses as a single number.
+        fn split(s: &str) -> Option<(i64, i64, u32)> {
+            let (sign, body) = if let Some(rest) = s.strip_prefix('-') { (-1i64, rest) } else { (1i64, s) };
+            let (int_part, frac_part) = match body.find('.') {
+                Some(i) => (&body[..i], &body[i + 1..]),
+                None    => (body, ""),
+            };
+            let joined = format!("{int_part}{frac_part}");
+            let n: i64 = joined.parse().ok()?;
+            Some((sign, n, frac_part.len() as u32))
+        }
+        let (sga, ia, da) = match split(&sa) { Some(t) => t, None => return crate::Value::Null };
+        let (sgb, ib, db) = match split(&sb) { Some(t) => t, None => return crate::Value::Null };
+        // Shift the smaller-decimal side up to match.
+        let dmax = da.max(db);
+        let ia_s = sga * ia * 10i64.pow(dmax - da);
+        let ib_s = sgb * ib * 10i64.pow(dmax - db);
+        let or = ia_s | ib_s;
+        let s = if dmax == 0 {
+            or.to_string()
+        } else {
+            // Re-insert the decimal point dmax positions from the right.
+            let abs = or.unsigned_abs();
+            let digits = abs.to_string();
+            let pad = if digits.len() <= dmax as usize { dmax as usize - digits.len() + 1 } else { 0 };
+            let padded = format!("{}{}", "0".repeat(pad), digits);
+            let cut = padded.len() - dmax as usize;
+            let (lhs, rhs) = padded.split_at(cut);
+            let mut out = format!("{lhs}.{rhs}");
+            if or < 0 { out = format!("-{out}"); }
+            out
+        };
+        crate::Value::Str(reduce_string(&s))
     }
 }
