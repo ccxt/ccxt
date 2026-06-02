@@ -2305,6 +2305,108 @@ class RustTranspilerBuilder {
         );
     }
 
+    /**
+     * Per-file pass for transpiled test files: when an `async fn NAME(...)`
+     * is declared in the same file and called bare elsewhere (no `self.` /
+     * receiver, no leading `crate::…`), pad missing args with `Value::Null`
+     * and append `.await`. Covers patterns the upstream Java port introduced
+     * such as `const x = fetchTickersHelperTest(a, b, c);` where the TS
+     * source omits the optional `argParams = {}` and the `await` (the
+     * Promise is collected by a later `Promise.all`). Rust can neither
+     * hold a Future in a `Value` nor skip an `.await`, so we serialise.
+     */
+    rewriteLocalAsyncFnCalls(content: string): string {
+        // 1. Collect `async fn NAME(...)` declarations and their arity.
+        const decls = new Map<string, number>(); // name → param count
+        const declRe = /\basync\s+fn\s+([a-zA-Z_]\w*)\s*\(([^)]*)\)/g;
+        let m: RegExpExecArray | null;
+        while ((m = declRe.exec(content)) !== null) {
+            const name = m[1];
+            const params = m[2].trim();
+            const arity = params === '' ? 0 : params.split(',').length;
+            decls.set(name, arity);
+        }
+        if (decls.size === 0) return content;
+
+        // 2. Walk every NAME( ... ) call. Paren-balanced; skips method calls
+        //    (preceded by `.` or `::`), strings, already-awaited calls.
+        const out: string[] = [];
+        let i = 0;
+        while (i < content.length) {
+            const restStart = i;
+            // Find next identifier( pattern
+            const re = /([a-zA-Z_]\w*)\s*\(/g;
+            re.lastIndex = i;
+            const found = re.exec(content);
+            if (!found) { out.push(content.slice(i)); break; }
+            const name = found[1];
+            const matchStart = found.index;
+            const callOpen = re.lastIndex - 1; // index of '('
+            out.push(content.slice(restStart, matchStart));
+            // Reject if preceded by '.' or ':' (method call / path), or
+            // if this IS the function declaration itself (preceded by
+            // `fn `). Look back a short window for `fn ` (after stripping
+            // trailing whitespace just before the name).
+            const prev = matchStart > 0 ? content[matchStart - 1] : '';
+            const prev2 = matchStart > 1 ? content[matchStart - 2] : '';
+            const isMethodCall = prev === '.' || (prev === ':' && prev2 === ':');
+            const lookback = content.slice(Math.max(0, matchStart - 12), matchStart);
+            const isDeclaration = /\bfn\s+$/.test(lookback);
+            if (isMethodCall || isDeclaration || !decls.has(name)) {
+                // Copy the identifier and continue past it
+                out.push(content.slice(matchStart, callOpen + 1));
+                i = callOpen + 1;
+                continue;
+            }
+            // Paren-balance to find the closing ')'
+            let depth = 1;
+            let j = callOpen + 1;
+            let inStr = false;
+            let escape = false;
+            let commaCount = 0; // top-level commas between matched parens
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\' && inStr) { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) {
+                    if (c === '(' || c === '[' || c === '{') depth++;
+                    else if (c === ')' || c === ']' || c === '}') depth--;
+                    else if (c === ',' && depth === 1) commaCount++;
+                }
+                if (depth === 0) break;
+                j++;
+            }
+            if (depth !== 0) {
+                // Unbalanced — bail, copy rest verbatim.
+                out.push(content.slice(matchStart));
+                i = content.length;
+                break;
+            }
+            const innerStart = callOpen + 1;
+            const innerEnd = j; // index of ')'
+            const inner = content.slice(innerStart, innerEnd);
+            const actualArgs = inner.trim() === '' ? 0 : commaCount + 1;
+            const arity = decls.get(name)!;
+            // Pad missing args with `Value::Null`.
+            let padded = inner;
+            if (actualArgs < arity) {
+                const padN = arity - actualArgs;
+                const pads = Array.from({ length: padN }, () => 'Value::Null').join(', ');
+                padded = inner === ''
+                    ? pads
+                    : inner.replace(/\s*$/, '') + ', ' + pads;
+            }
+            // Already-followed by `.await`? skip await injection.
+            const tail = content.slice(innerEnd + 1);
+            const alreadyAwaited = /^\s*\.await\b/.test(tail);
+            const callText = `${name}(${padded})` + (alreadyAwaited ? '' : '.await');
+            out.push(callText);
+            i = innerEnd + 1;
+        }
+        return out.join('');
+    }
+
     rewriteLiteralKeySafeCalls(content: string): string {
         const variants = ['value', 'string', 'integer', 'float', 'number', 'bool', 'dict', 'list'];
         const variantRe = variants.join('|');
@@ -3120,7 +3222,12 @@ class RustTranspilerBuilder {
         // Include known bare-fn calls that take Value args by value too.
         // Also handle `<local>.method(` (e.g. `exchange.method(`) which
         // shows up in transpiled tests.
-        const pattern = /(?:\bself\.[a-zA-Z_][a-zA-Z0-9_]*|\bexchange\d*\.[a-zA-Z_][a-zA-Z0-9_]*|\brsa|\beddsa|\becdsa|\bjwt|\btotp|\bhelper[A-Z][a-zA-Z0-9_]*|\bprecise[A-Z][a-zA-Z0-9_]*|\btest[A-Z][a-zA-Z0-9_]*|\bassert[A-Z][a-zA-Z0-9_]*|\b(?:equals|deepEqual|assert|dump|callMethod|callMethodSync|callExchangeMethodDynamically|callExchangeMethodDynamicallySync|getExchangeProp|setExchangeProp|setFetchResponse|initExchange|close|jsonStringify|jsonParse|exceptionMessage|convertAscii|isNullValue|ioFileExists|ioFileRead|ioDirRead))\(/;
+        // `[a-z]\w*(?:Helper(?:Test)?|Test)` catches upstream's Java-port
+        // rename of `testFetchTickersHelper` → `fetchTickersHelperTest` and
+        // `testFetchTickersAmounts` → `fetchTickersAmountsTest`. The
+        // pre-rename `test*` prefix is also kept for legacy helpers and any
+        // tests we haven't synced yet.
+        const pattern = /(?:\bself\.[a-zA-Z_][a-zA-Z0-9_]*|\bexchange\d*\.[a-zA-Z_][a-zA-Z0-9_]*|\brsa|\beddsa|\becdsa|\bjwt|\btotp|\bhelper[A-Z][a-zA-Z0-9_]*|\bprecise[A-Z][a-zA-Z0-9_]*|\btest[A-Z][a-zA-Z0-9_]*|\b[a-z][a-zA-Z0-9_]*(?:Helper(?:Test)?|Test)|\bassert[A-Z][a-zA-Z0-9_]*|\b(?:equals|deepEqual|assert|dump|callMethod|callMethodSync|callExchangeMethodDynamically|callExchangeMethodDynamicallySync|getExchangeProp|setExchangeProp|setFetchResponse|initExchange|close|jsonStringify|jsonParse|exceptionMessage|convertAscii|isNullValue|ioFileExists|ioFileRead|ioDirRead))\(/;
         while (i < content.length) {
             const rest = content.slice(i);
             const m = rest.match(pattern);
@@ -5093,6 +5200,14 @@ impl std::ops::DerefMut for ${coreName} {
             /\bfn\s+baseTestsInit\s*\(\s*\)\s*(?:->\s*Value\s*)?\{/,
             'pub async fn baseTestsInit() {',
         );
+        // The TS source ends with `return true;` which the transpiler emits
+        // as `return Value::Bool(true);`. Since we rewrote the signature to
+        // return `()`, drop the trailing return so the function compiles
+        // (and so we don't need to import `Value` here).
+        content = content.replace(
+            /\n\s*return\s+Value::Bool\s*\(\s*true\s*\)\s*;\s*(\n\s*\})/,
+            '$1',
+        );
         const file = [
             ...this.createGeneratedHeader(),
             '#![allow(non_snake_case, unused, dead_code, clippy::all)]',
@@ -5263,9 +5378,14 @@ impl std::ops::DerefMut for ${coreName} {
     // equivalent of `undefined` anyway, so Null is the right read.
     foldDefaultArgsIntoOptional(content: string, defaultFns: Map<string, number>): string {
         for (const [name, firstDefault] of defaultFns) {
-            // Match the fn signature: `pub (async )?fn NAME(params) -> Value {`
+            // Match the fn signature: `(pub )?(async )?fn NAME(params) -> Value {`
+            // `pub` is optional — file-private helpers (`async function foo`
+            // without an `export`) get transpiled without `pub`, but they
+            // still take default args we need to collapse. Pre-upstream the
+            // helpers were named `test*` and got `pub`; upstream's rename
+            // dropped both the `test` prefix and the `pub`.
             const sigRe = new RegExp(
-                `(\\bpub(?:\\s+async)?\\s+fn\\s+${name}\\s*\\()([^)]*)(\\)\\s*->\\s*[^\\{]+\\{)`,
+                `(\\b(?:pub\\s+)?(?:async\\s+)?fn\\s+${name}\\s*\\()([^)]*)(\\)\\s*->\\s*[^\\{]+\\{)`,
             );
             const sigMatch = content.match(sigRe);
             if (!sigMatch) continue;
@@ -5285,7 +5405,7 @@ impl std::ops::DerefMut for ${coreName} {
             // comments/strings.
             content = content.replace(sigRe, newSig);
             // Now insert the decls.
-            const reAfter = new RegExp(`(\\bpub(?:\\s+async)?\\s+fn\\s+${name}\\s*\\([^)]*\\)\\s*->\\s*[^\\{]+\\{)`);
+            const reAfter = new RegExp(`(\\b(?:pub\\s+)?(?:async\\s+)?fn\\s+${name}\\s*\\([^)]*\\)\\s*->\\s*[^\\{]+\\{)`);
             const decls = collapsedNames.map((nm, i) =>
                 `\n    let mut ${nm}: Value = get_arg(optional_args, ${i}, Value::Null);`,
             ).join('');
@@ -5305,7 +5425,7 @@ impl std::ops::DerefMut for ${coreName} {
     // appended. If the function is `pub async fn`, also append `.await`
     // when the call site doesn't already have it.
     padCallsForVariadicFn(content: string, name: string, fixedCount: number, newArity: number): string {
-        const isAsync = new RegExp(`\\bpub\\s+async\\s+fn\\s+${name}\\b`).test(content);
+        const isAsync = new RegExp(`\\b(?:pub\\s+)?async\\s+fn\\s+${name}\\b`).test(content);
         const callRe = new RegExp(`\\b${name}\\s*\\(`, 'g');
         let out = '';
         let last = 0;
