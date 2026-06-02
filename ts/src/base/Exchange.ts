@@ -5802,14 +5802,25 @@ export default class Exchange {
         let retryDelay = undefined;
         [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
         for (let i = 0; i < retries + 1; i++) {
+            const requestData = {
+                'request': undefined,
+                'response': undefined,
+                'error': undefined,
+            };
             try {
                 this.lastRestRequestTimestamp = this.milliseconds ();
                 const request = this.sign (path, api, method, params, headers, body);
+                requestData['request'] = request;
                 this.last_request_headers = request['headers'];
                 this.last_request_body = request['body'];
                 this.last_request_url = request['url'];
-                return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
+                const response = await this.fetch (request['url'], request['method'], request['headers'], request['body']);
+                requestData['response'] = response;
+                this.logRequestsData (requestData);
+                return response;
             } catch (e) {
+                requestData['error'] = e;
+                this.logRequestsData (requestData);
                 if (e instanceof OperationFailed) {
                     if (i < retries) {
                         if (this.verbose) {
