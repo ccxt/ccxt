@@ -3443,6 +3443,8 @@ export default class htx extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []);
+        this.options['networkNamesByChainIds'] = {};
+        this.options['networkChainIdsByNames'] = {};
         return this.parseCurrencies (data);
     }
 
