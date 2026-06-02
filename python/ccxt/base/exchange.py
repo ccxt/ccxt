@@ -398,7 +398,7 @@ class Exchange(object):
     last_request_url = None
     last_request_headers = None
     recent_requests_cache_size = 0
-    rrecent_requests_cache = collections.deque(maxlen=0)
+    recent_requests_cache = collections.deque(maxlen=0)
 
     requiresEddsa = False
     base58_encoder = None
@@ -562,13 +562,13 @@ class Exchange(object):
     def add_request_cache(self, data):
         if self.recent_requests_cache_size <= 0:
             return
-        length = self.rrecent_requests_cache.length
+        length = self.recent_requests_cache.length
         if (length == 0):
-            self.rrecent_requests_cache = collections.deque(maxlen=self.recent_requests_cache_size)
-        self.rrecent_requests_cache.append(data)
+            self.recent_requests_cache = collections.deque(maxlen=self.recent_requests_cache_size)
+        self.recent_requests_cache.append(data)
 
     def get_requests_cache(self):
-        return self.rrecent_requests_cache
+        return self.recent_requests_cache
 
     @staticmethod
     def gzip_deflate(response, text):
