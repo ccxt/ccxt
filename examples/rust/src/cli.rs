@@ -185,7 +185,8 @@ fn set_credential(ex: &mut ccxt::exchange::Exchange, key: &str, val: &str) {
 /// build_implicit_api) and `call_dynamic(method, args) -> Value` in its
 /// generated impl block. We just box the right Core and invoke.
 macro_rules! dispatch_exchange {
-    ($id:expr, $method:expr, $args:expr, $verbose:expr, $testnet:expr, $demo:expr, $time:expr, $creds:expr,
+    ($id:expr, $method:expr, $args:expr, $verbose:expr, $testnet:expr, $demo:expr, $time:expr,
+     $http_proxy:expr, $https_proxy:expr, $socks_proxy:expr, $legacy_proxy:expr, $creds:expr,
      $( $name:literal => $core:ty ),* $(,)?
     ) => {{
         match $id {
@@ -197,6 +198,14 @@ macro_rules! dispatch_exchange {
                     for (k, v) in $creds.iter() {
                         set_credential(&mut ex.exchange, k, v);
                     }
+                    // Proxy fields must be set BEFORE the first request so
+                    // `http_client()` picks them up when it lazily builds
+                    // the reqwest::Client. After that the client is cached
+                    // and won't re-read proxy state.
+                    if let Some(s) = $http_proxy.as_ref()  { ex.exchange.httpProxy  = Value::Str(s.clone()); }
+                    if let Some(s) = $https_proxy.as_ref() { ex.exchange.httpsProxy = Value::Str(s.clone()); }
+                    if let Some(s) = $socks_proxy.as_ref() { ex.exchange.socksProxy = Value::Str(s.clone()); }
+                    if let Some(s) = $legacy_proxy.as_ref(){ ex.exchange.proxy      = Value::Str(s.clone()); }
                     // --testnet → setSandboxMode(true), --demo → enableDemoTrading(true)
                     if $testnet { ex.exchange.set_sandbox_mode(Value::Bool(true)); }
                     if $demo    { ex.exchange.enable_demo_trading(Value::Bool(true)); }
@@ -296,7 +305,10 @@ fn usage() -> ! {
     eprintln!("  npm run cli.rs -- okx fetchMarkets --verbose");
     eprintln!("  npm run cli.rs -- binance fetchBalance --testnet");
     eprintln!("  npm run cli.rs -- okx fetchBalance --demo");
-    eprintln!("flags: --verbose --testnet --demo --no-keys");
+    eprintln!("  npm run cli.rs -- binance loadMarkets --httpsProxy=http://localhost:8888");
+    eprintln!("  npm run cli.rs -- binance loadMarkets --socksProxy=socks5://localhost:1080");
+    eprintln!("flags: --verbose --testnet --demo --no-keys --time");
+    eprintln!("       --httpProxy=URL --httpsProxy=URL --socksProxy=URL --proxy=URL");
     eprintln!("credentials: keys.local.json / keys.json or <ID>_<CRED> env vars");
     std::process::exit(2);
 }
@@ -318,6 +330,20 @@ async fn main() {
     let no_keys = flags.iter().any(|f| f == "--no-keys");
     let time    = flags.iter().any(|f| f == "--time");
 
+    // Proxy flags. Accepted forms:
+    //   --httpProxy=http://host:port
+    //   --httpsProxy=http://host:port
+    //   --socksProxy=socks5://host:port
+    //   --proxy=<url>            (legacy single-setter, applied to all)
+    fn flag_value(flags: &[String], name: &str) -> Option<String> {
+        let key_eq = format!("--{name}=");
+        flags.iter().find_map(|f| f.strip_prefix(&key_eq).map(|s| s.to_string()))
+    }
+    let http_proxy  = flag_value(&flags, "httpProxy");
+    let https_proxy = flag_value(&flags, "httpsProxy");
+    let socks_proxy = flag_value(&flags, "socksProxy");
+    let legacy_proxy = flag_value(&flags, "proxy");
+
     // Credentials from keys.local.json / keys.json + env vars.
     let creds: Vec<(String, String)> = if no_keys { Vec::new() } else { load_credentials(&id) };
 
@@ -331,6 +357,10 @@ async fn main() {
     if verbose { println!("{YELLOW}verbose mode{RESET}"); }
     if testnet { println!("{YELLOW}testnet mode{RESET}"); }
     if demo    { println!("{YELLOW}demo trading mode{RESET}"); }
+    if let Some(s) = &http_proxy   { println!("{YELLOW}httpProxy:{RESET}  {s}"); }
+    if let Some(s) = &https_proxy  { println!("{YELLOW}httpsProxy:{RESET} {s}"); }
+    if let Some(s) = &socks_proxy  { println!("{YELLOW}socksProxy:{RESET} {s}"); }
+    if let Some(s) = &legacy_proxy { println!("{YELLOW}proxy:{RESET}      {s}"); }
     if !creds.is_empty() {
         let mut names: Vec<&str> = creds.iter().map(|(k, _)| k.as_str()).collect();
         names.sort();
@@ -340,7 +370,8 @@ async fn main() {
 
     let m = m_snake.clone();
     let result = panic::AssertUnwindSafe(async move {
-        dispatch_exchange!(id.as_str(), m, args, verbose, testnet, demo, time, creds,
+        dispatch_exchange!(id.as_str(), m, args, verbose, testnet, demo, time,
+            http_proxy, https_proxy, socks_proxy, legacy_proxy, creds,
             "binance"     => BinanceCore,
             "bybit"       => BybitCore,
             "okx"         => OkxCore,

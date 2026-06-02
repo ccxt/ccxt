@@ -204,8 +204,19 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
     // `walletAddress` / `privateKey` on the snapshot from the fixture;
     // the Core was built with the offline-default credentials and
     // wouldn't otherwise see those.
+    //
+    // The same write-through applies to proxy fields: the transpiled
+    // `tests.rs::initExchangeBeforeTests` reads `httpProxy` / `httpsProxy`
+    // / `wsProxy` / `wssProxy` from `skip-tests.json` when `--useProxy`
+    // is passed and `set_value`s them on the snapshot. The Core builds
+    // its `reqwest::Client` from its OWN `httpProxy`/`httpsProxy`/
+    // `socksProxy` fields, so without this propagation the proxies stay
+    // snapshot-only and live requests go direct (e.g. binance 451 from
+    // a restricted region). Push the snapshot values to the Core too.
     for key in ["walletAddress", "privateKey", "apiKey", "secret", "uid",
-                "password", "token", "login", "accountId"] {
+                "password", "token", "login", "accountId",
+                "httpProxy", "httpsProxy", "socksProxy", "proxy",
+                "wsProxy", "wssProxy", "wsSocksProxy"] {
         let v = ccxt::get_value(ex, &Value::Str(key.to_string()));
         if matches!(v, Value::Str(ref s) if !s.is_empty()) {
             (entry.write_field)(entry.ptr.0, key, v);
@@ -371,6 +382,24 @@ fn build_core(id: &str, cfg: Value) -> Option<CoreEntry> {
                     "token"         => core.token         = value,
                     "login"         => core.login         = value,
                     "accountId"     => core.accountId     = value,
+                    // Proxy fields — `--useProxy` reads these from
+                    // `skip-tests.json` per-exchange in
+                    // `tests.rs::initExchangeBeforeTests`. The Core's
+                    // `http_client()` (which builds the cached
+                    // `reqwest::Client`) reads these fields directly, so
+                    // they MUST be propagated to the Core not just the
+                    // snapshot — otherwise live test runs ignore the
+                    // proxy and hit binance/etc. direct (→ 451 from
+                    // restricted regions). The HTTP client is built
+                    // lazily on the first request, so writing here
+                    // (before the test calls `loadMarkets`) is in time.
+                    "httpProxy"     => core.httpProxy     = value,
+                    "httpsProxy"    => core.httpsProxy    = value,
+                    "socksProxy"    => core.socksProxy    = value,
+                    "proxy"         => core.proxy         = value,
+                    "wsProxy"       => core.wsProxy       = value,
+                    "wssProxy"      => core.wssProxy      = value,
+                    "wsSocksProxy"  => core.wsSocksProxy  = value,
                     // Heavy fields. Static fixtures load these from
                     // `static/{markets,currencies}/<id>.json` and the
                     // test runner reassigns them on the snapshot after
