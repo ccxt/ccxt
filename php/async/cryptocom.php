@@ -3409,8 +3409,8 @@ class cryptocom extends Exchange {
         if ((gettype($object) === 'array' && array_keys($object) === array_keys(array_keys($object)))) {
             $paramsKeys = $object;
         } else {
-            $sorted = $this->keysort($object);
-            $paramsKeys = is_array($sorted) ? array_keys($sorted) : array();
+            $objectKeys = is_array($object) ? array_keys($object) : array();
+            $paramsKeys = $this->sort($objectKeys);
         }
         for ($i = 0; $i < count($paramsKeys); $i++) {
             $key = $paramsKeys[$i];
