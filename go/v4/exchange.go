@@ -178,7 +178,8 @@ type Exchange struct {
 	// tests only
 	FetchResponse any
 
-	IsSandboxModeEnabled bool
+	IsSandboxModeEnabled    bool
+	RecentRequestsCacheSize int
 
 	// ws
 	WsClients   map[string]any // one websocket client per URL
@@ -2107,16 +2108,13 @@ type ConcurrentListForRequests struct {
 	items []any
 }
 
-// Set a realistic max size so your memory doesn't grow forever
-var RecentRequestsCacheSize = 100
+func (cl *ConcurrentListForRequests) Lock()   { cl.mu.Lock() }
+func (cl *ConcurrentListForRequests) Unlock() { cl.mu.Unlock() }
 
 func (cl *ConcurrentListForRequests) Add(item any) {
 	cl.mu.Lock()
 	defer cl.mu.Unlock()
 	cl.items = append(cl.items, item)
-	if RecentRequestsCacheSize > 0 && len(cl.items) > RecentRequestsCacheSize {
-		cl.items = cl.items[1:]
-	}
 }
 
 func (cl *ConcurrentListForRequests) GetAll() []any {
@@ -2130,10 +2128,18 @@ func (cl *ConcurrentListForRequests) GetAll() []any {
 var RecentRequestsCache = &ConcurrentListForRequests{}
 
 func (e *Exchange) AddRequestCache(item any) {
-	RecentRequestsCache.Add(item)
+
+	RecentRequestsCache.Lock()
+	defer RecentRequestsCache.Unlock()
+
+	RecentRequestsCache.items = append(RecentRequestsCache.items, item)
+
+	if e.RecentRequestsCacheSize > 0 && len(RecentRequestsCache.items) > e.RecentRequestsCacheSize {
+		RecentRequestsCache.items = RecentRequestsCache.items[1:]
+	}
 }
 func (e *Exchange) GetRequestsCache() []any {
 	return RecentRequestsCache.GetAll()
 }
 
-// ###################################
+// #########################################

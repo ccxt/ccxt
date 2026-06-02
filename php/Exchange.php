@@ -303,7 +303,7 @@ class Exchange {
     public $last_request_headers = null;
     public $last_request_body = null;
     public $last_request_url = null;
-    public $rrecent_requests_cache = [];
+    public $recent_requests_cache = [];
     public $recent_requests_cache_size = 0;
 
     public $requiresEddsa = false;
@@ -1317,14 +1317,14 @@ class Exchange {
         if ($this->recent_requests_cache_size <= 0) {
             return;
         }
-        if (count($this->rrecent_requests_cache) >= $this->recent_requests_cache_size) {
-            array_shift($this->rrecent_requests_cache);
+        if (count($this->recent_requests_cache) >= $this->recent_requests_cache_size) {
+            array_shift($this->recent_requests_cache);
         }
-        $this->rrecent_requests_cache[] = $data;
+        $this->recent_requests_cache[] = $data;
     }
 
     public function get_requests_cache() {
-        return $this->rrecent_requests_cache;
+        return $this->recent_requests_cache;
     }
 
     public static function base64_to_base64url(string $base64, bool $stripPadding = true): string {

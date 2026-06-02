@@ -48,7 +48,7 @@ public partial class Exchange
         if (recentRequestsCacheSize <= 0) {
             return;
         }
-        recentRequestsCache.Enqueue(data);
+        recentRequestsCache.Enqueue(data as Dictionary<string,object>);
         while (recentRequestsCache.Count > recentRequestsCacheSize)
             recentRequestsCache.TryDequeue(out _); // drops olde
     }
