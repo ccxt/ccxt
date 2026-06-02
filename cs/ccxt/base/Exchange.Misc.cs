@@ -45,11 +45,11 @@ public partial class Exchange
     }
 
     public void logRequestData (Object data) {
-        if (recentRequestsDataMaxSize <= 0) {
+        if (recentRequestsDataSize <= 0) {
             return;
         }
         recentRequestsData.Enqueue(data);
-        while (recentRequestsData.Count > recentRequestsDataMaxSize)
+        while (recentRequestsData.Count > recentRequestsDataSize)
             recentRequestsData.TryDequeue(out _); // drops olde
     }
 
