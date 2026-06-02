@@ -144,6 +144,22 @@ pub fn has_live(id: &str) -> bool {
 /// each call to `initExchange` is a fresh test case and must not see
 /// state (option flags, last_request_*) left over from a previous case.
 /// Mirrors Go's `InitOfflineExchange` returning a brand-new exchange.
+/// Hand-written helper used by `test_helpers::initExchange` to push
+/// proxy fields (and any other Value-typed Core field) straight onto
+/// the registered Core. Needed because the transpiled `expand_settings`
+/// runs on a clone of the snapshot and its `set_value` mutations never
+/// reach the live Core; the proxy lookup is therefore done in Rust
+/// against `skip-tests.json` directly and written through here.
+pub fn write_field_for_id(id: &str, key: &str, value: Value) {
+    let entry = {
+        let m = cores().lock().unwrap();
+        m.get(id).copied()
+    };
+    if let Some(entry) = entry {
+        (entry.write_field)(entry.ptr.0, key, value);
+    }
+}
+
 pub fn ensure_live_core(id: &str, cfg: Value) {
     if let Some(entry) = build_core(id, cfg) {
         // Drop the old entry's leaked Box before replacing — otherwise

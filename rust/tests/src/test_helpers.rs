@@ -51,11 +51,16 @@ pub fn isAmd64()   -> Value { Value::Bool(cfg!(target_arch = "x86_64")) }
 
 /// Repo root with a trailing slash (mirrors Go's `GetRootDir`).
 pub fn getRootDir() -> Value {
-    // tests crate lives at <repo>/rust/tests — walk up two dirs.
+    Value::Str(getRootDir_str())
+}
+
+/// Plain-string variant used by hand-written helpers that don't need
+/// the `Value` wrapper.
+pub fn getRootDir_str() -> String {
     let here = env!("CARGO_MANIFEST_DIR");
     let root = std::path::Path::new(here).join("..").join("..");
     let s = root.to_string_lossy().to_string();
-    Value::Str(format!("{}/", s.trim_end_matches('/')))
+    format!("{}/", s.trim_end_matches('/'))
 }
 
 pub fn getEnvVars() -> Value {
@@ -235,6 +240,35 @@ pub fn initExchange(exchange_id: Value, optional_args: &[Value]) -> Value {
     // static request/response) — the cached Core simply uses them.
     if !id.is_empty() {
         crate::live_dispatch::ensure_live_core(&id, cfg.clone());
+        // `--useProxy`: TS source mutates `exchange.httpProxy = …` on the
+        // Value object directly. The Rust transpiler emits that as a
+        // `set_value(&mut exchange, …)` call, but the surrounding test
+        // harness passes `exchange.clone()` to `expand_settings` — so the
+        // mutation lands on a discarded clone of the snapshot, never on
+        // the live Core. We do the proxy lookup here, against the
+        // hand-written runtime, so the writes land on the Core's actual
+        // `httpProxy`/`httpsProxy`/`socksProxy` fields before any HTTP
+        // client is built. `expand_settings` still runs its snapshot-side
+        // mutation (kept for parity with TS) but it's now a no-op.
+        let use_proxy_flag = std::env::args().any(|a| a == "--useProxy");
+        if use_proxy_flag {
+            if let Ok(text) = std::fs::read_to_string(format!("{}skip-tests.json", crate::test_helpers::getRootDir_str())) {
+                if let Ok(json) = serde_json::from_str::<serde_json::Value>(&text) {
+                    if let Some(entry) = json.get(&id) {
+                        for key in ["httpProxy", "httpsProxy", "socksProxy", "proxy",
+                                    "wsProxy", "wssProxy", "wsSocksProxy"] {
+                            if let Some(v) = entry.get(key).and_then(|v| v.as_str()) {
+                                if !v.is_empty() {
+                                    crate::live_dispatch::write_field_for_id(
+                                        &id, key, Value::Str(v.to_string()),
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     // Snapshot the real exchange so its `describe()` output (notably
     // `options.brokerId`, which broker-id tests assert) is present.
