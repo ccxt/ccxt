@@ -352,6 +352,7 @@ export default class coinbase extends Exchange {
                     'jumio_face_match_verification_required': AuthenticationError, // 400 Document verification including face match is required to complete this request
                     'unverified_email': AuthenticationError, // 400 User has not verified their email
                     'authentication_error': AuthenticationError, // 401 Invalid auth (generic)
+                    'unauthorized': AuthenticationError, // 401 Not authorized to perform this operation
                     'invalid_authentication_method': AuthenticationError, // 401 API access is blocked for deleted users.
                     'invalid_token': AuthenticationError, // 401 Invalid Oauth token
                     'revoked_token': AuthenticationError, // 401 Revoked Oauth token
@@ -359,6 +360,7 @@ export default class coinbase extends Exchange {
                     'invalid_scope': AuthenticationError, // 403 User hasn’t authenticated necessary scope
                     'not_found': ExchangeError, // 404 Resource not found
                     'rate_limit_exceeded': RateLimitExceeded, // 429 Rate limit exceeded
+                    'resource_exhausted': RateLimitExceeded, // 429 Resource has been exhausted
                     'internal_server_error': ExchangeError, // 500 Internal server error
                     'UNSUPPORTED_ORDER_CONFIGURATION': BadRequest,
                     'INSUFFICIENT_FUND': InsufficientFunds,
