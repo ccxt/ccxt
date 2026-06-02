@@ -159,7 +159,9 @@ public class Exchange {
     public volatile Object last_http_response;
     public volatile Object last_request_body;
     public volatile Object last_request_url;
-    public final List<Map<String, Object>> recent_requests_data = Collections.synchronizedList(new ArrayList<>());
+    public final ConcurrentLinkedQueue<Map<String, Object>> recentRequestsData = new ConcurrentLinkedQueue<>();
+    public int recentRequestsDataMaxSize = 0;
+
     public boolean returnResponseHeaders = false;
     public Map<String, Object> headers = new HashMap<>();
     public Object httpExceptions;
@@ -533,6 +535,19 @@ public class Exchange {
 
     public void setWss_proxy(Object v) {
         this.wss_proxy = v;
+    }
+
+    public void logRequestData(Map<String, Object> data) {
+        if (recentRequestsDataMaxSize <= 0) {
+            return;
+        }
+        recentRequestsData.offer(data);
+        while (recentRequestsData.size() > recent_requests_max_size)
+            recentRequestsData.poll(); // drops oldest
+    }
+
+    public List<Map<String, Object>> getRecentRequests() {
+        return new ArrayList<>(recentRequestsData);
     }
 
     // === HELPERS === //

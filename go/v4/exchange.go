@@ -98,7 +98,6 @@ type Exchange struct {
 	LastRequestBody          any
 	Last_request_body        any
 	Last_request_url         any
-	Recent_requests_data     []any
 	LastRequestUrl           string
 	Headers                  any
 	ReturnResponseHeaders    bool
@@ -2100,3 +2099,41 @@ func (this *Exchange) UnlockId() bool {
 	this.idMutex.Unlock()
 	return true
 }
+
+// ############ Requests data ############
+
+type ConcurrentListForRequests struct {
+	mu    sync.Mutex
+	items []any
+}
+
+// Set a realistic max size so your memory doesn't grow forever
+var RecentRequestDataMaxSize = 100
+
+func (cl *ConcurrentListForRequests) Add(item any) {
+	cl.mu.Lock()
+	defer cl.mu.Unlock()
+	cl.items = append(cl.items, item)
+	if RecentRequestDataMaxSize > 0 && len(cl.items) > RecentRequestDataMaxSize {
+		cl.items = cl.items[1:]
+	}
+}
+
+func (cl *ConcurrentListForRequests) GetAll() []any {
+	cl.mu.Lock()
+	defer cl.mu.Unlock()
+	cp := make([]any, len(cl.items))
+	copy(cp, cl.items)
+	return cp
+}
+
+var RecentRequestsData = &ConcurrentListForRequests{}
+
+func (e *Exchange) LogRequestsData(item any) {
+	RecentRequestsData.Add(item)
+}
+func (e *Exchange) AnotherOutsideFunction() []any {
+	return RecentRequestsData.GetAll()
+}
+
+// ###################################

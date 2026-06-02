@@ -310,7 +310,8 @@ export default class Exchange {
     last_request_body: any = undefined;
     last_request_url: string = undefined;
     last_request_path: string = undefined;
-    recent_requests_data: Dictionary<any>[] = [];
+    recentRequestsData: Dictionary<any>[] = [];
+    recentRequestsDataMaxSize: number = 0;
 
     id: string = 'Exchange';
 
@@ -860,6 +861,20 @@ export default class Exchange {
             }
         }
         return undefined;
+    }
+
+    logRequestsData (data) {
+        if (this.recentRequestsDataMaxSize <= 0) {
+            return;
+        }
+        if (this.recentRequestsData.length >= this.recentRequestsDataMaxSize) {
+            this.recentRequestsData.shift();
+        }
+        this.recentRequestsData.push(data);
+    }
+
+    getRequestData () {
+        return this.recentRequestsData;
     }
 
     isBinaryMessage (msg) {

@@ -397,7 +397,8 @@ class Exchange(object):
     last_request_body = None
     last_request_url = None
     last_request_headers = None
-    recent_requests_data = []
+    recent_requests_data_max_size = 0
+    recent_requests_data = None
 
     requiresEddsa = False
     base58_encoder = None
@@ -557,6 +558,16 @@ class Exchange(object):
         if sanitized.startswith(self.get_temp_dir()) and sanitized.endswith('.ccxtfile'):
             return
         raise ValueError(f'invalid file path: {file_path}')
+
+    def log_requests_data(self, data):
+        if self.recent_requests_data_max_size <= 0:
+            return
+        if (self.recent_requests_data is None):
+            self.recent_requests_data = collections.deque(maxlen=self.recent_requests_data_max_size)
+        self.recent_requests_data.append(data)
+
+    def get_requests_data(self):
+        return self.recent_requests_data
 
     @staticmethod
     def gzip_deflate(response, text):

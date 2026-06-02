@@ -304,6 +304,7 @@ class Exchange {
     public $last_request_body = null;
     public $last_request_url = null;
     public $recent_requests_data = [];
+    public $recent_requests_data_max_size = 0;
 
     public $requiresEddsa = false;
     public $rateLimit = 2000;
@@ -1310,6 +1311,20 @@ class Exchange {
     public function exists_file(string $path) {
         $this->ensure_whitelisted_file($path);
         return file_exists($path);
+    }
+
+    public function log_requests_data($data) {
+        if ($this->recent_requests_data_max_size <= 0) {
+            return;
+        }
+        if (count($this->recent_requests_data) >= $this->recent_requests_data_max_size) {
+            array_shift($this->recent_requests_data_max_size);
+        }
+        $this->recent_requests_data[] = $data;
+    }
+
+    public function get_requests_data() {
+        return $this->recent_requests_data;
     }
 
     public static function base64_to_base64url(string $base64, bool $stripPadding = true): string {

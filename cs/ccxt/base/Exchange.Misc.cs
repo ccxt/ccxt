@@ -44,6 +44,19 @@ public partial class Exchange
         }
     }
 
+    public void logRequestData (Object data) {
+        if (recentRequestsDataMaxSize <= 0) {
+            return;
+        }
+        recentRequestsData.Enqueue(data);
+        while (recentRequestsData.Count > recentRequestsDataMaxSize)
+            recentRequestsData.TryDequeue(out _); // drops olde
+    }
+
+    public List<Dictionary<string, object>> getRecentRequests()
+    {
+        return recentRequestsData.ToList();
+    }
     // public object buildOHLCVC(object trades, object timeframe, object since, object limit)
     // {
     //     return null; // stub to implement
