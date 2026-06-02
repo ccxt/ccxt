@@ -1119,9 +1119,10 @@ export default class hyperliquid extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         let isUnifiedEnabled = undefined;
-        [ isUnifiedEnabled, params ] = await this.isUnifiedEnabled ('fetchBalance', userAddress, shouldRefresh, params);
+        let isPortfolioEnabled = undefined;
+        [ isUnifiedEnabled, isPortfolioEnabled, params ] = await this.isUnifiedEnabled ('fetchBalance', userAddress, shouldRefresh, params);
         const dex = this.safeString (params, 'dex');
-        const isSpot = ((type === 'spot') || isUnifiedEnabled) && (dex === undefined);
+        const isSpot = ((type === 'spot') || isUnifiedEnabled || isPortfolioEnabled) && (dex === undefined);
         const request: Dict = {
             'type': (isSpot) ? 'spotClearinghouseState' : 'clearinghouseState',
             'user': userAddress,
@@ -1880,7 +1881,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [address] the wallet address to query; defaults to the configured walletAddress
      * @param {boolean} [shouldRefresh] force a fresh request instead of returning the cached value
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {bool} enableUnifiedMargin
+     * @returns {bool} enableUnifiedMargin, enablePortfolioMargin
      */
     async isUnifiedEnabled (method: string, address: Str = undefined, shouldRefresh = false, params = {}) {
         let userAddress = undefined;
@@ -1891,7 +1892,9 @@ export default class hyperliquid extends Exchange {
         }
         let enableUnifiedMargin = undefined;
         [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, method, 'enableUnifiedMargin');
-        if (enableUnifiedMargin === undefined || shouldRefresh) {
+        let enablePortfolioMargin = undefined;
+        [ enablePortfolioMargin, params ] = this.handleOptionAndParams (params, method, 'enablePortfolioMargin');
+        if (enableUnifiedMargin === undefined || shouldRefresh || enablePortfolioMargin === undefined) {
             const request: Dict = {
                 'type': 'userAbstraction',
                 'user': userAddress,
@@ -1912,11 +1915,13 @@ export default class hyperliquid extends Exchange {
                 response = response.replace ('"', '');
                 response = response.replace ('"', '');
                 enableUnifiedMargin = response === 'unifiedAccount';
+                enablePortfolioMargin = response === 'portfolioMargin';
             }
             // don't cache this result if this is a different addresss
             this.options['enableUnifiedMargin'] = enableUnifiedMargin; // cache this for future calls
+            this.options['enablePortfolioMargin'] = enablePortfolioMargin;
         }
-        return [ enableUnifiedMargin, params ];
+        return [ enableUnifiedMargin, enablePortfolioMargin, params ];
     }
 
     /**
