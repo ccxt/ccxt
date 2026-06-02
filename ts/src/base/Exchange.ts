@@ -5816,11 +5816,11 @@ export default class Exchange {
                 this.last_request_url = request['url'];
                 const response = await this.fetch (request['url'], request['method'], request['headers'], request['body']);
                 requestData['response'] = response;
-                this.addRequestCache(requestData);
+                this.addRequestCache (requestData);
                 return response;
             } catch (e) {
                 requestData['error'] = e;
-                this.addRequestCache(requestData);
+                this.addRequestCache (requestData);
                 if (e instanceof OperationFailed) {
                     if (i < retries) {
                         if (this.verbose) {
