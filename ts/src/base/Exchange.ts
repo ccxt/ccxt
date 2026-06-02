@@ -5801,12 +5801,11 @@ export default class Exchange {
         [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
         let retryDelay = undefined;
         [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
+        let requestData: Dict = undefined;
         for (let i = 0; i < retries + 1; i++) {
-            const requestData = {
-                'request': undefined,
-                'response': undefined,
-                'error': undefined,
-            };
+            if (this.recentRequestsCacheSize > 0) {
+                requestData = { 'request': undefined, 'response': undefined, 'error': undefined };
+            }
             try {
                 this.lastRestRequestTimestamp = this.milliseconds ();
                 const request = this.sign (path, api, method, params, headers, body);
