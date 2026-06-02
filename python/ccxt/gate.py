@@ -1952,54 +1952,52 @@ class gate(Exchange, ImplicitAPI):
         #       },
         #    ]
         #
-        indexedCurrencies = self.index_by(response, 'currency')
-        result: dict = {}
-        for i in range(0, len(response)):
-            entry = response[i]
-            currencyId = self.safe_string(entry, 'currency')
-            code = self.safe_currency_code(currencyId)
-            # check leveraged tokens(e.g. BTC3S, ETH5L)
-            type = 'leveraged' if self.is_leveraged_currency(currencyId, True, indexedCurrencies) else 'crypto'
-            chains = self.safe_list(entry, 'chains', [])
-            networks = {}
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                networkId = self.safe_string(chain, 'name')
-                networkCode = self.network_id_to_code(networkId)
-                networks[networkCode] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': None,
-                    'deposit': not self.safe_bool(chain, 'deposit_disabled'),
-                    'withdraw': not self.safe_bool(chain, 'withdraw_disabled'),
-                    'fee': None,
-                    'precision': self.parse_number('0.0001'),  # temporary safe default, because no value provided from API,
-                    'limits': {
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'withdraw': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'id': currencyId,
-                'code': code,
-                'name': self.safe_string(entry, 'name'),
-                'type': type,
-                'active': not self.safe_bool(entry, 'delisted'),
-                'deposit': not self.safe_bool(entry, 'deposit_disabled'),
-                'withdraw': not self.safe_bool(entry, 'withdraw_disabled'),
+        return self.parse_currencies(response)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        currencyId = self.safe_string(rawCurrency, 'currency')
+        code = self.safe_currency_code(currencyId)
+        # check leveraged tokens(e.g. BTC3S, ETH5L)
+        type = 'leveraged' if self.is_leveraged_currency(currencyId) else 'crypto'
+        chains = self.safe_list(rawCurrency, 'chains', [])
+        networks = {}
+        for j in range(0, len(chains)):
+            chain = chains[j]
+            networkId = self.safe_string(chain, 'name')
+            networkCode = self.network_id_to_code(networkId)
+            networks[networkCode] = {
+                'info': chain,
+                'id': networkId,
+                'network': networkCode,
+                'active': None,
+                'deposit': not self.safe_bool(chain, 'deposit_disabled'),
+                'withdraw': not self.safe_bool(chain, 'withdraw_disabled'),
                 'fee': None,
-                'networks': networks,
-                'precision': self.parse_number('0.0001'),
-                'info': entry,
-            })
-        return result
+                'precision': self.parse_number('0.0001'),  # temporary safe default, because no value provided from API,
+                'limits': {
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            }
+        return self.safe_currency_structure({
+            'id': currencyId,
+            'code': code,
+            'name': self.safe_string(rawCurrency, 'name'),
+            'type': type,
+            'active': not self.safe_bool(rawCurrency, 'delisted'),
+            'deposit': not self.safe_bool(rawCurrency, 'deposit_disabled'),
+            'withdraw': not self.safe_bool(rawCurrency, 'withdraw_disabled'),
+            'fee': None,
+            'networks': networks,
+            'precision': self.parse_number('0.0001'),
+            'info': rawCurrency,
+        })
 
     def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
