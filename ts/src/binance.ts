@@ -1647,7 +1647,7 @@ export default class binance extends Exchange {
                         'symbolRequired': true,
                     },
                     'fetchOHLCV': {
-                        'limit': 499,
+                        'limit': 500,
                     },
                 },
                 'swap': {
