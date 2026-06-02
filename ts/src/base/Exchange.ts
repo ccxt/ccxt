@@ -310,7 +310,7 @@ export default class Exchange {
     last_request_body: any = undefined;
     last_request_url: string = undefined;
     last_request_path: string = undefined;
-    recentRequestsData: Dictionary<any>[] = [];
+    recentRequestsCache: Dictionary<any>[] = [];
     recentRequestsCacheSize: number = 0;
 
     id: string = 'Exchange';
@@ -867,14 +867,14 @@ export default class Exchange {
         if (this.recentRequestsCacheSize <= 0) {
             return;
         }
-        if (this.recentRequestsData.length >= this.recentRequestsCacheSize) {
-            this.recentRequestsData.shift ();
+        if (this.recentRequestsCache.length >= this.recentRequestsCacheSize) {
+            this.recentRequestsCache.shift ();
         }
-        this.recentRequestsData.push (data);
+        this.recentRequestsCache.push (data);
     }
 
     getRequestsData () {
-        return this.recentRequestsData;
+        return this.recentRequestsCache;
     }
 
     isBinaryMessage (msg) {

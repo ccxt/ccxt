@@ -132,7 +132,7 @@ public partial class Exchange
     }
     public object last_request_url { get; set; }
 
-    public readonly System.Collections.Concurrent.ConcurrentQueue<Dictionary<string, object>> recentRequestsData = new ();
+    public readonly System.Collections.Concurrent.ConcurrentQueue<Dictionary<string, object>> recentRequestsCache = new ();
 
     public int recentRequestsCacheSize = 0;
 

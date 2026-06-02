@@ -48,14 +48,14 @@ public partial class Exchange
         if (recentRequestsCacheSize <= 0) {
             return;
         }
-        recentRequestsData.Enqueue(data);
-        while (recentRequestsData.Count > recentRequestsCacheSize)
-            recentRequestsData.TryDequeue(out _); // drops olde
+        recentRequestsCache.Enqueue(data);
+        while (recentRequestsCache.Count > recentRequestsCacheSize)
+            recentRequestsCache.TryDequeue(out _); // drops olde
     }
 
     public List<Dictionary<string, object>> getRecentRequests()
     {
-        return recentRequestsData.ToList();
+        return recentRequestsCache.ToList();
     }
     // public object buildOHLCVC(object trades, object timeframe, object since, object limit)
     // {

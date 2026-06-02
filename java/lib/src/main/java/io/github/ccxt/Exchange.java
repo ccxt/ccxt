@@ -159,7 +159,7 @@ public class Exchange {
     public volatile Object last_http_response;
     public volatile Object last_request_body;
     public volatile Object last_request_url;
-    public final ConcurrentLinkedQueue<Map<String, Object>> recentRequestsData = new ConcurrentLinkedQueue<>();
+    public final ConcurrentLinkedQueue<Map<String, Object>> recentRequestsCache = new ConcurrentLinkedQueue<>();
     public int recentRequestsCacheSize = 0;
 
     public boolean returnResponseHeaders = false;
@@ -541,13 +541,13 @@ public class Exchange {
         if (recentRequestsCacheSize <= 0) {
             return;
         }
-        recentRequestsData.offer(data);
-        while (recentRequestsData.size() > recentRequestsCacheSize)
-            recentRequestsData.poll(); // drops oldest
+        recentRequestsCache.offer(data);
+        while (recentRequestsCache.size() > recentRequestsCacheSize)
+            recentRequestsCache.poll(); // drops oldest
     }
 
     public List<Map<String, Object>> getRecentRequests() {
-        return new ArrayList<>(recentRequestsData);
+        return new ArrayList<>(recentRequestsCache);
     }
 
     // === HELPERS === //
