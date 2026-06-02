@@ -1639,7 +1639,7 @@ class binance extends Exchange {
                         'symbolRequired' => true,
                     ),
                     'fetchOHLCV' => array(
-                        'limit' => 1500,
+                        'limit' => 500,
                     ),
                 ),
                 'swap' => array(
