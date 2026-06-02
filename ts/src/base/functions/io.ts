@@ -155,8 +155,11 @@ export function existsFile (path: string): boolean {
  */
 
 export function filePathToFileUrlForWindows (filePath: string): string {
-    if (os.platform() === 'win32') {
-        return pathToFileURL(filePath).href;
+    if (filePath.startsWith ('file://')) {
+        return filePath;
+    }
+    if (os.platform () === 'win32') {
+        return pathToFileURL (filePath).href;
     }
     return filePath;
 }
