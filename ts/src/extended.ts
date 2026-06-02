@@ -2241,7 +2241,7 @@ export default class extended extends Exchange {
         const request: Dict = {};
         if (symbols !== undefined) {
             const marketIds = this.marketIds (symbols);
-            request['market'] = (marketIds.length === 1) ? marketIds[0] : marketIds;
+            request['market'] = marketIds;
         }
         const response = await this.v1PrivateGetUserPositions (this.extend (request, params));
         //
@@ -2317,7 +2317,7 @@ export default class extended extends Exchange {
         const request: Dict = {};
         if (symbols !== undefined) {
             const marketIds = this.marketIds (symbols);
-            request['market'] = (marketIds.length === 1) ? marketIds[0] : marketIds;
+            request['market'] = marketIds;
         }
         const response = await this.v1PrivateGetUserPositionsHistory (this.extend (request, params));
         //
@@ -2664,17 +2664,22 @@ export default class extended extends Exchange {
                 const stopLossExecutionPrice = this.safeString (stopLoss, 'price');
                 const stopLossType = this.safeString (stopLoss, 'type');
                 const stopLossSettlement = this.createOrderSettlementData (!isBuy, amountString, stopLossExecutionPrice, settlementParams);
-                request['stopLoss'] = {
+                const requestStopLoss = {
                     'triggerPrice': this.priceToPrecision (symbol, stopLossTrigger),
-                    'triggerPriceType': stopLossTriggerPriceType,
                     'price': this.priceToPrecision (symbol, stopLossExecutionPrice),
-                    'priceType': stopLossType,
                     'settlement': {
                         'signature': { 'r': stopLossSettlement['r'], 's': stopLossSettlement['s'] },
                         'starkKey': starkKey,
                         'collateralPosition': collateralPosition,
                     },
                 };
+                if (stopLossTriggerPriceType!== undefined) {
+                    requestStopLoss['triggerPriceType'] = stopLossTriggerPriceType;
+                }
+                if (stopLossType!== undefined) {
+                    requestStopLoss['priceType'] = stopLossType;
+                }
+                request['stopLoss'] = requestStopLoss;
             }
             if (hasTakeProfit) {
                 const takeProfitTrigger = this.safeString (takeProfit, 'triggerPrice');
@@ -2682,17 +2687,22 @@ export default class extended extends Exchange {
                 const takeProfitExecutionPrice = this.safeString (takeProfit, 'price');
                 const takeProfitType = this.safeString (takeProfit, 'type');
                 const takeProfitSettlement = this.createOrderSettlementData (!isBuy, amountString, takeProfitExecutionPrice, settlementParams);
-                request['takeProfit'] = {
+                const requestTakeProfit = {
                     'triggerPrice': this.priceToPrecision (symbol, takeProfitTrigger),
-                    'triggerPriceType': takeProfitTriggerPriceType,
                     'price': this.priceToPrecision (symbol, takeProfitExecutionPrice),
-                    'priceType': takeProfitType,
                     'settlement': {
                         'signature': { 'r': takeProfitSettlement['r'], 's': takeProfitSettlement['s'] },
                         'starkKey': starkKey,
                         'collateralPosition': collateralPosition,
                     },
                 };
+                if (takeProfitTriggerPriceType!== undefined) {
+                    requestTakeProfit['triggerPriceType'] = takeProfitTriggerPriceType;
+                }
+                if (takeProfitType!== undefined) {
+                    requestTakeProfit['priceType'] = takeProfitType;
+                }
+                request['takeProfit'] = requestTakeProfit;
             }
         } else {
             if (triggerPriceStr !== undefined) {
@@ -2932,16 +2942,22 @@ export default class extended extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderIds', 'client_order_ids', 'clientOrderId', 'client_id', 'externalOrderIds', 'external_order_ids', 'orderIds', 'order_ids', 'markets', 'cancelAll', 'cancel_all' ]);
         const request: Dict = {};
-        const hasOrderIds = (ids !== undefined) && (ids.length > 0);
+        const hasOrderIds = Array.isArray (ids);
         if (hasOrderIds) {
-            request['orderIds'] = ids;
+            const idsLength = ids.length;
+            if (idsLength > 0) {
+                request['orderIds'] = ids;
+            }
         }
         if (clientOrderIds === undefined && clientOrderId !== undefined) {
             clientOrderIds = [ clientOrderId ];
         }
-        const hasClientOrderIds = (clientOrderIds !== undefined) && (clientOrderIds.length > 0);
+        const hasClientOrderIds = Array.isArray (clientOrderIds);
         if (hasClientOrderIds) {
-            request['externalOrderIds'] = clientOrderIds;
+            const clientOrderIdsLength = clientOrderIds.length;
+            if (clientOrderIdsLength > 0) {
+                request['externalOrderIds'] = clientOrderIds;
+            }
         }
         if (!hasOrderIds && !hasClientOrderIds) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires an ids argument or clientOrderIds parameter');

@@ -188,7 +188,7 @@
                 "method": "fetchOrder",
                 "url": "https://api.starknet.extended.exchange/api/v1/user/orders/external/3480985089570526249141260266819446928410958787024864860785196119336740291620",
                 "input": [
-                    null,
+                    "",
                     "BTC/USDC:USDC",
                     {
                         "clientOrderId": "3480985089570526249141260266819446928410958787024864860785196119336740291620"
@@ -439,7 +439,7 @@
                 "method": "cancelOrder",
                 "url": "https://api.starknet.extended.exchange/api/v1/user/order?externalId=3480985089570526249141260266819446928410958787024864860785196119336740291620",
                 "input": [
-                    null,
+                    "",
                     "BTC/USDC:USDC",
                     {
                         "clientOrderId": "3480985089570526249141260266819446928410958787024864860785196119336740291620"
