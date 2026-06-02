@@ -3611,8 +3611,8 @@ public partial class cryptocom : Exchange
             paramsKeys = obj;
         } else
         {
-            object sorted = this.keysort(obj);
-            paramsKeys = new List<object>(((IDictionary<string,object>)sorted).Keys);
+            object objectKeys = new List<object>(((IDictionary<string,object>)obj).Keys);
+            paramsKeys = this.sort(objectKeys);
         }
         for (object i = 0; isLessThan(i, getArrayLength(paramsKeys)); postFixIncrement(ref i))
         {
