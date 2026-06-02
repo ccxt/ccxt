@@ -3334,8 +3334,8 @@ class cryptocom extends cryptocom$1["default"] {
             paramsKeys = object;
         }
         else {
-            const sorted = this.keysort(object);
-            paramsKeys = Object.keys(sorted);
+            const objectKeys = Object.keys(object);
+            paramsKeys = this.sort(objectKeys);
         }
         for (let i = 0; i < paramsKeys.length; i++) {
             const key = paramsKeys[i];
