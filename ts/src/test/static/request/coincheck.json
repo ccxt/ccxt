@@ -2,6 +2,15 @@
     "exchange": "coincheck",
     "outputType": "both",
     "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetch markets",
+                "method": "fetchMarkets",
+                "url": "https://coincheck.com/api/exchange_status",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchStatus": [
             {
                 "description": "fetch status",
