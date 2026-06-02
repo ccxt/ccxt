@@ -22,7 +22,7 @@
         "inverse": null,
         "subType": null,
         "taker": 0.003,
-        "maker": 0.001,
+        "maker": 0.003,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -64,7 +64,7 @@
             "min_amount": "1",
             "price_precision": "2",
             "commission_taker_percent": "0.3",
-            "commission_maker_percent": "0.1"
+            "commission_maker_percent": "0.3"
         },
         "tierBased": true,
         "percentage": true,
@@ -93,7 +93,7 @@
         "inverse": null,
         "subType": null,
         "taker": 0.003,
-        "maker": 0.001,
+        "maker": 0.003,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -135,7 +135,7 @@
             "min_amount": "1",
             "price_precision": "2",
             "commission_taker_percent": "0.3",
-            "commission_maker_percent": "0.1"
+            "commission_maker_percent": "0.3"
         },
         "tierBased": true,
         "percentage": true,
@@ -172,7 +172,7 @@
         "optionType": null,
         "precision": {
             "amount": 1e-8,
-            "price": 0.000001
+            "price": 0.01
         },
         "limits": {
             "leverage": {
@@ -204,7 +204,7 @@
             "max_price": "10000",
             "max_amount": "500000",
             "min_amount": "1",
-            "price_precision": "6",
+            "price_precision": "2",
             "commission_taker_percent": "0.3",
             "commission_maker_percent": "0.3"
         },
@@ -243,7 +243,7 @@
         "optionType": null,
         "precision": {
             "amount": 1e-8,
-            "price": 0.0001
+            "price": 0.01
         },
         "limits": {
             "leverage": {
@@ -275,7 +275,7 @@
             "max_price": "100000",
             "max_amount": "500000",
             "min_amount": "1",
-            "price_precision": "4",
+            "price_precision": "2",
             "commission_taker_percent": "0.3",
             "commission_maker_percent": "0.3"
         },
@@ -305,8 +305,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.002,
-        "maker": 0.002,
+        "taker": 0.001,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -347,8 +347,8 @@
             "max_amount": "700000",
             "min_amount": "1",
             "price_precision": "2",
-            "commission_taker_percent": "0.2",
-            "commission_maker_percent": "0.2"
+            "commission_taker_percent": "0.1",
+            "commission_maker_percent": "0.1"
         },
         "tierBased": true,
         "percentage": true,
@@ -376,8 +376,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.002,
-        "maker": 0.002,
+        "taker": 0.001,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -385,7 +385,7 @@
         "optionType": null,
         "precision": {
             "amount": 1e-8,
-            "price": 1e-8
+            "price": 0.0001
         },
         "limits": {
             "leverage": {
@@ -417,9 +417,9 @@
             "max_price": "1000",
             "max_amount": "500000",
             "min_amount": "0.01",
-            "price_precision": "8",
-            "commission_taker_percent": "0.2",
-            "commission_maker_percent": "0.2"
+            "price_precision": "4",
+            "commission_taker_percent": "0.1",
+            "commission_maker_percent": "0.1"
         },
         "tierBased": true,
         "percentage": true,
@@ -447,8 +447,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.002,
-        "maker": 0.002,
+        "taker": 0.001,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -456,7 +456,7 @@
         "optionType": null,
         "precision": {
             "amount": 1e-8,
-            "price": 1e-8
+            "price": 0.001
         },
         "limits": {
             "leverage": {
@@ -488,9 +488,9 @@
             "max_price": "1000",
             "max_amount": "500000",
             "min_amount": "0.001",
-            "price_precision": "8",
-            "commission_taker_percent": "0.2",
-            "commission_maker_percent": "0.2"
+            "price_precision": "3",
+            "commission_taker_percent": "0.1",
+            "commission_maker_percent": "0.1"
         },
         "tierBased": true,
         "percentage": true,
@@ -518,8 +518,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.002,
-        "maker": 0.002,
+        "taker": 0.001,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -527,7 +527,7 @@
         "optionType": null,
         "precision": {
             "amount": 1e-8,
-            "price": 0.000001
+            "price": 0.01
         },
         "limits": {
             "leverage": {
@@ -559,9 +559,9 @@
             "max_price": "10000",
             "max_amount": "500000",
             "min_amount": "1",
-            "price_precision": "6",
-            "commission_taker_percent": "0.2",
-            "commission_maker_percent": "0.2"
+            "price_precision": "2",
+            "commission_taker_percent": "0.1",
+            "commission_maker_percent": "0.1"
         },
         "tierBased": true,
         "percentage": true,
@@ -589,8 +589,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.002,
-        "maker": 0.002,
+        "taker": 0.001,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -598,7 +598,7 @@
         "optionType": null,
         "precision": {
             "amount": 1e-8,
-            "price": 0.000001
+            "price": 0.01
         },
         "limits": {
             "leverage": {
@@ -630,9 +630,9 @@
             "max_price": "10000",
             "max_amount": "500000",
             "min_amount": "1",
-            "price_precision": "6",
-            "commission_taker_percent": "0.2",
-            "commission_maker_percent": "0.2"
+            "price_precision": "2",
+            "commission_taker_percent": "0.1",
+            "commission_maker_percent": "0.1"
         },
         "tierBased": true,
         "percentage": true,
@@ -660,8 +660,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.002,
-        "maker": 0.002,
+        "taker": 0.001,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -669,7 +669,7 @@
         "optionType": null,
         "precision": {
             "amount": 1e-8,
-            "price": 0.0001
+            "price": 0.01
         },
         "limits": {
             "leverage": {
@@ -701,9 +701,9 @@
             "max_price": "100000",
             "max_amount": "500000",
             "min_amount": "1",
-            "price_precision": "4",
-            "commission_taker_percent": "0.2",
-            "commission_maker_percent": "0.2"
+            "price_precision": "2",
+            "commission_taker_percent": "0.1",
+            "commission_maker_percent": "0.1"
         },
         "tierBased": true,
         "percentage": true,
