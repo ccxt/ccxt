@@ -598,6 +598,7 @@ class bitrue extends bitrue$1["default"] {
                     "You don't have permission.": errors.PermissionDenied,
                     'Market is closed.': errors.ExchangeNotAvailable,
                     'Too many requests. Please try again later.': errors.DDoSProtection,
+                    'quantity less then minQty': errors.InvalidOrder,
                     '-1000': errors.ExchangeNotAvailable,
                     '-1001': errors.ExchangeNotAvailable,
                     '-1002': errors.AuthenticationError,
