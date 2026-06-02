@@ -1,6 +1,7 @@
 // ----------------------------------------------------------------------------
 /* eslint-disable max-classes-per-file */
 import fs from 'fs';
+import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import assert from 'assert';
 import ccxt, { Exchange } from '../../ccxt.js';
@@ -58,7 +59,7 @@ function getCliArgValue (arg) {
 const fileParts = import.meta.url.split ('.');
 const EXT = fileParts[fileParts.length - 1];
 const LANG = 'JS';
-const ROOT_DIR = DIR_NAME + '/../../../';
+const ROOT_DIR = path.resolve (path.dirname (DIR_NAME), '..', '..', '..');
 const ENV_VARS = process.env;
 const NEW_LINE = '\n';
 const LOG_CHARS_LENGTH = 10000;

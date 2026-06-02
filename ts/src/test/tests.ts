@@ -1333,11 +1333,11 @@ class testMainClass {
         // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
         // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
-        // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         const basePath = getRootDir () + 'ts/src/test/static/binaries/';
         if (exchangeName === 'lighter') {
             if (this.lang === 'JS') {
-                wasmExecPath = basePath + 'wasm_exec.js';
+                const basePathForWasm =  getRootDir () + '/src/test/static/binaries/'; // idk, this is working on POSIX
+                wasmExecPath = basePathForWasm + 'wasm_exec.js';
                 libraryPath = basePath + 'lighter.wasm';
             } else {
                 if (isWindows ()) {
@@ -1362,6 +1362,7 @@ class testMainClass {
             "currencies":currencies,
             "enableRateLimit":false,
             "rateLimit":1,
+            // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
             "httpProxy":"http://fake:8080",
             "httpsProxy":"http://fake:8080",
             "apiKey":"key",
