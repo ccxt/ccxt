@@ -398,7 +398,7 @@ class Exchange(object):
     last_request_url = None
     last_request_headers = None
     recent_requests_cache_size = 0
-    rrecent_requests_cache = collections.deque(0)
+    rrecent_requests_cache = collections.deque(maxlen=0)
 
     requiresEddsa = False
     base58_encoder = None
@@ -562,7 +562,8 @@ class Exchange(object):
     def add_request_cache(self, data):
         if self.recent_requests_cache_size <= 0:
             return
-        if (self.rrecent_requests_cache is None):
+        length = self.rrecent_requests_cache.length
+        if (length == 0):
             self.rrecent_requests_cache = collections.deque(maxlen=self.recent_requests_cache_size)
         self.rrecent_requests_cache.append(data)
 

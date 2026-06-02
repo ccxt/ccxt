@@ -301,7 +301,7 @@ function helperTestProperties () {
     assert (testSharedMethods.exchangeProp (exchange, 'accountsById') === undefined, 'accountsById should be undefined');
     // @SKIP_END_GO
     testSharedMethods.assertDeepEqual (exchange, {}, 'commonCurrencies', testSharedMethods.exchangeProp (exchange, 'commonCurrencies'), { 'XBT': 'BTC', 'BCHSV': 'BSV' });
-    const recentRequestsCache = testSharedMethods.exchangeProp (exchange, 'recentRequestsCache');
+    const recentRequestsCache = exchange.getRequestsCache ();
     assert (recentRequestsCache.length === 0, 'recentRequestsCache should be an empty array');
 }
 
