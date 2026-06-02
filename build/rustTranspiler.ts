@@ -2288,6 +2288,23 @@ class RustTranspilerBuilder {
      * inside `safe_value`) — meaningful in parsers that loop over
      * thousands of items, where every parsed field is a `safe_*` call.
      */
+    /**
+     * Upstream's Java port introduced a `const finalX = X; // java req`
+     * idiom in ~14 TS files where the alias is later mutated independently
+     * (Java's mutable locals). TS does value-copy semantics so the original
+     * stays live; the Rust transpiler emits `let mut finalX: Value = X;`
+     * which MOVES the value, and subsequent `&X` references then fail to
+     * borrow. The TS author marked these with a trailing `// java req`
+     * comment — append `.clone()` to every emitted `... = <ident>; // java req`
+     * line so the original `X` survives the alias.
+     */
+    rewriteJavaReqAliases(content: string): string {
+        return content.replace(
+            /^(\s*let\s+(?:mut\s+)?\w+\s*:\s*Value\s*=\s*)(\w+)(\s*;\s*\/\/\s*java\s*req\s*)$/gm,
+            (_, lhs, ident, tail) => `${lhs}${ident}.clone()${tail}`,
+        );
+    }
+
     rewriteLiteralKeySafeCalls(content: string): string {
         const variants = ['value', 'string', 'integer', 'float', 'number', 'bool', 'dict', 'list'];
         const variantRe = variants.join('|');
@@ -4292,6 +4309,7 @@ impl std::ops::DerefMut for ${coreName} {
                 result = this.transpiler.transpileRustByPath(tsPath);
                 rustContent = this.createRustExchange(exchangeName, result, ws);
                 rustContent = this.rewriteLiteralKeySafeCalls(rustContent);
+                rustContent = this.rewriteJavaReqAliases(rustContent);
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -4599,7 +4617,8 @@ impl std::ops::DerefMut for ${coreName} {
             // serialization in URL/JSON payloads).
             .replace(/\bstd::collections::HashMap\b/g, 'indexmap::IndexMap');
 
-        const finalFile = this.rewriteLiteralKeySafeCalls(file);
+        let finalFile = this.rewriteLiteralKeySafeCalls(file);
+        finalFile = this.rewriteJavaReqAliases(finalFile);
         fs.writeFileSync(BASE_METHODS_FILE, finalFile);
         log.green('Transpiled base methods to', (BASE_METHODS_FILE as any).yellow);
     }
