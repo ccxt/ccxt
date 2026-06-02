@@ -1645,7 +1645,7 @@ public partial class binance : Exchange
                         { "symbolRequired", true },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
-                        { "limit", 1500 },
+                        { "limit", 500 },
                     } },
                 } },
                 { "swap", new Dictionary<string, object>() {
