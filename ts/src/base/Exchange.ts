@@ -868,9 +868,9 @@ export default class Exchange {
             return;
         }
         if (this.recentRequestsData.length >= this.recentRequestsDataSize) {
-            this.recentRequestsData.shift();
+            this.recentRequestsData.shift ();
         }
-        this.recentRequestsData.push(data);
+        this.recentRequestsData.push (data);
     }
 
     getRequestsData () {
