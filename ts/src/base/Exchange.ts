@@ -863,7 +863,7 @@ export default class Exchange {
         return undefined;
     }
 
-    addRequestCache(data) {
+    addRequestCache (data) {
         if (this.recentRequestsCacheSize <= 0) {
             return;
         }

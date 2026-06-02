@@ -397,8 +397,8 @@ class Exchange(object):
     last_request_body = None
     last_request_url = None
     last_request_headers = None
-    rrecent_requests_cache = None
     recent_requests_cache_size = 0
+    rrecent_requests_cache = collections.deque(0)
 
     requiresEddsa = False
     base58_encoder = None
