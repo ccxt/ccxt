@@ -3957,8 +3957,8 @@ func (this *CryptocomCore) ParamsToString(object any, level any) any {
 	if IsTrue(IsArray(object)) {
 		paramsKeys = object
 	} else {
-		var sorted any = this.Keysort(object)
-		paramsKeys = ObjectKeys(sorted)
+		var objectKeys any = ObjectKeys(object)
+		paramsKeys = this.Sort(objectKeys)
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(paramsKeys)); i++ {
 		var key any = GetValue(paramsKeys, i)
