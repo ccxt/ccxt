@@ -3175,8 +3175,8 @@ class cryptocom(Exchange, ImplicitAPI):
         if isinstance(object, list):
             paramsKeys = object
         else:
-            sorted = self.keysort(object)
-            paramsKeys = list(sorted.keys())
+            objectKeys = list(object.keys())
+            paramsKeys = self.sort(objectKeys)
         for i in range(0, len(paramsKeys)):
             key = paramsKeys[i]
             returnString += key
