@@ -3055,6 +3055,31 @@ class RustTranspilerBuilder {
     }
 
     /**
+     * Fix the "mutating-a-clone" bug for nested-key writes on `self.<field>`.
+     *
+     * TS source like `this.options['k1'][k2] = v` is emitted as
+     *   `get_value_mut(&mut self.options.clone(), <k1>)`
+     * inside an `add_element_to_object(...)` call. The `&mut … .clone()` was
+     * added so the borrow checker would accept the expression, but it
+     * mutably borrows a *temporary* clone — the assignment never reaches
+     * `self.options`. The transpiled bitstamp / kraken / okx / … parsers
+     * that accumulate per-call state into `self.options` silently fail
+     * (`parse_currency` looks up the just-written key and gets `Value::Null`).
+     *
+     * Rewrite to an unsafe-pointer cast that forges `&mut self.<field>` from
+     * `&self`. Inner `Arc<HashMap>` mutation goes through `Arc::make_mut`
+     * (copy-on-write) so concurrent clones held elsewhere see their
+     * consistent snapshot. Mirrors the existing `coerce_to_mut_unsafe`
+     * pattern in `exchange_stubs.rs` (used by `set_*`/`init_*` helpers).
+     */
+    rewriteSelfFieldMutCloneCast(content: string): string {
+        return content.replace(
+            /get_value_mut\(\s*&mut\s+self\.([a-zA-Z_][a-zA-Z0-9_]*)\.clone\(\)\s*,/g,
+            'get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.$1) },',
+        );
+    }
+
+    /**
      * Paren-balanced walker over `ternary(...)` calls. Clones bare-ident
      * args (otherwise they get moved).
      */
@@ -4115,6 +4140,7 @@ ${isBase
         content = this.stripMutSelfFieldClones(content);
         content = this.splitAddElementBorrowConflicts(content);
         content = this.splitGetValueMutAdds(content);
+        content = this.rewriteSelfFieldMutCloneCast(content);
         content = this.writeBackIndexedMutations(content);
         // Propagate async-ness through the call graph: keep iterating
         // mark-async-if-body-awaits + append-await-to-callers until fixed.
@@ -4663,6 +4689,7 @@ impl std::ops::DerefMut for ${coreName} {
         // Same pattern but using get_value_mut(&mut X, ...) as the LHS.
         // Paren-balanced walker (the old regex couldn't handle nested parens).
         basePart = this.splitGetValueMutAdds(basePart);
+        basePart = this.rewriteSelfFieldMutCloneCast(basePart);
 
         // Add `.await` to `return self.X(...);` calls when X is async. The
         // ast-transpiler only emits `.await` when the source had explicit
@@ -4856,6 +4883,7 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.stripMutSelfFieldClones(content);
                 content = this.splitAddElementBorrowConflicts(content);
                 content = this.splitGetValueMutAdds(content);
+                content = this.rewriteSelfFieldMutCloneCast(content);
                 // Async propagation — mark fns async when their body
                 // contains `.await`.
                 content = this.markMethodsAsyncIfBodyAwaits(content);
@@ -5541,6 +5569,7 @@ impl std::ops::DerefMut for ${coreName} {
         );
         content = this.splitAddElementBorrowConflicts(content);
         content = this.splitGetValueMutAdds(content);
+        content = this.rewriteSelfFieldMutCloneCast(content);
         content = this.markMethodsAsyncIfBodyAwaits(content);
         // Belt + braces: mark a fn async if its body holds `.await`.
         content = content.replace(
@@ -5822,6 +5851,7 @@ impl std::ops::DerefMut for ${coreName} {
             content = this.stripMutSelfFieldClones(content);
             content = this.splitAddElementBorrowConflicts(content);
             content = this.splitGetValueMutAdds(content);
+            content = this.rewriteSelfFieldMutCloneCast(content);
             content = this.appendValueNullToVoidEnds(content);
             // Strip `mut` from struct field declarations — Rust fields
             // don't take `mut`, mutability is part of the binding.
