@@ -1,5 +1,6 @@
 /*  ------------------------------------------------------------------------ */
 
+import path from 'node:path';
 import { isNode } from './platform.js';
 
 /*  ------------------------------------------------------------------------ */
@@ -7,7 +8,6 @@ import { isNode } from './platform.js';
 let fsSyncModule: any = null;
 let osSyncModule: any = null;
 let pathSyncModule: any = null;
-let urlSyncModule: any = null;
 
 /*  ------------------------------------------------------------------------ */
 
@@ -32,11 +32,6 @@ export async function initFileSystem () {
             try {
                 pathSyncModule = await import(/* webpackIgnore: true */ 'node:path');
             } catch (e) { } // Silent fail in browser or if path is unavailable
-        }
-        if (urlSyncModule === null) {
-            try {
-                urlSyncModule = await import(/* webpackIgnore: true */ 'node:url');
-            } catch (e) { } // Silent fail in browser or if url is unavailable
         }
     }
 }
@@ -145,24 +140,4 @@ export function existsFile (path: string): boolean {
     } catch (e) {
         return false;
     }
-}
-
-
-/*  ------------------------------------------------------------------------ */
-
-/**
- * Convert file-path to file-url format on Windows, to avoid ESM loader error when using absolute paths, like:
- * Error [ERR_UNSUPPORTED_ESM_URL_SCHEME]: Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'd:' at throwIfUnsupportedURLScheme (node:internal/modules/esm/load:195:11)
- * @param filePath File path to check
- * @returns filepath original or converted to file URL format on Windows
- */
-
-export function filePathToFileUrlForWindows (filePath: string): string {
-    if (filePath.startsWith ('file://')) {
-        return filePath;
-    }
-    if (osSyncModule.platform () === 'win32') {
-        return urlSyncModule.pathToFileURL(filePath).href;
-    }
-    return filePath;
 }
