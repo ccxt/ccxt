@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coincheck.js';
-import { BadSymbol, ExchangeError, AuthenticationError, ArgumentsRequired } from './base/errors.js';
+import { BadSymbol, ExchangeError, AuthenticationError, ArgumentsRequired, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int } from './base/types.js';
@@ -123,6 +123,7 @@ export default class coincheck extends Exchange {
                 'public': {
                     'get': [
                         'exchange/orders/rate',
+                        'exchange_status',
                         'order_books',
                         'rate/{pair}',
                         'ticker',
@@ -136,6 +137,8 @@ export default class coincheck extends Exchange {
                         'accounts/leverage_balance',
                         'bank_accounts',
                         'deposit_money',
+                        'exchange/orders/{id}',
+                        'exchange/orders/cancel_status',
                         'exchange/orders/opens',
                         'exchange/orders/transactions',
                         'exchange/orders/transactions_pagination',
@@ -256,6 +259,7 @@ export default class coincheck extends Exchange {
                 'exact': {
                     'disabled API Key': AuthenticationError, // {"success":false,"error":"disabled API Key"}'
                     'invalid authentication': AuthenticationError, // {"success":false,"error":"invalid authentication"}
+                    'too_many_requests': RateLimitExceeded, // {"success":false,"error":"too_many_requests"}
                 },
                 'broad': {},
             },
@@ -284,7 +288,7 @@ export default class coincheck extends Exchange {
      * @method
      * @name coincheck#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://coincheck.com/documents/exchange/api#order-transactions-pagination
+     * @see https://coincheck.com/documents/exchange/api#account-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
