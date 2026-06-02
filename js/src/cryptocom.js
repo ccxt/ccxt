@@ -565,7 +565,8 @@ export default class cryptocom extends Exchange {
             response = await this.v1PrivatePostPrivateGetCurrencyNetworks(params);
         }
         catch (e) {
-            if (e instanceof ExchangeError) {
+            const erString = this.exceptionMessage(e);
+            if (erString.indexOf('"msg":"SYS_ERROR"') >= 0) {
                 // sub-accounts can't access this endpoint
                 // {"code":"10001","msg":"SYS_ERROR"}
                 return {};
@@ -618,55 +619,63 @@ export default class cryptocom extends Exchange {
         //
         const resultData = this.safeDict(response, 'result', {});
         const currencyMap = this.safeDict(resultData, 'currency_map', {});
-        const keys = Object.keys(currencyMap);
-        const result = {};
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const currency = currencyMap[key];
-            const id = key;
-            const code = this.safeCurrencyCode(id);
-            const networks = {};
-            const chains = this.safeList(currency, 'network_list', []);
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString(chain, 'network_id');
-                const network = this.networkIdToCode(networkId);
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'active': undefined,
-                    'deposit': this.safeBool(chain, 'deposit_enabled', false),
-                    'withdraw': this.safeBool(chain, 'withdraw_enabled', false),
-                    'fee': this.safeNumber(chain, 'withdrawal_fee'),
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(chain, 'min_withdrawal_amount'),
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'name': this.safeString(currency, 'full_name'),
+        const enhancedArray = this.addKeyInArrayItems(currencyMap, '_coin_id');
+        return this.parseCurrencies(enhancedArray);
+    }
+    parseCurrency(currency) {
+        const id = this.safeString(currency, '_coin_id');
+        const code = this.safeCurrencyCode(id);
+        const networks = {};
+        const chains = this.safeList(currency, 'network_list', []);
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString(chain, 'network_id');
+            const network = this.networkIdToCode(networkId, code);
+            networks[network] = {
+                'info': chain,
+                'id': networkId,
+                'network': network,
                 'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
+                'deposit': this.safeBool(chain, 'deposit_enabled', false),
+                'withdraw': this.safeBool(chain, 'withdraw_enabled', false),
+                'fee': this.safeNumber(chain, 'withdrawal_fee'),
                 'precision': undefined,
                 'limits': {
-                    'amount': {
-                        'min': undefined,
+                    'withdraw': {
+                        'min': this.safeNumber(chain, 'min_withdrawal_amount'),
                         'max': undefined,
                     },
                 },
-                'type': 'crypto',
-                'networks': networks,
-            });
+            };
+        }
+        return this.safeCurrencyStructure({
+            'info': currency,
+            'id': id,
+            'code': code,
+            'name': this.safeString(currency, 'full_name'),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'type': 'crypto',
+            'networks': networks,
+        });
+    }
+    addKeyInArrayItems(obj, keyName) {
+        const result = [];
+        const keys = Object.keys(obj);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const item = obj[key];
+            item[keyName] = key;
+            result.push(item);
         }
         return result;
     }

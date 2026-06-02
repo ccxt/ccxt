@@ -1647,7 +1647,7 @@ class binance extends binance$1["default"] {
                         'symbolRequired': true,
                     },
                     'fetchOHLCV': {
-                        'limit': 1500,
+                        'limit': 500,
                     },
                 },
                 'swap': {
