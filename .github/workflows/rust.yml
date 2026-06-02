@@ -118,7 +118,7 @@ jobs:
       #   with:
       #     name: go-files
       #     path: go/
-      - name: Upload Go Files
+      - name: Upload Rust Files
         uses: actions/upload-artifact@v4
         with:
           name: rust-files
@@ -159,7 +159,7 @@ jobs:
       #     name: rust-files
       #     path: rust/
       # - uses: actions/checkout@v4
-      - name: Download Go Binary
+      - name: Download Rust Binary
         uses: actions/download-artifact@v4
         with:
           name: rust-files
