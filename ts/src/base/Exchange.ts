@@ -863,7 +863,7 @@ export default class Exchange {
         return undefined;
     }
 
-    logRequestsData (data) {
+    addRequestCache(data) {
         if (this.recentRequestsCacheSize <= 0) {
             return;
         }
@@ -5816,11 +5816,11 @@ export default class Exchange {
                 this.last_request_url = request['url'];
                 const response = await this.fetch (request['url'], request['method'], request['headers'], request['body']);
                 requestData['response'] = response;
-                this.logRequestsData (requestData);
+                this.addRequestCache(requestData);
                 return response;
             } catch (e) {
                 requestData['error'] = e;
-                this.logRequestsData (requestData);
+                this.addRequestCache(requestData);
                 if (e instanceof OperationFailed) {
                     if (i < retries) {
                         if (this.verbose) {

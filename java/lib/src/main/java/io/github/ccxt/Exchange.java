@@ -537,7 +537,7 @@ public class Exchange {
         this.wss_proxy = v;
     }
 
-    public void logRequestData(Map<String, Object> data) {
+    public void addRequestCache(Map<String, Object> data) {
         if (recentRequestsCacheSize <= 0) {
             return;
         }
@@ -546,7 +546,7 @@ public class Exchange {
             recentRequestsCache.poll(); // drops oldest
     }
 
-    public List<Map<String, Object>> getRecentRequests() {
+    public List<Map<String, Object>> getRequestsCache() {
         return new ArrayList<>(recentRequestsCache);
     }
 

@@ -2129,10 +2129,10 @@ func (cl *ConcurrentListForRequests) GetAll() []any {
 
 var RecentRequestsCache = &ConcurrentListForRequests{}
 
-func (e *Exchange) LogRequestsData(item any) {
+func (e *Exchange) AddRequestCache(item any) {
 	RecentRequestsCache.Add(item)
 }
-func (e *Exchange) AnotherOutsideFunction() []any {
+func (e *Exchange) GetRequestsCache() []any {
 	return RecentRequestsCache.GetAll()
 }
 

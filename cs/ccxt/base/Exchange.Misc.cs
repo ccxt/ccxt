@@ -44,7 +44,7 @@ public partial class Exchange
         }
     }
 
-    public void logRequestData (Object data) {
+    public void addRequestCache(Object data) {
         if (recentRequestsCacheSize <= 0) {
             return;
         }
@@ -53,7 +53,7 @@ public partial class Exchange
             recentRequestsCache.TryDequeue(out _); // drops olde
     }
 
-    public List<Dictionary<string, object>> getRecentRequests()
+    public List<Dictionary<string, object>> getRequestsCache()
     {
         return recentRequestsCache.ToList();
     }

@@ -1313,7 +1313,7 @@ class Exchange {
         return file_exists($path);
     }
 
-    public function log_requests_data($data) {
+    public function add_request_cache($data) {
         if ($this->recent_requests_cache_size <= 0) {
             return;
         }
@@ -1323,7 +1323,7 @@ class Exchange {
         $this->rrecent_requests_cache[] = $data;
     }
 
-    public function get_requests_data() {
+    public function get_requests_cache() {
         return $this->rrecent_requests_cache;
     }
 

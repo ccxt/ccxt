@@ -559,14 +559,14 @@ class Exchange(object):
             return
         raise ValueError(f'invalid file path: {file_path}')
 
-    def log_requests_data(self, data):
+    def add_request_cache(self, data):
         if self.recent_requests_cache_size <= 0:
             return
         if (self.rrecent_requests_cache is None):
             self.rrecent_requests_cache = collections.deque(maxlen=self.recent_requests_cache_size)
         self.rrecent_requests_cache.append(data)
 
-    def get_requests_data(self):
+    def get_requests_cache(self):
         return self.rrecent_requests_cache
 
     @staticmethod
