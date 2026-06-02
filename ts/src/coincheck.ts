@@ -91,6 +91,7 @@ export default class coincheck extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -282,6 +283,50 @@ export default class coincheck extends Exchange {
             }
         }
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name coincheck#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://coincheck.com/documents/exchange/api#exchange-status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+     */
+    async fetchStatus (params = {}) {
+        const response = await this.publicGetExchangeStatus (params);
+        //
+        //     {
+        //         "exchange_status": [
+        //             {
+        //                 "pair": "btc_jpy",
+        //                 "status": "available",
+        //                 "timestamp": 1780367907,
+        //                 "availability": {
+        //                     "order": true,
+        //                     "market_order": true,
+        //                     "cancel": true
+        //                 }
+        //             },
+        //         ]
+        //     }
+        //
+        const exchangeStatus = this.safeList (response, 'exchange_status', []);
+        let status = 'ok';
+        for (let i = 0; i < exchangeStatus.length; i++) {
+            const entry = exchangeStatus[i];
+            const statusRaw = this.safeString (entry, 'status');
+            if (statusRaw !== 'available') {
+                status = 'maintenance';
+            }
+        }
+        return {
+            'status': status,
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
     }
 
     /**

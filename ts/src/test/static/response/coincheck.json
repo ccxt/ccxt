@@ -1,0 +1,48 @@
+{
+    "exchange": "coincheck",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchStatus": [
+            {
+                "description": "fetch status",
+                "method": "fetchStatus",
+                "input": [],
+                "httpResponse": {
+                    "exchange_status": [
+                        {
+                            "pair": "btc_jpy",
+                            "status": "available",
+                            "timestamp": 1780367907,
+                            "availability": {
+                                "order": true,
+                                "market_order": true,
+                                "cancel": true
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "status": "ok",
+                    "updated": null,
+                    "eta": null,
+                    "url": null,
+                    "info": {
+                        "exchange_status": [
+                            {
+                                "pair": "btc_jpy",
+                                "status": "available",
+                                "timestamp": 1780367907,
+                                "availability": {
+                                    "order": true,
+                                    "market_order": true,
+                                    "cancel": true
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        ]
+    }
+}
