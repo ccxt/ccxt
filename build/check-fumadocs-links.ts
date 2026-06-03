@@ -51,6 +51,8 @@ function main () {
             const to = m[1] ?? url;
             const frag = (m[2] ?? '').replace(/^#/, '');
             if (!to.startsWith('/')) continue;                 // internal only
+            if (/^\/_next\//.test(to)) continue;               // build assets (hashed chunks)
+            if (/\.(css|m?js|json|png|jpe?g|svg|ico|webp|gif|xml|txt|woff2?|map)$/i.test(to)) continue;
             const key = `${to}#${frag}`;
             if (!links.has(key)) links.set(key, { to, frag, from: url });
         }

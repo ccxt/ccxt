@@ -198,6 +198,10 @@ function rewriteLinks (md: string): string {
         return route ? `](/docs/${route}${frag ?? ''})` : _m;
     });
 
+    // drop links whose URL is literally "undefined" (generator gaps, e.g. an exchange
+    // with no website) — keep the link text / image, render `<a href="undefined">` is invalid.
+    s = s.replace(/\[(!\[[^\]]*\]\([^)]*\)|[^\][]*)\]\(undefined\)/g, '$1');
+
     // lowercase fragments of internal links only (github-slugger lowercases all heading
     // ids, so camelCase anchors like #watchOrderBook must become #watchorderbook). Never
     // touch the path (example routes keep their case) or external URLs.

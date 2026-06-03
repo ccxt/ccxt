@@ -2,11 +2,22 @@ import defaultMdxComponents from 'fumadocs-ui/mdx';
 import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
 import type { MDXComponents } from 'mdx/types';
 
+// CCXT docs reference remote images without width/height, and we don't fetch their
+// dimensions at build time. next/image (used by the default img + ImageZoom's fallback)
+// REQUIRES width/height, so it throws "missing required width property". Render a plain
+// <img> as ImageZoom's child — that path skips next/image while keeping click-to-zoom.
+function ZoomableImg(props: any) {
+  return (
+    <ImageZoom src={props.src}>
+      <img {...props} className={['rounded-lg', props.className].filter(Boolean).join(' ')} />
+    </ImageZoom>
+  );
+}
+
 export function getMDXComponents(components?: MDXComponents) {
   return {
     ...defaultMdxComponents,
-    // click-to-zoom for the chart / screenshot images in the docs
-    img: ImageZoom as any,
+    img: ZoomableImg as any,
     ...components,
   } satisfies MDXComponents;
 }
