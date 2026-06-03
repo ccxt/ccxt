@@ -1652,7 +1652,7 @@ func (this *BinanceCore) Describe() any {
 					"symbolRequired":   true,
 				},
 				"fetchOHLCV": map[string]any{
-					"limit": 1500,
+					"limit": 500,
 				},
 			},
 			"swap": map[string]any{
@@ -4149,7 +4149,7 @@ func (this *BinanceCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "symbol": "BTCUSDT",
-	//         "markPrice": "11793.63104562", // mark price
+	//         "markPrice": "11793.63104563", // mark price
 	//         "indexPrice": "11781.80495970", // index price
 	//         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts
 	//         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate
@@ -11254,7 +11254,7 @@ func (this *BinanceCore) ParseAccountPosition(position any, optionalArgs ...any)
 		var rounderString any = ToString(rounder)
 		var liquidationPriceRoundedString any = Precise.StringAdd(rounderString, liquidationPriceStringRaw)
 		var truncatedLiquidationPrice any = Precise.StringDiv(liquidationPriceRoundedString, "1", pricePrecision)
-		if IsTrue(IsEqual(GetValue(truncatedLiquidationPrice, 0), "-")) {
+		if IsTrue(IsTrue(!IsEqual(truncatedLiquidationPrice, nil)) && IsTrue(IsEqual(GetValue(truncatedLiquidationPrice, 0), "-"))) {
 			// user cannot be liquidated
 			// since he has more collateral than the size of the position
 			truncatedLiquidationPrice = nil

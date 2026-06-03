@@ -753,109 +753,120 @@ public class ExmoCore extends ExmoApi
             Object responses = (Helpers.promiseAll(promises)).join();
             Object currencyList = Helpers.GetValue(responses, 0);
             Object cryptoList = Helpers.GetValue(responses, 1);
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            Object newArray = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyList)); i++)
             {
                 Object currency = Helpers.GetValue(currencyList, i);
                 Object currencyId = this.safeString(currency, "name");
-                Object code = this.safeCurrencyCode(currencyId);
-                Object type = "crypto";
-                Object networks = new java.util.HashMap<String, Object>() {{}};
                 Object providers = this.safeList(cryptoList, currencyId);
-                if (Helpers.isTrue(Helpers.isEqual(providers, null)))
-                {
-                    type = "fiat";
-                } else
-                {
-                    for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(providers)); j++)
-                    {
-                        Object provider = Helpers.GetValue(providers, j);
-                        Object name = this.safeString(provider, "name");
-                        // get network-id by removing extra things
-                        Object networkId = Helpers.replace((String)name, (String)Helpers.add(currencyId, " "), (String)"");
-                        networkId = Helpers.replace((String)networkId, (String)"(", (String)"");
-                        Object replaceChar = ")"; // transpiler trick
-                        networkId = Helpers.replace((String)networkId, (String)replaceChar, (String)"");
-                        Object networkCode = this.networkIdToCode(networkId);
-                        if (!Helpers.isTrue((Helpers.inOp(networks, networkCode))))
-                        {
-                            final Object finalNetworkId = networkId;
-                            final Object finalNetworkCode = networkCode;
-                            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
-        put( "id", finalNetworkId );
-        put( "network", finalNetworkCode );
-        put( "active", null );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "fee", null );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "info", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
-    }});
-                        }
-                        Object typeInner = this.safeString(provider, "type");
-                        Object minValue = this.safeString(provider, "min");
-                        Object maxValue = this.safeString(provider, "max");
-                        Object activeProvider = this.safeBool(provider, "enabled");
-                        Object networkEntry = Helpers.GetValue(networks, networkCode);
-                        if (Helpers.isTrue(Helpers.isEqual(typeInner, "deposit")))
-                        {
-                            Helpers.addElementToObject(networkEntry, "deposit", activeProvider);
-                            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(networkEntry, "limits"), "deposit"), "min", minValue);
-                            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(networkEntry, "limits"), "deposit"), "max", maxValue);
-                        } else if (Helpers.isTrue(Helpers.isEqual(typeInner, "withdraw")))
-                        {
-                            Helpers.addElementToObject(networkEntry, "withdraw", activeProvider);
-                            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(networkEntry, "limits"), "withdraw"), "min", minValue);
-                            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(networkEntry, "limits"), "withdraw"), "max", maxValue);
-                        }
-                        Object info = this.safeList(networkEntry, "info");
-                        ((java.util.List<Object>)info).add(provider);
-                        Helpers.addElementToObject(networkEntry, "info", info);
-                        Helpers.addElementToObject(networks, networkCode, networkEntry);
-                    }
-                }
-                final Object finalCurrencyId = currencyId;
-                final Object finalType = type;
-                final Object finalProviders = providers;
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", finalCurrencyId );
-        put( "code", code );
-        put( "name", ExmoCore.this.safeString(currency, "description") );
-        put( "type", finalType );
-        put( "active", null );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "fee", null );
-        put( "precision", ExmoCore.this.parseNumber("1e-8") );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "info", new java.util.HashMap<String, Object>() {{
-            put( "currency", currency );
-            put( "providers", finalProviders );
-        }} );
-        put( "networks", networks );
-    }}));
+                ((java.util.List<Object>)newArray).add(new java.util.HashMap<String, Object>() {{
+                    put( "currency", currency );
+                    put( "providers", providers );
+                }});
             }
-            return result;
+            return this.parseCurrencies(newArray);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object currency = this.safeDict(rawCurrency, "currency", new java.util.HashMap<String, Object>() {{}});
+        Object providers = this.safeList(rawCurrency, "providers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object currencyId = this.safeString(currency, "name");
+        Object code = this.safeCurrencyCode(currencyId);
+        Object type = "crypto";
+        Object networks = new java.util.HashMap<String, Object>() {{}};
+        if (Helpers.isTrue(Helpers.isEqual(providers, null)))
+        {
+            type = "fiat";
+        } else
+        {
+            for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(providers)); j++)
+            {
+                Object provider = Helpers.GetValue(providers, j);
+                Object name = this.safeString(provider, "name");
+                // get network-id by removing extra things
+                Object networkId = Helpers.replace((String)name, (String)Helpers.add(currencyId, " "), (String)"");
+                networkId = Helpers.replace((String)networkId, (String)"(", (String)"");
+                Object replaceChar = ")"; // transpiler trick
+                networkId = Helpers.replace((String)networkId, (String)replaceChar, (String)"");
+                Object networkCode = this.networkIdToCode(networkId);
+                if (!Helpers.isTrue((Helpers.inOp(networks, networkCode))))
+                {
+                    final Object finalNetworkId = networkId;
+                    final Object finalNetworkCode = networkCode;
+                    Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+    put( "id", finalNetworkId );
+    put( "network", finalNetworkCode );
+    put( "active", null );
+    put( "deposit", null );
+    put( "withdraw", null );
+    put( "fee", null );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", null );
+        }} );
+        put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", null );
+        }} );
+    }} );
+    put( "info", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
+}});
+                }
+                Object typeInner = this.safeString(provider, "type");
+                Object minValue = this.safeString(provider, "min");
+                Object maxValue = this.safeString(provider, "max");
+                Object activeProvider = this.safeBool(provider, "enabled");
+                Object networkEntry = Helpers.GetValue(networks, networkCode);
+                if (Helpers.isTrue(Helpers.isEqual(typeInner, "deposit")))
+                {
+                    Helpers.addElementToObject(networkEntry, "deposit", activeProvider);
+                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(networkEntry, "limits"), "deposit"), "min", minValue);
+                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(networkEntry, "limits"), "deposit"), "max", maxValue);
+                } else if (Helpers.isTrue(Helpers.isEqual(typeInner, "withdraw")))
+                {
+                    Helpers.addElementToObject(networkEntry, "withdraw", activeProvider);
+                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(networkEntry, "limits"), "withdraw"), "min", minValue);
+                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(networkEntry, "limits"), "withdraw"), "max", maxValue);
+                }
+                Object info = this.safeList(networkEntry, "info");
+                ((java.util.List<Object>)info).add(provider);
+                Helpers.addElementToObject(networkEntry, "info", info);
+                Helpers.addElementToObject(networks, networkCode, networkEntry);
+            }
+        }
+        final Object finalCurrencyId = currencyId;
+        final Object finalType = type;
+        final Object finalProviders = providers;
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", finalCurrencyId );
+            put( "code", code );
+            put( "name", ExmoCore.this.safeString(currency, "description") );
+            put( "type", finalType );
+            put( "active", null );
+            put( "deposit", null );
+            put( "withdraw", null );
+            put( "fee", null );
+            put( "precision", ExmoCore.this.parseNumber("1e-8") );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "deposit", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "info", new java.util.HashMap<String, Object>() {{
+                put( "currency", currency );
+                put( "providers", finalProviders );
+            }} );
+            put( "networks", networks );
+        }});
     }
 
     /**

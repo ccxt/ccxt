@@ -1546,51 +1546,50 @@ public class LighterCore extends LighterApi
             //     }
             //
             Object data = this.safeList(response, "asset_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
-            {
-                Object entry = Helpers.GetValue(data, i);
-                Object id = this.safeString(entry, "asset_id");
-                Object code = this.safeCurrencyCode(this.safeString(entry, "symbol"));
-                Object decimals = this.safeString(entry, "decimals");
-                Object isUSDC = (Helpers.isEqual(code, "USDC"));
-                Object depositMin = null;
-                Object withdrawMin = null;
-                if (Helpers.isTrue(isUSDC))
-                {
-                    depositMin = this.safeNumber(entry, "min_transfer_amount");
-                    withdrawMin = this.safeNumber(entry, "min_withdrawal_amount");
-                }
-                final Object finalCode = code;
-                final Object finalDepositMin = depositMin;
-                final Object finalWithdrawMin = withdrawMin;
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", id );
-        put( "name", finalCode );
-        put( "code", finalCode );
-        put( "precision", LighterCore.this.parseNumber(Helpers.add("1e-", decimals)) );
-        put( "active", true );
-        put( "fee", null );
-        put( "networks", new java.util.HashMap<String, Object>() {{}} );
-        put( "deposit", isUSDC );
-        put( "withdraw", isUSDC );
-        put( "type", "crypto" );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", finalDepositMin );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", finalWithdrawMin );
-                put( "max", null );
-            }} );
-        }} );
-        put( "info", entry );
-    }}));
-            }
-            return result;
+            return this.parseCurrencies(data);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object id = this.safeString(rawCurrency, "asset_id");
+        Object code = this.safeCurrencyCode(this.safeString(rawCurrency, "symbol"));
+        Object decimals = this.safeString(rawCurrency, "decimals");
+        Object isUSDC = (Helpers.isEqual(code, "USDC"));
+        Object depositMin = null;
+        Object withdrawMin = null;
+        if (Helpers.isTrue(isUSDC))
+        {
+            depositMin = this.safeNumber(rawCurrency, "min_transfer_amount");
+            withdrawMin = this.safeNumber(rawCurrency, "min_withdrawal_amount");
+        }
+        final Object finalCode = code;
+        final Object finalDepositMin = depositMin;
+        final Object finalWithdrawMin = withdrawMin;
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", id );
+            put( "name", finalCode );
+            put( "code", finalCode );
+            put( "precision", LighterCore.this.parseNumber(Helpers.add("1e-", decimals)) );
+            put( "active", true );
+            put( "fee", null );
+            put( "networks", new java.util.HashMap<String, Object>() {{}} );
+            put( "deposit", isUSDC );
+            put( "withdraw", isUSDC );
+            put( "type", "crypto" );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "deposit", new java.util.HashMap<String, Object>() {{
+                    put( "min", finalDepositMin );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", finalWithdrawMin );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "info", rawCurrency );
+        }});
     }
 
     /**

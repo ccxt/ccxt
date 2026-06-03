@@ -1446,13 +1446,12 @@ public partial class testMainClass
         // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
         // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
-        // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         object basePath = add(getRootDir(), "ts/src/test/static/binaries/");
         if (isTrue(isEqual(exchangeName, "lighter")))
         {
             if (isTrue(isEqual(this.lang, "JS")))
             {
-                wasmExecPath = add(getRootDir(), "/src/test/static/binaries/wasm_exec.js");
+                wasmExecPath = add(basePath, "wasm_exec.js");
                 libraryPath = add(basePath, "lighter.wasm");
             } else
             {

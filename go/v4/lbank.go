@@ -448,71 +448,70 @@ func (this *LbankCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		//
 		var currenciesData any = this.SafeList(response, "data", []any{})
 		var grouped any = this.GroupBy(currenciesData, "assetCode")
-		var groupedKeys any = ObjectKeys(grouped)
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(groupedKeys)); i++ {
-			var id any = ToString((GetValue(groupedKeys, i))) // some currencies are numeric
-			var code any = this.SafeCurrencyCode(id)
-			var networksRaw any = GetValue(grouped, id)
-			var networks any = map[string]any{}
-			for j := 0; IsLessThan(j, GetArrayLength(networksRaw)); j++ {
-				var networkEntry any = GetValue(networksRaw, j)
-				var networkId any = this.SafeString(networkEntry, "chain")
-				if IsTrue(IsEqual(networkId, nil)) {
-					networkId = this.SafeString(networkEntry, "assetCode") // use type as fallback if networkId is not present
-				}
-				var networkCode any = this.NetworkIdToCode(networkId)
-				AddElementToObject(networks, networkCode, map[string]any{
-					"id":      networkId,
-					"network": networkCode,
-					"limits": map[string]any{
-						"withdraw": map[string]any{
-							"min": this.SafeNumber(networkEntry, "min"),
-							"max": nil,
-						},
-						"deposit": map[string]any{
-							"min": this.SafeNumber(networkEntry, "minTransfer"),
-							"max": nil,
-						},
-					},
-					"active":    nil,
-					"deposit":   nil,
-					"withdraw":  this.SafeBool(networkEntry, "canWithDraw"),
-					"fee":       this.SafeNumber(networkEntry, "fee"),
-					"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(networkEntry, "transferAmtScale"))),
-					"info":      networkEntry,
-				})
-			}
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"id":        id,
-				"code":      code,
-				"precision": nil,
-				"type":      nil,
-				"name":      nil,
-				"active":    nil,
-				"deposit":   nil,
-				"withdraw":  nil,
-				"fee":       nil,
-				"limits": map[string]any{
-					"withdraw": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"deposit": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-				"networks": networks,
-				"info":     networksRaw,
-			}))
-		}
+		var values any = ObjectValues(grouped)
 
-		ch <- result
+		ch <- this.ParseCurrencies(values)
 		return nil
 
 	}()
 	return ch
+}
+func (this *LbankCore) ParseCurrency(rawCurrency any) any {
+	var id any = this.SafeString(GetValue(rawCurrency, 0), "assetCode") // first member is guaranteed
+	var code any = this.SafeCurrencyCode(id)
+	var networksRaw any = rawCurrency
+	var networks any = map[string]any{}
+	for j := 0; IsLessThan(j, GetArrayLength(networksRaw)); j++ {
+		var networkEntry any = GetValue(networksRaw, j)
+		var networkId any = this.SafeString(networkEntry, "chain")
+		if IsTrue(IsEqual(networkId, nil)) {
+			networkId = this.SafeString(networkEntry, "assetCode") // use type as fallback if networkId is not present
+		}
+		var networkCode any = this.NetworkIdToCode(networkId)
+		AddElementToObject(networks, networkCode, map[string]any{
+			"id":      networkId,
+			"network": networkCode,
+			"limits": map[string]any{
+				"withdraw": map[string]any{
+					"min": this.SafeNumber(networkEntry, "min"),
+					"max": nil,
+				},
+				"deposit": map[string]any{
+					"min": this.SafeNumber(networkEntry, "minTransfer"),
+					"max": nil,
+				},
+			},
+			"active":    nil,
+			"deposit":   nil,
+			"withdraw":  this.SafeBool(networkEntry, "canWithDraw"),
+			"fee":       this.SafeNumber(networkEntry, "fee"),
+			"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(networkEntry, "transferAmtScale"))),
+			"info":      networkEntry,
+		})
+	}
+	return this.SafeCurrencyStructure(map[string]any{
+		"id":        id,
+		"code":      code,
+		"precision": nil,
+		"type":      nil,
+		"name":      nil,
+		"active":    nil,
+		"deposit":   nil,
+		"withdraw":  nil,
+		"fee":       nil,
+		"limits": map[string]any{
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"deposit": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"networks": networks,
+		"info":     networksRaw,
+	})
 }
 
 /**

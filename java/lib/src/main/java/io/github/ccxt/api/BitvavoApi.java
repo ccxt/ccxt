@@ -19,6 +19,46 @@ public class BitvavoApi extends Exchange
         super(options);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  publicGetMarketBook (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetMarketBook", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetReportMarketBook (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetReportMarketBook", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetMarketTrades (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetMarketTrades", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetReportMarketTrades (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetReportMarketTrades", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetTickerPrice (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetTickerPrice", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetTickerBook (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetTickerBook", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetMarketCandles (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetMarketCandles", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetTicker24h (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetTicker24h", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  publicGetTime (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTime", optionalArgs);
@@ -34,49 +74,9 @@ public class BitvavoApi extends Exchange
         return this.callAsync ("publicGetAssets", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  publicGetMarketBook (Object... optionalArgs)
-    {
-        return this.callAsync ("publicGetMarketBook", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  publicGetMarketTrades (Object... optionalArgs)
-    {
-        return this.callAsync ("publicGetMarketTrades", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  publicGetMarketCandles (Object... optionalArgs)
-    {
-        return this.callAsync ("publicGetMarketCandles", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  publicGetTickerPrice (Object... optionalArgs)
-    {
-        return this.callAsync ("publicGetTickerPrice", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  publicGetTickerBook (Object... optionalArgs)
-    {
-        return this.callAsync ("publicGetTickerBook", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  publicGetTicker24h (Object... optionalArgs)
-    {
-        return this.callAsync ("publicGetTicker24h", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  privateGetAccount (Object... optionalArgs)
-    {
-        return this.callAsync ("privateGetAccount", optionalArgs);
-    }
-
     public java.util.concurrent.CompletableFuture<Object>  privateGetOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrder", optionalArgs);
-    }
-
-    public java.util.concurrent.CompletableFuture<Object>  privateGetOrders (Object... optionalArgs)
-    {
-        return this.callAsync ("privateGetOrders", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privateGetOrdersOpen (Object... optionalArgs)
@@ -89,9 +89,9 @@ public class BitvavoApi extends Exchange
         return this.callAsync ("privateGetTrades", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privateGetBalance (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  privateGetOrders (Object... optionalArgs)
     {
-        return this.callAsync ("privateGetBalance", optionalArgs);
+        return this.callAsync ("privateGetOrders", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privateGetDeposit (Object... optionalArgs)
@@ -107,6 +107,31 @@ public class BitvavoApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  privateGetWithdrawalHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWithdrawalHistory", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetAccount (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAccount", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetBalance (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetBalance", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetStakingBalance (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetStakingBalance", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetAccountFees (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAccountFees", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetAccountHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAccountHistory", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privateGetSubaccounts (Object... optionalArgs)
@@ -144,9 +169,19 @@ public class BitvavoApi extends Exchange
         return this.callAsync ("privatePostOrder", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privatePostCancelOrdersAfter (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostCancelOrdersAfter", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privatePostWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdrawal", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostCryptoWithdrawal (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostCryptoWithdrawal", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privatePostSubaccounts (Object... optionalArgs)
@@ -172,6 +207,11 @@ public class BitvavoApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  privateDeleteOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteOrders", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateDeleteAtomicOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privateDeleteAtomicOrders", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privateDeleteInstitutionalSubaccountsOrder (Object... optionalArgs)

@@ -234,6 +234,7 @@ dead man's switch, cancel all orders after the given timeout
 ##### Supported exchanges
 * [bingx](/exchanges/bingx.md#cancelallordersafter)
 * [bitmex](/exchanges/bitmex.md#cancelallordersafter)
+* [bitvavo](/exchanges/bitvavo.md#cancelallordersafter)
 * [bybit](/exchanges/bybit.md#cancelallordersafter)
 * [htx](/exchanges/htx.md#cancelallordersafter)
 * [hyperliquid](/exchanges/hyperliquid.md#cancelallordersafter)
@@ -1835,6 +1836,7 @@ query for accounts owned by the walletAddress. An Account is needed for all trad
 * [arkham](/exchanges/arkham.md#fetchaccounts)
 * [ascendex](/exchanges/ascendex.md#fetchaccounts)
 * [bittrade](/exchanges/bittrade.md#fetchaccounts)
+* [bitvavo](/exchanges/bitvavo.md#fetchaccounts)
 * [bullish](/exchanges/bullish.md#fetchaccounts)
 * [coinbase](/exchanges/coinbase.md#fetchaccounts)
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#fetchaccounts)
@@ -3582,6 +3584,7 @@ fetch the history of changes, actions done by the user or operations that altere
 * [bitmex](/exchanges/bitmex.md#fetchledger)
 * [bitso](/exchanges/bitso.md#fetchledger)
 * [bitstamp](/exchanges/bitstamp.md#fetchledger)
+* [bitvavo](/exchanges/bitvavo.md#fetchledger)
 * [blofin](/exchanges/blofin.md#fetchledger)
 * [bybit](/exchanges/bybit.md#fetchledger)
 * [cex](/exchanges/cex.md#fetchledger)
@@ -6353,6 +6356,7 @@ fetch the trading fees for a market
 * [bitget](/exchanges/bitget.md#fetchtradingfee)
 * [bitmart](/exchanges/bitmart.md#fetchtradingfee)
 * [bitstamp](/exchanges/bitstamp.md#fetchtradingfee)
+* [bitvavo](/exchanges/bitvavo.md#fetchtradingfee)
 * [bybit](/exchanges/bybit.md#fetchtradingfee)
 * [coinex](/exchanges/coinex.md#fetchtradingfee)
 * [coinmate](/exchanges/coinmate.md#fetchtradingfee)
@@ -6555,16 +6559,17 @@ Fetch all transactions (deposits and withdrawals) made from an account.
 fetches a transfer
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | transfer id |
-| code | <code>string</code> | No | not used by mexc fetchTransfer |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| code | <code>string</code> | No | unified currency code of the currency transferred |
+| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
 
 ##### Supported exchanges
+* [bitvavo](/exchanges/bitvavo.md#fetchtransfer)
 * [mexc](/exchanges/mexc.md#fetchtransfer)
 
 ---
@@ -6594,6 +6599,7 @@ fetch a history of internal transfers made on an account
 * [bitget](/exchanges/bitget.md#fetchtransfers)
 * [bitmart](/exchanges/bitmart.md#fetchtransfers)
 * [bitrue](/exchanges/bitrue.md#fetchtransfers)
+* [bitvavo](/exchanges/bitvavo.md#fetchtransfers)
 * [bullish](/exchanges/bullish.md#fetchtransfers)
 * [bybit](/exchanges/bybit.md#fetchtransfers)
 * [bydfi](/exchanges/bydfi.md#fetchtransfers)
@@ -7436,6 +7442,7 @@ transfer currency internally between wallets on the same account
 * [bitmart](/exchanges/bitmart.md#transfer)
 * [bitrue](/exchanges/bitrue.md#transfer)
 * [bitstamp](/exchanges/bitstamp.md#transfer)
+* [bitvavo](/exchanges/bitvavo.md#transfer)
 * [blofin](/exchanges/blofin.md#transfer)
 * [bullish](/exchanges/bullish.md#transfer)
 * [bybit](/exchanges/bybit.md#transfer)

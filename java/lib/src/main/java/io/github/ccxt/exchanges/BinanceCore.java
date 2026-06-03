@@ -1657,7 +1657,7 @@ public class BinanceCore extends BinanceApi
                         put( "symbolRequired", true );
                     }} );
                     put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
-                        put( "limit", 1500 );
+                        put( "limit", 500 );
                     }} );
                 }} );
                 put( "swap", new java.util.HashMap<String, Object>() {{
@@ -4242,7 +4242,7 @@ public class BinanceCore extends BinanceApi
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "markPrice": "11793.63104562", // mark price
+        //         "markPrice": "11793.63104563", // mark price
         //         "indexPrice": "11781.80495970", // index price
         //         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts
         //         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate
@@ -11265,7 +11265,7 @@ public class BinanceCore extends BinanceApi
             Object rounderString = String.valueOf(rounder);
             Object liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
             Object truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(truncatedLiquidationPrice, 0), "-")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(truncatedLiquidationPrice, null)) && Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(truncatedLiquidationPrice, 0), "-"))))
             {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position

@@ -838,64 +838,78 @@ class kraken extends kraken$1["default"] {
         //         },
         //     }
         //
-        const currencies = this.safeValue(response, 'result', {});
-        const ids = Object.keys(currencies);
-        const result = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const currency = currencies[id];
-            // todo: will need to rethink the fees
-            // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
+        const currencies = this.safeDict(response, 'result', {});
+        const enhancedArray = this.addKeyInArrayItems(currencies, '_coin_id');
+        return this.parseCurrencies(enhancedArray);
+    }
+    parseCurrency(rawCurrency) {
+        // todo: will need to rethink the fees
+        // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
+        // to add support for multiple withdrawal/deposit methods and
+        // differentiated fees for each particular method
+        //
+        // Notes about abbreviations:
+        // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
+        // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
+        //
+        const id = this.safeString(rawCurrency, '_coin_id');
+        let code = this.safeCurrencyCode(id);
+        // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
+        if (id.indexOf('.') < 0) {
+            const altName = this.safeString(rawCurrency, 'altname');
+            // handle cases like below:
             //
-            // Notes about abbreviations:
-            // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
-            // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
-            //
-            let code = this.safeCurrencyCode(id);
-            // the below can not be reliable done in `safeCurrencyCode`, so we have to do it here
-            if (id.indexOf('.') < 0) {
-                const altName = this.safeString(currency, 'altname');
-                // handle cases like below:
-                //
-                //  id   | altname
-                // ---------------
-                // XXBT  |  XBT
-                // ZUSD  |  USD
-                if (id !== altName && (id.startsWith('X') || id.startsWith('Z'))) {
-                    code = this.safeCurrencyCode(altName);
-                    // also, add map in commonCurrencies:
-                    this.commonCurrencies[id] = code;
-                }
-                else {
-                    code = this.safeCurrencyCode(id);
-                }
+            //  id   | altname
+            // ---------------
+            // XXBT  |  XBT
+            // ZUSD  |  USD
+            if (id !== altName && (id.startsWith('X') || id.startsWith('Z'))) {
+                code = this.safeCurrencyCode(altName);
+                // also, add map in commonCurrencies:
+                this.commonCurrencies[id] = code;
             }
-            const isFiat = code.indexOf('.HOLD') >= 0;
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': this.safeString(currency, 'altname'),
-                'active': this.safeString(currency, 'status') === 'enabled',
-                'type': isFiat ? 'fiat' : 'crypto',
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals'))),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+            else {
+                code = this.safeCurrencyCode(id);
+            }
+        }
+        const isFiat = code.indexOf('.HOLD') >= 0;
+        rawCurrency = this.omit(rawCurrency, '_coin_id');
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'name': this.safeString(rawCurrency, 'altname'),
+            'active': this.safeString(rawCurrency, 'status') === 'enabled',
+            'type': isFiat ? 'fiat' : 'crypto',
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'decimals'))),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'networks': {},
-            });
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': {},
+        });
+    }
+    addKeyInArrayItems(obj, keyName) {
+        const result = [];
+        const keys = Object.keys(obj);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const item = obj[key];
+            if (item === undefined) {
+                continue;
+            }
+            const itemWithKey = this.extend({}, item);
+            itemWithKey[keyName] = key;
+            result.push(itemWithKey);
         }
         return result;
     }

@@ -4206,6 +4206,7 @@ public partial class kucoin : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object market = this.market(symbol);
         object request = this.createUtaOrderRequest(symbol, type, side, amount, price, parameters);
         object response = await this.utaPrivatePostAccountModeOrderPlace(request);
         //
@@ -4220,7 +4221,7 @@ public partial class kucoin : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data);
+        return this.parseOrder(data, market);
     }
 
     public virtual object createUtaOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)

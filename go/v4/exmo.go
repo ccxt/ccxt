@@ -792,100 +792,109 @@ func (this *ExmoCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		PanicOnError(responses)
 		var currencyList any = GetValue(responses, 0)
 		var cryptoList any = GetValue(responses, 1)
-		var result any = map[string]any{}
+		var newArray any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(currencyList)); i++ {
 			var currency any = GetValue(currencyList, i)
 			var currencyId any = this.SafeString(currency, "name")
-			var code any = this.SafeCurrencyCode(currencyId)
-			var typeVar any = "crypto"
-			var networks any = map[string]any{}
 			var providers any = this.SafeList(cryptoList, currencyId)
-			if IsTrue(IsEqual(providers, nil)) {
-				typeVar = "fiat"
-			} else {
-				for j := 0; IsLessThan(j, GetArrayLength(providers)); j++ {
-					var provider any = GetValue(providers, j)
-					var name any = this.SafeString(provider, "name")
-					// get network-id by removing extra things
-					var networkId any = Replace(name, Add(currencyId, " "), "")
-					networkId = Replace(networkId, "(", "")
-					var replaceChar any = ")" // transpiler trick
-					networkId = Replace(networkId, replaceChar, "")
-					var networkCode any = this.NetworkIdToCode(networkId)
-					if !IsTrue((InOp(networks, networkCode))) {
-						AddElementToObject(networks, networkCode, map[string]any{
-							"id":       networkId,
-							"network":  networkCode,
-							"active":   nil,
-							"deposit":  nil,
-							"withdraw": nil,
-							"fee":      nil,
-							"limits": map[string]any{
-								"withdraw": map[string]any{
-									"min": nil,
-									"max": nil,
-								},
-								"deposit": map[string]any{
-									"min": nil,
-									"max": nil,
-								},
-							},
-							"info": []any{},
-						})
-					}
-					var typeInner any = this.SafeString(provider, "type")
-					var minValue any = this.SafeString(provider, "min")
-					var maxValue any = this.SafeString(provider, "max")
-					var activeProvider any = this.SafeBool(provider, "enabled")
-					var networkEntry any = GetValue(networks, networkCode)
-					if IsTrue(IsEqual(typeInner, "deposit")) {
-						AddElementToObject(networkEntry, "deposit", activeProvider)
-						AddElementToObject(GetValue(GetValue(networkEntry, "limits"), "deposit"), "min", minValue)
-						AddElementToObject(GetValue(GetValue(networkEntry, "limits"), "deposit"), "max", maxValue)
-					} else if IsTrue(IsEqual(typeInner, "withdraw")) {
-						AddElementToObject(networkEntry, "withdraw", activeProvider)
-						AddElementToObject(GetValue(GetValue(networkEntry, "limits"), "withdraw"), "min", minValue)
-						AddElementToObject(GetValue(GetValue(networkEntry, "limits"), "withdraw"), "max", maxValue)
-					}
-					var info any = this.SafeList(networkEntry, "info")
-					AppendToArray(&info, provider)
-					AddElementToObject(networkEntry, "info", info)
-					AddElementToObject(networks, networkCode, networkEntry)
-				}
-			}
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"id":        currencyId,
-				"code":      code,
-				"name":      this.SafeString(currency, "description"),
-				"type":      typeVar,
-				"active":    nil,
-				"deposit":   nil,
-				"withdraw":  nil,
-				"fee":       nil,
-				"precision": this.ParseNumber("1e-8"),
-				"limits": map[string]any{
-					"withdraw": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"deposit": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-				"info": map[string]any{
-					"currency":  currency,
-					"providers": providers,
-				},
-				"networks": networks,
-			}))
+			AppendToArray(&newArray, map[string]any{
+				"currency":  currency,
+				"providers": providers,
+			})
 		}
 
-		ch <- result
+		ch <- this.ParseCurrencies(newArray)
 		return nil
 
 	}()
 	return ch
+}
+func (this *ExmoCore) ParseCurrency(rawCurrency any) any {
+	var currency any = this.SafeDict(rawCurrency, "currency", map[string]any{})
+	var providers any = this.SafeList(rawCurrency, "providers", []any{})
+	var currencyId any = this.SafeString(currency, "name")
+	var code any = this.SafeCurrencyCode(currencyId)
+	var typeVar any = "crypto"
+	var networks any = map[string]any{}
+	if IsTrue(IsEqual(providers, nil)) {
+		typeVar = "fiat"
+	} else {
+		for j := 0; IsLessThan(j, GetArrayLength(providers)); j++ {
+			var provider any = GetValue(providers, j)
+			var name any = this.SafeString(provider, "name")
+			// get network-id by removing extra things
+			var networkId any = Replace(name, Add(currencyId, " "), "")
+			networkId = Replace(networkId, "(", "")
+			var replaceChar any = ")" // transpiler trick
+			networkId = Replace(networkId, replaceChar, "")
+			var networkCode any = this.NetworkIdToCode(networkId)
+			if !IsTrue((InOp(networks, networkCode))) {
+				AddElementToObject(networks, networkCode, map[string]any{
+					"id":       networkId,
+					"network":  networkCode,
+					"active":   nil,
+					"deposit":  nil,
+					"withdraw": nil,
+					"fee":      nil,
+					"limits": map[string]any{
+						"withdraw": map[string]any{
+							"min": nil,
+							"max": nil,
+						},
+						"deposit": map[string]any{
+							"min": nil,
+							"max": nil,
+						},
+					},
+					"info": []any{},
+				})
+			}
+			var typeInner any = this.SafeString(provider, "type")
+			var minValue any = this.SafeString(provider, "min")
+			var maxValue any = this.SafeString(provider, "max")
+			var activeProvider any = this.SafeBool(provider, "enabled")
+			var networkEntry any = GetValue(networks, networkCode)
+			if IsTrue(IsEqual(typeInner, "deposit")) {
+				AddElementToObject(networkEntry, "deposit", activeProvider)
+				AddElementToObject(GetValue(GetValue(networkEntry, "limits"), "deposit"), "min", minValue)
+				AddElementToObject(GetValue(GetValue(networkEntry, "limits"), "deposit"), "max", maxValue)
+			} else if IsTrue(IsEqual(typeInner, "withdraw")) {
+				AddElementToObject(networkEntry, "withdraw", activeProvider)
+				AddElementToObject(GetValue(GetValue(networkEntry, "limits"), "withdraw"), "min", minValue)
+				AddElementToObject(GetValue(GetValue(networkEntry, "limits"), "withdraw"), "max", maxValue)
+			}
+			var info any = this.SafeList(networkEntry, "info")
+			AppendToArray(&info, provider)
+			AddElementToObject(networkEntry, "info", info)
+			AddElementToObject(networks, networkCode, networkEntry)
+		}
+	}
+	return this.SafeCurrencyStructure(map[string]any{
+		"id":        currencyId,
+		"code":      code,
+		"name":      this.SafeString(currency, "description"),
+		"type":      typeVar,
+		"active":    nil,
+		"deposit":   nil,
+		"withdraw":  nil,
+		"fee":       nil,
+		"precision": this.ParseNumber("1e-8"),
+		"limits": map[string]any{
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"deposit": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"info": map[string]any{
+			"currency":  currency,
+			"providers": providers,
+		},
+		"networks": networks,
+	})
 }
 
 /**
@@ -1037,8 +1046,8 @@ func (this *ExmoCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes9638 := (<-this.LoadMarkets())
-		PanicOnError(retRes9638)
+		retRes9708 := (<-this.LoadMarkets())
+		PanicOnError(retRes9708)
 		var market any = this.Market(symbol)
 		var until any = this.SafeIntegerProduct(params, "until", 0.001)
 		var untilIsDefined any = (!IsEqual(until, nil))
@@ -1163,8 +1172,8 @@ func (this *ExmoCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes10798 := (<-this.LoadMarkets())
-		PanicOnError(retRes10798)
+		retRes10868 := (<-this.LoadMarkets())
+		PanicOnError(retRes10868)
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBalance", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
@@ -1210,8 +1219,8 @@ func (this *ExmoCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes11288 := (<-this.LoadMarkets())
-		PanicOnError(retRes11288)
+		retRes11358 := (<-this.LoadMarkets())
+		PanicOnError(retRes11358)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -1253,8 +1262,8 @@ func (this *ExmoCore) FetchOrderBooks(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes11528 := (<-this.LoadMarkets())
-		PanicOnError(retRes11528)
+		retRes11598 := (<-this.LoadMarkets())
+		PanicOnError(retRes11598)
 		var ids any = nil
 		if IsTrue(IsEqual(symbols, nil)) {
 			var allIds any = this.Ids
@@ -1353,8 +1362,8 @@ func (this *ExmoCore) FetchTickers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes12348 := (<-this.LoadMarkets())
-		PanicOnError(retRes12348)
+		retRes12418 := (<-this.LoadMarkets())
+		PanicOnError(retRes12418)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.PublicGetTicker(params))
@@ -1408,8 +1417,8 @@ func (this *ExmoCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes12748 := (<-this.LoadMarkets())
-		PanicOnError(retRes12748)
+		retRes12818 := (<-this.LoadMarkets())
+		PanicOnError(retRes12818)
 
 		response := (<-this.PublicGetTicker(params))
 		PanicOnError(response)
@@ -1537,8 +1546,8 @@ func (this *ExmoCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes13838 := (<-this.LoadMarkets())
-		PanicOnError(retRes13838)
+		retRes13908 := (<-this.LoadMarkets())
+		PanicOnError(retRes13908)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -1616,8 +1625,8 @@ func (this *ExmoCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			panic(BadRequest(Add(this.Id, " only isolated margin is supported")))
 		}
 
-		retRes14398 := (<-this.LoadMarkets())
-		PanicOnError(retRes14398)
+		retRes14468 := (<-this.LoadMarkets())
+		PanicOnError(retRes14468)
 		var market any = this.Market(symbol)
 		var pair any = GetValue(market, "id")
 		var isSpot any = !IsEqual(marginMode, "isolated")
@@ -1700,15 +1709,15 @@ func (this *ExmoCore) CreateMarketOrderWithCost(symbol any, side any, cost any, 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes15298 := (<-this.LoadMarkets())
-		PanicOnError(retRes15298)
+		retRes15368 := (<-this.LoadMarkets())
+		PanicOnError(retRes15368)
 		params = this.Extend(params, map[string]any{
 			"cost": cost,
 		})
 
-		retRes153115 := (<-this.CreateOrder(symbol, "market", side, cost, nil, params))
-		PanicOnError(retRes153115)
-		ch <- retRes153115
+		retRes153815 := (<-this.CreateOrder(symbol, "market", side, cost, nil, params))
+		PanicOnError(retRes153815)
+		ch <- retRes153815
 		return nil
 
 	}()
@@ -1733,15 +1742,15 @@ func (this *ExmoCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optiona
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes15458 := (<-this.LoadMarkets())
-		PanicOnError(retRes15458)
+		retRes15528 := (<-this.LoadMarkets())
+		PanicOnError(retRes15528)
 		params = this.Extend(params, map[string]any{
 			"cost": cost,
 		})
 
-		retRes154715 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-		PanicOnError(retRes154715)
-		ch <- retRes154715
+		retRes155415 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+		PanicOnError(retRes155415)
+		ch <- retRes155415
 		return nil
 
 	}()
@@ -1766,15 +1775,15 @@ func (this *ExmoCore) CreateMarketSellOrderWithCost(symbol any, cost any, option
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes15618 := (<-this.LoadMarkets())
-		PanicOnError(retRes15618)
+		retRes15688 := (<-this.LoadMarkets())
+		PanicOnError(retRes15688)
 		params = this.Extend(params, map[string]any{
 			"cost": cost,
 		})
 
-		retRes156315 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, params))
-		PanicOnError(retRes156315)
-		ch <- retRes156315
+		retRes157015 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, params))
+		PanicOnError(retRes157015)
+		ch <- retRes157015
 		return nil
 
 	}()
@@ -1810,8 +1819,8 @@ func (this *ExmoCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes15868 := (<-this.LoadMarkets())
-		PanicOnError(retRes15868)
+		retRes15938 := (<-this.LoadMarkets())
+		PanicOnError(retRes15938)
 		var market any = this.Market(symbol)
 		var isMarket any = IsTrue((IsEqual(typeVar, "market"))) && IsTrue((IsEqual(price, nil)))
 		var marginMode any = nil
@@ -1937,8 +1946,8 @@ func (this *ExmoCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes16978 := (<-this.LoadMarkets())
-		PanicOnError(retRes16978)
+		retRes17048 := (<-this.LoadMarkets())
+		PanicOnError(retRes17048)
 		var request any = map[string]any{}
 		var trigger any = this.SafeValue2(params, "trigger", "stop")
 		params = this.Omit(params, []any{"trigger", "stop"})
@@ -1996,8 +2005,8 @@ func (this *ExmoCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes17458 := (<-this.LoadMarkets())
-		PanicOnError(retRes17458)
+		retRes17528 := (<-this.LoadMarkets())
+		PanicOnError(retRes17528)
 		var request any = map[string]any{
 			"order_id": ToString(id),
 		}
@@ -2122,8 +2131,8 @@ func (this *ExmoCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes18688 := (<-this.LoadMarkets())
-		PanicOnError(retRes18688)
+		retRes18758 := (<-this.LoadMarkets())
+		PanicOnError(retRes18758)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -2410,8 +2419,8 @@ func (this *ExmoCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes21328 := (<-this.LoadMarkets())
-		PanicOnError(retRes21328)
+		retRes21398 := (<-this.LoadMarkets())
+		PanicOnError(retRes21398)
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOrders", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
@@ -2515,8 +2524,8 @@ func (this *ExmoCore) EditOrder(id any, symbol any, typeVar any, side any, optio
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes22128 := (<-this.LoadMarkets())
-		PanicOnError(retRes22128)
+		retRes22198 := (<-this.LoadMarkets())
+		PanicOnError(retRes22198)
 		var market any = this.Market(symbol)
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("editOrder", params)
@@ -2567,8 +2576,8 @@ func (this *ExmoCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes22478 := (<-this.LoadMarkets())
-		PanicOnError(retRes22478)
+		retRes22548 := (<-this.LoadMarkets())
+		PanicOnError(retRes22548)
 
 		response := (<-this.PrivatePostDepositAddress(params))
 		PanicOnError(response)
@@ -2638,8 +2647,8 @@ func (this *ExmoCore) Withdraw(code any, amount any, address any, optionalArgs .
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 
-		retRes23008 := (<-this.LoadMarkets())
-		PanicOnError(retRes23008)
+		retRes23078 := (<-this.LoadMarkets())
+		PanicOnError(retRes23078)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"amount":   amount,
@@ -2839,8 +2848,8 @@ func (this *ExmoCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes24808 := (<-this.LoadMarkets())
-		PanicOnError(retRes24808)
+		retRes24878 := (<-this.LoadMarkets())
+		PanicOnError(retRes24878)
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "date", this.ParseToInt(Divide(since, 1000)))
@@ -2915,8 +2924,8 @@ func (this *ExmoCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes25358 := (<-this.LoadMarkets())
-		PanicOnError(retRes25358)
+		retRes25428 := (<-this.LoadMarkets())
+		PanicOnError(retRes25428)
 		var currency any = nil
 		var request any = map[string]any{
 			"type": "withdraw",
@@ -2986,8 +2995,8 @@ func (this *ExmoCore) FetchWithdrawal(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes25898 := (<-this.LoadMarkets())
-		PanicOnError(retRes25898)
+		retRes25968 := (<-this.LoadMarkets())
+		PanicOnError(retRes25968)
 		var currency any = nil
 		var request any = map[string]any{
 			"order_id": id,
@@ -3056,8 +3065,8 @@ func (this *ExmoCore) FetchDeposit(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes26428 := (<-this.LoadMarkets())
-		PanicOnError(retRes26428)
+		retRes26498 := (<-this.LoadMarkets())
+		PanicOnError(retRes26498)
 		var currency any = nil
 		var request any = map[string]any{
 			"order_id": id,
@@ -3131,8 +3140,8 @@ func (this *ExmoCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes26968 := (<-this.LoadMarkets())
-		PanicOnError(retRes26968)
+		retRes27038 := (<-this.LoadMarkets())
+		PanicOnError(retRes27038)
 		var currency any = nil
 		var request any = map[string]any{
 			"type": "deposit",
