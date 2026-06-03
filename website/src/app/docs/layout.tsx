@@ -11,7 +11,7 @@ const aiEnabled = process.env.NEXT_PUBLIC_AI_ENABLED === 'true';
 
 export default function Layout({ children }: LayoutProps<'/docs'>) {
   return (
-    <DocsLayout tree={source.getPageTree()} tabMode="top" {...baseOptions()}>
+    <DocsLayout tree={source.getPageTree()} {...baseOptions()}>
       {aiEnabled ? (
         <AISearch>
           <AISearchPanel />
