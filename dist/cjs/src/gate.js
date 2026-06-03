@@ -1992,56 +1992,53 @@ class gate extends gate$1["default"] {
         //       },
         //    ]
         //
-        const indexedCurrencies = this.indexBy(response, 'currency');
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const currencyId = this.safeString(entry, 'currency');
-            const code = this.safeCurrencyCode(currencyId);
-            // check leveraged tokens (e.g. BTC3S, ETH5L)
-            const type = this.isLeveragedCurrency(currencyId, true, indexedCurrencies) ? 'leveraged' : 'crypto';
-            const chains = this.safeList(entry, 'chains', []);
-            const networks = {};
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString(chain, 'name');
-                const networkCode = this.networkIdToCode(networkId);
-                networks[networkCode] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': !this.safeBool(chain, 'deposit_disabled'),
-                    'withdraw': !this.safeBool(chain, 'withdraw_disabled'),
-                    'fee': undefined,
-                    'precision': this.parseNumber('0.0001'),
-                    'limits': {
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': currencyId,
-                'code': code,
-                'name': this.safeString(entry, 'name'),
-                'type': type,
-                'active': !this.safeBool(entry, 'delisted'),
-                'deposit': !this.safeBool(entry, 'deposit_disabled'),
-                'withdraw': !this.safeBool(entry, 'withdraw_disabled'),
+        return this.parseCurrencies(response);
+    }
+    parseCurrency(rawCurrency) {
+        const currencyId = this.safeString(rawCurrency, 'currency');
+        const code = this.safeCurrencyCode(currencyId);
+        // check leveraged tokens (e.g. BTC3S, ETH5L)
+        const type = this.isLeveragedCurrency(currencyId) ? 'leveraged' : 'crypto';
+        const chains = this.safeList(rawCurrency, 'chains', []);
+        const networks = {};
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString(chain, 'name');
+            const networkCode = this.networkIdToCode(networkId);
+            networks[networkCode] = {
+                'info': chain,
+                'id': networkId,
+                'network': networkCode,
+                'active': undefined,
+                'deposit': !this.safeBool(chain, 'deposit_disabled'),
+                'withdraw': !this.safeBool(chain, 'withdraw_disabled'),
                 'fee': undefined,
-                'networks': networks,
                 'precision': this.parseNumber('0.0001'),
-                'info': entry,
-            });
+                'limits': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'code': code,
+            'name': this.safeString(rawCurrency, 'name'),
+            'type': type,
+            'active': !this.safeBool(rawCurrency, 'delisted'),
+            'deposit': !this.safeBool(rawCurrency, 'deposit_disabled'),
+            'withdraw': !this.safeBool(rawCurrency, 'withdraw_disabled'),
+            'fee': undefined,
+            'networks': networks,
+            'precision': this.parseNumber('0.0001'),
+            'info': rawCurrency,
+        });
     }
     /**
      * @method

@@ -599,6 +599,7 @@ export default class bitrue extends Exchange {
                     "You don't have permission.": PermissionDenied,
                     'Market is closed.': ExchangeNotAvailable,
                     'Too many requests. Please try again later.': DDoSProtection,
+                    'quantity less then minQty': InvalidOrder,
                     '-1000': ExchangeNotAvailable,
                     '-1001': ExchangeNotAvailable,
                     '-1002': AuthenticationError,

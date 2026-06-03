@@ -1115,6 +1115,9 @@ public class HtxCore extends HtxApi
                     put( "XDC", "XDC" );
                     put( "XPLA", "XPLA" );
                 }} );
+                put( "networksById", new java.util.HashMap<String, Object>() {{
+                    put( "MATIC", "MATIC" );
+                }} );
                 put( "fetchOrdersByStatesMethod", "spot_private_get_v1_order_orders" );
                 put( "createMarketBuyOrderRequiresPrice", true );
                 put( "language", "en-US" );
@@ -3652,79 +3655,86 @@ public class HtxCore extends HtxApi
             //    }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            Helpers.addElementToObject(this.options, "networkChainIdsByNames", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(this.options, "networkNamesByChainIds", new java.util.HashMap<String, Object>() {{}});
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
-            {
-                Object entry = Helpers.GetValue(data, i);
-                Object currencyId = this.safeString(entry, "currency");
-                Object code = this.safeCurrencyCode(currencyId);
-                Object assetType = this.safeString(entry, "assetType");
-                Object type = ((Helpers.isTrue(Helpers.isEqual(assetType, "1")))) ? "crypto" : "fiat";
-                Helpers.addElementToObject(Helpers.GetValue(this.options, "networkChainIdsByNames"), code, new java.util.HashMap<String, Object>() {{}});
-                Object chains = this.safeList(entry, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object networks = new java.util.HashMap<String, Object>() {{}};
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
-                {
-                    Object chainEntry = Helpers.GetValue(chains, j);
-                    Object uniqueChainId = this.safeString(chainEntry, "chain"); // i.e. usdterc20, trc20usdt ...
-                    Object title = this.safeString2(chainEntry, "baseChain", "displayName"); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(this.options, "networkChainIdsByNames"), code), title, uniqueChainId);
-                    Helpers.addElementToObject(Helpers.GetValue(this.options, "networkNamesByChainIds"), uniqueChainId, title);
-                    Object networkCode = this.networkIdToCode(uniqueChainId);
-                    Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
-        put( "info", chainEntry );
-        put( "id", uniqueChainId );
-        put( "network", networkCode );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", HtxCore.this.safeNumber(chainEntry, "minDepositAmt") );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", HtxCore.this.safeNumber(chainEntry, "minWithdrawAmt") );
-                put( "max", HtxCore.this.safeNumber(chainEntry, "maxWithdrawAmt") );
-            }} );
-        }} );
-        put( "active", null );
-        put( "deposit", Helpers.isEqual(HtxCore.this.safeString(chainEntry, "depositStatus"), "allowed") );
-        put( "withdraw", Helpers.isEqual(HtxCore.this.safeString(chainEntry, "withdrawStatus"), "allowed") );
-        put( "fee", HtxCore.this.safeNumber(chainEntry, "transactFeeWithdraw") );
-        put( "precision", HtxCore.this.parseNumber(HtxCore.this.parsePrecision(HtxCore.this.safeString(chainEntry, "withdrawPrecision"))) );
-    }});
-                }
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "info", entry );
-        put( "code", code );
-        put( "id", currencyId );
-        put( "active", Helpers.isEqual(HtxCore.this.safeString(entry, "instStatus"), "normal") );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "fee", null );
-        put( "name", null );
-        put( "type", type );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "precision", null );
-        put( "networks", networks );
-    }}));
-            }
-            return result;
+            Helpers.addElementToObject(this.options, "networkChainIdsByNames", new java.util.HashMap<String, Object>() {{}});
+            return this.parseCurrencies(data);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        if (!Helpers.isTrue((Helpers.inOp(this.options, "networkNamesByChainIds"))))
+        {
+            Helpers.addElementToObject(this.options, "networkNamesByChainIds", new java.util.HashMap<String, Object>() {{}});
+        }
+        if (!Helpers.isTrue((Helpers.inOp(this.options, "networkChainIdsByNames"))))
+        {
+            Helpers.addElementToObject(this.options, "networkChainIdsByNames", new java.util.HashMap<String, Object>() {{}});
+        }
+        Object currencyId = this.safeString(rawCurrency, "currency");
+        Object code = this.safeCurrencyCode(currencyId);
+        Object assetType = this.safeString(rawCurrency, "assetType");
+        Object type = ((Helpers.isTrue((Helpers.isEqual(assetType, "1"))))) ? "crypto" : "fiat";
+        Helpers.addElementToObject(Helpers.GetValue(this.options, "networkChainIdsByNames"), code, new java.util.HashMap<String, Object>() {{}});
+        Object chains = this.safeList(rawCurrency, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object networks = new java.util.HashMap<String, Object>() {{}};
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
+        {
+            Object chainEntry = Helpers.GetValue(chains, j);
+            Object uniqueChainId = this.safeString(chainEntry, "chain"); // i.e. usdterc20, trc20usdt ...
+            Object title = this.safeString2(chainEntry, "baseChain", "displayName"); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
+            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(this.options, "networkChainIdsByNames"), code), title, uniqueChainId);
+            Helpers.addElementToObject(Helpers.GetValue(this.options, "networkNamesByChainIds"), uniqueChainId, title);
+            Object networkCode = this.networkIdToCode(uniqueChainId);
+            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+    put( "info", chainEntry );
+    put( "id", uniqueChainId );
+    put( "network", networkCode );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "min", HtxCore.this.safeNumber(chainEntry, "minDepositAmt") );
+            put( "max", null );
+        }} );
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", HtxCore.this.safeNumber(chainEntry, "minWithdrawAmt") );
+            put( "max", HtxCore.this.safeNumber(chainEntry, "maxWithdrawAmt") );
+        }} );
+    }} );
+    put( "active", null );
+    put( "deposit", Helpers.isEqual(HtxCore.this.safeString(chainEntry, "depositStatus"), "allowed") );
+    put( "withdraw", Helpers.isEqual(HtxCore.this.safeString(chainEntry, "withdrawStatus"), "allowed") );
+    put( "fee", HtxCore.this.safeNumber(chainEntry, "transactFeeWithdraw") );
+    put( "precision", HtxCore.this.parseNumber(HtxCore.this.parsePrecision(HtxCore.this.safeString(chainEntry, "withdrawPrecision"))) );
+}});
+        }
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "info", rawCurrency );
+            put( "code", code );
+            put( "id", currencyId );
+            put( "active", Helpers.isEqual(HtxCore.this.safeString(rawCurrency, "instStatus"), "normal") );
+            put( "deposit", null );
+            put( "withdraw", null );
+            put( "fee", null );
+            put( "name", null );
+            put( "type", type );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "amount", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "deposit", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "precision", null );
+            put( "networks", networks );
+        }});
     }
 
     public Object networkIdToCode(Object... optionalArgs)

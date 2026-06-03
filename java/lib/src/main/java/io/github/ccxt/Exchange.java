@@ -3629,7 +3629,7 @@ public Object describe()
         return defaultValue;
     }
 
-    public Object safeBool2(Object dictionary, Object key1, Object key2, Object... optionalArgs)
+    public Object safeBool2(Object dictionaryOrList, Object key1, Object key2, Object... optionalArgs)
     {
         /**
         * @ignore
@@ -3638,10 +3638,20 @@ public Object describe()
         * @returns {bool | undefined}
         */
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
-        return this.safeBoolN(dictionary, new java.util.ArrayList<Object>(java.util.Arrays.asList(key1, key2)), defaultValue);
+        Object value = this.safeValue(dictionaryOrList, key1);
+        if (Helpers.isTrue((value instanceof Boolean)))
+        {
+            return value;
+        }
+        Object value2 = this.safeValue(dictionaryOrList, key2);
+        if (Helpers.isTrue((value2 instanceof Boolean)))
+        {
+            return value2;
+        }
+        return defaultValue;
     }
 
-    public Object safeBool(Object dictionary, Object key, Object... optionalArgs)
+    public Object safeBool(Object dictionaryOrList, Object key, Object... optionalArgs)
     {
         /**
         * @ignore
@@ -3650,7 +3660,7 @@ public Object describe()
         * @returns {bool | undefined}
         */
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
-        Object value = this.safeValue(dictionary, key, defaultValue);
+        Object value = this.safeValue(dictionaryOrList, key, defaultValue);
         if (Helpers.isTrue((value instanceof Boolean)))
         {
             return value;
@@ -3679,7 +3689,7 @@ public Object describe()
         return defaultValue;
     }
 
-    public Object safeDict(Object dictionary, Object key, Object... optionalArgs)
+    public Object safeDict(Object dictionaryOrList, Object key, Object... optionalArgs)
     {
         /**
         * @ignore
@@ -3688,7 +3698,7 @@ public Object describe()
         * @returns {object | undefined}
         */
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
-        Object value = this.safeValue(dictionary, key, defaultValue);
+        Object value = this.safeValue(dictionaryOrList, key, defaultValue);
         if (Helpers.isTrue(Helpers.isEqual(value, null)))
         {
             return defaultValue;
@@ -3700,7 +3710,7 @@ public Object describe()
         return defaultValue;
     }
 
-    public Object safeDict2(Object dictionary, Object key1, Object key2, Object... optionalArgs)
+    public Object safeDict2(Object dictionaryOrList, Object key1, Object key2, Object... optionalArgs)
     {
         /**
         * @ignore
@@ -3709,7 +3719,17 @@ public Object describe()
         * @returns {object | undefined}
         */
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
-        return this.safeDictN(dictionary, new java.util.ArrayList<Object>(java.util.Arrays.asList(key1, key2)), defaultValue);
+        Object value = this.safeValue(dictionaryOrList, key1);
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue(((value instanceof java.util.Map)))) && !Helpers.isTrue(Helpers.isArray(value))))
+        {
+            return value;
+        }
+        Object value2 = this.safeValue(dictionaryOrList, key2);
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value2, null))) && Helpers.isTrue(((value2 instanceof java.util.Map)))) && !Helpers.isTrue(Helpers.isArray(value2))))
+        {
+            return value2;
+        }
+        return defaultValue;
     }
 
     public Object safeListN(Object dictionaryOrList, Object keys, Object... optionalArgs)
@@ -3747,7 +3767,17 @@ public Object describe()
         * @returns {Array | undefined}
         */
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
-        return this.safeListN(dictionaryOrList, new java.util.ArrayList<Object>(java.util.Arrays.asList(key1, key2)), defaultValue);
+        Object value = this.safeValue(dictionaryOrList, key1);
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue(Helpers.isArray(value))))
+        {
+            return value;
+        }
+        Object value2 = this.safeValue(dictionaryOrList, key2);
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value2, null))) && Helpers.isTrue(Helpers.isArray(value2))))
+        {
+            return value2;
+        }
+        return defaultValue;
     }
 
     public Object safeList(Object dictionaryOrList, Object key, Object... optionalArgs)
@@ -5599,24 +5629,6 @@ public Object describe()
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(currencyWithdraw, null)) || Helpers.isTrue(withdraw)))
                 {
                     Helpers.addElementToObject(currency, "withdraw", withdraw);
-                }
-                // set network 'active' to false if D or W is disabled
-                Object active = this.safeBool(network, "active");
-                if (Helpers.isTrue(Helpers.isEqual(active, null)))
-                {
-                    if (Helpers.isTrue(Helpers.isTrue(deposit) && Helpers.isTrue(withdraw)))
-                    {
-                        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(currency, "networks"), key), "active", true);
-                    } else if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(deposit, null)) && Helpers.isTrue(!Helpers.isEqual(withdraw, null))))
-                    {
-                        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(currency, "networks"), key), "active", false);
-                    }
-                }
-                active = this.safeBool(Helpers.GetValue(Helpers.GetValue(currency, "networks"), key), "active"); // dict might have been updated on above lines, so access directly instead of `network` variable
-                Object currencyActive = this.safeBool(currency, "active");
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(currencyActive, null)) || Helpers.isTrue(active)))
-                {
-                    Helpers.addElementToObject(currency, "active", active);
                 }
                 // find lowest fee (which is more desired)
                 Object fee = this.safeString(network, "fee");

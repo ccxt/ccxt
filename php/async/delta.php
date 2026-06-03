@@ -573,63 +573,62 @@ class delta extends Exchange {
             //     }
             //
             $currencies = $this->safe_list($response, 'result', array());
-            $result = array();
-            for ($i = 0; $i < count($currencies); $i++) {
-                $currency = $currencies[$i];
-                $id = $this->safe_string($currency, 'symbol');
-                $numericId = $this->safe_integer($currency, 'id');
-                $code = $this->safe_currency_code($id);
-                $chains = $this->safe_list($currency, 'networks', array());
-                $networks = array();
-                for ($j = 0; $j < count($chains); $j++) {
-                    $chain = $chains[$j];
-                    $networkId = $this->safe_string($chain, 'network');
-                    $networkCode = $this->network_id_to_code($networkId);
-                    $networks[$networkCode] = array(
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'name' => $this->safe_string($chain, 'name'),
-                        'info' => $chain,
-                        'active' => $this->safe_string($chain, 'status') === 'enabled',
-                        'deposit' => $this->safe_string($chain, 'deposit_status') === 'enabled',
-                        'withdraw' => $this->safe_string($chain, 'withdrawal_status') === 'enabled',
-                        'fee' => $this->safe_number($chain, 'base_withdrawal_fee'),
-                        'limits' => array(
-                            'deposit' => array(
-                                'min' => $this->safe_number($chain, 'min_deposit_amount'),
-                                'max' => null,
-                            ),
-                            'withdraw' => array(
-                                'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
-                                'max' => null,
-                            ),
-                        ),
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'numericId' => $numericId,
-                    'code' => $code,
-                    'name' => $this->safe_string($currency, 'name'),
-                    'info' => $currency, // the original payload
-                    'active' => null,
-                    'deposit' => $this->safe_string($currency, 'deposit_status') === 'enabled',
-                    'withdraw' => $this->safe_string($currency, 'withdrawal_status') === 'enabled',
-                    'fee' => $this->safe_number($currency, 'base_withdrawal_fee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
-                    'limits' => array(
-                        'amount' => array( 'min' => null, 'max' => null ),
-                        'withdraw' => array(
-                            'min' => $this->safe_number($currency, 'min_withdrawal_amount'),
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => $networks,
-                    'type' => 'crypto',
-                ));
-            }
-            return $result;
+            return $this->parse_currencies($currencies);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'symbol');
+        $numericId = $this->safe_integer($rawCurrency, 'id');
+        $code = $this->safe_currency_code($id);
+        $chains = $this->safe_list($rawCurrency, 'networks', array());
+        $networks = array();
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $chains[$j];
+            $networkId = $this->safe_string($chain, 'network');
+            $networkCode = $this->network_id_to_code($networkId);
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'name' => $this->safe_string($chain, 'name'),
+                'info' => $chain,
+                'active' => $this->safe_string($chain, 'status') === 'enabled',
+                'deposit' => $this->safe_string($chain, 'deposit_status') === 'enabled',
+                'withdraw' => $this->safe_string($chain, 'withdrawal_status') === 'enabled',
+                'fee' => $this->safe_number($chain, 'base_withdrawal_fee'),
+                'limits' => array(
+                    'deposit' => array(
+                        'min' => $this->safe_number($chain, 'min_deposit_amount'),
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'numericId' => $numericId,
+            'code' => $code,
+            'name' => $this->safe_string($rawCurrency, 'name'),
+            'info' => $rawCurrency, // the original payload
+            'active' => null,
+            'deposit' => $this->safe_string($rawCurrency, 'deposit_status') === 'enabled',
+            'withdraw' => $this->safe_string($rawCurrency, 'withdrawal_status') === 'enabled',
+            'fee' => $this->safe_number($rawCurrency, 'base_withdrawal_fee'),
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'precision'))),
+            'limits' => array(
+                'amount' => array( 'min' => null, 'max' => null ),
+                'withdraw' => array(
+                    'min' => $this->safe_number($rawCurrency, 'min_withdrawal_amount'),
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+            'type' => 'crypto',
+        ));
     }
 
     public function load_markets($reload = false, $params = array ()) {

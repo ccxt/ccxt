@@ -1308,45 +1308,44 @@ class lighter extends Exchange {
             //     }
             //
             $data = $this->safe_list($response, 'asset_details', array());
-            $result = array();
-            for ($i = 0; $i < count($data); $i++) {
-                $entry = $data[$i];
-                $id = $this->safe_string($entry, 'asset_id');
-                $code = $this->safe_currency_code($this->safe_string($entry, 'symbol'));
-                $decimals = $this->safe_string($entry, 'decimals');
-                $isUSDC = ($code === 'USDC');
-                $depositMin = null;
-                $withdrawMin = null;
-                if ($isUSDC) {
-                    $depositMin = $this->safe_number($entry, 'min_transfer_amount');
-                    $withdrawMin = $this->safe_number($entry, 'min_withdrawal_amount');
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'name' => $code,
-                    'code' => $code,
-                    'precision' => $this->parse_number('1e-' . $decimals),
-                    'active' => true,
-                    'fee' => null,
-                    'networks' => array(),
-                    'deposit' => $isUSDC,
-                    'withdraw' => $isUSDC,
-                    'type' => 'crypto',
-                    'limits' => array(
-                        'deposit' => array(
-                            'min' => $depositMin,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => $withdrawMin,
-                            'max' => null,
-                        ),
-                    ),
-                    'info' => $entry,
-                ));
-            }
-            return $result;
+            return $this->parse_currencies($data);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'asset_id');
+        $code = $this->safe_currency_code($this->safe_string($rawCurrency, 'symbol'));
+        $decimals = $this->safe_string($rawCurrency, 'decimals');
+        $isUSDC = ($code === 'USDC');
+        $depositMin = null;
+        $withdrawMin = null;
+        if ($isUSDC) {
+            $depositMin = $this->safe_number($rawCurrency, 'min_transfer_amount');
+            $withdrawMin = $this->safe_number($rawCurrency, 'min_withdrawal_amount');
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'name' => $code,
+            'code' => $code,
+            'precision' => $this->parse_number('1e-' . $decimals),
+            'active' => true,
+            'fee' => null,
+            'networks' => array(),
+            'deposit' => $isUSDC,
+            'withdraw' => $isUSDC,
+            'type' => 'crypto',
+            'limits' => array(
+                'deposit' => array(
+                    'min' => $depositMin,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $withdrawMin,
+                    'max' => null,
+                ),
+            ),
+            'info' => $rawCurrency,
+        ));
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {

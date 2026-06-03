@@ -1568,11 +1568,10 @@ func (this *testMainClass) InitOfflineExchange(exchangeName any) ccxt.ICoreExcha
 	// const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
 	// const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
 	// const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
-	// we add "proxy" 2 times to intentionally trigger InvalidProxySettings
 	var basePath any = Add(GetRootDir(), "ts/src/test/static/binaries/")
 	if IsTrue(IsEqual(exchangeName, "lighter")) {
 		if IsTrue(IsEqual(this.Lang, "JS")) {
-			wasmExecPath = Add(GetRootDir(), "/src/test/static/binaries/wasm_exec.js")
+			wasmExecPath = Add(basePath, "wasm_exec.js")
 			libraryPath = Add(basePath, "lighter.wasm")
 		} else {
 			if IsTrue(IsWindows()) {

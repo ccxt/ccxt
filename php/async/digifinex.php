@@ -528,47 +528,48 @@ class digifinex extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             $groupedById = $this->group_by($data, 'currency');
-            $keys = is_array($groupedById) ? array_keys($groupedById) : array();
-            $result = array();
-            for ($i = 0; $i < count($keys); $i++) {
-                $id = $keys[$i];
-                $networkEntries = $groupedById[$id];
-                $code = $this->safe_currency_code($id);
-                $networks = array();
-                for ($j = 0; $j < count($networkEntries); $j++) {
-                    $networkEntry = $networkEntries[$j];
-                    $networkId = $this->safe_string_2($networkEntry, 'chain', 'currency');
-                    $networkCode = $this->network_id_to_code($networkId);
-                    $networks[$networkCode] = array(
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'active' => null,
-                        'deposit' => $this->safe_integer($networkEntry, 'deposit_status') === 1,
-                        'withdraw' => $this->safe_integer($networkEntry, 'withdraw_status') === 1,
-                        'fee' => $this->safe_number($networkEntry, 'min_withdraw_fee'),
-                        'precision' => null,
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($networkEntry, 'min_withdraw_amount'),
-                                'max' => null,
-                            ),
-                            'deposit' => array(
-                                'min' => $this->safe_number($networkEntry, 'min_deposit_amount'),
-                                'max' => null,
-                            ),
-                        ),
-                        'info' => $networkEntry,
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'code' => $code,
-                    'info' => $networkEntries,
-                    'networks' => $networks,
-                ));
-            }
-            return $result;
+            $values = is_array($groupedById) ? array_values($groupedById) : array();
+            return $this->parse_currencies($values);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $networkEntries = $rawCurrency;
+        $firstEntry = $this->safe_dict($networkEntries, 0, array()); // it must have at least one entry
+        $id = $this->safe_string($firstEntry, 'currency');
+        $code = $this->safe_currency_code($id);
+        $networks = array();
+        for ($j = 0; $j < count($networkEntries); $j++) {
+            $networkEntry = $networkEntries[$j];
+            $networkId = $this->safe_string_2($networkEntry, 'chain', 'currency');
+            $networkCode = $this->network_id_to_code($networkId);
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'active' => null,
+                'deposit' => $this->safe_integer($networkEntry, 'deposit_status') === 1,
+                'withdraw' => $this->safe_integer($networkEntry, 'withdraw_status') === 1,
+                'fee' => $this->safe_number($networkEntry, 'min_withdraw_fee'),
+                'precision' => null,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($networkEntry, 'min_withdraw_amount'),
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($networkEntry, 'min_deposit_amount'),
+                        'max' => null,
+                    ),
+                ),
+                'info' => $networkEntry,
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => $networkEntries,
+            'networks' => $networks,
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {

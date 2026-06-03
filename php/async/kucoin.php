@@ -4302,11 +4302,11 @@ class kucoin extends Exchange {
              *
              * @see https://www.kucoin.com/docs-new/rest/ua/place-order
              *
-             * @param {string} $symbol Unified CCXT market $symbol
+             * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} $type 'limit' or 'market'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount the $amount of currency to trade
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params]  extra parameters specific to the exchange API endpoint
              * @param {string} [$params->clientOrderId] client order id, defaults to uuid if not passed
              * @param {float} [$params->cost] the cost of the order in units of quote currency
@@ -4334,6 +4334,7 @@ class kucoin extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
+            $market = $this->market($symbol);
             $request = $this->create_uta_order_request($symbol, $type, $side, $amount, $price, $params);
             $response = Async\await($this->utaPrivatePostAccountModeOrderPlace ($request));
             //
@@ -4348,7 +4349,7 @@ class kucoin extends Exchange {
             //     }
             //
             $data = $this->safe_dict($response, 'data', array());
-            return $this->parse_order($data);
+            return $this->parse_order($data, $market);
         }) ();
     }
 

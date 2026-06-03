@@ -1531,13 +1531,12 @@ public class TestMain extends BaseTest
         // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
         // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
-        // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         Object basePath = Helpers.add(getRootDir(), "ts/src/test/static/binaries/");
         if (Helpers.isTrue(Helpers.isEqual(exchangeName, "lighter")))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.lang, "JS")))
             {
-                wasmExecPath = Helpers.add(getRootDir(), "/src/test/static/binaries/wasm_exec.js");
+                wasmExecPath = Helpers.add(basePath, "wasm_exec.js");
                 libraryPath = Helpers.add(basePath, "lighter.wasm");
             } else
             {

@@ -551,6 +551,7 @@ public class BitrueCore extends BitrueApi
                     put( "You don't have permission.", PermissionDenied.class );
                     put( "Market is closed.", ExchangeNotAvailable.class );
                     put( "Too many requests. Please try again later.", DDoSProtection.class );
+                    put( "quantity less then minQty", InvalidOrder.class );
                     put( "-1000", ExchangeNotAvailable.class );
                     put( "-1001", ExchangeNotAvailable.class );
                     put( "-1002", AuthenticationError.class );

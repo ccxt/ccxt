@@ -809,67 +809,86 @@ public partial class kraken : Exchange
         //         },
         //     }
         //
-        object currencies = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object ids = new List<object>(((IDictionary<string,object>)currencies).Keys);
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        object currencies = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object enhancedArray = this.addKeyInArrayItems(currencies, "_coin_id");
+        return this.parseCurrencies(enhancedArray);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        // todo: will need to rethink the fees
+        // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
+        // to add support for multiple withdrawal/deposit methods and
+        // differentiated fees for each particular method
+        //
+        // Notes about abbreviations:
+        // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
+        // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
+        //
+        object id = this.safeString(rawCurrency, "_coin_id");
+        object code = this.safeCurrencyCode(id);
+        // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
+        if (isTrue(isLessThan(getIndexOf(id, "."), 0)))
         {
-            object id = getValue(ids, i);
-            object currency = getValue(currencies, id);
-            // todo: will need to rethink the fees
-            // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
+            object altName = this.safeString(rawCurrency, "altname");
+            // handle cases like below:
             //
-            // Notes about abbreviations:
-            // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
-            // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
-            //
-            object code = this.safeCurrencyCode(id);
-            // the below can not be reliable done in `safeCurrencyCode`, so we have to do it here
-            if (isTrue(isLessThan(getIndexOf(id, "."), 0)))
+            //  id   | altname
+            // ---------------
+            // XXBT  |  XBT
+            // ZUSD  |  USD
+            if (isTrue(isTrue(!isEqual(id, altName)) && isTrue((isTrue(((string)id).StartsWith(((string)"X"))) || isTrue(((string)id).StartsWith(((string)"Z")))))))
             {
-                object altName = this.safeString(currency, "altname");
-                // handle cases like below:
-                //
-                //  id   | altname
-                // ---------------
-                // XXBT  |  XBT
-                // ZUSD  |  USD
-                if (isTrue(isTrue(!isEqual(id, altName)) && isTrue((isTrue(((string)id).StartsWith(((string)"X"))) || isTrue(((string)id).StartsWith(((string)"Z")))))))
-                {
-                    code = this.safeCurrencyCode(altName);
-                    // also, add map in commonCurrencies:
-                    ((IDictionary<string,object>)this.commonCurrencies)[(string)id] = code;
-                } else
-                {
-                    code = this.safeCurrencyCode(id);
-                }
+                code = this.safeCurrencyCode(altName);
+                // also, add map in commonCurrencies:
+                ((IDictionary<string,object>)this.commonCurrencies)[(string)id] = code;
+            } else
+            {
+                code = this.safeCurrencyCode(id);
             }
-            object isFiat = isGreaterThanOrEqual(getIndexOf(code, ".HOLD"), 0);
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "info", currency },
-                { "name", this.safeString(currency, "altname") },
-                { "active", isEqual(this.safeString(currency, "status"), "enabled") },
-                { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals"))) },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
+        }
+        object isFiat = isGreaterThanOrEqual(getIndexOf(code, ".HOLD"), 0);
+        rawCurrency = this.omit(rawCurrency, "_coin_id");
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "info", rawCurrency },
+            { "name", this.safeString(rawCurrency, "altname") },
+            { "active", isEqual(this.safeString(rawCurrency, "status"), "enabled") },
+            { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "decimals"))) },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
                 } },
-                { "networks", new Dictionary<string, object>() {} },
-            });
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", new Dictionary<string, object>() {} },
+        });
+    }
+
+    public virtual object addKeyInArrayItems(object obj, object keyName)
+    {
+        object result = new List<object>() {};
+        object keys = new List<object>(((IDictionary<string,object>)obj).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object item = getValue(obj, key);
+            if (isTrue(isEqual(item, null)))
+            {
+                continue;
+            }
+            object itemWithKey = this.extend(new Dictionary<string, object>() {}, item);
+            ((IDictionary<string,object>)itemWithKey)[(string)keyName] = key;
+            ((IList<object>)result).Add(itemWithKey);
         }
         return result;
     }

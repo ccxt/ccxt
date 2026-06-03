@@ -1198,11 +1198,10 @@ class testMainClass {
         // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
         // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
-        // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         $base_path = get_root_dir() . 'ts/src/test/static/binaries/';
         if ($exchange_name === 'lighter') {
             if ($this->lang === 'JS') {
-                $wasm_exec_path = get_root_dir() . '/src/test/static/binaries/wasm_exec.js';
+                $wasm_exec_path = $base_path . 'wasm_exec.js';
                 $library_path = $base_path . 'lighter.wasm';
             } else {
                 if (is_windows()) {

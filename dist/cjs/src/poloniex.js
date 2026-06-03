@@ -2778,14 +2778,23 @@ class poloniex extends poloniex$1["default"] {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        const [request, extraParams, currency, networkEntry] = this.prepareRequestForDepositAddress(code, params);
-        params = extraParams;
-        request['amount'] = this.currencyToPrecision(code, amount);
-        request['address'] = address;
+        const currency = this.currency(code);
+        const request = {
+            'coin': currency['id'],
+            'amount': this.currencyToPrecision(code, amount),
+            'address': address,
+        };
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode === undefined) {
+            // we need to know the network to find out the currency-junction
+            throw new errors.ArgumentsRequired(this.id + ' withdraw requires a network parameter for ' + code + '.');
+        }
+        request['network'] = this.networkCodeToId(networkCode, code);
         if (tag !== undefined) {
             request['paymentId'] = tag;
         }
-        const response = await this.privatePostWalletsWithdraw(this.extend(request, params));
+        const response = await this.privatePostV2WalletsWithdraw(this.extend(request, params));
         //
         //     {
         //         "response": "Withdrew 1.00000000 USDT.",
@@ -2793,11 +2802,7 @@ class poloniex extends poloniex$1["default"] {
         //         "withdrawalNumber": 13449869
         //     }
         //
-        const withdrawResponse = {
-            'response': response,
-            'withdrawNetworkEntry': networkEntry,
-        };
-        return this.parseTransaction(withdrawResponse, currency);
+        return this.parseTransaction(response, currency);
     }
     async fetchTransactionsHelper(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

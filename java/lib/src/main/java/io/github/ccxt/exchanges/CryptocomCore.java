@@ -549,7 +549,8 @@ public class CryptocomCore extends CryptocomApi
                 response = (this.v1PrivatePostPrivateGetCurrencyNetworks(parameters)).join();
             } catch(Exception e)
             {
-                if (Helpers.isTrue(Helpers.isInstance(e, ExchangeError.class)))
+                Object erString = this.exceptionMessage(e);
+                if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(erString, "\"msg\":\"SYS_ERROR\""), 0)))
                 {
                     // sub-accounts can't access this endpoint
                     // {"code":"10001","msg":"SYS_ERROR"}
@@ -601,61 +602,73 @@ public class CryptocomCore extends CryptocomApi
             //
             Object resultData = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object currencyMap = this.safeDict(resultData, "currency_map", new java.util.HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(currencyMap);
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
-            {
-                Object key = Helpers.GetValue(keys, i);
-                Object currency = Helpers.GetValue(currencyMap, key);
-                Object id = key;
-                Object code = this.safeCurrencyCode(id);
-                Object networks = new java.util.HashMap<String, Object>() {{}};
-                Object chains = this.safeList(currency, "network_list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
-                {
-                    Object chain = Helpers.GetValue(chains, j);
-                    Object networkId = this.safeString(chain, "network_id");
-                    Object network = this.networkIdToCode(networkId);
-                    Helpers.addElementToObject(networks, network, new java.util.HashMap<String, Object>() {{
-        put( "info", chain );
-        put( "id", networkId );
-        put( "network", network );
-        put( "active", null );
-        put( "deposit", CryptocomCore.this.safeBool(chain, "deposit_enabled", false) );
-        put( "withdraw", CryptocomCore.this.safeBool(chain, "withdraw_enabled", false) );
-        put( "fee", CryptocomCore.this.safeNumber(chain, "withdrawal_fee") );
-        put( "precision", null );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", CryptocomCore.this.safeNumber(chain, "min_withdrawal_amount") );
-                put( "max", null );
-            }} );
-        }} );
-    }});
-                }
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "info", currency );
-        put( "id", id );
-        put( "code", code );
-        put( "name", CryptocomCore.this.safeString(currency, "full_name") );
-        put( "active", null );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "fee", null );
-        put( "precision", null );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "type", "crypto" );
-        put( "networks", networks );
-    }}));
-            }
-            return result;
+            Object enhancedArray = this.addKeyInArrayItems(currencyMap, "_coin_id");
+            return this.parseCurrencies(enhancedArray);
         });
 
+    }
+
+    public Object parseCurrency(Object currency)
+    {
+        Object id = this.safeString(currency, "_coin_id");
+        Object code = this.safeCurrencyCode(id);
+        Object networks = new java.util.HashMap<String, Object>() {{}};
+        Object chains = this.safeList(currency, "network_list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
+        {
+            Object chain = Helpers.GetValue(chains, j);
+            Object networkId = this.safeString(chain, "network_id");
+            Object network = this.networkIdToCode(networkId, code);
+            Helpers.addElementToObject(networks, network, new java.util.HashMap<String, Object>() {{
+    put( "info", chain );
+    put( "id", networkId );
+    put( "network", network );
+    put( "active", null );
+    put( "deposit", CryptocomCore.this.safeBool(chain, "deposit_enabled", false) );
+    put( "withdraw", CryptocomCore.this.safeBool(chain, "withdraw_enabled", false) );
+    put( "fee", CryptocomCore.this.safeNumber(chain, "withdrawal_fee") );
+    put( "precision", null );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", CryptocomCore.this.safeNumber(chain, "min_withdrawal_amount") );
+            put( "max", null );
+        }} );
+    }} );
+}});
+        }
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "info", currency );
+            put( "id", id );
+            put( "code", code );
+            put( "name", CryptocomCore.this.safeString(currency, "full_name") );
+            put( "active", null );
+            put( "deposit", null );
+            put( "withdraw", null );
+            put( "fee", null );
+            put( "precision", null );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "amount", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "type", "crypto" );
+            put( "networks", networks );
+        }});
+    }
+
+    public Object addKeyInArrayItems(Object obj, Object keyName)
+    {
+        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object keys = Helpers.objectKeys(obj);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
+        {
+            Object key = Helpers.GetValue(keys, i);
+            Object item = Helpers.GetValue(obj, key);
+            Helpers.addElementToObject(item, keyName, key);
+            ((java.util.List<Object>)result).add(item);
+        }
+        return result;
     }
 
     /**
@@ -3857,8 +3870,8 @@ public class CryptocomCore extends CryptocomApi
             paramsKeys = obj;
         } else
         {
-            Object sorted = this.keysort(obj);
-            paramsKeys = Helpers.objectKeys(sorted);
+            Object objectKeys = Helpers.objectKeys(obj);
+            paramsKeys = this.sort(objectKeys);
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(paramsKeys)); i++)
         {

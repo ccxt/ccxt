@@ -715,95 +715,102 @@ class exmo extends Exchange {
         $responses = $promises;
         $currencyList = $responses[0];
         $cryptoList = $responses[1];
-        $result = array();
+        $newArray = array();
         for ($i = 0; $i < count($currencyList); $i++) {
             $currency = $currencyList[$i];
             $currencyId = $this->safe_string($currency, 'name');
-            $code = $this->safe_currency_code($currencyId);
-            $type = 'crypto';
-            $networks = array();
             $providers = $this->safe_list($cryptoList, $currencyId);
-            if ($providers === null) {
-                $type = 'fiat';
-            } else {
-                for ($j = 0; $j < count($providers); $j++) {
-                    $provider = $providers[$j];
-                    $name = $this->safe_string($provider, 'name');
-                    // get network-id by removing extra things
-                    $networkId = str_replace($currencyId . ' ', '', $name);
-                    $networkId = str_replace('(', '', $networkId);
-                    $replaceChar = ')'; // transpiler trick
-                    $networkId = str_replace($replaceChar, '', $networkId);
-                    $networkCode = $this->network_id_to_code($networkId);
-                    if (!(is_array($networks) && array_key_exists($networkCode, $networks))) {
-                        $networks[$networkCode] = array(
-                            'id' => $networkId,
-                            'network' => $networkCode,
-                            'active' => null,
-                            'deposit' => null,
-                            'withdraw' => null,
-                            'fee' => null,
-                            'limits' => array(
-                                'withdraw' => array(
-                                    'min' => null,
-                                    'max' => null,
-                                ),
-                                'deposit' => array(
-                                    'min' => null,
-                                    'max' => null,
-                                ),
-                            ),
-                            'info' => array(), // set, because of multiple network sub-entries
-                        );
-                    }
-                    $typeInner = $this->safe_string($provider, 'type');
-                    $minValue = $this->safe_string($provider, 'min');
-                    $maxValue = $this->safe_string($provider, 'max');
-                    $activeProvider = $this->safe_bool($provider, 'enabled');
-                    $networkEntry = $networks[$networkCode];
-                    if ($typeInner === 'deposit') {
-                        $networkEntry['deposit'] = $activeProvider;
-                        $networkEntry['limits']['deposit']['min'] = $minValue;
-                        $networkEntry['limits']['deposit']['max'] = $maxValue;
-                    } elseif ($typeInner === 'withdraw') {
-                        $networkEntry['withdraw'] = $activeProvider;
-                        $networkEntry['limits']['withdraw']['min'] = $minValue;
-                        $networkEntry['limits']['withdraw']['max'] = $maxValue;
-                    }
-                    $info = $this->safe_list($networkEntry, 'info');
-                    $info[] = $provider;
-                    $networkEntry['info'] = $info;
-                    $networks[$networkCode] = $networkEntry;
-                }
-            }
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $currencyId,
-                'code' => $code,
-                'name' => $this->safe_string($currency, 'description'),
-                'type' => $type,
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
-                'precision' => $this->parse_number('1e-8'),
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'info' => array(
-                    'currency' => $currency,
-                    'providers' => $providers,
-                ),
-                'networks' => $networks,
-            ));
+            $newArray[] = array( 'currency' => $currency, 'providers' => $providers );
         }
-        return $result;
+        return $this->parse_currencies($newArray);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currency = $this->safe_dict($rawCurrency, 'currency', array());
+        $providers = $this->safe_list($rawCurrency, 'providers', array());
+        $currencyId = $this->safe_string($currency, 'name');
+        $code = $this->safe_currency_code($currencyId);
+        $type = 'crypto';
+        $networks = array();
+        if ($providers === null) {
+            $type = 'fiat';
+        } else {
+            for ($j = 0; $j < count($providers); $j++) {
+                $provider = $providers[$j];
+                $name = $this->safe_string($provider, 'name');
+                // get network-id by removing extra things
+                $networkId = str_replace($currencyId . ' ', '', $name);
+                $networkId = str_replace('(', '', $networkId);
+                $replaceChar = ')'; // transpiler trick
+                $networkId = str_replace($replaceChar, '', $networkId);
+                $networkCode = $this->network_id_to_code($networkId);
+                if (!(is_array($networks) && array_key_exists($networkCode, $networks))) {
+                    $networks[$networkCode] = array(
+                        'id' => $networkId,
+                        'network' => $networkCode,
+                        'active' => null,
+                        'deposit' => null,
+                        'withdraw' => null,
+                        'fee' => null,
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'deposit' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                        ),
+                        'info' => array(), // set, because of multiple network sub-entries
+                    );
+                }
+                $typeInner = $this->safe_string($provider, 'type');
+                $minValue = $this->safe_string($provider, 'min');
+                $maxValue = $this->safe_string($provider, 'max');
+                $activeProvider = $this->safe_bool($provider, 'enabled');
+                $networkEntry = $networks[$networkCode];
+                if ($typeInner === 'deposit') {
+                    $networkEntry['deposit'] = $activeProvider;
+                    $networkEntry['limits']['deposit']['min'] = $minValue;
+                    $networkEntry['limits']['deposit']['max'] = $maxValue;
+                } elseif ($typeInner === 'withdraw') {
+                    $networkEntry['withdraw'] = $activeProvider;
+                    $networkEntry['limits']['withdraw']['min'] = $minValue;
+                    $networkEntry['limits']['withdraw']['max'] = $maxValue;
+                }
+                $info = $this->safe_list($networkEntry, 'info');
+                $info[] = $provider;
+                $networkEntry['info'] = $info;
+                $networks[$networkCode] = $networkEntry;
+            }
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $currencyId,
+            'code' => $code,
+            'name' => $this->safe_string($currency, 'description'),
+            'type' => $type,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => $this->parse_number('1e-8'),
+            'limits' => array(
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'info' => array(
+                'currency' => $currency,
+                'providers' => $providers,
+            ),
+            'networks' => $networks,
+        ));
     }
 
     public function fetch_markets($params = array ()): array {

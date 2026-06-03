@@ -22,7 +22,8 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    fetchCurrenciesFromWeb(params?: {}): Promise<Dict>;
+    fetchCurrenciesFromWeb(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name gemini#fetchMarkets

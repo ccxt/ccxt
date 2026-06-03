@@ -851,66 +851,82 @@ class kraken extends Exchange {
             //         ),
             //     }
             //
-            $currencies = $this->safe_value($response, 'result', array());
-            $ids = is_array($currencies) ? array_keys($currencies) : array();
-            $result = array();
-            for ($i = 0; $i < count($ids); $i++) {
-                $id = $ids[$i];
-                $currency = $currencies[$id];
-                // todo => will need to rethink the fees
-                // see => https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
-                // to add support for multiple withdrawal/deposit methods and
-                // differentiated fees for each particular method
-                //
-                // Notes about abbreviations:
-                // Z and X prefixes => https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-$currency-$code-XBT-vs-BTC
-                // S and M suffixes => https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
-                //
-                $code = $this->safe_currency_code($id);
-                // the below can not be reliable done in `safeCurrencyCode`, so we have to do it here
-                if (mb_strpos($id, '.') === false) {
-                    $altName = $this->safe_string($currency, 'altname');
-                    // handle cases like below:
-                    //
-                    //  $id   | altname
-                    // ---------------
-                    // XXBT  |  XBT
-                    // ZUSD  |  USD
-                    if ($id !== $altName && (str_starts_with($id, 'X') || str_starts_with($id, 'Z'))) {
-                        $code = $this->safe_currency_code($altName);
-                        // also, add map in commonCurrencies:
-                        $this->commonCurrencies[$id] = $code;
-                    } else {
-                        $code = $this->safe_currency_code($id);
-                    }
-                }
-                $isFiat = mb_strpos($code, '.HOLD') !== false;
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'code' => $code,
-                    'info' => $currency,
-                    'name' => $this->safe_string($currency, 'altname'),
-                    'active' => $this->safe_string($currency, 'status') === 'enabled',
-                    'type' => $isFiat ? 'fiat' : 'crypto',
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals'))),
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => array(),
-                ));
-            }
-            return $result;
+            $currencies = $this->safe_dict($response, 'result', array());
+            $enhancedArray = $this->add_key_in_array_items($currencies, '_coin_id');
+            return $this->parse_currencies($enhancedArray);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        // todo => will need to rethink the fees
+        // see => https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
+        // to add support for multiple withdrawal/deposit methods and
+        // differentiated fees for each particular method
+        //
+        // Notes about abbreviations:
+        // Z and X prefixes => https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-$code-XBT-vs-BTC
+        // S and M suffixes => https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
+        //
+        $id = $this->safe_string($rawCurrency, '_coin_id');
+        $code = $this->safe_currency_code($id);
+        // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
+        if (mb_strpos($id, '.') === false) {
+            $altName = $this->safe_string($rawCurrency, 'altname');
+            // handle cases like below:
+            //
+            //  $id   | altname
+            // ---------------
+            // XXBT  |  XBT
+            // ZUSD  |  USD
+            if ($id !== $altName && (str_starts_with($id, 'X') || str_starts_with($id, 'Z'))) {
+                $code = $this->safe_currency_code($altName);
+                // also, add map in commonCurrencies:
+                $this->commonCurrencies[$id] = $code;
+            } else {
+                $code = $this->safe_currency_code($id);
+            }
+        }
+        $isFiat = mb_strpos($code, '.HOLD') !== false;
+        $rawCurrency = $this->omit($rawCurrency, '_coin_id');
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => $rawCurrency,
+            'name' => $this->safe_string($rawCurrency, 'altname'),
+            'active' => $this->safe_string($rawCurrency, 'status') === 'enabled',
+            'type' => $isFiat ? 'fiat' : 'crypto',
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'decimals'))),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => array(),
+        ));
+    }
+
+    public function add_key_in_array_items($obj, $keyName) {
+        $result = array();
+        $keys = is_array($obj) ? array_keys($obj) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $item = $obj[$key];
+            if ($item === null) {
+                continue;
+            }
+            $itemWithKey = $this->extend(array(), $item);
+            $itemWithKey[$keyName] = $key;
+            $result[] = $itemWithKey;
+        }
+        return $result;
     }
 
     public function safe_currency_code(?string $currencyId, ?array $currency = null): ?string {

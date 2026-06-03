@@ -424,69 +424,69 @@ public partial class lbank : Exchange
         //
         object currenciesData = this.safeList(response, "data", new List<object>() {});
         object grouped = this.groupBy(currenciesData, "assetCode");
-        object groupedKeys = new List<object>(((IDictionary<string,object>)grouped).Keys);
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(groupedKeys)); postFixIncrement(ref i))
+        object values = new List<object>(((IDictionary<string,object>)grouped).Values);
+        return this.parseCurrencies(values);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(getValue(rawCurrency, 0), "assetCode"); // first member is guaranteed
+        object code = this.safeCurrencyCode(id);
+        object networksRaw = rawCurrency;
+        object networks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(networksRaw)); postFixIncrement(ref j))
         {
-            object id = ((object)(getValue(groupedKeys, i))).ToString(); // some currencies are numeric
-            object code = this.safeCurrencyCode(id);
-            object networksRaw = getValue(grouped, id);
-            object networks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(networksRaw)); postFixIncrement(ref j))
+            object networkEntry = getValue(networksRaw, j);
+            object networkId = this.safeString(networkEntry, "chain");
+            if (isTrue(isEqual(networkId, null)))
             {
-                object networkEntry = getValue(networksRaw, j);
-                object networkId = this.safeString(networkEntry, "chain");
-                if (isTrue(isEqual(networkId, null)))
-                {
-                    networkId = this.safeString(networkEntry, "assetCode"); // use type as fallback if networkId is not present
-                }
-                object networkCode = this.networkIdToCode(networkId);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(networkEntry, "min") },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(networkEntry, "minTransfer") },
-                            { "max", null },
-                        } },
-                    } },
-                    { "active", null },
-                    { "deposit", null },
-                    { "withdraw", this.safeBool(networkEntry, "canWithDraw") },
-                    { "fee", this.safeNumber(networkEntry, "fee") },
-                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "transferAmtScale"))) },
-                    { "info", networkEntry },
-                };
+                networkId = this.safeString(networkEntry, "assetCode"); // use type as fallback if networkId is not present
             }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "precision", null },
-                { "type", null },
-                { "name", null },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
+            object networkCode = this.networkIdToCode(networkId);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
                 { "limits", new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.safeNumber(networkEntry, "min") },
                         { "max", null },
                     } },
                     { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.safeNumber(networkEntry, "minTransfer") },
                         { "max", null },
                     } },
                 } },
-                { "networks", networks },
-                { "info", networksRaw },
-            });
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", this.safeBool(networkEntry, "canWithDraw") },
+                { "fee", this.safeNumber(networkEntry, "fee") },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "transferAmtScale"))) },
+                { "info", networkEntry },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "precision", null },
+            { "type", null },
+            { "name", null },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "limits", new Dictionary<string, object>() {
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", networks },
+            { "info", networksRaw },
+        });
     }
 
     /**
