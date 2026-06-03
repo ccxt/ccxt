@@ -1,0 +1,88 @@
+name: Deploy Fumadocs
+
+# Publishes the Fumadocs static site to the docs server. Automates the previously
+# manual "git pull + cp + nginx reload" step. Consumes the committed wiki/*.md
+# (kept current by js.yml's build-docs) — it does NOT re-run the TS->wiki pipeline.
+#
+# Currently deploys to the /v2 staging endpoint (https://docs.ccxt.com/v2/), coexisting
+# with the live Docsify site. At cutover, change NEXT_BASE_PATH + DEPLOY_PATH below.
+
+on:
+  release:
+    types: [published]
+  push:
+    branches: [master]
+    paths:
+      - 'wiki/**'
+      - 'website/**'
+      - 'build/wiki-to-fumadocs.ts'
+      - '.github/workflows/docs-fumadocs.yml'
+  workflow_dispatch:
+
+# one deploy at a time; never cancel a half-finished rsync mid-run
+concurrency:
+  group: docs-fumadocs
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    # only the canonical repo holds the secrets — never runs for forks
+    if: github.repository == 'ccxt/ccxt'
+    runs-on: ubuntu-latest
+    env:
+      NEXT_BASE_PATH: /v2                       # '' (empty) at cutover -> root build
+      NEXT_PUBLIC_SITE_URL: https://docs.ccxt.com
+      DEPLOY_PATH: /var/www/docs-v2/v2/          # '/var/www/docs/...' at cutover
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: website/package-lock.json
+
+      # wiki/*.md (committed, kept current by js.yml) -> website/content/docs
+      - name: Convert wiki to Fumadocs content
+        run: npx -y tsx build/wiki-to-fumadocs.ts
+
+      - name: Build static export
+        working-directory: website
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: |
+          npm ci
+          npm run build
+
+      - name: Guard against an empty / broken build
+        run: |
+          count=$(find website/out -type f -name '*.html' | wc -l)
+          echo "built $count html pages"
+          if [ "$count" -lt 500 ]; then
+            echo "::error::only $count html pages built — refusing to deploy (would --delete the live dir)"
+            exit 1
+          fi
+
+      - name: Configure SSH (pinned host key, deploy key)
+        env:
+          SSH_KEY: ${{ secrets.DOCS_DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DOCS_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Deploy with rsync
+        env:
+          HOST: ${{ secrets.DOCS_DEPLOY_HOST }}
+          USER: ${{ secrets.DOCS_DEPLOY_USER }}
+        run: |
+          rsync -az --delete --chown=www-data:www-data \
+            -e "ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes" \
+            website/out/ "${USER}@${HOST}:${DEPLOY_PATH}"
+          echo "deployed to ${USER}@${HOST}:${DEPLOY_PATH}"
