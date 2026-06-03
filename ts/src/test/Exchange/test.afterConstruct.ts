@@ -21,7 +21,7 @@ function testOptionsNetworks (exchange: Exchange, skippedProperties: object) {
         assert (exchange.isDictionary (exchange.options['networksById']), 'exchange.options["networksById"] is not an object');
         //
         const networkCodes = Object.keys (exchange.options['networks']);
-        // 3) ensure that there same network-id is not assigned to multiple networkCodes
+        // 3) ensure that the same network-id is not assigned to multiple networkCodes
         const collectedNetworkIds = [];
         for (let i = 0; i < networkCodes.length; i++) {
             const networkCode = networkCodes[i];
