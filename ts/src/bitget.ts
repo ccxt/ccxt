@@ -8319,7 +8319,8 @@ export default class bitget extends Exchange {
             }
             liquidationPrice = this.parseNumber (Precise.stringDiv (numerator, mmrMinusOne));
         }
-        const feeToClose = Precise.stringMul (notional, calcTakerFeeRate);
+        let feeToClose = Precise.stringMul (notional, calcTakerFeeRate);
+        feeToClose = (feeToClose !== undefined) ? feeToClose : '0';
         const maintenanceMargin = Precise.stringAdd (Precise.stringMul (maintenanceMarginPercentage, notional), feeToClose);
         const percentage = Precise.stringMul (Precise.stringDiv (unrealizedPnl, initialMargin, 4), '100');
         return this.safePosition ({
