@@ -157,6 +157,7 @@ public class TestMain extends BaseTest
 
             Object properties = Helpers.objectKeys(exchange.has);
             ((java.util.List<Object>)properties).add("loadMarkets");
+            ((java.util.List<Object>)properties).add("afterConstruct");
             if (Helpers.isTrue(isSync()))
             {
                 this.testFiles = getTestFilesSync(properties, this.wsTests);
@@ -294,6 +295,7 @@ public class TestMain extends BaseTest
             Object isLoadMarkets = (Helpers.isEqual(methodName, "loadMarkets"));
             Object isFetchCurrencies = (Helpers.isEqual(methodName, "fetchCurrencies"));
             Object isProxyTest = (Helpers.isEqual(methodName, this.proxyTestFileName));
+            Object isConstructorTest = (Helpers.isEqual(methodName, "afterConstruct"));
             Object isFeatureTest = (Helpers.isEqual(methodName, "features"));
             // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(isPublic) && Helpers.isTrue((Helpers.inOp(this.checkedPublicTests, methodName)))) && !Helpers.isTrue(isFetchCurrencies)))
@@ -305,7 +307,7 @@ public class TestMain extends BaseTest
             if (Helpers.isTrue(!Helpers.isTrue(isLoadMarkets) && Helpers.isTrue((Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(this.onlySpecificTests), 0)) && !Helpers.isTrue(exchange.inArray(methodName, this.onlySpecificTests))))))
             {
                 skipMessage = "[INFO] IGNORED_TEST";
-            } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(isLoadMarkets) && !Helpers.isTrue(supportedByExchange)) && !Helpers.isTrue(isProxyTest)) && !Helpers.isTrue(isFeatureTest)))
+            } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(isLoadMarkets) && !Helpers.isTrue(supportedByExchange)) && !Helpers.isTrue(isProxyTest)) && !Helpers.isTrue(isFeatureTest)) && !Helpers.isTrue(isConstructorTest)))
             {
                 skipMessage = "[INFO] UNSUPPORTED_TEST"; // keep it aligned with the longest message
             } else if (Helpers.isTrue((skippedPropertiesForMethod instanceof String)))
@@ -541,6 +543,7 @@ public class TestMain extends BaseTest
             Object primarySymbol = Helpers.GetValue(symbols, 0);
             Object tests = new java.util.HashMap<String, Object>() {{
                 put( "features", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
+                put( "afterConstruct", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "fetchCurrencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "fetchTicker", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)) );
                 put( "fetchTickers", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)) );
