@@ -16,6 +16,7 @@ use futures::FutureExt;
 mod assertions;
 mod base_tests;
 mod fixtures;
+mod language_specific;
 mod registry;
 pub mod tests_support;  // public so transpiled base/ tests can reach it
 pub mod test_helpers;   // hand-written harness helpers for the transpiled tests.rs
@@ -59,6 +60,15 @@ async fn main() -> ExitCode {
         if let Err(e) = base_tests::run(ws_tests) {
             eprintln!("Hand-written base tests failed: {e}");
             return ExitCode::FAILURE;
+        }
+        // Rust language-specific tests — mirror of Go's `TestLanguageSpecific`.
+        // Runs the typed-surface compile-checks (test.types.rest) before the
+        // transpiled base suite. Skipped under `--ws` for parity with Go.
+        if !ws_tests {
+            if let Err(e) = language_specific::run() {
+                eprintln!("Language-specific tests failed: {e}");
+                return ExitCode::FAILURE;
+            }
         }
         #[cfg(feature = "transpiled-tests")]
         if !ws_tests {

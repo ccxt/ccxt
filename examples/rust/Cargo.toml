@@ -26,6 +26,10 @@ path = "src/cli.rs"
 name = "bench_parse_markets"
 path = "src/bench_parse_markets.rs"
 
+[[bin]]
+name = "binance_typed"
+path = "src/binance_typed.rs"
+
 # Keep debug symbols in release so `sample`/Instruments can attribute
 # hot frames. Negligible perf impact, larger binary.
 [profile.release]

@@ -227,6 +227,43 @@ pub fn panic_to_value(payload: Box<dyn std::any::Any + Send>) -> Value {
     Value::Str(msg)
 }
 
+/// Parse a transpiled error payload (`"[Kind] message"`) into a typed
+/// `ExchangeError`. Falls back to the generic `ExchangeError` kind when
+/// the payload doesn't carry a leading `[Kind]` marker.
+pub fn panic_msg_to_error(msg: &str) -> crate::ExchangeError {
+    if let Some(start) = msg.find('[') {
+        let after = &msg[start + 1..];
+        if let Some(end) = after.find(']') {
+            let kind = &after[..end];
+            let rest = after[end + 1..].trim_start_matches(|c: char| c == ' ' || c == ':');
+            return crate::ExchangeError::new(kind, rest);
+        }
+    }
+    crate::ExchangeError::new("ExchangeError", msg)
+}
+
+/// Bridge an async exchange call's panic-based error convention onto Rust's
+/// `Result`. The transpiled bodies use `panic!("[Kind] message")` (mirroring
+/// the TS `throw new <Kind>(message)` pattern); the typed-wrapper layer
+/// wraps every delegate call in this helper so its public surface is
+/// idiomatic Rust (`Result<T, ExchangeError>`) rather than panicking.
+pub async fn call_typed<F, T>(fut: F) -> crate::Result<T>
+where
+    F: std::future::Future<Output = T>,
+{
+    use futures::FutureExt;
+    use std::panic::AssertUnwindSafe;
+    match AssertUnwindSafe(fut).catch_unwind().await {
+        Ok(v) => Ok(v),
+        Err(payload) => {
+            let msg = payload.downcast_ref::<String>().cloned()
+                .or_else(|| payload.downcast_ref::<&str>().map(|s| (*s).to_string()))
+                .unwrap_or_else(|| "panic".to_string());
+            Err(panic_msg_to_error(&msg))
+        }
+    }
+}
+
 /// Mirrors TS `e instanceof <ClassName>`: panic payloads in the
 /// transpiled tests are `Value::Str(format!("[{kind}] {message}"))`
 /// (see `ExchangeError`'s `Display` impl), so the class name is whatever
