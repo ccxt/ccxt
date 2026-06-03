@@ -119,6 +119,7 @@ export default class dreamdex extends Exchange {
                 'setLeverage': false,
                 'setMargin': false,
                 'setPositionMode': false,
+                'signIn': true,
                 'transfer': false,
                 'withdraw': false,
             },
@@ -384,7 +385,7 @@ export default class dreamdex extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -434,7 +435,7 @@ export default class dreamdex extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     /**
@@ -539,6 +540,17 @@ export default class dreamdex extends Exchange {
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "symbol": "SOMI:USDso",
+        //         "timestamp": 1765534169841,
+        //         "open": "1.20",
+        //         "high": "1.30",
+        //         "low": "1.18",
+        //         "close": "1.25",
+        //         "volume": "1000"
+        //     }
+        //
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market, ':');
         const timestamp = this.safeInteger (ticker, 'timestamp');
@@ -618,7 +630,7 @@ export default class dreamdex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.authenticateRest ();
+        await this.signIn ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -644,6 +656,15 @@ export default class dreamdex extends Exchange {
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // public (fetchTrades)
+        //
+        //     { "id": "t1", "timestamp": 1765534169841, "symbol": "SOMI:USDso", "side": "buy", "price": "1.25", "amount": "100", "cost": "125" }
+        //
+        // private (fetchMyTrades), id is "orderId:tradeIndex"
+        //
+        //     { "id": "123:456", "timestamp": 1765534169841, "symbol": "SOMI:USDso", "side": "buy", "price": "1.25", "amount": "100", "cost": "125" }
+        //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market, ':');
         const timestamp = this.safeInteger (trade, 'timestamp');
@@ -724,7 +745,7 @@ export default class dreamdex extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.authenticateRest ();
+        await this.signIn ();
         await this.loadMarkets ();
         const symbol = this.safeString (params, 'symbol');
         if (symbol === undefined) {
@@ -813,7 +834,7 @@ export default class dreamdex extends Exchange {
     }
 
     async vaultAction (action: string, symbol: string, currency: string, amount: Num, params = {}): Promise<any> {
-        await this.authenticateRest ();
+        await this.signIn ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const walletAddress = this.safeString (params, 'walletAddress', this.walletAddress);
@@ -875,7 +896,7 @@ export default class dreamdex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with the unsigned EVM transaction in the info field
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        await this.authenticateRest ();
+        await this.signIn ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const walletAddress = this.safeString (params, 'walletAddress', this.walletAddress);
@@ -933,9 +954,7 @@ export default class dreamdex extends Exchange {
                 'info': stopResponse,
             }, market);
         }
-        const fundingSource = this.safeString (params, 'fundingSource');
-        const selfMatchingOption = this.safeString (params, 'selfMatchingOption');
-        params = this.omit (params, [ 'walletAddress', 'fundingSource', 'selfMatchingOption' ]);
+        params = this.omit (params, 'walletAddress');
         const isMarketOrder = (type === 'market');
         if (!isMarketOrder && price === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for limit orders');
@@ -960,12 +979,6 @@ export default class dreamdex extends Exchange {
             request['orderType'] = 'immediateOrCancel';
         } else if (timeInForce === 'FOK') {
             request['orderType'] = 'fillOrKill';
-        }
-        if (fundingSource !== undefined) {
-            request['fundingSource'] = fundingSource;
-        }
-        if (selfMatchingOption !== undefined) {
-            request['selfMatchingOption'] = selfMatchingOption;
         }
         const response = await this.privatePostV0MarketsSymbolOrders (this.extend (request, params));
         //
@@ -1012,7 +1025,7 @@ export default class dreamdex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.authenticateRest ();
+        await this.signIn ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1048,12 +1061,11 @@ export default class dreamdex extends Exchange {
      * @param {int} [limit] the maximum number of orders to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.status] order status to filter by: 'open', 'closed', 'canceled', 'expired', 'rejected' (or 'pending', 'triggered', 'canceled', 'failed' for stop orders)
-     * @param {bool} [params.stop] set to true to fetch stop orders instead of regular orders (requires symbol)
-     * @param {bool} [params.trigger] alias for params.stop
+     * @param {bool} [params.trigger] set to true to fetch stop orders instead of regular orders (requires symbol)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.authenticateRest ();
+        await this.signIn ();
         await this.loadMarkets ();
         const stop = this.safeBool2 (params, 'stop', 'trigger');
         if (symbol === undefined) {
@@ -1088,8 +1100,7 @@ export default class dreamdex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order to retrieve
      * @param {int} [limit] the maximum number of orders to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] set to true to fetch pending stop orders (requires symbol)
-     * @param {bool} [params.trigger] alias for params.stop
+     * @param {bool} [params.trigger] set to true to fetch pending stop orders (requires symbol)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1108,15 +1119,14 @@ export default class dreamdex extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified market symbol, required for dreamDEX
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] set to true to cancel a stop order (returns unsigned EVM transaction)
-     * @param {bool} [params.trigger] alias for params.stop
+     * @param {bool} [params.trigger] set to true to cancel a stop order (returns unsigned EVM transaction)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.authenticateRest ();
+        await this.signIn ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const stop = this.safeBool2 (params, 'stop', 'trigger');
@@ -1177,7 +1187,7 @@ export default class dreamdex extends Exchange {
         if (price !== undefined) {
             throw new NotSupported (this.id + ' editOrder() does not support changing price, only reducing quantity');
         }
-        await this.authenticateRest ();
+        await this.signIn ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1343,7 +1353,7 @@ export default class dreamdex extends Exchange {
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
-    async authenticateRest (params = {}) {
+    async signIn (params = {}) {
         const cachedToken = this.safeString (this.options, 'authToken');
         const cachedExpires = this.safeInteger (this.options, 'authTokenExpires');
         const now = this.milliseconds ();
