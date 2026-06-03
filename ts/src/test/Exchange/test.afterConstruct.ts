@@ -2,7 +2,9 @@ import assert from 'assert';
 import { Exchange } from "../../../ccxt";
 
 async function testAfterConstruct (exchange: Exchange, skippedProperties: object) {
-    testOptionsNetworks (exchange, skippedProperties);
+    if (!('networks' in skippedProperties)) {
+        testOptionsNetworks (exchange, skippedProperties);
+    }
     return true;
 }
 
