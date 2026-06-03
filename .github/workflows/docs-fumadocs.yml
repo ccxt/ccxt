@@ -1,11 +1,11 @@
 name: Deploy Fumadocs
 
-# Publishes the Fumadocs static site to the docs server. Automates the previously
-# manual "git pull + cp + nginx reload" step. Consumes the committed wiki/*.md
-# (kept current by js.yml's build-docs) — it does NOT re-run the TS->wiki pipeline.
+# Builds the Fumadocs site as a container (arm64, matching the docs box) and deploys it
+# as a long-running Next.js server behind nginx at /v2. Automates the manual flow:
+# build image -> push to GHCR -> box pulls + restarts the container.
 #
-# Currently deploys to the /v2 staging endpoint (https://docs.ccxt.com/v2/), coexisting
-# with the live Docsify site. At cutover, change NEXT_BASE_PATH + DEPLOY_PATH below.
+# Consumes the committed wiki/*.md (kept current by js.yml's build-docs).
+# Cutover to root: drop NEXT_BASE_PATH=/v2 in the Dockerfile + point nginx `location /`.
 
 on:
   release:
@@ -19,54 +19,49 @@ on:
       - '.github/workflows/docs-fumadocs.yml'
   workflow_dispatch:
 
-# one deploy at a time; never cancel a half-finished rsync mid-run
 concurrency:
   group: docs-fumadocs
   cancel-in-progress: false
 
 permissions:
   contents: read
+  packages: write
 
 jobs:
   deploy:
-    # only the canonical repo holds the secrets — never runs for forks
     if: github.repository == 'ccxt/ccxt'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm        # arm64 — native build matching the docs server
     env:
-      NEXT_BASE_PATH: /v2                       # '' (empty) at cutover -> root build
-      NEXT_PUBLIC_SITE_URL: https://docs.ccxt.com
-      DEPLOY_PATH: /var/www/docs-v2/v2/          # '/var/www/docs/...' at cutover
+      IMAGE: ghcr.io/ccxt/ccxt-fumadocs
+      CONTAINER: ccxt-docs
+      PORT: '3005'
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: website/package-lock.json
 
-      # wiki/*.md (committed, kept current by js.yml) -> website/content/docs
+      # committed wiki/*.md -> website/content/docs (baked into the image at build)
       - name: Convert wiki to Fumadocs content
         run: npx -y tsx build/wiki-to-fumadocs.ts
 
-      - name: Build static export
-        working-directory: website
-        env:
-          NODE_OPTIONS: --max-old-space-size=6144
-        run: |
-          npm ci
-          npm run build
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Guard against an empty / broken build
-        run: |
-          count=$(find website/out -type f -name '*.html' | wc -l)
-          echo "built $count html pages"
-          if [ "$count" -lt 500 ]; then
-            echo "::error::only $count html pages built — refusing to deploy (would --delete the live dir)"
-            exit 1
-          fi
+      - name: Build & push image
+        uses: docker/build-push-action@v6
+        with:
+          context: website
+          platforms: linux/arm64
+          push: true
+          tags: ${{ env.IMAGE }}:latest
 
-      - name: Configure SSH (pinned host key, deploy key)
+      - name: Configure SSH (pinned host key)
         env:
           SSH_KEY: ${{ secrets.DOCS_DEPLOY_SSH_KEY }}
           KNOWN_HOSTS: ${{ secrets.DOCS_DEPLOY_KNOWN_HOSTS }}
@@ -75,14 +70,22 @@ jobs:
           printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
 
-      - name: Deploy with rsync
+      - name: Pull & restart container on the box
         env:
           HOST: ${{ secrets.DOCS_DEPLOY_HOST }}
-          USER: ${{ secrets.DOCS_DEPLOY_USER }}
+          DEPLOY_USER: ${{ secrets.DOCS_DEPLOY_USER }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          rsync -az --delete --chown=www-data:www-data \
-            -e "ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes" \
-            website/out/ "${USER}@${HOST}:${DEPLOY_PATH}"
-          echo "deployed to ${USER}@${HOST}:${DEPLOY_PATH}"
+          ssh -i ~/.ssh/id_deploy "${DEPLOY_USER}@${HOST}" \
+            IMAGE="${IMAGE}" CONTAINER="${CONTAINER}" PORT="${PORT}" \
+            GHCR_USER="${GHCR_USER}" GHCR_TOKEN="${GHCR_TOKEN}" 'bash -se' <<'EOF'
+          set -e
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+          docker pull "$IMAGE:latest"
+          docker rm -f "$CONTAINER" 2>/dev/null || true
+          docker run -d --restart=always -p 127.0.0.1:${PORT}:${PORT} --name "$CONTAINER" "$IMAGE:latest"
+          docker image prune -f
+          docker logout ghcr.io || true
+          EOF

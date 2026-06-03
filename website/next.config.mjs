@@ -4,7 +4,12 @@ const withMDX = createMDX();
 
 /** @type {import('next').NextConfig} */
 const config = {
-  output: 'export',
+  // Containerized server build by default (lean standalone bundle, run via `node
+  // server.js`); NEXT_OUTPUT=export still produces the static export if ever needed.
+  output: process.env.NEXT_OUTPUT === 'export' ? 'export' : 'standalone',
+  // Pin the standalone tracing root to website/ so server.js lands at a deterministic
+  // path (.next/standalone/server.js) rather than a monorepo-nested one.
+  outputFileTracingRoot: import.meta.dirname,
   reactStrictMode: true,
   // Serve under a subpath (e.g. /v2) when NEXT_BASE_PATH is set, so the new docs can
   // coexist with the old site. Unset = root build (for the eventual cutover).

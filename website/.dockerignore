@@ -1,0 +1,7 @@
+node_modules
+.next
+out
+.source
+DECISIONS.md
+.git
+npm-debug.log*
