@@ -37,7 +37,7 @@ export default class dreamdex extends dreamdexRest {
      * @method
      * @name dreamdex#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://api.dreamdex.io/v0/.well-known/async.json
+     * @see https://api.dreamdex.io/.well-known/async.json
      * @param {string} symbol unified market symbol
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -57,7 +57,10 @@ export default class dreamdex extends dreamdexRest {
             },
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watch (url, messageHash, message, messageHash);
+        const subscription: Dict = {
+            'limit': limit,
+        };
+        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
         return orderbook.limit ();
     }
 
@@ -90,8 +93,11 @@ export default class dreamdex extends dreamdexRest {
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (message, 'timestamp');
         const type = this.safeString (message, 'type');
+        const messageHash = 'orderbook:' + symbol;
         if (!(symbol in this.orderbooks)) {
-            this.orderbooks[symbol] = this.orderBook ();
+            const subscription = this.safeValue (client.subscriptions, messageHash, {});
+            const limit = this.safeInteger (subscription, 'limit');
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
         const orderbook = this.orderbooks[symbol];
         if (type === 'snapshot') {
@@ -106,7 +112,6 @@ export default class dreamdex extends dreamdexRest {
             orderbook['datetime'] = this.iso8601 (timestamp);
         }
         orderbook['nonce'] = this.safeInteger (message, 'nonce');
-        const messageHash = 'orderbook:' + symbol;
         client.resolve (orderbook, messageHash);
     }
 
@@ -126,7 +131,7 @@ export default class dreamdex extends dreamdexRest {
      * @method
      * @name dreamdex#watchTrades
      * @description watches information on multiple trades made in a market
-     * @see https://api.dreamdex.io/v0/.well-known/async.json
+     * @see https://api.dreamdex.io/.well-known/async.json
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -226,7 +231,7 @@ export default class dreamdex extends dreamdexRest {
      * @method
      * @name dreamdex#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://api.dreamdex.io/v0/.well-known/async.json
+     * @see https://api.dreamdex.io/.well-known/async.json
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} [timeframe] the length of time each candle represents, default '1m'
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
