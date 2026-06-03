@@ -1,6 +1,6 @@
 import { docs } from 'collections/server';
 import { loader } from 'fumadocs-core/source';
-import { docsContentRoute, docsImageRoute, docsRoute } from './shared';
+import { basePath, docsContentRoute, docsImageRoute, docsRoute } from './shared';
 
 // See https://fumadocs.dev/docs/headless/source-api for more info
 export const source = loader({
@@ -14,7 +14,7 @@ export function getPageImage(page: (typeof source)['$inferPage']) {
 
   return {
     segments,
-    url: `${docsImageRoute}/${segments.join('/')}`,
+    url: `${basePath}${docsImageRoute}/${segments.join('/')}`,
   };
 }
 
@@ -23,14 +23,16 @@ export function getPageMarkdownUrl(page: (typeof source)['$inferPage']) {
 
   return {
     segments,
-    url: `${docsContentRoute}/${segments.join('/')}`,
+    url: `${basePath}${docsContentRoute}/${segments.join('/')}`,
   };
 }
 
 export async function getLLMText(page: (typeof source)['$inferPage']) {
   const processed = await page.data.getText('processed');
+  // root-relative links in the body aren't basePath-aware — prefix them under /v2.
+  const body = basePath ? processed.replaceAll('](/', `](${basePath}/`) : processed;
 
-  return `# ${page.data.title} (${page.url})
+  return `# ${page.data.title} (${basePath}${page.url})
 
-${processed}`;
+${body}`;
 }
