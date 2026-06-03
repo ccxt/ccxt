@@ -20,6 +20,11 @@ const config = {
   // Static export has no Next image optimizer (/_next/image 404s). Render images
   // directly. CCXT docs reference mostly remote images (githubusercontent, badges).
   images: { unoptimized: true },
+  // Pretty Markdown URLs for AI agents: /docs/x.md -> the markdown route (server mode only).
+  async rewrites() {
+    if (process.env.NEXT_OUTPUT === 'export') return [];
+    return [{ source: '/docs/:path*.md', destination: '/llms.mdx/docs/:path*' }];
+  },
 };
 
 export default withMDX(config);

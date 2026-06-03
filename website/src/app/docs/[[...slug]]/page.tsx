@@ -13,6 +13,9 @@ import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
 import { gitConfig } from '@/lib/shared';
 
+// Render on demand, then cache (no build-time prebake of ~700 pages -> small image).
+export const revalidate = false;
+
 export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   const params = await props.params;
   const page = source.getPage(params.slug);
@@ -44,10 +47,8 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   );
 }
 
-export async function generateStaticParams() {
-  return source.generateParams();
-}
-
+// No generateStaticParams: render docs pages on demand (server mode) instead of baking
+// ~700 pages (each embedding the full nav tree) into the image. nginx caches responses.
 export async function generateMetadata(props: PageProps<'/docs/[[...slug]]'>): Promise<Metadata> {
   const params = await props.params;
   const page = source.getPage(params.slug);
