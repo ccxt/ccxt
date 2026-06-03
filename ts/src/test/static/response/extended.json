@@ -1828,7 +1828,7 @@
                 "description": "fetch order by clientOrderId",
                 "method": "fetchOrder",
                 "input": [
-                    null,
+                    "2051479786538188801",
                     "BTC/USDC:USDC",
                     {
                         "clientOrderId": "3480985089570526249141260266819446928410958787024864860785196119336740291620"
@@ -2893,7 +2893,7 @@
                 "description": "cancel order by clientOrderId",
                 "method": "cancelOrder",
                 "input": [
-                    null,
+                    "2051479786538188801",
                     "BTC/USDC:USDC",
                     {
                         "clientOrderId": "3480985089570526249141260266819446928410958787024864860785196119336740291620"
