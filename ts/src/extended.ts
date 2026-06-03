@@ -2673,10 +2673,10 @@ export default class extended extends Exchange {
                         'collateralPosition': collateralPosition,
                     },
                 };
-                if (stopLossTriggerPriceType!== undefined) {
+                if (stopLossTriggerPriceType !== undefined) {
                     requestStopLoss['triggerPriceType'] = stopLossTriggerPriceType;
                 }
-                if (stopLossType!== undefined) {
+                if (stopLossType !== undefined) {
                     requestStopLoss['priceType'] = stopLossType;
                 }
                 request['stopLoss'] = requestStopLoss;
@@ -2696,10 +2696,10 @@ export default class extended extends Exchange {
                         'collateralPosition': collateralPosition,
                     },
                 };
-                if (takeProfitTriggerPriceType!== undefined) {
+                if (takeProfitTriggerPriceType !== undefined) {
                     requestTakeProfit['triggerPriceType'] = takeProfitTriggerPriceType;
                 }
-                if (takeProfitType!== undefined) {
+                if (takeProfitType !== undefined) {
                     requestTakeProfit['priceType'] = takeProfitType;
                 }
                 request['takeProfit'] = requestTakeProfit;
