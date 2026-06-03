@@ -1,11 +1,19 @@
 import { docs } from 'collections/server';
 import { loader } from 'fumadocs-core/source';
+import { icons } from 'lucide-react';
+import { createElement } from 'react';
 import { basePath, docsContentRoute, docsImageRoute, docsRoute } from './shared';
 
 // See https://fumadocs.dev/docs/headless/source-api for more info
 export const source = loader({
   baseUrl: docsRoute,
   source: docs.toFumadocsSource(),
+  // resolve `icon` strings in meta.json (e.g. root tabs) to Lucide components
+  icon(name) {
+    if (name && name in icons) {
+      return createElement(icons[name as keyof typeof icons]);
+    }
+  },
   plugins: [],
 });
 

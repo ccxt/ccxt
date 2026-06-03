@@ -369,7 +369,7 @@ function main () {
     }
     // root:true -> renders as a sidebar tab (keeps /docs/exchanges/* URLs unchanged)
     write(path.join(OUT, 'exchanges', 'meta.json'),
-        JSON.stringify({ title: 'Exchanges', root: true, pages: exOrder }, null, 2));
+        JSON.stringify({ title: 'Exchanges', icon: 'ArrowLeftRight', description: 'Per-exchange API support', root: true, pages: exOrder }, null, 2));
 
     // 3) examples (js, py, ts, php)
     const LANGS: Record<string, string> = { js: 'JavaScript', py: 'Python', ts: 'TypeScript', php: 'PHP' };
@@ -399,7 +399,7 @@ function main () {
     }
     // root:true -> renders as a sidebar tab (keeps /docs/examples/* URLs unchanged)
     write(path.join(OUT, 'examples', 'meta.json'),
-        JSON.stringify({ title: 'Examples', root: true, pages: exampleLangs }, null, 2));
+        JSON.stringify({ title: 'Examples', icon: 'Code', description: 'Runnable code samples', root: true, pages: exampleLangs }, null, 2));
 
     // 4) top-level (Guides) nav meta.json. exchanges/examples are their own root tabs.
     const topPages = [
@@ -409,7 +409,7 @@ function main () {
         'awesome', 'ai-skills', 'stats', 'certification', 'changelog',
     ];
     write(path.join(OUT, 'meta.json'),
-        JSON.stringify({ title: 'CCXT', root: true, pages: topPages }, null, 2));
+        JSON.stringify({ title: 'Guide', icon: 'BookOpen', description: 'Install, manual & reference', root: true, pages: topPages }, null, 2));
 
     console.log(`✅ wrote ${count} pages to ${path.relative(ROOT, OUT)}`);
 }

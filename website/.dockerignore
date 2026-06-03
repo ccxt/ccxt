@@ -5,3 +5,7 @@ out
 DECISIONS.md
 .git
 npm-debug.log*
+# never bake local secrets into the image (COPY . . would otherwise pull them)
+.env
+.env.*
+.env*.local
