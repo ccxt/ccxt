@@ -10591,7 +10591,7 @@ func (this *OkxCore) FetchLongShortRatioHistory(optionalArgs ...any) <-chan any 
 			AddElementToObject(request, "end", until)
 		}
 		if IsTrue(!IsEqual(timeframe, nil)) {
-			AddElementToObject(request, "period", timeframe)
+			AddElementToObject(request, "period", this.SafeString(this.Timeframes, timeframe, timeframe))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "begin", since)
