@@ -559,7 +559,7 @@ class Exchange(object):
             return
         raise ValueError(f'invalid file path: {file_path}')
 
-    def add_request_cache(self, data):
+    def add_fetch_cache(self, data):
         if self.recent_fetches_cache_size <= 0:
             return
         length = self.recent_fetches_cache.length
@@ -567,7 +567,7 @@ class Exchange(object):
             self.recent_fetches_cache = collections.deque(maxlen=self.recent_fetches_cache_size)
         self.recent_fetches_cache.append(data)
 
-    def get_requests_cache(self):
+    def get_fetch_cache(self):
         return self.recent_fetches_cache
 
     @staticmethod

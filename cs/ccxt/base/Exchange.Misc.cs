@@ -44,7 +44,7 @@ public partial class Exchange
         }
     }
 
-    public void addRequestCache(Object data) {
+    public void addFetchCache(Object data) {
         if (recentFetchesCacheSize <= 0) {
             return;
         }
@@ -53,7 +53,7 @@ public partial class Exchange
             recentFetchesCache.TryDequeue(out _); // drops olde
     }
 
-    public List<Dictionary<string, object>> getRequestsCache()
+    public List<Dictionary<string, object>> getFetchCache()
     {
         return recentFetchesCache.ToList();
     }

@@ -863,7 +863,7 @@ export default class Exchange {
         return undefined;
     }
 
-    addRequestCache (data) {
+    addFetchCache (data) {
         if (this.recentFetchesCacheSize <= 0) {
             return;
         }
@@ -873,7 +873,7 @@ export default class Exchange {
         this.recentFetchesCache.push (data);
     }
 
-    getRequestsCache () {
+    getFetchCache () {
         return this.recentFetchesCache;
     }
 
@@ -5819,13 +5819,13 @@ export default class Exchange {
                 const response = await this.fetch (request['url'], request['method'], request['headers'], request['body']);
                 if (fetchDataCacheEnabled) {
                     fetchData['response'] = response;
-                    this.addRequestCache (fetchData);
+                    this.addFetchCache (fetchData);
                 }
                 return response;
             } catch (e) {
                 if (fetchDataCacheEnabled) {
                     fetchData['error'] = e;
-                    this.addRequestCache (fetchData);
+                    this.addFetchCache (fetchData);
                 }
                 if (e instanceof OperationFailed) {
                     if (i < retries) {

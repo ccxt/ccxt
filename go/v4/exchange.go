@@ -2127,7 +2127,7 @@ func (cl *ConcurrentListForRequests) GetAll() []any {
 
 var RecentFetchesCache = &ConcurrentListForRequests{}
 
-func (e *Exchange) AddRequestCache(item any) {
+func (e *Exchange) AddFetchCache(item any) {
 
 	RecentFetchesCache.Lock()
 	defer RecentFetchesCache.Unlock()
@@ -2138,7 +2138,7 @@ func (e *Exchange) AddRequestCache(item any) {
 		RecentFetchesCache.items = RecentFetchesCache.items[1:]
 	}
 }
-func (e *Exchange) GetRequestsCache() []any {
+func (e *Exchange) GetFetchCache() []any {
 	return RecentFetchesCache.GetAll()
 }
 
