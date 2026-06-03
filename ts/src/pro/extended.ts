@@ -153,10 +153,10 @@ export default class extended extends extendedRest {
             this.extendExchangeOptions (defaultOptions);
             const originalOptions = this.options['ws']['options'];
             const originalHeaders = this.safeDict (originalOptions, 'headers', {});
-            this.options['ws']['options'] = this.extend ({}, originalOptions, {
-                'headers': this.extend ({
+            this.options['ws']['options'] = this.extend (this.extend ({}, originalOptions), {
+                'headers': this.extend (this.extend ({
                     'User-Agent': this.userAgents['chrome'],
-                }, originalHeaders, {
+                }, originalHeaders), {
                     'X-Api-Key': this.apiKey,
                 }),
             });
