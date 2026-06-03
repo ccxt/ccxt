@@ -2843,6 +2843,18 @@ public class Exchange {
         return ""; // to do later
     }
 
+    public Object starknetGetSelectorFromName(Object name)
+    {
+        // throw new RuntimeException("Not implemented");
+        return ""; // to do later
+    }
+
+    public Object starknetComputePoseidonHashOnElements(Object data)
+    {
+        // throw new RuntimeException("Not implemented");
+        return ""; // to do later
+    }
+
     // public Object starknetEncodeStructuredData(Object domain2, Object messageTypes2, Object messageData2, Object address)
     // {
     //     throw new RuntimeException("Not implemented");
