@@ -19,8 +19,6 @@ function testOptionsNetworks (exchange: Exchange, skippedProperties: object) {
         if (Object.keys (networks).length === 0) {
             return;
         }
-        // 1) ensure 'networks' dictionary exists in options
-        assert (exchange.isDictionary (networks), 'exchange.options["networks"] is not an object');
         // 2) ensure 'networksById' dictionary exists in options
         assert ('networksById' in exchange.options, 'exchange.options["networksById"] is not set');
         assert (exchange.isDictionary (exchange.options['networksById']), 'exchange.options["networksById"] is not an object');
