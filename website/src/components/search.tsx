@@ -26,6 +26,9 @@ export default function DefaultSearchDialog(props: SharedProps) {
   const { locale } = useI18n(); // (optional) for i18n
   const { search, setSearch, query } = useDocsSearch({
     type: 'static',
+    // basePath-aware: under /v2 the index lives at /v2/api/search (Next doesn't
+    // prepend basePath to fetch()). Empty for the root build.
+    from: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/api/search`,
     initOrama,
     locale,
   });
