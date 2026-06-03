@@ -85,7 +85,11 @@ jobs:
           echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
           docker pull "$IMAGE:latest"
           docker rm -f "$CONTAINER" 2>/dev/null || true
-          docker run -d --restart=always -p 127.0.0.1:${PORT}:${PORT} --name "$CONTAINER" "$IMAGE:latest"
+          # OpenRouter key + model live only on the box (root-only env-file, never in GitHub),
+          # injected here so Ask-AI survives redeploys. Site still serves if it's absent.
+          ENVFILE_ARG=""
+          [ -f /root/ccxt-docs.env ] && ENVFILE_ARG="--env-file /root/ccxt-docs.env"
+          docker run -d --restart=always -p 127.0.0.1:${PORT}:${PORT} $ENVFILE_ARG --name "$CONTAINER" "$IMAGE:latest"
           docker image prune -f
           docker logout ghcr.io || true
           EOF
