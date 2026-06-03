@@ -272,7 +272,7 @@ class testMainClass {
         const isLoadMarkets = (methodName === 'loadMarkets');
         const isFetchCurrencies = (methodName === 'fetchCurrencies');
         const isProxyTest = (methodName === this.proxyTestFileName);
-        const isConstructorTest = (methodName === 'afterConstructor');
+        const isConstructorTest = (methodName === 'afterConstruct');
         const isFeatureTest = (methodName === 'features');
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if (!isPublic && (methodName in this.checkedPublicTests) && !isFetchCurrencies) {
@@ -472,7 +472,7 @@ class testMainClass {
         const primarySymbol = symbols[0];
         let tests = {
             'features': [],
-            'afterConstructor': [],
+            'afterConstruct': [],
             'fetchCurrencies': [],
             'fetchTicker': [ primarySymbol ],
             'fetchTickers': [ primarySymbol ],
