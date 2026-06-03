@@ -5801,31 +5801,31 @@ export default class Exchange {
         [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
         let retryDelay = undefined;
         [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
-        let requestData: Dict = undefined;
-        const requestDataCacheEnabled = this.recentFetchesCacheSize > 0;
+        let fetchData: Dict = undefined;
+        const fetchDataCacheEnabled = this.recentFetchesCacheSize > 0;
         for (let i = 0; i < retries + 1; i++) {
-            if (requestDataCacheEnabled) {
-                requestData = { 'request': undefined, 'response': undefined, 'error': undefined };
+            if (fetchDataCacheEnabled) {
+                fetchData = { 'request': undefined, 'response': undefined, 'error': undefined };
             }
             try {
                 this.lastRestRequestTimestamp = this.milliseconds ();
                 const request = this.sign (path, api, method, params, headers, body);
-                if (requestDataCacheEnabled) {
-                    requestData['request'] = request;
+                if (fetchDataCacheEnabled) {
+                    fetchData['request'] = request;
                 }
                 this.last_request_headers = request['headers'];
                 this.last_request_body = request['body'];
                 this.last_request_url = request['url'];
                 const response = await this.fetch (request['url'], request['method'], request['headers'], request['body']);
-                if (requestDataCacheEnabled) {
-                    requestData['response'] = response;
-                    this.addRequestCache (requestData);
+                if (fetchDataCacheEnabled) {
+                    fetchData['response'] = response;
+                    this.addRequestCache (fetchData);
                 }
                 return response;
             } catch (e) {
-                if (requestDataCacheEnabled) {
-                    requestData['error'] = e;
-                    this.addRequestCache (requestData);
+                if (fetchDataCacheEnabled) {
+                    fetchData['error'] = e;
+                    this.addRequestCache (fetchData);
                 }
                 if (e instanceof OperationFailed) {
                     if (i < retries) {
