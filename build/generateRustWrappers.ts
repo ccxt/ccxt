@@ -385,7 +385,13 @@ function parseMethodsFromTS(): MethodInfo[] {
 
         methods.push({
             tsName: m.name,
-            rustName: `${toSnakeCase(m.name)}_typed`,
+            // Typed method uses the same snake-case name as the core's
+            // untyped method. Rust's method-resolution order picks the
+            // inherent impl on the wrapper struct over the `Deref`-target
+            // — so `binance.fetch_currencies(Value::Null).await` returns
+            // `Result<Currencies>`, while users who want the raw
+            // `Value`-shaped call go through `binance.core.fetch_currencies(...)`.
+            rustName: toSnakeCase(m.name),
             rustReturn: ret.rustReturn,
             decodeExpr: ret.decode,
             params,
