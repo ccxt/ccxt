@@ -11,7 +11,12 @@ function testOptionsNetworks (exchange: Exchange, skippedProperties: object) {
         // only allow these whitelisted unified networkCodes to be repeated
         const allowedUnifiedAliases = [ 'BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM' ];
         const networks = exchange.options['networks'];
-        if (networks === undefined || Object.keys (networks).length === 0) {
+        if (networks === undefined) {
+            return;
+        }
+        // 1) ensure 'networks' dictionary exists in options
+        assert (exchange.isDictionary (networks), 'exchange.options["networks"] is not an object');
+        if (Object.keys (networks).length === 0) {
             return;
         }
         // 1) ensure 'networks' dictionary exists in options
