@@ -138,7 +138,7 @@ export default class dreamdex extends Exchange {
                 'www': 'https://dreamdex.io',
                 'doc': [
                     'https://api.dreamdex.io/.well-known/oapi.json',
-                    'https://api.dreamdex.io/v0/.well-known/async.json',
+                    'https://api.dreamdex.io/.well-known/async.json',
                 ],
             },
             'api': {
