@@ -1,18 +1,25 @@
 package ccxt
 
 type Gate struct {
-	*gate
-	Core          *gate
+	*GateCore
+	Core          *GateCore
 	exchangeTyped *ExchangeTyped
 }
 
-func NewGate(userConfig map[string]interface{}) *Gate {
-	p := &gate{}
+func NewGate(userConfig map[string]any) *Gate {
+	p := NewGateCore()
 	p.Init(userConfig)
 	return &Gate{
-		gate:          p,
+		GateCore:      p,
 		Core:          p,
 		exchangeTyped: NewExchangeTyped(&p.Exchange),
+	}
+}
+func NewGateFromCore(core *GateCore) *Gate {
+	return &Gate{
+		GateCore:      core,
+		Core:          core,
+		exchangeTyped: NewExchangeTyped(&core.Exchange),
 	}
 }
 
@@ -23,11 +30,11 @@ func NewGate(userConfig map[string]interface{}) *Gate {
  * @method
  * @name gate#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://www.gate.io/docs/developers/apiv4/en/#get-server-current-time
+ * @see https://www.gate.com/docs/developers/apiv4/#get-server-current-time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Gate) FetchTime(params ...interface{}) (int64, error) {
+func (this *Gate) FetchTime(params ...any) (int64, error) {
 	res := <-this.Core.FetchTime(params...)
 	if IsError(res) {
 		return -1, CreateReturnError(res)
@@ -39,66 +46,66 @@ func (this *Gate) FetchTime(params ...interface{}) (int64, error) {
  * @method
  * @name gate#fetchMarkets
  * @description retrieves data on all markets for gate
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-currency-pairs-supported                                     // spot
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading         // margin
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts                                            // swap
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2                                          // future
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time  // option
+ * @see https://www.gate.com/docs/developers/apiv4/#query-all-supported-currency-pairs                                       // spot
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading         // margin
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts                                           // swap
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2                                         // future
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-all-contracts-for-specified-underlying-and-expiration-date       // option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Gate) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Gate) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Gate) FetchSpotMarkets(params ...interface{}) ([]map[string]interface{}, error) {
+func (this *Gate) FetchSpotMarkets(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchSpotMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]interface{}), nil
+	return res.([]map[string]any), nil
 }
-func (this *Gate) FetchSwapMarkets(params ...interface{}) ([]map[string]interface{}, error) {
+func (this *Gate) FetchSwapMarkets(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchSwapMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]interface{}), nil
+	return res.([]map[string]any), nil
 }
-func (this *Gate) FetchFutureMarkets(params ...interface{}) ([]map[string]interface{}, error) {
+func (this *Gate) FetchFutureMarkets(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchFutureMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]interface{}), nil
+	return res.([]map[string]any), nil
 }
-func (this *Gate) FetchOptionMarkets(params ...interface{}) ([]map[string]interface{}, error) {
+func (this *Gate) FetchOptionMarkets(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchOptionMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]interface{}), nil
+	return res.([]map[string]any), nil
 }
-func (this *Gate) FetchOptionUnderlyings() ([]map[string]interface{}, error) {
+func (this *Gate) FetchOptionUnderlyings() ([]map[string]any, error) {
 	res := <-this.Core.FetchOptionUnderlyings()
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]interface{}), nil
+	return res.([]map[string]any), nil
 }
 
 /**
  * @method
  * @name gate#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-currencies-details
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-currency-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Gate) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Gate) FetchCurrencies(params ...any) (Currencies, error) {
 	res := <-this.Core.FetchCurrencies(params...)
 	if IsError(res) {
 		return Currencies{}, CreateReturnError(res)
@@ -110,10 +117,10 @@ func (this *Gate) FetchCurrencies(params ...interface{}) (Currencies, error) {
  * @method
  * @name gate#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-contract
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-single-contract-information
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Gate) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 
@@ -123,7 +130,7 @@ func (this *Gate) FetchFundingRate(symbol string, options ...FetchFundingRateOpt
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -138,10 +145,10 @@ func (this *Gate) FetchFundingRate(symbol string, options ...FetchFundingRateOpt
  * @method
  * @name gate#fetchFundingRates
  * @description fetch the funding rate for multiple markets
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
 func (this *Gate) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
 
@@ -151,12 +158,12 @@ func (this *Gate) FetchFundingRates(options ...FetchFundingRatesOptions) (Fundin
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -166,7 +173,7 @@ func (this *Gate) FetchFundingRates(options ...FetchFundingRatesOptions) (Fundin
 	}
 	return NewFundingRates(res), nil
 }
-func (this *Gate) FetchNetworkDepositAddress(code string, options ...FetchNetworkDepositAddressOptions) (map[string]interface{}, error) {
+func (this *Gate) FetchNetworkDepositAddress(code string, options ...FetchNetworkDepositAddressOptions) (map[string]any, error) {
 
 	opts := FetchNetworkDepositAddressOptionsStruct{}
 
@@ -174,24 +181,25 @@ func (this *Gate) FetchNetworkDepositAddress(code string, options ...FetchNetwor
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.FetchNetworkDepositAddress(code, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
  * @method
  * @name gate#fetchDepositAddressesByNetwork
  * @description fetch a dictionary of addresses for a currency, indexed by network
+ * @see https://www.gate.com/docs/developers/apiv4/en/#generate-currency-deposit-address
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the api endpoint
- * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+ * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
 func (this *Gate) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
 
@@ -201,7 +209,7 @@ func (this *Gate) FetchDepositAddressesByNetwork(code string, options ...FetchDe
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -216,11 +224,11 @@ func (this *Gate) FetchDepositAddressesByNetwork(code string, options ...FetchDe
  * @method
  * @name gate#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
+ * @see https://www.gate.com/docs/developers/apiv4/en/#generate-currency-deposit-address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.network] unified network code (not used directly by gate.io but used by ccxt to filter the response)
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @param {string} [params.network] unified network code (not used directly by gate.com but used by ccxt to filter the response)
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Gate) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -230,7 +238,7 @@ func (this *Gate) FetchDepositAddress(code string, options ...FetchDepositAddres
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -245,10 +253,10 @@ func (this *Gate) FetchDepositAddress(code string, options ...FetchDepositAddres
  * @method
  * @name gate#fetchTradingFee
  * @description fetch the trading fees for a market
- * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-fees
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Gate) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 
@@ -258,7 +266,7 @@ func (this *Gate) FetchTradingFee(symbol string, options ...FetchTradingFeeOptio
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -273,11 +281,11 @@ func (this *Gate) FetchTradingFee(symbol string, options ...FetchTradingFeeOptio
  * @method
  * @name gate#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-fees
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *Gate) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Gate) FetchTradingFees(params ...any) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
 	if IsError(res) {
 		return TradingFees{}, CreateReturnError(res)
@@ -290,12 +298,12 @@ func (this *Gate) FetchTradingFees(params ...interface{}) (TradingFees, error) {
  * @name gate#fetchTransactionFees
  * @deprecated
  * @description please use fetchDepositWithdrawFees instead
- * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-withdrawal-status
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Gate) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Gate) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 
 	opts := FetchTransactionFeesOptionsStruct{}
 
@@ -303,32 +311,32 @@ func (this *Gate) FetchTransactionFees(options ...FetchTransactionFeesOptions) (
 		opt(&opts)
 	}
 
-	var codes interface{} = nil
+	var codes any = nil
 	if opts.Codes != nil {
 		codes = *opts.Codes
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.FetchTransactionFees(codes, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
  * @method
  * @name gate#fetchDepositWithdrawFees
  * @description fetch deposit and withdraw fees
- * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-withdrawal-status
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Gate) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Gate) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
 
 	opts := FetchDepositWithdrawFeesOptionsStruct{}
 
@@ -336,33 +344,33 @@ func (this *Gate) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOp
 		opt(&opts)
 	}
 
-	var codes interface{} = nil
+	var codes any = nil
 	if opts.Codes != nil {
 		codes = *opts.Codes
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.FetchDepositWithdrawFees(codes, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return (res).(map[string]interface{}), nil
+	return (res).(map[string]any), nil
 }
 
 /**
  * @method
  * @name gate#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
- * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
- * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history-2
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *Gate) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
 
@@ -372,22 +380,22 @@ func (this *Gate) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -402,14 +410,14 @@ func (this *Gate) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]
  * @method
  * @name gate#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-order-book
- * @see https://www.gate.io/docs/developers/apiv4/en/#futures-order-book
- * @see https://www.gate.io/docs/developers/apiv4/en/#futures-order-book-2
- * @see https://www.gate.io/docs/developers/apiv4/en/#options-order-book
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-market-depth-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-futures-market-depth-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-futures-market-depth-information-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-options-contract-order-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Gate) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -419,12 +427,12 @@ func (this *Gate) FetchOrderBook(symbol string, options ...FetchOrderBookOptions
 		opt(&opts)
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -439,13 +447,13 @@ func (this *Gate) FetchOrderBook(symbol string, options ...FetchOrderBookOptions
  * @method
  * @name gate#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-currency-pair-ticker-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-options-market-ticker-information
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Gate) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -455,7 +463,7 @@ func (this *Gate) FetchTicker(symbol string, options ...FetchTickerOptions) (Tic
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -470,13 +478,13 @@ func (this *Gate) FetchTicker(symbol string, options ...FetchTickerOptions) (Tic
  * @method
  * @name gate#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-currency-pair-ticker-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-options-market-ticker-information
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Gate) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -486,12 +494,12 @@ func (this *Gate) FetchTickers(options ...FetchTickersOptions) (Tickers, error) 
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -505,9 +513,10 @@ func (this *Gate) FetchTickers(options ...FetchTickersOptions) (Tickers, error) 
 /**
  * @method
  * @name gate#fetchBalance
- * @see https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
  * @see https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
  * @see https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
+ * @see https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
+ * @see https://www.gate.com/docs/developers/apiv4/en/#funding-account-list
  * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account
  * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2
  * @see https://www.gate.com/docs/developers/apiv4/en/#query-account-information
@@ -517,9 +526,9 @@ func (this *Gate) FetchTickers(options ...FetchTickersOptions) (Tickers, error) 
  * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
  * @param {string} [params.symbol] margin only - unified ccxt symbol
  * @param {boolean} [params.unifiedAccount] default false, set to true for fetching the unified account balance
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Gate) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Gate) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
@@ -534,22 +543,22 @@ func (this *Gate) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHL
 		opt(&opts)
 	}
 
-	var timeframe interface{} = nil
+	var timeframe any = nil
 	if opts.Timeframe != nil {
 		timeframe = *opts.Timeframe
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -567,22 +576,22 @@ func (this *Gate) FetchOptionOHLCV(symbol string, options ...FetchOptionOHLCVOpt
 		opt(&opts)
 	}
 
-	var timeframe interface{} = nil
+	var timeframe any = nil
 	if opts.Timeframe != nil {
 		timeframe = *opts.Timeframe
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -597,14 +606,14 @@ func (this *Gate) FetchOptionOHLCV(symbol string, options ...FetchOptionOHLCVOpt
  * @method
  * @name gate#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://www.gate.io/docs/developers/apiv4/en/#funding-rate-history
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Gate) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -614,22 +623,22 @@ func (this *Gate) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpti
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -644,17 +653,17 @@ func (this *Gate) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpti
  * @method
  * @name gate#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-market-trades
- * @see https://www.gate.io/docs/developers/apiv4/en/#futures-trading-history
- * @see https://www.gate.io/docs/developers/apiv4/en/#futures-trading-history-2
- * @see https://www.gate.io/docs/developers/apiv4/en/#options-trade-history
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-market-transaction-records
+ * @see https://www.gate.com/docs/developers/apiv4/en/#futures-market-transaction-records
+ * @see https://www.gate.com/docs/developers/apiv4/en/#futures-market-transaction-records-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#market-trade-records
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest trade to fetch
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Gate) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -664,17 +673,17 @@ func (this *Gate) FetchTrades(symbol string, options ...FetchTradesOptions) ([]T
 		opt(&opts)
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -689,16 +698,16 @@ func (this *Gate) FetchTrades(symbol string, options ...FetchTradesOptions) ([]T
  * @method
  * @name gate#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-2
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-3
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-4
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-by-time-range
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-3
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-4
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Gate) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 
@@ -708,22 +717,22 @@ func (this *Gate) FetchOrderTrades(id string, options ...FetchOrderTradesOptions
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -738,10 +747,10 @@ func (this *Gate) FetchOrderTrades(id string, options ...FetchOrderTradesOptions
  * @method
  * @name gate#fetchMyTrades
  * @description Fetch personal trading history
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-2
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-3
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-4
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-by-time-range
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-3
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-trading-records-4
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -757,7 +766,7 @@ func (this *Gate) FetchOrderTrades(id string, options ...FetchOrderTradesOptions
  * @param {int} [params.count_total] *contract only* whether to return total number matched, default to 0(no return)
  * @param {bool} [params.unifiedAccount] set to true for fetching trades in a unified account
  * @param {bool} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Gate) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -767,22 +776,22 @@ func (this *Gate) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -797,14 +806,14 @@ func (this *Gate) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error
  * @method
  * @name gate#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-deposit-records
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-deposit-records
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] end time in ms
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Gate) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -814,22 +823,22 @@ func (this *Gate) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction,
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -844,14 +853,14 @@ func (this *Gate) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction,
  * @method
  * @name gate#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-records
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-withdrawal-records
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] end time in ms
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Gate) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -861,22 +870,22 @@ func (this *Gate) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transa
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -891,13 +900,13 @@ func (this *Gate) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transa
  * @method
  * @name gate#withdraw
  * @description make a withdrawal
- * @see https://www.gate.io/docs/developers/apiv4/en/#withdraw
+ * @see https://www.gate.com/docs/developers/apiv4/en/#withdraw
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Gate) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -907,12 +916,12 @@ func (this *Gate) Withdraw(code string, amount float64, address string, options 
 		opt(&opts)
 	}
 
-	var tag interface{} = nil
+	var tag any = nil
 	if opts.Tag != nil {
 		tag = *opts.Tag
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -927,13 +936,13 @@ func (this *Gate) Withdraw(code string, amount float64, address string, options 
  * @method
  * @name gate#createOrder
  * @description Create an order on the exchange
- * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-order
- * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-price-triggered-order
- * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order
- * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-price-triggered-order-2
- * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order-2
- * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-price-triggered-order-3
- * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-options-order
+ * @see https://www.gate.com/docs/developers/apiv4/en/#create-an-order
+ * @see https://www.gate.com/docs/developers/apiv4/en/#create-price-triggered-order
+ * @see https://www.gate.com/docs/developers/apiv4/en/#place-futures-order
+ * @see https://www.gate.com/docs/developers/apiv4/en/#create-price-triggered-order-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#place-futures-order-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#create-price-triggered-order-3
+ * @see https://www.gate.com/docs/developers/apiv4/en/#create-an-options-order
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} type 'limit' or 'market' *"market" is contract only*
  * @param {string} side 'buy' or 'sell'
@@ -956,7 +965,8 @@ func (this *Gate) Withdraw(code string, amount float64, address string, options 
  * @param {int} [params.price_type] *contract only* 0 latest deal price, 1 mark price, 2 index price
  * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
  * @param {bool} [params.unifiedAccount] set to true for creating an order in the unified account
- * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @param {string} [params.clientOrderId] the clientOrderId of the order
+ * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Gate) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -966,12 +976,12 @@ func (this *Gate) CreateOrder(symbol string, typeVar string, side string, amount
 		opt(&opts)
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -986,12 +996,11 @@ func (this *Gate) CreateOrder(symbol string, typeVar string, side string, amount
  * @method
  * @name gate#createOrders
  * @description create a list of trade orders
- * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
- * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-orders
- * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-futures-orders
+ * @see https://www.gate.com/docs/developers/apiv4/en/#batch-place-orders
+ * @see https://www.gate.com/docs/developers/apiv4/en/#place-batch-futures-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Gate) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
 
@@ -1001,7 +1010,7 @@ func (this *Gate) CreateOrders(orders []OrderRequest, options ...CreateOrdersOpt
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1016,12 +1025,12 @@ func (this *Gate) CreateOrders(orders []OrderRequest, options ...CreateOrdersOpt
  * @method
  * @name gate#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol and cost
- * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-order
+ * @see https://www.gate.com/docs/developers/apiv4/en/#create-an-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {bool} [params.unifiedAccount] set to true for creating a unified account order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Gate) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
 
@@ -1031,7 +1040,7 @@ func (this *Gate) CreateMarketBuyOrderWithCost(symbol string, cost float64, opti
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1046,8 +1055,8 @@ func (this *Gate) CreateMarketBuyOrderWithCost(symbol string, cost float64, opti
  * @method
  * @name gate#editOrder
  * @description edit a trade order, gate currently only supports the modification of the price or amount fields
- * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
- * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#amend-single-order
+ * @see https://www.gate.com/docs/developers/apiv4/en/#amend-single-order-2
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -1056,7 +1065,7 @@ func (this *Gate) CreateMarketBuyOrderWithCost(symbol string, cost float64, opti
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {bool} [params.unifiedAccount] set to true for editing an order in a unified account
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Gate) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 
@@ -1066,17 +1075,17 @@ func (this *Gate) EditOrder(id string, symbol string, typeVar string, side strin
 		opt(&opts)
 	}
 
-	var amount interface{} = nil
+	var amount any = nil
 	if opts.Amount != nil {
 		amount = *opts.Amount
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1091,10 +1100,13 @@ func (this *Gate) EditOrder(id string, symbol string, typeVar string, side strin
  * @method
  * @name gate#fetchOrder
  * @description Retrieves information on an order
- * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order
- * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
- * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-3
- * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-4
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-single-auto-order-details
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-single-auto-order-details-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details-3
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-single-auto-order-details-3
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details-4
  * @param {string} id Order id
  * @param {string} symbol Unified market symbol, *required for spot and margin*
  * @param {object} [params] Parameters specified by the exchange api
@@ -1103,7 +1115,7 @@ func (this *Gate) EditOrder(id string, symbol string, typeVar string, side strin
  * @param {string} [params.type] 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
  * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
  * @param {bool} [params.unifiedAccount] set to true for fetching a unified account order
- * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Gate) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -1113,12 +1125,12 @@ func (this *Gate) FetchOrder(id string, options ...FetchOrderOptions) (Order, er
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1133,8 +1145,7 @@ func (this *Gate) FetchOrder(id string, options ...FetchOrderOptions) (Order, er
  * @method
  * @name gate#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-open-orders
- * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-running-auto-order-list
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-all-open-orders
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1143,7 +1154,7 @@ func (this *Gate) FetchOrder(id string, options ...FetchOrderOptions) (Order, er
  * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
  * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
  * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Gate) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -1153,22 +1164,22 @@ func (this *Gate) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, e
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1183,14 +1194,14 @@ func (this *Gate) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, e
  * @method
  * @name gate#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-orders
- * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-running-auto-order-list
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-2
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders-2
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-options-orders
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-by-time-range
+ * @see https://www.gate.com/en-eu/docs/developers/apiv4/#list-orders
+ * @see https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-running-auto-order-list
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-futures-order-list
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-auto-order-list
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-futures-order-list-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-auto-order-list-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-options-orders
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-futures-order-list-by-time-range
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1200,7 +1211,7 @@ func (this *Gate) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, e
  * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
  * @param {boolean} [params.historical] *swap only* true for using historical endpoint
  * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Gate) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -1210,22 +1221,22 @@ func (this *Gate) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Orde
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1235,7 +1246,7 @@ func (this *Gate) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Orde
 	}
 	return NewOrderArray(res), nil
 }
-func (this *Gate) FetchOrdersByStatus(status interface{}, options ...FetchOrdersByStatusOptions) (map[string]interface{}, error) {
+func (this *Gate) FetchOrdersByStatus(status any, options ...FetchOrdersByStatusOptions) (map[string]any, error) {
 
 	opts := FetchOrdersByStatusOptionsStruct{}
 
@@ -1243,46 +1254,49 @@ func (this *Gate) FetchOrdersByStatus(status interface{}, options ...FetchOrders
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.FetchOrdersByStatus(status, symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
  * @method
  * @name gate#cancelOrder
  * @description Cancels an open order
- * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order
- * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-2
- * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-3
- * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-4
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-single-auto-order
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-single-auto-order-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order-3
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-single-auto-order-3
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order-4
  * @param {string} id Order id
  * @param {string} symbol Unified market symbol
  * @param {object} [params] Parameters specified by the exchange api
  * @param {bool} [params.trigger] True if the order to be cancelled is a trigger order
  * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
- * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Gate) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -1292,12 +1306,12 @@ func (this *Gate) CancelOrder(id string, options ...CancelOrderOptions) (Order, 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1312,13 +1326,13 @@ func (this *Gate) CancelOrder(id string, options ...CancelOrderOptions) (Order, 
  * @method
  * @name gate#cancelOrders
  * @description cancel multiple orders
- * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
- * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-batch-orders-by-specified-id-list
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-batch-orders-by-specified-id-list-2
  * @param {string[]} ids order ids
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Gate) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
@@ -1328,12 +1342,12 @@ func (this *Gate) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1348,12 +1362,12 @@ func (this *Gate) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]
  * @method
  * @name gate#cancelOrdersForSymbols
  * @description cancel multiple orders for multiple symbols
- * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
+ * @see https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-batch-of-orders-with-an-id-list
  * @param {CancellationRequest[]} orders list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.clientOrderIds] client order ids
  * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Gate) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 
@@ -1363,7 +1377,7 @@ func (this *Gate) CancelOrdersForSymbols(orders []CancellationRequest, options .
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1378,14 +1392,17 @@ func (this *Gate) CancelOrdersForSymbols(orders []CancellationRequest, options .
  * @method
  * @name gate#cancelAllOrders
  * @description cancel all open orders
- * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair
- * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched
- * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-2
- * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-3
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders-3
+ * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-3
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Gate) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -1395,12 +1412,12 @@ func (this *Gate) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, e
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1415,14 +1432,14 @@ func (this *Gate) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, e
  * @method
  * @name gate#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://www.gate.io/docs/developers/apiv4/en/#transfer-between-trading-accounts
+ * @see https://www.gate.com/docs/developers/apiv4/en/#transfer-between-trading-accounts
  * @param {string} code unified currency code for currency being transferred
  * @param {float} amount the amount of currency to transfer
  * @param {string} fromAccount the account to transfer currency from
  * @param {string} toAccount the account to transfer currency to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.symbol] Unified market symbol *required for type == margin*
- * @returns A [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns A [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Gate) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -1432,7 +1449,7 @@ func (this *Gate) Transfer(code string, amount float64, fromAccount string, toAc
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1447,14 +1464,14 @@ func (this *Gate) Transfer(code string, amount float64, fromAccount string, toAc
  * @method
  * @name gate#setLeverage
  * @description set the level of leverage for a market
- * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-leverage
- * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-leverage-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#update-position-leverage
+ * @see https://www.gate.com/docs/developers/apiv4/en/#update-position-leverage-2
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Gate) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]interface{}, error) {
+func (this *Gate) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]any, error) {
 
 	opts := SetLeverageOptionsStruct{}
 
@@ -1462,32 +1479,32 @@ func (this *Gate) SetLeverage(leverage int64, options ...SetLeverageOptions) (ma
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.SetLeverage(leverage, symbol, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
  * @method
  * @name gate#fetchPosition
  * @description fetch data on an open contract position
- * @see https://www.gate.io/docs/developers/apiv4/en/#get-single-position
- * @see https://www.gate.io/docs/developers/apiv4/en/#get-single-position-2
- * @see https://www.gate.io/docs/developers/apiv4/en/#get-specified-contract-position
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-single-position-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-single-position-information-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-specified-contract-position
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Gate) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
@@ -1497,7 +1514,7 @@ func (this *Gate) FetchPosition(symbol string, options ...FetchPositionOptions) 
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1512,14 +1529,14 @@ func (this *Gate) FetchPosition(symbol string, options ...FetchPositionOptions) 
  * @method
  * @name gate#fetchPositions
  * @description fetch all open positions
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user-2
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-positions-of-specified-underlying
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-user-position-list
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-user-position-list-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-user-s-positions-of-specified-underlying
  * @param {string[]|undefined} symbols Not used by gate, but parsed internally by CCXT
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
  * @param {string} [params.type] swap, future or option, if not provided this.options['defaultType'] is used
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Gate) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -1529,12 +1546,12 @@ func (this *Gate) FetchPositions(options ...FetchPositionsOptions) ([]Position, 
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1549,11 +1566,11 @@ func (this *Gate) FetchPositions(options ...FetchPositionsOptions) ([]Position, 
  * @method
  * @name gate#fetchLeverageTiers
  * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
 func (this *Gate) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
 
@@ -1563,12 +1580,12 @@ func (this *Gate) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (Leve
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1583,10 +1600,11 @@ func (this *Gate) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (Leve
  * @method
  * @name gate#fetchMarketLeverageTiers
  * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-risk-limit-tiers
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers-2
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
 func (this *Gate) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 
@@ -1596,7 +1614,7 @@ func (this *Gate) FetchMarketLeverageTiers(symbol string, options ...FetchMarket
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1611,16 +1629,15 @@ func (this *Gate) FetchMarketLeverageTiers(symbol string, options ...FetchMarket
  * @method
  * @name gate#fetchBorrowInterest
  * @description fetch the interest owed by the user for borrowing currency for margin trading
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-interest-records
- * @see https://www.gate.io/docs/developers/apiv4/en/#interest-records-for-the-cross-margin-account
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-interest-records-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-interest-deduction-records
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-interest-deduction-records-2
  * @param {string} [code] unified currency code
  * @param {string} [symbol] unified market symbol when fetching interest in isolated markets
  * @param {int} [since] the earliest time in ms to fetch borrow interest for
  * @param {int} [limit] the maximum number of structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.unifiedAccount] set to true for fetching borrow interest in the unified account
- * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+ * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
 func (this *Gate) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 
@@ -1630,27 +1647,27 @@ func (this *Gate) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1668,22 +1685,22 @@ func (this *Gate) FetchOpenInterestHistory(symbol string, options ...FetchOpenIn
 		opt(&opts)
 	}
 
-	var timeframe interface{} = nil
+	var timeframe any = nil
 	if opts.Timeframe != nil {
 		timeframe = *opts.Timeframe
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1698,14 +1715,14 @@ func (this *Gate) FetchOpenInterestHistory(symbol string, options ...FetchOpenIn
  * @method
  * @name gate#fetchSettlementHistory
  * @description fetches historical settlement records
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-settlement-history-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-settlement-history
  * @param {string} symbol unified market symbol of the settlement history, required on gate
  * @param {int} [since] timestamp in ms
  * @param {int} [limit] number of records
  * @param {object} [params] exchange specific params
- * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+ * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
-func (this *Gate) FetchSettlementHistory(options ...FetchSettlementHistoryOptions) (map[string]interface{}, error) {
+func (this *Gate) FetchSettlementHistory(options ...FetchSettlementHistoryOptions) (map[string]any, error) {
 
 	opts := FetchSettlementHistoryOptionsStruct{}
 
@@ -1713,44 +1730,45 @@ func (this *Gate) FetchSettlementHistory(options ...FetchSettlementHistoryOption
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.FetchSettlementHistory(symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
  * @method
  * @name gate#fetchMySettlementHistory
  * @description fetches historical settlement records of the user
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-my-options-settlements
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-personal-settlement-records
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-settlement-records
  * @param {string} symbol unified market symbol of the settlement history
  * @param {int} [since] timestamp in ms
  * @param {int} [limit] number of records
  * @param {object} [params] exchange specific params
  * @returns {object[]} a list of [settlement history objects]
  */
-func (this *Gate) FetchMySettlementHistory(options ...FetchMySettlementHistoryOptions) (map[string]interface{}, error) {
+func (this *Gate) FetchMySettlementHistory(options ...FetchMySettlementHistoryOptions) (map[string]any, error) {
 
 	opts := FetchMySettlementHistoryOptionsStruct{}
 
@@ -1758,48 +1776,48 @@ func (this *Gate) FetchMySettlementHistory(options ...FetchMySettlementHistoryOp
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.FetchMySettlementHistory(symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
  * @method
  * @name gate#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-margin-account-balance-change-history
- * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
- * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-account-changing-history
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-spot-account-transaction-history
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-margin-account-balance-change-history
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-futures-account-change-history-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-account-change-history
  * @param {string} [code] unified currency code
  * @param {int} [since] timestamp in ms of the earliest ledger entry
  * @param {int} [limit] max number of ledger entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] end time in ms
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Gate) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 
@@ -1809,22 +1827,22 @@ func (this *Gate) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, err
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1839,14 +1857,14 @@ func (this *Gate) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, err
  * @method
  * @name gate#setPositionMode
  * @description set dual/hedged mode to true or false for a swap market, make sure all positions are closed and no orders are open before setting dual mode
- * @see https://www.gate.io/docs/developers/apiv4/en/#enable-or-disable-dual-mode
+ * @see https://www.gate.com/docs/developers/apiv4/en/#set-position-mode
  * @param {bool} hedged set to true to enable dual mode
  * @param {string|undefined} symbol if passed, dual mode is set for all markets with the same settle currency
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} params.settle settle currency
  * @returns {object} response from the exchange
  */
-func (this *Gate) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Gate) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 
 	opts := SetPositionModeOptionsStruct{}
 
@@ -1854,50 +1872,50 @@ func (this *Gate) SetPositionMode(hedged bool, options ...SetPositionModeOptions
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.SetPositionMode(hedged, symbol, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
  * @method
  * @name gate#fetchUnderlyingAssets
  * @description fetches the market ids of underlying assets for a specific contract market type
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-underlyings
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-all-underlying-assets
  * @param {object} [params] exchange specific params
  * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
- * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/#/?id=underlying-assets-structure}
+ * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
  */
-func (this *Gate) FetchUnderlyingAssets(params ...interface{}) ([]map[string]interface{}, error) {
+func (this *Gate) FetchUnderlyingAssets(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchUnderlyingAssets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]interface{}), nil
+	return res.([]map[string]any), nil
 }
 
 /**
  * @method
  * @name gate#fetchLiquidations
  * @description retrieves the public liquidations of a trading pair
- * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-liquidation-history
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-liquidation-order-history
  * @param {string} symbol unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
  * @param {object} [params] exchange specific parameters for the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest liquidation
- * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
 func (this *Gate) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
 
@@ -1907,17 +1925,17 @@ func (this *Gate) FetchLiquidations(symbol string, options ...FetchLiquidationsO
 		opt(&opts)
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1932,14 +1950,14 @@ func (this *Gate) FetchLiquidations(symbol string, options ...FetchLiquidationsO
  * @method
  * @name gate#fetchMyLiquidations
  * @description retrieves the users liquidated positions
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history-2
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-liquidation-history
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-liquidation-history-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying
  * @param {string} symbol unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
  * @param {object} [params] exchange specific parameters for the exchange API endpoint
- * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
 func (this *Gate) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
 
@@ -1949,22 +1967,22 @@ func (this *Gate) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1979,10 +1997,10 @@ func (this *Gate) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]
  * @method
  * @name gate#fetchGreeks
  * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-options-market-ticker-information
  * @param {string} symbol unified symbol of the market to fetch greeks for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
 func (this *Gate) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
 
@@ -1992,7 +2010,7 @@ func (this *Gate) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Gre
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -2007,13 +2025,12 @@ func (this *Gate) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Gre
  * @method
  * @name gate#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://www.gate.io/docs/developers/apiv4/en/#get-unified-account-information
- * @see https://www.gate.io/docs/developers/apiv4/en/#get-detail-of-lending-market
- * @see https://www.gate.io/docs/developers/apiv4/en/#query-one-single-margin-currency-pair-deprecated
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-lending-market-details
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.unified] default false, set to true for fetching the unified accounts leverage
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *Gate) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
 
@@ -2023,7 +2040,7 @@ func (this *Gate) FetchLeverage(symbol string, options ...FetchLeverageOptions) 
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -2038,12 +2055,11 @@ func (this *Gate) FetchLeverage(symbol string, options ...FetchLeverageOptions) 
  * @method
  * @name gate#fetchLeverages
  * @description fetch the set leverage for all leverage markets, only spot margin is supported on gate
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-lending-markets
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading-deprecated
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-lending-markets
  * @param {string[]} symbols a list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.unified] default false, set to true for fetching unified account leverages
- * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *Gate) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {
 
@@ -2053,12 +2069,12 @@ func (this *Gate) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, e
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -2073,10 +2089,10 @@ func (this *Gate) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, e
  * @method
  * @name gate#fetchOption
  * @description fetches option data that is commonly found in an option chain
- * @see https://www.gate.io/docs/developers/apiv4/en/#query-specified-contract-detail
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-specified-contract-details
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+ * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
 func (this *Gate) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
 
@@ -2086,7 +2102,7 @@ func (this *Gate) FetchOption(symbol string, options ...FetchOptionOptions) (Opt
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -2101,12 +2117,12 @@ func (this *Gate) FetchOption(symbol string, options ...FetchOptionOptions) (Opt
  * @method
  * @name gate#fetchOptionChain
  * @description fetches data for an underlying asset that is commonly found in an option chain
- * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-all-contracts-for-specified-underlying-and-expiration-date
  * @param {string} code base currency to fetch an option chain for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.underlying] the underlying asset, can be obtained from fetchUnderlyingAssets ()
  * @param {int} [params.expiration] unix timestamp of the expiration time
- * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+ * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
 func (this *Gate) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 
@@ -2116,7 +2132,7 @@ func (this *Gate) FetchOptionChain(code string, options ...FetchOptionChainOptio
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -2131,8 +2147,8 @@ func (this *Gate) FetchOptionChain(code string, options ...FetchOptionChainOptio
  * @method
  * @name gate#fetchPositionsHistory
  * @description fetches historical positions
- * @see https://www.gate.io/docs/developers/apiv4/#list-position-close-history
- * @see https://www.gate.io/docs/developers/apiv4/#list-position-close-history-2
+ * @see https://www.gate.com/docs/developers/apiv4/#query-position-close-history
+ * @see https://www.gate.com/docs/developers/apiv4/#query-position-close-history-2
  * @param {string[]} symbols unified conract symbols, must all have the same settle currency and the same market type
  * @param {int} [since] the earliest time in ms to fetch positions for
  * @param {int} [limit] the maximum amount of records to fetch, default=1000
@@ -2143,7 +2159,7 @@ func (this *Gate) FetchOptionChain(code string, options ...FetchOptionChainOptio
  * @param {int} [params.offset] list offset, starting from 0
  * @param {string} [params.side] long or short
  * @param {string} [params.pnl] query profit or loss
- * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Gate) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
 
@@ -2153,22 +2169,22 @@ func (this *Gate) FetchPositionsHistory(options ...FetchPositionsHistoryOptions)
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -2181,11 +2197,17 @@ func (this *Gate) FetchPositionsHistory(options ...FetchPositionsHistoryOptions)
 
 // missing typed methods from base
 // nolint
-func (this *Gate) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Gate) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
-func (this *Gate) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Gate) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
+}
+func (this *Gate) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
+}
+func (this *Gate) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Gate) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
 	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)
@@ -2259,10 +2281,13 @@ func (this *Gate) EditLimitOrder(id string, symbol string, side string, amount f
 func (this *Gate) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
 }
+func (this *Gate) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
+}
 func (this *Gate) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Gate) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Gate) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
 func (this *Gate) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
@@ -2271,13 +2296,13 @@ func (this *Gate) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, er
 func (this *Gate) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchBidsAsks(options...)
 }
-func (this *Gate) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Gate) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
 func (this *Gate) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
 }
-func (this *Gate) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Gate) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Gate) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -2292,7 +2317,7 @@ func (this *Gate) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOp
 func (this *Gate) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Gate) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Gate) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
 func (this *Gate) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
@@ -2301,10 +2326,10 @@ func (this *Gate) FetchDepositAddresses(options ...FetchDepositAddressesOptions)
 func (this *Gate) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Gate) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Gate) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Gate) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Gate) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Gate) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
@@ -2319,7 +2344,7 @@ func (this *Gate) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptio
 func (this *Gate) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
 }
-func (this *Gate) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Gate) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
 func (this *Gate) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
@@ -2358,6 +2383,9 @@ func (this *Gate) FetchOpenInterest(symbol string, options ...FetchOpenInterestO
 func (this *Gate) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
 	return this.exchangeTyped.FetchOpenInterests(options...)
 }
+func (this *Gate) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
+}
 func (this *Gate) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
@@ -2367,13 +2395,13 @@ func (this *Gate) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 func (this *Gate) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Gate) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Gate) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Gate) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Gate) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Gate) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Gate) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -2385,13 +2413,13 @@ func (this *Gate) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Po
 func (this *Gate) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Gate) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Gate) FetchStatus(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Gate) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Gate) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Gate) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Gate) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
 func (this *Gate) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -2406,6 +2434,228 @@ func (this *Gate) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEn
 func (this *Gate) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Gate) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Gate) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetMarginMode(marginMode, options...)
+}
+func (this *Gate) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelAllOrdersWs(options...)
+}
+func (this *Gate) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWs(ids, options...)
+}
+func (this *Gate) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWs(id, options...)
+}
+func (this *Gate) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)
+}
+func (this *Gate) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)
+}
+func (this *Gate) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)
+}
+func (this *Gate) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)
+}
+func (this *Gate) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)
+}
+func (this *Gate) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)
+}
+func (this *Gate) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)
+}
+func (this *Gate) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.CreateOrdersWs(orders, options...)
+}
+func (this *Gate) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Gate) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Gate) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Gate) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Gate) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)
+}
+func (this *Gate) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Gate) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)
+}
+func (this *Gate) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Gate) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Gate) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Gate) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Gate) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Gate) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
+}
+func (this *Gate) FetchBalanceWs(params ...any) (Balances, error) {
+	return this.exchangeTyped.FetchBalanceWs(params...)
+}
+func (this *Gate) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchClosedOrdersWs(options...)
+}
+func (this *Gate) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+	return this.exchangeTyped.FetchDepositsWs(options...)
+}
+func (this *Gate) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
+	return this.exchangeTyped.FetchMyTradesWs(options...)
+}
+func (this *Gate) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
+	return this.exchangeTyped.FetchOHLCVWs(symbol, options...)
+}
+func (this *Gate) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchOpenOrdersWs(options...)
+}
+func (this *Gate) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
+	return this.exchangeTyped.FetchOrderBookWs(symbol, options...)
+}
+func (this *Gate) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)
+}
+func (this *Gate) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchOrdersWs(options...)
+}
+func (this *Gate) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWs(id, options...)
+}
+func (this *Gate) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
+	return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)
+}
+func (this *Gate) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
+	return this.exchangeTyped.FetchPositionsWs(options...)
+}
+func (this *Gate) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
+	return this.exchangeTyped.FetchPositionWs(symbol, options...)
+}
+func (this *Gate) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
+	return this.exchangeTyped.FetchTickersWs(options...)
+}
+func (this *Gate) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
+	return this.exchangeTyped.FetchTickerWs(symbol, options...)
+}
+func (this *Gate) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
+	return this.exchangeTyped.FetchTradesWs(symbol, options...)
+}
+func (this *Gate) FetchTradingFeesWs(params ...any) (TradingFees, error) {
+	return this.exchangeTyped.FetchTradingFeesWs(params...)
+}
+func (this *Gate) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+	return this.exchangeTyped.FetchWithdrawalsWs(options...)
+}
+func (this *Gate) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
+	return this.exchangeTyped.UnWatchBidsAsks(options...)
+}
+func (this *Gate) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
+	return this.exchangeTyped.UnWatchMyTrades(options...)
+}
+func (this *Gate) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
+	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
+}
+func (this *Gate) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
+	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
+}
+func (this *Gate) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
+	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
+}
+func (this *Gate) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
+	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
+}
+func (this *Gate) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
+	return this.exchangeTyped.UnWatchOrders(options...)
+}
+func (this *Gate) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
+	return this.exchangeTyped.UnWatchTicker(symbol, options...)
+}
+func (this *Gate) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
+	return this.exchangeTyped.UnWatchTickers(options...)
+}
+func (this *Gate) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
+	return this.exchangeTyped.UnWatchTrades(symbol, options...)
+}
+func (this *Gate) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
+	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
+}
+func (this *Gate) WatchBalance(params ...any) (Balances, error) {
+	return this.exchangeTyped.WatchBalance(params...)
+}
+func (this *Gate) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
+	return this.exchangeTyped.WatchBidsAsks(options...)
+}
+func (this *Gate) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
+	return this.exchangeTyped.WatchLiquidations(symbol, options...)
+}
+func (this *Gate) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
+	return this.exchangeTyped.WatchMarkPrice(symbol, options...)
+}
+func (this *Gate) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
+	return this.exchangeTyped.WatchMarkPrices(options...)
+}
+func (this *Gate) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
+	return this.exchangeTyped.WatchMyLiquidations(symbol, options...)
+}
+func (this *Gate) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
+	return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)
+}
+func (this *Gate) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
+	return this.exchangeTyped.WatchMyTrades(options...)
+}
+func (this *Gate) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
+	return this.exchangeTyped.WatchOHLCV(symbol, options...)
+}
+func (this *Gate) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
+	return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)
+}
+func (this *Gate) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
+	return this.exchangeTyped.WatchOrderBook(symbol, options...)
+}
+func (this *Gate) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
+	return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)
+}
+func (this *Gate) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
+	return this.exchangeTyped.WatchOrders(options...)
+}
+func (this *Gate) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
+	return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)
+}
+func (this *Gate) WatchPosition(options ...WatchPositionOptions) (Position, error) {
+	return this.exchangeTyped.WatchPosition(options...)
+}
+func (this *Gate) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
+	return this.exchangeTyped.WatchPositions(options...)
+}
+func (this *Gate) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
+	return this.exchangeTyped.WatchTicker(symbol, options...)
+}
+func (this *Gate) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
+	return this.exchangeTyped.WatchTickers(options...)
+}
+func (this *Gate) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
+	return this.exchangeTyped.WatchTrades(symbol, options...)
+}
+func (this *Gate) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
+	return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)
+}
+func (this *Gate) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
+	return this.exchangeTyped.WithdrawWs(code, amount, address, options...)
 }

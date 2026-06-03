@@ -413,47 +413,52 @@ class cryptomus extends Exchange {
             //
             $coins = $this->safe_list($response, 'result');
             $groupedById = $this->group_by($coins, 'currency_code');
-            $keys = is_array($groupedById) ? array_keys($groupedById) : array();
-            $result = array();
-            for ($i = 0; $i < count($keys); $i++) {
-                $id = $keys[$i];
-                $code = $this->safe_currency_code($id);
-                $networks = array();
-                $networkEntries = $groupedById[$id];
-                for ($j = 0; $j < count($networkEntries); $j++) {
-                    $networkEntry = $networkEntries[$j];
-                    $networkId = $this->safe_string($networkEntry, 'network_code');
-                    $networkCode = $this->network_id_to_code($networkId);
-                    $networks[$networkCode] = array(
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($networkEntry, 'min_withdraw'),
-                                'max' => $this->safe_number($networkEntry, 'max_withdraw'),
-                            ),
-                            'deposit' => array(
-                                'min' => $this->safe_number($networkEntry, 'min_deposit'),
-                                'max' => $this->safe_number($networkEntry, 'max_deposit'),
-                            ),
-                        ),
-                        'active' => null,
-                        'deposit' => $this->safe_bool($networkEntry, 'can_withdraw'),
-                        'withdraw' => $this->safe_bool($networkEntry, 'can_deposit'),
-                        'fee' => null,
-                        'precision' => null,
-                        'info' => $networkEntry,
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'code' => $code,
-                    'networks' => $networks,
-                    'info' => $networkEntries,
-                ));
-            }
-            return $result;
+            $groupedArray = is_array($groupedById) ? array_values($groupedById) : array();
+            return $this->parse_currencies($groupedArray);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        // currency here is array of $networks
+        $id = null; // all entried have same $id, were grouped by
+        $code = null;
+        $networks = array();
+        for ($i = 0; $i < count($rawCurrency); $i++) {
+            $networkEntry = $rawCurrency[$i];
+            // set ID on first loop
+            if ($id === null) {
+                $id = $this->safe_string($networkEntry, 'currency_code');
+                $code = $this->safe_currency_code($id);
+            }
+            $networkId = $this->safe_string($networkEntry, 'network_code');
+            $networkCode = $this->network_id_to_code($networkId);
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($networkEntry, 'min_withdraw'),
+                        'max' => $this->safe_number($networkEntry, 'max_withdraw'),
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($networkEntry, 'min_deposit'),
+                        'max' => $this->safe_number($networkEntry, 'max_deposit'),
+                    ),
+                ),
+                'active' => null,
+                'deposit' => $this->safe_bool($networkEntry, 'can_deposit'),
+                'withdraw' => $this->safe_bool($networkEntry, 'can_withdraw'),
+                'fee' => null,
+                'precision' => null,
+                'info' => $networkEntry,
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'networks' => $networks,
+            'info' => $rawCurrency,
+        ));
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
@@ -465,7 +470,7 @@ class cryptomus extends Exchange {
              *
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -535,7 +540,7 @@ class cryptomus extends Exchange {
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->level] 0 or 1 or 2 or 3 or 4 or 5 - the $level of volume
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -582,7 +587,7 @@ class cryptomus extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch (maximum value is 100)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -649,7 +654,7 @@ class cryptomus extends Exchange {
              * @see https://doc.cryptomus.com/personal/converts/balance
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -709,7 +714,7 @@ class cryptomus extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->cost] *$market buy only* the quote quantity that can be used alternative for the $amount
              * @param {string} [$params->clientOrderId] a unique identifier for the order (optional)
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -759,7 +764,7 @@ class cryptomus extends Exchange {
             }
             //
             //     {
-            //         "order_id" => "01JEXAFCCC5ZVJPZAAHHDKQBNG"
+            //         "order_id" => "01JEXAFCCC5ZVJPZAAHHDKQBMG"
             //     }
             //
             return $this->parse_order($response, $market);
@@ -776,7 +781,7 @@ class cryptomus extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in (not used in cryptomus)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -807,7 +812,7 @@ class cryptomus extends Exchange {
              * @param {string} [$params->client_order_id] client $order id
              * @param {string} [$params->limit] A special parameter that sets the maximum number of records the $request will return
              * @param {string} [$params->offset] A special parameter that sets the number of records from the beginning of the list
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -885,7 +890,7 @@ class cryptomus extends Exchange {
              * @param {string} [$params->client_order_id] client order id
              * @param {string} [$params->limit] A special parameter that sets the maximum number of records the $request will return
              * @param {string} [$params->offset] A special parameter that sets the number of records from the beginning of the list
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1052,7 +1057,7 @@ class cryptomus extends Exchange {
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
              */
             $response = Async\await($this->privateGetV2UserApiExchangeAccountTariffs ($params));
             //

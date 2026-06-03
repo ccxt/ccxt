@@ -523,38 +523,37 @@ class latoken(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currency = response[i]
-            id = self.safe_string(currency, 'id')
-            tag = self.safe_string(currency, 'tag')
-            code = self.safe_currency_code(tag)
-            currencyType = self.safe_string(currency, 'type')
-            isCrypto = (currencyType == 'CURRENCY_TYPE_CRYPTO' or currencyType == 'CURRENCY_TYPE_IEO')
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': self.safe_string(currency, 'name'),
-                'type': 'crypto' if isCrypto else 'other',
-                'active': self.safe_string(currency, 'status') == 'CURRENCY_STATUS_ACTIVE',
-                'deposit': None,
-                'withdraw': None,
-                'fee': self.safe_number(currency, 'fee'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
-                'limits': {
-                    'amount': {
-                        'min': self.safe_number(currency, 'minTransferAmount'),
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
+        return self.parse_currencies(response)
+
+    def parse_currency(self, currency: dict) -> Currency:
+        id = self.safe_string(currency, 'id')
+        tag = self.safe_string(currency, 'tag')
+        code = self.safe_currency_code(tag)
+        currencyType = self.safe_string(currency, 'type')
+        isCrypto = (currencyType == 'CURRENCY_TYPE_CRYPTO' or currencyType == 'CURRENCY_TYPE_IEO')
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': currency,
+            'name': self.safe_string(currency, 'name'),
+            'type': 'crypto' if isCrypto else 'other',
+            'active': self.safe_string(currency, 'status') == 'CURRENCY_STATUS_ACTIVE',
+            'deposit': None,
+            'withdraw': None,
+            'fee': self.safe_number(currency, 'fee'),
+            'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
+            'limits': {
+                'amount': {
+                    'min': self.safe_number(currency, 'minTransferAmount'),
+                    'max': None,
                 },
-                'networks': {},
-            })
-        return result
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': {},
+        })
 
     async def fetch_balance(self, params={}) -> Balances:
         """
@@ -563,7 +562,7 @@ class latoken(Exchange, ImplicitAPI):
         https://api.latoken.com/doc/v2/#tag/Account/operation/getBalancesByUser
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         response = await self.privateGetAuthAccount(params)
@@ -628,7 +627,7 @@ class latoken(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -712,7 +711,7 @@ class latoken(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -751,7 +750,7 @@ class latoken(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         response = await self.publicGetTicker(params)
@@ -870,7 +869,7 @@ class latoken(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -901,7 +900,7 @@ class latoken(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
         options = self.safe_value(self.options, 'fetchTradingFee', {})
         defaultMethod = self.safe_string(options, 'method', 'fetchPrivateTradingFee')
@@ -975,7 +974,7 @@ class latoken(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         request: dict = {
@@ -1149,7 +1148,7 @@ class latoken(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if fetching trigger orders
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -1205,7 +1204,7 @@ class latoken(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if fetching trigger orders
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {
@@ -1268,7 +1267,7 @@ class latoken(Exchange, ImplicitAPI):
         :param str [symbol]: not used by latoken fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if fetching a trigger order
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {
@@ -1321,7 +1320,7 @@ class latoken(Exchange, ImplicitAPI):
  EXCHANGE SPECIFIC PARAMETERS
         :param str [params.condition]: "GTC", "IOC", or  "FOK"
         :param str [params.clientOrderId]: [0 .. 50] characters, client's custom order id(free field for your convenience)
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1373,7 +1372,7 @@ class latoken(Exchange, ImplicitAPI):
         :param str symbol: not used by latoken cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if cancelling a trigger order
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {
@@ -1407,7 +1406,7 @@ class latoken(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if cancelling trigger orders
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {
@@ -1454,7 +1453,7 @@ class latoken(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest transaction, default is None
         :param int [limit]: max number of transactions to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
         request: dict = {
@@ -1562,6 +1561,8 @@ class latoken(Exchange, ImplicitAPI):
             'TRANSACTION_STATUS_EXECUTED': 'ok',
             'TRANSACTION_STATUS_CHECKING': 'pending',
             'TRANSACTION_STATUS_CANCELLED': 'canceled',
+            'TRANSACTION_STATUS_FAILED': 'failed',
+            'TRANSACTION_STATUS_REJECTED': 'rejected',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1582,7 +1583,7 @@ class latoken(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of  transfers structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1634,7 +1635,7 @@ class latoken(Exchange, ImplicitAPI):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)

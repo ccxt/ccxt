@@ -22,7 +22,7 @@ function watch_positions_continuously($exchange) {
     return Async\async(function () use ($exchange) {
         while (true) {
             try {
-                $positions = Async\await($exchange->watch_positions());
+                $positions = \React\Async\await($exchange->watch_positions());
                 var_dump('Fetched ', $exchange->id, ' - Positions: ', $positions);
             } catch(Exception $e) {
                 var_dump($e);
@@ -41,8 +41,8 @@ function start_exchange($exchange_name, $config) {
         $ex = new $exchange_class($config);
         $promises = [];
         $promises[] = watch_positions_continuously($ex);
-        Async\await(Promise\all($promises));
-        Async\await($ex->close());
+        \React\Async\await(\React\Promise\all($promises));
+        \React\Async\await($ex->close());
     }) ();
 }
 
@@ -71,9 +71,9 @@ function example() {
             $config = $exchanges[$exchange_name];
             $promises[] = start_exchange($exchange_name, $config);
         }
-        Async\await(Promise\all($promises));
+        \React\Async\await(\React\Promise\all($promises));
     }) ();
 }
 
 
-Async\await(example());
+\React\Async\await(example());

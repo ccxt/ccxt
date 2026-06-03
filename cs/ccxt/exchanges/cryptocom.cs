@@ -162,6 +162,7 @@ public partial class cryptocom : Exchange
                             { "public/get-valuations", 1 },
                             { "public/get-expired-settlement-price", divide(10, 3) },
                             { "public/get-insurance", 1 },
+                            { "public/get-announcements", 1 },
                             { "public/get-risk-parameters", 1 },
                         } },
                         { "post", new Dictionary<string, object>() {
@@ -199,6 +200,13 @@ public partial class cryptocom : Exchange
                             { "private/get-deposit-history", divide(10, 3) },
                             { "private/get-fee-rate", 2 },
                             { "private/get-instrument-fee-rate", 2 },
+                            { "private/fiat/fiat-deposit-info", divide(10, 3) },
+                            { "private/fiat/fiat-deposit-history", divide(10, 3) },
+                            { "private/fiat/fiat-withdraw-history", divide(10, 3) },
+                            { "private/fiat/fiat-create-withdraw", divide(10, 3) },
+                            { "private/fiat/fiat-transaction-quota", divide(10, 3) },
+                            { "private/fiat/fiat-transaction-limit", divide(10, 3) },
+                            { "private/fiat/fiat-get-bank-accounts", divide(10, 3) },
                             { "private/staking/stake", 2 },
                             { "private/staking/unstake", 2 },
                             { "private/staking/get-staking-position", 2 },
@@ -209,6 +217,8 @@ public partial class cryptocom : Exchange
                             { "private/staking/convert", 2 },
                             { "private/staking/get-open-convert", 2 },
                             { "private/staking/get-convert-history", 2 },
+                            { "private/create-isolated-margin-transfer", divide(10, 3) },
+                            { "private/change-isolated-margin-leverage", divide(10, 3) },
                         } },
                     } },
                 } },
@@ -303,11 +313,11 @@ public partial class cryptocom : Exchange
             } },
             { "fees", new Dictionary<string, object>() {
                 { "trading", new Dictionary<string, object>() {
-                    { "maker", this.parseNumber("0.004") },
-                    { "taker", this.parseNumber("0.004") },
+                    { "maker", this.parseNumber("0.0025") },
+                    { "taker", this.parseNumber("0.005") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("25000"), this.parseNumber("0.0035")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("200000000"), this.parseNumber("0.0004")}} },
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("25000"), this.parseNumber("0.0035")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0025")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.00015")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.00014")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0.00013")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.00012")}, new List<object> {this.parseNumber("200000000"), this.parseNumber("0.0001")}} },
+                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0025")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.00065")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("250000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0")}} },
+                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.005")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0025")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.00035")}, new List<object> {this.parseNumber("250000000"), this.parseNumber("0.00031")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0.00025")}} },
                     } },
                 } },
             } },
@@ -432,9 +442,11 @@ public partial class cryptocom : Exchange
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
+                    { "213", typeof(InvalidOrder) },
                     { "219", typeof(InvalidOrder) },
                     { "306", typeof(InsufficientFunds) },
                     { "314", typeof(InvalidOrder) },
+                    { "315", typeof(InvalidOrder) },
                     { "325", typeof(InvalidOrder) },
                     { "415", typeof(InvalidOrder) },
                     { "10001", typeof(ExchangeError) },
@@ -522,7 +534,8 @@ public partial class cryptocom : Exchange
             response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
         } catch(Exception e)
         {
-            if (isTrue(e is ExchangeError))
+            object erString = this.exceptionMessage(e);
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(erString, "\"msg\":\"SYS_ERROR\""), 0)))
             {
                 // sub-accounts can't access this endpoint
                 // {"code":"10001","msg":"SYS_ERROR"}
@@ -574,57 +587,69 @@ public partial class cryptocom : Exchange
         //
         object resultData = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object currencyMap = this.safeDict(resultData, "currency_map", new Dictionary<string, object>() {});
-        object keys = new List<object>(((IDictionary<string,object>)currencyMap).Keys);
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        object enhancedArray = this.addKeyInArrayItems(currencyMap, "_coin_id");
+        return this.parseCurrencies(enhancedArray);
+    }
+
+    public override object parseCurrency(object currency)
+    {
+        object id = this.safeString(currency, "_coin_id");
+        object code = this.safeCurrencyCode(id);
+        object networks = new Dictionary<string, object>() {};
+        object chains = this.safeList(currency, "network_list", new List<object>() {});
+        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
-            object key = getValue(keys, i);
-            object currency = getValue(currencyMap, key);
-            object id = key;
-            object code = this.safeCurrencyCode(id);
-            object networks = new Dictionary<string, object>() {};
-            object chains = this.safeList(currency, "network_list", new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
-            {
-                object chain = getValue(chains, j);
-                object networkId = this.safeString(chain, "network_id");
-                object network = this.networkIdToCode(networkId);
-                ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
-                    { "info", chain },
-                    { "id", networkId },
-                    { "network", network },
-                    { "active", null },
-                    { "deposit", this.safeBool(chain, "deposit_enabled", false) },
-                    { "withdraw", this.safeBool(chain, "withdraw_enabled", false) },
-                    { "fee", this.safeNumber(chain, "withdrawal_fee") },
-                    { "precision", null },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(chain, "min_withdrawal_amount") },
-                            { "max", null },
-                        } },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", currency },
-                { "id", id },
-                { "code", code },
-                { "name", this.safeString(currency, "full_name") },
+            object chain = getValue(chains, j);
+            object networkId = this.safeString(chain, "network_id");
+            object network = this.networkIdToCode(networkId, code);
+            ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
+                { "info", chain },
+                { "id", networkId },
+                { "network", network },
                 { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
+                { "deposit", this.safeBool(chain, "deposit_enabled", false) },
+                { "withdraw", this.safeBool(chain, "withdraw_enabled", false) },
+                { "fee", this.safeNumber(chain, "withdrawal_fee") },
                 { "precision", null },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(chain, "min_withdrawal_amount") },
                         { "max", null },
                     } },
                 } },
-                { "type", "crypto" },
-                { "networks", networks },
-            });
+            };
+        }
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", currency },
+            { "id", id },
+            { "code", code },
+            { "name", this.safeString(currency, "full_name") },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "type", "crypto" },
+            { "networks", networks },
+        });
+    }
+
+    public virtual object addKeyInArrayItems(object obj, object keyName)
+    {
+        object result = new List<object>() {};
+        object keys = new List<object>(((IDictionary<string,object>)obj).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object item = getValue(obj, key);
+            ((IDictionary<string,object>)item)[(string)keyName] = key;
+            ((IList<object>)result).Add(item);
         }
         return result;
     }
@@ -775,6 +800,8 @@ public partial class cryptocom : Exchange
                 symbol = add(add(add(add(add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), symbolOptionType);
                 contract = true;
             }
+            object isLinear = ((bool) isTrue((contract))) ? true : null;
+            object isInverse = ((bool) isTrue((contract))) ? false : null;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "symbol") },
                 { "symbol", symbol },
@@ -792,8 +819,8 @@ public partial class cryptocom : Exchange
                 { "option", option },
                 { "active", this.safeBool(market, "tradable") },
                 { "contract", contract },
-                { "linear", ((bool) isTrue((contract))) ? true : null },
-                { "inverse", ((bool) isTrue((contract))) ? false : null },
+                { "linear", isLinear },
+                { "inverse", isInverse },
                 { "contractSize", this.safeNumber(market, "contract_size") },
                 { "expiry", expiry },
                 { "expiryDatetime", this.iso8601(expiry) },
@@ -836,7 +863,7 @@ public partial class cryptocom : Exchange
      * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -899,7 +926,7 @@ public partial class cryptocom : Exchange
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -921,7 +948,7 @@ public partial class cryptocom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1012,7 +1039,7 @@ public partial class cryptocom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -1163,7 +1190,7 @@ public partial class cryptocom : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the number of order book entries to return, max 50
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1230,7 +1257,7 @@ public partial class cryptocom : Exchange
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -1291,7 +1318,7 @@ public partial class cryptocom : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -1494,7 +1521,7 @@ public partial class cryptocom : Exchange
      * @param {float} [params.triggerPrice] price to trigger a trigger order
      * @param {float} [params.stopLossPrice] price to trigger a stop-loss trigger order
      * @param {float} [params.takeProfitPrice] price to trigger a take-profit trigger order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -1526,7 +1553,7 @@ public partial class cryptocom : Exchange
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
@@ -1771,7 +1798,7 @@ public partial class cryptocom : Exchange
      * @param {float} price (mandatory) the price for the order, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] the original client order id of the order to edit, required if id is not provided
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
@@ -1818,7 +1845,7 @@ public partial class cryptocom : Exchange
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
      * @param {string} symbol unified market symbol of the orders to cancel
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} Returns exchange raw message{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} Returns exchange raw message{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
@@ -1845,7 +1872,7 @@ public partial class cryptocom : Exchange
      * @param {string} id the order id of the order to cancel
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -1884,9 +1911,9 @@ public partial class cryptocom : Exchange
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1921,7 +1948,7 @@ public partial class cryptocom : Exchange
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
      * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrdersForSymbols(object orders, object parameters = null)
     {
@@ -1958,7 +1985,7 @@ public partial class cryptocom : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2025,7 +2052,7 @@ public partial class cryptocom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2124,7 +2151,7 @@ public partial class cryptocom : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
@@ -2180,7 +2207,7 @@ public partial class cryptocom : Exchange
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
     public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
@@ -2248,7 +2275,7 @@ public partial class cryptocom : Exchange
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
@@ -2259,11 +2286,9 @@ public partial class cryptocom : Exchange
         if (isTrue(inOp(depositAddresses, network)))
         {
             return getValue(depositAddresses, network);
-        } else
-        {
-            object keys = new List<object>(((IDictionary<string,object>)depositAddresses).Keys);
-            return getValue(depositAddresses, getValue(keys, 0));
         }
+        object keys = new List<object>(((IDictionary<string,object>)depositAddresses).Keys);
+        return getValue(depositAddresses, getValue(keys, 0));
     }
 
     /**
@@ -2276,7 +2301,7 @@ public partial class cryptocom : Exchange
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2342,7 +2367,7 @@ public partial class cryptocom : Exchange
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2887,7 +2912,7 @@ public partial class cryptocom : Exchange
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
@@ -2909,7 +2934,7 @@ public partial class cryptocom : Exchange
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3062,7 +3087,7 @@ public partial class cryptocom : Exchange
      * @description fetch all the accounts associated with a profile
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-accounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     public async override Task<object> fetchAccounts(object parameters = null)
     {
@@ -3152,7 +3177,7 @@ public partial class cryptocom : Exchange
      * @param {int} [limit] number of records
      * @param {object} [params] exchange specific params
      * @param {int} [params.type] 'future', 'option'
-     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
     public async virtual Task<object> fetchSettlementHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3248,7 +3273,7 @@ public partial class cryptocom : Exchange
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
@@ -3334,7 +3359,7 @@ public partial class cryptocom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3419,7 +3444,7 @@ public partial class cryptocom : Exchange
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
@@ -3464,7 +3489,7 @@ public partial class cryptocom : Exchange
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
@@ -3599,8 +3624,8 @@ public partial class cryptocom : Exchange
             paramsKeys = obj;
         } else
         {
-            object sorted = this.keysort(obj);
-            paramsKeys = new List<object>(((IDictionary<string,object>)sorted).Keys);
+            object objectKeys = new List<object>(((IDictionary<string,object>)obj).Keys);
+            paramsKeys = this.sort(objectKeys);
         }
         for (object i = 0; isLessThan(i, getArrayLength(paramsKeys)); postFixIncrement(ref i))
         {
@@ -3636,7 +3661,7 @@ public partial class cryptocom : Exchange
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.type] LIMIT or MARKET
      * @param {number} [params.price] for limit orders only
-     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
     {
@@ -3680,7 +3705,7 @@ public partial class cryptocom : Exchange
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-instrument-fee-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
@@ -3716,7 +3741,7 @@ public partial class cryptocom : Exchange
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-fee-rate
      * @description fetch the trading fees for multiple markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {

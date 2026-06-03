@@ -161,7 +161,7 @@ interface Exchange {
     privateUserPostUserAccount (params?: {}): Promise<implicitReturnType>;
     privateUserPostUserAccountApiKey (params?: {}): Promise<implicitReturnType>;
     privateUserPutUserAccountApiKey (params?: {}): Promise<implicitReturnType>;
-    privateUserDeleteUserAccountApikeyId (params?: {}): Promise<implicitReturnType>;
+    privateUserDeleteUserAccountApiKeyId (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

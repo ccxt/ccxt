@@ -7,10 +7,10 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
+
 
 function test_arrays_concat() {
-    $exchange = new \ccxt\Exchange(array(
+    $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
     ));
     assert_deep_equal($exchange, null, 'testArraysConcat', $exchange->arrays_concat([['b'], ['a', 'c']]), ['b', 'a', 'c']);

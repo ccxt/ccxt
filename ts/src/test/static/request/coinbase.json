@@ -7,6 +7,20 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchDepositAddresses": [
+            {
+                "description": "fetch deposit addresses",
+                "method": "fetchDepositAddresses",
+                "url": "https://api.coinbase.com/v2/accounts/b1091c6e-9ef2-5e4d-b352-665d0cf8f742/addresses?accountId=b1091c6e-9ef2-5e4d-b352-665d0cf8f742",
+                "input": [
+                    null,
+                    {
+                        "accountId": "b1091c6e-9ef2-5e4d-b352-665d0cf8f742"
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
@@ -489,7 +503,7 @@
                     10,
                     "0x93536de4c50a8a90874162504f26978fa946c23a"
                 ],
-                "output": "{\"type\":\"send\",\"to\":\"0x93536de4c50a8a90874162504f26978fa946c23a\",\"amount\":10,\"currency\":\"USDC\"}"
+                "output": "{\"type\":\"send\",\"to\":\"0x93536de4c50a8a90874162504f26978fa946c23a\",\"amount\":\"10\",\"currency\":\"USDC\"}"
             }
         ],
         "fetchBidsAsks": [

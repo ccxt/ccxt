@@ -659,7 +659,7 @@ class bittrade extends Exchange {
         $ask = null;
         $askVolume = null;
         if (is_array($ticker) && array_key_exists('bid', $ticker)) {
-            if (gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid']))) {
+            if ((gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid'])))) {
                 $bid = $this->safe_string($ticker['bid'], 0);
                 $bidVolume = $this->safe_string($ticker['bid'], 1);
             } else {
@@ -668,7 +668,7 @@ class bittrade extends Exchange {
             }
         }
         if (is_array($ticker) && array_key_exists('ask', $ticker)) {
-            if (gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask']))) {
+            if ((gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask'])))) {
                 $ask = $this->safe_string($ticker['ask'], 0);
                 $askVolume = $this->safe_string($ticker['ask'], 1);
             } else {
@@ -711,7 +711,7 @@ class bittrade extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -761,7 +761,7 @@ class bittrade extends Exchange {
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -803,7 +803,7 @@ class bittrade extends Exchange {
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -916,7 +916,7 @@ class bittrade extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -935,7 +935,7 @@ class bittrade extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -964,7 +964,7 @@ class bittrade extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest $trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades $trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades $trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1036,7 +1036,7 @@ class bittrade extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = 1000, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = 1000, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -1079,7 +1079,7 @@ class bittrade extends Exchange {
             /**
              * fetch all the accounts associated with a profile
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetAccountAccounts ($params));
@@ -1107,19 +1107,19 @@ class bittrade extends Exchange {
             //                 "fast-confirms":12,
             //                 "safe-confirms":12,
             //                 "currency-type":"eth",
-            //                 "quote-$currency":true,
+            //                 "quote-currency":true,
             //                 "withdraw-enable-timestamp":1609430400000,
             //                 "deposit-enable-timestamp":1609430400000,
             //                 "currency-partition":"all",
             //                 "support-sites":["OTC","INSTITUTION","MINEPOOL"],
-            //                 "withdraw-$precision":6,
+            //                 "withdraw-precision":6,
             //                 "visible-assets-timestamp":1508839200000,
             //                 "deposit-min-amount":"1",
             //                 "withdraw-min-amount":"10",
-            //                 "show-$precision":"8",
+            //                 "show-precision":"8",
             //                 "tags":"",
             //                 "weight":23,
-            //                 "full-$name":"Tether USDT",
+            //                 "full-name":"Tether USDT",
             //                 "otc-enable":1,
             //                 "visible":true,
             //                 "white-enabled":false,
@@ -1128,63 +1128,62 @@ class bittrade extends Exchange {
             //                 "withdraw-enabled":true,
             //                 "name":"usdt",
             //                 "state":"online",
-            //                 "display-$name":"USDT",
+            //                 "display-name":"USDT",
             //                 "suspend-withdraw-desc":null,
             //                 "withdraw-desc":"Minimum withdrawal amount => 10 USDT (ERC20). !>_<!To ensure the safety of your funds, your withdrawal $request will be manually reviewed if your security strategy or password is changed. Please wait for phone calls or emails from our staff.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
             //                 "suspend-deposit-desc":null,
             //                 "deposit-desc":"Please don’t deposit any other digital assets except USDT to the above address. Otherwise, you may lose your assets permanently. !>_<!Depositing to the above address requires confirmations of the entire network. It will arrive after 12 confirmations, and it will be available to withdraw after 12 confirmations. !>_<!Minimum deposit amount => 1 USDT. Any deposits less than the minimum will not be credited or refunded.!>_<!Your deposit address won’t change often. If there are any changes, we will notify you via announcement or email.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
-            //                 "suspend-$visible-desc":null
+            //                 "suspend-visible-desc":null
             //             }
             //         ]
             //     }
             //
             $currencies = $this->safe_value($response, 'data', array());
-            $result = array();
-            for ($i = 0; $i < count($currencies); $i++) {
-                $currency = $currencies[$i];
-                $id = $this->safe_value($currency, 'name');
-                $code = $this->safe_currency_code($id);
-                $depositEnabled = $this->safe_value($currency, 'deposit-enabled');
-                $withdrawEnabled = $this->safe_value($currency, 'withdraw-enabled');
-                $countryDisabled = $this->safe_value($currency, 'country-disabled');
-                $visible = $this->safe_bool($currency, 'visible', false);
-                $state = $this->safe_string($currency, 'state');
-                $active = $visible && $depositEnabled && $withdrawEnabled && ($state === 'online') && !$countryDisabled;
-                $name = $this->safe_string($currency, 'display-name');
-                $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdraw-precision')));
-                $result[$code] = array(
-                    'id' => $id,
-                    'code' => $code,
-                    'type' => 'crypto',
-                    // 'payin' => $currency['deposit-enabled'],
-                    // 'payout' => $currency['withdraw-enabled'],
-                    // 'transfer' => null,
-                    'name' => $name,
-                    'active' => $active,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
-                    'fee' => null, // todo need to fetch from fee endpoint
-                    'precision' => $precision,
-                    'networks' => null,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => $precision,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => $this->safe_number($currency, 'deposit-min-amount'),
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => $this->safe_number($currency, 'withdraw-min-amount'),
-                            'max' => null,
-                        ),
-                    ),
-                    'info' => $currency,
-                );
-            }
-            return $result;
+            return $this->parse_currencies($currencies);
         }) ();
+    }
+
+    public function parse_currency(array $currency): array {
+        $id = $this->safe_value($currency, 'name');
+        $code = $this->safe_currency_code($id);
+        $depositEnabled = $this->safe_value($currency, 'deposit-enabled');
+        $withdrawEnabled = $this->safe_value($currency, 'withdraw-enabled');
+        $countryDisabled = $this->safe_value($currency, 'country-disabled');
+        $visible = $this->safe_bool($currency, 'visible', false);
+        $state = $this->safe_string($currency, 'state');
+        $active = $visible && $depositEnabled && $withdrawEnabled && ($state === 'online') && !$countryDisabled;
+        $name = $this->safe_string($currency, 'display-name');
+        $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdraw-precision')));
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'type' => 'crypto',
+            // 'payin' => $currency['deposit-enabled'],
+            // 'payout' => $currency['withdraw-enabled'],
+            // 'transfer' => null,
+            'name' => $name,
+            'active' => $active,
+            'deposit' => $depositEnabled,
+            'withdraw' => $withdrawEnabled,
+            'fee' => null, // todo need to fetch from fee endpoint
+            'precision' => $precision,
+            'networks' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => $precision,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => $this->safe_number($currency, 'deposit-min-amount'),
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $this->safe_number($currency, 'withdraw-min-amount'),
+                    'max' => null,
+                ),
+            ),
+            'info' => $currency,
+        ));
     }
 
     public function parse_balance($response): array {
@@ -1216,7 +1215,7 @@ class bittrade extends Exchange {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
@@ -1244,7 +1243,7 @@ class bittrade extends Exchange {
             $response = Async\await($this->$method ($this->extend($request, $params)));
             //
             //     { "status" =>   "ok",
-            //         "data" => array( {                  id =>  13997833014,
+            //         "data" => array( {                  id =>  13997833016,
             //                                "symbol" => "ethbtc",
             //                          "account-id" =>  3398321,
             //                                "amount" => "0.045000000000000000",
@@ -1270,7 +1269,7 @@ class bittrade extends Exchange {
              * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1290,7 +1289,7 @@ class bittrade extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', $symbol, $since, $limit, $params));
         }) ();
@@ -1304,7 +1303,7 @@ class bittrade extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $method = $this->safe_string($this->options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1');
             return Async\await($this->$method ($symbol, $since, $limit, $params));
@@ -1328,7 +1327,7 @@ class bittrade extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_states('filled,partial-canceled,canceled', $symbol, $since, $limit, $params));
         }) ();
@@ -1491,7 +1490,7 @@ class bittrade extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1513,7 +1512,7 @@ class bittrade extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
@@ -1597,7 +1596,7 @@ class bittrade extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol not used by bittrade cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             $response = Async\await($this->privatePostOrderOrdersIdSubmitcancel (array( 'id' => $id )));
             //
@@ -1613,14 +1612,14 @@ class bittrade extends Exchange {
         }) ();
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
              * @param {string[]} $ids order $ids
              * @param {string} $symbol not used by bittrade cancelOrders ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $clientOrderIds = $this->safe_value_2($params, 'clientOrderIds', 'client-order-ids');
@@ -1732,7 +1731,7 @@ class bittrade extends Exchange {
              * cancel all open orders
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1804,7 +1803,7 @@ class bittrade extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             if ($limit === null || $limit > 100) {
                 $limit = 100;
@@ -1838,7 +1837,7 @@ class bittrade extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             if ($limit === null || $limit > 100) {
                 $limit = 100;
@@ -1978,7 +1977,7 @@ class bittrade extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             Async\await($this->load_markets());
@@ -2041,8 +2040,9 @@ class bittrade extends Exchange {
             $requestSorted = $this->keysort($request);
             $auth = $this->urlencode($requestSorted);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
+            $content = array( $method, $this->hostname, $url, $auth );
             // eslint-disable-next-line quotes
-            $payload = implode("\n", array($method, $this->hostname, $url, $auth));
+            $payload = implode("\n", $content);
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
             $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
             $url .= '?' . $auth;

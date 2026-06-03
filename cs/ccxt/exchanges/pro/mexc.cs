@@ -22,6 +22,8 @@ public partial class mexc : ccxt.mexc
                 { "fetchOrderWs", false },
                 { "fetchTradesWs", false },
                 { "watchBalance", true },
+                { "watchFundingRate", true },
+                { "watchFundingRates", false },
                 { "watchMyTrades", true },
                 { "watchOHLCV", true },
                 { "watchOrderBook", true },
@@ -85,7 +87,7 @@ public partial class mexc : ccxt.mexc
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.miniTicker] set to true for using the miniTicker endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
@@ -116,7 +118,7 @@ public partial class mexc : ccxt.mexc
         //         "symbol": "BTC_USDT",
         //         "data": {
         //             "symbol": "BTC_USDT",
-        //             "lastPrice": 76376.2,
+        //             "lastPrice": 76376.1,
         //             "riseFallRate": -0.0006,
         //             "fairPrice": 76374.4,
         //             "indexPrice": 76385.8,
@@ -207,7 +209,7 @@ public partial class mexc : ccxt.mexc
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.miniTicker] set to true for using the miniTicker endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
@@ -408,7 +410,7 @@ public partial class mexc : ccxt.mexc
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
@@ -749,7 +751,14 @@ public partial class mexc : ccxt.mexc
         //       "amount":"366804.43",
         //       "windowEnd":"1754737980"
         //
-        return new List<object> {this.safeTimestamp2(ohlcv, "t", "windowStart"), this.safeNumber2(ohlcv, "o", "openingPrice"), this.safeNumber2(ohlcv, "h", "highestPrice"), this.safeNumber2(ohlcv, "l", "lowestPrice"), this.safeNumber2(ohlcv, "c", "closingPrice"), this.safeNumber2(ohlcv, "v", "volume")};
+        object volume = this.safeNumber2(ohlcv, "v", "volume");
+        // MEXC swap websocket klines publish contracts volume in `q`,
+        // while spot/protobuf uses `v`/`volume`.
+        if (isTrue(isTrue(isTrue((!isEqual(market, null))) && isTrue((!isTrue(this.safeBool(market, "spot"))))) && isTrue((isEqual(volume, null)))))
+        {
+            volume = this.safeNumber2(ohlcv, "q", "v");
+        }
+        return new List<object> {this.safeTimestamp2(ohlcv, "t", "windowStart"), this.safeNumber2(ohlcv, "o", "openingPrice"), this.safeNumber2(ohlcv, "h", "highestPrice"), this.safeNumber2(ohlcv, "l", "lowestPrice"), this.safeNumber2(ohlcv, "c", "closingPrice"), volume};
     }
 
     /**
@@ -762,7 +771,7 @@ public partial class mexc : ccxt.mexc
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -905,6 +914,7 @@ public partial class mexc : ccxt.mexc
         }
         object storedOrderBook = getValue(this.orderbooks, symbol);
         object nonce = this.safeInteger(storedOrderBook, "nonce");
+        object shouldReturn = false;
         if (isTrue(isEqual(nonce, null)))
         {
             object cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
@@ -926,7 +936,12 @@ public partial class mexc : ccxt.mexc
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((WebSocketClient)client).reject(e, messageHash);
-            return;
+            // return;
+            shouldReturn = true;
+        }
+        if (isTrue(shouldReturn))
+        {
+            return;  // go requirement
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {storedOrderBook, messageHash});
     }
@@ -983,7 +998,7 @@ public partial class mexc : ccxt.mexc
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -1050,14 +1065,16 @@ public partial class mexc : ccxt.mexc
         // swap
         //     {
         //         "symbol": "BTC_USDT",
-        //         "data": {
-        //             "p": 27307.3,
-        //             "v": 5,
-        //             "T": 2,
-        //             "O": 3,
-        //             "M": 1,
-        //             "t": 1680055941870
-        //         },
+        //         "data": [
+        //            {
+        //                "p": 114350.4,
+        //                "v": 4,
+        //                "T": 2,
+        //                "O": 3,
+        //                "M": 2,
+        //                "t": 1760368563597
+        //            }
+        //         ],
         //         "channel": "push.deal",
         //         "ts": 1680055941870
         //     }
@@ -1073,8 +1090,12 @@ public partial class mexc : ccxt.mexc
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        object d = this.safeDictN(message, new List<object>() {"d", "data", "publicAggreDeals"});
+        object d = this.safeDictN(message, new List<object>() {"d", "publicAggreDeals"});
         object trades = this.safeList2(d, "deals", "dealsList", new List<object>() {d});
+        if (isTrue(isEqual(d, null)))
+        {
+            trades = this.safeList(message, "data", new List<object>() {});
+        }
         for (object j = 0; isLessThan(j, getArrayLength(trades)); postFixIncrement(ref j))
         {
             object parsedTrade = null;
@@ -1100,7 +1121,7 @@ public partial class mexc : ccxt.mexc
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1293,7 +1314,7 @@ public partial class mexc : ccxt.mexc
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'margin'
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1499,7 +1520,7 @@ public partial class mexc : ccxt.mexc
         //
         object timestamp = this.safeInteger(order, "createTime");
         object side = this.safeString(order, "tradeType");
-        object status = this.safeString(order, "status");
+        object status = this.safeString2(order, "status", "state");
         object type = this.safeString(order, "orderType");
         object fee = null;
         object feeCurrency = this.safeString(order, "N");
@@ -1522,8 +1543,8 @@ public partial class mexc : ccxt.mexc
             { "timeInForce", this.parseWsTimeInForce(type) },
             { "side", ((bool) isTrue((isEqual(side, "1")))) ? "buy" : "sell" },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", null },
-            { "triggerPrice", null },
+            { "stopPrice", this.safeString2(order, "triggerPrice", "P") },
+            { "triggerPrice", this.safeString2(order, "triggerPrice", "P") },
             { "average", this.safeString(order, "avgPrice") },
             { "amount", this.safeString(order, "quantity") },
             { "cost", this.safeString(order, "amount") },
@@ -1538,6 +1559,7 @@ public partial class mexc : ccxt.mexc
     public virtual object parseWsOrderStatus(object status, object market = null)
     {
         object statuses = new Dictionary<string, object>() {
+            { "0", "open" },
             { "1", "open" },
             { "2", "closed" },
             { "3", "open" },
@@ -1560,6 +1582,8 @@ public partial class mexc : ccxt.mexc
             { "4", null },
             { "5", "market" },
             { "100", "limit" },
+            { "101", "limit" },
+            { "102", "limit" },
         };
         return this.safeString(types, type);
     }
@@ -1573,6 +1597,8 @@ public partial class mexc : ccxt.mexc
             { "4", "FOK" },
             { "5", "GTC" },
             { "100", "GTC" },
+            { "101", "GTC" },
+            { "102", "GTC" },
         };
         return this.safeString(timeInForceIds, timeInForce);
     }
@@ -1583,7 +1609,7 @@ public partial class mexc : ccxt.mexc
      * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-update
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
     {
@@ -1637,7 +1663,7 @@ public partial class mexc : ccxt.mexc
         //             "frozenBalance": 0,
         //             "positionMargin": 1.36945756
         //         },
-        //         "ts": 1680059188190
+        //         "ts": 1680059188191
         //     }
         //
         object channel = this.safeString(message, "channel");
@@ -1665,11 +1691,82 @@ public partial class mexc : ccxt.mexc
 
     /**
      * @method
+     * @name mexc#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public async override Task<object> watchFundingRate(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object messageHash = add("fundingRate:", getValue(market, "symbol"));
+        object channel = "sub.funding.rate";
+        object requestParams = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        return await this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+    }
+
+    /**
+     * @method
+     * @name mexc#unWatchFundingRate
+     * @description unWatches the current funding rate for a symbol
+     * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public async override Task<object> unWatchFundingRate(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object messageHash = add("unsubscribe:fundingRate:", getValue(market, "symbol"));
+        object url = null;
+        object channel = "unsub.funding.rate";
+        object requestParams = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        url = getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
+        this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+        var client = this.client(url);
+        this.handleUnsubscriptions(client as WebSocketClient, new List<object>() {messageHash});
+        return null;
+    }
+
+    public virtual void handleFundingRate(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "data": {
+        //             "symbol": "BTC_USDT",
+        //             "rate": -0.000021,
+        //             "nextSettleTime": 1771084800000
+        //         },
+        //         "channel": "push.funding.rate",
+        //         "ts": 1771069020506
+        //     }
+        //
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object fundingRate = this.parseFundingRate(data);
+        object symbol = getValue(fundingRate, "symbol");
+        ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+        object messageHash = add("fundingRate:", symbol);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, messageHash});
+    }
+
+    /**
+     * @method
      * @name mexc#unWatchTicker
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
@@ -1705,7 +1802,7 @@ public partial class mexc : ccxt.mexc
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
@@ -1747,9 +1844,9 @@ public partial class mexc : ccxt.mexc
      * @description unWatches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async virtual Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1800,7 +1897,7 @@ public partial class mexc : ccxt.mexc
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1839,7 +1936,7 @@ public partial class mexc : ccxt.mexc
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -1880,7 +1977,7 @@ public partial class mexc : ccxt.mexc
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
@@ -1964,6 +2061,13 @@ public partial class mexc : ccxt.mexc
                 if (isTrue(inOp(this.trades, symbol)))
                 {
                     ((IDictionary<string,object>)this.trades).Remove((string)symbol);
+                }
+            } else if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "fundingRate"), 0)))
+            {
+                object symbol = ((string)messageHash).Replace((string)"unsubscribe:fundingRate:", (string)"");
+                if (isTrue(inOp(this.fundingRates, symbol)))
+                {
+                    ((IDictionary<string,object>)this.fundingRates).Remove((string)symbol);
                 }
             }
         }
@@ -2150,6 +2254,7 @@ public partial class mexc : ccxt.mexc
             { "private.deals.v3.api", this.handleMyTrade },
             { "push.personal.order.deal", this.handleMyTrade },
             { "pong", this.handlePong },
+            { "push.funding.rate", this.handleFundingRate },
         };
         if (isTrue(inOp(methods, channel)))
         {

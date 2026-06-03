@@ -15,7 +15,8 @@ public partial class testMainClass : BaseTest
         if (isTrue(debugCreateOrder))
         {
             // for c# fix, extra step to convert them to string
-            Console.WriteLine(" >>>>> testCreateOrder [", ((object)(getValue(exchange, "id"))).ToString(), " : ", symbol, "] ", message);
+            object msg = add(add(add(add(add(" >>>>> testCreateOrder [", ((object)(getValue(exchange, "id"))).ToString()), " : "), symbol), "] "), message);
+            Console.WriteLine(msg);
         }
         return true;
     }
@@ -40,21 +41,21 @@ public partial class testMainClass : BaseTest
         // **************** [Scenario 1 - START] **************** //
         tcoDebug(exchange, symbol, "### SCENARIO 1 ###");
         // create a "limit order" which IS GUARANTEED not to have a fill (i.e. being far from the real price)
-        await tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "buy", null);
+        await tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "buy");
         if (isTrue(isSwapFuture))
         {
             // for swap markets, we test sell orders too
-            await tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "sell", null);
+            await tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "sell");
         }
         tcoDebug(exchange, symbol, "### SCENARIO 1 PASSED ###");
         // **************** [Scenario 2 - START] **************** //
         tcoDebug(exchange, symbol, "### SCENARIO 2 ###");
         // create an order which IS GUARANTEED to have a fill (full or partial)
-        await tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "buy", null);
+        await tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "buy");
         if (isTrue(isSwapFuture))
         {
             // for swap markets, we test sell orders too
-            await tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "sell", null);
+            await tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "sell");
         }
         tcoDebug(exchange, symbol, "### SCENARIO 2 PASSED ###");
         // **************** [Scenario 3 - START] **************** //

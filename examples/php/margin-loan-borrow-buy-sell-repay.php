@@ -38,7 +38,7 @@ function example() {
         // ########## end of user-inputs ##########
         //
         // for example purposes, let's also check available balance at first
-        $balance_margin = Async\await($exchange->fetch_balance(array(
+        $balance_margin = \React\Async\await($exchange->fetch_balance(array(
             'defaultType' => 'margin',
             'marginMode' => $margin_mode,
         ))); // use `defaultType` because of temporary bug, otherwise, after several days, you can use `type` too.
@@ -54,7 +54,7 @@ function example() {
                 // If we don't have enough collateral, then let's try to transfer collateral-asset from spot-balance to margin-balance
                 var_dump('hmm, I have only ', $balance_margin[$symbol][$collateral_coin]['free'], ' in balance, but ', $needed_collateral_amount, ' collateral is needed. I should transfer ', $needed_collateral_amount, ' from spot');
                 // let's check if we have spot balance at all
-                $balance_spot = Async\await($exchange->fetch_balance(array(
+                $balance_spot = \React\Async\await($exchange->fetch_balance(array(
                     'type' => 'spot',
                 )));
                 if ($exchange->parse_number($balance_spot[$collateral_coin]['free']) < $needed_collateral_amount) {
@@ -62,19 +62,19 @@ function example() {
                     return;
                 } else {
                     var_dump('Transferring  ', $needed_collateral_amount, ' to margin account');
-                    Async\await($exchange->transfer($collateral_coin, $needed_collateral_amount, 'spot', $margin_mode, array(
+                    \React\Async\await($exchange->transfer($collateral_coin, $needed_collateral_amount, 'spot', $margin_mode, array(
                         'symbol' => $symbol,
                     )));
                 }
             }
             // now, as we have enough margin collateral, initiate borrow
             var_dump('Initiating margin borrow of ', $needed_amount_to_borrow, ' ', $borrow_coin);
-            $borrow_result = Async\await($exchange->borrow_margin($borrow_coin, $needed_amount_to_borrow, $symbol, array(
+            $borrow_result = \React\Async\await($exchange->borrow_margin($borrow_coin, $needed_amount_to_borrow, $symbol, array(
                 'marginMode' => $margin_mode,
             )));
         }
         var_dump('Submitting order.');
-        $order = Async\await($exchange->create_order($symbol, $order_type, $order_side, $amount_to_trade, $limit_price, array(
+        $order = \React\Async\await($exchange->create_order($symbol, $order_type, $order_side, $amount_to_trade, $limit_price, array(
             'marginMode' => $margin_mode,
         )));
         var_dump('Order was submitted !', $order['id']);
@@ -93,11 +93,11 @@ function example() {
             // At first, you need to get back the borrowed coin, by making an opposide trade
             var_dump('Making purchase back of ', $amount_to_repay_back, ' ', $borrow_coin, ' to repay it back.');
             $purchase_back_price = 1.01;
-            $order_back = Async\await($exchange->create_order($symbol, $order_type, ($order_side === 'buy' ? 'sell' : 'buy'), $amount_to_repay_back, $purchase_back_price, array(
+            $order_back = \React\Async\await($exchange->create_order($symbol, $order_type, ($order_side === 'buy' ? 'sell' : 'buy'), $amount_to_repay_back, $purchase_back_price, array(
                 'marginMode' => $margin_mode,
             )));
             var_dump('Now, repaying the loan.');
-            $repay_result = Async\await($exchange->repay_margin($borrow_coin, $amount_to_repay_back, $symbol, array(
+            $repay_result = \React\Async\await($exchange->repay_margin($borrow_coin, $amount_to_repay_back, $symbol, array(
                 'marginMode' => $margin_mode,
             )));
             var_dump('finished.');
@@ -106,4 +106,4 @@ function example() {
 }
 
 
-Async\await(example());
+\React\Async\await(example());

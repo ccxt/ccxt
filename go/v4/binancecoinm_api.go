@@ -7,3066 +7,3158 @@
 
 package ccxt
 
-func (this *binancecoinm) SapiGetCopyTradingFuturesUserStatus(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetCopyTradingFuturesUserStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetCopyTradingFuturesUserStatus", args...)
 }
 
-func (this *binancecoinm) SapiGetCopyTradingFuturesLeadSymbol(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetCopyTradingFuturesLeadSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetCopyTradingFuturesLeadSymbol", args...)
 }
 
-func (this *binancecoinm) SapiGetSystemStatus(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSystemStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSystemStatus", args...)
 }
 
-func (this *binancecoinm) SapiGetAccountSnapshot(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAccountSnapshot(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAccountSnapshot", args...)
 }
 
-func (this *binancecoinm) SapiGetAccountInfo(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAccountInfo", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginAsset(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginAsset(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginAsset", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginPair(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginPair(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginPair", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginAllAssets(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginAllAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginAllAssets", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginAllPairs(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginAllPairs(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginAllPairs", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginPriceIndex(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginPriceIndex(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginPriceIndex", args...)
 }
 
-func (this *binancecoinm) SapiGetSpotDelistSchedule(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSpotDelistSchedule(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSpotDelistSchedule", args...)
 }
 
-func (this *binancecoinm) SapiGetAssetAssetDividend(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAssetAssetDividend(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAssetAssetDividend", args...)
 }
 
-func (this *binancecoinm) SapiGetAssetDribblet(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAssetDribblet(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAssetDribblet", args...)
 }
 
-func (this *binancecoinm) SapiGetAssetTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAssetTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAssetTransfer", args...)
 }
 
-func (this *binancecoinm) SapiGetAssetAssetDetail(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAssetAssetDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAssetAssetDetail", args...)
 }
 
-func (this *binancecoinm) SapiGetAssetTradeFee(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAssetTradeFee(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAssetTradeFee", args...)
 }
 
-func (this *binancecoinm) SapiGetAssetLedgerTransferCloudMiningQueryByPage(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAssetLedgerTransferCloudMiningQueryByPage(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAssetLedgerTransferCloudMiningQueryByPage", args...)
 }
 
-func (this *binancecoinm) SapiGetAssetConvertTransferQueryByPage(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAssetConvertTransferQueryByPage(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAssetConvertTransferQueryByPage", args...)
 }
 
-func (this *binancecoinm) SapiGetAssetWalletBalance(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAssetWalletBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAssetWalletBalance", args...)
 }
 
-func (this *binancecoinm) SapiGetAssetCustodyTransferHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAssetCustodyTransferHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAssetCustodyTransferHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginBorrowRepay(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginBorrowRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginBorrowRepay", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginLoan(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginLoan(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginLoan", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginRepay(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginRepay", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginAccount", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginTransfer", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginInterestHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginInterestHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginInterestHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginForceLiquidationRec(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginForceLiquidationRec(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginForceLiquidationRec", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginOrder", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginOpenOrders", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginAllOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginAllOrders", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginMyTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginMyTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginMyTrades", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginMaxBorrowable(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginMaxBorrowable(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginMaxBorrowable", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginMaxTransferable(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginMaxTransferable(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginMaxTransferable", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginTradeCoeff(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginTradeCoeff(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginTradeCoeff", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginIsolatedTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginIsolatedTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginIsolatedTransfer", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginIsolatedAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginIsolatedAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginIsolatedAccount", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginIsolatedPair(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginIsolatedPair(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginIsolatedPair", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginIsolatedAllPairs(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginIsolatedAllPairs(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginIsolatedAllPairs", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginIsolatedAccountLimit(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginIsolatedAccountLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginIsolatedAccountLimit", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginInterestRateHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginInterestRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginInterestRateHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginOrderList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginOrderList", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginAllOrderList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginAllOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginAllOrderList", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginOpenOrderList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginOpenOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginOpenOrderList", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginCrossMarginData(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginCrossMarginData(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginCrossMarginData", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginIsolatedMarginData(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginIsolatedMarginData(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginIsolatedMarginData", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginIsolatedMarginTier(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginIsolatedMarginTier(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginIsolatedMarginTier", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginRateLimitOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginRateLimitOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginRateLimitOrder", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginDribblet(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginDribblet(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginDribblet", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginDust(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginDust(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginDust", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginCrossMarginCollateralRatio(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginCrossMarginCollateralRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginCrossMarginCollateralRatio", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginExchangeSmallLiability(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginExchangeSmallLiability(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginExchangeSmallLiability", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginExchangeSmallLiabilityHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginExchangeSmallLiabilityHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginExchangeSmallLiabilityHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginNextHourlyInterestRate(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginNextHourlyInterestRate(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginNextHourlyInterestRate", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginCapitalFlow(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginCapitalFlow(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginCapitalFlow", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginDelistSchedule(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginDelistSchedule(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginDelistSchedule", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginAvailableInventory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginAvailableInventory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginAvailableInventory", args...)
 }
 
-func (this *binancecoinm) SapiGetMarginLeverageBracket(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMarginLeverageBracket(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginLeverageBracket", args...)
 }
 
-func (this *binancecoinm) SapiGetLoanVipLoanableData(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLoanVipLoanableData(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanVipLoanableData", args...)
 }
 
-func (this *binancecoinm) SapiGetLoanVipCollateralData(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLoanVipCollateralData(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanVipCollateralData", args...)
 }
 
-func (this *binancecoinm) SapiGetLoanVipRequestData(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLoanVipRequestData(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanVipRequestData", args...)
 }
 
-func (this *binancecoinm) SapiGetLoanVipRequestInterestRate(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLoanVipRequestInterestRate(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanVipRequestInterestRate", args...)
 }
 
-func (this *binancecoinm) SapiGetLoanIncome(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLoanIncome(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanIncome", args...)
 }
 
-func (this *binancecoinm) SapiGetLoanOngoingOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLoanOngoingOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanOngoingOrders", args...)
 }
 
-func (this *binancecoinm) SapiGetLoanLtvAdjustmentHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLoanLtvAdjustmentHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanLtvAdjustmentHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetLoanBorrowHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLoanBorrowHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanBorrowHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetLoanRepayHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLoanRepayHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanRepayHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetLoanLoanableData(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLoanLoanableData(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanLoanableData", args...)
 }
 
-func (this *binancecoinm) SapiGetLoanCollateralData(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLoanCollateralData(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanCollateralData", args...)
 }
 
-func (this *binancecoinm) SapiGetLoanRepayCollateralRate(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLoanRepayCollateralRate(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanRepayCollateralRate", args...)
 }
 
-func (this *binancecoinm) SapiGetLoanFlexibleOngoingOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLoanFlexibleOngoingOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanFlexibleOngoingOrders", args...)
 }
 
-func (this *binancecoinm) SapiGetLoanFlexibleBorrowHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLoanFlexibleBorrowHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanFlexibleBorrowHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetLoanFlexibleRepayHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLoanFlexibleRepayHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanFlexibleRepayHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetLoanFlexibleLtvAdjustmentHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLoanFlexibleLtvAdjustmentHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanFlexibleLtvAdjustmentHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetLoanVipOngoingOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLoanVipOngoingOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanVipOngoingOrders", args...)
 }
 
-func (this *binancecoinm) SapiGetLoanVipRepayHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLoanVipRepayHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanVipRepayHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetLoanVipCollateralAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLoanVipCollateralAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanVipCollateralAccount", args...)
 }
 
-func (this *binancecoinm) SapiGetFiatOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetFiatOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetFiatOrders", args...)
 }
 
-func (this *binancecoinm) SapiGetFiatPayments(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetFiatPayments(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetFiatPayments", args...)
 }
 
-func (this *binancecoinm) SapiGetFuturesTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetFuturesTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetFuturesTransfer", args...)
 }
 
-func (this *binancecoinm) SapiGetFuturesHistDataLink(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetFuturesHistDataLink(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetFuturesHistDataLink", args...)
 }
 
-func (this *binancecoinm) SapiGetRebateTaxQuery(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetRebateTaxQuery(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetRebateTaxQuery", args...)
 }
 
-func (this *binancecoinm) SapiGetCapitalConfigGetall(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetCapitalConfigGetall(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetCapitalConfigGetall", args...)
 }
 
-func (this *binancecoinm) SapiGetCapitalDepositAddress(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetCapitalDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetCapitalDepositAddress", args...)
 }
 
-func (this *binancecoinm) SapiGetCapitalDepositAddressList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetCapitalDepositAddressList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetCapitalDepositAddressList", args...)
 }
 
-func (this *binancecoinm) SapiGetCapitalDepositHisrec(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetCapitalDepositHisrec(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetCapitalDepositHisrec", args...)
 }
 
-func (this *binancecoinm) SapiGetCapitalDepositSubAddress(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetCapitalDepositSubAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetCapitalDepositSubAddress", args...)
 }
 
-func (this *binancecoinm) SapiGetCapitalDepositSubHisrec(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetCapitalDepositSubHisrec(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetCapitalDepositSubHisrec", args...)
 }
 
-func (this *binancecoinm) SapiGetCapitalWithdrawHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetCapitalWithdrawHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetCapitalWithdrawHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetCapitalWithdrawAddressList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetCapitalWithdrawAddressList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetCapitalWithdrawAddressList", args...)
 }
 
-func (this *binancecoinm) SapiGetCapitalContractConvertibleCoins(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetCapitalContractConvertibleCoins(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetCapitalContractConvertibleCoins", args...)
 }
 
-func (this *binancecoinm) SapiGetConvertTradeFlow(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetConvertTradeFlow(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetConvertTradeFlow", args...)
 }
 
-func (this *binancecoinm) SapiGetConvertExchangeInfo(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetConvertExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetConvertExchangeInfo", args...)
 }
 
-func (this *binancecoinm) SapiGetConvertAssetInfo(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetConvertAssetInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetConvertAssetInfo", args...)
 }
 
-func (this *binancecoinm) SapiGetConvertOrderStatus(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetConvertOrderStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetConvertOrderStatus", args...)
 }
 
-func (this *binancecoinm) SapiGetConvertLimitQueryOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetConvertLimitQueryOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetConvertLimitQueryOpenOrders", args...)
 }
 
-func (this *binancecoinm) SapiGetAccountStatus(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAccountStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAccountStatus", args...)
 }
 
-func (this *binancecoinm) SapiGetAccountApiTradingStatus(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAccountApiTradingStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAccountApiTradingStatus", args...)
 }
 
-func (this *binancecoinm) SapiGetAccountApiRestrictionsIpRestriction(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAccountApiRestrictionsIpRestriction(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAccountApiRestrictionsIpRestriction", args...)
 }
 
-func (this *binancecoinm) SapiGetBnbBurn(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBnbBurn(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBnbBurn", args...)
 }
 
-func (this *binancecoinm) SapiGetSubAccountFuturesAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSubAccountFuturesAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountFuturesAccount", args...)
 }
 
-func (this *binancecoinm) SapiGetSubAccountFuturesAccountSummary(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSubAccountFuturesAccountSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountFuturesAccountSummary", args...)
 }
 
-func (this *binancecoinm) SapiGetSubAccountFuturesPositionRisk(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSubAccountFuturesPositionRisk(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountFuturesPositionRisk", args...)
 }
 
-func (this *binancecoinm) SapiGetSubAccountFuturesInternalTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSubAccountFuturesInternalTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountFuturesInternalTransfer", args...)
 }
 
-func (this *binancecoinm) SapiGetSubAccountList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSubAccountList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountList", args...)
 }
 
-func (this *binancecoinm) SapiGetSubAccountMarginAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSubAccountMarginAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountMarginAccount", args...)
 }
 
-func (this *binancecoinm) SapiGetSubAccountMarginAccountSummary(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSubAccountMarginAccountSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountMarginAccountSummary", args...)
 }
 
-func (this *binancecoinm) SapiGetSubAccountSpotSummary(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSubAccountSpotSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountSpotSummary", args...)
 }
 
-func (this *binancecoinm) SapiGetSubAccountStatus(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSubAccountStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountStatus", args...)
 }
 
-func (this *binancecoinm) SapiGetSubAccountSubTransferHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSubAccountSubTransferHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountSubTransferHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetSubAccountTransferSubUserHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSubAccountTransferSubUserHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountTransferSubUserHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetSubAccountUniversalTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSubAccountUniversalTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountUniversalTransfer", args...)
 }
 
-func (this *binancecoinm) SapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList", args...)
 }
 
-func (this *binancecoinm) SapiGetSubAccountTransactionStatistics(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSubAccountTransactionStatistics(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountTransactionStatistics", args...)
 }
 
-func (this *binancecoinm) SapiGetSubAccountSubAccountApiIpRestriction(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSubAccountSubAccountApiIpRestriction(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountSubAccountApiIpRestriction", args...)
 }
 
-func (this *binancecoinm) SapiGetManagedSubaccountAsset(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetManagedSubaccountAsset(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetManagedSubaccountAsset", args...)
 }
 
-func (this *binancecoinm) SapiGetManagedSubaccountAccountSnapshot(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetManagedSubaccountAccountSnapshot(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetManagedSubaccountAccountSnapshot", args...)
 }
 
-func (this *binancecoinm) SapiGetManagedSubaccountQueryTransLogForInvestor(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetManagedSubaccountQueryTransLogForInvestor(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetManagedSubaccountQueryTransLogForInvestor", args...)
 }
 
-func (this *binancecoinm) SapiGetManagedSubaccountQueryTransLogForTradeParent(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetManagedSubaccountQueryTransLogForTradeParent(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetManagedSubaccountQueryTransLogForTradeParent", args...)
 }
 
-func (this *binancecoinm) SapiGetManagedSubaccountFetchFutureAsset(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetManagedSubaccountFetchFutureAsset(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetManagedSubaccountFetchFutureAsset", args...)
 }
 
-func (this *binancecoinm) SapiGetManagedSubaccountMarginAsset(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetManagedSubaccountMarginAsset(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetManagedSubaccountMarginAsset", args...)
 }
 
-func (this *binancecoinm) SapiGetManagedSubaccountInfo(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetManagedSubaccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetManagedSubaccountInfo", args...)
 }
 
-func (this *binancecoinm) SapiGetManagedSubaccountDepositAddress(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetManagedSubaccountDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetManagedSubaccountDepositAddress", args...)
 }
 
-func (this *binancecoinm) SapiGetManagedSubaccountQueryTransLog(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetManagedSubaccountQueryTransLog(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetManagedSubaccountQueryTransLog", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingDailyProductList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingDailyProductList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingDailyProductList", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingDailyUserLeftQuota(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingDailyUserLeftQuota(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingDailyUserLeftQuota", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingDailyUserRedemptionQuota(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingDailyUserRedemptionQuota(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingDailyUserRedemptionQuota", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingDailyTokenPosition(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingDailyTokenPosition(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingDailyTokenPosition", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingUnionAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingUnionAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingUnionAccount", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingUnionPurchaseRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingUnionPurchaseRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingUnionPurchaseRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingUnionRedemptionRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingUnionRedemptionRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingUnionRedemptionRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingUnionInterestHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingUnionInterestHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingUnionInterestHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingProjectList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingProjectList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingProjectList", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingProjectPositionList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingProjectPositionList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingProjectPositionList", args...)
 }
 
-func (this *binancecoinm) SapiGetEthStakingEthHistoryStakingHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetEthStakingEthHistoryStakingHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetEthStakingEthHistoryStakingHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetEthStakingEthHistoryRedemptionHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetEthStakingEthHistoryRedemptionHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetEthStakingEthHistoryRedemptionHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetEthStakingEthHistoryRewardsHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetEthStakingEthHistoryRewardsHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetEthStakingEthHistoryRewardsHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetEthStakingEthQuota(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetEthStakingEthQuota(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetEthStakingEthQuota", args...)
 }
 
-func (this *binancecoinm) SapiGetEthStakingEthHistoryRateHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetEthStakingEthHistoryRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetEthStakingEthHistoryRateHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetEthStakingAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetEthStakingAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetEthStakingAccount", args...)
 }
 
-func (this *binancecoinm) SapiGetEthStakingWbethHistoryWrapHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetEthStakingWbethHistoryWrapHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetEthStakingWbethHistoryWrapHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetEthStakingWbethHistoryUnwrapHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetEthStakingWbethHistoryUnwrapHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetEthStakingWbethHistoryUnwrapHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetEthStakingEthHistoryWbethRewardsHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetEthStakingEthHistoryWbethRewardsHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetEthStakingEthHistoryWbethRewardsHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetSolStakingSolHistoryStakingHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSolStakingSolHistoryStakingHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSolStakingSolHistoryStakingHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetSolStakingSolHistoryRedemptionHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSolStakingSolHistoryRedemptionHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSolStakingSolHistoryRedemptionHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetSolStakingSolHistoryBnsolRewardsHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSolStakingSolHistoryBnsolRewardsHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSolStakingSolHistoryBnsolRewardsHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetSolStakingSolHistoryRateHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSolStakingSolHistoryRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSolStakingSolHistoryRateHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetSolStakingAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSolStakingAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSolStakingAccount", args...)
 }
 
-func (this *binancecoinm) SapiGetSolStakingSolQuota(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSolStakingSolQuota(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSolStakingSolQuota", args...)
 }
 
-func (this *binancecoinm) SapiGetMiningPubAlgoList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMiningPubAlgoList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMiningPubAlgoList", args...)
 }
 
-func (this *binancecoinm) SapiGetMiningPubCoinList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMiningPubCoinList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMiningPubCoinList", args...)
 }
 
-func (this *binancecoinm) SapiGetMiningWorkerDetail(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMiningWorkerDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMiningWorkerDetail", args...)
 }
 
-func (this *binancecoinm) SapiGetMiningWorkerList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMiningWorkerList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMiningWorkerList", args...)
 }
 
-func (this *binancecoinm) SapiGetMiningPaymentList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMiningPaymentList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMiningPaymentList", args...)
 }
 
-func (this *binancecoinm) SapiGetMiningStatisticsUserStatus(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMiningStatisticsUserStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMiningStatisticsUserStatus", args...)
 }
 
-func (this *binancecoinm) SapiGetMiningStatisticsUserList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMiningStatisticsUserList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMiningStatisticsUserList", args...)
 }
 
-func (this *binancecoinm) SapiGetMiningPaymentUid(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetMiningPaymentUid(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMiningPaymentUid", args...)
 }
 
-func (this *binancecoinm) SapiGetBswapPools(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBswapPools(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapPools", args...)
 }
 
-func (this *binancecoinm) SapiGetBswapLiquidity(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBswapLiquidity(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapLiquidity", args...)
 }
 
-func (this *binancecoinm) SapiGetBswapLiquidityOps(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBswapLiquidityOps(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapLiquidityOps", args...)
 }
 
-func (this *binancecoinm) SapiGetBswapQuote(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBswapQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapQuote", args...)
 }
 
-func (this *binancecoinm) SapiGetBswapSwap(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBswapSwap(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapSwap", args...)
 }
 
-func (this *binancecoinm) SapiGetBswapPoolConfigure(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBswapPoolConfigure(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapPoolConfigure", args...)
 }
 
-func (this *binancecoinm) SapiGetBswapAddLiquidityPreview(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBswapAddLiquidityPreview(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapAddLiquidityPreview", args...)
 }
 
-func (this *binancecoinm) SapiGetBswapRemoveLiquidityPreview(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBswapRemoveLiquidityPreview(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapRemoveLiquidityPreview", args...)
 }
 
-func (this *binancecoinm) SapiGetBswapUnclaimedRewards(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBswapUnclaimedRewards(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapUnclaimedRewards", args...)
 }
 
-func (this *binancecoinm) SapiGetBswapClaimedHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBswapClaimedHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapClaimedHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetBlvtTokenInfo(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBlvtTokenInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBlvtTokenInfo", args...)
 }
 
-func (this *binancecoinm) SapiGetBlvtSubscribeRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBlvtSubscribeRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBlvtSubscribeRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetBlvtRedeemRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBlvtRedeemRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBlvtRedeemRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetBlvtUserLimit(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBlvtUserLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBlvtUserLimit", args...)
 }
 
-func (this *binancecoinm) SapiGetApiReferralIfNewUser(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetApiReferralIfNewUser(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetApiReferralIfNewUser", args...)
 }
 
-func (this *binancecoinm) SapiGetApiReferralCustomization(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetApiReferralCustomization(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetApiReferralCustomization", args...)
 }
 
-func (this *binancecoinm) SapiGetApiReferralUserCustomization(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetApiReferralUserCustomization(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetApiReferralUserCustomization", args...)
 }
 
-func (this *binancecoinm) SapiGetApiReferralRebateRecentRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetApiReferralRebateRecentRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetApiReferralRebateRecentRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetApiReferralRebateHistoricalRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetApiReferralRebateHistoricalRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetApiReferralRebateHistoricalRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetApiReferralKickbackRecentRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetApiReferralKickbackRecentRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetApiReferralKickbackRecentRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetApiReferralKickbackHistoricalRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetApiReferralKickbackHistoricalRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetApiReferralKickbackHistoricalRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetBrokerSubAccountApi(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBrokerSubAccountApi(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBrokerSubAccountApi", args...)
 }
 
-func (this *binancecoinm) SapiGetBrokerSubAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBrokerSubAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBrokerSubAccount", args...)
 }
 
-func (this *binancecoinm) SapiGetBrokerSubAccountApiCommissionFutures(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBrokerSubAccountApiCommissionFutures(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBrokerSubAccountApiCommissionFutures", args...)
 }
 
-func (this *binancecoinm) SapiGetBrokerSubAccountApiCommissionCoinFutures(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBrokerSubAccountApiCommissionCoinFutures(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBrokerSubAccountApiCommissionCoinFutures", args...)
 }
 
-func (this *binancecoinm) SapiGetBrokerInfo(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBrokerInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBrokerInfo", args...)
 }
 
-func (this *binancecoinm) SapiGetBrokerTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBrokerTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBrokerTransfer", args...)
 }
 
-func (this *binancecoinm) SapiGetBrokerTransferFutures(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBrokerTransferFutures(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBrokerTransferFutures", args...)
 }
 
-func (this *binancecoinm) SapiGetBrokerRebateRecentRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBrokerRebateRecentRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBrokerRebateRecentRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetBrokerRebateHistoricalRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBrokerRebateHistoricalRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBrokerRebateHistoricalRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetBrokerSubAccountBnbBurnStatus(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBrokerSubAccountBnbBurnStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBrokerSubAccountBnbBurnStatus", args...)
 }
 
-func (this *binancecoinm) SapiGetBrokerSubAccountDepositHist(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBrokerSubAccountDepositHist(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBrokerSubAccountDepositHist", args...)
 }
 
-func (this *binancecoinm) SapiGetBrokerSubAccountSpotSummary(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBrokerSubAccountSpotSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBrokerSubAccountSpotSummary", args...)
 }
 
-func (this *binancecoinm) SapiGetBrokerSubAccountMarginSummary(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBrokerSubAccountMarginSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBrokerSubAccountMarginSummary", args...)
 }
 
-func (this *binancecoinm) SapiGetBrokerSubAccountFuturesSummary(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBrokerSubAccountFuturesSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBrokerSubAccountFuturesSummary", args...)
 }
 
-func (this *binancecoinm) SapiGetBrokerRebateFuturesRecentRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBrokerRebateFuturesRecentRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBrokerRebateFuturesRecentRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetBrokerSubAccountApiIpRestriction(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBrokerSubAccountApiIpRestriction(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBrokerSubAccountApiIpRestriction", args...)
 }
 
-func (this *binancecoinm) SapiGetBrokerUniversalTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetBrokerUniversalTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBrokerUniversalTransfer", args...)
 }
 
-func (this *binancecoinm) SapiGetAccountApiRestrictions(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAccountApiRestrictions(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAccountApiRestrictions", args...)
 }
 
-func (this *binancecoinm) SapiGetC2cOrderMatchListUserOrderHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetC2cOrderMatchListUserOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetC2cOrderMatchListUserOrderHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetNftHistoryTransactions(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetNftHistoryTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetNftHistoryTransactions", args...)
 }
 
-func (this *binancecoinm) SapiGetNftHistoryDeposit(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetNftHistoryDeposit(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetNftHistoryDeposit", args...)
 }
 
-func (this *binancecoinm) SapiGetNftHistoryWithdraw(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetNftHistoryWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetNftHistoryWithdraw", args...)
 }
 
-func (this *binancecoinm) SapiGetNftUserGetAsset(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetNftUserGetAsset(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetNftUserGetAsset", args...)
 }
 
-func (this *binancecoinm) SapiGetPayTransactions(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetPayTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetPayTransactions", args...)
 }
 
-func (this *binancecoinm) SapiGetGiftcardVerify(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetGiftcardVerify(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetGiftcardVerify", args...)
 }
 
-func (this *binancecoinm) SapiGetGiftcardCryptographyRsaPublicKey(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetGiftcardCryptographyRsaPublicKey(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetGiftcardCryptographyRsaPublicKey", args...)
 }
 
-func (this *binancecoinm) SapiGetGiftcardBuyCodeTokenLimit(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetGiftcardBuyCodeTokenLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetGiftcardBuyCodeTokenLimit", args...)
 }
 
-func (this *binancecoinm) SapiGetAlgoSpotOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAlgoSpotOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAlgoSpotOpenOrders", args...)
 }
 
-func (this *binancecoinm) SapiGetAlgoSpotHistoricalOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAlgoSpotHistoricalOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAlgoSpotHistoricalOrders", args...)
 }
 
-func (this *binancecoinm) SapiGetAlgoSpotSubOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAlgoSpotSubOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAlgoSpotSubOrders", args...)
 }
 
-func (this *binancecoinm) SapiGetAlgoFuturesOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAlgoFuturesOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAlgoFuturesOpenOrders", args...)
 }
 
-func (this *binancecoinm) SapiGetAlgoFuturesHistoricalOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAlgoFuturesHistoricalOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAlgoFuturesHistoricalOrders", args...)
 }
 
-func (this *binancecoinm) SapiGetAlgoFuturesSubOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAlgoFuturesSubOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAlgoFuturesSubOrders", args...)
 }
 
-func (this *binancecoinm) SapiGetPortfolioAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetPortfolioAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetPortfolioAccount", args...)
 }
 
-func (this *binancecoinm) SapiGetPortfolioCollateralRate(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetPortfolioCollateralRate(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetPortfolioCollateralRate", args...)
 }
 
-func (this *binancecoinm) SapiGetPortfolioPmLoan(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetPortfolioPmLoan(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetPortfolioPmLoan", args...)
 }
 
-func (this *binancecoinm) SapiGetPortfolioInterestHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetPortfolioInterestHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetPortfolioInterestHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetPortfolioAssetIndexPrice(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetPortfolioAssetIndexPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetPortfolioAssetIndexPrice", args...)
 }
 
-func (this *binancecoinm) SapiGetPortfolioRepayFuturesSwitch(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetPortfolioRepayFuturesSwitch(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetPortfolioRepayFuturesSwitch", args...)
 }
 
-func (this *binancecoinm) SapiGetPortfolioMarginAssetLeverage(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetPortfolioMarginAssetLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetPortfolioMarginAssetLeverage", args...)
 }
 
-func (this *binancecoinm) SapiGetPortfolioBalance(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetPortfolioBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetPortfolioBalance", args...)
 }
 
-func (this *binancecoinm) SapiGetPortfolioNegativeBalanceExchangeRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetPortfolioNegativeBalanceExchangeRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetPortfolioNegativeBalanceExchangeRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetPortfolioPmloanHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetPortfolioPmloanHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetPortfolioPmloanHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetPortfolioEarnAssetBalance(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetPortfolioEarnAssetBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetPortfolioEarnAssetBalance", args...)
 }
 
-func (this *binancecoinm) SapiGetStakingProductList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetPortfolioDeltaMode(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiGetPortfolioDeltaMode", args...)
+}
+
+func (this *BinancecoinmCore) SapiGetStakingProductList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetStakingProductList", args...)
 }
 
-func (this *binancecoinm) SapiGetStakingPosition(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetStakingPosition(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetStakingPosition", args...)
 }
 
-func (this *binancecoinm) SapiGetStakingStakingRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetStakingStakingRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetStakingStakingRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetStakingPersonalLeftQuota(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetStakingPersonalLeftQuota(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetStakingPersonalLeftQuota", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingAutoInvestTargetAssetList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingAutoInvestTargetAssetList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestTargetAssetList", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingAutoInvestTargetAssetRoiList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingAutoInvestTargetAssetRoiList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestTargetAssetRoiList", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingAutoInvestAllAsset(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingAutoInvestAllAsset(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestAllAsset", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingAutoInvestSourceAssetList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingAutoInvestSourceAssetList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestSourceAssetList", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingAutoInvestPlanList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingAutoInvestPlanList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestPlanList", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingAutoInvestPlanId(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingAutoInvestPlanId(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestPlanId", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingAutoInvestHistoryList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingAutoInvestHistoryList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestHistoryList", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingAutoInvestIndexInfo(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingAutoInvestIndexInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestIndexInfo", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingAutoInvestIndexUserSummary(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingAutoInvestIndexUserSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestIndexUserSummary", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingAutoInvestOneOffStatus(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingAutoInvestOneOffStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestOneOffStatus", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingAutoInvestRedeemHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingAutoInvestRedeemHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestRedeemHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetLendingAutoInvestRebalanceHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetLendingAutoInvestRebalanceHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestRebalanceHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetSimpleEarnFlexibleList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSimpleEarnFlexibleList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleList", args...)
 }
 
-func (this *binancecoinm) SapiGetSimpleEarnLockedList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSimpleEarnLockedList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSimpleEarnLockedList", args...)
 }
 
-func (this *binancecoinm) SapiGetSimpleEarnFlexiblePersonalLeftQuota(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSimpleEarnFlexiblePersonalLeftQuota(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSimpleEarnFlexiblePersonalLeftQuota", args...)
 }
 
-func (this *binancecoinm) SapiGetSimpleEarnLockedPersonalLeftQuota(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSimpleEarnLockedPersonalLeftQuota(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSimpleEarnLockedPersonalLeftQuota", args...)
 }
 
-func (this *binancecoinm) SapiGetSimpleEarnFlexibleSubscriptionPreview(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSimpleEarnFlexibleSubscriptionPreview(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleSubscriptionPreview", args...)
 }
 
-func (this *binancecoinm) SapiGetSimpleEarnLockedSubscriptionPreview(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSimpleEarnLockedSubscriptionPreview(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSimpleEarnLockedSubscriptionPreview", args...)
 }
 
-func (this *binancecoinm) SapiGetSimpleEarnFlexibleHistoryRateHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSimpleEarnFlexibleHistoryRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistoryRateHistory", args...)
 }
 
-func (this *binancecoinm) SapiGetSimpleEarnFlexiblePosition(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSimpleEarnFlexiblePosition(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSimpleEarnFlexiblePosition", args...)
 }
 
-func (this *binancecoinm) SapiGetSimpleEarnLockedPosition(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSimpleEarnLockedPosition(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSimpleEarnLockedPosition", args...)
 }
 
-func (this *binancecoinm) SapiGetSimpleEarnAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSimpleEarnAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSimpleEarnAccount", args...)
 }
 
-func (this *binancecoinm) SapiGetSimpleEarnFlexibleHistorySubscriptionRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSimpleEarnFlexibleHistorySubscriptionRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistorySubscriptionRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetSimpleEarnLockedHistorySubscriptionRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSimpleEarnLockedHistorySubscriptionRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSimpleEarnLockedHistorySubscriptionRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetSimpleEarnFlexibleHistoryRedemptionRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSimpleEarnFlexibleHistoryRedemptionRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistoryRedemptionRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetSimpleEarnLockedHistoryRedemptionRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSimpleEarnLockedHistoryRedemptionRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSimpleEarnLockedHistoryRedemptionRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetSimpleEarnFlexibleHistoryRewardsRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSimpleEarnFlexibleHistoryRewardsRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistoryRewardsRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetSimpleEarnLockedHistoryRewardsRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSimpleEarnLockedHistoryRewardsRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSimpleEarnLockedHistoryRewardsRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetSimpleEarnFlexibleHistoryCollateralRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetSimpleEarnFlexibleHistoryCollateralRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistoryCollateralRecord", args...)
 }
 
-func (this *binancecoinm) SapiGetDciProductList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetDciProductList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetDciProductList", args...)
 }
 
-func (this *binancecoinm) SapiGetDciProductPositions(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetDciProductPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetDciProductPositions", args...)
 }
 
-func (this *binancecoinm) SapiGetDciProductAccounts(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetDciProductAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetDciProductAccounts", args...)
 }
 
-func (this *binancecoinm) SapiPostAssetDust(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiGetAccumulatorProductList(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiGetAccumulatorProductList", args...)
+}
+
+func (this *BinancecoinmCore) SapiGetAccumulatorProductPositionList(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiGetAccumulatorProductPositionList", args...)
+}
+
+func (this *BinancecoinmCore) SapiGetAccumulatorProductSumHolding(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiGetAccumulatorProductSumHolding", args...)
+}
+
+func (this *BinancecoinmCore) SapiPostAssetDust(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAssetDust", args...)
 }
 
-func (this *binancecoinm) SapiPostAssetDustBtc(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostAssetDustBtc(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAssetDustBtc", args...)
 }
 
-func (this *binancecoinm) SapiPostAssetTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostAssetTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAssetTransfer", args...)
 }
 
-func (this *binancecoinm) SapiPostAssetGetFundingAsset(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostAssetGetFundingAsset(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAssetGetFundingAsset", args...)
 }
 
-func (this *binancecoinm) SapiPostAssetConvertTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostAssetConvertTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAssetConvertTransfer", args...)
 }
 
-func (this *binancecoinm) SapiPostAccountDisableFastWithdrawSwitch(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostAccountDisableFastWithdrawSwitch(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAccountDisableFastWithdrawSwitch", args...)
 }
 
-func (this *binancecoinm) SapiPostAccountEnableFastWithdrawSwitch(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostAccountEnableFastWithdrawSwitch(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAccountEnableFastWithdrawSwitch", args...)
 }
 
-func (this *binancecoinm) SapiPostCapitalWithdrawApply(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostCapitalWithdrawApply(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostCapitalWithdrawApply", args...)
 }
 
-func (this *binancecoinm) SapiPostCapitalContractConvertibleCoins(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostCapitalContractConvertibleCoins(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostCapitalContractConvertibleCoins", args...)
 }
 
-func (this *binancecoinm) SapiPostCapitalDepositCreditApply(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostCapitalDepositCreditApply(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostCapitalDepositCreditApply", args...)
 }
 
-func (this *binancecoinm) SapiPostMarginBorrowRepay(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostMarginBorrowRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginBorrowRepay", args...)
 }
 
-func (this *binancecoinm) SapiPostMarginTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostMarginTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginTransfer", args...)
 }
 
-func (this *binancecoinm) SapiPostMarginLoan(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostMarginLoan(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginLoan", args...)
 }
 
-func (this *binancecoinm) SapiPostMarginRepay(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostMarginRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginRepay", args...)
 }
 
-func (this *binancecoinm) SapiPostMarginOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostMarginOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginOrder", args...)
 }
 
-func (this *binancecoinm) SapiPostMarginOrderOco(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostMarginOrderOco(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginOrderOco", args...)
 }
 
-func (this *binancecoinm) SapiPostMarginDust(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostMarginDust(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginDust", args...)
 }
 
-func (this *binancecoinm) SapiPostMarginExchangeSmallLiability(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostMarginExchangeSmallLiability(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginExchangeSmallLiability", args...)
 }
 
-func (this *binancecoinm) SapiPostMarginIsolatedTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostMarginIsolatedTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginIsolatedTransfer", args...)
 }
 
-func (this *binancecoinm) SapiPostMarginIsolatedAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostMarginIsolatedAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginIsolatedAccount", args...)
 }
 
-func (this *binancecoinm) SapiPostMarginMaxLeverage(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostMarginMaxLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginMaxLeverage", args...)
 }
 
-func (this *binancecoinm) SapiPostBnbBurn(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBnbBurn(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBnbBurn", args...)
 }
 
-func (this *binancecoinm) SapiPostSubAccountVirtualSubAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostSubAccountVirtualSubAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountVirtualSubAccount", args...)
 }
 
-func (this *binancecoinm) SapiPostSubAccountMarginTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostSubAccountMarginTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountMarginTransfer", args...)
 }
 
-func (this *binancecoinm) SapiPostSubAccountMarginEnable(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostSubAccountMarginEnable(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountMarginEnable", args...)
 }
 
-func (this *binancecoinm) SapiPostSubAccountFuturesEnable(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostSubAccountFuturesEnable(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountFuturesEnable", args...)
 }
 
-func (this *binancecoinm) SapiPostSubAccountFuturesTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostSubAccountFuturesTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountFuturesTransfer", args...)
 }
 
-func (this *binancecoinm) SapiPostSubAccountFuturesInternalTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostSubAccountFuturesInternalTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountFuturesInternalTransfer", args...)
 }
 
-func (this *binancecoinm) SapiPostSubAccountTransferSubToSub(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostSubAccountTransferSubToSub(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountTransferSubToSub", args...)
 }
 
-func (this *binancecoinm) SapiPostSubAccountTransferSubToMaster(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostSubAccountTransferSubToMaster(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountTransferSubToMaster", args...)
 }
 
-func (this *binancecoinm) SapiPostSubAccountUniversalTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostSubAccountUniversalTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountUniversalTransfer", args...)
 }
 
-func (this *binancecoinm) SapiPostSubAccountOptionsEnable(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostSubAccountOptionsEnable(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountOptionsEnable", args...)
 }
 
-func (this *binancecoinm) SapiPostManagedSubaccountDeposit(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostManagedSubaccountDeposit(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostManagedSubaccountDeposit", args...)
 }
 
-func (this *binancecoinm) SapiPostManagedSubaccountWithdraw(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostManagedSubaccountWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostManagedSubaccountWithdraw", args...)
 }
 
-func (this *binancecoinm) SapiPostUserDataStream(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostUserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostUserDataStream", args...)
 }
 
-func (this *binancecoinm) SapiPostUserDataStreamIsolated(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostUserDataStreamIsolated(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostUserDataStreamIsolated", args...)
 }
 
-func (this *binancecoinm) SapiPostFuturesTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostUserListenToken(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPostUserListenToken", args...)
+}
+
+func (this *BinancecoinmCore) SapiPostFuturesTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostFuturesTransfer", args...)
 }
 
-func (this *binancecoinm) SapiPostLendingCustomizedFixedPurchase(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostLendingCustomizedFixedPurchase(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLendingCustomizedFixedPurchase", args...)
 }
 
-func (this *binancecoinm) SapiPostLendingDailyPurchase(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostLendingDailyPurchase(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLendingDailyPurchase", args...)
 }
 
-func (this *binancecoinm) SapiPostLendingDailyRedeem(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostLendingDailyRedeem(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLendingDailyRedeem", args...)
 }
 
-func (this *binancecoinm) SapiPostBswapLiquidityAdd(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBswapLiquidityAdd(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBswapLiquidityAdd", args...)
 }
 
-func (this *binancecoinm) SapiPostBswapLiquidityRemove(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBswapLiquidityRemove(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBswapLiquidityRemove", args...)
 }
 
-func (this *binancecoinm) SapiPostBswapSwap(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBswapSwap(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBswapSwap", args...)
 }
 
-func (this *binancecoinm) SapiPostBswapClaimRewards(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBswapClaimRewards(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBswapClaimRewards", args...)
 }
 
-func (this *binancecoinm) SapiPostBlvtSubscribe(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBlvtSubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBlvtSubscribe", args...)
 }
 
-func (this *binancecoinm) SapiPostBlvtRedeem(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBlvtRedeem(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBlvtRedeem", args...)
 }
 
-func (this *binancecoinm) SapiPostApiReferralCustomization(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostApiReferralCustomization(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostApiReferralCustomization", args...)
 }
 
-func (this *binancecoinm) SapiPostApiReferralUserCustomization(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostApiReferralUserCustomization(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostApiReferralUserCustomization", args...)
 }
 
-func (this *binancecoinm) SapiPostApiReferralRebateHistoricalRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostApiReferralRebateHistoricalRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostApiReferralRebateHistoricalRecord", args...)
 }
 
-func (this *binancecoinm) SapiPostApiReferralKickbackHistoricalRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostApiReferralKickbackHistoricalRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostApiReferralKickbackHistoricalRecord", args...)
 }
 
-func (this *binancecoinm) SapiPostBrokerSubAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBrokerSubAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBrokerSubAccount", args...)
 }
 
-func (this *binancecoinm) SapiPostBrokerSubAccountMargin(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBrokerSubAccountMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBrokerSubAccountMargin", args...)
 }
 
-func (this *binancecoinm) SapiPostBrokerSubAccountFutures(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBrokerSubAccountFutures(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBrokerSubAccountFutures", args...)
 }
 
-func (this *binancecoinm) SapiPostBrokerSubAccountApi(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBrokerSubAccountApi(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBrokerSubAccountApi", args...)
 }
 
-func (this *binancecoinm) SapiPostBrokerSubAccountApiPermission(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBrokerSubAccountApiPermission(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBrokerSubAccountApiPermission", args...)
 }
 
-func (this *binancecoinm) SapiPostBrokerSubAccountApiCommission(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBrokerSubAccountApiCommission(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBrokerSubAccountApiCommission", args...)
 }
 
-func (this *binancecoinm) SapiPostBrokerSubAccountApiCommissionFutures(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBrokerSubAccountApiCommissionFutures(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBrokerSubAccountApiCommissionFutures", args...)
 }
 
-func (this *binancecoinm) SapiPostBrokerSubAccountApiCommissionCoinFutures(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBrokerSubAccountApiCommissionCoinFutures(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBrokerSubAccountApiCommissionCoinFutures", args...)
 }
 
-func (this *binancecoinm) SapiPostBrokerTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBrokerTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBrokerTransfer", args...)
 }
 
-func (this *binancecoinm) SapiPostBrokerTransferFutures(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBrokerTransferFutures(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBrokerTransferFutures", args...)
 }
 
-func (this *binancecoinm) SapiPostBrokerRebateHistoricalRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBrokerRebateHistoricalRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBrokerRebateHistoricalRecord", args...)
 }
 
-func (this *binancecoinm) SapiPostBrokerSubAccountBnbBurnSpot(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBrokerSubAccountBnbBurnSpot(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBrokerSubAccountBnbBurnSpot", args...)
 }
 
-func (this *binancecoinm) SapiPostBrokerSubAccountBnbBurnMarginInterest(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBrokerSubAccountBnbBurnMarginInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBrokerSubAccountBnbBurnMarginInterest", args...)
 }
 
-func (this *binancecoinm) SapiPostBrokerSubAccountBlvt(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBrokerSubAccountBlvt(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBrokerSubAccountBlvt", args...)
 }
 
-func (this *binancecoinm) SapiPostBrokerSubAccountApiIpRestriction(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBrokerSubAccountApiIpRestriction(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBrokerSubAccountApiIpRestriction", args...)
 }
 
-func (this *binancecoinm) SapiPostBrokerSubAccountApiIpRestrictionIpList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBrokerSubAccountApiIpRestrictionIpList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBrokerSubAccountApiIpRestrictionIpList", args...)
 }
 
-func (this *binancecoinm) SapiPostBrokerUniversalTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBrokerUniversalTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBrokerUniversalTransfer", args...)
 }
 
-func (this *binancecoinm) SapiPostBrokerSubAccountApiPermissionUniversalTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBrokerSubAccountApiPermissionUniversalTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBrokerSubAccountApiPermissionUniversalTransfer", args...)
 }
 
-func (this *binancecoinm) SapiPostBrokerSubAccountApiPermissionVanillaOptions(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostBrokerSubAccountApiPermissionVanillaOptions(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBrokerSubAccountApiPermissionVanillaOptions", args...)
 }
 
-func (this *binancecoinm) SapiPostGiftcardCreateCode(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostGiftcardCreateCode(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostGiftcardCreateCode", args...)
 }
 
-func (this *binancecoinm) SapiPostGiftcardRedeemCode(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostGiftcardRedeemCode(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostGiftcardRedeemCode", args...)
 }
 
-func (this *binancecoinm) SapiPostGiftcardBuyCode(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostGiftcardBuyCode(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostGiftcardBuyCode", args...)
 }
 
-func (this *binancecoinm) SapiPostAlgoSpotNewOrderTwap(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostAlgoSpotNewOrderTwap(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAlgoSpotNewOrderTwap", args...)
 }
 
-func (this *binancecoinm) SapiPostAlgoFuturesNewOrderVp(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostAlgoFuturesNewOrderVp(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAlgoFuturesNewOrderVp", args...)
 }
 
-func (this *binancecoinm) SapiPostAlgoFuturesNewOrderTwap(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostAlgoFuturesNewOrderTwap(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAlgoFuturesNewOrderTwap", args...)
 }
 
-func (this *binancecoinm) SapiPostStakingPurchase(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostStakingPurchase(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostStakingPurchase", args...)
 }
 
-func (this *binancecoinm) SapiPostStakingRedeem(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostStakingRedeem(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostStakingRedeem", args...)
 }
 
-func (this *binancecoinm) SapiPostStakingSetAutoStaking(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostStakingSetAutoStaking(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostStakingSetAutoStaking", args...)
 }
 
-func (this *binancecoinm) SapiPostEthStakingEthStake(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostEthStakingEthStake(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostEthStakingEthStake", args...)
 }
 
-func (this *binancecoinm) SapiPostEthStakingEthRedeem(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostEthStakingEthRedeem(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostEthStakingEthRedeem", args...)
 }
 
-func (this *binancecoinm) SapiPostEthStakingWbethWrap(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostEthStakingWbethWrap(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostEthStakingWbethWrap", args...)
 }
 
-func (this *binancecoinm) SapiPostSolStakingSolStake(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostSolStakingSolStake(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSolStakingSolStake", args...)
 }
 
-func (this *binancecoinm) SapiPostSolStakingSolRedeem(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostSolStakingSolRedeem(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSolStakingSolRedeem", args...)
 }
 
-func (this *binancecoinm) SapiPostMiningHashTransferConfig(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostMiningHashTransferConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMiningHashTransferConfig", args...)
 }
 
-func (this *binancecoinm) SapiPostMiningHashTransferConfigCancel(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostMiningHashTransferConfigCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMiningHashTransferConfigCancel", args...)
 }
 
-func (this *binancecoinm) SapiPostPortfolioRepay(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostPortfolioRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostPortfolioRepay", args...)
 }
 
-func (this *binancecoinm) SapiPostLoanVipRenew(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostLoanVipRenew(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLoanVipRenew", args...)
 }
 
-func (this *binancecoinm) SapiPostLoanVipBorrow(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostLoanVipBorrow(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLoanVipBorrow", args...)
 }
 
-func (this *binancecoinm) SapiPostLoanBorrow(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostLoanBorrow(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLoanBorrow", args...)
 }
 
-func (this *binancecoinm) SapiPostLoanRepay(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostLoanRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLoanRepay", args...)
 }
 
-func (this *binancecoinm) SapiPostLoanAdjustLtv(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostLoanAdjustLtv(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLoanAdjustLtv", args...)
 }
 
-func (this *binancecoinm) SapiPostLoanCustomizeMarginCall(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostLoanCustomizeMarginCall(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLoanCustomizeMarginCall", args...)
 }
 
-func (this *binancecoinm) SapiPostLoanFlexibleRepay(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostLoanFlexibleRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLoanFlexibleRepay", args...)
 }
 
-func (this *binancecoinm) SapiPostLoanFlexibleAdjustLtv(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostLoanFlexibleAdjustLtv(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLoanFlexibleAdjustLtv", args...)
 }
 
-func (this *binancecoinm) SapiPostLoanVipRepay(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostLoanVipRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLoanVipRepay", args...)
 }
 
-func (this *binancecoinm) SapiPostConvertGetQuote(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostConvertGetQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostConvertGetQuote", args...)
 }
 
-func (this *binancecoinm) SapiPostConvertAcceptQuote(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostConvertAcceptQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostConvertAcceptQuote", args...)
 }
 
-func (this *binancecoinm) SapiPostConvertLimitPlaceOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostConvertLimitPlaceOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostConvertLimitPlaceOrder", args...)
 }
 
-func (this *binancecoinm) SapiPostConvertLimitCancelOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostConvertLimitCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostConvertLimitCancelOrder", args...)
 }
 
-func (this *binancecoinm) SapiPostPortfolioAutoCollection(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostPortfolioAutoCollection(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostPortfolioAutoCollection", args...)
 }
 
-func (this *binancecoinm) SapiPostPortfolioAssetCollection(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostPortfolioAssetCollection(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostPortfolioAssetCollection", args...)
 }
 
-func (this *binancecoinm) SapiPostPortfolioBnbTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostPortfolioBnbTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostPortfolioBnbTransfer", args...)
 }
 
-func (this *binancecoinm) SapiPostPortfolioRepayFuturesSwitch(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostPortfolioRepayFuturesSwitch(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostPortfolioRepayFuturesSwitch", args...)
 }
 
-func (this *binancecoinm) SapiPostPortfolioRepayFuturesNegativeBalance(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostPortfolioRepayFuturesNegativeBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostPortfolioRepayFuturesNegativeBalance", args...)
 }
 
-func (this *binancecoinm) SapiPostPortfolioMint(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostPortfolioMint(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostPortfolioMint", args...)
 }
 
-func (this *binancecoinm) SapiPostPortfolioRedeem(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostPortfolioRedeem(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostPortfolioRedeem", args...)
 }
 
-func (this *binancecoinm) SapiPostPortfolioEarnAssetTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostPortfolioEarnAssetTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostPortfolioEarnAssetTransfer", args...)
 }
 
-func (this *binancecoinm) SapiPostLendingAutoInvestPlanAdd(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostPortfolioDeltaMode(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPostPortfolioDeltaMode", args...)
+}
+
+func (this *BinancecoinmCore) SapiPostLendingAutoInvestPlanAdd(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLendingAutoInvestPlanAdd", args...)
 }
 
-func (this *binancecoinm) SapiPostLendingAutoInvestPlanEdit(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostLendingAutoInvestPlanEdit(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLendingAutoInvestPlanEdit", args...)
 }
 
-func (this *binancecoinm) SapiPostLendingAutoInvestPlanEditStatus(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostLendingAutoInvestPlanEditStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLendingAutoInvestPlanEditStatus", args...)
 }
 
-func (this *binancecoinm) SapiPostLendingAutoInvestOneOff(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostLendingAutoInvestOneOff(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLendingAutoInvestOneOff", args...)
 }
 
-func (this *binancecoinm) SapiPostLendingAutoInvestRedeem(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostLendingAutoInvestRedeem(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLendingAutoInvestRedeem", args...)
 }
 
-func (this *binancecoinm) SapiPostSimpleEarnFlexibleSubscribe(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostSimpleEarnFlexibleSubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSimpleEarnFlexibleSubscribe", args...)
 }
 
-func (this *binancecoinm) SapiPostSimpleEarnLockedSubscribe(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostSimpleEarnLockedSubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSimpleEarnLockedSubscribe", args...)
 }
 
-func (this *binancecoinm) SapiPostSimpleEarnFlexibleRedeem(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostSimpleEarnFlexibleRedeem(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSimpleEarnFlexibleRedeem", args...)
 }
 
-func (this *binancecoinm) SapiPostSimpleEarnLockedRedeem(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostSimpleEarnLockedRedeem(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSimpleEarnLockedRedeem", args...)
 }
 
-func (this *binancecoinm) SapiPostSimpleEarnFlexibleSetAutoSubscribe(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostSimpleEarnFlexibleSetAutoSubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSimpleEarnFlexibleSetAutoSubscribe", args...)
 }
 
-func (this *binancecoinm) SapiPostSimpleEarnLockedSetAutoSubscribe(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostSimpleEarnLockedSetAutoSubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSimpleEarnLockedSetAutoSubscribe", args...)
 }
 
-func (this *binancecoinm) SapiPostSimpleEarnLockedSetRedeemOption(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostSimpleEarnLockedSetRedeemOption(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSimpleEarnLockedSetRedeemOption", args...)
 }
 
-func (this *binancecoinm) SapiPostDciProductSubscribe(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostDciProductSubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostDciProductSubscribe", args...)
 }
 
-func (this *binancecoinm) SapiPostDciProductAutoCompoundEdit(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostDciProductAutoCompoundEdit(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostDciProductAutoCompoundEdit", args...)
 }
 
-func (this *binancecoinm) SapiPutUserDataStream(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPostAccumulatorProductSubscribe(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPostAccumulatorProductSubscribe", args...)
+}
+
+func (this *BinancecoinmCore) SapiPutUserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPutUserDataStream", args...)
 }
 
-func (this *binancecoinm) SapiPutUserDataStreamIsolated(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiPutUserDataStreamIsolated(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPutUserDataStreamIsolated", args...)
 }
 
-func (this *binancecoinm) SapiDeleteMarginOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiDeleteMarginOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteMarginOpenOrders", args...)
 }
 
-func (this *binancecoinm) SapiDeleteMarginOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiDeleteMarginOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteMarginOrder", args...)
 }
 
-func (this *binancecoinm) SapiDeleteMarginOrderList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiDeleteMarginOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteMarginOrderList", args...)
 }
 
-func (this *binancecoinm) SapiDeleteMarginIsolatedAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiDeleteMarginIsolatedAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteMarginIsolatedAccount", args...)
 }
 
-func (this *binancecoinm) SapiDeleteUserDataStream(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiDeleteUserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteUserDataStream", args...)
 }
 
-func (this *binancecoinm) SapiDeleteUserDataStreamIsolated(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiDeleteUserDataStreamIsolated(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteUserDataStreamIsolated", args...)
 }
 
-func (this *binancecoinm) SapiDeleteBrokerSubAccountApi(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiDeleteBrokerSubAccountApi(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteBrokerSubAccountApi", args...)
 }
 
-func (this *binancecoinm) SapiDeleteBrokerSubAccountApiIpRestrictionIpList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiDeleteBrokerSubAccountApiIpRestrictionIpList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteBrokerSubAccountApiIpRestrictionIpList", args...)
 }
 
-func (this *binancecoinm) SapiDeleteAlgoSpotOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiDeleteAlgoSpotOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteAlgoSpotOrder", args...)
 }
 
-func (this *binancecoinm) SapiDeleteAlgoFuturesOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiDeleteAlgoFuturesOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteAlgoFuturesOrder", args...)
 }
 
-func (this *binancecoinm) SapiDeleteSubAccountSubAccountApiIpRestrictionIpList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiDeleteSubAccountSubAccountApiIpRestrictionIpList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteSubAccountSubAccountApiIpRestrictionIpList", args...)
 }
 
-func (this *binancecoinm) SapiV2GetEthStakingAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiV2GetEthStakingAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2GetEthStakingAccount", args...)
 }
 
-func (this *binancecoinm) SapiV2GetSubAccountFuturesAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiV2GetSubAccountFuturesAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2GetSubAccountFuturesAccount", args...)
 }
 
-func (this *binancecoinm) SapiV2GetSubAccountFuturesAccountSummary(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiV2GetSubAccountFuturesAccountSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2GetSubAccountFuturesAccountSummary", args...)
 }
 
-func (this *binancecoinm) SapiV2GetSubAccountFuturesPositionRisk(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiV2GetSubAccountFuturesPositionRisk(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2GetSubAccountFuturesPositionRisk", args...)
 }
 
-func (this *binancecoinm) SapiV2GetLoanFlexibleOngoingOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiV2GetLoanFlexibleOngoingOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2GetLoanFlexibleOngoingOrders", args...)
 }
 
-func (this *binancecoinm) SapiV2GetLoanFlexibleBorrowHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiV2GetLoanFlexibleBorrowHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2GetLoanFlexibleBorrowHistory", args...)
 }
 
-func (this *binancecoinm) SapiV2GetLoanFlexibleRepayHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiV2GetLoanFlexibleRepayHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2GetLoanFlexibleRepayHistory", args...)
 }
 
-func (this *binancecoinm) SapiV2GetLoanFlexibleLtvAdjustmentHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiV2GetLoanFlexibleLtvAdjustmentHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2GetLoanFlexibleLtvAdjustmentHistory", args...)
 }
 
-func (this *binancecoinm) SapiV2GetLoanFlexibleLoanableData(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiV2GetLoanFlexibleLoanableData(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2GetLoanFlexibleLoanableData", args...)
 }
 
-func (this *binancecoinm) SapiV2GetLoanFlexibleCollateralData(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiV2GetLoanFlexibleCollateralData(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2GetLoanFlexibleCollateralData", args...)
 }
 
-func (this *binancecoinm) SapiV2GetPortfolioAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiV2GetPortfolioAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2GetPortfolioAccount", args...)
 }
 
-func (this *binancecoinm) SapiV2PostEthStakingEthStake(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiV2PostEthStakingEthStake(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2PostEthStakingEthStake", args...)
 }
 
-func (this *binancecoinm) SapiV2PostSubAccountSubAccountApiIpRestriction(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiV2PostSubAccountSubAccountApiIpRestriction(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2PostSubAccountSubAccountApiIpRestriction", args...)
 }
 
-func (this *binancecoinm) SapiV2PostLoanFlexibleBorrow(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiV2PostLoanFlexibleBorrow(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2PostLoanFlexibleBorrow", args...)
 }
 
-func (this *binancecoinm) SapiV2PostLoanFlexibleRepay(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiV2PostLoanFlexibleRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2PostLoanFlexibleRepay", args...)
 }
 
-func (this *binancecoinm) SapiV2PostLoanFlexibleAdjustLtv(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiV2PostLoanFlexibleAdjustLtv(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2PostLoanFlexibleAdjustLtv", args...)
 }
 
-func (this *binancecoinm) SapiV3GetSubAccountAssets(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiV3GetSubAccountAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV3GetSubAccountAssets", args...)
 }
 
-func (this *binancecoinm) SapiV3PostAssetGetUserAsset(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiV3PostAssetGetUserAsset(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV3PostAssetGetUserAsset", args...)
 }
 
-func (this *binancecoinm) SapiV4GetSubAccountAssets(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) SapiV4GetSubAccountAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV4GetSubAccountAssets", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetPing(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetPing(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetPing", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetTime(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetTime(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetTime", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetExchangeInfo(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetExchangeInfo", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetDepth(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetDepth", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetTrades", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetHistoricalTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetHistoricalTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetHistoricalTrades", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetAggTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetAggTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetAggTrades", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetPremiumIndex(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetPremiumIndex(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetPremiumIndex", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetFundingRate(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetFundingRate(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetFundingRate", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetKlines(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetKlines", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetContinuousKlines(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetContinuousKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetContinuousKlines", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetIndexPriceKlines(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetIndexPriceKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetIndexPriceKlines", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetMarkPriceKlines(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetMarkPriceKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetMarkPriceKlines", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetPremiumIndexKlines(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetPremiumIndexKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetPremiumIndexKlines", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetTicker24hr(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetTicker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetTicker24hr", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetTickerPrice(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetTickerPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetTickerPrice", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetTickerBookTicker(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetTickerBookTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetTickerBookTicker", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetConstituents(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetConstituents(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetConstituents", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetOpenInterest(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetOpenInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetOpenInterest", args...)
 }
 
-func (this *binancecoinm) DapiPublicGetFundingInfo(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPublicGetFundingInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPublicGetFundingInfo", args...)
 }
 
-func (this *binancecoinm) DapiDataGetDeliveryPrice(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiDataGetDeliveryPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiDataGetDeliveryPrice", args...)
 }
 
-func (this *binancecoinm) DapiDataGetOpenInterestHist(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiDataGetOpenInterestHist(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiDataGetOpenInterestHist", args...)
 }
 
-func (this *binancecoinm) DapiDataGetTopLongShortAccountRatio(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiDataGetTopLongShortAccountRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiDataGetTopLongShortAccountRatio", args...)
 }
 
-func (this *binancecoinm) DapiDataGetTopLongShortPositionRatio(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiDataGetTopLongShortPositionRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiDataGetTopLongShortPositionRatio", args...)
 }
 
-func (this *binancecoinm) DapiDataGetGlobalLongShortAccountRatio(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiDataGetGlobalLongShortAccountRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiDataGetGlobalLongShortAccountRatio", args...)
 }
 
-func (this *binancecoinm) DapiDataGetTakerBuySellVol(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiDataGetTakerBuySellVol(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiDataGetTakerBuySellVol", args...)
 }
 
-func (this *binancecoinm) DapiDataGetBasis(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiDataGetBasis(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiDataGetBasis", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetPositionSideDual(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetPositionSideDual(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetPositionSideDual", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetOrderAmendment(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetOrderAmendment(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetOrderAmendment", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetOrder", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetOpenOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetOpenOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetOpenOrder", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetOpenOrders", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetAllOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetAllOrders", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetBalance(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetBalance", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetAccount", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetPositionMarginHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetPositionMarginHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetPositionMarginHistory", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetPositionRisk(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetPositionRisk(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetPositionRisk", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetUserTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetUserTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetUserTrades", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetIncome(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetIncome(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetIncome", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetLeverageBracket(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetLeverageBracket(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetLeverageBracket", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetForceOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetForceOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetForceOrders", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetAdlQuantile(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetAdlQuantile(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetAdlQuantile", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetCommissionRate(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetCommissionRate(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetCommissionRate", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetIncomeAsyn(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetIncomeAsyn(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetIncomeAsyn", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetIncomeAsynId(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetIncomeAsynId(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetIncomeAsynId", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetTradeAsyn(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetTradeAsyn(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetTradeAsyn", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetTradeAsynId(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetTradeAsynId(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetTradeAsynId", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetOrderAsyn(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetOrderAsyn(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetOrderAsyn", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetOrderAsynId(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetOrderAsynId(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetOrderAsynId", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetPmExchangeInfo(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetPmExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetPmExchangeInfo", args...)
 }
 
-func (this *binancecoinm) DapiPrivateGetPmAccountInfo(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateGetPmAccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetPmAccountInfo", args...)
 }
 
-func (this *binancecoinm) DapiPrivatePostPositionSideDual(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivatePostPositionSideDual(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivatePostPositionSideDual", args...)
 }
 
-func (this *binancecoinm) DapiPrivatePostOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivatePostOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivatePostOrder", args...)
 }
 
-func (this *binancecoinm) DapiPrivatePostBatchOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivatePostBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivatePostBatchOrders", args...)
 }
 
-func (this *binancecoinm) DapiPrivatePostCountdownCancelAll(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivatePostCountdownCancelAll(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivatePostCountdownCancelAll", args...)
 }
 
-func (this *binancecoinm) DapiPrivatePostLeverage(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivatePostLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivatePostLeverage", args...)
 }
 
-func (this *binancecoinm) DapiPrivatePostMarginType(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivatePostMarginType(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivatePostMarginType", args...)
 }
 
-func (this *binancecoinm) DapiPrivatePostPositionMargin(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivatePostPositionMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivatePostPositionMargin", args...)
 }
 
-func (this *binancecoinm) DapiPrivatePostListenKey(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivatePostListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivatePostListenKey", args...)
 }
 
-func (this *binancecoinm) DapiPrivatePutListenKey(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivatePutListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivatePutListenKey", args...)
 }
 
-func (this *binancecoinm) DapiPrivatePutOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivatePutOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivatePutOrder", args...)
 }
 
-func (this *binancecoinm) DapiPrivatePutBatchOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivatePutBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivatePutBatchOrders", args...)
 }
 
-func (this *binancecoinm) DapiPrivateDeleteOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateDeleteOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateDeleteOrder", args...)
 }
 
-func (this *binancecoinm) DapiPrivateDeleteAllOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateDeleteAllOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateDeleteAllOpenOrders", args...)
 }
 
-func (this *binancecoinm) DapiPrivateDeleteBatchOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateDeleteBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateDeleteBatchOrders", args...)
 }
 
-func (this *binancecoinm) DapiPrivateDeleteListenKey(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateDeleteListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateDeleteListenKey", args...)
 }
 
-func (this *binancecoinm) DapiPrivateV2GetLeverageBracket(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) DapiPrivateV2GetLeverageBracket(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateV2GetLeverageBracket", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetPing(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetPing(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetPing", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetTime(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetTime(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetTime", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetExchangeInfo(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetExchangeInfo", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetDepth(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetDepth", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetRpiDepth(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetRpiDepth", args...)
+}
+
+func (this *BinancecoinmCore) FapiPublicGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetTrades", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetHistoricalTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetHistoricalTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetHistoricalTrades", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetAggTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetAggTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetAggTrades", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetKlines(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetKlines", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetContinuousKlines(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetContinuousKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetContinuousKlines", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetMarkPriceKlines(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetMarkPriceKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetMarkPriceKlines", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetIndexPriceKlines(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetIndexPriceKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetIndexPriceKlines", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetPremiumIndexKlines(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetPremiumIndexKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetPremiumIndexKlines", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetFundingRate(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetFundingRate(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetFundingRate", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetFundingInfo(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetFundingInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetFundingInfo", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetPremiumIndex(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetPremiumIndex(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetPremiumIndex", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetTicker24hr(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetTicker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetTicker24hr", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetTickerPrice(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetTickerPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetTickerPrice", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetTickerBookTicker(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetTickerBookTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetTickerBookTicker", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetOpenInterest(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetOpenInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetOpenInterest", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetIndexInfo(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetIndexInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetIndexInfo", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetAssetIndex(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetAssetIndex(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetAssetIndex", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetConstituents(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetConstituents(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetConstituents", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetApiTradingStatus(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetApiTradingStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetApiTradingStatus", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetLvtKlines(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetLvtKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetLvtKlines", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetConvertExchangeInfo(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetConvertExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetConvertExchangeInfo", args...)
 }
 
-func (this *binancecoinm) FapiPublicGetInsuranceBalance(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetInsuranceBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetInsuranceBalance", args...)
 }
 
-func (this *binancecoinm) FapiDataGetDeliveryPrice(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPublicGetSymbolAdlRisk(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetSymbolAdlRisk", args...)
+}
+
+func (this *BinancecoinmCore) FapiPublicGetTradingSchedule(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPublicGetTradingSchedule", args...)
+}
+
+func (this *BinancecoinmCore) FapiDataGetDeliveryPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiDataGetDeliveryPrice", args...)
 }
 
-func (this *binancecoinm) FapiDataGetOpenInterestHist(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiDataGetOpenInterestHist(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiDataGetOpenInterestHist", args...)
 }
 
-func (this *binancecoinm) FapiDataGetTopLongShortAccountRatio(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiDataGetTopLongShortAccountRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiDataGetTopLongShortAccountRatio", args...)
 }
 
-func (this *binancecoinm) FapiDataGetTopLongShortPositionRatio(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiDataGetTopLongShortPositionRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiDataGetTopLongShortPositionRatio", args...)
 }
 
-func (this *binancecoinm) FapiDataGetGlobalLongShortAccountRatio(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiDataGetGlobalLongShortAccountRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiDataGetGlobalLongShortAccountRatio", args...)
 }
 
-func (this *binancecoinm) FapiDataGetTakerlongshortRatio(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiDataGetTakerlongshortRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiDataGetTakerlongshortRatio", args...)
 }
 
-func (this *binancecoinm) FapiDataGetBasis(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiDataGetBasis(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiDataGetBasis", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetForceOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetForceOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetForceOrders", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetAllOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetAllOrders", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetOpenOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetOpenOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetOpenOrder", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetOpenOrders", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetOrder", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetAccount", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetBalance(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetBalance", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetLeverageBracket(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetLeverageBracket(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetLeverageBracket", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetPositionMarginHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetPositionMarginHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetPositionMarginHistory", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetPositionRisk(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetPositionRisk(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetPositionRisk", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetPositionSideDual(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetPositionSideDual(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetPositionSideDual", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetUserTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetUserTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetUserTrades", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetIncome(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetIncome(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetIncome", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetCommissionRate(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetCommissionRate(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetCommissionRate", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetRateLimitOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetRateLimitOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetRateLimitOrder", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetApiTradingStatus(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetApiTradingStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetApiTradingStatus", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetMultiAssetsMargin(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetMultiAssetsMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetMultiAssetsMargin", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetApiReferralIfNewUser(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetApiReferralIfNewUser(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetApiReferralIfNewUser", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetApiReferralCustomization(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetApiReferralCustomization(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetApiReferralCustomization", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetApiReferralUserCustomization(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetApiReferralUserCustomization(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetApiReferralUserCustomization", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetApiReferralTraderNum(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetApiReferralTraderNum(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetApiReferralTraderNum", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetApiReferralOverview(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetApiReferralOverview(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetApiReferralOverview", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetApiReferralTradeVol(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetApiReferralTradeVol(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetApiReferralTradeVol", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetApiReferralRebateVol(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetApiReferralRebateVol(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetApiReferralRebateVol", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetApiReferralTraderSummary(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetApiReferralTraderSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetApiReferralTraderSummary", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetAdlQuantile(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetAdlQuantile(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetAdlQuantile", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetPmAccountInfo(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetPmAccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetPmAccountInfo", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetOrderAmendment(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetOrderAmendment(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetOrderAmendment", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetIncomeAsyn(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetIncomeAsyn(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetIncomeAsyn", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetIncomeAsynId(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetIncomeAsynId(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetIncomeAsynId", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetOrderAsyn(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetOrderAsyn(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetOrderAsyn", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetOrderAsynId(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetOrderAsynId(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetOrderAsynId", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetTradeAsyn(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetTradeAsyn(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetTradeAsyn", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetTradeAsynId(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetTradeAsynId(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetTradeAsynId", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetFeeBurn(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetFeeBurn(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetFeeBurn", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetSymbolConfig(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetSymbolConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetSymbolConfig", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetAccountConfig(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetAccountConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetAccountConfig", args...)
 }
 
-func (this *binancecoinm) FapiPrivateGetConvertOrderStatus(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetConvertOrderStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetConvertOrderStatus", args...)
 }
 
-func (this *binancecoinm) FapiPrivatePostBatchOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateGetAlgoOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetAlgoOrder", args...)
+}
+
+func (this *BinancecoinmCore) FapiPrivateGetOpenAlgoOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetOpenAlgoOrders", args...)
+}
+
+func (this *BinancecoinmCore) FapiPrivateGetAllAlgoOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetAllAlgoOrders", args...)
+}
+
+func (this *BinancecoinmCore) FapiPrivateGetStockContract(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetStockContract", args...)
+}
+
+func (this *BinancecoinmCore) FapiPrivatePostBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostBatchOrders", args...)
 }
 
-func (this *binancecoinm) FapiPrivatePostPositionSideDual(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivatePostPositionSideDual(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostPositionSideDual", args...)
 }
 
-func (this *binancecoinm) FapiPrivatePostPositionMargin(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivatePostPositionMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostPositionMargin", args...)
 }
 
-func (this *binancecoinm) FapiPrivatePostMarginType(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivatePostMarginType(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostMarginType", args...)
 }
 
-func (this *binancecoinm) FapiPrivatePostOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivatePostOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostOrder", args...)
 }
 
-func (this *binancecoinm) FapiPrivatePostLeverage(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivatePostOrderTest(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostOrderTest", args...)
+}
+
+func (this *BinancecoinmCore) FapiPrivatePostLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostLeverage", args...)
 }
 
-func (this *binancecoinm) FapiPrivatePostListenKey(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivatePostListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostListenKey", args...)
 }
 
-func (this *binancecoinm) FapiPrivatePostCountdownCancelAll(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivatePostCountdownCancelAll(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostCountdownCancelAll", args...)
 }
 
-func (this *binancecoinm) FapiPrivatePostMultiAssetsMargin(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivatePostMultiAssetsMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostMultiAssetsMargin", args...)
 }
 
-func (this *binancecoinm) FapiPrivatePostApiReferralCustomization(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivatePostApiReferralCustomization(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostApiReferralCustomization", args...)
 }
 
-func (this *binancecoinm) FapiPrivatePostApiReferralUserCustomization(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivatePostApiReferralUserCustomization(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostApiReferralUserCustomization", args...)
 }
 
-func (this *binancecoinm) FapiPrivatePostFeeBurn(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivatePostFeeBurn(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostFeeBurn", args...)
 }
 
-func (this *binancecoinm) FapiPrivatePostConvertGetQuote(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivatePostConvertGetQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostConvertGetQuote", args...)
 }
 
-func (this *binancecoinm) FapiPrivatePostConvertAcceptQuote(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivatePostConvertAcceptQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostConvertAcceptQuote", args...)
 }
 
-func (this *binancecoinm) FapiPrivatePutListenKey(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivatePostAlgoOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostAlgoOrder", args...)
+}
+
+func (this *BinancecoinmCore) FapiPrivatePutListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePutListenKey", args...)
 }
 
-func (this *binancecoinm) FapiPrivatePutOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivatePutOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePutOrder", args...)
 }
 
-func (this *binancecoinm) FapiPrivatePutBatchOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivatePutBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePutBatchOrders", args...)
 }
 
-func (this *binancecoinm) FapiPrivateDeleteBatchOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateDeleteBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateDeleteBatchOrders", args...)
 }
 
-func (this *binancecoinm) FapiPrivateDeleteOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateDeleteOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateDeleteOrder", args...)
 }
 
-func (this *binancecoinm) FapiPrivateDeleteAllOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateDeleteAllOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateDeleteAllOpenOrders", args...)
 }
 
-func (this *binancecoinm) FapiPrivateDeleteListenKey(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateDeleteListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateDeleteListenKey", args...)
 }
 
-func (this *binancecoinm) FapiPublicV2GetTickerPrice(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateDeleteAlgoOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateDeleteAlgoOrder", args...)
+}
+
+func (this *BinancecoinmCore) FapiPrivateDeleteAlgoOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateDeleteAlgoOpenOrders", args...)
+}
+
+func (this *BinancecoinmCore) FapiPublicV2GetTickerPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicV2GetTickerPrice", args...)
 }
 
-func (this *binancecoinm) FapiPrivateV2GetAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateV2GetAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateV2GetAccount", args...)
 }
 
-func (this *binancecoinm) FapiPrivateV2GetBalance(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateV2GetBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateV2GetBalance", args...)
 }
 
-func (this *binancecoinm) FapiPrivateV2GetPositionRisk(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateV2GetPositionRisk(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateV2GetPositionRisk", args...)
 }
 
-func (this *binancecoinm) FapiPrivateV3GetAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateV3GetAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateV3GetAccount", args...)
 }
 
-func (this *binancecoinm) FapiPrivateV3GetBalance(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateV3GetBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateV3GetBalance", args...)
 }
 
-func (this *binancecoinm) FapiPrivateV3GetPositionRisk(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) FapiPrivateV3GetPositionRisk(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateV3GetPositionRisk", args...)
 }
 
-func (this *binancecoinm) EapiPublicGetPing(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPublicGetPing(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPublicGetPing", args...)
 }
 
-func (this *binancecoinm) EapiPublicGetTime(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPublicGetTime(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPublicGetTime", args...)
 }
 
-func (this *binancecoinm) EapiPublicGetExchangeInfo(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPublicGetExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPublicGetExchangeInfo", args...)
 }
 
-func (this *binancecoinm) EapiPublicGetIndex(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPublicGetIndex(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPublicGetIndex", args...)
 }
 
-func (this *binancecoinm) EapiPublicGetTicker(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPublicGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPublicGetTicker", args...)
 }
 
-func (this *binancecoinm) EapiPublicGetMark(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPublicGetMark(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPublicGetMark", args...)
 }
 
-func (this *binancecoinm) EapiPublicGetDepth(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPublicGetDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPublicGetDepth", args...)
 }
 
-func (this *binancecoinm) EapiPublicGetKlines(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPublicGetKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPublicGetKlines", args...)
 }
 
-func (this *binancecoinm) EapiPublicGetTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPublicGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPublicGetTrades", args...)
 }
 
-func (this *binancecoinm) EapiPublicGetHistoricalTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPublicGetHistoricalTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPublicGetHistoricalTrades", args...)
 }
 
-func (this *binancecoinm) EapiPublicGetExerciseHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPublicGetExerciseHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPublicGetExerciseHistory", args...)
 }
 
-func (this *binancecoinm) EapiPublicGetOpenInterest(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPublicGetOpenInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPublicGetOpenInterest", args...)
 }
 
-func (this *binancecoinm) EapiPrivateGetAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateGetAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateGetAccount", args...)
 }
 
-func (this *binancecoinm) EapiPrivateGetPosition(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateGetPosition(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateGetPosition", args...)
 }
 
-func (this *binancecoinm) EapiPrivateGetOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateGetOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateGetOpenOrders", args...)
 }
 
-func (this *binancecoinm) EapiPrivateGetHistoryOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateGetHistoryOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateGetHistoryOrders", args...)
 }
 
-func (this *binancecoinm) EapiPrivateGetUserTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateGetUserTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateGetUserTrades", args...)
 }
 
-func (this *binancecoinm) EapiPrivateGetExerciseRecord(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateGetExerciseRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateGetExerciseRecord", args...)
 }
 
-func (this *binancecoinm) EapiPrivateGetBill(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateGetBill(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateGetBill", args...)
 }
 
-func (this *binancecoinm) EapiPrivateGetIncomeAsyn(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateGetIncomeAsyn(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateGetIncomeAsyn", args...)
 }
 
-func (this *binancecoinm) EapiPrivateGetIncomeAsynId(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateGetIncomeAsynId(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateGetIncomeAsynId", args...)
 }
 
-func (this *binancecoinm) EapiPrivateGetMarginAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateGetMarginAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateGetMarginAccount", args...)
 }
 
-func (this *binancecoinm) EapiPrivateGetMmp(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateGetMmp(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateGetMmp", args...)
 }
 
-func (this *binancecoinm) EapiPrivateGetCountdownCancelAll(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateGetCountdownCancelAll(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateGetCountdownCancelAll", args...)
 }
 
-func (this *binancecoinm) EapiPrivateGetOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateGetOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateGetOrder", args...)
 }
 
-func (this *binancecoinm) EapiPrivateGetBlockOrderOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateGetBlockOrderOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateGetBlockOrderOrders", args...)
 }
 
-func (this *binancecoinm) EapiPrivateGetBlockOrderExecute(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateGetBlockOrderExecute(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateGetBlockOrderExecute", args...)
 }
 
-func (this *binancecoinm) EapiPrivateGetBlockUserTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateGetBlockUserTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateGetBlockUserTrades", args...)
 }
 
-func (this *binancecoinm) EapiPrivateGetBlockTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateGetBlockTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateGetBlockTrades", args...)
 }
 
-func (this *binancecoinm) EapiPrivatePostOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateGetComission(args ...any) <-chan any {
+	return this.callEndpointAsync("eapiPrivateGetComission", args...)
+}
+
+func (this *BinancecoinmCore) EapiPrivatePostOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivatePostOrder", args...)
 }
 
-func (this *binancecoinm) EapiPrivatePostBatchOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivatePostBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivatePostBatchOrders", args...)
 }
 
-func (this *binancecoinm) EapiPrivatePostListenKey(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivatePostListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivatePostListenKey", args...)
 }
 
-func (this *binancecoinm) EapiPrivatePostMmpSet(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivatePostMmpSet(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivatePostMmpSet", args...)
 }
 
-func (this *binancecoinm) EapiPrivatePostMmpReset(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivatePostMmpReset(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivatePostMmpReset", args...)
 }
 
-func (this *binancecoinm) EapiPrivatePostCountdownCancelAll(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivatePostCountdownCancelAll(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivatePostCountdownCancelAll", args...)
 }
 
-func (this *binancecoinm) EapiPrivatePostCountdownCancelAllHeartBeat(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivatePostCountdownCancelAllHeartBeat(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivatePostCountdownCancelAllHeartBeat", args...)
 }
 
-func (this *binancecoinm) EapiPrivatePostBlockOrderCreate(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivatePostBlockOrderCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivatePostBlockOrderCreate", args...)
 }
 
-func (this *binancecoinm) EapiPrivatePostBlockOrderExecute(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivatePostBlockOrderExecute(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivatePostBlockOrderExecute", args...)
 }
 
-func (this *binancecoinm) EapiPrivatePutListenKey(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivatePutListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivatePutListenKey", args...)
 }
 
-func (this *binancecoinm) EapiPrivatePutBlockOrderCreate(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivatePutBlockOrderCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivatePutBlockOrderCreate", args...)
 }
 
-func (this *binancecoinm) EapiPrivateDeleteOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateDeleteOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateDeleteOrder", args...)
 }
 
-func (this *binancecoinm) EapiPrivateDeleteBatchOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateDeleteBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateDeleteBatchOrders", args...)
 }
 
-func (this *binancecoinm) EapiPrivateDeleteAllOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateDeleteAllOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateDeleteAllOpenOrders", args...)
 }
 
-func (this *binancecoinm) EapiPrivateDeleteAllOpenOrdersByUnderlying(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateDeleteAllOpenOrdersByUnderlying(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateDeleteAllOpenOrdersByUnderlying", args...)
 }
 
-func (this *binancecoinm) EapiPrivateDeleteListenKey(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateDeleteListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateDeleteListenKey", args...)
 }
 
-func (this *binancecoinm) EapiPrivateDeleteBlockOrderCreate(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) EapiPrivateDeleteBlockOrderCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivateDeleteBlockOrderCreate", args...)
 }
 
-func (this *binancecoinm) PublicGetPing(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PublicGetPing(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPing", args...)
 }
 
-func (this *binancecoinm) PublicGetTime(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PublicGetTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTime", args...)
 }
 
-func (this *binancecoinm) PublicGetDepth(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PublicGetDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetDepth", args...)
 }
 
-func (this *binancecoinm) PublicGetTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PublicGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *binancecoinm) PublicGetAggTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PublicGetAggTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAggTrades", args...)
 }
 
-func (this *binancecoinm) PublicGetHistoricalTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PublicGetHistoricalTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetHistoricalTrades", args...)
 }
 
-func (this *binancecoinm) PublicGetKlines(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PublicGetKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetKlines", args...)
 }
 
-func (this *binancecoinm) PublicGetUiKlines(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PublicGetUiKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetUiKlines", args...)
 }
 
-func (this *binancecoinm) PublicGetTicker24hr(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PublicGetTicker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker24hr", args...)
 }
 
-func (this *binancecoinm) PublicGetTicker(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PublicGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *binancecoinm) PublicGetTickerTradingDay(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PublicGetTickerTradingDay(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickerTradingDay", args...)
 }
 
-func (this *binancecoinm) PublicGetTickerPrice(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PublicGetTickerPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickerPrice", args...)
 }
 
-func (this *binancecoinm) PublicGetTickerBookTicker(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PublicGetTickerBookTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickerBookTicker", args...)
 }
 
-func (this *binancecoinm) PublicGetExchangeInfo(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PublicGetExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetExchangeInfo", args...)
 }
 
-func (this *binancecoinm) PublicGetAvgPrice(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PublicGetAvgPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAvgPrice", args...)
 }
 
-func (this *binancecoinm) PublicPutUserDataStream(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PublicPutUserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPutUserDataStream", args...)
 }
 
-func (this *binancecoinm) PublicPostUserDataStream(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PublicPostUserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostUserDataStream", args...)
 }
 
-func (this *binancecoinm) PublicDeleteUserDataStream(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PublicDeleteUserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("publicDeleteUserDataStream", args...)
 }
 
-func (this *binancecoinm) PrivateGetAllOrderList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivateGetAllOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAllOrderList", args...)
 }
 
-func (this *binancecoinm) PrivateGetOpenOrderList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivateGetOpenOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenOrderList", args...)
 }
 
-func (this *binancecoinm) PrivateGetOrderList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivateGetOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrderList", args...)
 }
 
-func (this *binancecoinm) PrivateGetOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivateGetOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrder", args...)
 }
 
-func (this *binancecoinm) PrivateGetOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivateGetOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenOrders", args...)
 }
 
-func (this *binancecoinm) PrivateGetAllOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivateGetAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAllOrders", args...)
 }
 
-func (this *binancecoinm) PrivateGetAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivateGetAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccount", args...)
 }
 
-func (this *binancecoinm) PrivateGetMyTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivateGetMyTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMyTrades", args...)
 }
 
-func (this *binancecoinm) PrivateGetRateLimitOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivateGetRateLimitOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetRateLimitOrder", args...)
 }
 
-func (this *binancecoinm) PrivateGetMyPreventedMatches(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivateGetMyPreventedMatches(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMyPreventedMatches", args...)
 }
 
-func (this *binancecoinm) PrivateGetMyAllocations(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivateGetMyAllocations(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMyAllocations", args...)
 }
 
-func (this *binancecoinm) PrivateGetAccountCommission(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivateGetAccountCommission(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountCommission", args...)
 }
 
-func (this *binancecoinm) PrivatePostOrderOco(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivatePostOrderOco(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderOco", args...)
 }
 
-func (this *binancecoinm) PrivatePostOrderListOco(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivatePostOrderListOco(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderListOco", args...)
 }
 
-func (this *binancecoinm) PrivatePostOrderListOto(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivatePostOrderListOto(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderListOto", args...)
 }
 
-func (this *binancecoinm) PrivatePostOrderListOtoco(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivatePostOrderListOtoco(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderListOtoco", args...)
 }
 
-func (this *binancecoinm) PrivatePostSorOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivatePostOrderListOpo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderListOpo", args...)
+}
+
+func (this *BinancecoinmCore) PrivatePostOrderListOpoco(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderListOpoco", args...)
+}
+
+func (this *BinancecoinmCore) PrivatePostSorOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSorOrder", args...)
 }
 
-func (this *binancecoinm) PrivatePostSorOrderTest(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivatePostSorOrderTest(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSorOrderTest", args...)
 }
 
-func (this *binancecoinm) PrivatePostOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivatePostOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrder", args...)
 }
 
-func (this *binancecoinm) PrivatePostOrderCancelReplace(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivatePostOrderCancelReplace(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderCancelReplace", args...)
 }
 
-func (this *binancecoinm) PrivatePostOrderTest(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivatePostOrderTest(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderTest", args...)
 }
 
-func (this *binancecoinm) PrivateDeleteOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivateDeleteOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOpenOrders", args...)
 }
 
-func (this *binancecoinm) PrivateDeleteOrderList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivateDeleteOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrderList", args...)
 }
 
-func (this *binancecoinm) PrivateDeleteOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PrivateDeleteOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrder", args...)
 }
 
-func (this *binancecoinm) PapiGetPing(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetPing(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetPing", args...)
 }
 
-func (this *binancecoinm) PapiGetUmOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmOrder", args...)
 }
 
-func (this *binancecoinm) PapiGetUmOpenOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmOpenOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmOpenOrder", args...)
 }
 
-func (this *binancecoinm) PapiGetUmOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmOpenOrders", args...)
 }
 
-func (this *binancecoinm) PapiGetUmAllOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmAllOrders", args...)
 }
 
-func (this *binancecoinm) PapiGetCmOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmOrder", args...)
 }
 
-func (this *binancecoinm) PapiGetCmOpenOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmOpenOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmOpenOrder", args...)
 }
 
-func (this *binancecoinm) PapiGetCmOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmOpenOrders", args...)
 }
 
-func (this *binancecoinm) PapiGetCmAllOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmAllOrders", args...)
 }
 
-func (this *binancecoinm) PapiGetUmConditionalOpenOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmConditionalOpenOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmConditionalOpenOrder", args...)
 }
 
-func (this *binancecoinm) PapiGetUmConditionalOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmConditionalOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmConditionalOpenOrders", args...)
 }
 
-func (this *binancecoinm) PapiGetUmConditionalOrderHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmConditionalOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmConditionalOrderHistory", args...)
 }
 
-func (this *binancecoinm) PapiGetUmConditionalAllOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmConditionalAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmConditionalAllOrders", args...)
 }
 
-func (this *binancecoinm) PapiGetCmConditionalOpenOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmConditionalOpenOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmConditionalOpenOrder", args...)
 }
 
-func (this *binancecoinm) PapiGetCmConditionalOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmConditionalOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmConditionalOpenOrders", args...)
 }
 
-func (this *binancecoinm) PapiGetCmConditionalOrderHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmConditionalOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmConditionalOrderHistory", args...)
 }
 
-func (this *binancecoinm) PapiGetCmConditionalAllOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmConditionalAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmConditionalAllOrders", args...)
 }
 
-func (this *binancecoinm) PapiGetMarginOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetMarginOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetMarginOrder", args...)
 }
 
-func (this *binancecoinm) PapiGetMarginOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetMarginOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetMarginOpenOrders", args...)
 }
 
-func (this *binancecoinm) PapiGetMarginAllOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetMarginAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetMarginAllOrders", args...)
 }
 
-func (this *binancecoinm) PapiGetMarginOrderList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetMarginOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetMarginOrderList", args...)
 }
 
-func (this *binancecoinm) PapiGetMarginAllOrderList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetMarginAllOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetMarginAllOrderList", args...)
 }
 
-func (this *binancecoinm) PapiGetMarginOpenOrderList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetMarginOpenOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetMarginOpenOrderList", args...)
 }
 
-func (this *binancecoinm) PapiGetMarginMyTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetMarginMyTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetMarginMyTrades", args...)
 }
 
-func (this *binancecoinm) PapiGetBalance(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetBalance", args...)
 }
 
-func (this *binancecoinm) PapiGetAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetAccount", args...)
 }
 
-func (this *binancecoinm) PapiGetMarginMaxBorrowable(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetMarginMaxBorrowable(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetMarginMaxBorrowable", args...)
 }
 
-func (this *binancecoinm) PapiGetMarginMaxWithdraw(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetMarginMaxWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetMarginMaxWithdraw", args...)
 }
 
-func (this *binancecoinm) PapiGetUmPositionRisk(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmPositionRisk(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmPositionRisk", args...)
 }
 
-func (this *binancecoinm) PapiGetCmPositionRisk(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmPositionRisk(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmPositionRisk", args...)
 }
 
-func (this *binancecoinm) PapiGetUmPositionSideDual(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmPositionSideDual(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmPositionSideDual", args...)
 }
 
-func (this *binancecoinm) PapiGetCmPositionSideDual(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmPositionSideDual(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmPositionSideDual", args...)
 }
 
-func (this *binancecoinm) PapiGetUmUserTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmUserTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmUserTrades", args...)
 }
 
-func (this *binancecoinm) PapiGetCmUserTrades(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmUserTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmUserTrades", args...)
 }
 
-func (this *binancecoinm) PapiGetUmLeverageBracket(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmLeverageBracket(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmLeverageBracket", args...)
 }
 
-func (this *binancecoinm) PapiGetCmLeverageBracket(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmLeverageBracket(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmLeverageBracket", args...)
 }
 
-func (this *binancecoinm) PapiGetMarginForceOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetMarginForceOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetMarginForceOrders", args...)
 }
 
-func (this *binancecoinm) PapiGetUmForceOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmForceOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmForceOrders", args...)
 }
 
-func (this *binancecoinm) PapiGetCmForceOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmForceOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmForceOrders", args...)
 }
 
-func (this *binancecoinm) PapiGetUmApiTradingStatus(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmApiTradingStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmApiTradingStatus", args...)
 }
 
-func (this *binancecoinm) PapiGetUmCommissionRate(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmCommissionRate(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmCommissionRate", args...)
 }
 
-func (this *binancecoinm) PapiGetCmCommissionRate(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmCommissionRate(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmCommissionRate", args...)
 }
 
-func (this *binancecoinm) PapiGetMarginMarginLoan(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetMarginMarginLoan(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetMarginMarginLoan", args...)
 }
 
-func (this *binancecoinm) PapiGetMarginRepayLoan(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetMarginRepayLoan(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetMarginRepayLoan", args...)
 }
 
-func (this *binancecoinm) PapiGetMarginMarginInterestHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetMarginMarginInterestHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetMarginMarginInterestHistory", args...)
 }
 
-func (this *binancecoinm) PapiGetPortfolioInterestHistory(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetPortfolioInterestHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetPortfolioInterestHistory", args...)
 }
 
-func (this *binancecoinm) PapiGetUmIncome(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmIncome(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmIncome", args...)
 }
 
-func (this *binancecoinm) PapiGetCmIncome(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmIncome(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmIncome", args...)
 }
 
-func (this *binancecoinm) PapiGetUmAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmAccount", args...)
 }
 
-func (this *binancecoinm) PapiGetCmAccount(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmAccount", args...)
 }
 
-func (this *binancecoinm) PapiGetRepayFuturesSwitch(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetRepayFuturesSwitch(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetRepayFuturesSwitch", args...)
 }
 
-func (this *binancecoinm) PapiGetUmAdlQuantile(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmAdlQuantile(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmAdlQuantile", args...)
 }
 
-func (this *binancecoinm) PapiGetCmAdlQuantile(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmAdlQuantile(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmAdlQuantile", args...)
 }
 
-func (this *binancecoinm) PapiGetUmTradeAsyn(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmTradeAsyn(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmTradeAsyn", args...)
 }
 
-func (this *binancecoinm) PapiGetUmTradeAsynId(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmTradeAsynId(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmTradeAsynId", args...)
 }
 
-func (this *binancecoinm) PapiGetUmOrderAsyn(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmOrderAsyn(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmOrderAsyn", args...)
 }
 
-func (this *binancecoinm) PapiGetUmOrderAsynId(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmOrderAsynId(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmOrderAsynId", args...)
 }
 
-func (this *binancecoinm) PapiGetUmIncomeAsyn(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmIncomeAsyn(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmIncomeAsyn", args...)
 }
 
-func (this *binancecoinm) PapiGetUmIncomeAsynId(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmIncomeAsynId(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmIncomeAsynId", args...)
 }
 
-func (this *binancecoinm) PapiGetUmOrderAmendment(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmOrderAmendment(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmOrderAmendment", args...)
 }
 
-func (this *binancecoinm) PapiGetCmOrderAmendment(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmOrderAmendment(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmOrderAmendment", args...)
 }
 
-func (this *binancecoinm) PapiGetUmFeeBurn(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmFeeBurn(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmFeeBurn", args...)
 }
 
-func (this *binancecoinm) PapiGetUmAccountConfig(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmAccountConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmAccountConfig", args...)
 }
 
-func (this *binancecoinm) PapiGetUmSymbolConfig(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetUmSymbolConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmSymbolConfig", args...)
 }
 
-func (this *binancecoinm) PapiGetCmAccountConfig(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmAccountConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmAccountConfig", args...)
 }
 
-func (this *binancecoinm) PapiGetCmSymbolConfig(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetCmSymbolConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmSymbolConfig", args...)
 }
 
-func (this *binancecoinm) PapiGetRateLimitOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiGetRateLimitOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetRateLimitOrder", args...)
 }
 
-func (this *binancecoinm) PapiPostUmOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostUmOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostUmOrder", args...)
 }
 
-func (this *binancecoinm) PapiPostUmConditionalOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostUmConditionalOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostUmConditionalOrder", args...)
 }
 
-func (this *binancecoinm) PapiPostCmOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostCmOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostCmOrder", args...)
 }
 
-func (this *binancecoinm) PapiPostCmConditionalOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostCmConditionalOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostCmConditionalOrder", args...)
 }
 
-func (this *binancecoinm) PapiPostMarginOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostMarginOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostMarginOrder", args...)
 }
 
-func (this *binancecoinm) PapiPostMarginLoan(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostMarginLoan(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostMarginLoan", args...)
 }
 
-func (this *binancecoinm) PapiPostRepayLoan(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostRepayLoan(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostRepayLoan", args...)
 }
 
-func (this *binancecoinm) PapiPostMarginOrderOco(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostMarginOrderOco(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostMarginOrderOco", args...)
 }
 
-func (this *binancecoinm) PapiPostUmLeverage(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostUmLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostUmLeverage", args...)
 }
 
-func (this *binancecoinm) PapiPostCmLeverage(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostCmLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostCmLeverage", args...)
 }
 
-func (this *binancecoinm) PapiPostUmPositionSideDual(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostUmPositionSideDual(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostUmPositionSideDual", args...)
 }
 
-func (this *binancecoinm) PapiPostCmPositionSideDual(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostCmPositionSideDual(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostCmPositionSideDual", args...)
 }
 
-func (this *binancecoinm) PapiPostAutoCollection(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostAutoCollection(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostAutoCollection", args...)
 }
 
-func (this *binancecoinm) PapiPostBnbTransfer(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostBnbTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostBnbTransfer", args...)
 }
 
-func (this *binancecoinm) PapiPostRepayFuturesSwitch(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostRepayFuturesSwitch(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostRepayFuturesSwitch", args...)
 }
 
-func (this *binancecoinm) PapiPostRepayFuturesNegativeBalance(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostRepayFuturesNegativeBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostRepayFuturesNegativeBalance", args...)
 }
 
-func (this *binancecoinm) PapiPostListenKey(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostListenKey", args...)
 }
 
-func (this *binancecoinm) PapiPostAssetCollection(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostAssetCollection(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostAssetCollection", args...)
 }
 
-func (this *binancecoinm) PapiPostMarginRepayDebt(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostMarginRepayDebt(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostMarginRepayDebt", args...)
 }
 
-func (this *binancecoinm) PapiPostUmFeeBurn(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostUmFeeBurn(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostUmFeeBurn", args...)
 }
 
-func (this *binancecoinm) PapiPutListenKey(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPostUmStockContract(args ...any) <-chan any {
+	return this.callEndpointAsync("papiPostUmStockContract", args...)
+}
+
+func (this *BinancecoinmCore) PapiPutListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPutListenKey", args...)
 }
 
-func (this *binancecoinm) PapiPutUmOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPutUmOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPutUmOrder", args...)
 }
 
-func (this *binancecoinm) PapiPutCmOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiPutCmOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPutCmOrder", args...)
 }
 
-func (this *binancecoinm) PapiDeleteUmOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiDeleteUmOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiDeleteUmOrder", args...)
 }
 
-func (this *binancecoinm) PapiDeleteUmConditionalOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiDeleteUmConditionalOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiDeleteUmConditionalOrder", args...)
 }
 
-func (this *binancecoinm) PapiDeleteUmAllOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiDeleteUmAllOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiDeleteUmAllOpenOrders", args...)
 }
 
-func (this *binancecoinm) PapiDeleteUmConditionalAllOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiDeleteUmConditionalAllOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiDeleteUmConditionalAllOpenOrders", args...)
 }
 
-func (this *binancecoinm) PapiDeleteCmOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiDeleteCmOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiDeleteCmOrder", args...)
 }
 
-func (this *binancecoinm) PapiDeleteCmConditionalOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiDeleteCmConditionalOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiDeleteCmConditionalOrder", args...)
 }
 
-func (this *binancecoinm) PapiDeleteCmAllOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiDeleteCmAllOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiDeleteCmAllOpenOrders", args...)
 }
 
-func (this *binancecoinm) PapiDeleteCmConditionalAllOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiDeleteCmConditionalAllOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiDeleteCmConditionalAllOpenOrders", args...)
 }
 
-func (this *binancecoinm) PapiDeleteMarginOrder(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiDeleteMarginOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiDeleteMarginOrder", args...)
 }
 
-func (this *binancecoinm) PapiDeleteMarginAllOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiDeleteMarginAllOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiDeleteMarginAllOpenOrders", args...)
 }
 
-func (this *binancecoinm) PapiDeleteMarginOrderList(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiDeleteMarginOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("papiDeleteMarginOrderList", args...)
 }
 
-func (this *binancecoinm) PapiDeleteListenKey(args ...interface{}) <-chan interface{} {
+func (this *BinancecoinmCore) PapiDeleteListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("papiDeleteListenKey", args...)
+}
+
+func (this *BinancecoinmCore) PapiV2GetUmAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("papiV2GetUmAccount", args...)
 }

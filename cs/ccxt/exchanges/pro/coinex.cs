@@ -87,8 +87,10 @@ public partial class coinex : ccxt.coinex
 
     public virtual object requestId()
     {
+        this.lockId();
         object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.unlockId();
         return requestId;
     }
 
@@ -152,7 +154,7 @@ public partial class coinex : ccxt.coinex
         object defaultType = this.safeString(this.options, "defaultType");
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object rawTickers = this.safeList(data, "state_list", new List<object>() {});
-        object newTickers = new List<object>() {};
+        object newTickers = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawTickers)); postFixIncrement(ref i))
         {
             object entry = getValue(rawTickers, i);
@@ -161,7 +163,7 @@ public partial class coinex : ccxt.coinex
             object market = this.safeMarket(marketId, null, null, defaultType);
             object parsedTicker = this.parseWSTicker(entry, market);
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsedTicker;
-            ((IList<object>)newTickers).Add(parsedTicker);
+            ((IDictionary<string,object>)newTickers)[(string)symbol] = parsedTicker;
         }
         object messageHashes = this.findMessageHashes(client as WebSocketClient, "tickers::");
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
@@ -255,7 +257,7 @@ public partial class coinex : ccxt.coinex
      * @see https://docs.coinex.com/api/v2/assets/balance/ws/spot_balance
      * @see https://docs.coinex.com/api/v2/assets/balance/ws/futures_balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
     {
@@ -439,7 +441,7 @@ public partial class coinex : ccxt.coinex
      * @param {int} [since] the earliest time in ms to watch trades
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -677,7 +679,7 @@ public partial class coinex : ccxt.coinex
      * @see https://docs.coinex.com/api/v2/futures/market/ws/market-state
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
@@ -696,7 +698,7 @@ public partial class coinex : ccxt.coinex
      * @see https://docs.coinex.com/api/v2/futures/market/ws/market-state
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
@@ -716,6 +718,7 @@ public partial class coinex : ccxt.coinex
             }
         } else
         {
+            marketIds = new List<object>() {};
             ((IList<object>)messageHashes).Add("tickers");
         }
         object type = null;
@@ -749,7 +752,7 @@ public partial class coinex : ccxt.coinex
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -768,7 +771,7 @@ public partial class coinex : ccxt.coinex
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
@@ -800,7 +803,7 @@ public partial class coinex : ccxt.coinex
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
-        object subscriptionHashes = new List<object>() {"trades"};
+        // const subscriptionHashes = [ 'trades' ];
         object subscribe = new Dictionary<string, object>() {
             { "method", "deals.subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -808,7 +811,7 @@ public partial class coinex : ccxt.coinex
             } },
             { "id", this.requestId() },
         };
-        object trades = await this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), subscriptionHashes);
+        object trades = await this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), messageHashes);
         if (isTrue(this.newUpdates))
         {
             return trades;
@@ -825,7 +828,7 @@ public partial class coinex : ccxt.coinex
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -880,9 +883,9 @@ public partial class coinex : ccxt.coinex
             } },
             { "id", this.requestId() },
         };
-        object subscriptionHashes = this.hash(this.encode(this.json(watchOrderBookSubscriptions)), sha256);
+        // const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
-        object orderbooks = await this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), subscriptionHashes);
+        object orderbooks = await this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), messageHashes);
         if (isTrue(this.newUpdates))
         {
             return orderbooks;
@@ -899,7 +902,7 @@ public partial class coinex : ccxt.coinex
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1000,7 +1003,7 @@ public partial class coinex : ccxt.coinex
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the orders to watch are trigger orders or not
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1348,7 +1351,7 @@ public partial class coinex : ccxt.coinex
      * @see https://docs.coinex.com/api/v2/futures/market/ws/market-bbo
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
@@ -1555,7 +1558,7 @@ public partial class coinex : ccxt.coinex
         object time = this.milliseconds();
         object timestamp = ((object)time).ToString();
         object messageHash = "authenticated";
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(!isEqual(authenticated, null)))
         {

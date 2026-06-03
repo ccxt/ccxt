@@ -130,6 +130,7 @@ function createExchange (id, content) {
         const definesCertified = content.indexOf("'certified': true") > -1 || content.indexOf("'certified': false") > -1;
         const isCertified = definesCertified ? content.indexOf("'certified': true") > -1 : undefined;
         const isDex = definesCertified ? content.indexOf("'dex': true") > -1 : undefined;
+        const isBuilderCode = content.indexOf("'builderFee': true") > -1;
         const matches = content.match(urlsRegex);
         const chunk = matches[0];
         const leftSpace = chunk.search(/\S|$/)
@@ -182,6 +183,7 @@ function createExchange (id, content) {
             'countries': countries,
             'parent': parent,
             'dex': isDex,
+            'builderCode': isBuilderCode,
         }
     }
     return {
@@ -243,7 +245,7 @@ async function createExchanges (ids) {
 // ----------------------------------------------------------------------------
 
 const ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification)'
-    , ccxtProBadge = '[![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)'
+    , ccxtProBadge = '[![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual)'
 
 // ----------------------------------------------------------------------------
 
@@ -537,7 +539,28 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
             fs.writeFileSync (exchangePath, result)
         }
     }
+
+    exportBuilderCodeExchanges(allExchangesPaths[0], arrayOfExchanges)
 }
+
+
+function exportBuilderCodeExchanges(exchangePath, exchanges) {
+    const builderCodeExchanges = exchanges.filter (exchange => exchange.builderCode);
+    if (builderCodeExchanges.length === 0) {
+        return;
+    }
+    const table = createMarkdownTable (builderCodeExchanges, createMarkdownListOfExchanges, [ 3 ])
+
+    // const certifiedExchangesReplacement = '$1' + table + "\n"
+    // const certifiedExchangesRegex = new RegExp ("^(### Builder Code Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
+
+    const beginning = "<!--- init builder codes list --->\n";
+    const allExchangesReplacement = beginning + table + "\n<!--- end list -->"
+    const allExchangesRegex = new RegExp (/<!--- init builder codes list --->([\s\S]*?)<!--- end list -->/)
+
+    logExportExchanges (exchangePath, allExchangesRegex, allExchangesReplacement)
+}
+
 
 // ----------------------------------------------------------------------------
 
@@ -791,8 +814,23 @@ async function exportEverything () {
         {
             file: './go/v4/exchange_metadata.go',
             regex: /var Exchanges \[\]string = \[\]string\{.+$/gm,
-            replacement: `var Exchanges []string = []string{ ${ids.map(i=>`"${capitalize(i)}"`).join(', ')} }`,
+            replacement: `var Exchanges []string = []string{ ${ids.map(i=>`"${i}"`).join(', ')} }`,
         },
+        {
+            file: './go/v4/pro/exchange_metadata.go',
+            regex: /var Exchanges \[\]string = \[\]string\{.+$/gm,
+            replacement: `var Exchanges []string = []string{ ${wsIds.map(i=>`"${i}"`).join(', ')} }`,
+        },
+        {
+            file: './java/lib/src/main/java/io/github/ccxt/MetaData.java',
+            regex: /public static final List<String> Exchanges = new java.util.ArrayList<String>\(java.util.Arrays.asList\(.+/,
+            replacement: `public static final List<String> Exchanges = new java.util.ArrayList<String>(java.util.Arrays.asList(${ids.map(i=>`"${i}"`).join(', ')}));`,
+        },
+        {
+            file: './java/lib/src/main/java/io/github/ccxt/MetaData.java',
+            regex: /public static final List<String> ProExchanges = new java.util.ArrayList<String>\(java.util.Arrays.asList\(.+/,
+            replacement: `public static final List<String> ProExchanges = new java.util.ArrayList<String>(java.util.Arrays.asList(${wsIds.map(i=>`"${i}"`).join(', ')}));`,
+        }
     ]
 
     exportExchanges (replacements, unlimitedLog)

@@ -617,6 +617,7 @@ class bitrue(Exchange, ImplicitAPI):
                     "You don't have permission.": PermissionDenied,  # {"msg":"You don't have permission.","success":false}
                     'Market is closed.': ExchangeNotAvailable,  # {"code":-1013,"msg":"Market is closed."}
                     'Too many requests. Please try again later.': DDoSProtection,  # {"msg":"Too many requests. Please try again later.","success":false}
+                    'quantity less then minQty': InvalidOrder,  # {"code":-1111,"msg":"quantity less then minQty.","data":null}
                     '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable,  # 'Internal error; unable to process your request. Please try again.'
                     '-1002': AuthenticationError,  # 'You are not authorized to execute self request.'
@@ -691,7 +692,7 @@ class bitrue(Exchange, ImplicitAPI):
         https://github.com/Bitrue-exchange/Spot-official-api-docs#test-connectivity
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
         response = await self.spotV1PublicGetPing(params)
         #
@@ -770,7 +771,7 @@ class bitrue(Exchange, ImplicitAPI):
         #                 {
         #                     "chain": "BEP20",
         #                     "enableWithdraw": True,
-        #                     "enableDeposit": True,
+        #                     "enableDeposit": False,
         #                     "withdrawFee": "0.2000",
         #                     "minWithdraw": "5.0000",
         #                     "maxWithdraw": "1000000000000000.0000",
@@ -780,56 +781,55 @@ class bitrue(Exchange, ImplicitAPI):
         #         ],
         #     }
         #
-        result: dict = {}
         coins = self.safe_list(response, 'coins', [])
-        for i in range(0, len(coins)):
-            currency = coins[i]
-            id = self.safe_string(currency, 'coin')
-            name = self.safe_string(currency, 'coinFulName')
-            code = self.safe_currency_code(id)
-            networkDetails = self.safe_list(currency, 'chainDetail', [])
-            networks: dict = {}
-            for j in range(0, len(networkDetails)):
-                entry = networkDetails[j]
-                networkId = self.safe_string(entry, 'chain')
-                network = self.network_id_to_code(networkId, code)
-                networks[network] = {
-                    'info': entry,
-                    'id': networkId,
-                    'network': network,
-                    'deposit': self.safe_bool(entry, 'enableDeposit'),
-                    'withdraw': self.safe_bool(entry, 'enableWithdraw'),
-                    'active': None,
-                    'fee': self.safe_number(entry, 'withdrawFee'),
-                    'precision': None,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(entry, 'minWithdraw'),
-                            'max': self.safe_number(entry, 'maxWithdraw'),
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'name': name,
-                'code': code,
-                'precision': None,
-                'info': currency,
+        return self.parse_currencies(coins)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'coin')
+        name = self.safe_string(rawCurrency, 'coinFulName')
+        code = self.safe_currency_code(id)
+        networkDetails = self.safe_list(rawCurrency, 'chainDetail', [])
+        networks: dict = {}
+        for j in range(0, len(networkDetails)):
+            entry = networkDetails[j]
+            networkId = self.safe_string(entry, 'chain')
+            network = self.network_id_to_code(networkId, code)
+            networks[network] = {
+                'info': entry,
+                'id': networkId,
+                'network': network,
+                'deposit': self.safe_bool(entry, 'enableDeposit'),
+                'withdraw': self.safe_bool(entry, 'enableWithdraw'),
                 'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'networks': networks,
-                'fee': None,
-                'fees': None,
-                'type': 'crypto',
+                'fee': self.safe_number(entry, 'withdrawFee'),
+                'precision': None,
                 'limits': {
                     'withdraw': {
-                        'min': None,
-                        'max': None,
+                        'min': self.safe_number(entry, 'minWithdraw'),
+                        'max': self.safe_number(entry, 'maxWithdraw'),
                     },
                 },
-            })
-        return result
+            }
+        return self.safe_currency_structure({
+            'id': id,
+            'name': name,
+            'code': code,
+            'precision': None,
+            'info': rawCurrency,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'networks': networks,
+            'fee': None,
+            'fees': None,
+            'type': 'crypto',
+            'limits': {
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -984,6 +984,7 @@ class bitrue(Exchange, ImplicitAPI):
         minCost = self.safe_number(amountFilter, 'minVal')
         if minCost is None:
             minCost = self.safe_number(market, 'minOrderMoney')
+        isSpot = (type == 'spot')
         return {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -995,7 +996,7 @@ class bitrue(Exchange, ImplicitAPI):
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': (type == 'spot'),
+            'spot': isSpot,
             'margin': False,
             'swap': isContract,
             'future': False,
@@ -1110,7 +1111,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'future', 'delivery', 'spot', 'swap'
         :param str [params.subType]: 'linear', 'inverse'
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         type = None
@@ -1219,7 +1220,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1354,7 +1355,7 @@ class bitrue(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1417,7 +1418,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(data, market)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1549,7 +1550,7 @@ class bitrue(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
@@ -1609,7 +1610,7 @@ class bitrue(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1780,7 +1781,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1947,7 +1948,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1979,7 +1980,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param decimal [params.icebergQty]:
         :param long [params.recvWindow]:
         :param float [params.cost]: *swap market buy only* the quote quantity that can be used alternative for the amount
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2089,7 +2090,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -2176,7 +2177,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
@@ -2231,7 +2232,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -2312,7 +2313,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -2359,7 +2360,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         "code": "0",
         #         "msg": "Success",
         #         "data": {
-        #             "orderId": 1690615847831143159
+        #             "orderId": 1690615847831143154
         #         }
         #     }
         #
@@ -2414,7 +2415,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         if symbol is None:
@@ -2499,7 +2500,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires a code argument')
@@ -2568,7 +2569,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a code argument')
@@ -2760,7 +2761,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -2846,7 +2847,7 @@ class bitrue(Exchange, ImplicitAPI):
 
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
         await self.load_markets()
         response = await self.spotV1PublicGetExchangeInfo(params)

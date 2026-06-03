@@ -382,53 +382,52 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currency = response[i]
-            id = self.safe_string(currency, 'symbol')
-            code = self.safe_currency_code(id)
-            typeRaw = self.safe_string(currency, 'type')
-            type = None
-            if typeRaw == 'coin' or typeRaw == 'token' or typeRaw == 'erc20':
-                type = 'crypto'
-            elif typeRaw == 'fiat':
-                type = 'fiat'
-            precisionDigits = self.safe_string_2(currency, 'digits', 'notabeneDecimals')
-            if code == 'RENDER':
-                # RENDER is an exception(with broken info)
-                precisionDigits = '4'
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'name': code,
-                'type': type,
-                'info': currency,
-                'active': self.safe_bool(currency, 'canTrade'),
-                'deposit': self.safe_bool(currency, 'canDeposit'),
-                'withdraw': self.safe_bool(currency, 'canWithdraw'),
-                'fee': None,
-                'precision': self.parse_number(self.parse_precision(precisionDigits)),
-                'limits': {
-                    'amount': {
-                        'min': self.safe_number(currency, 'minQty'),
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'networks': {},
-            })
-        if self.safe_value(self.options, 'currenciesByIdForParseMarket') is None:
-            currenciesById = self.index_by(result, 'id')
-            self.options['currenciesByIdForParseMarket'] = currenciesById
-            currentCurrencyIdsList = self.safe_list(self.options, 'currencyIdsListForParseMarket', [])
-            currencyIdsList = list(currenciesById.keys())
-            for i in range(0, len(currencyIdsList)):
-                currentCurrencyIdsList.append(currencyIdsList[i])
-            self.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList
+        result = self.parse_currencies(response)
+        currenciesById = self.index_by(result, 'id')
+        self.options['currenciesByIdForParseMarket'] = currenciesById
+        currentCurrencyIdsList = self.safe_list(self.options, 'currencyIdsListForParseMarket', [])
+        currencyIdsList = list(currenciesById.keys())
+        for i in range(0, len(currencyIdsList)):
+            currentCurrencyIdsList.append(currencyIdsList[i])
+        self.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList
         return result
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'symbol')
+        code = self.safe_currency_code(id)
+        typeRaw = self.safe_string(rawCurrency, 'type')
+        type = None
+        if typeRaw == 'coin' or typeRaw == 'token' or typeRaw == 'erc20' or typeRaw == 'crypto':
+            type = 'crypto'
+        elif typeRaw == 'fiat':
+            type = 'fiat'
+        precisionDigits = self.safe_string_2(rawCurrency, 'digits', 'notabeneDecimals')
+        if code == 'RENDER':
+            # RENDER is an exception(with broken info)
+            precisionDigits = '4'
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'name': code,
+            'type': type,
+            'info': rawCurrency,
+            'active': self.safe_bool(rawCurrency, 'canTrade'),
+            'deposit': self.safe_bool(rawCurrency, 'canDeposit'),
+            'withdraw': self.safe_bool(rawCurrency, 'canWithdraw'),
+            'fee': None,
+            'precision': self.parse_number(self.parse_precision(precisionDigits)),
+            'limits': {
+                'amount': {
+                    'min': self.safe_number(rawCurrency, 'minQty'),
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': {},
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -441,8 +440,6 @@ class coinmetro(Exchange, ImplicitAPI):
         """
         promises = []
         promises.append(self.publicGetMarkets(params))
-        if self.safe_value(self.options, 'currenciesByIdForParseMarket') is None:
-            promises.append(self.fetch_currencies())
         responses = promises
         response = responses[0]
         #
@@ -584,7 +581,7 @@ class coinmetro(Exchange, ImplicitAPI):
         }
         return result
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -669,7 +666,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch(default 200, max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -723,7 +720,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve(default 500, max 1000)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         market = None
@@ -829,7 +826,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(default 100, max 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -893,7 +890,7 @@ class coinmetro(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         response = self.publicGetExchangePrices(params)
@@ -971,7 +968,7 @@ class coinmetro(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         response = self.publicGetExchangePrices(params)
@@ -1038,7 +1035,7 @@ class coinmetro(Exchange, ImplicitAPI):
         https://documenter.getpostman.com/view/3653795/SVfWN6KS#741a1dcc-7307-40d0-acca-28d003d1506a
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
         response = self.privateGetUsersWallets(params)
@@ -1092,7 +1089,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entries to return(default 200, max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -1288,7 +1285,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :param bool [params.margin]: True for creating a margin order
         :param str [params.fillStyle]: fill style of the limit order: "sell" fulfills selling quantity "buy" fulfills buying quantity "base" fulfills base currency quantity "quote" fulfills quote currency quantity
         :param str [params.clientOrderId]: client's comment
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1396,7 +1393,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :param str symbol: not used by coinmetro cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.margin]: True for cancelling a margin order
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1443,7 +1440,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.orderID]: order id
         :param number [params.fraction]: fraction of order to close, between 0 and 1(defaults to 1)
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         orderId = self.safe_string(params, 'orderId')
@@ -1494,7 +1491,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -1517,7 +1514,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -1538,7 +1535,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :param int|str id: order id
         :param str symbol: not used by coinmetro fetchOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1869,7 +1866,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
         self.load_markets()
         currency = self.currency(code)

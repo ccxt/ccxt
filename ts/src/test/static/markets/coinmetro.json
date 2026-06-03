@@ -38,7 +38,7 @@
                 "max": null
             },
             "amount": {
-                "min": 0.00005,
+                "min": 0.00008,
                 "max": null
             },
             "price": {
@@ -103,7 +103,7 @@
                 "max": null
             },
             "amount": {
-                "min": 7,
+                "min": 20,
                 "max": null
             },
             "price": {
@@ -168,7 +168,7 @@
                 "max": null
             },
             "amount": {
-                "min": 2,
+                "min": 5,
                 "max": null
             },
             "price": {
@@ -233,7 +233,7 @@
                 "max": null
             },
             "amount": {
-                "min": 0.03,
+                "min": 0.07,
                 "max": null
             },
             "price": {
@@ -298,7 +298,7 @@
                 "max": null
             },
             "amount": {
-                "min": 20,
+                "min": 60,
                 "max": null
             },
             "price": {

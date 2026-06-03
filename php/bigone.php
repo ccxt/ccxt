@@ -24,6 +24,9 @@ class bigone extends Exchange {
                 'swap' => true,
                 'future' => null, // has but unimplemented
                 'option' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createMarketBuyOrderWithCost' => true,
@@ -34,8 +37,17 @@ class bigone extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
@@ -45,10 +57,18 @@ class bigone extends Exchange {
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
+                'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -59,7 +79,10 @@ class bigone extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchTransactionFees' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -492,85 +515,84 @@ class bigone extends Exchange {
         // }
         //
         $currenciesData = $this->safe_list($data, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($currenciesData); $i++) {
-            $currency = $currenciesData[$i];
-            $id = $this->safe_string($currency, 'symbol');
-            $code = $this->safe_currency_code($id);
-            $name = $this->safe_string($currency, 'name');
-            $networks = array();
-            $chains = $this->safe_list($currency, 'binding_gateways', array());
-            $currencyMaxPrecision = $this->parse_precision($this->safe_string_2($currency, 'withdrawal_scale', 'scale'));
-            for ($j = 0; $j < count($chains); $j++) {
-                $chain = $chains[$j];
-                $networkId = $this->safe_string($chain, 'gateway_name');
-                $networkCode = $this->network_id_to_code($networkId);
-                $deposit = $this->safe_bool($chain, 'is_deposit_enabled');
-                $withdraw = $this->safe_bool($chain, 'is_withdrawal_enabled');
-                $minDepositAmount = $this->safe_string($chain, 'min_deposit_amount');
-                $minWithdrawalAmount = $this->safe_string($chain, 'min_withdrawal_amount');
-                $withdrawalFee = $this->safe_string($chain, 'withdrawal_fee');
-                $precision = $this->parse_precision($this->safe_string_2($chain, 'withdrawal_scale', 'scale'));
-                $networks[$networkCode] = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'margin' => null,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
-                    'active' => null,
-                    'fee' => $this->parse_number($withdrawalFee),
-                    'precision' => $this->parse_number($precision),
-                    'limits' => array(
-                        'deposit' => array(
-                            'min' => $minDepositAmount,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => $minWithdrawalAmount,
-                            'max' => null,
-                        ),
-                    ),
-                    'info' => $chain,
-                );
-            }
-            $chainLength = count($chains);
-            $type = null;
-            if ($this->safe_bool($currency, 'is_fiat')) {
-                $type = 'fiat';
-            } elseif ($chainLength === 0) {
-                if ($this->is_leveraged_currency($id)) {
-                    $type = 'leveraged';
-                } else {
-                    $type = 'other';
-                }
-            } else {
-                $type = 'crypto';
-            }
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $id,
-                'code' => $code,
-                'info' => $currency,
-                'name' => $name,
-                'type' => $type,
+        return $this->parse_currencies($currenciesData);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'symbol');
+        $code = $this->safe_currency_code($id);
+        $name = $this->safe_string($rawCurrency, 'name');
+        $networks = array();
+        $chains = $this->safe_list($rawCurrency, 'binding_gateways', array());
+        $currencyMaxPrecision = $this->parse_precision($this->safe_string_2($rawCurrency, 'withdrawal_scale', 'scale'));
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $chains[$j];
+            $networkId = $this->safe_string($chain, 'gateway_name');
+            $networkCode = $this->network_id_to_code($networkId);
+            $deposit = $this->safe_bool($chain, 'is_deposit_enabled');
+            $withdraw = $this->safe_bool($chain, 'is_withdrawal_enabled');
+            $minDepositAmount = $this->safe_string($chain, 'min_deposit_amount');
+            $minWithdrawalAmount = $this->safe_string($chain, 'min_withdrawal_amount');
+            $withdrawalFee = $this->safe_string($chain, 'withdrawal_fee');
+            $precision = $this->parse_precision($this->safe_string_2($chain, 'withdrawal_scale', 'scale'));
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'margin' => null,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
                 'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
-                'precision' => $this->parse_number($currencyMaxPrecision),
+                'fee' => $this->parse_number($withdrawalFee),
+                'precision' => $this->parse_number($precision),
                 'limits' => array(
-                    'amount' => array(
-                        'min' => null,
+                    'deposit' => array(
+                        'min' => $minDepositAmount,
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => null,
+                        'min' => $minWithdrawalAmount,
                         'max' => null,
                     ),
                 ),
-                'networks' => $networks,
-            ));
+                'info' => $chain,
+            );
         }
-        return $result;
+        $chainLength = count($chains);
+        $type = null;
+        if ($this->safe_bool($rawCurrency, 'is_fiat')) {
+            $type = 'fiat';
+        } elseif ($chainLength === 0) {
+            if ($this->is_leveraged_currency($id)) {
+                $type = 'leveraged';
+            } else {
+                $type = 'other';
+            }
+        } else {
+            $type = 'crypto';
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => $rawCurrency,
+            'name' => $name,
+            'type' => $type,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => $this->parse_number($currencyMaxPrecision),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+        ));
     }
 
     public function fetch_markets($params = array ()): array {
@@ -825,11 +847,11 @@ class bigone extends Exchange {
             'ask' => $this->safe_string($ask, 'price'),
             'askVolume' => $this->safe_string($ask, 'quantity'),
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'open'),
+            'open' => $this->safe_string($ticker, 'open'), // openValue is a broken number, we don't use it
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
-            'change' => $this->safe_string_2($ticker, 'daily_change', 'last24hPriceChange'),
+            'change' => $this->safe_string($ticker, 'daily_change'), // last24hPriceChange is incorrect value, eg see PUMPUSDT contract
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_string_2($ticker, 'volume', 'volume24h'),
@@ -848,7 +870,7 @@ class bigone extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -891,7 +913,7 @@ class bigone extends Exchange {
          *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         $market = null;
@@ -1002,7 +1024,7 @@ class bigone extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1210,16 +1232,19 @@ class bigone extends Exchange {
         $makerFeeCost = $this->safe_string($trade, 'maker_fee');
         $takerFeeCost = $this->safe_string($trade, 'taker_fee');
         if ($makerFeeCost !== null) {
+            $makerCode = $makerCurrencyCode;
             if ($takerFeeCost !== null) {
+                $takerCode = $takerCurrencyCode;
                 $result['fees'] = array(
-                    array( 'cost' => $makerFeeCost, 'currency' => $makerCurrencyCode ),
-                    array( 'cost' => $takerFeeCost, 'currency' => $takerCurrencyCode ),
+                    array( 'cost' => $makerFeeCost, 'currency' => $makerCode ),
+                    array( 'cost' => $takerFeeCost, 'currency' => $takerCode ),
                 );
             } else {
-                $result['fee'] = array( 'cost' => $makerFeeCost, 'currency' => $makerCurrencyCode );
+                $result['fee'] = array( 'cost' => $makerFeeCost, 'currency' => $makerCode );
             }
         } elseif ($takerFeeCost !== null) {
-            $result['fee'] = array( 'cost' => $takerFeeCost, 'currency' => $takerCurrencyCode );
+            $takerCode2 = $takerCurrencyCode;
+            $result['fee'] = array( 'cost' => $takerFeeCost, 'currency' => $takerCode2 );
         } else {
             $result['fee'] = null;
         }
@@ -1236,7 +1261,7 @@ class bigone extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1293,7 +1318,7 @@ class bigone extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1391,7 +1416,7 @@ class bigone extends Exchange {
          * @see https://open.big.one/docs/spot_accounts.html
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $type = $this->safe_string($params, 'type', '');
@@ -1428,7 +1453,7 @@ class bigone extends Exchange {
     public function parse_order(array $order, ?array $market = null): array {
         //
         //    {
-        //        "id" => "42154072251",
+        //        "id" => "42154072252",
         //        "asset_pair_name" => "SOL-USDT",
         //        "price" => "20",
         //        "amount" => "0.5",
@@ -1509,7 +1534,7 @@ class bigone extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1540,7 +1565,7 @@ class bigone extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->operator] *stop $order only* GTE or LTE (default)
          * @param {string} [$params->client_order_id] must match ^[a-zA-Z0-9-_]array(1,36)$ this regex. client_order_id is unique in 24 hours, If created 24 hours later and the $order closed, it will be released and can be reused
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1639,7 +1664,7 @@ class bigone extends Exchange {
          * @param {string} $id $order $id
          * @param {string} $symbol Not used by bigone cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         $this->load_markets();
         $request = array( 'id' => $id );
@@ -1668,7 +1693,7 @@ class bigone extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are $cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1720,7 +1745,7 @@ class bigone extends Exchange {
          * @param {string} $id the $order $id
          * @param {string} $symbol not used by bigone fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         $this->load_markets();
         $request = array( 'id' => $id );
@@ -1739,7 +1764,7 @@ class bigone extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
@@ -1791,7 +1816,7 @@ class bigone extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -1863,7 +1888,7 @@ class bigone extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $request = array(
             'state' => 'PENDING',
@@ -1881,7 +1906,7 @@ class bigone extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $request = array(
             'state' => 'FILLED',
@@ -1935,7 +1960,7 @@ class bigone extends Exchange {
          *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -2091,7 +2116,7 @@ class bigone extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $deposits for
          * @param {int} [$limit] the maximum number of $deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $request = array(
@@ -2144,7 +2169,7 @@ class bigone extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $withdrawals for
          * @param {int} [$limit] the maximum number of $withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $request = array(
@@ -2198,7 +2223,7 @@ class bigone extends Exchange {
          * @param {string} $fromAccount 'SPOT', 'FUND', or 'CONTRACT'
          * @param {string} $toAccount 'SPOT', 'FUND', or 'CONTRACT'
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -2273,7 +2298,7 @@ class bigone extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->load_markets();

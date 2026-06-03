@@ -29,7 +29,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.00001,
+            "amount": 0.000001,
             "price": 0.1
         },
         "limits": {
@@ -38,7 +38,7 @@
                 "max": 20
             },
             "amount": {
-                "min": 0.00001,
+                "min": 0.000001,
                 "max": null
             },
             "price": {
@@ -60,7 +60,7 @@
             "base": "BTC",
             "quote": "USDT",
             "leverage": "20",
-            "min_base_amount": "0.00001",
+            "min_base_amount": "0.000001",
             "min_quote_amount": "3",
             "max_quote_amount": "5000000",
             "status": "1",
@@ -68,13 +68,19 @@
             "quote_name": "Tether",
             "fee": "0.2",
             "max_base_amount": "100",
-            "amount_precision": "5",
+            "amount_precision": "6",
             "precision": "1",
             "trade_status": "tradable",
             "sell_start": "0",
             "buy_start": "0",
             "type": "normal",
-            "trade_url": "https://www.gate.io/trade/BTC_USDT"
+            "trade_url": "https://www.gate.com/trade/BTC_USDT",
+            "st_tag": false,
+            "slippage": "0.03",
+            "market_order_max_stock": "63",
+            "market_order_max_money": "5000000",
+            "up_rate": "0.08",
+            "down_rate": "0.08"
         },
         "tierBased": true,
         "percentage": true,
@@ -297,7 +303,13 @@
             "sell_start": "0",
             "buy_start": "0",
             "type": "normal",
-            "trade_url": "https://www.gate.io/trade/ETH_USDT"
+            "trade_url": "https://www.gate.com/trade/ETH_USDT",
+            "st_tag": false,
+            "slippage": "0.03",
+            "market_order_max_stock": "2128",
+            "market_order_max_money": "5000000",
+            "up_rate": "0.08",
+            "down_rate": "0.08"
         },
         "tierBased": true,
         "percentage": true,
@@ -519,7 +531,13 @@
             "sell_start": "0",
             "buy_start": "0",
             "type": "normal",
-            "trade_url": "https://www.gate.io/trade/ADA_USDT"
+            "trade_url": "https://www.gate.com/trade/ADA_USDT",
+            "st_tag": false,
+            "slippage": "0.03",
+            "market_order_max_stock": "8004803",
+            "market_order_max_money": "2000000",
+            "up_rate": "0.08",
+            "down_rate": "0.08"
         },
         "tierBased": true,
         "percentage": true,
@@ -697,16 +715,16 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.0001,
+            "amount": 0.001,
             "price": 0.01
         },
         "limits": {
             "leverage": {
                 "min": 1,
-                "max": 10
+                "max": 20
             },
             "amount": {
-                "min": 0.0001,
+                "min": 0.001,
                 "max": null
             },
             "price": {
@@ -727,21 +745,27 @@
             "id": "LTC_USDT",
             "base": "LTC",
             "quote": "USDT",
-            "leverage": "10",
-            "min_base_amount": "0.0001",
+            "leverage": "20",
+            "min_base_amount": "0.001",
             "min_quote_amount": "3",
             "max_quote_amount": "5000000",
             "status": "1",
             "base_name": "Litecoin",
             "quote_name": "Tether",
             "fee": "0.2",
-            "amount_precision": "4",
+            "amount_precision": "3",
             "precision": "2",
             "trade_status": "tradable",
             "sell_start": "0",
             "buy_start": "0",
             "type": "normal",
-            "trade_url": "https://www.gate.io/trade/LTC_USDT"
+            "trade_url": "https://www.gate.com/trade/LTC_USDT",
+            "st_tag": false,
+            "slippage": "0.04",
+            "market_order_max_stock": "18210",
+            "market_order_max_money": "1000000",
+            "up_rate": "0.1",
+            "down_rate": "0.1"
         },
         "tierBased": true,
         "percentage": true,
@@ -920,7 +944,7 @@
         "optionType": null,
         "precision": {
             "amount": 0.001,
-            "price": 0.001
+            "price": 0.0001
         },
         "limits": {
             "leverage": {
@@ -958,12 +982,18 @@
             "quote_name": "Tether",
             "fee": "0.2",
             "amount_precision": "3",
-            "precision": "3",
+            "precision": "4",
             "trade_status": "tradable",
             "sell_start": "0",
             "buy_start": "0",
             "type": "normal",
-            "trade_url": "https://www.gate.io/trade/XRP_USDT"
+            "trade_url": "https://www.gate.com/trade/XRP_USDT",
+            "st_tag": false,
+            "slippage": "0.03",
+            "market_order_max_stock": "2154399",
+            "market_order_max_money": "3000000",
+            "up_rate": "0.08",
+            "down_rate": "0.08"
         },
         "tierBased": true,
         "percentage": true,
@@ -1185,7 +1215,13 @@
             "sell_start": "0",
             "buy_start": "0",
             "type": "normal",
-            "trade_url": "https://www.gate.io/trade/DOGE_USDT"
+            "trade_url": "https://www.gate.com/trade/DOGE_USDT",
+            "st_tag": false,
+            "slippage": "0.03",
+            "market_order_max_stock": "27219525",
+            "market_order_max_money": "3000000",
+            "up_rate": "0.08",
+            "down_rate": "0.08"
         },
         "tierBased": true,
         "percentage": true,
@@ -1407,7 +1443,13 @@
             "sell_start": "0",
             "buy_start": "0",
             "type": "normal",
-            "trade_url": "https://www.gate.io/trade/TRX_USDT"
+            "trade_url": "https://www.gate.com/trade/TRX_USDT",
+            "st_tag": false,
+            "slippage": "0.03",
+            "market_order_max_stock": "5852488",
+            "market_order_max_money": "2000000",
+            "up_rate": "0.08",
+            "down_rate": "0.08"
         },
         "tierBased": true,
         "percentage": true,
@@ -1577,8 +1619,8 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.0000075,
-        "maker": -0.000001,
+        "taker": 0.0005,
+        "maker": 0.0002,
         "contractSize": 0.0001,
         "expiry": null,
         "expiryDatetime": null,
@@ -1591,15 +1633,15 @@
         "limits": {
             "leverage": {
                 "min": 1,
-                "max": 125
+                "max": 200
             },
             "amount": {
                 "min": 1,
-                "max": 1000000
+                "max": 12000000
             },
             "price": {
-                "min": 99021.958,
-                "max": 109445.322
+                "min": 70166.304,
+                "max": 76013.496
             },
             "cost": {
                 "min": null,
@@ -1612,51 +1654,59 @@
         },
         "created": 1574035200000,
         "info": {
-            "funding_rate_indicative": "-0.000026",
+            "funding_rate_indicative": "0.000071",
             "mark_price_round": "0.01",
             "funding_offset": "0",
             "in_delisting": false,
-            "risk_limit_base": "1000000",
+            "risk_limit_base": "500000",
             "interest_rate": "0.0003",
-            "index_price": "104278.91",
+            "index_price": "73115.73",
             "order_price_round": "0.1",
             "order_size_min": "1",
+            "enable_decimal": false,
             "ref_rebate_rate": "0.2",
             "name": "BTC_USDT",
             "ref_discount_rate": "0",
-            "order_price_deviate": "0.05",
-            "maintenance_rate": "0.004",
+            "order_price_deviate": "0.04",
+            "maintenance_rate": "0.003",
             "mark_type": "index",
             "funding_interval": "28800",
             "type": "direct",
-            "risk_limit_step": "1499000000",
+            "risk_limit_step": "1499500000",
             "enable_bonus": true,
             "enable_credit": true,
             "leverage_min": "1",
-            "funding_rate": "-0.000026",
-            "last_price": "104233.9",
-            "mark_price": "104233.64",
-            "order_size_max": "1000000",
-            "funding_next_apply": "1749254400",
-            "short_users": "13635",
-            "config_change_time": "1747732645",
+            "funding_rate": "0.000071",
+            "last_price": "73090",
+            "mark_price": "73089.9",
+            "order_size_max": "12000000",
+            "funding_next_apply": "1780300800",
+            "short_users": "12871",
+            "config_change_time": "1776852890",
             "create_time": "1574035200",
-            "trade_size": "346627237303",
-            "position_size": "341260344",
-            "long_users": "9575",
+            "trade_size": "592813687775",
+            "position_size": "318726417",
+            "long_users": "20111",
             "quanto_multiplier": "0.0001",
             "funding_impact_value": "30000",
-            "leverage_max": "125",
+            "leverage_max": "200",
             "cross_leverage_default": "10",
             "risk_limit_max": "1500000000",
             "maker_fee_rate": "-0.0001",
             "taker_fee_rate": "0.00075",
             "orders_limit": "100",
-            "trade_id": "517107976",
-            "orderbook_id": "83761519236",
+            "trade_id": "757483959",
+            "orderbook_id": "113889712114",
             "funding_cap_ratio": "0.75",
             "voucher_leverage": "2",
-            "is_pre_market": false
+            "is_pre_market": false,
+            "status": "trading",
+            "launch_time": "1574035200",
+            "enable_circuit_breaker": false,
+            "funding_rate_limit": "0.003",
+            "market_order_slip_ratio": "0.02",
+            "market_order_size_max": "8000000",
+            "contract_type": ""
         },
         "tierBased": true,
         "percentage": true,
@@ -1826,8 +1876,8 @@
         "linear": false,
         "inverse": true,
         "subType": "inverse",
-        "taker": 0.0000075,
-        "maker": -0.000002,
+        "taker": 0.0005,
+        "maker": 0.0002,
         "contractSize": 1,
         "expiry": null,
         "expiryDatetime": null,
@@ -1844,11 +1894,11 @@
             },
             "amount": {
                 "min": 1,
-                "max": 1000000
+                "max": 530000
             },
             "price": {
-                "min": 52178.845,
-                "max": 156536.535
+                "min": 36517.02,
+                "max": 109551.06
             },
             "cost": {
                 "min": null,
@@ -1861,15 +1911,16 @@
         },
         "created": 1545235200000,
         "info": {
-            "funding_rate_indicative": "0.000002",
+            "funding_rate_indicative": "0.000024",
             "mark_price_round": "0.01",
             "funding_offset": "0",
             "in_delisting": false,
             "risk_limit_base": "3",
             "interest_rate": "0.0003",
-            "index_price": "104357.59",
+            "index_price": "73033.81",
             "order_price_round": "0.1",
             "order_size_min": "1",
+            "enable_decimal": false,
             "ref_rebate_rate": "0.2",
             "name": "BTC_USD",
             "ref_discount_rate": "0",
@@ -1882,17 +1933,17 @@
             "enable_bonus": false,
             "enable_credit": true,
             "leverage_min": "1",
-            "funding_rate": "0.000002",
-            "last_price": "104216.8",
-            "mark_price": "104357.69",
-            "order_size_max": "1000000",
-            "funding_next_apply": "1749254400",
-            "short_users": "267",
-            "config_change_time": "1732783287",
+            "funding_rate": "0.000024",
+            "last_price": "72939",
+            "mark_price": "73034.04",
+            "order_size_max": "530000",
+            "funding_next_apply": "1780300800",
+            "short_users": "241",
+            "config_change_time": "1776852838",
             "create_time": "1545235200",
-            "trade_size": "60472017143",
-            "position_size": "10682545",
-            "long_users": "446",
+            "trade_size": "61391540449",
+            "position_size": "7850576",
+            "long_users": "345",
             "quanto_multiplier": "0",
             "funding_impact_value": "0.5",
             "leverage_max": "100",
@@ -1901,11 +1952,18 @@
             "maker_fee_rate": "-0.0002",
             "taker_fee_rate": "0.00075",
             "orders_limit": "50",
-            "trade_id": "46665241",
-            "orderbook_id": "4964595762",
+            "trade_id": "48693434",
+            "orderbook_id": "5301053471",
             "funding_cap_ratio": "0.75",
             "voucher_leverage": "0",
-            "is_pre_market": false
+            "is_pre_market": false,
+            "status": "trading",
+            "launch_time": "1545235200",
+            "enable_circuit_breaker": false,
+            "funding_rate_limit": "0.00375",
+            "market_order_slip_ratio": "0.02",
+            "market_order_size_max": "350000",
+            "contract_type": ""
         },
         "tierBased": true,
         "percentage": true,
@@ -2075,8 +2133,8 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.0000075,
-        "maker": -0.000001,
+        "taker": 0.0005,
+        "maker": 0.0002,
         "contractSize": 0.01,
         "expiry": null,
         "expiryDatetime": null,
@@ -2084,20 +2142,20 @@
         "optionType": null,
         "precision": {
             "amount": 1,
-            "price": 0.05
+            "price": 0.01
         },
         "limits": {
             "leverage": {
                 "min": 1,
-                "max": 125
+                "max": 200
             },
             "amount": {
-                "min": 1,
-                "max": 1000000
+                "min": 0,
+                "max": 3800000
             },
             "price": {
-                "min": 2361.795,
-                "max": 2610.405
+                "min": 1907.3472,
+                "max": 2066.2928
             },
             "cost": {
                 "min": null,
@@ -2110,51 +2168,59 @@
         },
         "created": 1574208000000,
         "info": {
-            "funding_rate_indicative": "0.000005",
+            "funding_rate_indicative": "0.000095",
             "mark_price_round": "0.01",
             "funding_offset": "0",
             "in_delisting": false,
-            "risk_limit_base": "200000",
+            "risk_limit_base": "300000",
             "interest_rate": "0.0003",
-            "index_price": "2487.03",
-            "order_price_round": "0.05",
-            "order_size_min": "1",
+            "index_price": "1987.69",
+            "order_price_round": "0.01",
+            "order_size_min": "0",
+            "enable_decimal": true,
             "ref_rebate_rate": "0.2",
             "name": "ETH_USDT",
             "ref_discount_rate": "0",
-            "order_price_deviate": "0.05",
-            "maintenance_rate": "0.004",
+            "order_price_deviate": "0.04",
+            "maintenance_rate": "0.003",
             "mark_type": "index",
             "funding_interval": "28800",
             "type": "direct",
-            "risk_limit_step": "1499800000",
+            "risk_limit_step": "1499700000",
             "enable_bonus": true,
             "enable_credit": true,
             "leverage_min": "1",
-            "funding_rate": "0.000005",
-            "last_price": "2486.1",
-            "mark_price": "2486.1",
-            "order_size_max": "1000000",
-            "funding_next_apply": "1749254400",
-            "short_users": "7380",
-            "config_change_time": "1747732645",
+            "funding_rate": "0.000095",
+            "last_price": "1986.83",
+            "mark_price": "1986.82",
+            "order_size_max": "3800000",
+            "funding_next_apply": "1780300800",
+            "short_users": "10101",
+            "config_change_time": "1776852888",
             "create_time": "1574208000",
-            "trade_size": "66191450819",
-            "position_size": "97225152",
-            "long_users": "11455",
+            "trade_size": "154999945253",
+            "position_size": "110210871",
+            "long_users": "26339",
             "quanto_multiplier": "0.01",
             "funding_impact_value": "20000",
-            "leverage_max": "125",
+            "leverage_max": "200",
             "cross_leverage_default": "10",
             "risk_limit_max": "1500000000",
             "maker_fee_rate": "-0.0001",
             "taker_fee_rate": "0.00075",
             "orders_limit": "100",
-            "trade_id": "476503490",
-            "orderbook_id": "70187238100",
+            "trade_id": "806783571",
+            "orderbook_id": "98014511510",
             "funding_cap_ratio": "0.75",
             "voucher_leverage": "2",
-            "is_pre_market": false
+            "is_pre_market": false,
+            "status": "trading",
+            "launch_time": "1574208000",
+            "enable_circuit_breaker": false,
+            "funding_rate_limit": "0.003",
+            "market_order_slip_ratio": "0.02",
+            "market_order_size_max": "2500000",
+            "contract_type": ""
         },
         "tierBased": true,
         "percentage": true,
@@ -2324,8 +2390,8 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.0000075,
-        "maker": -0.000001,
+        "taker": 0.0005,
+        "maker": 0.0002,
         "contractSize": 0.1,
         "expiry": null,
         "expiryDatetime": null,
@@ -2342,11 +2408,11 @@
             },
             "amount": {
                 "min": 1,
-                "max": 1000000
+                "max": 900000
             },
             "price": {
-                "min": 78.138,
-                "max": 95.502
+                "min": 48.735,
+                "max": 53.865
             },
             "cost": {
                 "min": null,
@@ -2359,19 +2425,20 @@
         },
         "created": 1577404800000,
         "info": {
-            "funding_rate_indicative": "-0.000023",
+            "funding_rate_indicative": "0.000096",
             "mark_price_round": "0.01",
             "funding_offset": "0",
             "in_delisting": false,
             "risk_limit_base": "50000",
             "interest_rate": "0.0003",
-            "index_price": "86.87",
+            "index_price": "51.34",
             "order_price_round": "0.01",
             "order_size_min": "1",
+            "enable_decimal": false,
             "ref_rebate_rate": "0.2",
             "name": "LTC_USDT",
             "ref_discount_rate": "0",
-            "order_price_deviate": "0.1",
+            "order_price_deviate": "0.05",
             "maintenance_rate": "0.0066",
             "mark_type": "index",
             "funding_interval": "28800",
@@ -2380,17 +2447,17 @@
             "enable_bonus": true,
             "enable_credit": true,
             "leverage_min": "1",
-            "funding_rate": "-0.000023",
-            "last_price": "86.82",
-            "mark_price": "86.82",
-            "order_size_max": "1000000",
-            "funding_next_apply": "1749254400",
-            "short_users": "392",
-            "config_change_time": "1747809905",
+            "funding_rate": "0.000096",
+            "last_price": "51.3",
+            "mark_price": "51.3",
+            "order_size_max": "900000",
+            "funding_next_apply": "1780300800",
+            "short_users": "419",
+            "config_change_time": "1779091652",
             "create_time": "1577404800",
-            "trade_size": "2815141340",
-            "position_size": "1248681",
-            "long_users": "938",
+            "trade_size": "4157034472",
+            "position_size": "852644",
+            "long_users": "1049",
             "quanto_multiplier": "0.1",
             "funding_impact_value": "10000",
             "leverage_max": "75",
@@ -2399,11 +2466,18 @@
             "maker_fee_rate": "-0.0001",
             "taker_fee_rate": "0.00075",
             "orders_limit": "100",
-            "trade_id": "48600418",
-            "orderbook_id": "11574724525",
+            "trade_id": "67412292",
+            "orderbook_id": "13426784328",
             "funding_cap_ratio": "0.75",
             "voucher_leverage": "2",
-            "is_pre_market": false
+            "is_pre_market": false,
+            "status": "trading",
+            "launch_time": "1577404800",
+            "enable_circuit_breaker": false,
+            "funding_rate_limit": "0.0075",
+            "market_order_slip_ratio": "0.02",
+            "market_order_size_max": "600000",
+            "contract_type": ""
         },
         "tierBased": true,
         "percentage": true,
@@ -2573,8 +2647,8 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.0000075,
-        "maker": -0.000001,
+        "taker": 0.0005,
+        "maker": 0.0002,
         "contractSize": 10,
         "expiry": null,
         "expiryDatetime": null,
@@ -2591,11 +2665,11 @@
             },
             "amount": {
                 "min": 1,
-                "max": 1000000
+                "max": 2300000
             },
             "price": {
-                "min": 0.59634,
-                "max": 0.72886
+                "min": 0.221255,
+                "max": 0.244545
             },
             "cost": {
                 "min": null,
@@ -2608,19 +2682,20 @@
         },
         "created": 1604880000000,
         "info": {
-            "funding_rate_indicative": "0.0001",
+            "funding_rate_indicative": "-0.000165",
             "mark_price_round": "0.0001",
             "funding_offset": "0",
             "in_delisting": false,
             "risk_limit_base": "50000",
             "interest_rate": "0.0003",
-            "index_price": "0.66304",
+            "index_price": "0.23292",
             "order_price_round": "0.0001",
             "order_size_min": "1",
+            "enable_decimal": false,
             "ref_rebate_rate": "0.2",
             "name": "ADA_USDT",
             "ref_discount_rate": "0",
-            "order_price_deviate": "0.1",
+            "order_price_deviate": "0.05",
             "maintenance_rate": "0.0066",
             "mark_type": "index",
             "funding_interval": "28800",
@@ -2629,17 +2704,17 @@
             "enable_bonus": true,
             "enable_credit": true,
             "leverage_min": "1",
-            "funding_rate": "0.0001",
-            "last_price": "0.6625",
-            "mark_price": "0.6626",
-            "order_size_max": "1000000",
-            "funding_next_apply": "1749254400",
-            "short_users": "380",
-            "config_change_time": "1746773287",
+            "funding_rate": "-0.000165",
+            "last_price": "0.2329",
+            "mark_price": "0.2329",
+            "order_size_max": "2300000",
+            "funding_next_apply": "1780300800",
+            "short_users": "581",
+            "config_change_time": "1776852886",
             "create_time": "1604880000",
-            "trade_size": "1829649330",
-            "position_size": "10020784",
-            "long_users": "1090",
+            "trade_size": "6655938278",
+            "position_size": "11112570",
+            "long_users": "1155",
             "quanto_multiplier": "10",
             "funding_impact_value": "10000",
             "leverage_max": "75",
@@ -2648,11 +2723,18 @@
             "maker_fee_rate": "-0.0001",
             "taker_fee_rate": "0.00075",
             "orders_limit": "100",
-            "trade_id": "26563816",
-            "orderbook_id": "11274455405",
+            "trade_id": "50018983",
+            "orderbook_id": "13503372720",
             "funding_cap_ratio": "0.75",
             "voucher_leverage": "2",
-            "is_pre_market": false
+            "is_pre_market": false,
+            "status": "trading",
+            "launch_time": "1604880000",
+            "enable_circuit_breaker": false,
+            "funding_rate_limit": "0.0075",
+            "market_order_slip_ratio": "0.02",
+            "market_order_size_max": "1500000",
+            "contract_type": ""
         },
         "tierBased": true,
         "percentage": true,
@@ -2822,8 +2904,8 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.0000075,
-        "maker": -0.000001,
+        "taker": 0.0005,
+        "maker": 0.0002,
         "contractSize": 10,
         "expiry": null,
         "expiryDatetime": null,
@@ -2836,15 +2918,15 @@
         "limits": {
             "leverage": {
                 "min": 1,
-                "max": 75
+                "max": 100
             },
             "amount": {
-                "min": 1,
-                "max": 1000000
+                "min": 0,
+                "max": 680000
             },
             "price": {
-                "min": 1.95714,
-                "max": 2.39206
+                "min": 1.26144,
+                "max": 1.36656
             },
             "cost": {
                 "min": null,
@@ -2857,51 +2939,59 @@
         },
         "created": 1577404800000,
         "info": {
-            "funding_rate_indicative": "0.000052",
+            "funding_rate_indicative": "0.000099",
             "mark_price_round": "0.0001",
             "funding_offset": "0",
             "in_delisting": false,
-            "risk_limit_base": "100000",
+            "risk_limit_base": "50000",
             "interest_rate": "0.0003",
-            "index_price": "2.1757",
+            "index_price": "1.3144",
             "order_price_round": "0.0001",
-            "order_size_min": "1",
+            "order_size_min": "0",
+            "enable_decimal": true,
             "ref_rebate_rate": "0.2",
             "name": "XRP_USDT",
             "ref_discount_rate": "0",
-            "order_price_deviate": "0.1",
-            "maintenance_rate": "0.0066",
+            "order_price_deviate": "0.04",
+            "maintenance_rate": "0.005",
             "mark_type": "index",
             "funding_interval": "28800",
             "type": "direct",
-            "risk_limit_step": "99900000",
+            "risk_limit_step": "99950000",
             "enable_bonus": true,
             "enable_credit": true,
             "leverage_min": "1",
-            "funding_rate": "0.000052",
-            "last_price": "2.1742",
-            "mark_price": "2.1746",
-            "order_size_max": "1000000",
-            "funding_next_apply": "1749254400",
-            "short_users": "654",
-            "config_change_time": "1746773287",
+            "funding_rate": "0.000099",
+            "last_price": "1.3141",
+            "mark_price": "1.314",
+            "order_size_max": "680000",
+            "funding_next_apply": "1780300800",
+            "short_users": "1263",
+            "config_change_time": "1776852890",
             "create_time": "1577404800",
-            "trade_size": "4826606213",
-            "position_size": "9317144",
-            "long_users": "1715",
+            "trade_size": "10602642752",
+            "position_size": "10388967",
+            "long_users": "2531",
             "quanto_multiplier": "10",
             "funding_impact_value": "10000",
-            "leverage_max": "75",
+            "leverage_max": "100",
             "cross_leverage_default": "10",
             "risk_limit_max": "100000000",
             "maker_fee_rate": "-0.0001",
             "taker_fee_rate": "0.00075",
             "orders_limit": "100",
-            "trade_id": "71369449",
-            "orderbook_id": "17352382075",
+            "trade_id": "124809188",
+            "orderbook_id": "25721201455",
             "funding_cap_ratio": "0.75",
             "voucher_leverage": "2",
-            "is_pre_market": false
+            "is_pre_market": false,
+            "status": "trading",
+            "launch_time": "1577404800",
+            "enable_circuit_breaker": false,
+            "funding_rate_limit": "0.0075",
+            "market_order_slip_ratio": "0.02",
+            "market_order_size_max": "450000",
+            "contract_type": ""
         },
         "tierBased": true,
         "percentage": true,
@@ -3071,8 +3161,8 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.0000075,
-        "maker": -0.000001,
+        "taker": 0.0005,
+        "maker": 0.0002,
         "contractSize": 10,
         "expiry": null,
         "expiryDatetime": null,
@@ -3089,11 +3179,11 @@
             },
             "amount": {
                 "min": 1,
-                "max": 1000000
+                "max": 12000000
             },
             "price": {
-                "min": 0.161343,
-                "max": 0.197197
+                "min": 0.080032,
+                "max": 0.120048
             },
             "cost": {
                 "min": null,
@@ -3106,19 +3196,20 @@
         },
         "created": 1594166400000,
         "info": {
-            "funding_rate_indicative": "0.000017",
+            "funding_rate_indicative": "0.000099",
             "mark_price_round": "0.00001",
             "funding_offset": "0",
             "in_delisting": false,
             "risk_limit_base": "10000",
             "interest_rate": "0.0003",
-            "index_price": "0.179363",
+            "index_price": "0.100082",
             "order_price_round": "0.00001",
             "order_size_min": "1",
+            "enable_decimal": false,
             "ref_rebate_rate": "0.2",
             "name": "DOGE_USDT",
             "ref_discount_rate": "0",
-            "order_price_deviate": "0.1",
+            "order_price_deviate": "0.2",
             "maintenance_rate": "0.005",
             "mark_type": "index",
             "funding_interval": "28800",
@@ -3127,17 +3218,17 @@
             "enable_bonus": true,
             "enable_credit": true,
             "leverage_min": "1",
-            "funding_rate": "0.000017",
-            "last_price": "0.17924",
-            "mark_price": "0.17927",
-            "order_size_max": "1000000",
-            "funding_next_apply": "1749254400",
-            "short_users": "986",
-            "config_change_time": "1746773287",
+            "funding_rate": "0.000099",
+            "last_price": "0.10004",
+            "mark_price": "0.10004",
+            "order_size_max": "12000000",
+            "funding_next_apply": "1780300800",
+            "short_users": "2501",
+            "config_change_time": "1776852891",
             "create_time": "1594166400",
-            "trade_size": "42906823297",
-            "position_size": "119824368",
-            "long_users": "3320",
+            "trade_size": "105377130706",
+            "position_size": "114158975",
+            "long_users": "6324",
             "quanto_multiplier": "10",
             "funding_impact_value": "10000",
             "leverage_max": "100",
@@ -3146,11 +3237,18 @@
             "maker_fee_rate": "-0.0001",
             "taker_fee_rate": "0.00075",
             "orders_limit": "100",
-            "trade_id": "151009098",
-            "orderbook_id": "30494650804",
-            "funding_cap_ratio": "0.75",
+            "trade_id": "217623936",
+            "orderbook_id": "38074711090",
+            "funding_cap_ratio": "1.5",
             "voucher_leverage": "2",
-            "is_pre_market": false
+            "is_pre_market": false,
+            "status": "trading",
+            "launch_time": "1594166400",
+            "enable_circuit_breaker": false,
+            "funding_rate_limit": "0.0075",
+            "market_order_slip_ratio": "0.05",
+            "market_order_size_max": "8000000",
+            "contract_type": ""
         },
         "tierBased": true,
         "percentage": true,
@@ -3320,8 +3418,8 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.0000075,
-        "maker": -0.000001,
+        "taker": 0.0005,
+        "maker": 0.0002,
         "contractSize": 100,
         "expiry": null,
         "expiryDatetime": null,
@@ -3337,12 +3435,12 @@
                 "max": 75
             },
             "amount": {
-                "min": 1,
-                "max": 1000000
+                "min": 0,
+                "max": 90000
             },
             "price": {
-                "min": 0.248967,
-                "max": 0.304293
+                "min": 0.33364,
+                "max": 0.36876
             },
             "cost": {
                 "min": null,
@@ -3355,19 +3453,20 @@
         },
         "created": 1577404800000,
         "info": {
-            "funding_rate_indicative": "-0.000139",
+            "funding_rate_indicative": "-0.000026",
             "mark_price_round": "0.00001",
             "funding_offset": "0",
             "in_delisting": false,
             "risk_limit_base": "50000",
             "interest_rate": "0.0003",
-            "index_price": "0.276852",
+            "index_price": "0.351454",
             "order_price_round": "0.00001",
-            "order_size_min": "1",
+            "order_size_min": "0",
+            "enable_decimal": true,
             "ref_rebate_rate": "0.2",
             "name": "TRX_USDT",
             "ref_discount_rate": "0",
-            "order_price_deviate": "0.1",
+            "order_price_deviate": "0.05",
             "maintenance_rate": "0.0066",
             "mark_type": "index",
             "funding_interval": "28800",
@@ -3376,17 +3475,17 @@
             "enable_bonus": true,
             "enable_credit": true,
             "leverage_min": "1",
-            "funding_rate": "-0.000139",
-            "last_price": "0.27663",
-            "mark_price": "0.27663",
-            "order_size_max": "1000000",
-            "funding_next_apply": "1749254400",
-            "short_users": "261",
-            "config_change_time": "1749199170",
+            "funding_rate": "-0.000026",
+            "last_price": "0.3512",
+            "mark_price": "0.3512",
+            "order_size_max": "90000",
+            "funding_next_apply": "1780300800",
+            "short_users": "382",
+            "config_change_time": "1779091730",
             "create_time": "1577404800",
-            "trade_size": "326277810",
-            "position_size": "203794",
-            "long_users": "330",
+            "trade_size": "403457715",
+            "position_size": "120340",
+            "long_users": "337",
             "quanto_multiplier": "100",
             "funding_impact_value": "10000",
             "leverage_max": "75",
@@ -3395,11 +3494,18 @@
             "maker_fee_rate": "-0.0001",
             "taker_fee_rate": "0.00075",
             "orders_limit": "100",
-            "trade_id": "7133511",
-            "orderbook_id": "4994250543",
+            "trade_id": "11102111",
+            "orderbook_id": "5924671830",
             "funding_cap_ratio": "0.75",
             "voucher_leverage": "0",
-            "is_pre_market": false
+            "is_pre_market": false,
+            "status": "trading",
+            "launch_time": "1577404800",
+            "enable_circuit_breaker": false,
+            "funding_rate_limit": "0.0075",
+            "market_order_slip_ratio": "0.02",
+            "market_order_size_max": "60000",
+            "contract_type": ""
         },
         "tierBased": true,
         "percentage": true,
@@ -3596,5 +3702,503 @@
             }
         },
         "created": null
+    },
+    "人生K线/USDT:USDT": {
+        "id": "人生K线_USDT",
+        "lowercaseId": null,
+        "symbol": "人生K线/USDT:USDT",
+        "base": "人生K线",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "人生K线",
+        "quoteId": "USDT",
+        "settleId": "usdt",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 100,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.000001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 20
+            },
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 0.0042,
+                "max": 0.0063
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1768122217000,
+        "info": {
+            "funding_rate_indicative": "0.00073",
+            "mark_price_round": "0.000001",
+            "funding_offset": "0",
+            "in_delisting": false,
+            "risk_limit_base": "5000",
+            "interest_rate": "0.0003",
+            "index_price": "0.00514",
+            "order_price_round": "0.000001",
+            "order_size_min": "1",
+            "ref_rebate_rate": "0.2",
+            "name": "人生K线_USDT",
+            "ref_discount_rate": "0",
+            "order_price_deviate": "0.2",
+            "maintenance_rate": "0.04",
+            "mark_type": "index",
+            "funding_interval": "14400",
+            "type": "direct",
+            "risk_limit_step": "2495000",
+            "enable_bonus": true,
+            "enable_credit": true,
+            "leverage_min": "1",
+            "funding_rate": "0.00073",
+            "last_price": "0.00528",
+            "mark_price": "0.00525",
+            "order_size_max": "1000000",
+            "funding_next_apply": "1768406400",
+            "short_users": "224",
+            "config_change_time": "1768200185",
+            "create_time": "1768122217",
+            "trade_size": "33303899",
+            "position_size": "509241",
+            "long_users": "432",
+            "quanto_multiplier": "100",
+            "funding_impact_value": "5000",
+            "leverage_max": "20",
+            "cross_leverage_default": "10",
+            "risk_limit_max": "2500000",
+            "maker_fee_rate": "-0.00005",
+            "taker_fee_rate": "0.00075",
+            "orders_limit": "100",
+            "trade_id": "1176433",
+            "orderbook_id": "39935163",
+            "funding_cap_ratio": "0.75",
+            "voucher_leverage": "0",
+            "is_pre_market": false,
+            "status": "trading",
+            "launch_time": "1768122217",
+            "enable_circuit_breaker": false,
+            "funding_rate_limit": "0.02",
+            "market_order_slip_ratio": "0.05",
+            "market_order_size_max": "0"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get",
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00185
+                ],
+                [
+                    3,
+                    0.00175
+                ],
+                [
+                    6,
+                    0.00165
+                ],
+                [
+                    12.5,
+                    0.00155
+                ],
+                [
+                    25,
+                    0.00145
+                ],
+                [
+                    75,
+                    0.00135
+                ],
+                [
+                    200,
+                    0.00125
+                ],
+                [
+                    500,
+                    0.00115
+                ],
+                [
+                    1250,
+                    0.00105
+                ],
+                [
+                    2500,
+                    0.00095
+                ],
+                [
+                    3000,
+                    0.00085
+                ],
+                [
+                    6000,
+                    0.00075
+                ],
+                [
+                    11000,
+                    0.00065
+                ],
+                [
+                    20000,
+                    0.00055
+                ],
+                [
+                    40000,
+                    0.00055
+                ],
+                [
+                    75000,
+                    0.00055
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00195
+                ],
+                [
+                    3,
+                    0.00185
+                ],
+                [
+                    6,
+                    0.00175
+                ],
+                [
+                    12.5,
+                    0.00165
+                ],
+                [
+                    25,
+                    0.00155
+                ],
+                [
+                    75,
+                    0.00145
+                ],
+                [
+                    200,
+                    0.00135
+                ],
+                [
+                    500,
+                    0.00125
+                ],
+                [
+                    1250,
+                    0.00115
+                ],
+                [
+                    2500,
+                    0.00105
+                ],
+                [
+                    3000,
+                    0.00095
+                ],
+                [
+                    6000,
+                    0.00085
+                ],
+                [
+                    11000,
+                    0.00075
+                ],
+                [
+                    20000,
+                    0.00065
+                ],
+                [
+                    40000,
+                    0.00065
+                ],
+                [
+                    75000,
+                    0.00065
+                ]
+            ]
+        }
+    },
+    "BTC/USDT:USDT-260626": {
+        "id": "BTC_USDT_20260626",
+        "lowercaseId": null,
+        "symbol": "BTC/USDT:USDT-260626",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": "usdt",
+        "type": "future",
+        "spot": false,
+        "margin": false,
+        "swap": false,
+        "future": true,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 0.0001,
+        "expiry": 1782460800000,
+        "expiryDatetime": "2026-06-26T08:00:00.000Z",
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 100
+            },
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 36648.745,
+                "max": 109946.235
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "basis_rate": "0.034895",
+            "cycle": "BI-QUARTERLY",
+            "settle_fee_rate": "0.00015",
+            "in_delisting": false,
+            "expire_time": "1782460800",
+            "risk_limit_base": "1000000",
+            "index_price": "73115.75",
+            "order_price_round": "0.1",
+            "order_size_min": "1",
+            "ref_rebate_rate": "0.2",
+            "name": "BTC_USDT_20260626",
+            "ref_discount_rate": "0",
+            "order_price_deviate": "0.5",
+            "maintenance_rate": "0.005",
+            "mark_type": "index",
+            "type": "direct",
+            "basis_value": "181.74",
+            "leverage_min": "1",
+            "settle_price_interval": "60",
+            "last_price": "73293.5",
+            "mark_price": "73297.49",
+            "order_size_max": "1000000",
+            "maker_fee_rate": "-0.00015",
+            "settle_price_duration": "1800",
+            "config_change_time": "1766735467",
+            "orderbook_id": "352611500",
+            "trade_size": "8954260",
+            "underlying": "BTC_USDT",
+            "position_size": "1584",
+            "orders_limit": "50",
+            "quanto_multiplier": "0.0001",
+            "basis_impact_value": "1000",
+            "mark_price_round": "0.01",
+            "settle_price": "0",
+            "leverage_max": "100",
+            "risk_limit_max": "8000000",
+            "taker_fee_rate": "0.00025",
+            "trade_id": "1505523",
+            "risk_limit_step": "1000000"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get",
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00185
+                ],
+                [
+                    3,
+                    0.00175
+                ],
+                [
+                    6,
+                    0.00165
+                ],
+                [
+                    12.5,
+                    0.00155
+                ],
+                [
+                    25,
+                    0.00145
+                ],
+                [
+                    75,
+                    0.00135
+                ],
+                [
+                    200,
+                    0.00125
+                ],
+                [
+                    500,
+                    0.00115
+                ],
+                [
+                    1250,
+                    0.00105
+                ],
+                [
+                    2500,
+                    0.00095
+                ],
+                [
+                    3000,
+                    0.00085
+                ],
+                [
+                    6000,
+                    0.00075
+                ],
+                [
+                    11000,
+                    0.00065
+                ],
+                [
+                    20000,
+                    0.00055
+                ],
+                [
+                    40000,
+                    0.00055
+                ],
+                [
+                    75000,
+                    0.00055
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00195
+                ],
+                [
+                    3,
+                    0.00185
+                ],
+                [
+                    6,
+                    0.00175
+                ],
+                [
+                    12.5,
+                    0.00165
+                ],
+                [
+                    25,
+                    0.00155
+                ],
+                [
+                    75,
+                    0.00145
+                ],
+                [
+                    200,
+                    0.00135
+                ],
+                [
+                    500,
+                    0.00125
+                ],
+                [
+                    1250,
+                    0.00115
+                ],
+                [
+                    2500,
+                    0.00105
+                ],
+                [
+                    3000,
+                    0.00095
+                ],
+                [
+                    6000,
+                    0.00085
+                ],
+                [
+                    11000,
+                    0.00075
+                ],
+                [
+                    20000,
+                    0.00065
+                ],
+                [
+                    40000,
+                    0.00065
+                ],
+                [
+                    75000,
+                    0.00065
+                ]
+            ]
+        }
     }
 }

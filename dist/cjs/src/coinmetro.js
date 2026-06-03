@@ -374,59 +374,56 @@ class coinmetro extends coinmetro$1["default"] {
         //         ...
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString(currency, 'symbol');
-            const code = this.safeCurrencyCode(id);
-            const typeRaw = this.safeString(currency, 'type');
-            let type = undefined;
-            if (typeRaw === 'coin' || typeRaw === 'token' || typeRaw === 'erc20') {
-                type = 'crypto';
-            }
-            else if (typeRaw === 'fiat') {
-                type = 'fiat';
-            }
-            let precisionDigits = this.safeString2(currency, 'digits', 'notabeneDecimals');
-            if (code === 'RENDER') {
-                // RENDER is an exception (with broken info)
-                precisionDigits = '4';
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'name': code,
-                'type': type,
-                'info': currency,
-                'active': this.safeBool(currency, 'canTrade'),
-                'deposit': this.safeBool(currency, 'canDeposit'),
-                'withdraw': this.safeBool(currency, 'canWithdraw'),
-                'fee': undefined,
-                'precision': this.parseNumber(this.parsePrecision(precisionDigits)),
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber(currency, 'minQty'),
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': {},
-            });
+        const result = this.parseCurrencies(response);
+        const currenciesById = this.indexBy(result, 'id');
+        this.options['currenciesByIdForParseMarket'] = currenciesById;
+        const currentCurrencyIdsList = this.safeList(this.options, 'currencyIdsListForParseMarket', []);
+        const currencyIdsList = Object.keys(currenciesById);
+        for (let i = 0; i < currencyIdsList.length; i++) {
+            currentCurrencyIdsList.push(currencyIdsList[i]);
         }
-        if (this.safeValue(this.options, 'currenciesByIdForParseMarket') === undefined) {
-            const currenciesById = this.indexBy(result, 'id');
-            this.options['currenciesByIdForParseMarket'] = currenciesById;
-            const currentCurrencyIdsList = this.safeList(this.options, 'currencyIdsListForParseMarket', []);
-            const currencyIdsList = Object.keys(currenciesById);
-            for (let i = 0; i < currencyIdsList.length; i++) {
-                currentCurrencyIdsList.push(currencyIdsList[i]);
-            }
-            this.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList;
-        }
+        this.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList;
         return result;
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode(id);
+        const typeRaw = this.safeString(rawCurrency, 'type');
+        let type = undefined;
+        if (typeRaw === 'coin' || typeRaw === 'token' || typeRaw === 'erc20' || typeRaw === 'crypto') {
+            type = 'crypto';
+        }
+        else if (typeRaw === 'fiat') {
+            type = 'fiat';
+        }
+        let precisionDigits = this.safeString2(rawCurrency, 'digits', 'notabeneDecimals');
+        if (code === 'RENDER') {
+            // RENDER is an exception (with broken info)
+            precisionDigits = '4';
+        }
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'name': code,
+            'type': type,
+            'info': rawCurrency,
+            'active': this.safeBool(rawCurrency, 'canTrade'),
+            'deposit': this.safeBool(rawCurrency, 'canDeposit'),
+            'withdraw': this.safeBool(rawCurrency, 'canWithdraw'),
+            'fee': undefined,
+            'precision': this.parseNumber(this.parsePrecision(precisionDigits)),
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber(rawCurrency, 'minQty'),
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': {},
+        });
     }
     /**
      * @method
@@ -439,9 +436,6 @@ class coinmetro extends coinmetro$1["default"] {
     async fetchMarkets(params = {}) {
         const promises = [];
         promises.push(this.publicGetMarkets(params));
-        if (this.safeValue(this.options, 'currenciesByIdForParseMarket') === undefined) {
-            promises.push(this.fetchCurrencies());
-        }
         const responses = await Promise.all(promises);
         const response = responses[0];
         //
@@ -685,7 +679,7 @@ class coinmetro extends coinmetro$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -741,7 +735,7 @@ class coinmetro extends coinmetro$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve (default 500, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -850,7 +844,7 @@ class coinmetro extends coinmetro$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -915,7 +909,7 @@ class coinmetro extends coinmetro$1["default"] {
      * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ecd1cd1-f162-45a3-8b3b-de690332a485
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -997,7 +991,7 @@ class coinmetro extends coinmetro$1["default"] {
      * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ecd1cd1-f162-45a3-8b3b-de690332a485
      * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchBidsAsks(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -1064,7 +1058,7 @@ class coinmetro extends coinmetro$1["default"] {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#741a1dcc-7307-40d0-acca-28d003d1506a
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
@@ -1119,7 +1113,7 @@ class coinmetro extends coinmetro$1["default"] {
      * @param {int} [limit] max number of ledger entries to return (default 200, max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1327,7 +1321,7 @@ class coinmetro extends coinmetro$1["default"] {
      * @param {bool} [params.margin] true for creating a margin order
      * @param {string} [params.fillStyle] fill style of the limit order: "sell" fulfills selling quantity "buy" fulfills buying quantity "base" fulfills base currency quantity "quote" fulfills quote currency quantity
      * @param {string} [params.clientOrderId] client's comment
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
@@ -1449,7 +1443,7 @@ class coinmetro extends coinmetro$1["default"] {
      * @param {string} symbol not used by coinmetro cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.margin] true for cancelling a margin order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -1498,7 +1492,7 @@ class coinmetro extends coinmetro$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.orderID] order id
      * @param {number} [params.fraction] fraction of order to close, between 0 and 1 (defaults to 1)
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async closePosition(symbol, side = undefined, params = {}) {
         await this.loadMarkets();
@@ -1550,7 +1544,7 @@ class coinmetro extends coinmetro$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1575,7 +1569,7 @@ class coinmetro extends coinmetro$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1598,7 +1592,7 @@ class coinmetro extends coinmetro$1["default"] {
      * @param {int|string} id order id
      * @param {string} symbol not used by coinmetro fetchOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -1940,7 +1934,7 @@ class coinmetro extends coinmetro$1["default"] {
      * @param {string} code unified currency code of the currency to borrow
      * @param {float} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async borrowCrossMargin(code, amount, params = {}) {
         await this.loadMarkets();

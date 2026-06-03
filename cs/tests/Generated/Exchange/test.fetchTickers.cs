@@ -9,13 +9,13 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchTickers(Exchange exchange, object skippedProperties, object symbol)
     {
-        object withoutSymbol = testFetchTickersHelper(exchange, skippedProperties, null);
-        object withSymbol = testFetchTickersHelper(exchange, skippedProperties, new List<object>() {symbol});
+        object withoutSymbol = fetchTickersHelperTest(exchange, skippedProperties, null);
+        object withSymbol = fetchTickersHelperTest(exchange, skippedProperties, new List<object>() {symbol});
         object results = await promiseAll(new List<object>() {withoutSymbol, withSymbol});
-        testFetchTickersAmounts(exchange, skippedProperties, getValue(results, 0));
+        fetchTickersAmountsTest(exchange, skippedProperties, getValue(results, 0));
         return results;
     }
-    async static public Task<object> testFetchTickersHelper(Exchange exchange, object skippedProperties, object argSymbols, object argParams = null)
+    async static public Task<object> fetchTickersHelperTest(Exchange exchange, object skippedProperties, object argSymbols, object argParams = null)
     {
         argParams ??= new Dictionary<string, object>();
         object method = "fetchTickers";
@@ -36,7 +36,7 @@ public partial class testMainClass : BaseTest
         }
         return response;
     }
-    public static void testFetchTickersAmounts(Exchange exchange, object skippedProperties, object tickers)
+    public static void fetchTickersAmountsTest(Exchange exchange, object skippedProperties, object tickers)
     {
         object tickersValues = new List<object>(((IDictionary<string,object>)tickers).Values);
         if (!isTrue((inOp(skippedProperties, "checkActiveSymbols"))))
@@ -47,8 +47,8 @@ public partial class testMainClass : BaseTest
             object nonInactiveMarkets = testSharedMethods.getActiveMarkets(exchange);
             object notInactiveSymbolsLength = getArrayLength(nonInactiveMarkets);
             object obtainedTickersLength = getArrayLength(tickersValues);
-            object toleranceCoefficient = 0.01; // 1% tolerance, eg. when 100 active markets, we should have at least 99 tickers
-            assert(isGreaterThanOrEqual(obtainedTickersLength, multiply(notInactiveSymbolsLength, (subtract(1, toleranceCoefficient)))), add(add(add(add(add(add(add(exchange.id, " "), "fetchTickers"), " must return tickers for all active markets. but returned: "), ((object)obtainedTickersLength).ToString()), " tickers, "), ((object)notInactiveSymbolsLength).ToString()), " active markets"));
+            object minRatio = 0.99; // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
+            assert(isGreaterThanOrEqual(obtainedTickersLength, multiply(notInactiveSymbolsLength, minRatio)), add(add(add(add(add(add(add(exchange.id, " "), "fetchTickers"), " must return tickers for all active markets. but returned: "), ((object)obtainedTickersLength).ToString()), " tickers, "), ((object)notInactiveSymbolsLength).ToString()), " active markets"));
             //
             // ensure tickers length is less than markets length
             //

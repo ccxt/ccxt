@@ -14,7 +14,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_trading_fee.php';
 function test_fetch_trading_fee($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchTradingFee';
-        $fee = Async\await($exchange->fetch_trading_fee($symbol));
+        $fee = \React\Async\await($exchange->fetch_trading_fee($symbol));
         assert(is_array($fee), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an object. ' . $exchange->json($fee));
         test_trading_fee($exchange, $skipped_properties, $method, $symbol, $fee);
         return true;

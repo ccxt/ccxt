@@ -10,7 +10,6 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_balance.php';
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_watch_balance($exchange, $skipped_properties, $code) {
     return Async\async(function () use ($exchange, $skipped_properties, $code) {
@@ -21,7 +20,7 @@ function test_watch_balance($exchange, $skipped_properties, $code) {
             $response = null;
             $success = true;
             try {
-                $response = Async\await($exchange->watch_balance());
+                $response = \React\Async\await($exchange->watch_balance());
             } catch(\Throwable $e) {
                 if (!is_temporary_failure($e)) {
                     throw $e;

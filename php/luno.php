@@ -299,6 +299,7 @@ class luno extends Exchange {
                     'inverse' => null,
                 ),
             ),
+            'rollingWindowSize' => 60000.0,
         ));
     }
 
@@ -325,39 +326,20 @@ class luno extends Exchange {
         //     }
         //
         $currenciesData = $this->safe_list($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($currenciesData); $i++) {
-            $networkEntry = $currenciesData[$i];
-            $id = $this->safe_string($networkEntry, 'native_currency');
-            $code = $this->safe_currency_code($id);
-            if (!(is_array($result) && array_key_exists($code, $result))) {
-                $result[$code] = array(
-                    'id' => $id,
-                    'code' => $code,
-                    'precision' => null,
-                    'type' => null,
-                    'name' => null,
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => array(),
-                    'info' => array(),
-                );
-            }
+        $grouped = $this->group_by($currenciesData, 'native_currency');
+        $values = is_array($grouped) ? array_values($grouped) : array();
+        return $this->parse_currencies($values);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency[0], 'native_currency'); // first item is guaranteed
+        $code = $this->safe_currency_code($id);
+        $networks = array();
+        for ($i = 0; $i < count($rawCurrency); $i++) {
+            $networkEntry = $rawCurrency[$i];
             $networkId = $this->safe_string($networkEntry, 'name');
             $networkCode = $this->network_id_to_code($networkId);
-            $result[$code]['networks'][$networkCode] = array(
+            $networks[$networkCode] = array(
                 'id' => $networkId,
                 'network' => $networkCode,
                 'limits' => array(
@@ -377,18 +359,30 @@ class luno extends Exchange {
                 'precision' => null,
                 'info' => $networkEntry,
             );
-            // add entry in $info
-            $info = $this->safe_list($result[$code], 'info', array());
-            $info[] = $networkEntry;
-            $result[$code]['info'] = $info;
         }
-        // only after all entries are formed in currencies, restructure each entry
-        $allKeys = is_array($result) ? array_keys($result) : array();
-        for ($i = 0; $i < count($allKeys); $i++) {
-            $code = $allKeys[$i];
-            $result[$code] = $this->safe_currency_structure($result[$code]); // this is needed after adding network entry
-        }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'precision' => null,
+            'type' => null,
+            'name' => null,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'limits' => array(
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+            'info' => $rawCurrency,
+        ));
     }
 
     public function fetch_markets($params = array ()): array {
@@ -490,7 +484,7 @@ class luno extends Exchange {
          * @see https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$account-structure $account structures~ indexed by the $account type
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$account-structure $account structures~ indexed by the $account type
          */
         $response = $this->privateGetBalance ($params);
         $wallets = $this->safe_value($response, 'balance', array());
@@ -546,7 +540,7 @@ class luno extends Exchange {
          * @see https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->privateGetBalance ($params);
@@ -573,7 +567,7 @@ class luno extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -681,7 +675,7 @@ class luno extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol not used by luno fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array(
@@ -717,7 +711,7 @@ class luno extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_state(null, $symbol, $since, $limit, $params);
     }
@@ -732,7 +726,7 @@ class luno extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_state('PENDING', $symbol, $since, $limit, $params);
     }
@@ -747,7 +741,7 @@ class luno extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_state('COMPLETE', $symbol, $since, $limit, $params);
     }
@@ -798,7 +792,7 @@ class luno extends Exchange {
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=$ticker-structure $ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?$id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -824,7 +818,7 @@ class luno extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -945,7 +939,7 @@ class luno extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -973,7 +967,7 @@ class luno extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          *
          * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetCandles
@@ -1048,7 +1042,7 @@ class luno extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -1098,7 +1092,7 @@ class luno extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1136,7 +1130,7 @@ class luno extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1174,7 +1168,7 @@ class luno extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array(
@@ -1217,7 +1211,7 @@ class luno extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger $entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=ledger ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?$id=ledger-entry-structure ledger structure~
          */
         $this->load_markets();
         $this->load_accounts();
@@ -1282,7 +1276,7 @@ class luno extends Exchange {
         $firstWord = $this->safe_string($words, 0);
         $thirdWord = $this->safe_string($words, 2);
         $fourthWord = $this->safe_string($words, 3);
-        $type = $this->safe_string($types, $firstWord, null);
+        $type = $this->safe_string($types, $firstWord);
         if (($type === null) && ($thirdWord === 'fee')) {
             $type = 'fee';
         }
@@ -1359,7 +1353,7 @@ class luno extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->name] an optional name for the new address
          * @param {int} [$params->account_id] an optional account id for the new address
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1399,7 +1393,7 @@ class luno extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->address] a specific cryptocurrency address to retrieve
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);

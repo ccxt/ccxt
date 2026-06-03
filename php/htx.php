@@ -102,13 +102,15 @@ class htx extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionADLRank' => true,
                 'fetchPositionHistory' => 'emulated',
                 'fetchPositions' => true,
+                'fetchPositionsADLRank' => true,
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => true,
                 'fetchSettlementHistory' => true,
-                'fetchStatus' => true,
+                'fetchStatus' => false, // none of `summary.json` endpoint work atm. revise in near future
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -154,7 +156,7 @@ class htx extends Exchange {
                 // ),
                 'logo' => 'https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg',
                 'hostnames' => array(
-                    'contract' => 'api.hbdm.com',
+                    'contract' => 'api.hbdm.vn', // alternatively use api.hbdm.com
                     'spot' => 'api.huobi.pro',
                     'status' => array(
                         'spot' => 'status.huobigroup.com',
@@ -628,6 +630,20 @@ class htx extends Exchange {
                             'linear-swap-api/v3/fix_position_margin_change_record' => 1,
                             'linear-swap-api/v3/swap_unified_account_type' => 1,
                             'linear-swap-api/v3/linear_swap_overview_account_info' => 1,
+                            'v5/account/balance' => 1,
+                            'v5/account/asset_mode' => 1,
+                            'v5/trade/position/opens' => 1,
+                            'v5/trade/order/opens' => 1,
+                            'v5/trade/order/details' => 1,
+                            'v5/trade/order/history' => 1,
+                            'v5/trade/order' => 1,
+                            'v5/position/lever' => 1,
+                            'v5/position/mode' => 1,
+                            'v5/position/risk/limit' => 1,
+                            'v5/position/risk/limit_tier' => 1,
+                            'v5/market/risk/limit' => 1,
+                            'v5/market/assets_deduction_currency' => 1,
+                            'v5/market/multi_assets_margin' => 1,
                         ),
                         'post' => array(
                             // Future Account Interface
@@ -856,6 +872,17 @@ class htx extends Exchange {
                             'linear-swap-api/v1/swap_cross_track_openorders' => 1,
                             'linear-swap-api/v1/swap_track_hisorders' => 1,
                             'linear-swap-api/v1/swap_cross_track_hisorders' => 1,
+                            'v5/account/asset_mode' => 1,
+                            'v5/trade/order' => 1,
+                            'v5/trade/batch_orders' => 1,
+                            'v5/trade/cancel_order' => 1,
+                            'v5/trade/cancel_batch_orders' => 1,
+                            'v5/trade/cancel_all_orders' => 1,
+                            'v5/trade/position' => 1,
+                            'v5/trade/position_all' => 1,
+                            'v5/position/lever' => 1,
+                            'v5/position/mode' => 1,
+                            'v5/account/fee_deduction_currency' => 1,
                         ),
                     ),
                 ),
@@ -911,6 +938,10 @@ class htx extends Exchange {
                     'order-marketorder-amount-min-error' => '\\ccxt\\InvalidOrder', // market order amount error, min => `0.01`
                     'order-limitorder-price-min-error' => '\\ccxt\\InvalidOrder', // limit order price error
                     'order-limitorder-price-max-error' => '\\ccxt\\InvalidOrder', // limit order price error
+                    'order-limitorder-price-buy-min-error' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-limitorder-price-buy-min-error","err-msg":"The price cannot be lower than 0.0006 USDT","data":null)
+                    'order-limitorder-price-buy-max-error' => '\\ccxt\\InvalidOrder', // limit order price error
+                    'order-limitorder-price-sell-min-error' => '\\ccxt\\InvalidOrder', // limit order price error
+                    'order-limitorder-price-sell-max-error' => '\\ccxt\\InvalidOrder', // limit order price error
                     'order-stop-order-hit-trigger' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-stop-order-hit-trigger","err-msg":"Orders that are triggered immediately are not supported.","data":null)
                     'order-value-min-error' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-value-min-error","err-msg":"Order total cannot be lower than => 1 USDT","data":null)
                     'order-invalid-price' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-invalid-price","err-msg":"invalid price","data":null)
@@ -927,6 +958,7 @@ class htx extends Exchange {
                     'base-symbol-error' => '\\ccxt\\BadSymbol', // array("status":"error","err-code":"base-symbol-error","err-msg":"The symbol is invalid","data":null)
                     'system-maintenance' => '\\ccxt\\OnMaintenance', // array("status" => "error", "err-code" => "system-maintenance", "err-msg" => "System is in maintenance!", "data" => null)
                     'base-request-exceed-frequency-limit' => '\\ccxt\\RateLimitExceeded', // array("status":"error","err-code":"base-request-exceed-frequency-limit","err-msg":"Frequency of requests has exceeded the limit, please try again later","data":null)
+                    'rate-too-many-requests' => '\\ccxt\\RateLimitExceeded', // array("status":"error","err-code":"rate-too-many-requests","err-msg":"exceeded rate limit","data":null)
                     // err-msg
                     'invalid symbol' => '\\ccxt\\BadSymbol', // array("ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol")
                     'symbol trade not open now' => '\\ccxt\\BadSymbol', // array("ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now")
@@ -1157,6 +1189,9 @@ class htx extends Exchange {
                     // 'BCC' => 'BCC', BCH's somewhat chain
                     // 'DBC1' => 'DBC1',
                 ),
+                'networksById' => array(
+                    'MATIC' => 'MATIC',
+                ),
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod' => 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'createMarketBuyOrderRequiresPrice' => true,
@@ -1363,6 +1398,7 @@ class htx extends Exchange {
                     ),
                 ),
             ),
+            'rollingWindowSize' => 2000.0,
         ));
     }
 
@@ -1377,7 +1413,7 @@ class htx extends Exchange {
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available  // contractPublicGetHeartbeat
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
          */
         $this->load_markets();
         $marketType = null;
@@ -1655,7 +1691,7 @@ class htx extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2198,7 +2234,7 @@ class htx extends Exchange {
         $ask = null;
         $askVolume = null;
         if (is_array($ticker) && array_key_exists('bid', $ticker)) {
-            if ($ticker['bid'] !== null && gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid']))) {
+            if ($ticker['bid'] !== null && (gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid'])))) {
                 $bid = $this->safe_string($ticker['bid'], 0);
                 $bidVolume = $this->safe_string($ticker['bid'], 1);
             } else {
@@ -2207,7 +2243,7 @@ class htx extends Exchange {
             }
         }
         if (is_array($ticker) && array_key_exists('ask', $ticker)) {
-            if ($ticker['ask'] !== null && gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask']))) {
+            if ($ticker['ask'] !== null && (gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask'])))) {
                 $ask = $this->safe_string($ticker['ask'], 0);
                 $askVolume = $this->safe_string($ticker['ask'], 1);
             } else {
@@ -2254,7 +2290,7 @@ class htx extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2337,7 +2373,7 @@ class htx extends Exchange {
          *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -2570,7 +2606,7 @@ class htx extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2810,7 +2846,7 @@ class htx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
         $market = null;
         if ($symbol !== null) {
@@ -2836,7 +2872,7 @@ class htx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array(
@@ -2860,7 +2896,7 @@ class htx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch $trades for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -3009,7 +3045,7 @@ class htx extends Exchange {
         //     }
         //
         $trades = $this->safe_value($response, 'data');
-        if (gettype($trades) !== 'array' || array_keys($trades) !== array_keys(array_keys($trades))) {
+        if ((gettype($trades) !== 'array' || array_keys($trades) !== array_keys(array_keys($trades)))) {
             $trades = $this->safe_value($trades, 'trades');
         }
         return $this->parse_trades($trades, $market, $since, $limit);
@@ -3028,7 +3064,7 @@ class htx extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest $trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades $trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades $trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3119,7 +3155,7 @@ class htx extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -3273,7 +3309,7 @@ class htx extends Exchange {
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
          */
         $this->load_markets();
         $response = $this->spotPrivateGetV1AccountAccounts ($params);
@@ -3320,7 +3356,7 @@ class htx extends Exchange {
          * @param {string} [$marginMode] 'cross' or 'isolated'
          * @param {string} [$symbol] unified ccxt market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$account-structure $account structures~ indexed by the $account $type
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$account-structure $account structures~ indexed by the $account $type
          */
         $accounts = $this->load_accounts();
         $accountId = $this->safe_value_2($params, 'accountId', 'account-id');
@@ -3341,7 +3377,7 @@ class htx extends Exchange {
         for ($i = 0; $i < count($accounts); $i++) {
             $account = $accounts[$i];
             $info = $this->safe_value($account, 'info');
-            $subtype = $this->safe_string($info, 'subtype', null);
+            $subtype = $this->safe_string($info, 'subtype');
             $typeFromAccount = $this->safe_string($account, 'type');
             if ($type === 'margin') {
                 if ($subtype === $marketId) {
@@ -3359,7 +3395,7 @@ class htx extends Exchange {
         /**
          * fetches all available currencies on an exchange
          *
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#apiv2-currency-amp-$chains
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#apiv2-currency-amp-chains
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
@@ -3402,75 +3438,80 @@ class htx extends Exchange {
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
-        $result = array();
-        $this->options['networkChainIdsByNames'] = array();
         $this->options['networkNamesByChainIds'] = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
-            $currencyId = $this->safe_string($entry, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $assetType = $this->safe_string($entry, 'assetType');
-            $type = $assetType === '1' ? 'crypto' : 'fiat';
-            $this->options['networkChainIdsByNames'][$code] = array();
-            $chains = $this->safe_list($entry, 'chains', array());
-            $networks = array();
-            for ($j = 0; $j < count($chains); $j++) {
-                $chainEntry = $chains[$j];
-                $uniqueChainId = $this->safe_string($chainEntry, 'chain'); // $i->e. usdterc20, trc20usdt ...
-                $title = $this->safe_string_2($chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
-                $this->options['networkChainIdsByNames'][$code][$title] = $uniqueChainId;
-                $this->options['networkNamesByChainIds'][$uniqueChainId] = $title;
-                $networkCode = $this->network_id_to_code($uniqueChainId);
-                $networks[$networkCode] = array(
-                    'info' => $chainEntry,
-                    'id' => $uniqueChainId,
-                    'network' => $networkCode,
-                    'limits' => array(
-                        'deposit' => array(
-                            'min' => $this->safe_number($chainEntry, 'minDepositAmt'),
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => $this->safe_number($chainEntry, 'minWithdrawAmt'),
-                            'max' => $this->safe_number($chainEntry, 'maxWithdrawAmt'),
-                        ),
-                    ),
-                    'active' => null,
-                    'deposit' => $this->safe_string($chainEntry, 'depositStatus') === 'allowed',
-                    'withdraw' => $this->safe_string($chainEntry, 'withdrawStatus') === 'allowed',
-                    'fee' => $this->safe_number($chainEntry, 'transactFeeWithdraw'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($chainEntry, 'withdrawPrecision'))),
-                );
-            }
-            $result[$code] = $this->safe_currency_structure(array(
-                'info' => $entry,
-                'code' => $code,
-                'id' => $currencyId,
-                'active' => $this->safe_string($entry, 'instStatus') === 'normal',
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
-                'name' => null,
-                'type' => $type,
+        $this->options['networkChainIdsByNames'] = array();
+        return $this->parse_currencies($data);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        if (!(is_array($this->options) && array_key_exists('networkNamesByChainIds', $this->options))) {
+            $this->options['networkNamesByChainIds'] = array();
+        }
+        if (!(is_array($this->options) && array_key_exists('networkChainIdsByNames', $this->options))) {
+            $this->options['networkChainIdsByNames'] = array();
+        }
+        $currencyId = $this->safe_string($rawCurrency, 'currency');
+        $code = $this->safe_currency_code($currencyId);
+        $assetType = $this->safe_string($rawCurrency, 'assetType');
+        $type = ($assetType === '1') ? 'crypto' : 'fiat';
+        $this->options['networkChainIdsByNames'][$code] = array();
+        $chains = $this->safe_list($rawCurrency, 'chains', array());
+        $networks = array();
+        for ($j = 0; $j < count($chains); $j++) {
+            $chainEntry = $chains[$j];
+            $uniqueChainId = $this->safe_string($chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
+            $title = $this->safe_string_2($chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
+            $this->options['networkChainIdsByNames'][$code][$title] = $uniqueChainId;
+            $this->options['networkNamesByChainIds'][$uniqueChainId] = $title;
+            $networkCode = $this->network_id_to_code($uniqueChainId);
+            $networks[$networkCode] = array(
+                'info' => $chainEntry,
+                'id' => $uniqueChainId,
+                'network' => $networkCode,
                 'limits' => array(
-                    'amount' => array(
-                        'min' => null,
+                    'deposit' => array(
+                        'min' => $this->safe_number($chainEntry, 'minDepositAmt'),
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
+                        'min' => $this->safe_number($chainEntry, 'minWithdrawAmt'),
+                        'max' => $this->safe_number($chainEntry, 'maxWithdrawAmt'),
                     ),
                 ),
-                'precision' => null,
-                'networks' => $networks,
-            ));
+                'active' => null,
+                'deposit' => $this->safe_string($chainEntry, 'depositStatus') === 'allowed',
+                'withdraw' => $this->safe_string($chainEntry, 'withdrawStatus') === 'allowed',
+                'fee' => $this->safe_number($chainEntry, 'transactFeeWithdraw'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($chainEntry, 'withdrawPrecision'))),
+            );
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'code' => $code,
+            'id' => $currencyId,
+            'active' => $this->safe_string($rawCurrency, 'instStatus') === 'normal',
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'name' => null,
+            'type' => $type,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'precision' => null,
+            'networks' => $networks,
+        ));
     }
 
     public function network_id_to_code(?string $networkId = null, ?string $currencyCode = null) {
@@ -3504,6 +3545,7 @@ class htx extends Exchange {
 
     public function fetch_balance($params = array ()): array {
         /**
+         * query for $balance and get the amount of funds available for trading or funds locked in orders
          *
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-$account-$balance-of-a-specific-$account
          * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
@@ -3512,34 +3554,37 @@ class htx extends Exchange {
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-$account-information
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#$isolated-query-user-s-$account-information
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#$cross-query-user-39-s-$account-information
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
          *
-         * query for $balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [$params->unified] provide this parameter if you have a recent $account with unified $cross+$isolated $margin $account
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
+         * @param {string} [$params->subType] $linear or $future
+         * @param {bool} [$params->uta] provide this parameter if you have a recent $account with unified $cross+$isolated $margin $account
+         * @param {bool} [$params->multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
          */
         $this->load_markets();
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        $options = $this->safe_value($this->options, 'fetchBalance', array());
-        $isUnifiedAccount = $this->safe_value_2($params, 'isUnifiedAccount', 'unified', false);
-        $params = $this->omit($params, array( 'isUnifiedAccount', 'unified' ));
+        $subType = null;
+        $isUnifiedAccount = null;
+        $isMultiAssetMode = null;
+        list($subType, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'defaultSubType', 'subType', 'linear');
+        list($isUnifiedAccount, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'unified', 'uta', false);
+        list($isMultiAssetMode, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'multiAssetMode', false);
         $request = array();
         $spot = ($type === 'spot');
         $future = ($type === 'future');
-        $defaultSubType = $this->safe_string_2($this->options, 'defaultSubType', 'subType', 'linear');
-        $subType = $this->safe_string_2($options, 'defaultSubType', 'subType', $defaultSubType);
-        $subType = $this->safe_string_2($params, 'defaultSubType', 'subType', $subType);
         $inverse = ($subType === 'inverse');
         $linear = ($subType === 'linear');
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
-        $params = $this->omit($params, array( 'defaultSubType', 'subType' ));
         $isolated = ($marginMode === 'isolated');
         $cross = ($marginMode === 'cross');
         $margin = ($type === 'margin') || ($spot && ($cross || $isolated));
         $response = null;
-        if ($spot || $margin) {
+        if ($isMultiAssetMode) {
+            $response = $this->contractPrivateGetV5AccountBalance ($this->extend($request, $params));
+        } elseif ($spot || $margin) {
             if ($margin) {
                 if ($isolated) {
                     $response = $this->spotPrivateGetV1MarginAccountsBalance ($this->extend($request, $params));
@@ -3724,11 +3769,61 @@ class htx extends Exchange {
         //         "ts" => 1640915104870
         //     }
         //
-        // TODO add $balance parsing for $linear swap
+        // multi asset mode
         //
-        $result = array( 'info' => $response );
+        //     {
+        //         "code" => 200,
+        //         "message" => "Success",
+        //         "data" => {
+        //             "state" => "normal",
+        //             "equity" => "174.216697577770536136",
+        //             "details" => array(
+        //                 array(
+        //                     "currency" => "USDT",
+        //                     "equity" => "174.216697577770536136",
+        //                     "available" => "174.216697577770536136",
+        //                     "profit_unreal" => "0",
+        //                     "initial_margin" => "0",
+        //                     "maintenance_margin" => "0",
+        //                     "maintenance_margin_rate" => "0",
+        //                     "initial_margin_rate" => "0",
+        //                     "available_margin" => "174.216697577770536136",
+        //                     "voucher" => "0",
+        //                     "voucher_value" => "0",
+        //                     "withdraw_available" => "174.216697577770536136",
+        //                     "created_time" => 1770293270932,
+        //                     "updated_time" => 1770293270932,
+        //                     "isolated_equity" => "0",
+        //                     "isolated_profit_unreal" => "0"
+        //                 }
+        //             ),
+        //             "initial_margin" => "0",
+        //             "maintenance_margin" => "0",
+        //             "maintenance_margin_rate" => "0",
+        //             "profit_unreal" => "0",
+        //             "available_margin" => "174.216697577770536136",
+        //             "voucher_value" => "0",
+        //             "created_time" => 1770293268881,
+        //             "updated_time" => 1770293270932
+        //         ),
+        //         "ts" => 1770293281344
+        //     }
+        //
+        $finalResponse = $response;
+        $result = array( 'info' => $finalResponse );
         $data = $this->safe_value($response, 'data');
-        if ($spot || $margin) {
+        if ($isMultiAssetMode) {
+            $details = $this->safe_list($data, 'details', array());
+            for ($i = 0; $i < count($details); $i++) {
+                $balance = $details[$i];
+                $currencyId = $this->safe_string($balance, 'currency');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($balance, 'withdraw_available');
+                $result[$code] = $account;
+            }
+            $result = $this->safe_balance($result);
+        } elseif ($spot || $margin) {
             if ($isolated) {
                 for ($i = 0; $i < count($data); $i++) {
                     $entry = $data[$i];
@@ -3840,7 +3935,7 @@ class htx extends Exchange {
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         $this->load_markets();
         $market = null;
@@ -4032,7 +4127,7 @@ class htx extends Exchange {
         //         "ts" => 1603703678477
         //     }
         $order = $this->safe_value($response, 'data');
-        if (gettype($order) === 'array' && array_keys($order) === array_keys(array_keys($order))) {
+        if ((gettype($order) === 'array' && array_keys($order) === array_keys(array_keys($order)))) {
             $order = $this->safe_value($order, 0);
         }
         return $this->parse_order($order);
@@ -4150,7 +4245,7 @@ class htx extends Exchange {
             // POST /linear-swap-api/v3/swap_hisorders linear isolated --------
             // POST /linear-swap-api/v3/swap_cross_hisorders linear cross -----
             'trade_type' => 0, // 0:All; 1 => Open long; 2 => Open short; 3 => Close short; 4 => Close long; 5 => Liquidate long positions; 6 => Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
-            'status' => '0', // support multiple query seperated by ',',such as '3,4,5', 0 => all. 3. Have sumbmitted the $orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
+            'status' => '0', // support multiple query separated by ',',such as '3,4,5', 0 => all. 3. Have submitted the $orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
         );
         $response = null;
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
@@ -4364,7 +4459,7 @@ class htx extends Exchange {
         //     }
         //
         $orders = $this->safe_value($response, 'data');
-        if (gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders))) {
+        if ((gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders)))) {
             $orders = $this->safe_value($orders, 'orders', array());
         }
         return $this->parse_orders($orders, $market, $since, $limit);
@@ -4396,7 +4491,7 @@ class htx extends Exchange {
          * @param {bool} [$params->stopLossTakeProfit] *$contract only* if the orders are stop-loss or take-profit orders
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {boolean} [$params->trailing] *$contract only* set to true if you want to fetch trailing stop orders
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -4433,7 +4528,7 @@ class htx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -4469,7 +4564,7 @@ class htx extends Exchange {
          * @param {bool} [$params->trigger] *contract only* if the $orders are $trigger trigger $orders or not
          * @param {bool} [$params->stopLossTakeProfit] *contract only* if the $orders are stop-loss or take-profit $orders
          * @param {boolean} [$params->trailing] *contract only* set to true if you want to fetch $trailing stop $orders
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -4754,7 +4849,7 @@ class htx extends Exchange {
         //     }
         //
         $orders = $this->safe_value($response, 'data');
-        if (gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders))) {
+        if ((gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders)))) {
             $orders = $this->safe_value($orders, 'orders', array());
         }
         return $this->parse_orders($orders, $market, $since, $limit);
@@ -5226,7 +5321,7 @@ class htx extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -5248,7 +5343,7 @@ class htx extends Exchange {
          * @param {float} $trailingPercent the percent to trail away from the current market $price
          * @param {float} $trailingTriggerPrice the $price to activate a trailing order, default uses the $price argument
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($trailingPercent === null) {
             throw new ArgumentsRequired($this->id . ' createTrailingPercentOrder() requires a $trailingPercent argument');
@@ -5451,7 +5546,9 @@ class htx extends Exchange {
                 $params = $this->omit($params, array( 'clientOrderId' ));
             }
             if ($type === 'limit' || $type === 'ioc' || $type === 'fok' || $type === 'post_only') {
-                $request['price'] = $this->price_to_precision($symbol, $price);
+                if ($price !== null) {
+                    $request['price'] = $this->price_to_precision($symbol, $price);
+                }
             }
         }
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only', false);
@@ -5514,7 +5611,7 @@ class htx extends Exchange {
          * @param {float} [$params->trailingPercent] *contract only* the percent to trail away from the current $market $price
          * @param {float} [$params->trailingTriggerPrice] *contract only* the $price to trigger a trailing order, default uses the $price argument
          * @param {bool} [$params->hedged] *contract only* true for hedged mode, false for one way mode, default is false
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -5665,7 +5762,7 @@ class htx extends Exchange {
          *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $ordersRequests = array();
@@ -5791,7 +5888,7 @@ class htx extends Exchange {
          * @param {boolean} [$params->trigger] *contract only* if the order is a $trigger trigger order or not
          * @param {boolean} [$params->stopLossTakeProfit] *contract only* if the order is a stop-loss or take-profit order
          * @param {boolean} [$params->trailing] *contract only* set to true if you want to cancel a $trailing order
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = null;
@@ -5919,7 +6016,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
          * @param {string[]} $ids order $ids
@@ -5927,7 +6024,7 @@ class htx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->trigger] *contract only* if the orders are $trigger trigger orders or not
          * @param {bool} [$params->stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
-         * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -6149,7 +6246,7 @@ class htx extends Exchange {
          * @param {boolean} [$params->trigger] *contract only* if the orders are $trigger trigger orders or not
          * @param {boolean} [$params->stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
          * @param {boolean} [$params->trailing] *contract only* set to true if you want to cancel all $trailing orders
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -6334,7 +6431,7 @@ class htx extends Exchange {
          * fetch a dictionary of addresses for a $currency, indexed by network
          * @param {string} $code unified $currency $code of the $currency for the deposit address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~ indexed by the network
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=address-structure address structures~ indexed by the network
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -6368,7 +6465,7 @@ class htx extends Exchange {
          *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -6423,7 +6520,7 @@ class htx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($limit === null || $limit > 100) {
             $limit = 100;
@@ -6484,7 +6581,7 @@ class htx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($limit === null || $limit > 100) {
             $limit = 100;
@@ -6649,6 +6746,7 @@ class htx extends Exchange {
             'repealed' => 'failed',
             'wallet-transfer' => 'pending',
             'pre-transfer' => 'pending',
+            'verifying' => 'pending',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -6664,7 +6762,7 @@ class htx extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->load_markets();
@@ -6758,7 +6856,7 @@ class htx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->symbol] used for isolated margin transfer
          * @param {string} [$params->subType] 'linear' or 'inverse', only used when transfering to/from swap accounts
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -6836,7 +6934,7 @@ class htx extends Exchange {
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-loan-interest-rate-and-quota-isolated
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure isolated borrow rate structures~
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure isolated borrow rate structures~
          */
         $this->load_markets();
         $response = $this->spotPrivateGetV1MarginLoanInfo ($params);
@@ -6929,7 +7027,7 @@ class htx extends Exchange {
          * @param {int} [$limit] not used by huobi, but filtered internally by ccxt
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
@@ -7067,7 +7165,7 @@ class htx extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -7110,7 +7208,7 @@ class htx extends Exchange {
          *
          * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -7168,7 +7266,7 @@ class htx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch borrrow $interest for
          * @param {int} [$limit] the maximum number of structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=borrow-$interest-structure borrow $interest structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=borrow-$interest-structure borrow $interest structures~
          */
         $this->load_markets();
         $marginMode = null;
@@ -7313,7 +7411,8 @@ class htx extends Exchange {
                 $sortedRequest = $this->keysort($request);
                 $auth = $this->urlencode($sortedRequest, true); // true is a go only requirment
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
-                $payload = implode("\n", array($method, $this->hostname, $url, $auth)); // eslint-disable-line quotes
+                $content = array( $method, $this->hostname, $url, $auth );
+                $payload = implode("\n", $content); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
                 $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
                 $url .= '?' . $auth;
@@ -7390,7 +7489,8 @@ class htx extends Exchange {
                 }
                 $auth = str_replace('%2c', '%2C', $this->urlencode($request, true)); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
-                $payload = implode("\n", array($method, $hostname, $url, $auth)); // eslint-disable-line quotes
+                $content2 = array( $method, $hostname, $url, $auth );
+                $payload = implode("\n", $content2); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
                 $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
                 $url .= '?' . $auth;
@@ -7408,8 +7508,9 @@ class htx extends Exchange {
                     );
                 }
             }
+            $finalHostname = $hostname; // java req
             $url = $this->implode_params($this->urls['api'][$type], array(
-                'hostname' => $hostname,
+                'hostname' => $finalHostname,
             )) . $url;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
@@ -7421,7 +7522,7 @@ class htx extends Exchange {
         }
         if (is_array($response) && array_key_exists('status', $response)) {
             //
-            //     array("status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
+            //     array("status":"error","err-$code":"o-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
             //     array("status":"ok","data":array("errors":[array("order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist.")],"successes":""),"ts":1741773744526)
             //
             $status = $this->safe_string($response, 'status');
@@ -7466,7 +7567,7 @@ class htx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch funding history for
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -7757,7 +7858,7 @@ class htx extends Exchange {
          * @param {string} [$params->subType] 'linear' or 'inverse'
          * @param {string} [$params->type] *inverse only* 'future', or 'swap'
          * @param {string} [$params->marginMode] *linear only* 'cross' or 'isolated'
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$position-structure $position structure~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -7898,7 +7999,7 @@ class htx extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$position-structure $position structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -8219,7 +8320,7 @@ class htx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
         $this->load_markets();
         $paginate = false;
@@ -8292,7 +8393,7 @@ class htx extends Exchange {
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
          */
         $this->load_markets();
         $response = $this->contractPublicGetLinearSwapApiV1SwapAdjustfactor ($params);
@@ -8371,7 +8472,7 @@ class htx extends Exchange {
          * @param {array} [$params] Exchange specific parameters
          * @param {int} [$params->amount_type] *required* Open interest unit. 1-cont，2-cryptocurrency
          * @param {int} [$params->pair] eg BTC-USDT *Only for USDT-M*
-         * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structures~
+         * @return {array} an array of ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structures~
          */
         if ($timeframe !== '1h' && $timeframe !== '4h' && $timeframe !== '12h' && $timeframe !== '1d') {
             throw new BadRequest($this->id . ' fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe');
@@ -8484,7 +8585,7 @@ class htx extends Exchange {
          *
          * @param {string[]} [$symbols] a list of unified CCXT $market $symbols
          * @param {array} [$params] exchange specific parameters
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -8498,9 +8599,9 @@ class htx extends Exchange {
         }
         $request = array();
         $subType = null;
-        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params, 'linear');
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenInterests', $market, $params, 'linear');
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenInterests', $market, $params);
         $response = null;
         if ($marketType === 'future') {
             $response = $this->contractPublicGetApiV1ContractOpenInterest ($this->extend($request, $params));
@@ -8581,7 +8682,7 @@ class htx extends Exchange {
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {array} [$params] exchange specific parameters
-         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -8757,7 +8858,7 @@ class htx extends Exchange {
          * @param {string} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -8792,7 +8893,7 @@ class htx extends Exchange {
          * @param {string} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -8825,7 +8926,7 @@ class htx extends Exchange {
          * @param {string} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-$loan-structure margin $loan structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-$loan-structure margin $loan structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -8865,7 +8966,7 @@ class htx extends Exchange {
          * @param {string} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-$loan-structure margin $loan structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-$loan-structure margin $loan structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -8944,7 +9045,7 @@ class htx extends Exchange {
          * @param {int} [$params->until] timestamp in ms, value range = start_time -> current time，default = current time
          * @param {int} [$params->page_index] page index, default page 1 if not filled
          * @param {int} [$params->code] unified currency code, can be used when $symbol is null
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=settlement-history-structure settlement history objects~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=settlement-history-structure settlement history objects~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchSettlementHistory() requires a $symbol argument');
@@ -9043,7 +9144,7 @@ class htx extends Exchange {
          *
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=fee-structure fees structures~
          */
         $this->load_markets();
         $response = $this->spotPublicGetV2ReferenceCurrencies ($params);
@@ -9261,7 +9362,7 @@ class htx extends Exchange {
          * @param {array} [$params] exchange specific parameters for the huobi api endpoint
          * @param {int} [$params->until] timestamp in ms of the latest liquidation
          * @param {int} [$params->tradeType] default 0, linear swap 0 => all liquidated orders, 5 => liquidated longs; 6 => liquidated shorts, inverse swap and future 0 => filled liquidated orders, 5 => liquidated close orders, 6 => liquidated open orders
-         * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=liquidation-structure liquidation structures~
+         * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -9365,7 +9466,7 @@ class htx extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {number} [$params->amount] order quantity
          * @param {string} [$params->order_price_type] 'lightning' by default, 'lightning_fok' => lightning fok type, 'lightning_ioc' => lightning ioc type 'market' by default, 'market' => $market order type, 'lightning_fok' => lightning
-         * @return {array} ~@link https://docs.ccxt.com/#/?id=position-structure an order structure~
+         * @return {array} ~@link https://docs.ccxt.com/?id=position-structure an order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -9471,5 +9572,263 @@ class htx extends Exchange {
             //
         }
         return $response;
+    }
+
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetches the auto deleveraging rank and risk percentage for a list of $symbols
+         *
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81b5a-77b5-11ed-9966-0242ac110003
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81c49-77b5-11ed-9966-0242ac110003
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c2f164-77ae-11ed-9966-0242ac110003
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=5d518648-77b6-11ed-9966-0242ac110003
+         *
+         * @param {string[]} [$symbols] a list of unified $market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $market = null;
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength > 0) {
+                $first = $this->safe_string($symbols, 0);
+                $market = $this->market($first);
+            }
+        }
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchPositionsADLRank', $params, 'cross');
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositionsADLRank', $market, $params, 'linear');
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchPositionsADLRank', $market, $params);
+        if ($marketType === 'spot') {
+            $marketType = 'future';
+        }
+        $response = null;
+        if ($subType === 'linear') {
+            if ($marginMode === 'isolated') {
+                $response = $this->contractPrivatePostLinearSwapApiV1SwapPositionInfo ($params);
+            } elseif ($marginMode === 'cross') {
+                $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo ($params);
+            } else {
+                throw new NotSupported($this->id . ' fetchPositionsADLRank() not support this $market type');
+            }
+            //
+            //         {
+            //             "status" => "ok",
+            //         "data" => array(
+            //             {
+            //                 "symbol" => "BTC",
+            //                 "contract_code" => "BTC-USDT",
+            //                 "volume" => 1.000000000000000000,
+            //                 "available" => 1.000000000000000000,
+            //                 "frozen" => 0E-18,
+            //                 "cost_open" => 96039.700000000000000000,
+            //                 "cost_hold" => 96039.700000000000000000,
+            //                 "profit_unreal" => 0.000600000000000000,
+            //                 "profit_rate" => 0.000006247416432995,
+            //                 "lever_rate" => 1,
+            //                 "position_margin" => 96.040300000000000000,
+            //                 "direction" => "buy",
+            //                 "profit" => 0.000600000000000000,
+            //                 "last_price" => 96040.3,
+            //                 "margin_asset" => "USDT",
+            //                 "margin_mode" => "cross",
+            //                 "margin_account" => "USDT",
+            //                 "contract_type" => "swap",
+            //                 "pair" => "BTC-USDT",
+            //                 "business_type" => "swap",
+            //                 "trade_partition":"USDT",
+            //                 "position_mode" => "single_side",
+            //                 "store_time" => "2023-10-08 20:05:06",
+            //                 "liquidation_price" => null,
+            //                 "market_closing_slippage" => null,
+            //                 "risk_rate" => 249.274066168760049797,
+            //                 "new_risk_rate" => 0.003995619743220614,
+            //                 "risk_rate_percent" => 0.003995619743220614,
+            //                 "withdraw_available" => null,
+            //                 "open_adl" => 1,
+            //                 "adl_risk_percent" => 3,
+            //                 "tp_trigger_price" => null,
+            //                 "sl_trigger_price" => null,
+            //                 "tp_order_id" => null,
+            //                 "sl_order_id" => null,
+            //                 "tp_trigger_type" => null,
+            //                 "sl_trigger_type" => null,
+            //                 "adjust_value" => null
+            //             }
+            //         ),
+            //         "ts" => 1768489640285
+            //     }
+            //
+        } else {
+            if ($marketType === 'future') {
+                $response = $this->contractPrivatePostApiV1ContractPositionInfo ($params);
+                //
+                //     {
+                //         "status" => "ok",
+                //         "data" => array(
+                //             {
+                //                 "symbol" => "BTC",
+                //                 "contract_code" => "BTC-USDT-260123",
+                //                 "volume" => 1.000000000000000000,
+                //                 "available" => 1.000000000000000000,
+                //                 "frozen" => 0E-18,
+                //                 "cost_open" => 96203.100000000000000000,
+                //                 "cost_hold" => 96203.100000000000000000,
+                //                 "profit_unreal" => -0.199400000000000000,
+                //                 "profit_rate" => -0.002072698281032524,
+                //                 "lever_rate" => 1,
+                //                 "position_margin" => 96.003700000000000000,
+                //                 "direction" => "buy",
+                //                 "profit" => -0.199400000000000000,
+                //                 "last_price" => 96003.7,
+                //                 "margin_asset" => "USDT",
+                //                 "margin_mode" => "cross",
+                //                 "margin_account" => "USDT",
+                //                 "contract_type" => "next_week",
+                //                 "pair" => "BTC-USDT",
+                //                 "business_type" => "futures",
+                //                 "trade_partition" => "USDT",
+                //                 "position_mode" => "single_side",
+                //                 "store_time" => "2026-01-15 23:45:21",
+                //                 "liquidation_price" => null,
+                //                 "market_closing_slippage" => null,
+                //                 "risk_rate" => 249.265098252125343196,
+                //                 "new_risk_rate" => 0.003995762920935011,
+                //                 "risk_rate_percent" => 0.003995762920935011,
+                //                 "withdraw_available" => null,
+                //                 "open_adl" => 1,
+                //                 "adl_risk_percent" => 2,
+                //                 "tp_trigger_price" => null,
+                //                 "sl_trigger_price" => null,
+                //                 "tp_order_id" => null,
+                //                 "sl_order_id" => null,
+                //                 "tp_trigger_type" => null,
+                //                 "sl_trigger_type" => null,
+                //                 "adjust_value" => null
+                //             }
+                //         ),
+                //         "ts" => 1768491964551
+                //     }
+                //
+            } elseif ($marketType === 'swap') {
+                $response = $this->contractPrivatePostSwapApiV1SwapPositionInfo ($params);
+                //
+                //     {
+                //         "status" => "ok"
+                //         "data" => array(
+                //             {
+                //                 "symbol" => "THETA"
+                //                 "contract_code" => "THETA-USD"
+                //                 "volume" => 20
+                //                 "available" => 20
+                //                 "frozen" => 0
+                //                 "cost_open" => 0.6048347107438017
+                //                 "cost_hold" => 0.65931
+                //                 "profit_unreal" => -10.5257562398811
+                //                 "profit_rate" => 1.0158596753357925
+                //                 "lever_rate" => 20
+                //                 "position_margin" => 15.693659761456372
+                //                 "direction" => "buy"
+                //                 "profit" => 16.795657677889032
+                //                 "last_price" => 0.6372
+                //                 "adl_risk_percent" => "3"
+                //                 "liq_px" => "112"
+                //                 "new_risk_rate" => ""
+                //                 "trade_partition" => ""
+                //             }
+                //         )
+                //         "ts" => 1603868312729
+                //     }
+                //
+            } else {
+                throw new NotSupported($this->id . ' fetchPositionsADLRank() not support this $market type');
+            }
+        }
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_adl_ranks($data, $symbols);
+    }
+
+    public function parse_adl_rank(array $info, ?array $market = null): array {
+        //
+        // fetchPositionADLRank linear swap and future
+        //
+        //     {
+        //         "symbol" => "BTC",
+        //         "contract_code" => "BTC-USDT",
+        //         "volume" => 1.000000000000000000,
+        //         "available" => 1.000000000000000000,
+        //         "frozen" => 0E-18,
+        //         "cost_open" => 96039.700000000000000000,
+        //         "cost_hold" => 96039.700000000000000000,
+        //         "profit_unreal" => 0.000600000000000000,
+        //         "profit_rate" => 0.000006247416432995,
+        //         "lever_rate" => 1,
+        //         "position_margin" => 96.040300000000000000,
+        //         "direction" => "buy",
+        //         "profit" => 0.000600000000000000,
+        //         "last_price" => 96040.3,
+        //         "margin_asset" => "USDT",
+        //         "margin_mode" => "cross",
+        //         "margin_account" => "USDT",
+        //         "contract_type" => "swap",
+        //         "pair" => "BTC-USDT",
+        //         "business_type" => "swap",
+        //         "trade_partition":"USDT",
+        //         "position_mode" => "single_side",
+        //         "store_time" => "2023-10-08 20:05:06",
+        //         "liquidation_price" => null,
+        //         "market_closing_slippage" => null,
+        //         "risk_rate" => 249.274066168760049797,
+        //         "new_risk_rate" => 0.003995619743220614,
+        //         "risk_rate_percent" => 0.003995619743220614,
+        //         "withdraw_available" => null,
+        //         "open_adl" => 1,
+        //         "adl_risk_percent" => 3,
+        //         "tp_trigger_price" => null,
+        //         "sl_trigger_price" => null,
+        //         "tp_order_id" => null,
+        //         "sl_order_id" => null,
+        //         "tp_trigger_type" => null,
+        //         "sl_trigger_type" => null,
+        //         "adjust_value" => null
+        //     }
+        //
+        // fetchPositionADLRank inverse
+        //
+        //     {
+        //         "symbol" => "THETA"
+        //         "contract_code" => "THETA-USD"
+        //         "volume" => 20
+        //         "available" => 20
+        //         "frozen" => 0
+        //         "cost_open" => 0.6048347107438017
+        //         "cost_hold" => 0.65931
+        //         "profit_unreal" => -10.5257562398811
+        //         "profit_rate" => 1.0158596753357925
+        //         "lever_rate" => 20
+        //         "position_margin" => 15.693659761456372
+        //         "direction" => "buy"
+        //         "profit" => 16.795657677889032
+        //         "last_price" => 0.6372
+        //         "adl_risk_percent" => "3"
+        //         "liq_px" => "112"
+        //         "new_risk_rate" => ""
+        //         "trade_partition" => ""
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'contract_code');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'rank' => $this->safe_integer($info, 'adl_risk_percent'),
+            'rating' => null,
+            'percentage' => null,
+            'timestamp' => null,
+            'datetime' => null,
+        );
     }
 }

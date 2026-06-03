@@ -623,7 +623,7 @@ class bitteam extends Exchange {
         //
         $responseResult = $this->safe_value($response, 'result', array());
         $currencies = $this->safe_value($responseResult, 'currencies', array());
-        // usding another endpoint to fetch $statuses of deposits and withdrawals
+        // usding another endpoint to fetch statuses of deposits and withdrawals
         $statusesResponse = $this->publicGetTradeApiCmcAssets ();
         //
         //     {
@@ -646,76 +646,53 @@ class bitteam extends Exchange {
         //     }
         //
         $statusesResponse = $this->index_by($statusesResponse, 'unified_cryptoasset_id');
-        $result = array();
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currency = $currencies[$i];
-            $id = $this->safe_string($currency, 'symbol');
-            $numericId = $this->safe_integer($currency, 'id');
-            $code = $this->safe_currency_code($id);
-            $active = $this->safe_bool($currency, 'active', false);
-            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision')));
-            $txLimits = $this->safe_value($currency, 'txLimits', array());
-            $minWithdraw = $this->safe_string($txLimits, 'minWithdraw');
-            $maxWithdraw = $this->safe_string($txLimits, 'maxWithdraw');
-            $minDeposit = $this->safe_string($txLimits, 'minDeposit');
-            $fee = null;
-            $withdrawCommissionFixed = $this->safe_value($txLimits, 'withdrawCommissionFixed', array());
-            $feesByNetworkId = array();
-            $blockChain = $this->safe_string($currency, 'blockChain');
-            // if only one $blockChain
-            if (($blockChain !== null) && ($blockChain !== '')) {
-                $fee = $this->parse_number($withdrawCommissionFixed);
-                $feesByNetworkId[$blockChain] = $fee;
-            } else {
-                $feesByNetworkId = $withdrawCommissionFixed;
-            }
-            $statuses = $this->safe_value($statusesResponse, $numericId, array());
-            $deposit = $this->safe_value($statuses, 'depositStatus');
-            $withdraw = $this->safe_value($statuses, 'withdrawStatus');
-            $networkIds = is_array($feesByNetworkId) ? array_keys($feesByNetworkId) : array();
-            $networks = array();
-            $networkPrecision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
-            $typeRaw = $this->safe_string($currency, 'type');
-            for ($j = 0; $j < count($networkIds); $j++) {
-                $networkId = $networkIds[$j];
-                $networkCode = $this->network_id_to_code($networkId, $code);
-                $networkFee = $this->safe_number($feesByNetworkId, $networkId);
-                $networks[$networkCode] = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
-                    'active' => $active,
-                    'fee' => $networkFee,
-                    'precision' => $networkPrecision,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => $this->parse_number($minWithdraw),
-                            'max' => $this->parse_number($maxWithdraw),
-                        ),
-                        'deposit' => array(
-                            'min' => $this->parse_number($minDeposit),
-                            'max' => null,
-                        ),
-                    ),
-                    'info' => $currency,
-                );
-            }
-            $result[$code] = array(
-                'id' => $id,
-                'numericId' => $numericId,
-                'code' => $code,
-                'name' => $code,
-                'info' => $currency,
-                'active' => $active,
+        $this->options['_temp_currencies_statuses'] = $statusesResponse;
+        $result = $this->parse_currencies($currencies);
+        unset($this->options['_temp_currencies_statuses']);
+        return $result;
+    }
+
+    public function parse_currency(array $currency): array {
+        $statusesResponse = $this->safe_value($this->options, '_temp_currencies_statuses', array());
+        $id = $this->safe_string($currency, 'symbol');
+        $numericId = $this->safe_integer($currency, 'id');
+        $code = $this->safe_currency_code($id);
+        $active = $this->safe_bool($currency, 'active', false);
+        $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision')));
+        $txLimits = $this->safe_value($currency, 'txLimits', array());
+        $minWithdraw = $this->safe_string($txLimits, 'minWithdraw');
+        $maxWithdraw = $this->safe_string($txLimits, 'maxWithdraw');
+        $minDeposit = $this->safe_string($txLimits, 'minDeposit');
+        $fee = null;
+        $withdrawCommissionFixed = $this->safe_value($txLimits, 'withdrawCommissionFixed', array());
+        $feesByNetworkId = array();
+        $blockChain = $this->safe_string($currency, 'blockChain');
+        // if only one $blockChain
+        if (($blockChain !== null) && ($blockChain !== '')) {
+            $fee = $this->parse_number($withdrawCommissionFixed);
+            $feesByNetworkId[$blockChain] = $fee;
+        } else {
+            $feesByNetworkId = $withdrawCommissionFixed;
+        }
+        $statuses = $this->safe_value($statusesResponse, $numericId, array());
+        $deposit = $this->safe_value($statuses, 'depositStatus');
+        $withdraw = $this->safe_value($statuses, 'withdrawStatus');
+        $networkIds = is_array($feesByNetworkId) ? array_keys($feesByNetworkId) : array();
+        $networks = array();
+        $networkPrecision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
+        $typeRaw = $this->safe_string($currency, 'type');
+        for ($j = 0; $j < count($networkIds); $j++) {
+            $networkId = $networkIds[$j];
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networkFee = $this->safe_number($feesByNetworkId, $networkId);
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
                 'deposit' => $deposit,
                 'withdraw' => $withdraw,
-                'fee' => $fee,
-                'precision' => $precision,
+                'active' => $active,
+                'fee' => $networkFee,
+                'precision' => $networkPrecision,
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
@@ -730,14 +707,40 @@ class bitteam extends Exchange {
                         'max' => null,
                     ),
                 ),
-                'type' => $typeRaw, // 'crypto' or 'fiat'
-                'networks' => $networks,
+                'info' => $currency,
             );
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'numericId' => $numericId,
+            'code' => $code,
+            'name' => $code,
+            'info' => $currency,
+            'active' => $active,
+            'deposit' => $deposit,
+            'withdraw' => $withdraw,
+            'fee' => $fee,
+            'precision' => $precision,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $this->parse_number($minWithdraw),
+                    'max' => $this->parse_number($maxWithdraw),
+                ),
+                'deposit' => array(
+                    'min' => $this->parse_number($minDeposit),
+                    'max' => null,
+                ),
+            ),
+            'type' => $typeRaw, // 'crypto' or 'fiat'
+            'networks' => $networks,
+        ));
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -827,7 +830,7 @@ class bitteam extends Exchange {
         $response = $this->publicGetTradeApiCmcOrderbookPair ($this->extend($request, $params));
         //
         //     {
-        //         "timestamp" => 1701166703285,
+        //         "timestamp" => 1701166703284,
         //         "bids" => array(
         //             array(
         //                 2019.334988,
@@ -1425,7 +1428,7 @@ class bitteam extends Exchange {
         //     )
         //
         $tickers = array();
-        if (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response))) {
+        if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
             $response = array();
         }
         for ($i = 0; $i < count($response); $i++) {
@@ -1728,7 +1731,7 @@ class bitteam extends Exchange {
         $bestAskVolume = null;
         $bids = $this->safe_value($ticker, 'bids');
         $asks = $this->safe_value($ticker, 'asks');
-        if (($bids !== null) && (gettype($bids) === 'array' && array_keys($bids) === array_keys(array_keys($bids))) && ($asks !== null) && (gettype($asks) === 'array' && array_keys($asks) === array_keys(array_keys($asks)))) {
+        if (($bids !== null) && ((gettype($bids) === 'array' && array_keys($bids) === array_keys(array_keys($bids)))) && ($asks !== null) && ((gettype($asks) === 'array' && array_keys($asks) === array_keys(array_keys($asks))))) {
             $bestBid = $this->safe_value($bids, 0, array());
             $bestBidPrice = $this->safe_string($bestBid, 'price');
             $bestBidVolume = $this->safe_string($bestBid, 'quantity');

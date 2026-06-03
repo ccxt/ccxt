@@ -10,7 +10,6 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_last_price.php';
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_fetch_last_prices($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
@@ -19,9 +18,9 @@ function test_fetch_last_prices($exchange, $skipped_properties, $symbol) {
         $response = null;
         $checked_symbol = null;
         try {
-            $response = Async\await($exchange->fetch_last_prices());
+            $response = \React\Async\await($exchange->fetch_last_prices());
         } catch(\Throwable $e) {
-            $response = Async\await($exchange->fetch_last_prices([$symbol]));
+            $response = \React\Async\await($exchange->fetch_last_prices([$symbol]));
             $checked_symbol = $symbol;
         }
         assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $checked_symbol . ' must return an object. ' . $exchange->json($response));

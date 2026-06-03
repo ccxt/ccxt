@@ -70,7 +70,7 @@ class hashkey(ccxt.async_support.hashkey):
     def get_private_url(self, listenKey):
         return self.urls['api']['ws']['private'] + '/' + listenKey
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -173,7 +173,7 @@ class hashkey(ccxt.async_support.hashkey):
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.binary]: True or False - default False
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -229,7 +229,7 @@ class hashkey(ccxt.async_support.hashkey):
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.binary]: True or False - default False
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -292,7 +292,7 @@ class hashkey(ccxt.async_support.hashkey):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -357,7 +357,7 @@ class hashkey(ccxt.async_support.hashkey):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         messageHash = 'orders'
@@ -472,7 +472,7 @@ class hashkey(ccxt.async_support.hashkey):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         messageHash = 'myTrades'
@@ -544,19 +544,22 @@ class hashkey(ccxt.async_support.hashkey):
         marketId = self.safe_string(trade, 's')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(trade, 't')
-        isMaker = self.safe_bool(trade, 'm')
+        isBuyerMaker = self.safe_bool(trade, 'm')
+        side: Str = None
         takerOrMaker: Str = None
-        if isMaker is not None:
-            if isMaker:
+        if isBuyerMaker is not None:
+            if isBuyerMaker:
+                side = 'sell'
                 takerOrMaker = 'maker'
             else:
+                side = 'buy'
                 takerOrMaker = 'taker'
         return self.safe_trade({
             'id': self.safe_string_2(trade, 'v', 'T'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
-            'side': self.safe_string_lower(trade, 'S'),
+            'side': self.safe_string_lower(trade, 'S', side),
             'price': self.safe_string(trade, 'p'),
             'amount': self.safe_string(trade, 'q'),
             'cost': None,
@@ -671,7 +674,7 @@ class hashkey(ccxt.async_support.hashkey):
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot' or 'swap' - the type of the market to watch balance for(default 'spot')
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         listenKey = await self.authenticate()
         await self.load_markets()
@@ -706,9 +709,10 @@ class hashkey(ccxt.async_support.hashkey):
         response = await self.fetch_balance({'type': type})
         self.balance[type] = self.extend(response, self.safe_value(self.balance, type, {}))
         # don't remove the future from the .futures cache
-        future = client.futures[messageHash]
-        future.resolve()
-        client.resolve(self.balance[type], 'balance:' + type)
+        if messageHash in client.futures:
+            future = client.futures[messageHash]
+            future.resolve()
+            client.resolve(self.balance[type], 'balance:' + type)
 
     def handle_balance(self, client: Client, message):
         #

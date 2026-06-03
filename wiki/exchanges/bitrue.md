@@ -34,6 +34,9 @@
 * [setMargin](#setmargin)
 * [watchBalance](#watchbalance)
 * [watchOrders](#watchorders)
+* [watchTrades](#watchtrades)
+* [watchOHLCV](#watchohlcv)
+* [watchTicker](#watchticker)
 
 <a name="fetchStatus" id="fetchstatus"></a>
 
@@ -41,7 +44,7 @@
 the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
 **See**: https://github.com/Bitrue-exchange/Spot-official-api-docs#test-connectivity  
 
@@ -125,7 +128,7 @@ bitrue.fetchMarkets ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -152,7 +155,7 @@ bitrue.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -179,7 +182,7 @@ bitrue.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -234,7 +237,7 @@ bitrue.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches the bid and ask price and volume for multiple markets
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -260,7 +263,7 @@ bitrue.fetchBidsAsks (symbols[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -286,7 +289,7 @@ bitrue.fetchTickers (symbols[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list  
 
@@ -309,7 +312,7 @@ bitrue.fetchTrades (symbol[, since, limit, params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -335,7 +338,7 @@ bitrue.createMarketBuyOrderWithCost (symbol, cost[, params])
 create a trade order
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -373,7 +376,7 @@ bitrue.createOrder (symbol, type, side, amount[, price, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -399,7 +402,7 @@ bitrue.fetchOrder (id, symbol[, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.bitrue.com/api_docs_includes_file/spot/index.html#all-orders-user_data  
 
@@ -422,7 +425,7 @@ bitrue.fetchClosedOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -449,7 +452,7 @@ bitrue.fetchOpenOrders (symbol[, since, limit, params])
 cancels an open order
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -502,7 +505,7 @@ bitrue.cancelAllOrders (symbol[, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -529,7 +532,7 @@ bitrue.fetchMyTrades (symbol[, since, limit, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://github.com/Bitrue-exchange/Spot-official-api-docs#deposit-history--withdraw_data  
 
@@ -552,7 +555,7 @@ bitrue.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-history--withdraw_data  
 
@@ -575,7 +578,7 @@ bitrue.fetchWithdrawals (code[, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data  
 
@@ -599,7 +602,7 @@ bitrue.withdraw (code, amount, address, tag[, params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint  
 
@@ -729,7 +732,7 @@ bitrue.setMargin (symbol, amount[, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update  
 
@@ -749,7 +752,7 @@ bitrue.watchBalance ([params])
 watches information on user orders
 
 **Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>object</code> - A dictionary of [order structure](https://docs.ccxt.com/#/?id=order-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order structure](https://docs.ccxt.com/?id=order-structure) indexed by market symbols
 
 **See**: https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update  
 
@@ -763,5 +766,73 @@ watches information on user orders
 
 ```javascript
 bitrue.watchOrders (symbol[, since, limit, params])
+```
+
+
+<a name="watchTrades" id="watchtrades"></a>
+
+### watchTrades{docsify-ignore}
+watches public trades for a swap (futures) market
+
+**Kind**: instance method of [<code>bitrue</code>](#bitrue)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**: https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitrue.watchTrades (symbol[, since, limit, params])
+```
+
+
+<a name="watchOHLCV" id="watchohlcv"></a>
+
+### watchOHLCV{docsify-ignore}
+watches OHLCV candles for a swap (futures) market
+
+**Kind**: instance method of [<code>bitrue</code>](#bitrue)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**: https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitrue.watchOHLCV (symbol, timeframe[, since, limit, params])
+```
+
+
+<a name="watchTicker" id="watchticker"></a>
+
+### watchTicker{docsify-ignore}
+watches a 24h ticker for a swap (futures) market
+
+**Kind**: instance method of [<code>bitrue</code>](#bitrue)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitrue.watchTicker (symbol[, params])
 ```
 

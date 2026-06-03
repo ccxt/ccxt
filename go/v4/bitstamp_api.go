@@ -7,1022 +7,1054 @@
 
 package ccxt
 
-func (this *bitstamp) PublicGetOhlcPair(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PublicGetOhlcPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOhlcPair", args...)
 }
 
-func (this *bitstamp) PublicGetOrderBookPair(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PublicGetOrderBookPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrderBookPair", args...)
 }
 
-func (this *bitstamp) PublicGetTicker(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PublicGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *bitstamp) PublicGetTickerHourPair(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PublicGetTickerHourPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickerHourPair", args...)
 }
 
-func (this *bitstamp) PublicGetTickerPair(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PublicGetTickerPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickerPair", args...)
 }
 
-func (this *bitstamp) PublicGetTransactionsPair(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PublicGetTransactionsPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTransactionsPair", args...)
 }
 
-func (this *bitstamp) PublicGetTradingPairsInfo(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PublicGetTradingPairsInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradingPairsInfo", args...)
 }
 
-func (this *bitstamp) PublicGetCurrencies(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PublicGetMarkets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarkets", args...)
+}
+
+func (this *BitstampCore) PublicGetCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCurrencies", args...)
 }
 
-func (this *bitstamp) PublicGetEurUsd(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PublicGetEurUsd(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetEurUsd", args...)
 }
 
-func (this *bitstamp) PublicGetTravelRuleVasps(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PublicGetTravelRuleVasps(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTravelRuleVasps", args...)
 }
 
-func (this *bitstamp) PrivateGetTravelRuleContacts(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PublicGetFundingRateMarketSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetFundingRateMarketSymbol", args...)
+}
+
+func (this *BitstampCore) PublicGetFundingRateHistoryPair(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetFundingRateHistoryPair", args...)
+}
+
+func (this *BitstampCore) PrivateGetTravelRuleContacts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTravelRuleContacts", args...)
 }
 
-func (this *bitstamp) PrivateGetContactsContactUuid(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivateGetContactsContactUuid(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetContactsContactUuid", args...)
 }
 
-func (this *bitstamp) PrivateGetEarnSubscriptions(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivateGetEarnSubscriptions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetEarnSubscriptions", args...)
 }
 
-func (this *bitstamp) PrivateGetEarnTransactions(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivateGetEarnTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetEarnTransactions", args...)
 }
 
-func (this *bitstamp) PrivatePostAccountBalances(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivateGetTradeHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeHistory", args...)
+}
+
+func (this *BitstampCore) PrivateGetTradeHistoryPair(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeHistoryPair", args...)
+}
+
+func (this *BitstampCore) PrivatePostAccountBalances(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountBalances", args...)
 }
 
-func (this *bitstamp) PrivatePostAccountBalancesCurrency(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostAccountBalancesCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountBalancesCurrency", args...)
 }
 
-func (this *bitstamp) PrivatePostBalance(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBalance", args...)
 }
 
-func (this *bitstamp) PrivatePostBalancePair(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostBalancePair(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBalancePair", args...)
 }
 
-func (this *bitstamp) PrivatePostBchWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostBchWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBchWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostBchAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostBchAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBchAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostUserTransactions(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostUserTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserTransactions", args...)
 }
 
-func (this *bitstamp) PrivatePostUserTransactionsPair(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostUserTransactionsPair(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserTransactionsPair", args...)
 }
 
-func (this *bitstamp) PrivatePostCryptoTransactions(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostCryptoTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCryptoTransactions", args...)
 }
 
-func (this *bitstamp) PrivatePostOpenOrder(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostOpenOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenOrder", args...)
 }
 
-func (this *bitstamp) PrivatePostOpenOrdersAll(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostOpenOrdersAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenOrdersAll", args...)
 }
 
-func (this *bitstamp) PrivatePostOpenOrdersPair(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostOpenOrdersPair(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenOrdersPair", args...)
 }
 
-func (this *bitstamp) PrivatePostOrderStatus(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostReplaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostReplaceOrder", args...)
+}
+
+func (this *BitstampCore) PrivatePostOrderStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderStatus", args...)
 }
 
-func (this *bitstamp) PrivatePostCancelOrder(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
-func (this *bitstamp) PrivatePostCancelAllOrders(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostCancelAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelAllOrders", args...)
 }
 
-func (this *bitstamp) PrivatePostCancelAllOrdersPair(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostCancelAllOrdersPair(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelAllOrdersPair", args...)
 }
 
-func (this *bitstamp) PrivatePostBuyPair(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostBuyPair(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBuyPair", args...)
 }
 
-func (this *bitstamp) PrivatePostBuyMarketPair(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostBuyMarketPair(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBuyMarketPair", args...)
 }
 
-func (this *bitstamp) PrivatePostBuyInstantPair(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostBuyInstantPair(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBuyInstantPair", args...)
 }
 
-func (this *bitstamp) PrivatePostSellPair(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSellPair(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSellPair", args...)
 }
 
-func (this *bitstamp) PrivatePostSellMarketPair(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSellMarketPair(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSellMarketPair", args...)
 }
 
-func (this *bitstamp) PrivatePostSellInstantPair(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSellInstantPair(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSellInstantPair", args...)
 }
 
-func (this *bitstamp) PrivatePostTransferToMain(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostTransferToMain(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTransferToMain", args...)
 }
 
-func (this *bitstamp) PrivatePostTransferFromMain(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostTransferFromMain(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTransferFromMain", args...)
 }
 
-func (this *bitstamp) PrivatePostMyTradingPairs(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostMyTradingPairs(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMyTradingPairs", args...)
 }
 
-func (this *bitstamp) PrivatePostFeesTrading(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostFeesTrading(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFeesTrading", args...)
 }
 
-func (this *bitstamp) PrivatePostFeesTradingMarketSymbol(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostFeesTradingMarketSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFeesTradingMarketSymbol", args...)
 }
 
-func (this *bitstamp) PrivatePostFeesWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostFeesWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFeesWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostFeesWithdrawalCurrency(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostFeesWithdrawalCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFeesWithdrawalCurrency", args...)
 }
 
-func (this *bitstamp) PrivatePostWithdrawalRequests(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostWithdrawalRequests(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawalRequests", args...)
 }
 
-func (this *bitstamp) PrivatePostWithdrawalOpen(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostWithdrawalOpen(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawalOpen", args...)
 }
 
-func (this *bitstamp) PrivatePostWithdrawalStatus(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostWithdrawalStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawalStatus", args...)
 }
 
-func (this *bitstamp) PrivatePostWithdrawalCancel(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostWithdrawalCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawalCancel", args...)
 }
 
-func (this *bitstamp) PrivatePostLiquidationAddressNew(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostLiquidationAddressNew(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostLiquidationAddressNew", args...)
 }
 
-func (this *bitstamp) PrivatePostLiquidationAddressInfo(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostLiquidationAddressInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostLiquidationAddressInfo", args...)
 }
 
-func (this *bitstamp) PrivatePostBtcUnconfirmed(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostBtcUnconfirmed(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBtcUnconfirmed", args...)
 }
 
-func (this *bitstamp) PrivatePostWebsocketsToken(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostWebsocketsToken(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWebsocketsToken", args...)
 }
 
-func (this *bitstamp) PrivatePostBtcWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostRevokeAllApiKeys(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRevokeAllApiKeys", args...)
+}
+
+func (this *BitstampCore) PrivatePostGetMaxOrderAmount(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGetMaxOrderAmount", args...)
+}
+
+func (this *BitstampCore) PrivatePostBtcWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBtcWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostBtcAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostBtcAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBtcAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostRippleWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostRippleWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRippleWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostRippleAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostRippleAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRippleAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostLtcWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostLtcWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostLtcWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostLtcAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostLtcAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostLtcAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostEthWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostEthWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEthWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostEthAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostEthAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEthAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostXrpWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostXrpWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostXrpWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostXrpAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostXrpAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostXrpAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostXlmWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostXlmWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostXlmWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostXlmAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostXlmAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostXlmAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostPaxWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostPaxWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPaxWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostPaxAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostPaxAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPaxAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostLinkWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostLinkWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostLinkWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostLinkAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostLinkAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostLinkAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostUsdcWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostUsdcWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUsdcWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostUsdcAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostUsdcAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUsdcAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostOmgWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostOmgWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOmgWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostOmgAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostOmgAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOmgAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostDaiWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostDaiWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDaiWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostDaiAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostDaiAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDaiAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostKncWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostKncWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostKncWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostKncAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostKncAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostKncAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostMkrWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostMkrWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMkrWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostMkrAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostMkrAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMkrAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostZrxWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostZrxWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostZrxWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostZrxAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostZrxAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostZrxAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostGusdWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostGusdWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGusdWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostGusdAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostGusdAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGusdAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostAaveWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostAaveWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAaveWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostAaveAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostAaveAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAaveAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostBatWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostBatWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBatWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostBatAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostBatAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBatAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostUmaWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostUmaWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUmaWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostUmaAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostUmaAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUmaAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostSnxWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSnxWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSnxWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostSnxAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSnxAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSnxAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostUniWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostUniWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUniWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostUniAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostUniAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUniAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostYfiWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostYfiWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostYfiWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostYfiAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostYfiAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostYfiAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostAudioWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostAudioWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAudioWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostAudioAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostAudioAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAudioAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostCrvWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostCrvWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCrvWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostCrvAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostCrvAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCrvAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostAlgoWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostAlgoWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAlgoWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostAlgoAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostAlgoAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAlgoAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostCompWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostCompWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCompWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostCompAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostCompAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCompAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostGrtWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostGrtWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGrtWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostGrtAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostGrtAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGrtAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostUsdtWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostUsdtWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUsdtWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostUsdtAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostUsdtAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUsdtAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostEurtWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostEurtWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEurtWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostEurtAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostEurtAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEurtAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostMaticWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostMaticWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMaticWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostMaticAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostMaticAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMaticAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostSushiWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSushiWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSushiWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostSushiAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSushiAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSushiAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostChzWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostChzWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostChzWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostChzAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostChzAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostChzAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostEnjWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostEnjWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEnjWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostEnjAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostEnjAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEnjAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostAlphaWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostAlphaWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAlphaWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostAlphaAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostAlphaAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAlphaAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostFttWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostFttWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFttWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostFttAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostFttAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFttAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostStorjWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostStorjWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostStorjWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostStorjAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostStorjAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostStorjAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostAxsWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostAxsWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAxsWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostAxsAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostAxsAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAxsAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostSandWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSandWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSandWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostSandAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSandAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSandAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostHbarWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostHbarWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostHbarWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostHbarAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostHbarAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostHbarAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostRgtWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostRgtWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRgtWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostRgtAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostRgtAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRgtAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostFetWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostFetWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFetWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostFetAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostFetAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFetAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostSklWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSklWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSklWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostSklAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSklAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSklAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostCelWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostCelWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCelWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostCelAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostCelAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCelAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostSxpWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSxpWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSxpWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostSxpAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSxpAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSxpAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostAdaWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostAdaWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAdaWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostAdaAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostAdaAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAdaAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostSlpWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSlpWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSlpWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostSlpAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSlpAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSlpAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostFtmWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostFtmWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFtmWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostFtmAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostFtmAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFtmAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostPerpWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostPerpWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPerpWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostPerpAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostPerpAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPerpAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostDydxWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostDydxWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDydxWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostDydxAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostDydxAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDydxAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostGalaWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostGalaWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGalaWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostGalaAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostGalaAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGalaAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostShibWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostShibWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostShibWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostShibAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostShibAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostShibAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostAmpWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostAmpWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAmpWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostAmpAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostAmpAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAmpAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostSgbWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSgbWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSgbWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostSgbAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSgbAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSgbAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostAvaxWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostAvaxWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAvaxWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostAvaxAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostAvaxAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAvaxAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostWbtcWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostWbtcWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWbtcWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostWbtcAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostWbtcAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWbtcAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostCtsiWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostCtsiWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCtsiWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostCtsiAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostCtsiAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCtsiAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostCvxWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostCvxWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCvxWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostCvxAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostCvxAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCvxAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostImxWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostImxWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostImxWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostImxAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostImxAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostImxAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostNexoWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostNexoWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostNexoWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostNexoAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostNexoAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostNexoAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostUstWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostUstWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUstWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostUstAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostUstAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUstAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostAntWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostAntWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAntWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostAntAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostAntAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAntAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostGodsWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostGodsWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGodsWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostGodsAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostGodsAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGodsAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostRadWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostRadWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRadWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostRadAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostRadAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRadAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostBandWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostBandWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBandWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostBandAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostBandAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBandAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostInjWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostInjWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostInjWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostInjAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostInjAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostInjAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostRlyWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostRlyWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRlyWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostRlyAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostRlyAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRlyAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostRndrWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostRndrWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRndrWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostRndrAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostRndrAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRndrAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostVegaWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostVegaWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostVegaWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostVegaAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostVegaAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostVegaAddress", args...)
 }
 
-func (this *bitstamp) PrivatePost1inchWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePost1inchWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePost1inchWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePost1inchAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePost1inchAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePost1inchAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostEnsWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostEnsWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEnsWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostEnsAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostEnsAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEnsAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostManaWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostManaWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostManaWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostManaAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostManaAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostManaAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostLrcWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostLrcWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostLrcWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostLrcAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostLrcAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostLrcAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostApeWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostApeWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApeWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostApeAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostApeAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApeAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostMplWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostMplWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMplWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostMplAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostMplAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMplAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostEurocWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostEurocWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEurocWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostEurocAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostEurocAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEurocAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostSolWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSolWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSolWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostSolAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSolAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSolAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostDotWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostDotWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDotWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostDotAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostDotAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDotAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostNearWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostNearWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostNearWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostNearAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostNearAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostNearAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostDogeWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostDogeWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDogeWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostDogeAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostDogeAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDogeAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostFlrWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostFlrWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFlrWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostFlrAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostFlrAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFlrAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostDgldWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostDgldWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDgldWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostDgldAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostDgldAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDgldAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostLdoWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostLdoWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostLdoWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostLdoAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostLdoAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostLdoAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostTravelRuleContacts(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostTravelRuleContacts(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTravelRuleContacts", args...)
 }
 
-func (this *bitstamp) PrivatePostEarnSubscribe(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostEarnSubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEarnSubscribe", args...)
 }
 
-func (this *bitstamp) PrivatePostEarnSubscriptionsSetting(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostEarnSubscriptionsSetting(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEarnSubscriptionsSetting", args...)
 }
 
-func (this *bitstamp) PrivatePostEarnUnsubscribe(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostEarnUnsubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEarnUnsubscribe", args...)
 }
 
-func (this *bitstamp) PrivatePostWecanWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostWecanWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWecanWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostWecanAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostWecanAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWecanAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostTracWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostTracWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTracWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostTracAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostTracAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTracAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostEurcvWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostEurcvWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEurcvWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostEurcvAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostEurcvAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEurcvAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostPyusdWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostPyusdWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPyusdWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostPyusdAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostPyusdAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPyusdAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostLmwrWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostLmwrWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostLmwrWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostLmwrAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostLmwrAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostLmwrAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostPepeWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostPepeWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPepeWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostPepeAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostPepeAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPepeAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostBlurWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostBlurWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBlurWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostBlurAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostBlurAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBlurAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostVextWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostVextWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostVextWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostVextAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostVextAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostVextAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostCsprWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostCsprWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCsprWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostCsprAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostCsprAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCsprAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostVchfWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostVchfWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostVchfWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostVchfAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostVchfAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostVchfAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostVeurWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostVeurWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostVeurWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostVeurAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostVeurAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostVeurAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostTrufWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostTrufWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTrufWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostTrufAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostTrufAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTrufAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostWifWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostWifWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWifWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostWifAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostWifAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWifAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostSmtWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSmtWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSmtWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostSmtAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSmtAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSmtAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostSuiWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSuiWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSuiWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostSuiAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostSuiAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSuiAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostJupWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostJupWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostJupWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostJupAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostJupAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostJupAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostOndoWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostOndoWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOndoWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostOndoAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostOndoAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOndoAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostBobaWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostBobaWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBobaWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostBobaAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostBobaAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBobaAddress", args...)
 }
 
-func (this *bitstamp) PrivatePostPythWithdrawal(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostPythWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPythWithdrawal", args...)
 }
 
-func (this *bitstamp) PrivatePostPythAddress(args ...interface{}) <-chan interface{} {
+func (this *BitstampCore) PrivatePostPythAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPythAddress", args...)
 }

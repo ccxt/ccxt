@@ -16,14 +16,14 @@ from ccxt.test.exchange.base import test_ticker  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_fetch_tickers(exchange, skipped_properties, symbol):
-    without_symbol = test_fetch_tickers_helper(exchange, skipped_properties, None)
-    with_symbol = test_fetch_tickers_helper(exchange, skipped_properties, [symbol])
+    without_symbol = fetch_tickers_helper_test(exchange, skipped_properties, None)
+    with_symbol = fetch_tickers_helper_test(exchange, skipped_properties, [symbol])
     results = asyncio.gather(*[without_symbol, with_symbol])
-    test_fetch_tickers_amounts(exchange, skipped_properties, results[0])
+    fetch_tickers_amounts_test(exchange, skipped_properties, results[0])
     return results
 
 
-def test_fetch_tickers_helper(exchange, skipped_properties, arg_symbols, arg_params={}):
+def fetch_tickers_helper_test(exchange, skipped_properties, arg_symbols, arg_params={}):
     method = 'fetchTickers'
     response = exchange.fetch_tickers(arg_symbols, arg_params)
     assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + exchange.json(arg_symbols) + ' must return an object. ' + exchange.json(response)
@@ -39,7 +39,7 @@ def test_fetch_tickers_helper(exchange, skipped_properties, arg_symbols, arg_par
     return response
 
 
-def test_fetch_tickers_amounts(exchange, skipped_properties, tickers):
+def fetch_tickers_amounts_test(exchange, skipped_properties, tickers):
     tickers_values = list(tickers.values())
     if not ('checkActiveSymbols' in skipped_properties):
         #
@@ -48,8 +48,8 @@ def test_fetch_tickers_amounts(exchange, skipped_properties, tickers):
         non_inactive_markets = test_shared_methods.get_active_markets(exchange)
         not_inactive_symbols_length = len(non_inactive_markets)
         obtained_tickers_length = len(tickers_values)
-        tolerance_coefficient = 0.01  # 1% tolerance, eg. when 100 active markets, we should have at least 99 tickers
-        assert obtained_tickers_length >= not_inactive_symbols_length * (1 - tolerance_coefficient), exchange.id + ' ' + 'fetchTickers' + ' must return tickers for all active markets. but returned: ' + str(obtained_tickers_length) + ' tickers, ' + str(not_inactive_symbols_length) + ' active markets'
+        min_ratio = 0.99  # 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
+        assert obtained_tickers_length >= not_inactive_symbols_length * min_ratio, exchange.id + ' ' + 'fetchTickers' + ' must return tickers for all active markets. but returned: ' + str(obtained_tickers_length) + ' tickers, ' + str(not_inactive_symbols_length) + ' active markets'
         #
         # ensure tickers length is less than markets length
         #

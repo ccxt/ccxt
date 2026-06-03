@@ -756,6 +756,7 @@ class hitbtc extends Exchange {
                 'XMT' => 'MTL',
                 'XPNT' => 'PNT',
             ),
+            'rollingWindowSize' => 1000.0,
         ));
     }
 
@@ -909,12 +910,12 @@ class hitbtc extends Exchange {
 
     public function fetch_currencies($params = array ()): ?array {
         /**
-         * fetches all available $currencies on an exchange
+         * fetches all available currencies on an exchange
          *
-         * @see https://api.hitbtc.com/#$currencies
+         * @see https://api.hitbtc.com/#currencies
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an associative dictionary of $currencies
+         * @return {array} an associative dictionary of currencies
          */
         $response = $this->publicGetPublicCurrency ($params);
         //
@@ -959,55 +960,67 @@ class hitbtc extends Exchange {
         //        ),
         //    }
         //
-        $result = array();
-        $currencies = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currencyId = $currencies[$i];
-            $code = $this->safe_currency_code($currencyId);
-            $entry = $response[$currencyId];
-            $rawNetworks = $this->safe_list($entry, 'networks', array());
-            $networks = array();
-            for ($j = 0; $j < count($rawNetworks); $j++) {
-                $rawNetwork = $rawNetworks[$j];
-                $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
-                $networkCode = $this->network_id_to_code($networkId);
-                $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : $code; // is white label, ensure we safeguard from possible bugs
-                $networks[$networkCode] = array(
-                    'info' => $rawNetwork,
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'active' => null,
-                    'fee' => $this->safe_number($rawNetwork, 'payout_fee'),
-                    'deposit' => $this->safe_bool($rawNetwork, 'payin_enabled'),
-                    'withdraw' => $this->safe_bool($rawNetwork, 'payout_enabled'),
-                    'precision' => $this->safe_number($rawNetwork, 'precision_payout'),
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                );
-            }
-            $result[$code] = $this->safe_currency_structure(array(
-                'info' => $entry,
-                'code' => $code,
-                'id' => $currencyId,
-                'precision' => $this->safe_number($entry, 'precision_transfer'),
-                'name' => $this->safe_string($entry, 'full_name'),
-                'active' => !$this->safe_bool($entry, 'delisted'),
-                'deposit' => $this->safe_bool($entry, 'payin_enabled'),
-                'withdraw' => $this->safe_bool($entry, 'payout_enabled'),
-                'networks' => $networks,
-                'fee' => null,
+        $enhancedArray = $this->add_key_in_array_items($response, '_coin_id');
+        return $this->parse_currencies($enhancedArray);
+    }
+
+    public function parse_currency(array $currency): array {
+        $currencyId = $currency['_coin_id'];
+        $code = $this->safe_currency_code($currencyId);
+        $entry = $currency;
+        $rawNetworks = $this->safe_list($entry, 'networks', array());
+        $networks = array();
+        for ($j = 0; $j < count($rawNetworks); $j++) {
+            $rawNetwork = $rawNetworks[$j];
+            $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
+            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : $code; // is white label, ensure we safeguard from possible bugs
+            $networks[$networkCode] = array(
+                'info' => $rawNetwork,
+                'id' => $networkId,
+                'network' => $networkCode,
+                'active' => null,
+                'fee' => $this->safe_number($rawNetwork, 'payout_fee'),
+                'deposit' => $this->safe_bool($rawNetwork, 'payin_enabled'),
+                'withdraw' => $this->safe_bool($rawNetwork, 'payout_enabled'),
+                'precision' => $this->safe_number($rawNetwork, 'precision_payout'),
                 'limits' => array(
-                    'amount' => array(
+                    'withdraw' => array(
                         'min' => null,
                         'max' => null,
                     ),
                 ),
-                'type' => null, // 'crypto' field emits incorrect values
-            ));
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'info' => $entry,
+            'code' => $code,
+            'id' => $currencyId,
+            'precision' => $this->safe_number($entry, 'precision_transfer'),
+            'name' => $this->safe_string($entry, 'full_name'),
+            'active' => !$this->safe_bool($entry, 'delisted'),
+            'deposit' => $this->safe_bool($entry, 'payin_enabled'),
+            'withdraw' => $this->safe_bool($entry, 'payout_enabled'),
+            'networks' => $networks,
+            'fee' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'type' => null, // 'crypto' field emits incorrect values
+        ));
+    }
+
+    public function add_key_in_array_items($obj, $keyName) {
+        $result = array();
+        $keys = is_array($obj) ? array_keys($obj) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $item = $obj[$key];
+            $item[$keyName] = $key;
+            $result[] = $item;
         }
         return $result;
     }
@@ -1020,7 +1033,7 @@ class hitbtc extends Exchange {
          *
          * @param {string} $code unified $currency $code of the $currency for the deposit address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1058,7 +1071,7 @@ class hitbtc extends Exchange {
          *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1115,7 +1128,7 @@ class hitbtc extends Exchange {
          * @see https://api.hitbtc.com/#get-trading-balance
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $type = $this->safe_string_lower($params, 'type', 'spot');
         $params = $this->omit($params, array( 'type' ));
@@ -1154,7 +1167,7 @@ class hitbtc extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1172,7 +1185,7 @@ class hitbtc extends Exchange {
         //         "open" => "0.020913",
         //         "volume" => "138444.3666",
         //         "volume_quote" => "2853.6874972480",
-        //         "timestamp" => "2021-06-02T17:52:36.731Z"
+        //         "timestamp" => "2021-06-02T17:52:36.732Z"
         //     }
         //
         return $this->parse_ticker($response, $market);
@@ -1186,7 +1199,7 @@ class hitbtc extends Exchange {
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -1278,7 +1291,7 @@ class hitbtc extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         $this->load_markets();
         $market = null;
@@ -1326,7 +1339,7 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
          * @param {bool} [$params->margin] true for fetching margin trades
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $market = null;
@@ -1625,7 +1638,7 @@ class hitbtc extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         return $this->fetch_transactions_helper('DEPOSIT,WITHDRAW', $code, $since, $limit, $params);
     }
@@ -1640,7 +1653,7 @@ class hitbtc extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         return $this->fetch_transactions_helper('DEPOSIT', $code, $since, $limit, $params);
     }
@@ -1655,7 +1668,7 @@ class hitbtc extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         return $this->fetch_transactions_helper('WITHDRAW', $code, $since, $limit, $params);
     }
@@ -1669,7 +1682,7 @@ class hitbtc extends Exchange {
          * @param {string[]} [$symbols] list of unified market $symbols, all $symbols fetched if null, default is null
          * @param {int} [$limit] max number of entries per $orderbook to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbol
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbol
          */
         $this->load_markets();
         $request = array();
@@ -1702,7 +1715,7 @@ class hitbtc extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1748,7 +1761,7 @@ class hitbtc extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1780,7 +1793,7 @@ class hitbtc extends Exchange {
          * @see https://api.hitbtc.com/#get-all-trading-commissions-2
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by market symbols
          */
         $this->load_markets();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
@@ -1810,7 +1823,7 @@ class hitbtc extends Exchange {
         return $result;
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
          *
@@ -1936,7 +1949,7 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
          * @param {bool} [$params->margin] true for fetching margin orders
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -1987,7 +2000,7 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
          * @param {bool} [$params->margin] true for fetching a margin $order
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         $this->load_markets();
         $market = null;
@@ -2054,7 +2067,7 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
          * @param {bool} [$params->margin] true for fetching margin trades
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
         $this->load_markets();
         $market = null;
@@ -2138,7 +2151,7 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
          * @param {bool} [$params->margin] true for fetching open margin orders
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -2201,7 +2214,7 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
          * @param {bool} [$params->margin] true for fetching an open margin order
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = null;
@@ -2245,7 +2258,7 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
          * @param {bool} [$params->margin] true for canceling margin orders
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -2289,7 +2302,7 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
          * @param {bool} [$params->margin] true for canceling a margin order
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = null;
@@ -2378,7 +2391,7 @@ class hitbtc extends Exchange {
          * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
          * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2609,7 +2622,7 @@ class hitbtc extends Exchange {
          *
          * @param {string[]} $symbols unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structures~
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structures~
          */
         $this->load_markets();
         $market = null;
@@ -2685,7 +2698,7 @@ class hitbtc extends Exchange {
          * @param {string} $fromAccount account to transfer from
          * @param {string} $toAccount account to transfer to
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
         // account can be "spot", "wallet", or "derivatives"
         $this->load_markets();
@@ -2775,7 +2788,7 @@ class hitbtc extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->load_markets();
@@ -2820,7 +2833,7 @@ class hitbtc extends Exchange {
          *
          * @param {string[]} $symbols unified $symbols of the markets to fetch the funding rates for, all $market funding rates are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
          */
         $this->load_markets();
         $market = null;
@@ -2875,11 +2888,11 @@ class hitbtc extends Exchange {
          * fetches historical funding rate prices
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest funding rate
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -2960,7 +2973,7 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
          * @param {bool} [$params->margin] true for fetching spot-margin positions
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->load_markets();
         $request = array();
@@ -3034,7 +3047,7 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
          * @param {bool} [$params->margin] true for fetching a spot-margin position
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3216,7 +3229,7 @@ class hitbtc extends Exchange {
          *
          * @param {string[]} [$symbols] a list of unified CCXT market $symbols
          * @param {array} [$params] exchange specific parameters
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structures~
          */
         $this->load_markets();
         $request = array();
@@ -3262,7 +3275,7 @@ class hitbtc extends Exchange {
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {array} [$params] exchange specific parameters
-         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=interest-history-structure)
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=interest-history-structure)
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3299,7 +3312,7 @@ class hitbtc extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3422,8 +3435,9 @@ class hitbtc extends Exchange {
         //         "positions" => null
         //     }
         //
+        $parsedAmount = $this->parse_number($amount);
         return $this->extend($this->parse_margin_modification($response, $market), array(
-            'amount' => $this->parse_number($amount),
+            'amount' => $parsedAmount,
             'type' => $type,
         ));
     }
@@ -3478,7 +3492,7 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
          * @param {bool} [$params->margin] true for reducing spot-margin
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         if ($this->number_to_string($amount) !== '0') {
             throw new BadRequest($this->id . ' reduceMargin() on hitbtc requires the $amount to be 0 and that will remove the entire margin amount');
@@ -3498,7 +3512,7 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
          * @param {bool} [$params->margin] true for adding spot-margin
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
@@ -3514,7 +3528,7 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
          * @param {bool} [$params->margin] true for fetching spot-margin leverage
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3627,7 +3641,7 @@ class hitbtc extends Exchange {
          *
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=fee-structure fees structures~
          */
         $this->load_markets();
         $response = $this->publicGetPublicCurrency ($params);
@@ -3721,7 +3735,7 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @param {string} [$params->symbol] *required* unified $market $symbol
          * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross'
-         * @return {array} An ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $marginMode = null;

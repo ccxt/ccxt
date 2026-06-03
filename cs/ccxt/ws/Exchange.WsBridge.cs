@@ -25,37 +25,37 @@ public partial class Exchange
 
     public virtual void onClose(WebSocketClient client, object error = null)
     {
-        // var client = (WebSocketClient)client2;
         if (client.error)
         {
             // what do we do here?
         }
         else
         {
-            var urlClient = (this.clients.ContainsKey(client.url)) ? this.clients[client.url] : null;
-            if (urlClient != null)
-            {
-                // this.clients.Remove(client.url);
-                this.clients.TryRemove(client.url, out _);
-            }
+            this.CleanupClients(client, error);
         }
     }
 
     public virtual void onError(WebSocketClient client, object error = null)
     {
+        this.CleanupClients(client, error);
+    }
+
+    public void CleanupClients(WebSocketClient client, object error = null)
+    {
         // var client = (WebSocketClient)client2;
         var urlClient = (this.clients.ContainsKey(client.url)) ? this.clients[client.url] : null;
-        rejectFutures(urlClient, urlClient.error);
-        if (urlClient != null && urlClient.error)
+        if (urlClient != null) //  && urlClient.error
         {
+            rejectFutures(urlClient, error);
             // this.clients.Remove(client.url);
             this.clients.TryRemove(client.url, out _);
         }
     }
 
-    void rejectFutures (WebSocketClient urlClient, object error)
+    void rejectFutures(WebSocketClient urlClient, object error)
     {
-        foreach (var KeyValue in urlClient.subscriptions) {
+        foreach (var KeyValue in urlClient.subscriptions)
+        {
             urlClient.subscriptions.Remove(KeyValue.Key);
             Future existingFuture = null;
             if (urlClient.futures.TryGetValue(KeyValue.Key, out existingFuture))
@@ -164,6 +164,14 @@ public partial class Exchange
                     client.webSocket.Options.SetRequestHeader(key, headers[key].ToString());
                 }
             }
+
+            var wsCookies = this.safeDict(ws, "cookies", new Dictionary<string, object>() { }) as Dictionary<string, object>;
+            if (wsCookies != null && wsCookies.Count > 0)
+            {
+                var cookieString = string.Join("; ", wsCookies.Select(kvp => $"{kvp.Key}={kvp.Value}"));
+                client.webSocket.Options.SetRequestHeader("Cookie", cookieString);
+            }
+
             return client;
         });
     }

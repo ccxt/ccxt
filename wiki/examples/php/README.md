@@ -10,6 +10,8 @@ To run PHP examples from any folder type in console:
 php -f path/to/example.php # substitute for actual filename here
 ```
 
+- [Apex Watch](./examples/php/apex-watch.md)
+
 - [Arbitrage Pairs](./examples/php/arbitrage-pairs.md)
 
 - [Async Await Fetch Multiple](./examples/php/async-await-fetch-multiple.md)
@@ -23,6 +25,10 @@ php -f path/to/example.php # substitute for actual filename here
 - [Binance Create Order Stop Loss Take Profit](./examples/php/binance-create-order-stop-loss-take-profit.md)
 
 - [Binance Fetch All Trades For All Traded Symbols](./examples/php/binance-fetch-all-trades-for-all-traded-symbols.md)
+
+- [Binance Fetch Balance Snapshot Watch Balance Updates](./examples/php/binance-fetch-balance-snapshot-watch-balance-updates.md)
+
+- [Binance Https Proxy](./examples/php/binance-https-proxy.md)
 
 - [Binance Oco Order](./examples/php/binance-oco-order.md)
 
@@ -74,6 +80,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Exchange Properties](./examples/php/exchange-properties.md)
 
+- [Exchange Rate Limiter Rollingwindow](./examples/php/exchange-rate-limiter-rollingWindow.md)
+
 - [Fetch Balance](./examples/php/fetch-balance.md)
 
 - [Fetch First Ohlcv Timestamp](./examples/php/fetch-first-ohlcv-timestamp.md)
@@ -92,11 +100,15 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Gateio Swaps](./examples/php/gateio-swaps.md)
 
+- [Gateio Watch Balance](./examples/php/gateio-watch-balance.md)
+
 - [Huobi Fetch Balance](./examples/php/huobi-fetch-balance.md)
 
 - [Huobi Futures](./examples/php/huobi-futures.md)
 
 - [Huobi Swaps](./examples/php/huobi-swaps.md)
+
+- [Hyperliquid Load Hip3 Dexes](./examples/php/hyperliquid-load-hip3-dexes.md)
 
 - [Indodax Fetch Balance Create Order Cancel Order](./examples/php/indodax-fetch-balance-create-order-cancel-order.md)
 
@@ -145,10 +157,6 @@ php -f path/to/example.php # substitute for actual filename here
 - [Watch Trades For Symbols](./examples/php/watch-Trades-For-Symbols.md)
 
 - [Watch Tickers](./examples/php/watch-tickers.md)
-
-- [Watchohlcvforsymbols](./examples/php/watchOHLCVForSymbols.md)
-
-- [Watchorderbookforsymbols](./examples/php/watchOrderBookForSymbols.md)
 
 - [Watchpositions Many Exchanges Continuosly](./examples/php/watchPositions-many-exchanges-continuosly.md)
 

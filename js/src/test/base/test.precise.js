@@ -4,7 +4,6 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// AUTO_TRANSPILE_ENABLED
 import assert from 'assert';
 import Precise from '../../base/Precise.js';
 function testPrecise() {
@@ -107,5 +106,9 @@ function testPrecise() {
     assert(Precise.stringLe('-3.1415', '-2'));
     assert(Precise.stringLe('3.1415', '3.1415'));
     assert(Precise.stringLe('3.1415', '3.14150000000000000000001'));
+    assert(Precise.stringOr('5', '3') === '7');
+    assert(Precise.stringOr('10', '5') === '15'); // 1010 | 0101 = 1111 = 15
+    assert(Precise.stringOr('0', '0') === '0');
+    assert(Precise.stringOr('7', '0') === '7');
 }
 export default testPrecise;

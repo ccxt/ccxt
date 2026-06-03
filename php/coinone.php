@@ -323,40 +323,39 @@ class coinone extends Exchange {
         //         )
         //     }
         //
-        $result = array();
         $currencies = $this->safe_list($response, 'currencies', array());
-        for ($i = 0; $i < count($currencies); $i++) {
-            $entry = $currencies[$i];
-            $id = $this->safe_string($entry, 'symbol');
-            $code = $this->safe_currency_code($id);
-            $isWithdrawEnabled = $this->safe_string($entry, 'withdraw_status', '') === 'normal';
-            $isDepositEnabled = $this->safe_string($entry, 'deposit_status', '') === 'normal';
-            $type = ($code !== 'KRW') ? 'crypto' : 'fiat';
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $id,
-                'code' => $code,
-                'info' => $entry,
-                'name' => $this->safe_string($entry, 'name'),
-                'active' => null,
-                'deposit' => $isDepositEnabled,
-                'withdraw' => $isWithdrawEnabled,
-                'fee' => $this->safe_number($entry, 'withdrawal_fee'),
-                'precision' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'max_precision'))),
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => $this->safe_number($entry, 'withdrawal_min_amount'),
-                        'max' => null,
-                    ),
+        return $this->parse_currencies($currencies);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'symbol');
+        $code = $this->safe_currency_code($id);
+        $isWithdrawEnabled = $this->safe_string($rawCurrency, 'withdraw_status', '') === 'normal';
+        $isDepositEnabled = $this->safe_string($rawCurrency, 'deposit_status', '') === 'normal';
+        $type = ($code !== 'KRW') ? 'crypto' : 'fiat';
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => $rawCurrency,
+            'name' => $this->safe_string($rawCurrency, 'name'),
+            'active' => null,
+            'deposit' => $isDepositEnabled,
+            'withdraw' => $isWithdrawEnabled,
+            'fee' => $this->safe_number($rawCurrency, 'withdrawal_fee'),
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'max_precision'))),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
                 ),
-                'networks' => array(),
-                'type' => $type,
-            ));
-        }
-        return $result;
+                'withdraw' => array(
+                    'min' => $this->safe_number($rawCurrency, 'withdrawal_min_amount'),
+                    'max' => null,
+                ),
+            ),
+            'networks' => array(),
+            'type' => $type,
+        ));
     }
 
     public function fetch_markets($params = array ()): array {
@@ -495,7 +494,7 @@ class coinone extends Exchange {
          * @see https://docs.coinone.co.kr/v1.0/reference/v21
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->v2PrivatePostAccountBalance ($params);
@@ -511,7 +510,7 @@ class coinone extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -559,7 +558,7 @@ class coinone extends Exchange {
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -622,7 +621,7 @@ class coinone extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -802,7 +801,7 @@ class coinone extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -849,7 +848,7 @@ class coinone extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($type !== 'limit') {
             throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
@@ -879,7 +878,7 @@ class coinone extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
@@ -1048,7 +1047,7 @@ class coinone extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         // The returned amount might not be same ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         // For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
@@ -1089,7 +1088,7 @@ class coinone extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -1130,7 +1129,7 @@ class coinone extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
             // eslint-disable-next-line quotes
@@ -1166,7 +1165,7 @@ class coinone extends Exchange {
          * fetch deposit addresses for multiple currencies and chain types
          * @param {string[]|null} $codes list of unified currency $codes, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=$address-structure $address structures~
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=$address-structure $address structures~
          */
         $this->load_markets();
         $response = $this->v2PrivatePostAccountDepositAddress ($params);

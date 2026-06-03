@@ -229,6 +229,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                     'is a required field': errors.BadRequest,
                     'Not Found': errors.BadRequest,
                     'ip not allowed': errors.AuthenticationError,
+                    'cbe spot routing instrument not supported': errors.NotSupported,
                 },
             },
             'timeframes': {
@@ -350,7 +351,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         }
         throw new errors.ArgumentsRequired(this.id + ' ' + methodName + '() requires a portfolio parameter or set the default portfolio with this.options["portfolio"]');
     }
-    async handleNetworkIdAndParams(currencyCode, methodName, params) {
+    async handleNetworkIdAndParams(currencyCode, methodName, params = {}) {
         let networkId = undefined;
         [networkId, params] = this.handleOptionAndParams(params, methodName, 'network_arn_id');
         if (networkId === undefined) {
@@ -377,7 +378,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @description fetch all the accounts associated with a profile
      * @see https://docs.cloud.coinbase.com/intx/reference/getportfolios
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts(params = {}) {
         await this.loadMarkets();
@@ -506,10 +507,10 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @see https://docs.cloud.coinbase.com/intx/reference/getinstrumentfunding
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
@@ -526,9 +527,10 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         }
         const market = this.market(symbol);
         const page = this.safeInteger(params, pageKey, 1) - 1;
+        const offSet = this.safeInteger2(params, 'offset', 'result_offset', page * maxEntriesPerRequest);
         const request = {
             'instrument': market['id'],
-            'result_offset': this.safeInteger2(params, 'offset', 'result_offset', page * maxEntriesPerRequest),
+            'result_offset': offSet,
         };
         if (limit !== undefined) {
             request['result_limit'] = limit;
@@ -596,7 +598,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -674,7 +676,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -765,7 +767,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network_arn_id] Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a) if not provided will pick default
      * @param {string} [params.network] unified network code to identify the blockchain network
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async createDepositAddress(code, params = {}) {
         await this.loadMarkets();
@@ -935,7 +937,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
      * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -948,8 +950,9 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             return await this.fetchPaginatedCallIncremental('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest);
         }
         const page = this.safeInteger(params, pageKey, 1) - 1;
+        const offSet = this.safeInteger2(params, 'offset', 'result_offset', page * maxEntriesPerRequest);
         const request = {
-            'result_offset': this.safeInteger2(params, 'offset', 'result_offset', page * maxEntriesPerRequest),
+            'result_offset': offSet,
         };
         if (since !== undefined) {
             request['time_from'] = this.iso8601(since);
@@ -1005,7 +1008,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @description fetch data on an open position
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
         await this.loadMarkets();
@@ -1091,7 +1094,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @description fetch all open positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -1139,7 +1142,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
      * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1159,7 +1162,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
      * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1384,16 +1387,18 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             settleId = quoteId;
             symbol += ':' + quoteId;
         }
+        const isLinear = isSpot ? undefined : (settleId === quoteId);
+        const isInverse = isSpot ? undefined : (settleId !== quoteId);
         return {
             'id': marketId,
             'lowercaseId': marketId.toLowerCase(),
             'symbol': symbol,
             'base': baseId,
             'quote': quoteId,
-            'settle': settleId ? settleId : undefined,
+            'settle': settleId,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': settleId ? settleId : undefined,
+            'settleId': settleId,
             'type': isSpot ? 'spot' : 'swap',
             'spot': isSpot,
             'margin': false,
@@ -1402,8 +1407,8 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'option': false,
             'active': this.safeString(market, 'trading_state') === 'TRADING',
             'contract': !isSpot,
-            'linear': isSpot ? undefined : (settleId === quoteId),
-            'inverse': isSpot ? undefined : (settleId !== quoteId),
+            'linear': isLinear,
+            'inverse': isInverse,
             'taker': fees['trading']['taker'],
             'maker': fees['trading']['maker'],
             'contractSize': isSpot ? undefined : 1,
@@ -1499,7 +1504,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @see https://docs.cloud.coinbase.com/intx/reference/getinstruments
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -1522,7 +1527,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @see https://docs.cloud.coinbase.com/intx/reference/getinstrumentquote
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -1584,7 +1589,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @see https://docs.cloud.coinbase.com/intx/reference/getportfoliobalances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
@@ -1696,7 +1701,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {string} [params.tif] 'GTC', 'IOC', 'GTD' default is 'GTC' for limit orders and 'IOC' for market orders
      * @param {string} [params.expire_time] The expiration time required for orders with the time in force set to GTT. Must not go beyond 30 days of the current time. Uses ISO-8601 format (e.g., 2023-03-16T23:59:53Z)
      * @param {string} [params.stp_mode] Possible values: [NONE, AGGRESSING, BOTH] Specifies the behavior for self match handling. None disables the functionality, new cancels the newest order, and both cancels both orders.
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
@@ -1868,7 +1873,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {string} id order id
      * @param {string} symbol not used by coinbaseinternational cancelOrder()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -1914,7 +1919,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @description cancel all open orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -1944,7 +1949,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} params.clientOrderId client order id
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets();
@@ -1983,7 +1988,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {string} id the order id
      * @param {string} symbol unified market symbol that the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -2037,7 +2042,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {int} [params.offset] offset
      * @param {string} [params.event_type] The most recent type of event that happened to the order. Allowed values: NEW, TRADE, REPLACED
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2052,9 +2057,10 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             return await this.fetchPaginatedCallIncremental('fetchOpenOrders', symbol, since, limit, params, pageKey, maxEntriesPerRequest);
         }
         const page = this.safeInteger(params, pageKey, 1) - 1;
+        const offSet = this.safeInteger2(params, 'offset', 'result_offset', page * maxEntriesPerRequest);
         const request = {
             'portfolio': portfolio,
-            'result_offset': this.safeInteger2(params, 'offset', 'result_offset', page * maxEntriesPerRequest),
+            'result_offset': offSet,
         };
         let market = undefined;
         if (symbol) {
@@ -2119,7 +2125,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2136,8 +2142,9 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             market = this.market(symbol);
         }
         const page = this.safeInteger(params, pageKey, 1) - 1;
+        const offSet = this.safeInteger2(params, 'offset', 'result_offset', page * maxEntriesPerRequest);
         const request = {
-            'result_offset': this.safeInteger2(params, 'offset', 'result_offset', page * maxEntriesPerRequest),
+            'result_offset': offSet,
         };
         if (limit !== undefined) {
             if (limit > 100) {
@@ -2211,7 +2218,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
      * @param {boolean} [params.add_network_fee_to_total] if true, deducts network fee from the portfolio, otherwise deduct fee from the withdrawal
      * @param {string} [params.network_arn_id] Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a)
      * @param {string} [params.nonce] a unique integer representing the withdrawal request
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
@@ -2241,44 +2248,6 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         //    }
         //
         return this.parseTransaction(response, currency);
-    }
-    safeNetwork(network) {
-        let withdrawEnabled = this.safeBool(network, 'withdraw');
-        let depositEnabled = this.safeBool(network, 'deposit');
-        const limits = this.safeDict(network, 'limits');
-        const withdraw = this.safeDict(limits, 'withdraw');
-        const withdrawMax = this.safeNumber(withdraw, 'max');
-        const deposit = this.safeDict(limits, 'deposit');
-        const depositMax = this.safeNumber(deposit, 'max');
-        if (withdrawEnabled === undefined && withdrawMax !== undefined) {
-            withdrawEnabled = (withdrawMax > 0);
-        }
-        if (depositEnabled === undefined && depositMax !== undefined) {
-            depositEnabled = (depositMax > 0);
-        }
-        const networkId = this.safeString(network, 'id');
-        const isEnabled = (withdrawEnabled && depositEnabled);
-        return {
-            'info': network['info'],
-            'id': networkId,
-            'name': this.safeString(network, 'name'),
-            'network': this.safeString(network, 'network'),
-            'active': this.safeBool(network, 'active', isEnabled),
-            'deposit': depositEnabled,
-            'withdraw': withdrawEnabled,
-            'fee': this.safeNumber(network, 'fee'),
-            'precision': this.safeNumber(network, 'precision'),
-            'limits': {
-                'withdraw': {
-                    'min': this.safeNumber(withdraw, 'min'),
-                    'max': withdrawMax,
-                },
-                'deposit': {
-                    'min': this.safeNumber(deposit, 'min'),
-                    'max': depositMax,
-                },
-            },
-        };
     }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];

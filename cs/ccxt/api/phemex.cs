@@ -201,6 +201,11 @@ public partial class phemex : Exchange
         return await this.callAsync ("privateGetGAccountsPositions",parameters);
     }
 
+    public async Task<object> privateGetGAccountsRiskUnit (object parameters = null)
+    {
+        return await this.callAsync ("privateGetGAccountsRiskUnit",parameters);
+    }
+
     public async Task<object> privateGetApiDataFuturesFundingFees (object parameters = null)
     {
         return await this.callAsync ("privateGetApiDataFuturesFundingFees",parameters);
@@ -254,6 +259,11 @@ public partial class phemex : Exchange
     public async Task<object> privateGetApiDataFuturesV2TradeAccountDetail (object parameters = null)
     {
         return await this.callAsync ("privateGetApiDataFuturesV2TradeAccountDetail",parameters);
+    }
+
+    public async Task<object> privateGetApiDataGFuturesClosedPosition (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiDataGFuturesClosedPosition",parameters);
     }
 
     public async Task<object> privateGetGOrdersActiveList (object parameters = null)
