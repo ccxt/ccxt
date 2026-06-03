@@ -1514,7 +1514,6 @@ class Exchange(object):
         # method returns the Ethereum address from a "0x"-prefixed private key
         # Remove "0x" prefix if present
         clean_private_key = Exchange.remove0x_prefix(private_key)
-        # Use coincurve to get the public key
         # Build secp256k1 private key from raw 32-byte hex
         private_key_bytes = bytes.fromhex(clean_private_key)
         signing_key = ecdsa.SigningKey.from_string(private_key_bytes, curve=ecdsa.SECP256k1)
