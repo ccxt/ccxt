@@ -68,6 +68,13 @@ export async function POST(req: Request, ctx: RouteContext<"/api/chat">) {
 
   const result = streamText({
     model: openrouter.chat(process.env.OPENROUTER_MODEL ?? 'inclusionai/ling-2.6-flash'),
+    // Disable extended thinking — hybrid reasoning models (e.g. GLM) otherwise stream
+    // their chain-of-thought into the answer. No-op for plain instruct models.
+    providerOptions: {
+      openrouter: {
+        reasoning: { enabled: false },
+      },
+    },
     stopWhen: stepCountIs(5),
     tools: {
       search: searchTool,
@@ -90,14 +97,29 @@ export async function POST(req: Request, ctx: RouteContext<"/api/chat">) {
   return result.toUIMessageStreamResponse();
 }
 
+// CCXT doc pages are huge (per-exchange method tables), so returning enriched
+// docs verbatim can exceed 700k tokens and overflow any model's context window.
+// Cap the result count and snippet each page's content to keep the tool payload small.
+const MAX_RESULTS = 6;
+const SNIPPET_CHARS = 1200;
+
 const searchTool = tool({
-  description: 'Search the docs content and return raw JSON results.',
+  description: 'Search the docs content and return JSON results (title, url, description, content snippet).',
   inputSchema: z.object({
     query: z.string(),
-    limit: z.number().int().min(1).max(100).default(10),
+    limit: z.number().int().min(1).max(MAX_RESULTS).default(MAX_RESULTS),
   }),
   async execute({ query, limit }) {
     const search = await searchServer;
-    return await search.searchAsync(query, { limit, merge: true, enrich: true });
+    const results = await search.searchAsync(query, {
+      limit: Math.min(limit, MAX_RESULTS),
+      merge: true,
+      enrich: true,
+    });
+    return (results as Array<{ id?: string; doc?: CustomDocument }>).map((r) => {
+      const doc = (r.doc ?? r) as CustomDocument;
+      const content = typeof doc.content === 'string' ? doc.content.slice(0, SNIPPET_CHARS) : undefined;
+      return { url: doc.url, title: doc.title, description: doc.description, content };
+    });
   },
 }) satisfies SearchTool;
