@@ -310,8 +310,8 @@ export default class Exchange {
     last_request_body: any = undefined;
     last_request_url: string = undefined;
     last_request_path: string = undefined;
-    recentRequestsCache: Dictionary<any>[] = [];
-    recentRequestsCacheSize: number = 0;
+    recentFetchesCache: Dictionary<any>[] = [];
+    recentFetchesCacheSize: number = 0;
 
     id: string = 'Exchange';
 
@@ -864,17 +864,17 @@ export default class Exchange {
     }
 
     addRequestCache (data) {
-        if (this.recentRequestsCacheSize <= 0) {
+        if (this.recentFetchesCacheSize <= 0) {
             return;
         }
-        if (this.recentRequestsCache.length >= this.recentRequestsCacheSize) {
-            this.recentRequestsCache.shift ();
+        if (this.recentFetchesCache.length >= this.recentFetchesCacheSize) {
+            this.recentFetchesCache.shift ();
         }
-        this.recentRequestsCache.push (data);
+        this.recentFetchesCache.push (data);
     }
 
     getRequestsCache () {
-        return this.recentRequestsCache;
+        return this.recentFetchesCache;
     }
 
     isBinaryMessage (msg) {
@@ -5802,7 +5802,7 @@ export default class Exchange {
         let retryDelay = undefined;
         [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
         let requestData: Dict = undefined;
-        const requestDataCacheEnabled = this.recentRequestsCacheSize > 0;
+        const requestDataCacheEnabled = this.recentFetchesCacheSize > 0;
         for (let i = 0; i < retries + 1; i++) {
             if (requestDataCacheEnabled) {
                 requestData = { 'request': undefined, 'response': undefined, 'error': undefined };
