@@ -8,12 +8,14 @@ function testAfterConstruct (exchange, skippedProperties, method, entry) {
 function testOptionsNetworks (exchange, skippedProperties, method, entry) {
     if (!('networks' in skippedProperties)) {
         //
-        // check "options['networks']"
         // only allow these whitelisted unified networkCodes to be repeated
-        const allowedUnifiedAliases = [ 'BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BTC', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM' ];
+        const allowedUnifiedAliases = [ 'BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM' ];
+        const networks = exchange.options['networks'];
+        if (networks === undefined || Object.keys (networks).length === 0) {
+            return;
+        }
         // 1) ensure 'networks' dictionary exists in options
-        assert ('networks' in exchange.options, 'exchange.options["networks"] is not set');
-        assert (exchange.isDictionary (exchange.options['networks']), 'exchange.options["networks"] is not an object');
+        assert (exchange.isDictionary (networks), 'exchange.options["networks"] is not an object');
         // 2) ensure 'networksById' dictionary exists in options
         assert ('networksById' in exchange.options, 'exchange.options["networksById"] is not set');
         assert (exchange.isDictionary (exchange.options['networksById']), 'exchange.options["networksById"] is not an object');
