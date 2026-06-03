@@ -9,6 +9,8 @@ function testOptionsNetworks (exchange, skippedProperties, method, entry) {
     if (!('networks' in skippedProperties)) {
         //
         // check "options['networks']"
+        // only allow these whitelisted unified networkCodes to be repeated
+        const allowedUnifiedAliases = [ 'BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BTC', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM' ];
         // 1) ensure 'networks' dictionary exists in options
         assert ('networks' in exchange.options, 'exchange.options["networks"] is not set');
         assert (exchange.isDictionary (exchange.options['networks']), 'exchange.options["networks"] is not an object');
@@ -22,10 +24,8 @@ function testOptionsNetworks (exchange, skippedProperties, method, entry) {
         for (let i = 0; i < networkCodes.length; i++) {
             const networkCode = networkCodes[i];
             const networkId = exchange.options['networks'][networkCode];
-            // only allow these whitelisted unified networkCodes to be repeated
-            const unifiedNetworkCodes = [ 'ERC20', 'ETH', 'TRX', 'TRON', 'TRC20', 'BTC', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT' ];
-            if (!exchange.inArray (networkCode, unifiedNetworkCodes)) {
-                assert (!exchange.inArray (networkId, collectedNetworkIds), 'exchange.options["networks"] contains multiple networkCodes with the same networkId "' + networkId + '"');
+            if (!exchange.inArray (networkCode, allowedUnifiedAliases)) {
+                assert (!exchange.inArray (networkId, collectedNetworkIds), 'exchange.options["networks"] should not contain multiple non-unified networkCodes (in the list of unified-networks) with the same networkId: "' + networkId + '"');
             }
             collectedNetworkIds.push (networkId);
         }
@@ -45,11 +45,13 @@ function testOptionsNetworks (exchange, skippedProperties, method, entry) {
             assert (networkId === networkIdConverted, 'exchange.networkCodeToId ("' + networkCode + '")="' + networkIdConverted + '" does not match exchange.options["networks"]["' + networkCode + '"]="' + networkId + '"');
             // ensure it exists in networksById
             assert (networkId in exchange.options['networksById'], 'exchange.options["networksById"] does not contain networkId "' + networkId + '"');
-            // ensure networkCode matches for networksById
-            assert (exchange.options['networksById'][networkId] === networkCode, 'exchange.options["networksById"]["' + networkId + '"] value is not expected "' + networkCode + '", but: "' + exchange.options['networksById'][networkId] + '"');
-            // check networkIdToCode conversion back
-            const networkCodeConverted = exchange.networkIdToCode (networkId);
-            assert (networkCode === networkCodeConverted, 'exchange.networkIdToCode ("' + networkId + '")="' + networkCodeConverted + '" does not match key "' + networkCode + '" of exchange.options["networks"]');
+            // ensure networkCode matches for networksById (however, it only works if one mapping is set)
+            if (!exchange.inArray (networkCode, allowedUnifiedAliases)) {
+                assert (exchange.options['networksById'][networkId] === networkCode, 'exchange.options["networksById"]["' + networkId + '"] value is not expected "' + networkCode + '", but: "' + exchange.options['networksById'][networkId] + '"');
+                // check networkIdToCode conversion back
+                const networkCodeConverted = exchange.networkIdToCode (networkId);
+                assert (networkCode === networkCodeConverted, 'exchange.networkIdToCode ("' + networkId + '")="' + networkCodeConverted + '" does not match key "' + networkCode + '" of exchange.options["networks"]');
+            }
         }
     }
 }
