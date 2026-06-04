@@ -903,13 +903,13 @@ public partial class Exchange
     {
         var privateKeyString = privateKey.ToString();
         var msgHashStr = msgHash.ToString();
-        var bigIntHash = parseStarknetBigInteger(msgHashStr);
-        var bigIntKey = parseStarknetBigInteger(privateKeyString);
+        var bigIntHash = extendedParseStarknetBigInteger(msgHashStr);
+        var bigIntKey = extendedParseStarknetBigInteger(privateKeyString);
         var res = ECDSA.Sign(bigIntHash, bigIntKey);
         return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
     }
 
-    public BigInteger parseStarknetBigInteger(string value)
+    public BigInteger extendedParseStarknetBigInteger(string value)
     {
         if (value.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
         {
