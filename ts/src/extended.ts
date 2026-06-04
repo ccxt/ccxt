@@ -2960,7 +2960,7 @@ export default class extended extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderIds', 'client_order_ids', 'clientOrderId', 'client_id', 'externalOrderIds', 'external_order_ids', 'orderIds', 'order_ids', 'markets', 'cancelAll', 'cancel_all' ]);
         const request: Dict = {};
-        const hasOrderIds = Array.isArray (ids);
+        const hasOrderIds = ids !== undefined;
         if (hasOrderIds) {
             const idsLength = ids.length;
             if (idsLength > 0) {
@@ -2970,7 +2970,7 @@ export default class extended extends Exchange {
         if (clientOrderIds === undefined && clientOrderId !== undefined) {
             clientOrderIds = [ clientOrderId ];
         }
-        const hasClientOrderIds = Array.isArray (clientOrderIds);
+        const hasClientOrderIds = clientOrderIds !== undefined;
         if (hasClientOrderIds) {
             const clientOrderIdsLength = clientOrderIds.length;
             if (clientOrderIdsLength > 0) {
