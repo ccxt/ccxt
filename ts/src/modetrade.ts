@@ -635,7 +635,6 @@ export default class modetrade extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const result: Dict = {};
         const response = await this.v1PublicGetPublicToken (params);
         //
         // {
