@@ -3679,8 +3679,8 @@ class binance extends binance$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         const type = this.getMarketType('fetchOpenOrdersWs', market, params);
-        if (type !== 'spot' && type !== 'future') {
-            throw new errors.BadRequest(this.id + ' fetchOpenOrdersWs only supports spot or swap markets');
+        if (type !== 'spot') {
+            throw new errors.BadRequest(this.id + ' fetchOpenOrdersWs only supports spot markets');
         }
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId(url);
