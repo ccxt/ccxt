@@ -1514,6 +1514,24 @@ class Exchange(object):
     def eth_get_address_from_private_key(private_key):
         # method returns the Ethereum address from a "0x"-prefixed private key
         # Remove "0x" prefix if present
+        if coincurve is not None:
+            return Exchange.eth_get_address_from_private_key_with_coincurve(private_key)
+        clean_private_key = Exchange.remove0x_prefix(private_key)
+        # Build secp256k1 private key from raw 32-byte hex
+        private_key_bytes = bytes.fromhex(clean_private_key)
+        signing_key = ecdsa.SigningKey.from_string(private_key_bytes, curve=ecdsa.SECP256k1)
+        # 64-byte uncompressed public key (X || Y), no 0x04 prefix
+        public_key_bytes = signing_key.verifying_key.to_string()
+        # Hash the public key with Keccak256
+        address_bytes = keccak.SHA3(public_key_bytes)[-20:]
+        # Convert to hex and add 0x prefix
+        address_hex = '0x' + address_bytes.hex()
+        return address_hex
+
+    @staticmethod
+    def eth_get_address_from_private_key_with_coincurve(private_key):
+        # method returns the Ethereum address from a "0x"-prefixed private key
+        # Remove "0x" prefix if present
         clean_private_key = Exchange.remove0x_prefix(private_key)
         # Use coincurve to get the public key
         private_key_obj = coincurve.PrivateKey(bytes.fromhex(clean_private_key))

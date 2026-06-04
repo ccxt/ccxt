@@ -3096,8 +3096,11 @@ public class BitmartCore extends BitmartApi
         }
         Object request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
-            put( "size", Helpers.parseInt(BitmartCore.this.amountToPrecision(symbol, amount)) );
         }};
+        if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
+        {
+            Helpers.addElementToObject(request, "size", Helpers.parseInt(this.amountToPrecision(symbol, amount)));
+        }
         Object timeInForce = this.safeString(parameters, "timeInForce");
         Object mode = this.safeInteger(parameters, "mode"); // only for swap
         Object isMarketOrder = Helpers.isEqual(type, "market");
@@ -3174,7 +3177,12 @@ public class BitmartCore extends BitmartApi
         {
             reduceOnly = true;
             Helpers.addElementToObject(request, "price_type", this.safeInteger(parameters, "price_type", 1));
-            Helpers.addElementToObject(request, "executive_price", this.priceToPrecision(symbol, price));
+            if (Helpers.isTrue(!Helpers.isEqual(price, null)))
+            {
+                Helpers.addElementToObject(request, "executive_price", this.priceToPrecision(symbol, price));
+            }
+            Object marketOrLimitStr = ((Helpers.isTrue(isLimitOrder))) ? "limit" : "market";
+            Helpers.addElementToObject(request, "category", this.safeString(parameters, "category", marketOrLimitStr));
             if (Helpers.isTrue(isStopLoss))
             {
                 Helpers.addElementToObject(request, "trigger_price", this.priceToPrecision(symbol, stopLossPrice));

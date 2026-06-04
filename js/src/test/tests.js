@@ -124,6 +124,7 @@ class testMainClass {
     async importFiles(exchange) {
         const properties = Object.keys(exchange.has);
         properties.push('loadMarkets');
+        properties.push('afterConstruct');
         if (isSync()) {
             this.testFiles = getTestFilesSync(properties, this.wsTests);
         }
@@ -231,6 +232,7 @@ class testMainClass {
         const isLoadMarkets = (methodName === 'loadMarkets');
         const isFetchCurrencies = (methodName === 'fetchCurrencies');
         const isProxyTest = (methodName === this.proxyTestFileName);
+        const isConstructorTest = (methodName === 'afterConstruct');
         const isFeatureTest = (methodName === 'features');
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if (!isPublic && (methodName in this.checkedPublicTests) && !isFetchCurrencies) {
@@ -241,7 +243,7 @@ class testMainClass {
         if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray(methodName, this.onlySpecificTests))) {
             skipMessage = '[INFO] IGNORED_TEST';
         }
-        else if (!isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest) {
+        else if (!isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest && !isConstructorTest) {
             skipMessage = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
         }
         else if (typeof skippedPropertiesForMethod === 'string') {
@@ -434,6 +436,7 @@ class testMainClass {
         const primarySymbol = symbols[0];
         let tests = {
             'features': [],
+            'afterConstruct': [],
             'fetchCurrencies': [],
             'fetchTicker': [primarySymbol],
             'fetchTickers': [primarySymbol],

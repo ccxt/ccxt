@@ -10392,7 +10392,7 @@ public class OkxCore extends OkxApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(timeframe, null)))
             {
-                Helpers.addElementToObject(request, "period", timeframe);
+                Helpers.addElementToObject(request, "period", this.safeString(this.timeframes, timeframe, timeframe));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {

@@ -2969,204 +2969,204 @@ class binance extends Exchange {
                 $responseMarginables = $results[1];
                 $marginablesById = $this->index_by($responseMarginables, 'assetName');
             }
-            $result = array();
-            for ($i = 0; $i < count($responseCurrencies); $i++) {
-                //
-                //    {
-                //        "coin" => "LINK",
-                //        "depositAllEnable" => true,
-                //        "withdrawAllEnable" => true,
-                //        "name" => "ChainLink",
-                //        "free" => "0",
-                //        "locked" => "0",
-                //        "freeze" => "0",
-                //        "withdrawing" => "0",
-                //        "ipoing" => "0",
-                //        "ipoable" => "0",
-                //        "storage" => "0",
-                //        "isLegalMoney" => false,
-                //        "trading" => true,
-                //        "networkList" => [
-                //            array(
-                //                "network" => "BSC",
-                //                "coin" => "LINK",
-                //                "withdrawIntegerMultiple" => "0.00000001",
-                //                "isDefault" => false,
-                //                "depositEnable" => true,
-                //                "withdrawEnable" => true,
-                //                "depositDesc" => "",
-                //                "withdrawDesc" => "",
-                //                "specialTips" => "",
-                //                "specialWithdrawTips" => "The $network you have selected is BSC. Please ensure that the withdrawal address supports the Binance Smart Chain $network-> You will lose your assets if the chosen platform does not support retrievals.",
-                //                "name" => "BNB Smart Chain (BEP20)",
-                //                "resetAddressStatus" => false,
-                //                "addressRegex" => "^(0x)[0-9A-Fa-f]{40}$",
-                //                "addressRule" => "",
-                //                "memoRegex" => "",
-                //                "withdrawFee" => "0.012",
-                //                "withdrawMin" => "0.024",
-                //                "withdrawMax" => "9999999999.99999999",
-                //                "minConfirm" => "15",
-                //                "unLockConfirm" => "0",
-                //                "sameAddress" => false,
-                //                "estimatedArrivalTime" => "5",
-                //                "busy" => false,
-                //                "country" => "AE,BINANCE_BAHRAIN_BSC"
-                //            ),
-                //            array(
-                //                "network" => "BNB",
-                //                "coin" => "LINK",
-                //                "withdrawIntegerMultiple" => "0.00000001",
-                //                "isDefault" => false,
-                //                "depositEnable" => true,
-                //                "withdrawEnable" => true,
-                //                "depositDesc" => "",
-                //                "withdrawDesc" => "",
-                //                "specialTips" => "Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.",
-                //                "specialWithdrawTips" => "",
-                //                "name" => "BNB Beacon Chain (BEP2)",
-                //                "resetAddressStatus" => false,
-                //                "addressRegex" => "^(bnb1)[0-9a-z]{38}$",
-                //                "addressRule" => "",
-                //                "memoRegex" => "^[0-9A-Za-z\\-_]array(1,120)$",
-                //                "withdrawFee" => "0.003",
-                //                "withdrawMin" => "0.01",
-                //                "withdrawMax" => "10000000000",
-                //                "minConfirm" => "1",
-                //                "unLockConfirm" => "0",
-                //                "sameAddress" => true,
-                //                "estimatedArrivalTime" => "5",
-                //                "busy" => false,
-                //                "country" => "AE,BINANCE_BAHRAIN_BSC"
-                //            ),
-                //            {
-                //                "network" => "ETH",
-                //                "coin" => "LINK",
-                //                "withdrawIntegerMultiple" => "0.00000001",
-                //                "isDefault" => true,
-                //                "depositEnable" => true,
-                //                "withdrawEnable" => true,
-                //                "depositDesc" => "",
-                //                "withdrawDesc" => "",
-                //                "name" => "Ethereum (ERC20)",
-                //                "resetAddressStatus" => false,
-                //                "addressRegex" => "^(0x)[0-9A-Fa-f]{40}$",
-                //                "addressRule" => "",
-                //                "memoRegex" => "",
-                //                "withdrawFee" => "0.55",
-                //                "withdrawMin" => "1.1",
-                //                "withdrawMax" => "10000000000",
-                //                "minConfirm" => "12",
-                //                "unLockConfirm" => "0",
-                //                "sameAddress" => false,
-                //                "estimatedArrivalTime" => "5",
-                //                "busy" => false,
-                //                "country" => "AE,BINANCE_BAHRAIN_BSC"
-                //            }
-                //        ]
-                //    }
-                //
-                //     some coins (e.g. ETH, BIGTIME, SONIC, etc) return extra fields under $network $entry
-                //
-                //                "specialTips" => "",
-                //                "specialWithdrawTips" => "",
-                //                "withdrawInternalMin" => "0",
-                //                "contractAddressUrl" => "https://etherscan.io/address/",
-                //                "contractAddress" => "0x64bc2ca1be492be7185faa2c8835d9b824c8a194"
-                //
-                $entry = $responseCurrencies[$i];
-                $id = $this->safe_string($entry, 'coin');
-                $name = $this->safe_string($entry, 'name');
-                $code = $this->safe_currency_code($id);
-                $isFiat = $this->safe_bool($entry, 'isLegalMoney');
-                $networkList = $this->safe_list($entry, 'networkList', array());
-                $fees = array();
-                $fee = null;
-                $networks = array();
-                $isETF = false;
-                for ($j = 0; $j < count($networkList); $j++) {
-                    $networkItem = $networkList[$j];
-                    $network = $this->safe_string($networkItem, 'network');
-                    $networkCode = $this->network_id_to_code($network, $code);
-                    $isETF = ($network === 'ETF'); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" $entry and are deterministic to set
-                    // $name = $this->safe_string($networkItem, 'name');
-                    $withdrawFee = $this->safe_number($networkItem, 'withdrawFee');
-                    $depositEnable = $this->safe_bool($networkItem, 'depositEnable');
-                    $withdrawEnable = $this->safe_bool($networkItem, 'withdrawEnable');
-                    $fees[$network] = $withdrawFee;
-                    $isDefault = $this->safe_bool($networkItem, 'isDefault');
-                    if ($isDefault || ($fee === null)) {
-                        $fee = $withdrawFee;
-                    }
-                    // todo => default $networks in "setMarkets" overload
-                    // if ($isDefault) {
-                    //     $this->options['defaultNetworkCodesForCurrencies'][$code] = $networkCode;
-                    // }
-                    $withdrawPrecision = $this->omit_zero($this->safe_string_2($networkItem, 'withdrawIntegerMultiple', 'withdrawInternalMin'));
-                    // zero values happen only on fiat or leveraged(ETF) tokens => https://t.me/binance_api_english/393075
-                    if ($withdrawPrecision === null && $isFiat) {
-                        $withdrawPrecision = $this->safe_string($this->options, 'defaultFiatWithdrawPrecision');
-                    }
-                    $networks[$networkCode] = array(
-                        'info' => $networkItem,
-                        'id' => $network,
-                        'network' => $networkCode,
-                        'active' => null,
-                        'deposit' => $depositEnable,
-                        'withdraw' => $withdrawEnable,
-                        'fee' => $withdrawFee,
-                        'precision' => $this->parse_number($withdrawPrecision),
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($networkItem, 'withdrawMin'),
-                                'max' => $this->safe_number($networkItem, 'withdrawMax'),
-                            ),
-                            'deposit' => array(
-                                'min' => $this->safe_number($networkItem, 'depositDust'),
-                                'max' => null,
-                            ),
-                        ),
-                    );
-                }
-                $type = null;
-                if ($isETF) {
-                    $type = 'other';
-                } elseif ($isFiat) {
-                    $type = 'fiat';
-                } else {
-                    $type = 'crypto';
-                }
-                $trading = $this->safe_bool($entry, 'trading');
-                $marginEntry = $this->safe_dict($marginablesById, $id, array());
-                //
-                //     {
-                //         assetName => "BTC",
-                //         assetFullName => "Bitcoin",
-                //         isBorrowable => true,
-                //         isMortgageable => true,
-                //         userMinBorrow => "0",
-                //         userMinRepay => "0",
-                //     }
-                //
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'name' => $name,
-                    'code' => $code,
-                    'type' => $type,
-                    'precision' => null,
-                    'info' => $entry,
-                    'active' => $trading,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'networks' => $networks,
-                    'fee' => null,
-                    'fees' => $fees,
-                    'limits' => null,
-                    'margin' => $this->safe_bool($marginEntry, 'isBorrowable'),
-                ));
-            }
-            return $result;
+            return $this->parse_currencies_custom($responseCurrencies, $marginablesById);
         }) ();
+    }
+
+    public function parse_currencies_custom($responseCurrencies, $marginablesById): ?array {
+        $result = array();
+        for ($i = 0; $i < count($responseCurrencies); $i++) {
+            $parsed = $this->parse_currency($responseCurrencies[$i]);
+            $code = $parsed['code'];
+            $marginEntry = $this->safe_dict($marginablesById, $parsed['id']);
+            $parsed['margin'] = $this->safe_bool($marginEntry, 'isBorrowable');
+            $result[$code] = $parsed;
+        }
+        return $result;
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        //
+        //    {
+        //        "coin" => "LINK",
+        //        "depositAllEnable" => true,
+        //        "withdrawAllEnable" => true,
+        //        "name" => "ChainLink",
+        //        "free" => "0",
+        //        "locked" => "0",
+        //        "freeze" => "0",
+        //        "withdrawing" => "0",
+        //        "ipoing" => "0",
+        //        "ipoable" => "0",
+        //        "storage" => "0",
+        //        "isLegalMoney" => false,
+        //        "trading" => true,
+        //        "networkList" => [
+        //            array(
+        //                "network" => "BSC",
+        //                "coin" => "LINK",
+        //                "withdrawIntegerMultiple" => "0.00000001",
+        //                "isDefault" => false,
+        //                "depositEnable" => true,
+        //                "withdrawEnable" => true,
+        //                "depositDesc" => "",
+        //                "withdrawDesc" => "",
+        //                "specialTips" => "",
+        //                "specialWithdrawTips" => "The $network you have selected is BSC. Please ensure that the withdrawal address supports the Binance Smart Chain $network-> You will lose your assets if the chosen platform does not support retrievals.",
+        //                "name" => "BNB Smart Chain (BEP20)",
+        //                "resetAddressStatus" => false,
+        //                "addressRegex" => "^(0x)[0-9A-Fa-f]{40}$",
+        //                "addressRule" => "",
+        //                "memoRegex" => "",
+        //                "withdrawFee" => "0.012",
+        //                "withdrawMin" => "0.024",
+        //                "withdrawMax" => "9999999999.99999999",
+        //                "minConfirm" => "15",
+        //                "unLockConfirm" => "0",
+        //                "sameAddress" => false,
+        //                "estimatedArrivalTime" => "5",
+        //                "busy" => false,
+        //                "country" => "AE,BINANCE_BAHRAIN_BSC"
+        //            ),
+        //            array(
+        //                "network" => "BNB",
+        //                "coin" => "LINK",
+        //                "withdrawIntegerMultiple" => "0.00000001",
+        //                "isDefault" => false,
+        //                "depositEnable" => true,
+        //                "withdrawEnable" => true,
+        //                "depositDesc" => "",
+        //                "withdrawDesc" => "",
+        //                "specialTips" => "Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.",
+        //                "specialWithdrawTips" => "",
+        //                "name" => "BNB Beacon Chain (BEP2)",
+        //                "resetAddressStatus" => false,
+        //                "addressRegex" => "^(bnb1)[0-9a-z]{38}$",
+        //                "addressRule" => "",
+        //                "memoRegex" => "^[0-9A-Za-z\\-_]array(1,120)$",
+        //                "withdrawFee" => "0.003",
+        //                "withdrawMin" => "0.01",
+        //                "withdrawMax" => "10000000000",
+        //                "minConfirm" => "1",
+        //                "unLockConfirm" => "0",
+        //                "sameAddress" => true,
+        //                "estimatedArrivalTime" => "5",
+        //                "busy" => false,
+        //                "country" => "AE,BINANCE_BAHRAIN_BSC"
+        //            ),
+        //            {
+        //                "network" => "ETH",
+        //                "coin" => "LINK",
+        //                "withdrawIntegerMultiple" => "0.00000001",
+        //                "isDefault" => true,
+        //                "depositEnable" => true,
+        //                "withdrawEnable" => true,
+        //                "depositDesc" => "",
+        //                "withdrawDesc" => "",
+        //                "name" => "Ethereum (ERC20)",
+        //                "resetAddressStatus" => false,
+        //                "addressRegex" => "^(0x)[0-9A-Fa-f]{40}$",
+        //                "addressRule" => "",
+        //                "memoRegex" => "",
+        //                "withdrawFee" => "0.55",
+        //                "withdrawMin" => "1.1",
+        //                "withdrawMax" => "10000000000",
+        //                "minConfirm" => "12",
+        //                "unLockConfirm" => "0",
+        //                "sameAddress" => false,
+        //                "estimatedArrivalTime" => "5",
+        //                "busy" => false,
+        //                "country" => "AE,BINANCE_BAHRAIN_BSC"
+        //            }
+        //        ]
+        //    }
+        //
+        //     some coins (e.g. ETH, BIGTIME, SONIC, etc) return extra fields under $network $entry
+        //
+        //                "specialTips" => "",
+        //                "specialWithdrawTips" => "",
+        //                "withdrawInternalMin" => "0",
+        //                "contractAddressUrl" => "https://etherscan.io/address/",
+        //                "contractAddress" => "0x64bc2ca1be492be7185faa2c8835d9b824c8a194"
+        //
+        $entry = $rawCurrency;
+        $id = $this->safe_string($entry, 'coin');
+        $name = $this->safe_string($entry, 'name');
+        $code = $this->safe_currency_code($id);
+        $isFiat = $this->safe_bool($entry, 'isLegalMoney');
+        $networkList = $this->safe_list($entry, 'networkList', array());
+        $fees = array();
+        $fee = null;
+        $networks = array();
+        $isETF = false;
+        for ($j = 0; $j < count($networkList); $j++) {
+            $networkItem = $networkList[$j];
+            $network = $this->safe_string($networkItem, 'network');
+            $networkCode = $this->network_id_to_code($network, $code);
+            $isETF = ($network === 'ETF'); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" $entry and are deterministic to set
+            // $name = $this->safe_string($networkItem, 'name');
+            $withdrawFee = $this->safe_number($networkItem, 'withdrawFee');
+            $depositEnable = $this->safe_bool($networkItem, 'depositEnable');
+            $withdrawEnable = $this->safe_bool($networkItem, 'withdrawEnable');
+            $fees[$network] = $withdrawFee;
+            $isDefault = $this->safe_bool($networkItem, 'isDefault');
+            if ($isDefault || ($fee === null)) {
+                $fee = $withdrawFee;
+            }
+            // todo => default $networks in "setMarkets" overload
+            // if ($isDefault) {
+            //     $this->options['defaultNetworkCodesForCurrencies'][$code] = $networkCode;
+            // }
+            $withdrawPrecision = $this->omit_zero($this->safe_string_2($networkItem, 'withdrawIntegerMultiple', 'withdrawInternalMin'));
+            // zero values happen only on fiat or leveraged(ETF) tokens => https://t.me/binance_api_english/393075
+            if ($withdrawPrecision === null && $isFiat) {
+                $withdrawPrecision = $this->safe_string($this->options, 'defaultFiatWithdrawPrecision');
+            }
+            $networks[$networkCode] = array(
+                'info' => $networkItem,
+                'id' => $network,
+                'network' => $networkCode,
+                'active' => null,
+                'deposit' => $depositEnable,
+                'withdraw' => $withdrawEnable,
+                'fee' => $withdrawFee,
+                'precision' => $this->parse_number($withdrawPrecision),
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($networkItem, 'withdrawMin'),
+                        'max' => $this->safe_number($networkItem, 'withdrawMax'),
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($networkItem, 'depositDust'),
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        $type = null;
+        if ($isETF) {
+            $type = 'other';
+        } elseif ($isFiat) {
+            $type = 'fiat';
+        } else {
+            $type = 'crypto';
+        }
+        $trading = $this->safe_bool($entry, 'trading');
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'name' => $name,
+            'code' => $code,
+            'type' => $type,
+            'precision' => null,
+            'info' => $entry,
+            'active' => $trading,
+            'deposit' => null,
+            'withdraw' => null,
+            'networks' => $networks,
+            'fee' => null,
+            'fees' => $fees,
+            'limits' => null,
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
