@@ -16,6 +16,29 @@ import { gitConfig } from '@/lib/shared';
 // Render on demand, then cache (no build-time prebake of ~700 pages -> small image).
 export const revalidate = false;
 
+// The docs are generated from wiki/*.md (committed on master), not from the gitignored
+// content/docs output — so "view source" must point at the real wiki markdown.
+const WIKI_BRANCH = 'master';
+const GUIDE_WIKI: Record<string, string> = {
+  index: 'README.md', manual: 'Manual.md', 'pro-manual': 'ccxt.pro.manual.md', pro: 'ccxt.pro.md',
+  install: 'Install.md', cli: 'CLI.md', 'examples-overview': 'Examples.md', faq: 'FAQ.md',
+  requirements: 'Requirements.md', awesome: 'Awesome.md', 'ai-skills': 'AI-Skills.md', stats: 'Stats.md',
+  certification: 'Certification.md', 'base-spec': 'baseSpec.md', 'exchange-markets': 'Exchange-Markets.md',
+  'exchange-markets-by-country': 'Exchange-Markets-By-Country.md', changelog: 'CHANGELOG.md', contributing: 'CONTRIBUTING.md',
+};
+
+function wikiSourcePath(slugs: string[]): string | undefined {
+  if (slugs[0] === 'exchanges' && slugs[1]) return `wiki/exchanges/${slugs[1]}.md`;
+  if (slugs[0] === 'examples') {
+    const lang = slugs[1];
+    const name = slugs[2];
+    if (lang && name) return `wiki/examples/${lang}/${name}.md`;
+    if (lang) return `wiki/examples/${lang}/README.md`;
+  }
+  const file = GUIDE_WIKI[slugs[0] ?? 'index'];
+  return file ? `wiki/${file}` : undefined;
+}
+
 export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   const params = await props.params;
   const page = source.getPage(params.slug);
@@ -23,6 +46,8 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
 
   const MDX = page.data.body;
   const markdownUrl = getPageMarkdownUrl(page).url;
+  const wikiPath = wikiSourcePath(page.slugs);
+  const githubUrl = `https://github.com/${gitConfig.user}/${gitConfig.repo}/${wikiPath ? `blob/${WIKI_BRANCH}/${wikiPath}` : `tree/${WIKI_BRANCH}/wiki`}`;
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
@@ -30,10 +55,7 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
       <DocsDescription className="mb-0">{page.data.description}</DocsDescription>
       <div className="flex flex-row gap-2 items-center border-b pb-6">
         <MarkdownCopyButton markdownUrl={markdownUrl} />
-        <ViewOptionsPopover
-          markdownUrl={markdownUrl}
-          githubUrl={`https://github.com/${gitConfig.user}/${gitConfig.repo}/blob/${gitConfig.branch}/content/docs/${page.path}`}
-        />
+        <ViewOptionsPopover markdownUrl={markdownUrl} githubUrl={githubUrl} />
       </div>
       <DocsBody>
         <MDX

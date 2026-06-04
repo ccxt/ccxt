@@ -6,10 +6,10 @@ import { buttonVariants } from 'fumadocs-ui/components/ui/button';
 import { cn } from '@/lib/cn';
 import { MessageCircleIcon } from 'lucide-react';
 
-// Shown only when AI is enabled at build (and OPENROUTER_API_KEY is set at runtime).
-const aiEnabled = process.env.NEXT_PUBLIC_AI_ENABLED === 'true';
-
 export default function Layout({ children }: LayoutProps<'/docs'>) {
+  // Show "Ask AI" only when enabled at build AND the OpenRouter key is present at runtime
+  // (read per-render) — otherwise the button would render and then fail on first message.
+  const aiEnabled = process.env.NEXT_PUBLIC_AI_ENABLED === 'true' && Boolean(process.env.OPENROUTER_API_KEY);
   return (
     <DocsLayout tree={source.getPageTree()} {...baseOptions()}>
       {aiEnabled ? (
