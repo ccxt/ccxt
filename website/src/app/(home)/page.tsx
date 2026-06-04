@@ -1,7 +1,21 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { CodeSwapHero } from '@/components/code-swap-hero';
 import { InstallCommands } from '@/components/install-commands';
 import { CcxtMark } from '@/components/ccxt-mark';
+import { basePath, gitConfig } from '@/lib/shared';
+
+export const metadata: Metadata = {
+  title: 'CCXT — Unified Crypto Trading API for 100+ Exchanges',
+  description:
+    'A unified cryptocurrency trading library — one API across 100+ exchanges in JavaScript, Python, PHP, C#, Go and Java. Made for developers and AI agents.',
+  openGraph: {
+    title: 'CCXT — Connect to any exchange',
+    description: 'One unified crypto trading API across 100+ exchanges — JS, Python, PHP, C#, Go and Java.',
+    // basePath-prefixed so the social-card URL resolves under /v2 (Next doesn't add it).
+    images: [`${basePath}/og/home`],
+  },
+};
 
 const cards: { href: string; title: string; desc: string }[] = [
   { href: '/docs/install', title: 'Install', desc: 'Add CCXT to a JS, Python, PHP, C#, Go or Java project.' },
@@ -51,7 +65,7 @@ export default function HomePage() {
             Read the Manual
           </Link>
           <Link
-            href="https://github.com/ccxt/ccxt"
+            href={`https://github.com/${gitConfig.user}/${gitConfig.repo}`}
             className="rounded-md border px-4 py-2 font-medium transition-colors hover:bg-fd-accent"
           >
             GitHub

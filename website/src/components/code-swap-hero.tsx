@@ -272,6 +272,12 @@ export function CodeSwapHero() {
     }, 2900);
   }, [nextAuto]);
 
+  // pause auto-cycling while the user is reading/interacting (hover or keyboard focus)
+  const pauseAuto = useCallback(() => {
+    if (autoTimer.current) clearInterval(autoTimer.current);
+    autoTimer.current = null;
+  }, []);
+
   useEffect(() => {
     reduceMotion.current =
       typeof window !== 'undefined' &&
@@ -321,11 +327,25 @@ export function CodeSwapHero() {
       return;
     }
 
+    // Only do the per-frame layout work when the beam is actually visible: not on a
+    // backgrounded tab, not on mobile (<=760px, where the beam is display:none), and
+    // not while scrolled out of view. The rAF keeps ticking cheaply so it resumes.
+    const mq = window.matchMedia('(max-width: 760px)');
+    let hiddenByWidth = mq.matches;
+    const onMq = () => (hiddenByWidth = mq.matches);
+    mq.addEventListener('change', onMq);
+    let onScreen = true;
+    const io = new IntersectionObserver(
+      (entries) => (onScreen = entries[0]?.isIntersecting ?? true),
+      { rootMargin: '120px' },
+    );
+    if (stageRef.current) io.observe(stageRef.current);
+
     let raf = 0;
     let dash = 0;
     let t = 0;
     const tick = () => {
-      if (draw()) {
+      if (!document.hidden && !hiddenByWidth && onScreen && draw()) {
         dash = (dash + 0.7) % 1000;
         flow.setAttribute('stroke-dashoffset', String(dash));
         const len = flow.getTotalLength();
@@ -339,7 +359,11 @@ export function CodeSwapHero() {
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      mq.removeEventListener('change', onMq);
+      io.disconnect();
+    };
   }, []);
 
   // when language changes, re-render the token text for the current exchange
@@ -365,7 +389,16 @@ export function CodeSwapHero() {
 
   return (
     <div className="csh-root">
-      <div className="csh-stage" ref={stageRef}>
+      <div
+        className="csh-stage"
+        ref={stageRef}
+        onMouseEnter={pauseAuto}
+        onMouseLeave={restartAuto}
+        onFocusCapture={pauseAuto}
+        onBlurCapture={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) restartAuto();
+        }}
+      >
         <svg
           ref={beamSvgRef}
           className="csh-beam"
@@ -390,13 +423,12 @@ export function CodeSwapHero() {
                 <CcxtMark className="csh-pill-mark" /> ccxt
               </span>
             </div>
-            <div className="csh-langs" role="tablist" aria-label="Language">
+            <div className="csh-langs" aria-label="Language">
               {LANGS.map((l, idx) => (
                 <button
                   key={l[0]}
                   type="button"
-                  role="tab"
-                  aria-selected={idx === curLang}
+                  aria-pressed={idx === curLang}
                   className={`csh-lang${idx === curLang ? ' csh-active' : ''}`}
                   onClick={() => onLang(idx)}
                 >
@@ -449,7 +481,7 @@ export function CodeSwapHero() {
         </div>
 
         {/* exchange picker */}
-        <div className="csh-picker" role="tablist" aria-label="Exchange">
+        <div className="csh-picker" aria-label="Exchange">
           {EXCH.map((e, idx) => (
             <button
               key={e[0]}
@@ -457,8 +489,8 @@ export function CodeSwapHero() {
                 excRefs.current[idx] = el;
               }}
               type="button"
-              role="tab"
-              aria-selected={idx === cur}
+              aria-pressed={idx === cur}
+              aria-label={`Show ${e[1]} example`}
               className={`csh-exc${idx === cur ? ' csh-active' : ''}`}
               style={{ ['--exc' as string]: e[2] }}
               onClick={() => selectIdx(idx, true)}
