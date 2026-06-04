@@ -11,7 +11,10 @@ export default function Layout({ children }: LayoutProps<'/docs'>) {
   // (read per-render) — otherwise the button would render and then fail on first message.
   const aiEnabled = process.env.NEXT_PUBLIC_AI_ENABLED === 'true' && Boolean(process.env.OPENROUTER_API_KEY);
   return (
-    <DocsLayout tree={source.getPageTree()} {...baseOptions()}>
+    // tabs={false}: drop the redundant sidebar root-switcher dropdown — the
+    // Guide/Exchanges/Examples navbar links (baseOptions) already switch sections.
+    // The sidebar still scopes to the active section by URL.
+    <DocsLayout tree={source.getPageTree()} tabs={false} {...baseOptions()}>
       {aiEnabled ? (
         <AISearch>
           <AISearchPanel />
