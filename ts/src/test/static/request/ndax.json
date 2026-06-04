@@ -6,7 +6,7 @@
     "methods": {
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "description": "default",
                 "method": "fetchCurrencies",
                 "url": "https://api.ndax.io:8443/AP/GetProducts?omsId=1",
                 "input": [],

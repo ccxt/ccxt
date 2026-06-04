@@ -481,43 +481,42 @@ export default class ndax extends Exchange {
         //        },
         //        ...
         //
-        const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString (currency, 'ProductId');
-            const code = this.safeCurrencyCode (this.safeString (currency, 'Product'));
-            const ProductType = this.safeString (currency, 'ProductType');
-            let type = (ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
-            if (ProductType === 'Unknown') {
-                // such currency is just a blanket entry
-                type = 'other';
-            }
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'name': this.safeString (currency, 'ProductFullName'),
-                'code': code,
-                'type': type,
-                'precision': this.safeNumber (currency, 'TickSize'),
-                'info': currency,
-                'active': !this.safeBool (currency, 'IsDisabled'),
-                'deposit': this.safeBool (currency, 'DepositEnabled'),
-                'withdraw': this.safeBool (currency, 'WithdrawEnabled'),
-                'fee': undefined,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': {},
-                'margin': this.safeBool (currency, 'MarginEnabled'),
-            });
+        return this.parseCurrencies (response);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const id = this.safeString (rawCurrency, 'ProductId');
+        const code = this.safeCurrencyCode (this.safeString (rawCurrency, 'Product'));
+        const ProductType = this.safeString (rawCurrency, 'ProductType');
+        let type = (ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
+        if (ProductType === 'Unknown') {
+            // such currency is just a blanket entry
+            type = 'other';
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'name': this.safeString (rawCurrency, 'ProductFullName'),
+            'code': code,
+            'type': type,
+            'precision': this.safeNumber (rawCurrency, 'TickSize'),
+            'info': rawCurrency,
+            'active': !this.safeBool (rawCurrency, 'IsDisabled'),
+            'deposit': this.safeBool (rawCurrency, 'DepositEnabled'),
+            'withdraw': this.safeBool (rawCurrency, 'WithdrawEnabled'),
+            'fee': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': {},
+            'margin': this.safeBool (rawCurrency, 'MarginEnabled'),
+        });
     }
 
     /**
