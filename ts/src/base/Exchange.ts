@@ -1709,11 +1709,16 @@ export default class Exchange {
         return this.json ([ signature.r.toString (), signature.s.toString () ]);
     }
 
-    starknetGetSelectorFromName (name) {
+    extendedStarknetSign (msgHash, pri) {
+        const signature = starknetCurveSign (msgHash.replace ('0x', ''), pri.replace ('0x', ''));
+        return this.json ([ signature.r.toString (), signature.s.toString () ]);
+    }
+
+    extendedStarknetGetSelectorFromName (name) {
         return Starknet.hash.getSelectorFromName (name);
     }
 
-    starknetComputePoseidonHashOnElements (data) {
+    extendedStarknetComputePoseidonHashOnElements (data) {
         return Starknet.hash.computePoseidonHashOnElements (data);
     }
 

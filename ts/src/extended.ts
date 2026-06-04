@@ -2495,7 +2495,7 @@ export default class extended extends Exchange {
             'salt': nonce,
         };
         const msgHash = this.getExtendedOrderMsgHash (settlement);
-        const sig = JSON.parse (this.starknetSign (msgHash, this.privateKey));
+        const sig = JSON.parse (this.extendedStarknetSign (msgHash, this.privateKey));
         const r = this.getExtendedSignatureHex (sig[0]);
         const s = this.getExtendedSignatureHex (sig[1]);
         settlement['r'] = r;
@@ -2528,7 +2528,7 @@ export default class extended extends Exchange {
             'salt': nonce,
         };
         const msgHash = this.getExtendedWithdrawalMsgHash (settlement, starkKey);
-        const sig = JSON.parse (this.starknetSign (msgHash, this.privateKey));
+        const sig = JSON.parse (this.extendedStarknetSign (msgHash, this.privateKey));
         settlement['signature'] = {
             'r': this.getExtendedSignatureHex (sig[0]),
             's': this.getExtendedSignatureHex (sig[1]),
@@ -2560,7 +2560,7 @@ export default class extended extends Exchange {
             'senderPublicKey': fromL2Key,
         };
         const msgHash = this.getExtendedTransferMsgHash (settlement);
-        const sig = JSON.parse (this.starknetSign (msgHash, this.privateKey));
+        const sig = JSON.parse (this.extendedStarknetSign (msgHash, this.privateKey));
         settlement['signature'] = {
             'r': this.getExtendedSignatureHex (sig[0]),
             's': this.getExtendedSignatureHex (sig[1]),
@@ -3388,13 +3388,13 @@ export default class extended extends Exchange {
     }
 
     getExtendedDomainHash () {
-        const domainTypeHash = this.convertToBigInt (this.starknetGetSelectorFromName (
+        const domainTypeHash = this.convertToBigInt (this.extendedStarknetGetSelectorFromName (
             '"StarknetDomain"("name":"shortstring","version":"shortstring","chainId":"shortstring","revision":"shortstring")'
         ));
         const isTestnet = this.urls['api']['rest'].indexOf ('sepolia') >= 0;
         const defaultChainId = isTestnet ? 'SN_SEPOLIA' : 'SN_MAIN';
         const chainId = this.safeString (this.options, 'chainId', defaultChainId);
-        return this.convertToBigInt (this.starknetComputePoseidonHashOnElements ([
+        return this.convertToBigInt (this.extendedStarknetComputePoseidonHashOnElements ([
             domainTypeHash,
             this.getExtendedStringToFelt ('Perpetuals'),
             this.getExtendedStringToFelt ('v0'),
@@ -3404,7 +3404,7 @@ export default class extended extends Exchange {
     }
 
     getExtendedOrderMsgHash (settlement: Dict): string {
-        const orderTypeHash = this.convertToBigInt (this.starknetGetSelectorFromName (
+        const orderTypeHash = this.convertToBigInt (this.extendedStarknetGetSelectorFromName (
             '"Order"("position_id":"felt","base_asset_id":"AssetId","base_amount":"i64","quote_asset_id":"AssetId","quote_amount":"i64","fee_asset_id":"AssetId","fee_amount":"u64","expiration":"Timestamp","salt":"felt")"PositionId"("value":"u32")"AssetId"("value":"felt")"Timestamp"("seconds":"u64")'
         ));
         const domainHash = this.getExtendedDomainHash ();
@@ -3420,7 +3420,7 @@ export default class extended extends Exchange {
         const salt = this.convertToBigInt (this.safeString2 (settlement, 'salt', 'nonce'));
         const starkKey = this.convertToBigInt (this.safeString (settlement, 'starkKey'));
         // Order struct hash
-        const orderHash = this.convertToBigInt (this.starknetComputePoseidonHashOnElements ([
+        const orderHash = this.convertToBigInt (this.extendedStarknetComputePoseidonHashOnElements ([
             orderTypeHash,
             positionId,
             this.convertToBigInt (baseAssetId),
@@ -3433,7 +3433,7 @@ export default class extended extends Exchange {
             salt,
         ]));
         // SNIP-12 final message hash: poseidon('StarkNet Message', domainHash, starkKey, orderHash)
-        return this.starknetComputePoseidonHashOnElements ([
+        return this.extendedStarknetComputePoseidonHashOnElements ([
             this.getExtendedStringToFelt ('StarkNet Message'),
             domainHash,
             starkKey,
@@ -3442,12 +3442,12 @@ export default class extended extends Exchange {
     }
 
     getExtendedWithdrawalMsgHash (settlement: Dict, starkKey: string): string {
-        const withdrawalTypeHash = this.convertToBigInt (this.starknetGetSelectorFromName (
+        const withdrawalTypeHash = this.convertToBigInt (this.extendedStarknetGetSelectorFromName (
             '"Withdrawal"("recipient":"felt","position_id":"PositionId","collateral_id":"AssetId","amount":"u64","expiration":"Timestamp","salt":"felt")"PositionId"("value":"u32")"AssetId"("value":"felt")"Timestamp"("seconds":"u64")'
         ));
         const domainHash = this.getExtendedDomainHash ();
         const expiration = this.safeDict (settlement, 'expiration', {});
-        const withdrawalHash = this.convertToBigInt (this.starknetComputePoseidonHashOnElements ([
+        const withdrawalHash = this.convertToBigInt (this.extendedStarknetComputePoseidonHashOnElements ([
             withdrawalTypeHash,
             this.convertToBigInt (this.safeString (settlement, 'recipient')),
             this.convertToBigInt (this.safeString (settlement, 'positionId')),
@@ -3456,7 +3456,7 @@ export default class extended extends Exchange {
             this.convertToBigInt (this.safeString (expiration, 'seconds')),
             this.convertToBigInt (this.safeString (settlement, 'salt')),
         ]));
-        return this.starknetComputePoseidonHashOnElements ([
+        return this.extendedStarknetComputePoseidonHashOnElements ([
             this.getExtendedStringToFelt ('StarkNet Message'),
             domainHash,
             this.convertToBigInt (starkKey),
@@ -3465,12 +3465,12 @@ export default class extended extends Exchange {
     }
 
     getExtendedTransferMsgHash (settlement: Dict): string {
-        const transferTypeHash = this.convertToBigInt (this.starknetGetSelectorFromName (
+        const transferTypeHash = this.convertToBigInt (this.extendedStarknetGetSelectorFromName (
             '"Transfer"("sender_position_id":"PositionId","receiver_position_id":"PositionId","asset_id":"AssetId","amount":"u64","expiration":"Timestamp","salt":"felt")"PositionId"("value":"u32")"AssetId"("value":"felt")"Timestamp"("seconds":"u64")'
         ));
         const domainHash = this.getExtendedDomainHash ();
         const senderPublicKey = this.convertToBigInt (this.safeString (settlement, 'senderPublicKey'));
-        const transferHash = this.convertToBigInt (this.starknetComputePoseidonHashOnElements ([
+        const transferHash = this.convertToBigInt (this.extendedStarknetComputePoseidonHashOnElements ([
             transferTypeHash,
             this.convertToBigInt (this.safeString (settlement, 'senderPositionId')),
             this.convertToBigInt (this.safeString (settlement, 'receiverPositionId')),
@@ -3479,7 +3479,7 @@ export default class extended extends Exchange {
             this.convertToBigInt (this.safeString (settlement, 'expirationTimestamp')),
             this.convertToBigInt (this.safeString (settlement, 'nonce')),
         ]));
-        return this.starknetComputePoseidonHashOnElements ([
+        return this.extendedStarknetComputePoseidonHashOnElements ([
             this.getExtendedStringToFelt ('StarkNet Message'),
             domainHash,
             senderPublicKey,

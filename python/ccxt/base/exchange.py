@@ -1591,19 +1591,26 @@ class Exchange(object):
     @staticmethod
     def starknet_sign (msg_hash, pri):
         # // TODO: unify to ecdsa
-        if isinstance(msg_hash, str):
-            msg_hash = int(msg_hash, 16)
         if isinstance(pri, str):
             pri = int(pri, 16)
         r, s = message_signature(msg_hash, pri)
         return Exchange.json([hex(r), hex(s)])
 
     @staticmethod
-    def starknet_get_selector_from_name (name):
+    def extended_starknet_sign (msg_hash, pri):
+        if isinstance(msg_hash, str):
+            msg_hash = int(msg_hash, 0)
+        if isinstance(pri, str):
+            pri = int(pri, 16)
+        r, s = message_signature(msg_hash, pri)
+        return Exchange.json([hex(r), hex(s)])
+
+    @staticmethod
+    def extended_starknet_get_selector_from_name (name):
         return get_selector_from_name(name)
 
     @staticmethod
-    def starknet_compute_poseidon_hash_on_elements (data):
+    def extended_starknet_compute_poseidon_hash_on_elements (data):
         values = [int(x, 0) if isinstance(x, str) else int(x) for x in data]
         return hex(poseidon_hash_many(values))
 

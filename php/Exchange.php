@@ -1480,6 +1480,11 @@ class Exchange {
 
     public function starknet_sign($msg_hash, $pri) {
         # // TODO: unify to ecdsa
+        $signature = Curve::sign ('0x' . $pri, $msg_hash);
+        return $this->json($signature);
+    }
+
+    public function extended_starknet_sign($msg_hash, $pri) {
         $messageHash = $this->remove0x_prefix($msg_hash);
         $privateKey = '0x' . $this->remove0x_prefix($pri);
         $signature = Curve::sign ($privateKey, $messageHash);
@@ -1489,11 +1494,11 @@ class Exchange {
         ));
     }
 
-    public function starknet_get_selector_from_name($name) {
+    public function extended_starknet_get_selector_from_name($name) {
         return '0x' . Hash::getSelectorFromName($name);
     }
 
-    public function starknet_compute_poseidon_hash_on_elements($data) {
+    public function extended_starknet_compute_poseidon_hash_on_elements($data) {
         return Hash::computePoseidonHashOnElements($data);
     }
 

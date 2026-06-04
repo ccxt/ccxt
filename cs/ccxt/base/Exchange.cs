@@ -891,24 +891,47 @@ public partial class Exchange
 
     public object starknetSign(object msgHash, object privateKey)
     {
-        var privateKeyString = privateKey.ToString();
-        var msgHashStr = msgHash.ToString();
-        var bigIntHash = msgHashStr.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
-            ? BigInteger.Parse("00" + msgHashStr[2..], System.Globalization.NumberStyles.AllowHexSpecifier)
-            : BigInteger.Parse(msgHashStr, System.Globalization.CultureInfo.InvariantCulture);
-        var bigIntKey = privateKeyString.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
-            ? BigInteger.Parse("00" + privateKeyString[2..], System.Globalization.NumberStyles.AllowHexSpecifier)
-            : BigInteger.Parse(privateKeyString, System.Globalization.CultureInfo.InvariantCulture);
+        var privateKeyString = privateKey.ToString().Replace("0x", "");
+        var msgHashStr = msgHash.ToString().Replace("0x", "");
+        var bigIntHash = BigInteger.Parse(msgHashStr, System.Globalization.NumberStyles.HexNumber);
+        var bigIntKey = BigInteger.Parse(privateKeyString, System.Globalization.NumberStyles.HexNumber); ;
         var res = ECDSA.Sign(bigIntHash, bigIntKey);
         return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
     }
 
-    public object starknetGetSelectorFromName(object name)
+    public object extendedStarknetSign(object msgHash, object privateKey)
+    {
+        var privateKeyString = privateKey.ToString();
+        var msgHashStr = msgHash.ToString();
+        var bigIntHash = parseStarknetBigInteger(msgHashStr);
+        var bigIntKey = parseStarknetBigInteger(privateKeyString);
+        var res = ECDSA.Sign(bigIntHash, bigIntKey);
+        return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
+    }
+
+    public BigInteger parseStarknetBigInteger(string value)
+    {
+        if (value.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+        {
+            return BigInteger.Parse("00" + value[2..], System.Globalization.NumberStyles.AllowHexSpecifier);
+        }
+        for (var i = 0; i < value.Length; i++)
+        {
+            var c = value[i];
+            if ((c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
+            {
+                return BigInteger.Parse("00" + value, System.Globalization.NumberStyles.AllowHexSpecifier);
+            }
+        }
+        return BigInteger.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    public object extendedStarknetGetSelectorFromName(object name)
     {
         return StarknetOps.CalculateFunctionSelector(name.ToString());
     }
 
-    public object starknetComputePoseidonHashOnElements(object data)
+    public object extendedStarknetComputePoseidonHashOnElements(object data)
     {
         return StarknetPoseidon.HashMany(data).ToString();
     }

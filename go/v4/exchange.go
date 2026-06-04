@@ -1332,10 +1332,14 @@ func (this *Exchange) StarknetEncodeStructuredData(a any, b any, c any, d any) a
 }
 
 func (this *Exchange) StarknetSign(a any, b any) any {
+	return nil // to do
+}
+
+func (this *Exchange) ExtendedStarknetSign(a any, b any) any {
 	msgHash := parseStarknetBigInt(a)
 	privateKey := parseStarknetBigInt(b)
 	if msgHash == nil || privateKey == nil {
-		panic(AuthenticationError(Add(this.Id, " starknetSign() invalid msgHash or privateKey")))
+		return nil // to do
 	}
 	r, s, err := starkcurve.Sign(msgHash, privateKey)
 	if err != nil {
@@ -1344,20 +1348,20 @@ func (this *Exchange) StarknetSign(a any, b any) any {
 	return this.Json([]any{r.String(), s.String()})
 }
 
-func (this *Exchange) StarknetGetSelectorFromName(a any) any {
+func (this *Exchange) ExtendedStarknetGetSelectorFromName(a any) any {
 	return starkutils.GetSelectorFromName(ToString(a)).String()
 }
 
-func (this *Exchange) StarknetComputePoseidonHashOnElements(a any) any {
+func (this *Exchange) ExtendedStarknetComputePoseidonHashOnElements(a any) any {
 	values, ok := a.([]any)
 	if !ok {
-		panic(ExchangeError(Add(this.Id, " starknetComputePoseidonHashOnElements() requires an array")))
+		panic(ExchangeError(Add(this.Id, " extendedStarknetComputePoseidonHashOnElements() requires an array")))
 	}
 	felts := make([]*starkfelt.Felt, 0, len(values))
 	for _, value := range values {
 		bigValue := parseStarknetBigInt(value)
 		if bigValue == nil {
-			panic(ExchangeError(Add(this.Id, " starknetComputePoseidonHashOnElements() invalid felt value")))
+			panic(ExchangeError(Add(this.Id, " extendedStarknetComputePoseidonHashOnElements() invalid felt value")))
 		}
 		felts = append(felts, new(starkfelt.Felt).SetBigInt(bigValue))
 	}

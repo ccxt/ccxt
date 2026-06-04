@@ -1400,6 +1400,16 @@ export default class Exchange {
         const signature = starknetCurveSign(msgHash.replace('0x', ''), pri.replace('0x', ''));
         return this.json([signature.r.toString(), signature.s.toString()]);
     }
+    extendedStarknetSign(msgHash, pri) {
+        const signature = starknetCurveSign(msgHash.replace('0x', ''), pri.replace('0x', ''));
+        return this.json([signature.r.toString(), signature.s.toString()]);
+    }
+    extendedStarknetGetSelectorFromName(name) {
+        return Starknet.hash.getSelectorFromName(name);
+    }
+    extendedStarknetComputePoseidonHashOnElements(data) {
+        return Starknet.hash.computePoseidonHashOnElements(data);
+    }
     async getZKContractSignatureObj(seed, params = {}) {
         const formattedSlotId = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'slotId')), sha256, 'hex'))).toString();
         const formattedNonce = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'nonce')), sha256, 'hex'))).toString();
