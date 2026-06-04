@@ -145,6 +145,7 @@ export default class extended extends Exchange {
                 'transfer': true,
                 'withdraw': true,
             },
+            'features': {},
             'timeframes': {
                 '1m': 'PT1M',
                 '5m': 'PT5M',
@@ -519,12 +520,12 @@ export default class extended extends Exchange {
         if (baseId.indexOf ('SPOT') >= 0) {
             baseId = baseId.replace ('SPOT', '');
         }
-        let quoteId = this.safeString (market, 'collateralAssetName');
-        if (quoteId === 'USD') {
-            quoteId = 'USDC';
-        }
+        const quoteId = this.safeString (market, 'collateralAssetName');
         const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
+        let quote = this.safeCurrencyCode (quoteId);
+        if (quoteId === 'USD') {
+            quote = 'USDC';
+        }
         const status = this.safeString (market, 'status');
         const active = (status === 'ACTIVE');
         const amountPrecision = this.safeNumber (tradingConfig, 'minOrderSizeChange');
@@ -538,13 +539,19 @@ export default class extended extends Exchange {
         let symbol = base + '/' + quote;
         let isSpot = false;
         let type = this.safeStringLower (market, 'type');
+        let contractSize = undefined;
+        let linear = undefined;
+        let inverse = undefined;
         if (type === 'spot') {
             isSpot = true;
         } else {
             type = 'swap';
-            settleId = 'USDC';
-            settle = this.safeCurrencyCode (settleId);
+            settleId = quoteId;
+            settle = quote;
             symbol += ':' + settle;
+            contractSize = this.parseNumber ('1');
+            linear = true;
+            inverse = false;
         }
         return this.safeMarketStructure ({
             'id': marketId,
@@ -563,11 +570,11 @@ export default class extended extends Exchange {
             'option': false,
             'active': active,
             'contract': !isSpot,
-            'linear': !isSpot,
-            'inverse': false,
+            'linear': linear,
+            'inverse': inverse,
             'taker': this.safeNumber (this.fees, 'taker'),
             'maker': this.safeNumber (this.fees, 'maker'),
-            'contractSize': this.parseNumber ('1'),
+            'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -661,7 +668,10 @@ export default class extended extends Exchange {
         //       "availableForTradeFactors": []
         //     }
         //
-        const currencyId = this.safeString (currency, 'symbol');
+        let currencyId = this.safeString (currency, 'symbol');
+        if ((currencyId !== undefined) && (currencyId.indexOf ('SPOT') >= 0)) {
+            currencyId = currencyId.replace ('SPOT', '');
+        }
         let code = this.safeCurrencyCode (currencyId);
         if (currencyId === 'USD') {
             code = 'USDC';
@@ -675,10 +685,10 @@ export default class extended extends Exchange {
             'numericId': this.safeInteger (currency, 'id'),
             'name': name,
             'active': isActive,
-            'deposit': undefined,
-            'withdraw': undefined,
+            'deposit': true,
+            'withdraw': true,
             'precision': Math.pow (10, precision * -1),
-            'type': this.safeStringLower (currency, 'type'),
+            'type': 'other',
             'margin': this.safeBool (currency, 'canBeUsedAsCollateral'),
             'info': currency,
         });
@@ -895,7 +905,8 @@ export default class extended extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const orderbook = this.parseOrderBook (data, market['symbol'], undefined, 'bid', 'ask', 'price', 'qty');
+        const timestamp = this.milliseconds ();
+        const orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bid', 'ask', 'price', 'qty');
         if (limit !== undefined) {
             orderbook['bids'] = this.arraySlice (orderbook['bids'], 0, limit);
             orderbook['asks'] = this.arraySlice (orderbook['asks'], 0, limit);
