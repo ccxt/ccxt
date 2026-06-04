@@ -464,7 +464,8 @@
                                 }
                             },
                             "currency_precision": "6",
-                            "is_memo": false
+                            "is_memo": false,
+                            "_coin_id": "USDT"
                         },
                         "id": "USDT",
                         "numericId": null,
