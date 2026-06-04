@@ -839,8 +839,8 @@ export default class extended extends Exchange {
         //
         const symbol = this.safeSymbol (undefined, market);
         const last = this.safeNumber (ticker, 'lastPrice');
-        const percentageRaw = this.safeNumber (ticker, 'dailyPriceChangePercentage');
-        const percentage = (percentageRaw !== undefined) ? percentageRaw * 100 : undefined;
+        const percentageRaw = this.safeString (ticker, 'dailyPriceChangePercentage');
+        const percentage = (percentageRaw !== undefined) ? Precise.stringMul (percentageRaw, '100') : undefined;
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
@@ -1010,12 +1010,16 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeValue (pagination, 'cursor');
+        const result = [];
         const dataLength = data.length;
-        if ((cursor !== undefined) && (dataLength > 0)) {
-            const lastIndex = dataLength - 1;
-            data[lastIndex] = this.extend (data[lastIndex], { 'cursor': cursor });
+        for (let i = 0; i < dataLength; i++) {
+            let entry = data[i];
+            if ((cursor !== undefined) && (i === dataLength - 1)) {
+                entry = this.extend (entry, { 'cursor': cursor });
+            }
+            result.push (entry);
         }
-        return this.parseTrades (data, market, since, limit);
+        return this.parseTrades (result, market, since, limit);
     }
 
     /**
@@ -1077,12 +1081,16 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeValue (pagination, 'cursor');
+        const result = [];
         const dataLength = data.length;
-        if ((cursor !== undefined) && (dataLength > 0)) {
-            const lastIndex = dataLength - 1;
-            data[lastIndex] = this.extend (data[lastIndex], { 'cursor': cursor });
+        for (let i = 0; i < dataLength; i++) {
+            let entry = data[i];
+            if ((cursor !== undefined) && (i === dataLength - 1)) {
+                entry = this.extend (entry, { 'cursor': cursor });
+            }
+            result.push (entry);
         }
-        return this.parseFundingHistories (data, market, since, limit);
+        return this.parseFundingHistories (result, market, since, limit);
     }
 
     parseFundingHistory (history, market: Market = undefined) {
@@ -1614,12 +1622,16 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeValue (pagination, 'cursor');
+        const result = [];
         const dataLength = data.length;
-        if ((cursor !== undefined) && (dataLength > 0)) {
-            const lastIndex = dataLength - 1;
-            data[lastIndex] = this.extend (data[lastIndex], { 'cursor': cursor });
+        for (let i = 0; i < dataLength; i++) {
+            let entry = data[i];
+            if ((cursor !== undefined) && (i === dataLength - 1)) {
+                entry = this.extend (entry, { 'cursor': cursor });
+            }
+            result.push (entry);
         }
-        return this.parseLedger (data, currency, since, limit);
+        return this.parseLedger (result, currency, since, limit);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -1725,12 +1737,16 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeValue (pagination, 'cursor');
+        const result = [];
         const dataLength = data.length;
-        if ((cursor !== undefined) && (dataLength > 0)) {
-            const lastIndex = dataLength - 1;
-            data[lastIndex] = this.extend (data[lastIndex], { 'cursor': cursor });
+        for (let i = 0; i < dataLength; i++) {
+            let entry = data[i];
+            if ((cursor !== undefined) && (i === dataLength - 1)) {
+                entry = this.extend (entry, { 'cursor': cursor });
+            }
+            result.push (entry);
         }
-        return this.parseTransactions (data, currency, since, limit);
+        return this.parseTransactions (result, currency, since, limit);
     }
 
     /**
@@ -1866,12 +1882,16 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeValue (pagination, 'cursor');
+        const result = [];
         const dataLength = data.length;
-        if ((cursor !== undefined) && (dataLength > 0)) {
-            const lastIndex = dataLength - 1;
-            data[lastIndex] = this.extend (data[lastIndex], { 'cursor': cursor });
+        for (let i = 0; i < dataLength; i++) {
+            let entry = data[i];
+            if ((cursor !== undefined) && (i === dataLength - 1)) {
+                entry = this.extend (entry, { 'cursor': cursor });
+            }
+            result.push (entry);
         }
-        return this.parseTransfers (data, currency, since, limit);
+        return this.parseTransfers (result, currency, since, limit);
     }
 
     /**
@@ -2366,12 +2386,16 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeValue (pagination, 'cursor');
+        const result = [];
         const dataLength = data.length;
-        if ((cursor !== undefined) && (dataLength > 0)) {
-            const lastIndex = dataLength - 1;
-            data[lastIndex] = this.extend (data[lastIndex], { 'cursor': cursor });
+        for (let i = 0; i < dataLength; i++) {
+            let entry = data[i];
+            if ((cursor !== undefined) && (i === dataLength - 1)) {
+                entry = this.extend (entry, { 'cursor': cursor });
+            }
+            result.push (entry);
         }
-        const positions = this.parsePositions (data, symbols);
+        const positions = this.parsePositions (result, symbols);
         return this.filterBySinceLimit (positions, since, limit, 'timestamp') as Position[];
     }
 
@@ -3193,12 +3217,16 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeValue (pagination, 'cursor');
+        const result = [];
         const dataLength = data.length;
-        if ((cursor !== undefined) && (dataLength > 0)) {
-            const lastIndex = dataLength - 1;
-            data[lastIndex] = this.extend (data[lastIndex], { 'cursor': cursor });
+        for (let i = 0; i < dataLength; i++) {
+            let entry = data[i];
+            if ((cursor !== undefined) && (i === dataLength - 1)) {
+                entry = this.extend (entry, { 'cursor': cursor });
+            }
+            result.push (entry);
         }
-        const orders = this.parseOrders (data, market, since, limit);
+        const orders = this.parseOrders (result, market, since, limit);
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
