@@ -21,8 +21,9 @@ ENV NODE_ENV=production \
     PORT=3005 \
     HOSTNAME=0.0.0.0
 # standalone bundle (flat, thanks to outputFileTracingRoot) + static assets
-# (no public/ dir in this app)
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+# public/ holds the CCXT logo assets used by the homepage hero
+COPY --from=builder /app/public ./public
 EXPOSE 3005
 CMD ["node", "server.js"]
