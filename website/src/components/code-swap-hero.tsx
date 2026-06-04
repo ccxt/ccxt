@@ -177,6 +177,16 @@ export function CodeSwapHero() {
   const rafRef = useRef<number | null>(null);
   const reduceMotion = useRef(false);
 
+  // beam: a glowing line + traveling comet drawn from the active exchange chip up to
+  // the swapping token in the code, colored by the exchange's brand color (--bm).
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const tokenRef = useRef<HTMLSpanElement | null>(null);
+  const excRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const beamSvgRef = useRef<SVGSVGElement | null>(null);
+  const beamBaseRef = useRef<SVGPathElement | null>(null);
+  const beamFlowRef = useRef<SVGPathElement | null>(null);
+  const cometRef = useRef<SVGCircleElement | null>(null);
+
   const ex = EXCH[cur];
   const lang = LANGS[curLang];
 
@@ -275,6 +285,63 @@ export function CodeSwapHero() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // draw + animate the beam every frame so it tracks swaps, typing, theme and resize
+  useEffect(() => {
+    const svg = beamSvgRef.current;
+    const base = beamBaseRef.current;
+    const flow = beamFlowRef.current;
+    const comet = cometRef.current;
+    if (!svg || !base || !flow || !comet) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const draw = () => {
+      const stage = stageRef.current;
+      const token = tokenRef.current;
+      const btn = excRefs.current[curRef.current];
+      if (!stage || !token || !btn) return false;
+      const sr = stage.getBoundingClientRect();
+      if (sr.width === 0) return false;
+      const br = btn.getBoundingClientRect();
+      const tr = token.getBoundingClientRect();
+      svg.setAttribute('viewBox', `0 0 ${sr.width} ${sr.height}`);
+      const x1 = br.left - sr.left + br.width / 2;
+      const y1 = br.top - sr.top;
+      const x2 = tr.left - sr.left + tr.width / 2;
+      const y2 = tr.bottom - sr.top;
+      const midY = (y1 + y2) / 2;
+      const d = `M${x1} ${y1} C ${x1} ${midY} ${x2} ${midY} ${x2} ${y2}`;
+      base.setAttribute('d', d);
+      flow.setAttribute('d', d);
+      return true;
+    };
+
+    if (reduce) {
+      draw();
+      comet.style.display = 'none';
+      return;
+    }
+
+    let raf = 0;
+    let dash = 0;
+    let t = 0;
+    const tick = () => {
+      if (draw()) {
+        dash = (dash + 0.7) % 1000;
+        flow.setAttribute('stroke-dashoffset', String(dash));
+        const len = flow.getTotalLength();
+        if (len > 0) {
+          t = (t + 1 / 72) % 1; // ~1.2s per pass at 60fps
+          const pt = flow.getPointAtLength(len * (1 - t));
+          comet.setAttribute('cx', String(pt.x));
+          comet.setAttribute('cy', String(pt.y));
+        }
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
   // when language changes, re-render the token text for the current exchange
   const onLang = (idx: number) => {
     if (idx === curLang) return;
@@ -284,6 +351,7 @@ export function CodeSwapHero() {
 
   const tokenNode = (
     <span
+      ref={tokenRef}
       className={`csh-tok${typing ? ' csh-typing' : ''}`}
       style={{ ['--exc' as string]: ex[2] }}
     >
@@ -297,7 +365,17 @@ export function CodeSwapHero() {
 
   return (
     <div className="csh-root">
-      <div className="csh-stage">
+      <div className="csh-stage" ref={stageRef}>
+        <svg
+          ref={beamSvgRef}
+          className="csh-beam"
+          aria-hidden="true"
+          style={{ ['--bm' as string]: ex[2] }}
+        >
+          <path ref={beamBaseRef} className="csh-beam-base" d="" />
+          <path ref={beamFlowRef} className="csh-beam-flow" d="" />
+          <circle ref={cometRef} className="csh-beam-comet" r={3.2} />
+        </svg>
         <div className="csh-cards">
           {/* editor card */}
           <div className="csh-card" style={{ ['--exc' as string]: ex[2] }}>
@@ -375,6 +453,9 @@ export function CodeSwapHero() {
           {EXCH.map((e, idx) => (
             <button
               key={e[0]}
+              ref={(el) => {
+                excRefs.current[idx] = el;
+              }}
               type="button"
               role="tab"
               aria-selected={idx === cur}
@@ -386,10 +467,6 @@ export function CodeSwapHero() {
               <span className="csh-exc-lbl">{e[1]}</span>
             </button>
           ))}
-        </div>
-
-        <div className="csh-hint">
-          Auto-cycling · <kbd>click</kbd> any exchange to swap
         </div>
       </div>
     </div>

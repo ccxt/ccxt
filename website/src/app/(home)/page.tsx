@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { CodeSwapHero } from '@/components/code-swap-hero';
+import { InstallCommands } from '@/components/install-commands';
 import { CcxtMark } from '@/components/ccxt-mark';
 
 const cards: { href: string; title: string; desc: string }[] = [
@@ -59,6 +60,9 @@ export default function HomePage() {
 
       {/* animated code-swap hero */}
       <CodeSwapHero />
+
+      {/* install commands (AI one-liner + per-language) */}
+      <InstallCommands />
 
       {/* doc entry cards */}
       <div className="mt-20 grid w-full max-w-4xl grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-3">

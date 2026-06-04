@@ -313,10 +313,45 @@ html > body[data-scroll-locked] {
   }
 }
 
+/* beam: glowing line + comet from the active exchange chip up to the swapping token */
+.csh-beam {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 1;
+}
+.csh-beam-base {
+  fill: none;
+  stroke: var(--csh-border-strong);
+  stroke-width: 1.5;
+}
+.csh-beam-flow {
+  fill: none;
+  stroke: var(--bm, var(--csh-muted-fg));
+  stroke-width: 2;
+  stroke-dasharray: 2 8;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px var(--bm, var(--csh-muted-fg)));
+  transition: stroke 0.3s;
+}
+.csh-beam-comet {
+  fill: var(--bm, var(--csh-muted-fg));
+  filter: drop-shadow(0 0 5px var(--bm, var(--csh-muted-fg)));
+  transition: fill 0.3s;
+}
+@media (max-width: 760px) {
+  .csh-beam {
+    display: none;
+  }
+}
+
 .csh-picker {
   position: relative;
   z-index: 3;
-  margin-top: 36px;
+  margin-top: 80px;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -373,25 +408,6 @@ html > body[data-scroll-locked] {
 .csh-exc.csh-active .csh-exc-dot {
   filter: none;
   box-shadow: 0 0 8px var(--exc);
-}
-
-.csh-hint {
-  margin-top: 24px;
-  font-size: 12.5px;
-  color: var(--csh-muted-fg);
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-}
-.csh-hint kbd {
-  font-family: var(--csh-mono);
-  font-size: 11px;
-  color: var(--csh-fg);
-  border: 1px solid var(--csh-border);
-  border-bottom-width: 2px;
-  border-radius: 6px;
-  padding: 1px 6px;
-  background: var(--csh-card);
 }
 
 @media (prefers-reduced-motion: reduce) {
