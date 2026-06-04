@@ -13,7 +13,7 @@ export function baseOptions(): BaseLayoutProps {
     links: [
       { text: 'Guide', url: '/docs' },
       { text: 'Exchanges', url: '/docs/exchanges/binance' },
-      { text: 'Examples', url: '/docs/examples/js' },
+      { text: 'Examples', url: '/docs/examples' },
     ],
     githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
   };

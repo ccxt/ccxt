@@ -9,7 +9,8 @@ const cards: { href: string; title: string; desc: string }[] = [
   { href: '/docs/pro-manual', title: 'CCXT Pro', desc: 'WebSocket streaming: watch tickers, order books, trades and orders.' },
   { href: '/docs/exchanges/binance', title: 'Exchanges', desc: 'Per-exchange API reference for 100+ supported exchanges.' },
   { href: '/docs/base-spec', title: 'API Spec', desc: 'Every unified method and the exchanges that implement it.' },
-  { href: '/docs/examples/js', title: 'Examples', desc: 'Hundreds of runnable examples across all languages.' },
+  { href: '/docs/examples', title: 'Examples', desc: 'Hundreds of runnable examples across all languages.' },
+  { href: '/docs/changelog', title: 'Changelog', desc: 'What changed in each CCXT release.' },
 ];
 
 export default function HomePage() {

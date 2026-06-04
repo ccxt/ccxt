@@ -326,7 +326,10 @@ function exchangeOrder (): string[] {
         while ((m = re.exec(sb))) order.push(m[1]);
     } catch {}
     const onDisk = fs.readdirSync(path.join(WIKI, 'exchanges'))
-        .filter((f) => f.endsWith('.md')).map((f) => f.replace(/\.md$/, ''));
+        .filter((f) => f.endsWith('.md'))
+        // skip stray 0-byte files (e.g. fetchCurrencies.md) — they aren't real exchanges
+        .filter((f) => fs.statSync(path.join(WIKI, 'exchanges', f)).size > 0)
+        .map((f) => f.replace(/\.md$/, ''));
     for (const ex of onDisk) if (!order.includes(ex)) order.push(ex);
     return order.filter((ex) => onDisk.includes(ex));
 }
@@ -397,9 +400,21 @@ function main () {
             JSON.stringify({ title: `${LANGS[lang]} Examples`, pages: ['index', ...pages] }, null, 2));
         count += files.length;
     }
+    // examples landing page: a language chooser (the Examples nav link points here)
+    const langBlurb: Record<string, string> = {
+        js: 'Node.js and the browser', py: 'sync and async (asyncio)', ts: 'typed, for Node and bundlers',
+        php: 'sync and async (ReactPHP)', cs: '.NET / C#', go: 'Go modules', java: 'Java (JVM)',
+    };
+    const chooser = exampleLangs
+        .map((l) => `- [${LANGS[l]} Examples](/docs/examples/${l}) — ${langBlurb[l] ?? ''}`)
+        .join('\n');
+    write(path.join(OUT, 'examples', 'index.md'),
+        frontmatter('Examples', 'Runnable CCXT code examples — pick your language.') +
+        'Hundreds of runnable CCXT examples. Pick a language to browse its ready-to-run scripts:\n\n' +
+        chooser + '\n');
     // root:true -> renders as a sidebar tab (keeps /docs/examples/* URLs unchanged)
     write(path.join(OUT, 'examples', 'meta.json'),
-        JSON.stringify({ title: 'Examples', icon: 'Code', description: 'Runnable code samples', root: true, pages: exampleLangs }, null, 2));
+        JSON.stringify({ title: 'Examples', icon: 'Code', description: 'Runnable code samples', root: true, pages: ['index', ...exampleLangs] }, null, 2));
 
     // 4) top-level (Guides) nav meta.json. exchanges/examples are their own root tabs.
     const topPages = [
