@@ -2,45 +2,45 @@
 
 # [<-](Examples?id=java)
 
-- [Asyncexample](examples/java/AsyncExample.md)
+- [AsyncExample](examples/java/AsyncExample.md)
 
-- [Compareexchanges](examples/java/CompareExchanges.md)
+- [CompareExchanges](examples/java/CompareExchanges.md)
 
-- [Createorderasyncwithexceptionhandling](examples/java/CreateOrderAsyncWithExceptionHandling.md)
+- [CreateOrderAsyncWithExceptionHandling](examples/java/CreateOrderAsyncWithExceptionHandling.md)
 
-- [Createorderwithparams](examples/java/CreateOrderWithParams.md)
+- [CreateOrderWithParams](examples/java/CreateOrderWithParams.md)
 
-- [Createperpsorder](examples/java/CreatePerpsOrder.md)
+- [CreatePerpsOrder](examples/java/CreatePerpsOrder.md)
 
-- [Errorhandling](examples/java/ErrorHandling.md)
+- [ErrorHandling](examples/java/ErrorHandling.md)
 
-- [Fetchcurrencies](examples/java/FetchCurrencies.md)
+- [FetchCurrencies](examples/java/FetchCurrencies.md)
 
-- [Fetchmarkets](examples/java/FetchMarkets.md)
+- [FetchMarkets](examples/java/FetchMarkets.md)
 
-- [Fetchmultipletickers](examples/java/FetchMultipleTickers.md)
+- [FetchMultipleTickers](examples/java/FetchMultipleTickers.md)
 
-- [Fetchohlcv](examples/java/FetchOHLCV.md)
+- [FetchOHLCV](examples/java/FetchOHLCV.md)
 
-- [Fetchorderbook](examples/java/FetchOrderBook.md)
+- [FetchOrderBook](examples/java/FetchOrderBook.md)
 
-- [Fetchspotandperpsbalance](examples/java/FetchSpotAndPerpsBalance.md)
+- [FetchSpotAndPerpsBalance](examples/java/FetchSpotAndPerpsBalance.md)
 
-- [Fetchticker](examples/java/FetchTicker.md)
+- [FetchTicker](examples/java/FetchTicker.md)
 
-- [Fetchtrades](examples/java/FetchTrades.md)
+- [FetchTrades](examples/java/FetchTrades.md)
 
-- [Implicitapi](examples/java/ImplicitApi.md)
+- [ImplicitApi](examples/java/ImplicitApi.md)
 
-- [Listexchanges](examples/java/ListExchanges.md)
+- [ListExchanges](examples/java/ListExchanges.md)
 
-- [Watchmultiplesymbols](examples/java/WatchMultipleSymbols.md)
+- [WatchMultipleSymbols](examples/java/WatchMultipleSymbols.md)
 
-- [Watchohlcv](examples/java/WatchOHLCV.md)
+- [WatchOHLCV](examples/java/WatchOHLCV.md)
 
-- [Watchorderbook](examples/java/WatchOrderBook.md)
+- [WatchOrderBook](examples/java/WatchOrderBook.md)
 
-- [Watchticker](examples/java/WatchTicker.md)
+- [WatchTicker](examples/java/WatchTicker.md)
 
-- [Watchtrades](examples/java/WatchTrades.md)
+- [WatchTrades](examples/java/WatchTrades.md)
 

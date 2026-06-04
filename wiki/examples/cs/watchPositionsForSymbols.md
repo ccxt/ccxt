@@ -1,8 +1,5 @@
-- [Watchpositionsforsymbols](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using ccxt.pro;
 
 namespace examples;
@@ -23,5 +20,5 @@ partial class Examples
             Console.WriteLine(positions);
         }
     }
-} 
+}
 ```

@@ -1,8 +1,5 @@
-- [Fetchmarkets](examples/java/)
-
-
- ```java
- package examples;
+```java
+package examples;
 
 import io.github.ccxt.exchanges.Binance;
 import io.github.ccxt.types.MarketInterface;
@@ -56,5 +53,5 @@ public class FetchMarkets {
         System.out.println("\nTotal markets loaded: " + markets.size());
     }
 }
- 
+
 ```

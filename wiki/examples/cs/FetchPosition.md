@@ -1,8 +1,5 @@
-- [Fetchposition](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using Newtonsoft.Json;
 
 namespace examples;
@@ -20,5 +17,5 @@ partial class Examples
         var first = positions[0];
         Console.WriteLine(JsonConvert.SerializeObject(positions, Formatting.Indented));
     }
-} 
+}
 ```

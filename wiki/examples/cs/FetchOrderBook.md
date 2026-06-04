@@ -1,8 +1,5 @@
-- [Fetchorderbook](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using Newtonsoft.Json;
 
 namespace examples;
@@ -15,5 +12,5 @@ partial class Examples
         var ob = await exchange.FetchOrderBook("BTC/USDT");
         Console.WriteLine(JsonConvert.SerializeObject(ob, Formatting.Indented));
     }
-} 
+}
 ```

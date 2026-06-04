@@ -1,8 +1,5 @@
-- [Program](examples/cs/)
-
-
- ```csharp
- ﻿using ccxt;
+```csharp
+﻿using ccxt;
 using Newtonsoft.Json;
 
 namespace examples;
@@ -21,5 +18,5 @@ partial class Examples
         // SetMarketsFromExchange().Wait();
     }
 }
- 
+
 ```

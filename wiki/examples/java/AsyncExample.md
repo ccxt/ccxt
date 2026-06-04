@@ -1,8 +1,5 @@
-- [Asyncexample](examples/java/)
-
-
- ```java
- package examples;
+```java
+package examples;
 
 import io.github.ccxt.exchanges.Binance;
 import io.github.ccxt.types.Ticker;
@@ -55,5 +52,5 @@ public class AsyncExample {
         System.out.println("\nAll fetched in " + elapsed + "ms");
     }
 }
- 
+
 ```

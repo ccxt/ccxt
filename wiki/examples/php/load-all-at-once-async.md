@@ -1,8 +1,5 @@
-- [Load All At Once Async](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 use Recoil\React\ReactKernel;
 use Recoil\Recoil;
@@ -58,5 +55,5 @@ $kernel->execute(function() use ($loop, $kernel) {
 
 }, $loop);
 
-$kernel->run(); 
+$kernel->run();
 ```

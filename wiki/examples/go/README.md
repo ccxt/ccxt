@@ -4,21 +4,21 @@
 
 - [Bybit Place Order Ws](examples/go/bybit-place-order-ws.md)
 
-- [Createexchangedynamically](examples/go/createExchangeDynamically.md)
+- [CreateExchangeDynamically](examples/go/createExchangeDynamically.md)
 
-- [Createorderwithparams](examples/go/createOrderWithParams.md)
+- [CreateOrderWithParams](examples/go/createOrderWithParams.md)
 
-- [Errorhandlingexample](examples/go/errorHandlingExample.md)
+- [ErrorHandlingExample](examples/go/errorHandlingExample.md)
 
-- [Fetchohlcv](examples/go/fetchOHLCV.md)
+- [FetchOHLCV](examples/go/fetchOHLCV.md)
 
-- [Fetchtrades](examples/go/fetchTrades.md)
+- [FetchTrades](examples/go/fetchTrades.md)
 
-- [Getmarketinformation](examples/go/getMarketInformation.md)
+- [GetMarketInformation](examples/go/getMarketInformation.md)
 
-- [Setmarketsfromexchange](examples/go/setMarketsFromExchange.md)
+- [SetMarketsFromExchange](examples/go/setMarketsFromExchange.md)
 
-- [Spotperpmarkets](examples/go/spotPerpMarkets.md)
+- [SpotPerpMarkets](examples/go/spotPerpMarkets.md)
 
 - [Watch Binance Ohlcv](examples/go/watch-binance-ohlcv.md)
 

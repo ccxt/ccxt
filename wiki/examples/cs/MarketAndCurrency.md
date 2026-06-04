@@ -1,8 +1,5 @@
-- [Marketandcurrency](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using Newtonsoft.Json;
 
 namespace examples;
@@ -26,5 +23,5 @@ partial class Examples
         var networks = currency.networks.Keys;
         Console.WriteLine($"USDT has support for {String.Join(",", networks)}");
     }
-} 
+}
 ```

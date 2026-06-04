@@ -1,8 +1,5 @@
-- [Fetchtrades](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using Newtonsoft.Json;
 
 namespace examples;
@@ -16,5 +13,5 @@ partial class Examples
         trades.Wait();
         Console.WriteLine(JsonConvert.SerializeObject(trades.Result, Formatting.Indented));
     }
-} 
+}
 ```

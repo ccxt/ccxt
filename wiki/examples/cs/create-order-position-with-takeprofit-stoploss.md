@@ -1,8 +1,5 @@
-- [Create Order Position With Takeprofit Stoploss](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using ccxt.pro;
 namespace examples;
 partial class Examples
@@ -76,5 +73,5 @@ partial class Examples
         }
     }
 
-} 
+}
 ```

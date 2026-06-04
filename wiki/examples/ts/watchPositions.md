@@ -1,8 +1,5 @@
-- [Watchpositions](./examples/ts/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 
 // AUTO-TRANSPILE //
 
@@ -17,5 +14,5 @@ async function example () {
     }
 }
 await example ();
- 
+
 ```

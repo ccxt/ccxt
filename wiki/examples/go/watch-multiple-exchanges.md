@@ -1,8 +1,5 @@
-- [Watch Multiple Exchanges](examples/go/)
-
-
- ```go
- package examples
+```go
+package examples
 
 import (
 	"fmt"
@@ -43,5 +40,5 @@ func WatchMultiple() {
 
 	wg.Wait()
 }
- 
+
 ```

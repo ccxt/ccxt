@@ -1,8 +1,5 @@
-- [Listexchanges](examples/java/)
-
-
- ```java
- package examples;
+```java
+package examples;
 
 import io.github.ccxt.Exchange;
 
@@ -60,5 +57,5 @@ public class ListExchanges {
         }
     }
 }
- 
+
 ```

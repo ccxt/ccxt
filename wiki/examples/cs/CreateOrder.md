@@ -1,8 +1,5 @@
-- [Createorder](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using Newtonsoft.Json;
 
 namespace examples;
@@ -24,5 +21,5 @@ partial class Examples
         var orders = await exchange.FetchOpenOrders("LTC/USDT");
         Console.WriteLine("Fetched Order: " + JsonConvert.SerializeObject(orders, Formatting.Indented));
     }
-} 
+}
 ```

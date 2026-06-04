@@ -1,8 +1,5 @@
-- [Errorhandlingexample](examples/go/)
-
-
- ```go
- package examples
+```go
+package examples
 
 import (
 	"ccxt/go/ccxt"
@@ -43,5 +40,5 @@ func CreateOrderWithErrorHandling() {
 
 	fmt.Println(order)
 }
- 
+
 ```

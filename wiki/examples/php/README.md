@@ -80,7 +80,7 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Exchange Properties](./examples/php/exchange-properties.md)
 
-- [Exchange Rate Limiter Rollingwindow](./examples/php/exchange-rate-limiter-rollingWindow.md)
+- [Exchange Rate Limiter RollingWindow](./examples/php/exchange-rate-limiter-rollingWindow.md)
 
 - [Fetch Balance](./examples/php/fetch-balance.md)
 
@@ -148,21 +148,21 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Trading View](./examples/php/trading-view.md)
 
-- [Watch Ohlcv For Symbols](./examples/php/watch-OHLCV-For-Symbols.md)
+- [Watch OHLCV For Symbols](./examples/php/watch-OHLCV-For-Symbols.md)
 
-- [Watch Ohlcv](./examples/php/watch-OHLCV.md)
+- [Watch OHLCV](./examples/php/watch-OHLCV.md)
 
-- [Watch Orderbook For Symbols](./examples/php/watch-OrderBook-For-Symbols.md)
+- [Watch OrderBook For Symbols](./examples/php/watch-OrderBook-For-Symbols.md)
 
 - [Watch Trades For Symbols](./examples/php/watch-Trades-For-Symbols.md)
 
 - [Watch Tickers](./examples/php/watch-tickers.md)
 
-- [Watchpositions Many Exchanges Continuosly](./examples/php/watchPositions-many-exchanges-continuosly.md)
+- [WatchPositions Many Exchanges Continuosly](./examples/php/watchPositions-many-exchanges-continuosly.md)
 
-- [Watchpositions](./examples/php/watchPositions.md)
+- [WatchPositions](./examples/php/watchPositions.md)
 
-- [Watchpositionsforsymbols](./examples/php/watchPositionsForSymbols.md)
+- [WatchPositionsForSymbols](./examples/php/watchPositionsForSymbols.md)
 
-- [Watchtradesforsymbols](./examples/php/watchTradesForSymbols.md)
+- [WatchTradesForSymbols](./examples/php/watchTradesForSymbols.md)
 

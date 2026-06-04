@@ -1,8 +1,5 @@
-- [Watchmultiplesymbols](examples/java/)
-
-
- ```java
- package examples;
+```java
+package examples;
 
 import io.github.ccxt.exchanges.pro.Binance;
 import io.github.ccxt.types.Ticker;
@@ -55,5 +52,5 @@ public class WatchMultipleSymbols {
         System.exit(0);
     }
 }
- 
+
 ```

@@ -1,13 +1,9 @@
 import fs from 'fs'
 import path from 'path'
 
-const toTitleCase = (phrase) => {
-    return phrase
-      .toLowerCase()
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
+// Capitalize the first letter of each word but PRESERVE the rest, so acronym/camelCase
+// filenames stay readable (fetchOHLCV -> FetchOHLCV, not Fetchohlcv).
+const toTitleCase = (phrase) => phrase.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
 // Define the Markdown file path
 const docsDir = './wiki'
@@ -94,7 +90,8 @@ languages.forEach(language => {
             code = code.replace (/\n^\$root = .*$\n/mg, '').replace (/^include \$root.*$/mg, 'include \'./ccxt.php\';')
         }
         code = code.replace (/\n^#\s?-+$\n\n?/mg, '')
-        const codeMd = `- [${fileTitle}](${cfg.link}/)\n\n\n \`\`\`${cfg.fence}\n ${code} \n\`\`\``;
+        // just the code block — the breadcrumb + sidebar already handle navigation
+        const codeMd = `\`\`\`${cfg.fence}\n${code}\n\`\`\`\n`;
         fs.writeFileSync(path.join(docsLanguageDir, `${filename}.md`), codeMd);
     });
     fs.writeFileSync(path.join(docsLanguageDir, 'README.md'), mdContent);

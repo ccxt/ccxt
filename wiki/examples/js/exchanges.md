@@ -1,8 +1,5 @@
-- [Exchanges](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import countries from '../../build/countries.js';
@@ -42,5 +39,5 @@ log (asTable.configure ({ delimiter: ' | ' }) (Object.values (exchanges).map (ex
     }
 
 })))
- 
+
 ```

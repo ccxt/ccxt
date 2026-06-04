@@ -1,8 +1,5 @@
-- [Compareexchanges](examples/java/)
-
-
- ```java
- package examples;
+```java
+package examples;
 
 import io.github.ccxt.Exchange;
 
@@ -72,5 +69,5 @@ public class CompareExchanges {
         return msg != null && msg.length() > 60 ? msg.substring(0, 60) + "..." : msg;
     }
 }
- 
+
 ```

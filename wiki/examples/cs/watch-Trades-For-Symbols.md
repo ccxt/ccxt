@@ -1,8 +1,5 @@
-- [Watch Trades For Symbols](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using ccxt.pro;
 using Newtonsoft.Json;
 
@@ -20,5 +17,5 @@ partial class Examples
             Console.WriteLine(JsonConvert.SerializeObject(trades));
         }
     }
-} 
+}
 ```

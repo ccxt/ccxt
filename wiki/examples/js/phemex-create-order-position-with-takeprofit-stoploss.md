@@ -1,8 +1,5 @@
-- [Phemex Create Order Position With Takeprofit Stoploss](./examples/js/)
-
-
- ```javascript
- // @ts-nocheck
+```javascript
+// @ts-nocheck
 import ccxt from '../../js/ccxt.js';
 // AUTO-TRANSPILE //
 // ------------------------------------------------------------------------------
@@ -51,5 +48,5 @@ async function example() {
     }
 }
 await example();
- 
+
 ```

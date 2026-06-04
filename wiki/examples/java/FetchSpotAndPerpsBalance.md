@@ -1,8 +1,5 @@
-- [Fetchspotandperpsbalance](examples/java/)
-
-
- ```java
- package examples;
+```java
+package examples;
 
 import io.github.ccxt.errors.InsufficientFunds;
 import io.github.ccxt.exchanges.pro.Binance;
@@ -30,5 +27,5 @@ public class FetchSpotAndPerpsBalance {
         }
     }
 }
- 
+
 ```

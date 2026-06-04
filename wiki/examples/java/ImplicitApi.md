@@ -1,8 +1,5 @@
-- [Implicitapi](examples/java/)
-
-
- ```java
- package examples;
+```java
+package examples;
 
 import io.github.ccxt.exchanges.Binance;
 import io.github.ccxt.types.Ticker;
@@ -103,5 +100,5 @@ public class ImplicitApi {
         System.out.println("\nDone!");
     }
 }
- 
+
 ```

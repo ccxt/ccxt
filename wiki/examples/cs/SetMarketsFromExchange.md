@@ -1,8 +1,5 @@
-- [Setmarketsfromexchange](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using System.Diagnostics;
 
 namespace examples;
@@ -61,5 +58,5 @@ partial class Examples
         Console.WriteLine($"Final memory usage after closing all exchanges: {GetMemoryUsage():F2} MB");
     }
 }
- 
+
 ```

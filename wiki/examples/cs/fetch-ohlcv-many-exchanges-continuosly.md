@@ -1,8 +1,5 @@
-- [Fetch Ohlcv Many Exchanges Continuosly](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using ccxt.pro;
 using Newtonsoft.Json;
 
@@ -56,5 +53,5 @@ partial class Examples
         }
         await Task.WhenAll(promises);
     }
-} 
+}
 ```

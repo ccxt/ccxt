@@ -1,8 +1,5 @@
-- [Examples.bridge](examples/cs/)
-
-
- ```csharp
- using System.Globalization;
+```csharp
+using System.Globalization;
 
 namespace examples;
 using ccxt;
@@ -37,5 +34,5 @@ partial class Examples
     public static bool isEqual(object a, object b) => Exchange.isEqual(a, b);
     public static bool isTrue(object a) => Exchange.isTrue(a);
     public static object encode(object a) => a;
-} 
+}
 ```

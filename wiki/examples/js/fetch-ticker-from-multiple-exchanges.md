@@ -1,8 +1,5 @@
-- [Fetch Ticker From Multiple Exchanges](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 (async () => {
@@ -36,5 +33,5 @@ import ccxt from '../../js/ccxt.js';
 
     ))
 
-}) () 
+}) ()
 ```

@@ -1,8 +1,5 @@
-- [Watch Tickers](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using ccxt.pro;
 using Newtonsoft.Json;
 
@@ -22,5 +19,5 @@ async public Task watchTickers()
 }
 
 
-} 
+}
 ```

@@ -1,8 +1,5 @@
-- [Fetch First Ohlcv Timestamp](./examples/js/)
-
-
- ```javascript
- // eslint-disable-next-line no-unused-vars
+```javascript
+// eslint-disable-next-line no-unused-vars
 import ccxt from '../../js/ccxt.js';
 // AUTO-TRANSPILE //
 // ###### Description ######
@@ -81,5 +78,5 @@ if (runExample) {
     console.log('- market.created value:', myEx.market(symbol)['created']);
 }
 export default fetchFirstBarTimestamp;
- 
+
 ```

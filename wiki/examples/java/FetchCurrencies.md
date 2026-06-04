@@ -1,8 +1,5 @@
-- [Fetchcurrencies](examples/java/)
-
-
- ```java
- package examples;
+```java
+package examples;
 
 import io.github.ccxt.exchanges.Binance;
 import io.github.ccxt.types.Currencies;
@@ -50,5 +47,5 @@ public class FetchCurrencies {
         System.out.println("\nTotal currencies: " + currencies.currencies.size());
     }
 }
- 
+
 ```

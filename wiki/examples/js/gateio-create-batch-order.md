@@ -1,8 +1,5 @@
-- [Gateio Create Batch Order](./examples/js/)
-
-
- ```javascript
- const ccxt = require ('../../ccxt');
+```javascript
+const ccxt = require ('../../ccxt');
 
 console.log ('CCXT Version:', ccxt.version);
 
@@ -44,5 +41,5 @@ async function main () {
 
 };
 
-main (); 
+main ();
 ```

@@ -1,8 +1,5 @@
-- [Fetchtrades](examples/go/)
-
-
- ```go
- package examples
+```go
+package examples
 
 import (
 	"ccxt/go/ccxt"
@@ -24,5 +21,5 @@ func FetchTrades() {
 
 	fmt.Println(trades)
 }
- 
+
 ```

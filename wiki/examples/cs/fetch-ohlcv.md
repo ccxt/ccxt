@@ -1,8 +1,5 @@
-- [Fetch Ohlcv](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using ccxt.pro;
 
 namespace examples;
@@ -29,5 +26,5 @@ partial class Examples
             Console.WriteLine("No candles have been fetched");
         }
     }
-} 
+}
 ```

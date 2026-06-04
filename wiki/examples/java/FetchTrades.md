@@ -1,8 +1,5 @@
-- [Fetchtrades](examples/java/)
-
-
- ```java
- package examples;
+```java
+package examples;
 
 import io.github.ccxt.exchanges.Binance;
 import io.github.ccxt.types.Trade;
@@ -47,5 +44,5 @@ public class FetchTrades {
 
     static double safe(Double v) { return v != null ? v : 0.0; }
 }
- 
+
 ```

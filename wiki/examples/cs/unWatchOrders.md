@@ -1,8 +1,5 @@
-- [Unwatchorders](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using ccxt.pro;
 using Newtonsoft.Json;
 using System;
@@ -77,5 +74,5 @@ partial class Examples
         Console.WriteLine("Workflow finished.");
     }
 }
- 
+
 ```

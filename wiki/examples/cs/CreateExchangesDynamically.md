@@ -1,8 +1,5 @@
-- [Createexchangesdynamically](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using Newtonsoft.Json;
 
 namespace examples;
@@ -17,5 +14,5 @@ partial class Examples
         var wsInstance = Exchange.DynamicallyCreateInstance("binance", null, true);
         Console.WriteLine($"Exchange id {wsInstance.id}");
     }
-} 
+}
 ```

@@ -1,8 +1,5 @@
-- [Fetchmultipletrades](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using Newtonsoft.Json;
 
 namespace examples;
@@ -23,5 +20,5 @@ partial class Examples
         var result = await Task.WhenAll(tasks.ToArray());
         Console.WriteLine(JsonConvert.SerializeObject(result, Formatting.Indented));
     }
-} 
+}
 ```

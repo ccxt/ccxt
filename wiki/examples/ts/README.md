@@ -42,7 +42,7 @@
 
 - [Exchange Close](./examples/ts/exchange-close.md)
 
-- [Exchange Rate Limiter Rollingwindow](./examples/ts/exchange-rate-limiter-rollingWindow.md)
+- [Exchange Rate Limiter RollingWindow](./examples/ts/exchange-rate-limiter-rollingWindow.md)
 
 - [Fetch Balance All Exchanges](./examples/ts/fetch-balance-all-exchanges.md)
 
@@ -96,11 +96,11 @@
 
 - [Sample Local Proxy Server With Cors](./examples/ts/sample-local-proxy-server-with-cors.md)
 
-- [Watch Ohlcv For Symbols](./examples/ts/watch-OHLCV-For-Symbols.md)
+- [Watch OHLCV For Symbols](./examples/ts/watch-OHLCV-For-Symbols.md)
 
-- [Watch Ohlcv](./examples/ts/watch-OHLCV.md)
+- [Watch OHLCV](./examples/ts/watch-OHLCV.md)
 
-- [Watch Orderbook For Symbols](./examples/ts/watch-OrderBook-For-Symbols.md)
+- [Watch OrderBook For Symbols](./examples/ts/watch-OrderBook-For-Symbols.md)
 
 - [Watch Trades For Symbols](./examples/ts/watch-Trades-For-Symbols.md)
 
@@ -122,9 +122,9 @@
 
 - [Watch Vs Fetch](./examples/ts/watch-vs-fetch.md)
 
-- [Watchpositions Many Exchanges Continuosly](./examples/ts/watchPositions-many-exchanges-continuosly.md)
+- [WatchPositions Many Exchanges Continuosly](./examples/ts/watchPositions-many-exchanges-continuosly.md)
 
-- [Watchpositions](./examples/ts/watchPositions.md)
+- [WatchPositions](./examples/ts/watchPositions.md)
 
-- [Watchpositionsforsymbols](./examples/ts/watchPositionsForSymbols.md)
+- [WatchPositionsForSymbols](./examples/ts/watchPositionsForSymbols.md)
 

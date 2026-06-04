@@ -1,8 +1,5 @@
-- [Kraken Create And Close Position](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using ccxt.pro;
 
 namespace examples;
@@ -59,5 +56,5 @@ partial class Examples
             Console.WriteLine(((object)e).ToString());
         }
     }
-} 
+}
 ```

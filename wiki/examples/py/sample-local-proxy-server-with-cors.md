@@ -1,8 +1,5 @@
-- [Sample Local Proxy Server With Cors](./examples/py/)
-
-
- ```python
- '''
+```python
+'''
 Sampled from:
     https://gist.github.com/mkows/cd2122f427ea722bf41aa169ef762001
 
@@ -67,5 +64,5 @@ if __name__ == "__main__":
     httpd = socketserver.TCPServer(("", PORT), handler)
 
     print(f"serving at port {PORT}")
-    httpd.serve_forever() 
+    httpd.serve_forever()
 ```

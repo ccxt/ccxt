@@ -1,8 +1,5 @@
-- [Watchohlcv](examples/java/)
-
-
- ```java
- package examples;
+```java
+package examples;
 
 import io.github.ccxt.exchanges.pro.Binance;
 import io.github.ccxt.types.OHLCV;
@@ -56,5 +53,5 @@ public class WatchOHLCV {
         System.exit(0);
     }
 }
- 
+
 ```

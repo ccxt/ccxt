@@ -1,8 +1,5 @@
-- [Fetch_longer_ohlcv_through_multiple_calls_and_save_to_csv](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -53,5 +50,5 @@ np.savetxt(
     delimiter=",",
     fmt='%d,%s,%s,%s,%s,%s'
 )
- 
+
 ```

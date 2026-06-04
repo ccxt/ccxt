@@ -1,8 +1,5 @@
-- [Create Order Ws Example](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using ccxt.pro;
 namespace examples;
 partial class Examples
@@ -31,5 +28,5 @@ partial class Examples
             orders.Add(response);
         }
     }
-} 
+}
 ```

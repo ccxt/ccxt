@@ -1,8 +1,5 @@
-- [Setmarketsfromexchange](examples/go/)
-
-
- ```go
- package examples
+```go
+package examples
 
 import (
 	"ccxt/go/ccxt"
@@ -54,5 +51,5 @@ func main() {
 	// The garbage collector will handle cleanup
 	fmt.Printf("Final memory usage: %.2f MB\n", getMemoryUsage())
 }
- 
+
 ```

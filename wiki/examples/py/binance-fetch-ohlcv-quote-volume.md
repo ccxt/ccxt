@@ -1,8 +1,5 @@
-- [Binance Fetch Ohlcv Quote Volume](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -51,5 +48,5 @@ markets = exchange.load_markets()
 # exchange.verbose = True  # uncomment for debugging purposes if necessary
 ohlcv = exchange.fetch_ohlcv('BTC/USDT', '1h')
 print(table(ohlcv))
- 
+
 ```

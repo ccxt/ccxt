@@ -1,8 +1,5 @@
-- [Spotperpmarkets](examples/go/)
-
-
- ```go
- package examples
+```go
+package examples
 
 import (
 	"ccxt/go/ccxt"
@@ -32,5 +29,5 @@ func spotPerpMarkets() {
 	fmt.Println(spotMarkets)
 	fmt.Println(swapMarkets)
 }
- 
+
 ```

@@ -1,8 +1,5 @@
-- [Fetchticker](examples/java/)
-
-
- ```java
- package examples;
+```java
+package examples;
 
 import io.github.ccxt.exchanges.Binance;
 import io.github.ccxt.types.Ticker;
@@ -42,5 +39,5 @@ public class FetchTicker {
         System.out.println("  Datetime:   " + ticker.datetime);
     }
 }
- 
+
 ```

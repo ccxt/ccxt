@@ -1,8 +1,5 @@
-- [Watch Binance Ohlcv](examples/go/)
-
-
- ```go
- package examples
+```go
+package examples
 
 import (
 	"fmt"
@@ -26,5 +23,5 @@ func WatchOHLCV() {
 		fmt.Println("Symbol", symbol, "OHLCV:", ohlcv)
 	}
 }
- 
+
 ```

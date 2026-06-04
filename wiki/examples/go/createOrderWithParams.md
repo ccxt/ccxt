@@ -1,8 +1,5 @@
-- [Createorderwithparams](examples/go/)
-
-
- ```go
- package examples
+```go
+package examples
 
 import (
 	"ccxt/go/ccxt"
@@ -36,5 +33,5 @@ func CreateOrder() {
 
 	fmt.Println(order)
 }
- 
+
 ```

@@ -1,8 +1,5 @@
-- [Advanced Error Handling](./examples/js/)
-
-
- ```javascript
- "use strict";
+```javascript
+"use strict";
 
 const ccxt      = require ('../../ccxt.js');
 
@@ -41,5 +38,5 @@ async function checkOrders(){
 
 //  for demonstrational purposes, we use 1000 ms interval
 setInterval(checkOrders, 1000); 
- 
+
 ```

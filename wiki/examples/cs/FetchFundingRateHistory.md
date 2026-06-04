@@ -1,8 +1,5 @@
-- [Fetchfundingratehistory](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using Newtonsoft.Json;
 
 namespace examples;
@@ -15,5 +12,5 @@ partial class Examples
         var fr = await exchange.FetchFundingRateHistory("BTC/USDT:USDT");
         Console.WriteLine(JsonConvert.SerializeObject(fr, Formatting.Indented));
     }
-} 
+}
 ```

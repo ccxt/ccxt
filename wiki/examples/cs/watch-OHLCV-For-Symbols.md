@@ -1,8 +1,5 @@
-- [Watch Ohlcv For Symbols](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using ccxt.pro;
 namespace examples;
 partial class Examples
@@ -19,5 +16,5 @@ async public Task watchOHLCVForSymbols()
 }
 
 
-} 
+}
 ```

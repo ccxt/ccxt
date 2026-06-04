@@ -1,8 +1,5 @@
-- [Bybit Place Order Ws](examples/go/)
-
-
- ```go
- package examples
+```go
+package examples
 
 import (
 	"fmt"
@@ -26,5 +23,5 @@ func PlaceOrderWs() {
 		return
 	}
 	fmt.Println("Order created:", order)
-} 
+}
 ```

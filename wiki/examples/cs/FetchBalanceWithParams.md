@@ -1,8 +1,5 @@
-- [Fetchbalancewithparams](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using Newtonsoft.Json;
 
 namespace examples;
@@ -19,5 +16,5 @@ partial class Examples
         var balance = await exchange.FetchBalance(parameters);
         Console.WriteLine(JsonConvert.SerializeObject(balance, Formatting.Indented));
     }
-} 
+}
 ```

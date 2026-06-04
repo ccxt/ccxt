@@ -1,8 +1,5 @@
-- [Async Orderbooks](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import ccxt
@@ -43,5 +40,5 @@ if __name__ == '__main__':
     symbol = 'ETH/BTC'
 
     asyncio.run(multi_orderbooks(exchanges, symbol))
- 
+
 ```

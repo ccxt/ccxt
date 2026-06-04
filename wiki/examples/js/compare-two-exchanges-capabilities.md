@@ -1,8 +1,5 @@
-- [Compare Two Exchanges Capabilities](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 // AUTO-TRANSPILE //
 async function example() {
     const prefix = '-';
@@ -38,5 +35,5 @@ async function example() {
     }
 }
 await example();
- 
+
 ```

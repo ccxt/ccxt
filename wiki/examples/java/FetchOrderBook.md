@@ -1,8 +1,5 @@
-- [Fetchorderbook](examples/java/)
-
-
- ```java
- package examples;
+```java
+package examples;
 
 import io.github.ccxt.exchanges.Binance;
 import io.github.ccxt.types.OrderBook;
@@ -45,5 +42,5 @@ public class FetchOrderBook {
         System.out.println("Timestamp: " + ob.timestamp);
     }
 }
- 
+
 ```

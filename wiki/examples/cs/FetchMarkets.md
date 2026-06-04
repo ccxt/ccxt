@@ -1,8 +1,5 @@
-- [Fetchmarkets](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using Newtonsoft.Json;
 
 namespace examples;
@@ -16,5 +13,5 @@ partial class Examples
         markets.Wait();
         Console.WriteLine(JsonConvert.SerializeObject(markets.Result, Formatting.Indented));
     }
-} 
+}
 ```

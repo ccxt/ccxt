@@ -1,8 +1,5 @@
-- [Watchtrades](examples/java/)
-
-
- ```java
- package examples;
+```java
+package examples;
 
 import io.github.ccxt.exchanges.pro.Binance;
 import io.github.ccxt.types.Trade;
@@ -56,5 +53,5 @@ public class WatchTrades {
         System.exit(0);
     }
 }
- 
+
 ```

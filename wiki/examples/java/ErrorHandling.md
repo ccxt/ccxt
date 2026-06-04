@@ -1,8 +1,5 @@
-- [Errorhandling](examples/java/)
-
-
- ```java
- package examples;
+```java
+package examples;
 
 import io.github.ccxt.exchanges.Binance;
 import io.github.ccxt.errors.*;
@@ -84,5 +81,5 @@ public class ErrorHandling {
         return s.length() > 100 ? s.substring(0, 100) + "..." : s;
     }
 }
- 
+
 ```

@@ -1,8 +1,5 @@
-- [Async](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import functools
@@ -34,5 +31,5 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     pending = asyncio.all_tasks(loop)
     loop.run_until_complete(asyncio.gather(*pending))
- 
+
 ```

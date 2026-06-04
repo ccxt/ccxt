@@ -2,31 +2,31 @@
 
 # [<-](Examples?id=csharp)
 
-- [Createexchangesdynamically](examples/cs/CreateExchangesDynamically.md)
+- [CreateExchangesDynamically](examples/cs/CreateExchangesDynamically.md)
 
-- [Createorder](examples/cs/CreateOrder.md)
+- [CreateOrder](examples/cs/CreateOrder.md)
 
-- [Examples.bridge](examples/cs/Examples.Bridge.md)
+- [Examples.Bridge](examples/cs/Examples.Bridge.md)
 
-- [Fetchbalancewithparams](examples/cs/FetchBalanceWithParams.md)
+- [FetchBalanceWithParams](examples/cs/FetchBalanceWithParams.md)
 
-- [Fetchfundingratehistory](examples/cs/FetchFundingRateHistory.md)
+- [FetchFundingRateHistory](examples/cs/FetchFundingRateHistory.md)
 
-- [Fetchmarkets](examples/cs/FetchMarkets.md)
+- [FetchMarkets](examples/cs/FetchMarkets.md)
 
-- [Fetchmultipletrades](examples/cs/FetchMultipleTrades.md)
+- [FetchMultipleTrades](examples/cs/FetchMultipleTrades.md)
 
-- [Fetchorderbook](examples/cs/FetchOrderBook.md)
+- [FetchOrderBook](examples/cs/FetchOrderBook.md)
 
-- [Fetchposition](examples/cs/FetchPosition.md)
+- [FetchPosition](examples/cs/FetchPosition.md)
 
-- [Fetchtrades](examples/cs/FetchTrades.md)
+- [FetchTrades](examples/cs/FetchTrades.md)
 
-- [Marketandcurrency](examples/cs/MarketAndCurrency.md)
+- [MarketAndCurrency](examples/cs/MarketAndCurrency.md)
 
 - [Program](examples/cs/Program.md)
 
-- [Setmarketsfromexchange](examples/cs/SetMarketsFromExchange.md)
+- [SetMarketsFromExchange](examples/cs/SetMarketsFromExchange.md)
 
 - [Compare Two Exchanges Capabilities](examples/cs/compare-two-exchanges-capabilities.md)
 
@@ -52,19 +52,19 @@
 
 - [Proxy Usage](examples/cs/proxy-usage.md)
 
-- [Unwatchorders](examples/cs/unWatchOrders.md)
+- [UnWatchOrders](examples/cs/unWatchOrders.md)
 
-- [Watch Ohlcv For Symbols](examples/cs/watch-OHLCV-For-Symbols.md)
+- [Watch OHLCV For Symbols](examples/cs/watch-OHLCV-For-Symbols.md)
 
-- [Watch Orderbook For Symbols](examples/cs/watch-OrderBook-For-Symbols.md)
+- [Watch OrderBook For Symbols](examples/cs/watch-OrderBook-For-Symbols.md)
 
 - [Watch Trades For Symbols](examples/cs/watch-Trades-For-Symbols.md)
 
 - [Watch Tickers](examples/cs/watch-tickers.md)
 
-- [Watchpositions Many Exchanges Continuosly](examples/cs/watchPositions-many-exchanges-continuosly.md)
+- [WatchPositions Many Exchanges Continuosly](examples/cs/watchPositions-many-exchanges-continuosly.md)
 
-- [Watchpositions](examples/cs/watchPositions.md)
+- [WatchPositions](examples/cs/watchPositions.md)
 
-- [Watchpositionsforsymbols](examples/cs/watchPositionsForSymbols.md)
+- [WatchPositionsForSymbols](examples/cs/watchPositionsForSymbols.md)
 

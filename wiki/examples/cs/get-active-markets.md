@@ -1,8 +1,5 @@
-- [Get Active Markets](examples/cs/)
-
-
- ```csharp
- using ccxt;
+```csharp
+using ccxt;
 using ccxt.pro;
 
 namespace examples;
@@ -22,5 +19,5 @@ partial class Examples
         var activeSymbols = activeMarkets.Select(m => m.symbol);
         Console.WriteLine(string.Join(",", activeSymbols));
     }
-} 
+}
 ```

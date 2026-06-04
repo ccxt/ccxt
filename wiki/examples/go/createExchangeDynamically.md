@@ -1,8 +1,5 @@
-- [Createexchangedynamically](examples/go/)
-
-
- ```go
- package main
+```go
+package main
 
 import (
 	"ccxt/go/ccxt"
@@ -20,5 +17,5 @@ func AbstractExchangeCreation() {
 		fmt.Println("Ticker for", exchangeName, ":", ticker.Last)
 	}
 }
- 
+
 ```
