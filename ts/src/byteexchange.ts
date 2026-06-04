@@ -184,6 +184,7 @@ export default class byteexchange extends Exchange {
      * @method
      * @name byteexchange#fetchMarkets
      * @description retrieves data on all markets for the exchange
+     * @see https://docs.bexc.io/api/v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -232,6 +233,7 @@ export default class byteexchange extends Exchange {
      * @method
      * @name byteexchange#fetchCurrencies
      * @description fetches all available currencies on the exchange
+     * @see https://docs.bexc.io/api/v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -279,6 +281,7 @@ export default class byteexchange extends Exchange {
      * @name byteexchange#fetchTickers
      * @description fetches price tickers for multiple markets
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for
+     * @see https://docs.bexc.io/api/v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of ticker structures
      */
@@ -300,6 +303,7 @@ export default class byteexchange extends Exchange {
      * @name byteexchange#fetchTicker
      * @description fetches a price ticker for a single market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @see https://docs.bexc.io/api/v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a ticker structure
      */
@@ -336,6 +340,7 @@ export default class byteexchange extends Exchange {
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
+     * @see https://docs.bexc.io/api/v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of order book structures indexed by market symbols
      */
@@ -357,6 +362,7 @@ export default class byteexchange extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
+     * @see https://docs.bexc.io/api/v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of trade structures
      */
@@ -405,6 +411,7 @@ export default class byteexchange extends Exchange {
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
+     * @see https://docs.bexc.io/api/v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -437,6 +444,7 @@ export default class byteexchange extends Exchange {
      * @method
      * @name byteexchange#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.bexc.io/api/v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a balance structure
      */
@@ -471,6 +479,7 @@ export default class byteexchange extends Exchange {
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @see https://docs.bexc.io/api/v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an order structure
      */
@@ -497,6 +506,7 @@ export default class byteexchange extends Exchange {
      * @description cancels an open order
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
+     * @see https://docs.bexc.io/api/v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an order structure
      */
@@ -513,6 +523,7 @@ export default class byteexchange extends Exchange {
      * @description fetches information on an order made by the user
      * @param {string} id the order id
      * @param {string} [symbol] unified symbol of the market the order was made in
+     * @see https://docs.bexc.io/api/v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an order structure
      */
@@ -530,6 +541,7 @@ export default class byteexchange extends Exchange {
      * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
+     * @see https://docs.bexc.io/api/v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of order structures
      */
@@ -556,6 +568,7 @@ export default class byteexchange extends Exchange {
      * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @see https://docs.bexc.io/api/v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of order structures
      */
@@ -615,6 +628,7 @@ export default class byteexchange extends Exchange {
      * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @see https://docs.bexc.io/api/v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of trade structures
      */
@@ -639,6 +653,7 @@ export default class byteexchange extends Exchange {
      * @name byteexchange#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
      * @param {string} code unified currency code
+     * @see https://docs.bexc.io/api/v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an address structure
      */
@@ -665,6 +680,7 @@ export default class byteexchange extends Exchange {
      * @param {string} [code] unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposit structures to retrieve
+     * @see https://docs.bexc.io/api/v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of transaction structures
      */
@@ -734,6 +750,7 @@ export default class byteexchange extends Exchange {
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} [tag] a memo or tag for the withdrawal where required
+     * @see https://docs.bexc.io/api/v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a transaction structure
      */
