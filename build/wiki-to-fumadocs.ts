@@ -176,9 +176,9 @@ function rewriteLinks (md: string): string {
         (_m, ex, frag) => `](/docs/exchanges/${ex}${frag ?? ''})`);
 
     // example links: ./examples/<lang>/<file>.md -> /docs/examples/<lang>/<file>
-    s = s.replace(/\]\((?:\.\/)?examples\/(js|py|ts|php)\/([\w.\-]+)\.md\)/g, '](/docs/examples/$1/$2)');
+    s = s.replace(/\]\((?:\.\/)?examples\/(js|py|ts|php|cs|go|java)\/([\w.\-]+)\.md\)/g, '](/docs/examples/$1/$2)');
     // example dir links: ./examples/<lang>/ -> /docs/examples/<lang>
-    s = s.replace(/\]\((?:\.\/)?examples\/(js|py|ts|php)\/?\)/g, '](/docs/examples/$1)');
+    s = s.replace(/\]\((?:\.\/)?examples\/(js|py|ts|php|cs|go|java)\/?\)/g, '](/docs/examples/$1)');
 
     // relative guide query-anchor: ](Examples?id=js) / ](Manual?id=x) etc.
     s = s.replace(/\]\((?:\.\/)?([\w.\-]+)\?id=([\w-]+)\)/g, (_m, page, anchor) => {
@@ -372,7 +372,7 @@ function main () {
         JSON.stringify({ title: 'Exchanges', icon: 'ArrowLeftRight', description: 'Per-exchange API support', root: true, pages: exOrder }, null, 2));
 
     // 3) examples (js, py, ts, php)
-    const LANGS: Record<string, string> = { js: 'JavaScript', py: 'Python', ts: 'TypeScript', php: 'PHP' };
+    const LANGS: Record<string, string> = { js: 'JavaScript', py: 'Python', ts: 'TypeScript', php: 'PHP', cs: 'C#', go: 'Go', java: 'Java' };
     const exampleLangs: string[] = [];
     for (const lang of Object.keys(LANGS)) {
         const dir = path.join(WIKI, 'examples', lang);
