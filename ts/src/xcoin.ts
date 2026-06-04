@@ -757,60 +757,59 @@ export default class xcoin extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []);
-        const result: Dict = {};
-        for (let i = 0; i < data.length; i++) {
-            const currency = data[i];
-            const currencyId = this.safeString (currency, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const networks: Dict = {};
-            const chains = currency['chains'];
-            const chainsLength = chains.length;
-            for (let j = 0; j < chainsLength; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString (chain, 'chainType');
-                const networkCode = this.networkIdToCode (networkId);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.safeBool (chain, 'depositAuth'),
-                    'withdraw': this.safeBool (chain, 'withdrawAuth'),
-                    'fee': this.safeNumber (chain, 'withdrawFee'),
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber (chain, 'minWd'),
-                            'max': this.safeNumber (chain, 'maxWd'),
-                        },
-                        'deposit': {
-                            'min': this.safeNumber (chain, 'minDep'),
-                            'max': undefined,
-                        },
-                    },
-                    'info': chain,
-                };
-            }
-            result[code] = this.safeCurrencyStructure ({
-                'info': chains,
-                'code': code,
-                'id': currencyId,
-                'name': this.safeString (currency, 'name'),
+        return this.parseCurrencies (data);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const currencyId = this.safeString (rawCurrency, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const networks: Dict = {};
+        const chains = this.safeList (rawCurrency, 'chains', []);
+        const chainsLength = chains.length;
+        for (let j = 0; j < chainsLength; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString (chain, 'chainType');
+            const networkCode = this.networkIdToCode (networkId);
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'active': undefined,
-                'deposit': this.safeBool (currency, 'depositAuth'),
-                'withdraw': this.safeBool (currency, 'withdrawAuth'),
-                'fee': undefined,
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'currencyPrecision'))),
+                'deposit': this.safeBool (chain, 'depositAuth'),
+                'withdraw': this.safeBool (chain, 'withdrawAuth'),
+                'fee': this.safeNumber (chain, 'withdrawFee'),
+                'precision': undefined,
                 'limits': {
-                    'amount': {
-                        'min': undefined,
+                    'withdraw': {
+                        'min': this.safeNumber (chain, 'minWd'),
+                        'max': this.safeNumber (chain, 'maxWd'),
+                    },
+                    'deposit': {
+                        'min': this.safeNumber (chain, 'minDep'),
                         'max': undefined,
                     },
                 },
-                'type': undefined, // atm only crypto
-                'networks': networks,
-            });
+                'info': chain,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'code': code,
+            'id': currencyId,
+            'name': this.safeString (rawCurrency, 'name'),
+            'active': undefined,
+            'deposit': this.safeBool (rawCurrency, 'depositAuth'),
+            'withdraw': this.safeBool (rawCurrency, 'withdrawAuth'),
+            'fee': undefined,
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'currencyPrecision'))),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'type': undefined, // atm only crypto
+            'networks': networks,
+            'info': rawCurrency,
+        });
     }
 
     /**
