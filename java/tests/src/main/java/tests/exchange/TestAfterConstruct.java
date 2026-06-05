@@ -15,7 +15,10 @@ public class TestAfterConstruct extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        testOptionsNetworks(exchange, skippedProperties);
+        if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "networks"))))
+        {
+            testOptionsNetworks(exchange, skippedProperties);
+        }
         return true;
         });
 
