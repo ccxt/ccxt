@@ -29,7 +29,7 @@ const cards: { href: string; title: string; desc: string }[] = [
 
 export default function HomePage() {
   return (
-    <main className="flex flex-1 flex-col items-center px-4 py-16 sm:py-20">
+    <main className="flex flex-1 flex-col items-center px-4 pt-8 pb-16 sm:pt-10 sm:pb-20">
       {/* hero heading */}
       <div className="mb-10 flex max-w-3xl flex-col items-center text-center">
         <span className="mb-6 inline-flex items-center gap-2 rounded-full border bg-fd-card px-3 py-1.5 text-xs font-medium text-fd-muted-foreground">
@@ -40,9 +40,9 @@ export default function HomePage() {
           one unified API
         </span>
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-          Change one word.
+          <span className="text-fd-muted-foreground">Change one word.</span>
           <br />
-          <span className="text-fd-muted-foreground">Connect to any exchange.</span>
+          Connect to any exchange.
         </h1>
         <p className="mt-5 max-w-xl text-fd-muted-foreground">
           A unified cryptocurrency trading library — one API across 100+ exchanges in

@@ -6,14 +6,15 @@
 import { useState } from 'react';
 import { CheckIcon, CopyIcon, SparklesIcon } from 'lucide-react';
 
-const LANGS = [
+const LANGS: { id: string; label: string; cmd: string; prompt?: string }[] = [
   { id: 'js', label: 'JavaScript', cmd: 'npm install ccxt' },
   { id: 'py', label: 'Python', cmd: 'pip install ccxt' },
   { id: 'php', label: 'PHP', cmd: 'composer require ccxt/ccxt' },
   { id: 'cs', label: 'C#', cmd: 'dotnet add package ccxt' },
   { id: 'go', label: 'Go', cmd: 'go get github.com/ccxt/ccxt/go/v4' },
-  { id: 'java', label: 'Java', cmd: 'git clone https://github.com/ccxt/ccxt --depth 1 && cd ccxt/java && ./gradlew :lib:build' },
-] as const;
+  // Maven Central dependency (build.gradle.kts) — not a shell command, so no $ prompt.
+  { id: 'java', label: 'Java', cmd: 'implementation("io.github.ccxt:ccxt:4.5.56")', prompt: '' },
+];
 
 const AI_SCRIPT_URL = 'https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh';
 const AI_CMD = `curl -fsSL ${AI_SCRIPT_URL} | bash`;
@@ -42,10 +43,10 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-function CommandLine({ cmd }: { cmd: string }) {
+function CommandLine({ cmd, prompt = '$' }: { cmd: string; prompt?: string }) {
   return (
     <div className="flex items-center gap-2 rounded-md bg-fd-background px-3 py-2 font-mono text-sm">
-      <span className="select-none text-fd-muted-foreground">$</span>
+      {prompt ? <span className="select-none text-fd-muted-foreground">{prompt}</span> : null}
       <code className="flex-1 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {cmd}
       </code>
@@ -102,7 +103,7 @@ export function InstallCommands() {
             </button>
           ))}
         </div>
-        <CommandLine cmd={LANGS[lang].cmd} />
+        <CommandLine cmd={LANGS[lang].cmd} prompt={LANGS[lang].prompt} />
       </div>
     </section>
   );
