@@ -378,80 +378,78 @@ class foxbit(Exchange, ImplicitAPI):
         #   ]
         # }
         data = self.safe_list(response, 'data', [])
-        result: dict = {}
-        for i in range(0, len(data)):
-            currency = data[i]
-            precision = self.safe_integer(currency, 'precision')
-            currencyId = self.safe_string(currency, 'symbol')
-            name = self.safe_string(currency, 'name')
-            code = self.safe_currency_code(currencyId)
-            depositInfo = self.safe_dict(currency, 'deposit_info')
-            withdrawInfo = self.safe_dict(currency, 'withdraw_info')
-            networks = self.safe_list(currency, 'networks', [])
-            type = self.safe_string_lower(currency, 'type')
-            parsedNetworks: dict = {}
-            for j in range(0, len(networks)):
-                network = networks[j]
-                networkId = self.safe_string(network, 'code')
-                networkCode = self.network_id_to_code(networkId, code)
-                networkWithdrawInfo = self.safe_dict(network, 'withdraw_info')
-                networkDepositInfo = self.safe_dict(network, 'deposit_info')
-                isWithdrawEnabled = self.safe_string(networkWithdrawInfo, 'status') == 'ENABLED'
-                isDepositEnabled = self.safe_string(networkDepositInfo, 'status') == 'ENABLED'
-                parsedNetworks[networkCode] = {
-                    'info': currency,
-                    'id': networkId,
-                    'network': networkCode,
-                    'name': self.safe_string(network, 'name'),
-                    'deposit': isDepositEnabled,
-                    'withdraw': isWithdrawEnabled,
-                    'active': True,
-                    'precision': precision,
-                    'fee': self.safe_number(networkWithdrawInfo, 'fee'),
-                    'limits': {
-                        'amount': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': self.safe_number(depositInfo, 'min_amount'),
-                            'max': None,
-                        },
-                        'withdraw': {
-                            'min': self.safe_number(withdrawInfo, 'min_amount'),
-                            'max': None,
-                        },
+        return self.parse_currencies(data)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        precision = self.safe_integer(rawCurrency, 'precision')
+        currencyId = self.safe_string(rawCurrency, 'symbol')
+        name = self.safe_string(rawCurrency, 'name')
+        code = self.safe_currency_code(currencyId)
+        depositInfo = self.safe_dict(rawCurrency, 'deposit_info')
+        withdrawInfo = self.safe_dict(rawCurrency, 'withdraw_info')
+        networks = self.safe_list(rawCurrency, 'networks', [])
+        type = self.safe_string_lower(rawCurrency, 'type')
+        parsedNetworks: dict = {}
+        for j in range(0, len(networks)):
+            network = networks[j]
+            networkId = self.safe_string(network, 'code')
+            networkCode = self.network_id_to_code(networkId, code)
+            networkWithdrawInfo = self.safe_dict(network, 'withdraw_info')
+            networkDepositInfo = self.safe_dict(network, 'deposit_info')
+            isWithdrawEnabled = self.safe_string(networkWithdrawInfo, 'status') == 'ENABLED'
+            isDepositEnabled = self.safe_string(networkDepositInfo, 'status') == 'ENABLED'
+            parsedNetworks[networkCode] = {
+                'info': rawCurrency,
+                'id': networkId,
+                'network': networkCode,
+                'name': self.safe_string(network, 'name'),
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
+                'active': True,
+                'precision': precision,
+                'fee': self.safe_number(networkWithdrawInfo, 'fee'),
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
                     },
-                }
-            if self.safe_dict(result, code) is None:
-                result[code] = self.safe_currency_structure({
-                    'id': currencyId,
-                    'code': code,
-                    'info': currency,
-                    'name': name,
-                    'active': True,
-                    'type': type,
-                    'deposit': self.safe_bool(depositInfo, 'enabled', False),
-                    'withdraw': self.safe_bool(withdrawInfo, 'enabled', False),
-                    'fee': self.safe_number(withdrawInfo, 'fee'),
-                    'precision': precision,
-                    'limits': {
-                        'amount': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': self.safe_number(depositInfo, 'min_amount'),
-                            'max': None,
-                        },
-                        'withdraw': {
-                            'min': self.safe_number(withdrawInfo, 'min_amount'),
-                            'max': None,
-                        },
+                    'deposit': {
+                        'min': self.safe_number(depositInfo, 'min_amount'),
+                        'max': None,
                     },
-                    'networks': parsedNetworks,
-                })
-        return result
+                    'withdraw': {
+                        'min': self.safe_number(withdrawInfo, 'min_amount'),
+                        'max': None,
+                    },
+                },
+            }
+        return self.safe_currency_structure({
+            'id': currencyId,
+            'code': code,
+            'info': rawCurrency,
+            'name': name,
+            'active': True,
+            'type': type,
+            'deposit': self.safe_bool(depositInfo, 'enabled', False),
+            'withdraw': self.safe_bool(withdrawInfo, 'enabled', False),
+            'fee': self.safe_number(withdrawInfo, 'fee'),
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': self.safe_number(depositInfo, 'min_amount'),
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': self.safe_number(withdrawInfo, 'min_amount'),
+                    'max': None,
+                },
+            },
+            'networks': parsedNetworks,
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """

@@ -4413,6 +4413,7 @@ public class KucoinCore extends KucoinApi
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
+            Object market = this.market(symbol);
             Object request = this.createUtaOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = (this.utaPrivatePostAccountModeOrderPlace(request)).join();
             //
@@ -4427,7 +4428,7 @@ public class KucoinCore extends KucoinApi
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            return this.parseOrder(data);
+            return this.parseOrder(data, market);
         });
 
     }

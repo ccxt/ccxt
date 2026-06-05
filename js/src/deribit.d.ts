@@ -26,6 +26,7 @@ export default class deribit extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): Currency;
     codeFromOptions(methodName: any, params?: {}): any;
     /**
      * @method

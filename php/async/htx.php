@@ -1200,6 +1200,9 @@ class htx extends Exchange {
                     // 'BCC' => 'BCC', BCH's somewhat chain
                     // 'DBC1' => 'DBC1',
                 ),
+                'networksById' => array(
+                    'MATIC' => 'MATIC',
+                ),
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod' => 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'createMarketBuyOrderRequiresPrice' => true,
@@ -3440,7 +3443,7 @@ class htx extends Exchange {
             /**
              * fetches all available currencies on an exchange
              *
-             * @see https://huobiapi.github.io/docs/spot/v1/en/#apiv2-currency-amp-$chains
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#apiv2-currency-amp-chains
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
@@ -3483,76 +3486,81 @@ class htx extends Exchange {
             //    }
             //
             $data = $this->safe_list($response, 'data', array());
-            $result = array();
-            $this->options['networkChainIdsByNames'] = array();
             $this->options['networkNamesByChainIds'] = array();
-            for ($i = 0; $i < count($data); $i++) {
-                $entry = $data[$i];
-                $currencyId = $this->safe_string($entry, 'currency');
-                $code = $this->safe_currency_code($currencyId);
-                $assetType = $this->safe_string($entry, 'assetType');
-                $type = $assetType === '1' ? 'crypto' : 'fiat';
-                $this->options['networkChainIdsByNames'][$code] = array();
-                $chains = $this->safe_list($entry, 'chains', array());
-                $networks = array();
-                for ($j = 0; $j < count($chains); $j++) {
-                    $chainEntry = $chains[$j];
-                    $uniqueChainId = $this->safe_string($chainEntry, 'chain'); // $i->e. usdterc20, trc20usdt ...
-                    $title = $this->safe_string_2($chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
-                    $this->options['networkChainIdsByNames'][$code][$title] = $uniqueChainId;
-                    $this->options['networkNamesByChainIds'][$uniqueChainId] = $title;
-                    $networkCode = $this->network_id_to_code($uniqueChainId);
-                    $networks[$networkCode] = array(
-                        'info' => $chainEntry,
-                        'id' => $uniqueChainId,
-                        'network' => $networkCode,
-                        'limits' => array(
-                            'deposit' => array(
-                                'min' => $this->safe_number($chainEntry, 'minDepositAmt'),
-                                'max' => null,
-                            ),
-                            'withdraw' => array(
-                                'min' => $this->safe_number($chainEntry, 'minWithdrawAmt'),
-                                'max' => $this->safe_number($chainEntry, 'maxWithdrawAmt'),
-                            ),
-                        ),
-                        'active' => null,
-                        'deposit' => $this->safe_string($chainEntry, 'depositStatus') === 'allowed',
-                        'withdraw' => $this->safe_string($chainEntry, 'withdrawStatus') === 'allowed',
-                        'fee' => $this->safe_number($chainEntry, 'transactFeeWithdraw'),
-                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($chainEntry, 'withdrawPrecision'))),
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'info' => $entry,
-                    'code' => $code,
-                    'id' => $currencyId,
-                    'active' => $this->safe_string($entry, 'instStatus') === 'normal',
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
-                    'name' => null,
-                    'type' => $type,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'precision' => null,
-                    'networks' => $networks,
-                ));
-            }
-            return $result;
+            $this->options['networkChainIdsByNames'] = array();
+            return $this->parse_currencies($data);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        if (!(is_array($this->options) && array_key_exists('networkNamesByChainIds', $this->options))) {
+            $this->options['networkNamesByChainIds'] = array();
+        }
+        if (!(is_array($this->options) && array_key_exists('networkChainIdsByNames', $this->options))) {
+            $this->options['networkChainIdsByNames'] = array();
+        }
+        $currencyId = $this->safe_string($rawCurrency, 'currency');
+        $code = $this->safe_currency_code($currencyId);
+        $assetType = $this->safe_string($rawCurrency, 'assetType');
+        $type = ($assetType === '1') ? 'crypto' : 'fiat';
+        $this->options['networkChainIdsByNames'][$code] = array();
+        $chains = $this->safe_list($rawCurrency, 'chains', array());
+        $networks = array();
+        for ($j = 0; $j < count($chains); $j++) {
+            $chainEntry = $chains[$j];
+            $uniqueChainId = $this->safe_string($chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
+            $title = $this->safe_string_2($chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
+            $this->options['networkChainIdsByNames'][$code][$title] = $uniqueChainId;
+            $this->options['networkNamesByChainIds'][$uniqueChainId] = $title;
+            $networkCode = $this->network_id_to_code($uniqueChainId);
+            $networks[$networkCode] = array(
+                'info' => $chainEntry,
+                'id' => $uniqueChainId,
+                'network' => $networkCode,
+                'limits' => array(
+                    'deposit' => array(
+                        'min' => $this->safe_number($chainEntry, 'minDepositAmt'),
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => $this->safe_number($chainEntry, 'minWithdrawAmt'),
+                        'max' => $this->safe_number($chainEntry, 'maxWithdrawAmt'),
+                    ),
+                ),
+                'active' => null,
+                'deposit' => $this->safe_string($chainEntry, 'depositStatus') === 'allowed',
+                'withdraw' => $this->safe_string($chainEntry, 'withdrawStatus') === 'allowed',
+                'fee' => $this->safe_number($chainEntry, 'transactFeeWithdraw'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($chainEntry, 'withdrawPrecision'))),
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'code' => $code,
+            'id' => $currencyId,
+            'active' => $this->safe_string($rawCurrency, 'instStatus') === 'normal',
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'name' => null,
+            'type' => $type,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'precision' => null,
+            'networks' => $networks,
+        ));
     }
 
     public function network_id_to_code(?string $networkId = null, ?string $currencyCode = null) {

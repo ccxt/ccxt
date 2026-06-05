@@ -467,54 +467,54 @@ public partial class hyperliquid : Exchange
         object tokens = this.safeList(response, "tokens", new List<object>() {});
         // const meta = this.safeList (response, 'universe', []);
         ((IDictionary<string,object>)this.options)["cachedCurrenciesById"] = new Dictionary<string, object>() {}; // used to map hip3 markets
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tokens)); postFixIncrement(ref i))
-        {
-            object data = this.safeDict(tokens, i, new Dictionary<string, object>() {});
-            // const id = i;
-            object id = this.safeString(data, "index");
-            object name = this.safeString(data, "name");
-            object code = this.safeCurrencyCode(name);
-            ((IDictionary<string,object>)getValue(this.options, "cachedCurrenciesById"))[(string)id] = name;
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "name", name },
-                { "code", code },
-                { "precision", this.parsePrecision(this.safeString(data, "weiDecimals")) },
-                { "info", data },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "networks", null },
-                { "fee", null },
-                { "type", "crypto" },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
+        return this.parseCurrencies(tokens);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        // const id = i;
+        object id = this.safeString(rawCurrency, "index");
+        object name = this.safeString(rawCurrency, "name");
+        object code = this.safeCurrencyCode(name);
+        ((IDictionary<string,object>)getValue(this.options, "cachedCurrenciesById"))[(string)id] = name;
+        object result = this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "name", name },
+            { "code", code },
+            { "precision", this.parsePrecision(this.safeString(rawCurrency, "weiDecimals")) },
+            { "info", rawCurrency },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "networks", null },
+            { "fee", null },
+            { "type", "crypto" },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
                 } },
-            });
-            // add in wrapped map
-            object fullName = this.safeString(data, "fullName");
-            if (isTrue(isTrue(!isEqual(fullName, null)) && isTrue(!isEqual(name, null))))
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+        });
+        // add in wrapped map
+        object fullName = this.safeString(rawCurrency, "fullName");
+        if (isTrue(isTrue(!isEqual(fullName, null)) && isTrue(!isEqual(name, null))))
+        {
+            object isWrapped = isTrue(((string)fullName).StartsWith(((string)"Unit "))) && isTrue(((string)name).StartsWith(((string)"U")));
+            if (isTrue(isWrapped))
             {
-                object isWrapped = isTrue(((string)fullName).StartsWith(((string)"Unit "))) && isTrue(((string)name).StartsWith(((string)"U")));
-                if (isTrue(isWrapped))
+                object parts = ((string)name).Split(new [] {((string)"U")}, StringSplitOptions.None).ToList<object>();
+                object nameWithoutU = "";
+                for (object j = 0; isLessThan(j, getArrayLength(parts)); postFixIncrement(ref j))
                 {
-                    object parts = ((string)name).Split(new [] {((string)"U")}, StringSplitOptions.None).ToList<object>();
-                    object nameWithoutU = "";
-                    for (object j = 0; isLessThan(j, getArrayLength(parts)); postFixIncrement(ref j))
-                    {
-                        nameWithoutU = add(nameWithoutU, getValue(parts, j));
-                    }
-                    object baseCode = this.safeCurrencyCode(nameWithoutU);
-                    ((IDictionary<string,object>)getValue(this.options, "spotCurrencyMapping"))[(string)code] = baseCode;
+                    nameWithoutU = add(nameWithoutU, getValue(parts, j));
                 }
+                object baseCode = this.safeCurrencyCode(nameWithoutU);
+                ((IDictionary<string,object>)getValue(this.options, "spotCurrencyMapping"))[(string)code] = baseCode;
             }
         }
         return result;
