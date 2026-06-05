@@ -28,18 +28,12 @@
                 "output": "{}"
             },
             {
-                "description": "fetch swap open orders with no symbol",
+                "description": "Linear swap fetch open orders",
                 "method": "fetchOpenOrders",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_openorders?AccessKeyId=2544d3b4-b9b13e98-nbtycf4rw2-7b485&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2025-05-30T09%3A32%3A32&Signature=IIrzT6P%2BQfHW53%2FpLX7nlB2HSq0oCi9V5KoqnqMZ7vM%3D",
+                "url": "https://api.hbdm.vn/v5/trade/order/opens?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-06-05T09%3A36%3A06&contract_code=LTC-USDT&Signature=1K9Ac91l92BbEdxlYFfKFbEVE6Dx%2BOS3lxuMSoGJV2Q%3D",
                 "input": [
-                    null,
-                    null,
-                    null,
-                    {
-                        "type": "swap"
-                    }
-                ],
-                "output": "{}"
+                    "LTC/USDT:USDT"
+                ]
             }
         ],
         "fetchCurrencies": [
@@ -52,39 +46,6 @@
             }
         ],
         "createOrder": [
-            {
-                "description": "market sell in hedged mode and reduceOnly",
-                "method": "createOrder",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_order?AccessKeyId=rbr45t6yr4-8b2d9b8e-a712f3a9-42507&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-12-02T16%3A20%3A43&Signature=5XXNO0j22IP1G%2FnMNsvEfJTy6xx51wYNiwSXP%2Bi5xfM%3D",
-                "input": [
-                    "LTC/USDT:USDT",
-                    "market",
-                    "sell",
-                    1,
-                    null,
-                    {
-                        "hedged": true,
-                        "reduceOnly": true
-                    }
-                ],
-                "output": "{\"contract_code\":\"LTC-USDT\",\"volume\":\"1\",\"direction\":\"sell\",\"reduce_only\":1,\"lever_rate\":1,\"order_price_type\":\"market\",\"offset\":\"close\",\"channel_code\":\"AA03022abc\"}"
-            },
-            {
-                "description": "market buy in hedged mode",
-                "method": "createOrder",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_order?AccessKeyId=rbr45t6yr4-8b2d9b8e-a712f3a9-42507&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-12-02T16%3A10%3A49&Signature=UEdfY1wFs1SjNrtboBA1DBhw%2BzQE%2FXbtof4LGH3NqKw%3D",
-                "input": [
-                    "LTC/USDT:USDT",
-                    "market",
-                    "buy",
-                    1,
-                    null,
-                    {
-                        "hedged": true
-                    }
-                ],
-                "output": "{\"contract_code\":\"LTC-USDT\",\"volume\":\"1\",\"direction\":\"buy\",\"lever_rate\":1,\"order_price_type\":\"market\",\"offset\":\"open\",\"channel_code\":\"AA03022abc\"}"
-            },
             {
                 "description": "Spot market buy",
                 "method": "createOrder",
@@ -160,36 +121,21 @@
                 "output": "{\"account-id\":\"44234548\",\"symbol\":\"ltcusdt\",\"type\":\"buy-ioc\",\"client-order-id\":\"AA03022abc766d3f3a-4d8f-4196-a63f-b2950dbd15a9\",\"amount\":\"0.2\",\"price\":\"50\"}"
             },
             {
-                "description": "Swap limit buy with IOC",
+                "description": "Linear swap limit buy with IOC",
                 "method": "createOrder",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_order?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-03T17%3A47%3A01&Signature=StvJBOG3oavGPHMktTW3lhksE55p%2FeBVW7nVL425DNI%3D",
+                "url": "https://api.hbdm.vn/v5/trade/order?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-06-05T08%3A59%3A05&Signature=Cq5DsAEoX0FvsO9%2BsXk3Uj3Bmc8eNOv8vbK%2B1XjsfHo%3D",
                 "input": [
                     "LTC/USDT:USDT",
                     "limit",
                     "buy",
                     1,
-                    50,
+                    40,
                     {
-                        "timeInForce": "IOC"
+                        "timeInForce": "IOC",
+                        "position_side": "long"
                     }
                 ],
-                "output": "{\"contract_code\":\"LTC-USDT\",\"volume\":\"1\",\"direction\":\"buy\",\"price\":\"50\",\"lever_rate\":1,\"order_price_type\":\"ioc\",\"channel_code\":\"AA03022abc\"}"
-            },
-            {
-                "description": "Swap limit buy with FOK",
-                "method": "createOrder",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_order?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-03T17%3A48%3A14&Signature=cOIKzJEoCrUAZZya8gopTIZzUKKsnCKDEFI48KdzLhs%3D",
-                "input": [
-                    "LTC/USDT:USDT",
-                    "limit",
-                    "buy",
-                    1,
-                    50,
-                    {
-                        "timeInForce": "FOK"
-                    }
-                ],
-                "output": "{\"contract_code\":\"LTC-USDT\",\"volume\":\"1\",\"direction\":\"buy\",\"price\":\"50\",\"lever_rate\":1,\"order_price_type\":\"fok\",\"channel_code\":\"AA03022abc\"}"
+                "output": "{\"contract_code\":\"LTC-USDT\",\"volume\":\"1\",\"margin_mode\":\"cross\",\"side\":\"buy\",\"time_in_force\":\"ioc\",\"price\":\"40\",\"type\":\"limit\",\"channel_code\":\"AA03022abc\",\"position_side\":\"long\"}"
             },
             {
                 "description": "Swap limit sell with takeProfitPrice",
@@ -270,20 +216,21 @@
                 "output": "{\"contract_code\":\"BTC-USDT\",\"volume\":\"1\",\"direction\":\"sell\",\"callback_rate\":0.05,\"active_price\":50000,\"order_price_type\":\"formula_price\",\"reduce_only\":1,\"lever_rate\":1,\"channel_code\":\"AA03022abc\"}"
             },
             {
-                "description": "Create an isolated margin order",
+                "description": "Create an isolated linear swap order",
                 "method": "createOrder",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_order?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-01-10T15%3A37%3A38&Signature=sqvjPFOiyMqQ5czEOMQp7o8eGuoaZSZgN8ADxX9uT3w%3D",
+                "url": "https://api.hbdm.vn/v5/trade/order?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-06-05T09%3A34%3A39&Signature=zZhFA1Q8ppNLTUgs43gdcXO18lkheWn17kzs0Gw7CsI%3D",
                 "input": [
-                  "ADA/USDT:USDT",
-                  "market",
-                  "buy",
-                  3,
-                  null,
-                  {
-                    "marginMode": "isolated"
-                  }
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    30,
+                    {
+                        "marginMode": "isolated",
+                        "position_side": "long"
+                    }
                 ],
-                "output": "{\"contract_code\":\"ADA-USDT\",\"volume\":\"3\",\"direction\":\"buy\",\"lever_rate\":1,\"order_price_type\":\"market\",\"channel_code\":\"AA03022abc\"}"
+                "output": "{\"contract_code\":\"LTC-USDT\",\"volume\":\"1\",\"margin_mode\":\"isolated\",\"side\":\"buy\",\"time_in_force\":\"gtc\",\"price\":\"30\",\"type\":\"limit\",\"channel_code\":\"AA03022abc\",\"position_side\":\"long\"}"
             },
             {
                 "description": "spot order with clientOrderId",
@@ -1651,6 +1598,18 @@
                         "multiAssetMode": true
                     }
                 ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "linear swap cancel order",
+                "method": "cancelOrder",
+                "url": "https://api.hbdm.vn/v5/trade/cancel_order?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-06-05T09%3A54%3A04&Signature=lM2NGUFb8ktHcF%2F0DNv6cRk%2Fzm7BYKS4gaWLK0gVei0%3D",
+                "input": [
+                    "1512509978516443136",
+                    "LTC/USDT:USDT"
+                ],
+                "output": "{\"order_id\":\"1512509978516443136\",\"contract_code\":\"LTC-USDT\"}"
             }
         ]
     }

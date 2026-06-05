@@ -649,6 +649,7 @@ export default class htx extends Exchange {
                             'v5/market/risk/limit': 1,
                             'v5/market/assets_deduction_currency': 1,
                             'v5/market/multi_assets_margin': 1,
+                            'v5/algo/order/opens': 1,
                         },
                         'post': {
                             // Future Account Interface
@@ -888,6 +889,8 @@ export default class htx extends Exchange {
                             'v5/position/lever': 1,
                             'v5/position/mode': 1,
                             'v5/account/fee_deduction_currency': 1,
+                            'v5/algo/order': 1,
+                            'v5/algo/cancel_orders': 1,
                         },
                     },
                 },
@@ -4557,10 +4560,10 @@ export default class htx extends Exchange {
     /**
      * @method
      * @name htx#fetchOpenOrders
-     * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-current-unfilled-order-acquisition
      * @description fetch all unfilled currently open orders
+     * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589587da5
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b9754d736
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -4581,6 +4584,7 @@ export default class htx extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params, 'linear');
+        const isLinear = (subType === 'linear');
         let response = undefined;
         if (marketType === 'spot') {
             if (symbol !== undefined) {
@@ -4613,36 +4617,21 @@ export default class htx extends Exchange {
                 request['contract_code'] = market['id'];
             }
             if (limit !== undefined) {
-                request['page_size'] = limit;
+                if (isLinear) {
+                    request['limit'] = limit;
+                } else {
+                    request['page_size'] = limit;
+                }
             }
             const trigger = this.safeBool2 (params, 'stop', 'trigger');
             const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
             const trailing = this.safeBool (params, 'trailing', false);
             params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
-            if (subType === 'linear') {
-                let marginMode = undefined;
-                [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
-                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-                if (marginMode === 'isolated') {
-                    if (trigger) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerOpenorders (this.extend (request, params));
-                    } else if (stopLossTakeProfit) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapTpslOpenorders (this.extend (request, params));
-                    } else if (trailing) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapTrackOpenorders (this.extend (request, params));
-                    } else {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapOpenorders (this.extend (request, params));
-                    }
-                } else if (marginMode === 'cross') {
-                    if (trigger) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOpenorders (this.extend (request, params));
-                    } else if (stopLossTakeProfit) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslOpenorders (this.extend (request, params));
-                    } else if (trailing) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTrackOpenorders (this.extend (request, params));
-                    } else {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossOpenorders (this.extend (request, params));
-                    }
+            if (isLinear) {
+                if (trigger || trailing || stopLossTakeProfit) {
+                    response = await this.contractPrivateGetV5AlgoOrderOpens (this.extend (request, params));
+                } else {
+                    response = await this.contractPrivateGetV5TradeOrderOpens (this.extend (request, params));
                 }
             } else if (subType === 'inverse') {
                 if (marketType === 'swap') {
@@ -4853,6 +4842,54 @@ export default class htx extends Exchange {
         //         "ts": 1704242440106
         //     }
         //
+        // linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "id": "1512509978516443136",
+        //                 "side": "buy",
+        //                 "type": "limit",
+        //                 "price": "30",
+        //                 "volume": "1",
+        //                 "state": "new",
+        //                 "profit": null,
+        //                 "contract_code": "LTC-USDT",
+        //                 "position_side": "long",
+        //                 "price_match": null,
+        //                 "order_id": "1512509978516443136",
+        //                 "client_order_id": "1512509978516443136",
+        //                 "margin_mode": "isolated",
+        //                 "lever_rate": 10,
+        //                 "order_source": "api",
+        //                 "reduce_only": false,
+        //                 "time_in_force": "gtc",
+        //                 "tp_trigger_price": "",
+        //                 "tp_order_price": "",
+        //                 "tp_type": "0",
+        //                 "tp_trigger_price_type": "",
+        //                 "sl_trigger_price": "",
+        //                 "sl_order_price": "",
+        //                 "sl_type": "0",
+        //                 "sl_trigger_price_type": "",
+        //                 "trade_avg_price": "0",
+        //                 "trade_volume": "0",
+        //                 "trade_turnover": "0",
+        //                 "fee_currency": "",
+        //                 "fee": "0",
+        //                 "price_protect": false,
+        //                 "contract_type": "swap",
+        //                 "created_time": "1780652079954",
+        //                 "updated_time": "1780652079954",
+        //                 "cancel_reason": null,
+        //                 "self_match_prevent": "cancel_taker"
+        //             }
+        //         ],
+        //         "ts": 1780652167077
+        //     }
+        //
         let orders = this.safeValue (response, 'data');
         if (!Array.isArray (orders)) {
             orders = this.safeValue (orders, 'orders', []);
@@ -4923,8 +4960,8 @@ export default class htx extends Exchange {
         // linear swap cross margin createOrder
         //
         //     {
-        //         "order_id":924660854912552960,
-        //         "order_id_str":"924660854912552960"
+        //         "order_id": "1512501029504577536",
+        //         "client_order_id": "1512501029504577536"
         //     }
         //
         // contracts fetchOrder
@@ -5241,18 +5278,64 @@ export default class htx extends Exchange {
         //         }
         //     ]
         //
+        // linear swap fetchOpenOrders
+        //
+        //     {
+        //         "id": "1512509978516443136",
+        //         "side": "buy",
+        //         "type": "limit",
+        //         "price": "30",
+        //         "volume": "1",
+        //         "state": "new",
+        //         "profit": null,
+        //         "contract_code": "LTC-USDT",
+        //         "position_side": "long",
+        //         "price_match": null,
+        //         "order_id": "1512509978516443136",
+        //         "client_order_id": "1512509978516443136",
+        //         "margin_mode": "isolated",
+        //         "lever_rate": 10,
+        //         "order_source": "api",
+        //         "reduce_only": false,
+        //         "time_in_force": "gtc",
+        //         "tp_trigger_price": "",
+        //         "tp_order_price": "",
+        //         "tp_type": "0",
+        //         "tp_trigger_price_type": "",
+        //         "sl_trigger_price": "",
+        //         "sl_order_price": "",
+        //         "sl_type": "0",
+        //         "sl_trigger_price_type": "",
+        //         "trade_avg_price": "0",
+        //         "trade_volume": "0",
+        //         "trade_turnover": "0",
+        //         "fee_currency": "",
+        //         "fee": "0",
+        //         "price_protect": false,
+        //         "contract_type": "swap",
+        //         "created_time": "1780652079954",
+        //         "updated_time": "1780652079954",
+        //         "cancel_reason": null,
+        //         "self_match_prevent": "cancel_taker"
+        //     }
+        //
         const rejectedCreateOrders = this.safeString2 (order, 'err_code', 'err-code');
         let status = this.parseOrderStatus (this.safeString2 (order, 'state', 'status'));
         if (rejectedCreateOrders !== undefined) {
             status = 'rejected';
         }
-        const id = this.safeStringN (order, [ 'id', 'order_id_str', 'order-id' ]);
-        let side = this.safeString (order, 'direction');
-        let type = this.safeString (order, 'order_price_type');
-        if ('type' in order) {
-            const orderType = order['type'].split ('-');
-            side = orderType[0];
-            type = orderType[1];
+        const id = this.safeStringN (order, [ 'id', 'order_id_str', 'order-id', 'order_id' ]);
+        let side = this.safeString2 (order, 'direction', 'side');
+        let type = undefined;
+        if (market['linear']) {
+            type = this.safeString (order, 'type');
+        } else {
+            type = this.safeString (order, 'order_price_type');
+            if ('type' in order) {
+                const orderType = order['type'].split ('-');
+                side = orderType[0];
+                type = orderType[1];
+            }
         }
         const marketId = this.safeString2 (order, 'contract_code', 'symbol');
         market = this.safeMarket (marketId, market);
@@ -5273,7 +5356,7 @@ export default class htx extends Exchange {
         let fee = undefined;
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
-            const feeCurrencyId = this.safeString (order, 'fee_asset');
+            const feeCurrencyId = this.safeString2 (order, 'fee_asset', 'fee_currency');
             if (feeCurrencyId !== undefined) {
                 feeCurrency = this.safeCurrencyCode (feeCurrencyId);
             } else {
@@ -5286,10 +5369,14 @@ export default class htx extends Exchange {
         }
         const average = this.safeString (order, 'trade_avg_price');
         const trades = this.safeValue (order, 'trades');
-        const reduceOnlyInteger = this.safeInteger (order, 'reduce_only');
         let reduceOnly = undefined;
-        if (reduceOnlyInteger !== undefined) {
-            reduceOnly = (reduceOnlyInteger === 0) ? false : true;
+        if (market['linear']) {
+            reduceOnly = this.safeBool (order, 'reduce_only');
+        } else {
+            const reduceOnlyInteger = this.safeInteger (order, 'reduce_only');
+            if (reduceOnlyInteger !== undefined) {
+                reduceOnly = (reduceOnlyInteger === 0) ? false : true;
+            }
         }
         return this.safeOrder ({
             'info': order,
@@ -5300,7 +5387,7 @@ export default class htx extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': market['symbol'],
             'type': type,
-            'timeInForce': undefined,
+            'timeInForce': this.safeStringUpper (order, 'time_in_force'),
             'postOnly': undefined,
             'side': side,
             'price': price,
@@ -5502,18 +5589,40 @@ export default class htx extends Exchange {
         const request: Dict = {
             'contract_code': market['id'],
             'volume': this.amountToPrecision (symbol, amount),
-            'direction': side,
         };
         let postOnly = undefined;
         [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
         if (postOnly) {
             type = 'post_only';
         }
-        const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
-        if (timeInForce === 'FOK') {
-            type = 'fok';
-        } else if (timeInForce === 'IOC') {
-            type = 'ioc';
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('createOrder', market, params);
+        const isLinear = (subType === 'linear');
+        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
+        const hedged = this.safeBool (params, 'hedged', false);
+        const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force', 'gtc');
+        if (isLinear) {
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, 'cross');
+            request['margin_mode'] = marginMode;
+            request['side'] = side;
+            if (timeInForce !== undefined) {
+                request['time_in_force'] = timeInForce.toLowerCase ();
+            }
+        } else {
+            if (hedged) {
+                if (reduceOnly) {
+                    request['offset'] = 'close';
+                } else {
+                    request['offset'] = 'open';
+                }
+            }
+            if (timeInForce === 'fok') {
+                type = 'fok';
+            } else if (timeInForce === 'ioc') {
+                type = 'ioc';
+            }
+            request['direction'] = side;
         }
         const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'trigger_price' ]);
         const stopLossTriggerPrice = this.safeNumber2 (params, 'stopLossPrice', 'sl_trigger_price');
@@ -5524,22 +5633,39 @@ export default class htx extends Exchange {
         const isTrigger = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
+        const clientOrderId = this.safeIntegerN (params, [ 'client_order_id', 'clientOrderId', 'algo_client_order_id' ]);
+        if (isLinear && (isTrailingPercentOrder || isTrigger || isStopLossTriggerOrder || isTakeProfitTriggerOrder)) {
+            if (clientOrderId !== undefined) {
+                request['algo_client_order_id'] = clientOrderId;
+                params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
+            }
+        }
         if (isTrigger) {
-            const triggerType = this.safeString2 (params, 'triggerType', 'trigger_type', 'le');
-            request['trigger_type'] = triggerType;
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
-            if (price !== undefined) {
-                request['order_price'] = this.priceToPrecision (symbol, price);
+            if (isLinear) {
+                if (price !== undefined) {
+                    request['price'] = this.priceToPrecision (symbol, price);
+                }
+            } else {
+                const triggerType = this.safeString2 (params, 'triggerType', 'trigger_type', 'le');
+                request['trigger_type'] = triggerType;
+                if (price !== undefined) {
+                    request['order_price'] = this.priceToPrecision (symbol, price);
+                }
             }
         } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
             if (isStopLossTriggerOrder) {
-                request['sl_order_price_type'] = type;
+                if (!isLinear) {
+                    request['sl_order_price_type'] = type;
+                }
                 request['sl_trigger_price'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
                 if (price !== undefined) {
                     request['sl_order_price'] = this.priceToPrecision (symbol, price);
                 }
             } else {
-                request['tp_order_price_type'] = type;
+                if (!isLinear) {
+                    request['tp_order_price_type'] = type;
+                }
                 request['tp_trigger_price'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
                 if (price !== undefined) {
                     request['tp_order_price'] = this.priceToPrecision (symbol, price);
@@ -5548,10 +5674,13 @@ export default class htx extends Exchange {
         } else if (isTrailingPercentOrder) {
             const trailingPercentString = Precise.stringDiv (trailingPercent, '100');
             request['callback_rate'] = this.parseToNumeric (trailingPercentString);
-            request['active_price'] = trailingTriggerPrice;
             request['order_price_type'] = this.safeString (params, 'order_price_type', 'formula_price');
+            if (isLinear) {
+                request['activation_price'] = trailingTriggerPrice;
+            } else {
+                request['active_price'] = trailingTriggerPrice;
+            }
         } else {
-            const clientOrderId = this.safeInteger2 (params, 'client_order_id', 'clientOrderId');
             if (clientOrderId !== undefined) {
                 request['client_order_id'] = clientOrderId;
                 params = this.omit (params, [ 'clientOrderId' ]);
@@ -5562,22 +5691,19 @@ export default class htx extends Exchange {
                 }
             }
         }
-        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
         if (!isStopLossTriggerOrder && !isTakeProfitTriggerOrder) {
             if (reduceOnly) {
                 request['reduce_only'] = 1;
             }
-            request['lever_rate'] = this.safeIntegerN (params, [ 'leverRate', 'lever_rate', 'leverage' ], 1);
-            if (!isTrailingPercentOrder) {
-                request['order_price_type'] = type;
-            }
-        }
-        const hedged = this.safeBool (params, 'hedged', false);
-        if (hedged) {
-            if (reduceOnly) {
-                request['offset'] = 'close';
+            if (isLinear) {
+                if (!isTrailingPercentOrder) {
+                    request['type'] = type;
+                }
             } else {
-                request['offset'] = 'open';
+                if (!isTrailingPercentOrder) {
+                    request['order_price_type'] = type;
+                }
+                request['lever_rate'] = this.safeIntegerN (params, [ 'leverRate', 'lever_rate', 'leverage' ], 1);
             }
         }
         const broker = this.safeValue (this.options, 'broker', {});
@@ -5591,17 +5717,15 @@ export default class htx extends Exchange {
      * @method
      * @name htx#createOrder
      * @description create a trade order
-     * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   // spot, margin
-     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        // coin-m swap
-     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   // coin-m swap trigger
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           // usdt-m swap cross
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      // usdt-m swap cross trigger
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        // usdt-m swap isolated
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   // usdt-m swap isolated trigger
+     * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                       // spot, margin
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order            // coin-m swap
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order       // coin-m swap trigger
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588768fe7 // usdt-m swap cross and isolated
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b933812c9 // usdt-m swap cross and isolated trigger and trailing orders
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-set-a-take-profit-and-stop-loss-order-for-an-existing-position
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-set-a-take-profit-and-stop-loss-order-for-an-existing-position
-     * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        // coin-m futures
-     * @see https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   // coin-m futures contract trigger
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                            // coin-m futures
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                       // coin-m futures contract trigger
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -5621,6 +5745,8 @@ export default class htx extends Exchange {
      * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
      * @param {float} [params.trailingTriggerPrice] *contract only* the price to trigger a trailing order, default uses the price argument
      * @param {bool} [params.hedged] *contract only* true for hedged mode, false for one way mode, default is false
+     * @param {string} [params.marginMode] linear swap supports 'cross' and 'isolated', 'cross' is the default
+     * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -5642,31 +5768,12 @@ export default class htx extends Exchange {
             const spotRequest = await this.createSpotOrderRequest (symbol, type, side, amount, price, params);
             response = await this.spotPrivatePostV1OrderOrdersPlace (spotRequest);
         } else {
-            let contractRequest = this.createContractOrderRequest (symbol, type, side, amount, price, params);
+            const contractRequest = this.createContractOrderRequest (symbol, type, side, amount, price, params);
             if (market['linear']) {
-                let marginMode = undefined;
-                [ marginMode, contractRequest ] = this.handleMarginModeAndParams ('createOrder', contractRequest);
-                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-                if (marginMode === 'isolated') {
-                    if (isTrigger) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerOrder (contractRequest);
-                    } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapTpslOrder (contractRequest);
-                    } else if (isTrailingPercentOrder) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapTrackOrder (contractRequest);
-                    } else {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapOrder (contractRequest);
-                    }
-                } else if (marginMode === 'cross') {
-                    if (isTrigger) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder (contractRequest);
-                    } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder (contractRequest);
-                    } else if (isTrailingPercentOrder) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTrackOrder (contractRequest);
-                    } else {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossOrder (contractRequest);
-                    }
+                if (isTrigger || isStopLossTriggerOrder || isTakeProfitTriggerOrder || isTrailingPercentOrder) {
+                    response = await this.contractPrivatePostV5AlgoOrder (contractRequest);
+                } else {
+                    response = await this.contractPrivatePostV5TradeOrder (contractRequest);
                 }
             } else if (market['inverse']) {
                 const offset = this.safeString (params, 'offset');
@@ -5712,6 +5819,18 @@ export default class htx extends Exchange {
         //         "ts": 1640497927185
         //     }
         //
+        // linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": {
+        //             "order_id": "1512501029504577536",
+        //             "client_order_id": "1512501029504577536"
+        //         },
+        //         "ts": 1780649946353
+        //     }
+        //
         // stop-loss and take-profit
         //
         //     {
@@ -5749,6 +5868,8 @@ export default class htx extends Exchange {
                 'clientOrderId': undefined,
                 'average': undefined,
             }, market);
+        } else if (market['linear'] && (isTrigger || isTrailingPercentOrder || isStopLossTriggerOrder || isTakeProfitTriggerOrder)) {
+            result = this.safeValue (response, 'data', []);
         } else if (isStopLossTriggerOrder) {
             data = this.safeValue (response, 'data', {});
             result = this.safeValue (data, 'sl_order', {});
@@ -5894,6 +6015,8 @@ export default class htx extends Exchange {
      * @method
      * @name htx#cancelOrder
      * @description cancels an open order
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958947efe6
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b935d4997
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5910,6 +6033,9 @@ export default class htx extends Exchange {
         }
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('cancelOrder', market, params);
+        const isLinear = (subType === 'linear');
         const request: Dict = {
             // spot -----------------------------------------------------------
             // 'order-id': 'id',
@@ -5937,46 +6063,36 @@ export default class htx extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
             }
-            const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
-            if (clientOrderId === undefined) {
-                request['order_id'] = id;
+            const trigger = this.safeBool2 (params, 'stop', 'trigger');
+            const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
+            const trailing = this.safeBool (params, 'trailing', false);
+            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
+            const clientOrderId = this.safeStringN (params, [ 'client_order_id', 'clientOrderId', 'algo_client_order_id' ]);
+            if (isLinear && (trigger || stopLossTakeProfit || trailing)) {
+                if (clientOrderId === undefined) {
+                    request['algo_id'] = id;
+                } else {
+                    request['algo_client_order_id'] = clientOrderId;
+                    params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
+                }
             } else {
-                request['client_order_id'] = clientOrderId;
-                params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
+                if (clientOrderId === undefined) {
+                    request['order_id'] = id;
+                } else {
+                    request['client_order_id'] = clientOrderId;
+                    params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
+                }
             }
             if (market['future']) {
                 request['symbol'] = market['settleId'];
             } else {
                 request['contract_code'] = market['id'];
             }
-            const trigger = this.safeBool2 (params, 'stop', 'trigger');
-            const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
-            const trailing = this.safeBool (params, 'trailing', false);
-            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
-            if (market['linear']) {
-                let marginMode = undefined;
-                [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
-                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-                if (marginMode === 'isolated') {
-                    if (trigger) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerCancel (this.extend (request, params));
-                    } else if (stopLossTakeProfit) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapTpslCancel (this.extend (request, params));
-                    } else if (trailing) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapTrackCancel (this.extend (request, params));
-                    } else {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCancel (this.extend (request, params));
-                    }
-                } else if (marginMode === 'cross') {
-                    if (trigger) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel (this.extend (request, params));
-                    } else if (stopLossTakeProfit) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel (this.extend (request, params));
-                    } else if (trailing) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTrackCancel (this.extend (request, params));
-                    } else {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossCancel (this.extend (request, params));
-                    }
+            if (isLinear) {
+                if (trigger || stopLossTakeProfit || trailing) {
+                    response = await this.contractPrivatePostV5AlgoCancelOrders (this.extend (request, params));
+                } else {
+                    response = await this.contractPrivatePostV5TradeCancelOrder (this.extend (request, params));
                 }
             } else if (market['inverse']) {
                 if (market['swap']) {
@@ -6023,7 +6139,41 @@ export default class htx extends Exchange {
         //         "ts": 1640504486089
         //     }
         //
-        return this.extend (this.parseOrder (response, market), {
+        // linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "data": {
+        //             "client_order_id": "1512509978516443136",
+        //             "order_id": "1512509978516443136"
+        //         },
+        //         "message": "Success",
+        //         "ts": 1780653244729
+        //     }
+        //
+        // linear swap algo
+        //
+        //     {
+        //         "code": 200,
+        //         "data": [
+        //             {
+        //                 "algo_client_order_id": "1329854623927160832",
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "algo_id": "1329854623927160832"
+        //             },
+        //         ],
+        //         "message": "Success",
+        //         "ts": 1737103890390
+        //     }
+        //
+        let result = undefined;
+        if (isLinear) {
+            result = this.safeDict (response, 'data', {});
+        } else {
+            result = response;
+        }
+        return this.extend (this.parseOrder (result, market), {
             'id': id,
             'status': 'canceled',
         }) as Order;

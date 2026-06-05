@@ -2473,7 +2473,135 @@
                     "stopLossPrice": null
                   }
                 ]
-              }
+            },
+            {
+                "description": "linear swap fetch open orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "LTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "Success",
+                    "data": [
+                        {
+                            "id": "1512509978516443136",
+                            "side": "buy",
+                            "type": "limit",
+                            "price": "30",
+                            "volume": "1",
+                            "state": "new",
+                            "profit": null,
+                            "contract_code": "LTC-USDT",
+                            "position_side": "long",
+                            "price_match": null,
+                            "order_id": "1512509978516443136",
+                            "client_order_id": "1512509978516443136",
+                            "margin_mode": "isolated",
+                            "lever_rate": "10",
+                            "order_source": "api",
+                            "reduce_only": false,
+                            "time_in_force": "gtc",
+                            "tp_trigger_price": "",
+                            "tp_order_price": "",
+                            "tp_type": "0",
+                            "tp_trigger_price_type": "",
+                            "sl_trigger_price": "",
+                            "sl_order_price": "",
+                            "sl_type": "0",
+                            "sl_trigger_price_type": "",
+                            "trade_avg_price": "0",
+                            "trade_volume": "0",
+                            "trade_turnover": "0",
+                            "fee_currency": "",
+                            "fee": "0",
+                            "price_protect": false,
+                            "contract_type": "swap",
+                            "created_time": "1780652079954",
+                            "updated_time": "1780652079954",
+                            "cancel_reason": null,
+                            "self_match_prevent": "cancel_taker"
+                        }
+                    ],
+                    "ts": "1780652167077"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "1512509978516443136",
+                            "side": "buy",
+                            "type": "limit",
+                            "price": "30",
+                            "volume": "1",
+                            "state": "new",
+                            "profit": null,
+                            "contract_code": "LTC-USDT",
+                            "position_side": "long",
+                            "price_match": null,
+                            "order_id": "1512509978516443136",
+                            "client_order_id": "1512509978516443136",
+                            "margin_mode": "isolated",
+                            "lever_rate": "10",
+                            "order_source": "api",
+                            "reduce_only": false,
+                            "time_in_force": "gtc",
+                            "tp_trigger_price": "",
+                            "tp_order_price": "",
+                            "tp_type": "0",
+                            "tp_trigger_price_type": "",
+                            "sl_trigger_price": "",
+                            "sl_order_price": "",
+                            "sl_type": "0",
+                            "sl_trigger_price_type": "",
+                            "trade_avg_price": "0",
+                            "trade_volume": "0",
+                            "trade_turnover": "0",
+                            "fee_currency": "",
+                            "fee": "0",
+                            "price_protect": false,
+                            "contract_type": "swap",
+                            "created_time": "1780652079954",
+                            "updated_time": "1780652079954",
+                            "cancel_reason": null,
+                            "self_match_prevent": "cancel_taker"
+                        },
+                        "id": "1512509978516443136",
+                        "clientOrderId": "1512509978516443136",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "symbol": "LTC/USDT:USDT",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": 30,
+                        "triggerPrice": null,
+                        "average": null,
+                        "cost": 0,
+                        "amount": 1,
+                        "filled": 0,
+                        "remaining": 1,
+                        "status": "new",
+                        "reduceOnly": false,
+                        "fee": {
+                            "cost": "0",
+                            "currency": "LTC"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "currency": "LTC"
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
         ],
         "fetchOpenInterest": [
             {
@@ -3124,6 +3252,120 @@
               "datetime": null
             }
           }
+        ],
+        "createOrder": [
+            {
+                "description": "Linear swap createOrder",
+                "method": "createOrder",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    30,
+                    {
+                        "marginMode": "isolated",
+                        "position_side": "long"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "Success",
+                    "data": {
+                        "order_id": "1512515591962660864",
+                        "client_order_id": "1512515591962660864"
+                    },
+                    "ts": "1780653418324"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order_id": "1512515591962660864",
+                        "client_order_id": "1512515591962660864"
+                    },
+                    "id": "1512515591962660864",
+                    "clientOrderId": "1512515591962660864",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "LTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "reduceOnly": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Linear swap cancelOrder",
+                "method": "cancelOrder",
+                "input": [
+                    "1512515591962660864",
+                    "LTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "Success",
+                    "data": {
+                        "order_id": "1512515591962660864",
+                        "client_order_id": "1512515591962660864"
+                    },
+                    "ts": "1780653590126"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200",
+                        "message": "Success",
+                        "data": {
+                            "order_id": "1512515591962660864",
+                            "client_order_id": "1512515591962660864"
+                        },
+                        "ts": "1780653590126"
+                    },
+                    "id": "1512515591962660864",
+                    "clientOrderId": "1512515591962660864",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "LTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "canceled",
+                    "reduceOnly": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
         ]
     }
 }
