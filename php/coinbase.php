@@ -3689,7 +3689,7 @@ class coinbase extends Exchange {
         //                     }
         //                 ),
         //                 "side" => "BUY",
-        //                 "client_order_id" => "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+        //                 "client_order_id" => "18eb9947-db49-4874-8e7b-39b8fe5f4314",
         //                 "status" => "FILLED",
         //                 "time_in_force" => "IMMEDIATE_OR_CANCEL",
         //                 "created_time" => "2023-01-18T01:37:37.975552Z",

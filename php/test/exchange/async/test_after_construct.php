@@ -12,7 +12,9 @@ use React\Promise;
 
 function test_after_construct($exchange, $skipped_properties) {
     return Async\async(function () use ($exchange, $skipped_properties) {
-        test_options_networks($exchange, $skipped_properties);
+        if (!(is_array($skipped_properties) && array_key_exists('networks', $skipped_properties))) {
+            test_options_networks($exchange, $skipped_properties);
+        }
         return true;
     }) ();
 }
