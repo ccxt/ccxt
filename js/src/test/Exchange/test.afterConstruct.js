@@ -12,7 +12,7 @@ async function testAfterConstruct(exchange, skippedProperties) {
 function testOptionsNetworks(exchange, skippedProperties) {
     if (!('networks' in skippedProperties)) {
         // only allow these whitelisted unified networkCodes to be repeated
-        const allowedUnifiedAliases = ['BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM'];
+        const allowedUnifiedAliases = ['BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM', 'POLYGON', 'MATIC'];
         const networks = exchange.options['networks'];
         if (networks === undefined) {
             return;
