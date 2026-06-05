@@ -244,6 +244,12 @@ function transform (md: string): string {
     // strip docsify back-arrow heading lines: `# [<-](...)`
     s = s.replace(/^#{0,6}\s*\[<-\]\([^)]*\)\s*$/gm, '');
 
+    // strip empty docsify anchors `<a name="X" id="x"></a>`. Fumadocs already gives the
+    // following heading that id, so these only create DUPLICATE ids — which break
+    // `#fragment` scrolling (the browser jumps to the empty, scroll-margin-less anchor
+    // instead of the heading). e.g. clicking cancelAllOrders on an exchange page.
+    s = s.replace(/<a name="[^"]*"[^>]*><\/a>/g, '');
+
     // normalise code-fence languages: lowercase + alias fixes; drop anything Shiki
     // doesn't know (capitalised labels, typos, stray words) to a plain fence.
     s = s.replace(/^(\s*```+)([A-Za-z][\w#+.-]*)([^\n]*)$/gm, (_m, fence, lang, rest) => {
