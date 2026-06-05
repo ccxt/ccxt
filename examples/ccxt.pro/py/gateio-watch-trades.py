@@ -16,7 +16,7 @@ async def loop(exchange, symbol):
 
 
 async def main():
-    exchange = ccxt.pro.gateio()
+    exchange = ccxt.pro.gate()
     await loop(exchange, 'BTC/USDT')
     await exchange.close()
 
