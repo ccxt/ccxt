@@ -9,6 +9,7 @@ import {
 } from 'fumadocs-ui/layouts/docs/page';
 import { notFound } from 'next/navigation';
 import { getMDXComponents } from '@/components/mdx';
+import { ExamplesGrid } from '@/components/examples-grid';
 import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
 import { gitConfig } from '@/lib/shared';
@@ -43,6 +44,18 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   const params = await props.params;
   const page = source.getPage(params.slug);
   if (!page) notFound();
+
+  // /docs/examples — render the language chooser as a card grid (with brand logos)
+  // instead of the generated markdown bullet list.
+  if (params.slug?.length === 1 && params.slug[0] === 'examples') {
+    return (
+      <DocsPage toc={[]}>
+        <DocsTitle>{page.data.title}</DocsTitle>
+        <DocsDescription>{page.data.description}</DocsDescription>
+        <ExamplesGrid />
+      </DocsPage>
+    );
+  }
 
   const MDX = page.data.body;
   const markdownUrl = getPageMarkdownUrl(page).url;
