@@ -6,7 +6,9 @@
 
 import assert from 'assert';
 async function testAfterConstruct(exchange, skippedProperties) {
-    testOptionsNetworks(exchange, skippedProperties);
+    if (!('networks' in skippedProperties)) {
+        testOptionsNetworks(exchange, skippedProperties);
+    }
     return true;
 }
 function testOptionsNetworks(exchange, skippedProperties) {
