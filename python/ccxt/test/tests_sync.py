@@ -105,6 +105,7 @@ class testMainClass:
     def import_files(self, exchange):
         properties = list(exchange.has.keys())
         properties.append('loadMarkets')
+        properties.append('afterConstruct')
         if is_sync():
             self.test_files = get_test_files_sync(properties, self.ws_tests)
         else:
@@ -193,6 +194,7 @@ class testMainClass:
         is_load_markets = (method_name == 'loadMarkets')
         is_fetch_currencies = (method_name == 'fetchCurrencies')
         is_proxy_test = (method_name == self.proxy_test_file_name)
+        is_constructor_test = (method_name == 'afterConstruct')
         is_feature_test = (method_name == 'features')
         # if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if not is_public and (method_name in self.checked_public_tests) and not is_fetch_currencies:
@@ -201,7 +203,7 @@ class testMainClass:
         supported_by_exchange = (method_name in exchange.has) and exchange.has[method_name]
         if not is_load_markets and (len(self.only_specific_tests) > 0 and not exchange.in_array(method_name, self.only_specific_tests)):
             skip_message = '[INFO] IGNORED_TEST'
-        elif not is_load_markets and not supported_by_exchange and not is_proxy_test and not is_feature_test:
+        elif not is_load_markets and not supported_by_exchange and not is_proxy_test and not is_feature_test and not is_constructor_test:
             skip_message = '[INFO] UNSUPPORTED_TEST'  # keep it aligned with the longest message
         elif isinstance(skipped_properties_for_method, str):
             skip_message = '[INFO] SKIPPED_TEST'
@@ -350,6 +352,7 @@ class testMainClass:
         primary_symbol = symbols[0]
         tests = {
             'features': [],
+            'afterConstruct': [],
             'fetchCurrencies': [],
             'fetchTicker': [primary_symbol],
             'fetchTickers': [primary_symbol],
@@ -983,11 +986,10 @@ class testMainClass:
         # const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
         # const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         # const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
-        # we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         base_path = get_root_dir() + 'ts/src/test/static/binaries/'
         if exchange_name == 'lighter':
             if self.lang == 'JS':
-                wasm_exec_path = get_root_dir() + '/src/test/static/binaries/wasm_exec.js'
+                wasm_exec_path = base_path + 'wasm_exec.js'
                 library_path = base_path + 'lighter.wasm'
             else:
                 if is_windows():

@@ -33,9 +33,9 @@ class coinbase(Exchange, ImplicitAPI):
             'pro': True,
             'certified': False,
             # rate-limits:
-            # ADVANCED API: https://docs.cloud.coinbase.com/advanced-trade/docs/rest-api-rate-limits
+            # ADVANCED API: https://docs.cdp.coinbase.com/advanced-trade/docs/rest-api-rate-limits
             # - max 30 req/second for private data, 10 req/s for public data
-            # DATA API    : https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/rate-limiting
+            # DATA API    : https://docs.cdp.coinbase.com/coinbase-app/api-architecture/rate-limiting
             # - max 10000 req/hour(to prevent userland mistakes we apply ~3 req/second RL per call
             'rateLimit': 34,
             'version': 'v2',
@@ -177,8 +177,8 @@ class coinbase(Exchange, ImplicitAPI):
                 },
                 'www': 'https://www.coinbase.com',
                 'doc': [
-                    'https://developers.coinbase.com/api/v2',
-                    'https://docs.cloud.coinbase.com/advanced-trade/docs/welcome',
+                    'https://docs.cdp.coinbase.com/coinbase-app/introduction/welcome',
+                    'https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/api-reference',
                 ],
                 'fees': [
                     'https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
@@ -361,6 +361,7 @@ class coinbase(Exchange, ImplicitAPI):
                     'jumio_face_match_verification_required': AuthenticationError,  # 400 Document verification including face match is required to complete self request
                     'unverified_email': AuthenticationError,  # 400 User has not verified their email
                     'authentication_error': AuthenticationError,  # 401 Invalid auth(generic)
+                    'unauthorized': AuthenticationError,  # 401 Not authorized to perform self operation
                     'invalid_authentication_method': AuthenticationError,  # 401 API access is blocked for deleted users.
                     'invalid_token': AuthenticationError,  # 401 Invalid Oauth token
                     'revoked_token': AuthenticationError,  # 401 Revoked Oauth token
@@ -368,6 +369,7 @@ class coinbase(Exchange, ImplicitAPI):
                     'invalid_scope': AuthenticationError,  # 403 User hasn’t authenticated necessary scope
                     'not_found': ExchangeError,  # 404 Resource not found
                     'rate_limit_exceeded': RateLimitExceeded,  # 429 Rate limit exceeded
+                    'resource_exhausted': RateLimitExceeded,  # 429 Resource has been exhausted
                     'internal_server_error': ExchangeError,  # 500 Internal server error
                     'UNSUPPORTED_ORDER_CONFIGURATION': BadRequest,
                     'INSUFFICIENT_FUND': InsufficientFunds,
@@ -518,7 +520,8 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-time#http-request
+        https://docs.cdp.coinbase.com/coinbase-app/track-apis/time
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-server-time
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
@@ -554,8 +557,8 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetch all the accounts associated with a profile
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
-        https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
+        https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -686,7 +689,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetch all the portfolios
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/list-portfolios
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
@@ -778,7 +781,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         create a currency deposit address
 
-        https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-addresses#create-address
+        https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses
 
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -851,7 +854,7 @@ class coinbase(Exchange, ImplicitAPI):
  @ignore
         fetch sells
 
-        https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-sells#list-sells
+        https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
 
         :param str symbol: not used by coinbase fetchMySells()
         :param int [since]: timestamp in ms of the earliest sell, default is None
@@ -871,7 +874,7 @@ class coinbase(Exchange, ImplicitAPI):
  @ignore
         fetch buys
 
-        https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-buys#list-buys
+        https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
 
         :param str symbol: not used by coinbase fetchMyBuys()
         :param int [since]: timestamp in ms of the earliest buy, default is None
@@ -897,7 +900,8 @@ class coinbase(Exchange, ImplicitAPI):
         """
         Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
 
-        https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals
+        https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/withdraw-fiat
+        https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
@@ -917,7 +921,8 @@ class coinbase(Exchange, ImplicitAPI):
         """
         Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
 
-        https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits
+        https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat
+        https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -937,7 +942,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetch history of deposits and withdrawals
 
-        https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions
+        https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
 
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
@@ -1295,9 +1300,10 @@ class coinbase(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproducts
-        https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
-        https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/list-products
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/list-public-products
+        https://docs.cdp.coinbase.com/coinbase-app/track-apis/currencies
+        https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates
 
         retrieves data on all markets for coinbase
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1863,8 +1869,8 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetches all available currencies on an exchange
 
-        https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
-        https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+        https://docs.cdp.coinbase.com/coinbase-app/track-apis/currencies
+        https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
@@ -1968,8 +1974,9 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getproducts
-        https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/list-products
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/list-public-products
+        https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2082,10 +2089,9 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getmarkettrades
-        https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-spot-price
-        https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-buy-price
-        https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-sell-price
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-market-trades
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-market-trades
+        https://docs.cdp.coinbase.com/coinbase-app/track-apis/prices
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2345,9 +2351,9 @@ class coinbase(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
-        https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmbalancesummary
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
+        https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-balance-summary
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.v3]: default False, set True to use v3 api endpoint
@@ -2449,7 +2455,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
 
-        https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions
+        https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions
 
         :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
@@ -2850,7 +2856,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         create a market buy order by providing the symbol and cost
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
@@ -2868,7 +2874,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -3257,7 +3263,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         cancels an open order
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
 
         :param str id: order id
         :param str symbol: not used by coinbase cancelOrder()
@@ -3272,7 +3278,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         cancel multiple orders
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
 
         :param str[] ids: order ids
         :param str symbol: not used by coinbase cancelOrders()
@@ -3309,7 +3315,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         edit a trade order
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_editorder
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/edit-order
 
         :param str id: cancel order id
         :param str symbol: unified symbol of the market to create an order in
@@ -3352,7 +3358,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorder
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/get-order
 
         :param str id: the order id
         :param str symbol: unified market symbol that the order was made in
@@ -3413,7 +3419,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
 
         :param str symbol: unified market symbol that the orders were made in
         :param int [since]: the earliest time in ms to fetch orders
@@ -3567,7 +3573,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetches information on all currently open orders
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
 
         :param str symbol: unified market symbol of the orders
         :param int [since]: timestamp in ms of the earliest order, default is None
@@ -3588,7 +3594,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetches information on multiple closed orders made by the user
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
 
         :param str symbol: unified market symbol of the orders
         :param int [since]: timestamp in ms of the earliest order, default is None
@@ -3609,7 +3615,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetches information on multiple canceled orders made by the user
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders
 
         :param str symbol: unified market symbol of the orders
         :param int [since]: timestamp in ms of the earliest order, default is None
@@ -3623,7 +3629,8 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpubliccandles
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-product-candles
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-product-candles
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -3713,7 +3720,8 @@ class coinbase(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicmarkettrades
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-market-trades
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-market-trades
 
         :param str symbol: unified market symbol of the trades
         :param int [since]: not used by coinbase fetchTrades
@@ -3767,7 +3775,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfills
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-fills
 
         :param str symbol: unified market symbol of the trades
         :param int [since]: timestamp in ms of the earliest order, default is None
@@ -3832,7 +3840,8 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproductbook
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-product-book
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-product-book
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -3883,7 +3892,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetches the bid and ask price and volume for multiple markets
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getbestbidask
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-best-bid-ask
 
         :param str[] [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4018,7 +4027,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetch the deposit address for a currency associated with self account
 
-        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
+        https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4169,7 +4178,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         make a deposit
 
-        https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#deposit-funds
+        https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat
 
         :param str code: unified currency code
         :param float amount: the amount to deposit
@@ -4239,7 +4248,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
 
-        https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#show-deposit
+        https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat
 
         :param str id: deposit id
         :param str [code]: unified currency code
@@ -4305,7 +4314,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetch the deposit id for a fiat currency associated with self account
 
-        https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/payment-methods/list-payment-methods
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an array of `deposit id structures <https://docs.ccxt.com/?id=deposit-id-structure>`
@@ -4338,7 +4347,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetch the deposit id for a fiat currency associated with self account
 
-        https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/payment-methods/get-payment-method
 
         :param str id: the deposit payment method id
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4389,7 +4398,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetch a quote for converting from one currency to another
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_createconvertquote
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/create-convert-quote
 
         :param str fromCode: the currency that you want to sell and convert from
         :param str toCode: the currency that you want to buy and convert into
@@ -4414,7 +4423,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         convert from one currency to another
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_commitconverttrade
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/commit-convert-trade
 
         :param str id: the id of the trade that you want to make
         :param str fromCode: the currency that you want to sell and convert from
@@ -4437,7 +4446,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetch the data for a conversion trade
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getconverttrade
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/get-convert-trade
 
         :param str id: the id of the trade that you want to commit
         :param str code: the unified currency code that was converted from
@@ -4486,7 +4495,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         *futures only* closes open positions for a market
 
-        https://docs.cdp.coinbase.com/coinbase-app/trade/reference/retailbrokerageapi_closeposition
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/close-position
 
         :param str symbol: Unified CCXT market symbol
         :param str [side]: not used by coinbase
@@ -4513,8 +4522,8 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetch all open positions
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmpositions
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxpositions
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/list-futures-positions
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/list-perpetuals-positions
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4547,8 +4556,8 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetch data on a single open contract trade position
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxposition
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmposition
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/get-perpetuals-position
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-position
 
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4718,7 +4727,7 @@ class coinbase(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}) -> TradingFees:
         """
 
-        https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_gettransactionsummary/
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/fees/get-transaction-summary
 
         fetch the trading fees for multiple markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4778,7 +4787,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         Fetch details for a specific portfolio by UUID
 
-        https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/get-portfolio-breakdown
 
         :param str portfolioUuid: The unique identifier of the portfolio to fetch
         :param Dict [params]: Extra parameters specific to the exchange API endpoint
@@ -4909,9 +4918,9 @@ class coinbase(Exchange, ImplicitAPI):
                         if query:
                             payload += '?' + self.urlencode(query)
                 # v3: 'GET' doesn't need payload in the signature. inside url is enough
-                # https://docs.cloud.coinbase.com/advanced-trade/docs/auth#example-request
+                # https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 # v2: 'GET' require payload in the signature
-                # https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
+                # https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 isCloudAPiKey = (self.apiKey.find('organizations/') >= 0) or (self.secret.startswith('-----BEGIN'))
                 # using the size might be fragile, so we add an option to force v2 cloud api key if needed
                 isV2CloudAPiKey = len(self.secret) == 88 or self.safe_bool(self.options, 'v2CloudAPiKey', False) or self.secret.endswith('=')
@@ -5030,7 +5039,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetch deposit addresses for multiple currencies(when available)
 
-        https://coinbase-migration.mintlify.app/coinbase-app/transfer-apis/onchain-addresses
+        https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses
 
         :param str[] [codes]: list of unified currency codes, default is None(all currencies)
         :param dict [params]: extra parameters specific to the exchange API endpoint

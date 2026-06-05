@@ -1275,44 +1275,42 @@ class lighter extends lighter$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'asset_details', []);
-        const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const id = this.safeString(entry, 'asset_id');
-            const code = this.safeCurrencyCode(this.safeString(entry, 'symbol'));
-            const decimals = this.safeString(entry, 'decimals');
-            const isUSDC = (code === 'USDC');
-            let depositMin = undefined;
-            let withdrawMin = undefined;
-            if (isUSDC) {
-                depositMin = this.safeNumber(entry, 'min_transfer_amount');
-                withdrawMin = this.safeNumber(entry, 'min_withdrawal_amount');
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'name': code,
-                'code': code,
-                'precision': this.parseNumber('1e-' + decimals),
-                'active': true,
-                'fee': undefined,
-                'networks': {},
-                'deposit': isUSDC,
-                'withdraw': isUSDC,
-                'type': 'crypto',
-                'limits': {
-                    'deposit': {
-                        'min': depositMin,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': withdrawMin,
-                        'max': undefined,
-                    },
-                },
-                'info': entry,
-            });
+        return this.parseCurrencies(data);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'asset_id');
+        const code = this.safeCurrencyCode(this.safeString(rawCurrency, 'symbol'));
+        const decimals = this.safeString(rawCurrency, 'decimals');
+        const isUSDC = (code === 'USDC');
+        let depositMin = undefined;
+        let withdrawMin = undefined;
+        if (isUSDC) {
+            depositMin = this.safeNumber(rawCurrency, 'min_transfer_amount');
+            withdrawMin = this.safeNumber(rawCurrency, 'min_withdrawal_amount');
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'name': code,
+            'code': code,
+            'precision': this.parseNumber('1e-' + decimals),
+            'active': true,
+            'fee': undefined,
+            'networks': {},
+            'deposit': isUSDC,
+            'withdraw': isUSDC,
+            'type': 'crypto',
+            'limits': {
+                'deposit': {
+                    'min': depositMin,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': withdrawMin,
+                    'max': undefined,
+                },
+            },
+            'info': rawCurrency,
+        });
     }
     /**
      * @method

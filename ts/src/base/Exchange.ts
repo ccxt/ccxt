@@ -160,7 +160,7 @@ const {
     TICK_SIZE,
     SIGNIFICANT_DIGITS,
     sleep,
-    readFile, writeFile, existsFile, getTempDir,
+    readFile, writeFile, existsFile, getTempDir, filePathToFileUrlForWindows,
 } = functions;
 
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
@@ -1970,7 +1970,7 @@ export default class Exchange {
         if (wasmExecPath === undefined || wasmExecPath === '') {
             throw new Error ('loadLighterLibrary() requires "wasmExecPath" that should point to `wasm_exec.js`. You can check the location of the file locally if you have GO installed or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["wasmExecPath"] = "/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js"');
         }
-        await import (wasmExecPath);
+        await import (filePathToFileUrlForWindows (wasmExecPath));
         const go = new (globalThis as any).Go ();
         // read wasm from disks
         const bytes = new Uint8Array (readFile (libraryPath, null) as Buffer); // it should point to lighter.wasm

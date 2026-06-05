@@ -4,8 +4,6 @@ import asyncio
 
 from pprint import pprint
 
-loop = asyncio.get_event_loop()
-
 
 async def print_balance(exchange, market_type):
     while True:
@@ -28,12 +26,15 @@ async def main():
         'newUpdates': True,
     })
     # you must make an order a transfer first to the websocket to send updates
-    asyncio.ensure_future(print_balance(exchange, 'future'))
-    asyncio.ensure_future(print_balance(exchange, 'delivery'))  # inverse futures settled in BTC
-    asyncio.ensure_future(print_balance(exchange, 'spot'))
+    try:
+        await asyncio.gather(
+            print_balance(exchange, 'future'),
+            print_balance(exchange, 'delivery'),  # inverse futures settled in BTC
+            print_balance(exchange, 'spot'),
+        )
+    finally:
+        await exchange.close()
 
 
-asyncio.run(main())
-asyncio.ensure_future(main())
-loop.run_forever()
-
+if __name__ == '__main__':
+    asyncio.run(main())

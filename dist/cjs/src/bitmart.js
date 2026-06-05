@@ -2979,8 +2979,10 @@ class bitmart extends bitmart$1["default"] {
         }
         const request = {
             'symbol': market['id'],
-            'size': parseInt(this.amountToPrecision(symbol, amount)),
         };
+        if (amount !== undefined) {
+            request['size'] = parseInt(this.amountToPrecision(symbol, amount));
+        }
         const timeInForce = this.safeString(params, 'timeInForce');
         const mode = this.safeInteger(params, 'mode'); // only for swap
         const isMarketOrder = type === 'market';
@@ -3044,7 +3046,11 @@ class bitmart extends bitmart$1["default"] {
         if (isStopLoss || isTakeProfit) {
             reduceOnly = true;
             request['price_type'] = this.safeInteger(params, 'price_type', 1);
-            request['executive_price'] = this.priceToPrecision(symbol, price);
+            if (price !== undefined) {
+                request['executive_price'] = this.priceToPrecision(symbol, price);
+            }
+            const marketOrLimitStr = isLimitOrder ? 'limit' : 'market';
+            request['category'] = this.safeString(params, 'category', marketOrLimitStr);
             if (isStopLoss) {
                 request['trigger_price'] = this.priceToPrecision(symbol, stopLossPrice);
             }
