@@ -1158,58 +1158,57 @@ public class PhemexCore extends PhemexApi
             //     }
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object currencies = this.safeValue(data, "currencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencies)); i++)
-            {
-                Object currency = Helpers.GetValue(currencies, i);
-                Object id = this.safeString(currency, "currency");
-                Object code = this.safeCurrencyCode(id);
-                Object valueScaleString = this.safeString(currency, "valueScale");
-                Object valueScale = Helpers.parseInt(valueScaleString);
-                Object minValueEv = this.safeString(currency, "minValueEv");
-                Object maxValueEv = this.safeString(currency, "maxValueEv");
-                Object minAmount = null;
-                Object maxAmount = null;
-                Object precision = null;
-                if (Helpers.isTrue(!Helpers.isEqual(valueScale, null)))
-                {
-                    Object precisionString = this.parsePrecision(valueScaleString);
-                    precision = this.parseNumber(precisionString);
-                    minAmount = this.parseNumber(Precise.stringMul(minValueEv, precisionString));
-                    maxAmount = this.parseNumber(Precise.stringMul(maxValueEv, precisionString));
-                }
-                final Object finalPrecision = precision;
-                final Object finalMinAmount = minAmount;
-                final Object finalMaxAmount = maxAmount;
-                final Object finalValueScale = valueScale;
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", id );
-        put( "info", currency );
-        put( "code", code );
-        put( "name", PhemexCore.this.safeString(currency, "name") );
-        put( "active", Helpers.isEqual(PhemexCore.this.safeString(currency, "status"), "Listed") );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "fee", null );
-        put( "precision", finalPrecision );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", finalMinAmount );
-                put( "max", finalMaxAmount );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "valueScale", finalValueScale );
-        put( "networks", null );
-        put( "type", "crypto" );
-    }}));
-            }
-            return result;
+            return this.parseCurrencies(currencies);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object id = this.safeString(rawCurrency, "currency");
+        Object code = this.safeCurrencyCode(id);
+        Object valueScaleString = this.safeString(rawCurrency, "valueScale");
+        Object valueScale = Helpers.parseInt(valueScaleString);
+        Object minValueEv = this.safeString(rawCurrency, "minValueEv");
+        Object maxValueEv = this.safeString(rawCurrency, "maxValueEv");
+        Object minAmount = null;
+        Object maxAmount = null;
+        Object precision = null;
+        if (Helpers.isTrue(!Helpers.isEqual(valueScale, null)))
+        {
+            Object precisionString = this.parsePrecision(valueScaleString);
+            precision = this.parseNumber(precisionString);
+            minAmount = this.parseNumber(Precise.stringMul(minValueEv, precisionString));
+            maxAmount = this.parseNumber(Precise.stringMul(maxValueEv, precisionString));
+        }
+        final Object finalPrecision = precision;
+        final Object finalMinAmount = minAmount;
+        final Object finalMaxAmount = maxAmount;
+        final Object finalValueScale = valueScale;
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", id );
+            put( "info", rawCurrency );
+            put( "code", code );
+            put( "name", PhemexCore.this.safeString(rawCurrency, "name") );
+            put( "active", Helpers.isEqual(PhemexCore.this.safeString(rawCurrency, "status"), "Listed") );
+            put( "deposit", null );
+            put( "withdraw", null );
+            put( "fee", null );
+            put( "precision", finalPrecision );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "amount", new java.util.HashMap<String, Object>() {{
+                    put( "min", finalMinAmount );
+                    put( "max", finalMaxAmount );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "valueScale", finalValueScale );
+            put( "networks", null );
+            put( "type", "crypto" );
+        }});
     }
 
     public Object customParseBidAsk(Object bidask, Object... optionalArgs)
