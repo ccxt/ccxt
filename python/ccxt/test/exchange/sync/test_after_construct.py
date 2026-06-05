@@ -15,7 +15,8 @@ sys.path.append(root)
 
 
 def test_after_construct(exchange, skipped_properties):
-    test_options_networks(exchange, skipped_properties)
+    if not ('networks' in skipped_properties):
+        test_options_networks(exchange, skipped_properties)
     return True
 
 
