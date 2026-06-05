@@ -9291,6 +9291,10 @@ export default class Exchange {
         return false; // stub
     }
 
+    isPrediction (): boolean {
+        return this.safeBool (this.has, 'prediction', false);
+    }
+
     async loadMarketsAndEvents (reload = false, params = {}) {
         const res = await Promise.all ([ this.loadMarkets (reload, params), this.loadEvents (reload, params) ]);
         return {

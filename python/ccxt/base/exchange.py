@@ -8238,6 +8238,9 @@ class Exchange(object):
     def is_uta_enabled(self, params={}):
         return False  # stub
 
+    def is_prediction(self) -> bool:
+        return self.safe_bool(self.has, 'prediction', False)
+
     def load_markets_and_events(self, reload=False, params={}):
         res = [self.load_markets(reload, params), self.load_events(reload, params)]
         return {

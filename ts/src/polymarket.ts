@@ -147,35 +147,35 @@ export default class polymarket extends Exchange {
         const queries = this.safeList (params, 'queries', []) as string[];
         const rest0 = this.omit (params, [ 'queries' ]);
         let pageSize = 0;
-        const flatMarkets = [];
-        const eventsDict = {};
+        const flatMarkets: Market[] = [];
+        const eventsDict: Dict = {};
         if (queries && queries.length > 0) {
             pageSize = this.safeInteger (rest0, 'limit', 50);
             const searchRest = this.omit (rest0, [ 'limit' ]);
-            const seen = {};
-            const rawEvents = [];
+            const seen: Dict = {};
+            const rawEvents: any[] = [];
             for (let qi = 0; qi < queries.length; qi++) {
                 const q = queries[qi];
-                const baseRequest1 = { 'q': q, 'limit_per_type': pageSize, 'events_status': 'active' };
-                let firstRequest = { 'page': 1 };
+                const baseRequest1: Dict = { 'q': q, 'limit_per_type': pageSize, 'events_status': 'active' };
+                let firstRequest: Dict = { 'page': 1 };
                 firstRequest = this.extend (this.extend (firstRequest, baseRequest1), searchRest);
                 const first = await this.gammaPublicGetPublicSearch (firstRequest);
                 const firstEvents = this.safeList (first, 'events', []) as any[];
                 const pagination = this.safeValue (first, 'pagination', {});
                 const totalResults = this.safeInteger (pagination, 'totalResults', firstEvents.length);
                 const totalPages = Math.ceil (totalResults / pageSize);
-                const remaining = [];
+                const remaining: number[] = [];
                 for (let p = 2; p <= totalPages; p++) {
                     remaining.push (p);
                 }
-                const restPromises = [];
+                const restPromises: any[] = [];
                 for (let pi = 0; pi < remaining.length; pi++) {
-                    let pageRequest = { 'page': remaining[pi] };
+                    let pageRequest: Dict = { 'page': remaining[pi] };
                     pageRequest = this.extend (this.extend (pageRequest, baseRequest1), searchRest);
                     restPromises.push (this.gammaPublicGetPublicSearch (pageRequest));
                 }
                 const restResponses = await Promise.all (restPromises);
-                const allEvents = [];
+                const allEvents: any[] = [];
                 for (let fi = 0; fi < firstEvents.length; fi++) {
                     allEvents.push (firstEvents[fi]);
                 }
@@ -214,7 +214,7 @@ export default class polymarket extends Exchange {
         const maxPages = 20;
         const status = this.safeString (rest0, 'status', this.safeString (this.options, 'defaultEventStatus', 'active'));
         const rest = this.omit (rest0, [ 'status' ]);
-        let baseRequest = { 'limit': pageSize, 'order': 'volume24hr', 'ascending': false };
+        let baseRequest: Dict = { 'limit': pageSize, 'order': 'volume24hr', 'ascending': false };
         baseRequest = this.extend (baseRequest, rest);
         if (status === 'active') {
             baseRequest['active'] = true;
@@ -222,22 +222,22 @@ export default class polymarket extends Exchange {
             baseRequest['closed'] = true;
         }
         // Fetch page 1 first; if full, fire remaining pages in parallel
-        let firstPageRequest = { 'offset': 0 };
+        let firstPageRequest: Dict = { 'offset': 0 };
         firstPageRequest = this.extend (firstPageRequest, baseRequest);
         const firstPageResponse = await this.gammaPublicGetEvents (firstPageRequest);
         const firstPage = (firstPageResponse !== undefined) ? firstPageResponse : [];
-        const allRawEvents = [];
+        const allRawEvents: any[] = [];
         for (let fi = 0; fi < firstPage.length; fi++) {
             allRawEvents.push (firstPage[fi]);
         }
         if (firstPage.length >= pageSize) {
-            const offsets = [];
+            const offsets: number[] = [];
             for (let p = 1; p < maxPages; p++) {
                 offsets.push (p * pageSize);
             }
-            const restPromises2 = [];
+            const restPromises2: any[] = [];
             for (let oi = 0; oi < offsets.length; oi++) {
-                let pageRequest = { 'offset': offsets[oi] };
+                let pageRequest: Dict = { 'offset': offsets[oi] };
                 pageRequest = this.extend (pageRequest, baseRequest);
                 restPromises2.push (this.gammaPublicGetEvents (pageRequest));
             }
@@ -269,7 +269,7 @@ export default class polymarket extends Exchange {
     parseEventToMarkets (event: Dict): Market[] {
         const eventSlug = this.safeString (event, 'slug', this.safeString (event, 'id'));
         const rawMarkets = this.safeList (event, 'markets', []) as any[];
-        const result = [];
+        const result: Market[] = [];
         //
         // {
         //    "id":"604489",
@@ -366,9 +366,9 @@ export default class polymarket extends Exchange {
             const tickSize = this.safeNumber (market, 'minimumTickSize', 0.01);
             const endDate = this.safeString (market, 'endDate', this.safeString (market, 'end_date_iso'));
             // Gamma API returns these arrays as JSON-encoded strings
-            let outcomeLabels = [];
-            let clobTokenIds = [];
-            let outcomePrices = [];
+            let outcomeLabels: string[] = [];
+            let clobTokenIds: string[] = [];
+            let outcomePrices: string[] = [];
             const parsedOutcomes = this.parseJson (this.safeString (market, 'outcomes', '[]'));
             const parsedTokenIds = this.parseJson (this.safeString (market, 'clobTokenIds', '[]'));
             const parsedPrices = this.parseJson (this.safeString (market, 'outcomePrices', '[]'));
@@ -387,7 +387,7 @@ export default class polymarket extends Exchange {
             // Market symbol (no outcome suffix)
             const marketSymbol = this.slugToMarketSymbol (eventSlug, marketSlug);
             // Build outcomes array
-            const outcomes = [];
+            const outcomes: any[] = [];
             for (let oi = 0; oi < outcomeLabels.length; oi++) {
                 const outcomeLabel = outcomeLabels[oi];
                 const clobTokenId = clobTokenIds[oi];
@@ -527,7 +527,7 @@ export default class polymarket extends Exchange {
         if (outcomes !== undefined) {
             targets = outcomes as string[];
         }
-        const result = {};
+        const result: Tickers = {};
         for (let i = 0; i < targets.length; i++) {
             const outcomeSymbol = targets[i];
             const ticker = await this.fetchTicker (outcomeSymbol, params);
@@ -616,7 +616,7 @@ export default class polymarket extends Exchange {
         await this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['id'] as string;
-        const request = {
+        const request: Dict = {
             'token_id': tokenId,
         };
         const response = await this.clobPublicGetBook (this.extend (request, params));
@@ -663,7 +663,7 @@ export default class polymarket extends Exchange {
         const fidelityMin = this.safeInteger (this.timeframes, timeframe, 1); // fidelity in minutes
         const nowS = this.seconds ();
         let startS: number;
-        let endS = nowS;
+        let endS: number = nowS;
         if (since !== undefined) {
             startS = this.parseToInt (since / 1000);
             if (limit !== undefined) {
@@ -674,7 +674,7 @@ export default class polymarket extends Exchange {
             const count = (limit !== undefined) ? limit : 100;
             startS = nowS - (count * fidelityMin * 60);
         }
-        const request = {
+        const request: Dict = {
             'market': tokenId,
             'fidelity': fidelityMin,
             'startTs': startS,
@@ -757,13 +757,13 @@ export default class polymarket extends Exchange {
             throw new BadRequest (this.id + ' fetchTrades() requires outcome.info.conditionId for an outcome ' + tokenId);
         }
         // the endpoint requires a market conditionId, then its filtered down to the requested outcome
-        const request = { 'market': conditionId };
+        const request: Dict = { 'market': conditionId };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         const response = await this.dataPublicGetTrades (this.extend (request, params));
         const rawTrades = Array.isArray (response) ? response : this.safeList (response, 'data', []);
-        const filteredTrades = [];
+        const filteredTrades: any[] = [];
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = rawTrades[i];
             const tradeAsset = this.safeString (trade, 'asset');
@@ -812,7 +812,7 @@ export default class polymarket extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.checkEventsAndMarkets ();
-        const request = {
+        const request: Dict = {
             'user': this.walletAddress,
         };
         const response = await this.dataPrivateGetValue (this.extend (request, params));
@@ -824,7 +824,7 @@ export default class polymarket extends Exchange {
      * @param response
      */
     parseBalance (response: Dict): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const total = this.safeNumber (response, 'value', this.safeNumber (response, 'total'));
         result['USDC'] = {
             'free': total,
@@ -918,8 +918,8 @@ export default class polymarket extends Exchange {
         } else {
             await this.checkEventsAndMarkets ();
         }
-        const request = {};
-        let outcomeObj = undefined;
+        const request: Dict = {};
+        let outcomeObj: any = undefined;
         if (outcome !== undefined) {
             outcomeObj = this.outcome (outcome);
             request['asset_id'] = outcomeObj['id'];
@@ -943,7 +943,7 @@ export default class polymarket extends Exchange {
         } else {
             await this.checkEventsAndMarkets ();
         }
-        const request = { 'id': id };
+        const request: Dict = { 'id': id };
         const response = await this.clobPrivateGetDataOrderId (this.extend (request, params));
         return this.parseOrder (response);
     }
@@ -994,7 +994,7 @@ export default class polymarket extends Exchange {
      * @param status
      */
     parseOrderStatus (status: Str): Str {
-        const statuses = {
+        const statuses: Dict = {
             'LIVE': 'open',
             'MATCHED': 'closed',
             'CANCELLED': 'canceled',
@@ -1022,7 +1022,7 @@ export default class polymarket extends Exchange {
         const typeRaw = type as string;
         const sideStr = sideRaw.toUpperCase ();
         const typeStr = typeRaw.toUpperCase ();
-        const request = {
+        const request: Dict = {
             'token_id': tokenId,
             'price': price,
             'size': amount,
@@ -1043,7 +1043,7 @@ export default class polymarket extends Exchange {
     async cancelOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
         const outcome = symbol;
         await this.checkEventsAndMarkets (outcome);
-        const request = { 'order_id': id };
+        const request: Dict = { 'order_id': id };
         const response = await this.clobPrivateDeleteOrder (this.extend (request, params));
         return this.parseOrder (response);
     }
@@ -1057,7 +1057,7 @@ export default class polymarket extends Exchange {
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         const outcome = symbol;
         await this.checkEventsAndMarkets (outcome);
-        const request = {};
+        const request: Dict = {};
         if (outcome !== undefined) {
             const outcomeObj = this.outcome (outcome);
             request['asset_id'] = outcomeObj['id'];
@@ -1079,24 +1079,24 @@ export default class polymarket extends Exchange {
         const pageSize = this.safeInteger (params, 'limit', 50);
         const rest = this.omit (params, [ 'limit' ]);
         // For each query: fetch page 1, then all remaining pages in parallel
-        const seen = {};
-        const rawEvents = [];
+        const seen: Dict = {};
+        const rawEvents: any[] = [];
         for (let qi = 0; qi < queries.length; qi++) {
             const q = queries[qi];
-            const baseRequest = { 'q': q, 'limit_per_type': pageSize, 'events_status': 'active' };
-            const firstRequest = { 'page': 1 };
+            const baseRequest: Dict = { 'q': q, 'limit_per_type': pageSize, 'events_status': 'active' };
+            const firstRequest: Dict = { 'page': 1 };
             const first = await this.gammaPublicGetPublicSearch (this.extend (this.extend (firstRequest, baseRequest), rest));
             const firstEvents = this.safeList (first, 'events', []) as any[];
             const pagination = this.safeValue (first, 'pagination', {});
             const totalResults = this.safeInteger (pagination, 'totalResults', firstEvents.length);
             const totalPages = Math.ceil (totalResults / pageSize);
-            const remainingPages = [];
+            const remainingPages: number[] = [];
             for (let p = 2; p <= totalPages; p++) {
                 remainingPages.push (p);
             }
-            const restPromises3 = [];
+            const restPromises3: any[] = [];
             for (let pi3 = 0; pi3 < remainingPages.length; pi3++) {
-                const pageRequest = { 'page': remainingPages[pi3] };
+                const pageRequest: Dict = { 'page': remainingPages[pi3] };
                 restPromises3.push (this.gammaPublicGetPublicSearch (this.extend (this.extend (pageRequest, baseRequest), rest)));
             }
             const restResponses = await Promise.all (restPromises3);
@@ -1261,7 +1261,7 @@ export default class polymarket extends Exchange {
      * @param rawEvents
      */
     parseEvents (rawEvents: any[]): any[] {
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < rawEvents.length; i++) {
             const rawEvent = rawEvents[i];
             result.push (this.parseEvent (rawEvent));
@@ -1280,8 +1280,8 @@ export default class polymarket extends Exchange {
      */
     sign (path: string, api: any = 'gamma', method = 'GET', params = {}, headers: Dict = undefined, body: Dict = undefined) {
         // api is either a string ('gamma') or array (['gamma', 'public'])
-        const apiGroup = typeof api === 'string' ? api : api[0];
-        const access = typeof api === 'string' ? 'public' : api[1];
+        const apiGroup: string = typeof api === 'string' ? api : api[0];
+        const access: string = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['gamma'] as string);
         let url = baseUrl + '/' + this.implodeParams (path, params);

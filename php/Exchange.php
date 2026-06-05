@@ -9683,6 +9683,10 @@ class Exchange {
         return false; // stub
     }
 
+    public function is_prediction(): bool {
+        return $this->safe_bool($this->has, 'prediction', false);
+    }
+
     public function load_markets_and_events($reload = false, $params = array ()) {
         $res = array( $this->load_markets($reload, $params), $this->load_events($reload, $params) );
         return array(

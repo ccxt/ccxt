@@ -132,8 +132,8 @@ export default class myriad extends Exchange {
         if (queries && queries.length > 0) {
             const searchLimit = this.safeInteger (rest0, 'limit', this.safeInteger (this.options, 'defaultFetchMarketsLimit', 50));
             const searchRest = this.omit (rest0, [ 'limit' ]);
-            const seen = {};
-            const rawEvents = [];
+            const seen: Dict = {};
+            const rawEvents: any[] = [];
             for (let i = 0; i < queries.length; i++) {
                 const q = queries[i];
                 const response = await this.myriadPublicGetQuestions (this.extend ({ 'keyword': q, 'limit': searchLimit }, searchRest));
@@ -148,8 +148,8 @@ export default class myriad extends Exchange {
                     }
                 }
             }
-            const qFlatMarkets = [];
-            const qEventsDict = {};
+            const qFlatMarkets: Market[] = [];
+            const qEventsDict: Dict = {};
             for (let i = 0; i < rawEvents.length; i++) {
                 const rawEvent = rawEvents[i];
                 const questionSlug = this.safeString (rawEvent, 'slug', this.safeString (rawEvent, 'id'));
@@ -167,8 +167,8 @@ export default class myriad extends Exchange {
             this.events = qEventsDict;
             return qFlatMarkets;
         }
-        const flatMarkets = [];
-        const networkGroups = {};
+        const flatMarkets: Market[] = [];
+        const networkGroups: Dict = {};
         let page = 1;
         const limit = this.safeInteger (this.options, 'defaultFetchMarketsLimit', 50);
         const status = this.safeString (rest0, 'status', this.safeString (this.options, 'defaultMarketStatus', 'open'));
@@ -210,7 +210,7 @@ export default class myriad extends Exchange {
                 break;
             }
         }
-        const eventsDict = {};
+        const eventsDict: Dict = {};
         const networkGroupKeys = Object.keys (networkGroups);
         for (let i = 0; i < networkGroupKeys.length; i++) {
             const eventKey = networkGroupKeys[i];
@@ -256,7 +256,7 @@ export default class myriad extends Exchange {
         const volume24h = this.safeNumber (raw, 'volume24h');
         const slugBase = (eventSlug !== undefined) ? eventSlug : networkId;
         const marketSymbol = this.slugToMarketSymbol (slugBase, slug);
-        const outcomes = [];
+        const outcomes: any[] = [];
         for (let i = 0; i < rawOutcomes.length; i++) {
             const outcome = this.safeDict (rawOutcomes, i, {});
             const outcomeId = this.safeString (outcome, 'outcomeId', this.safeString (outcome, 'id', i.toString ()));
@@ -344,7 +344,7 @@ export default class myriad extends Exchange {
         const outcomeObj = this.outcome (outcome);
         const networkId = this.safeString (outcomeObj['info'], 'networkId');
         const marketId = this.safeString (outcomeObj['info'], 'marketId');
-        const request = {
+        const request: Dict = {
             'id': marketId,
             'network_id': networkId,
         };
@@ -555,7 +555,7 @@ export default class myriad extends Exchange {
         const networkId = this.safeString (outcomeObj['info'], 'networkId');
         const marketId = this.safeString (outcomeObj['info'], 'marketId');
         const outcomeId = this.safeString (outcomeObj['info'], 'outcomeId');
-        const request = {
+        const request: Dict = {
             'id': marketId,
             'network_id': networkId,
         };
@@ -716,7 +716,7 @@ export default class myriad extends Exchange {
         //     }
         //
         const outcomes = this.safeList (response, 'outcomes', []) as any[];
-        let selectedOutcome = undefined;
+        let selectedOutcome: Dict = undefined;
         for (let i = 0; i < outcomes.length; i++) {
             const outcome = outcomes[i];
             const currentId = this.safeString (outcome, 'id', this.safeString (outcome, 'outcomeId'));
@@ -801,8 +801,8 @@ export default class myriad extends Exchange {
         }
         const limit = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'defaultFetchEventsLimit', 50));
         const rest = this.omit (params, [ 'limit' ]);
-        const seen = {};
-        const rawEvents = [];
+        const seen: Dict = {};
+        const rawEvents: any[] = [];
         for (let i = 0; i < queries.length; i++) {
             const q = queries[i];
             const response = await this.myriadPublicGetQuestions (this.extend ({
@@ -826,7 +826,7 @@ export default class myriad extends Exchange {
         if (!this.markets) {
             this.markets = this.createSafeDictionary ();
         }
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < rawEvents.length; i++) {
             const rawEvent = rawEvents[i];
             const questionSlug = this.safeString (rawEvent, 'slug', this.safeString (rawEvent, 'id'));
@@ -880,7 +880,7 @@ export default class myriad extends Exchange {
     parseEvent (rawEvent: Dict): any {
         const questionSlug = this.safeString (rawEvent, 'slug', this.safeString (rawEvent, 'id'));
         const rawMarkets = this.safeList (rawEvent, 'markets', []) as any[];
-        const marketsList = [];
+        const marketsList: Market[] = [];
         for (let i = 0; i < rawMarkets.length; i++) {
             const rawMarket = rawMarkets[i];
             marketsList.push (this.parseMyriadMarket (rawMarket, questionSlug));
@@ -919,8 +919,8 @@ export default class myriad extends Exchange {
      * @param body
      */
     sign (path: string, api: any = 'myriad', method = 'GET', params = {}, headers: Dict = undefined, body: Dict = undefined) {
-        const apiGroup = typeof api === 'string' ? api : api[0];
-        const access = typeof api === 'string' ? 'public' : api[1];
+        const apiGroup: string = typeof api === 'string' ? api : api[0];
+        const access: string = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['myriad'] as string);
         let url = baseUrl + '/' + this.implodeParams (path, params);
