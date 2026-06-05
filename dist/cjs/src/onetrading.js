@@ -435,29 +435,27 @@ class onetrading extends onetrading$1["default"] {
         //         },
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString(currency, 'code');
-            const code = this.safeCurrencyCode(id);
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'name': this.safeString(currency, 'name'),
-                'info': currency,
-                'active': undefined,
-                'fee': undefined,
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'precision'))),
-                'withdraw': undefined,
-                'deposit': undefined,
-                'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
-                },
-                'networks': {},
-            });
-        }
-        return result;
+        return this.parseCurrencies(response);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'code');
+        const code = this.safeCurrencyCode(id);
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'name': this.safeString(rawCurrency, 'name'),
+            'info': rawCurrency,
+            'active': undefined,
+            'fee': undefined,
+            'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'precision'))),
+            'withdraw': undefined,
+            'deposit': undefined,
+            'limits': {
+                'amount': { 'min': undefined, 'max': undefined },
+                'withdraw': { 'min': undefined, 'max': undefined },
+            },
+            'networks': {},
+        });
     }
     /**
      * @method

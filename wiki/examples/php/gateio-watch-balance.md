@@ -29,7 +29,7 @@ var_dump('CCXT Version:', $ccxt->version); // eslint-disable-line import/no-name
 
 function main() {
     return Async\async(function () {
-        $exchange = new \ccxt\pro\gateio(array(
+        $exchange = new \ccxt\pro\gate(array(
             'apiKey' => 'YOUR_API_KEY',
             'secret' => 'YOUR_SECRET',
         ));

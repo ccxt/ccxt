@@ -19,7 +19,7 @@ print('CCXT Version:', ccxt.version)  # eslint-disable-line import/no-named-as-d
 
 
 async def main():
-    exchange = ccxt.gateio({
+    exchange = ccxt.gate({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
     })
