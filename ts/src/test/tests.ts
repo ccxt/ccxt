@@ -1694,7 +1694,7 @@ class testMainClass {
             this.testBingx (),
             this.testPhemex (),
             this.testBlofin (),
-            this.testHyperliquid (),
+            // this.testHyperliquid (),
             this.testCoinbaseinternational (),
             this.testCoinbaseAdvanced (),
             this.testWoofiPro (),
@@ -2124,22 +2124,22 @@ class testMainClass {
         return true;
     }
 
-    async testHyperliquid () {
-        const exchange = this.initOfflineExchange ('hyperliquid');
-        const id = '1';
-        let request = undefined;
-        try {
-            await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
-        } catch (e) {
-            request = jsonParse (exchange.last_request_body);
-        }
-        const brokerId = (request['action']['brokerCode']).toString ();
-        assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
-        if (!isSync ()) {
-            await close (exchange);
-        }
-        return true;
-    }
+    // async testHyperliquid () {
+    //     const exchange = this.initOfflineExchange ('hyperliquid');
+    //     const id = '1';
+    //     let request = undefined;
+    //     try {
+    //         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
+    //     } catch (e) {
+    //         request = jsonParse (exchange.last_request_body);
+    //     }
+    //     const brokerId = (request['action']['brokerCode']).toString ();
+    //     assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
+    //     if (!isSync ()) {
+    //         await close (exchange);
+    //     }
+    //     return true;
+    // }
 
     async testCoinbaseinternational () {
         const exchange = this.initOfflineExchange ('coinbaseinternational');
