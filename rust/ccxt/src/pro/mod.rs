@@ -1,22 +1,26 @@
 // CCXT Rust — WS (Pro) base types.
 //
-// Hand-written Rust port of `ts/src/base/ws/*.ts`. Mirrors the
-// behaviour of the TypeScript classes while replacing JS Array
-// subclassing with idiomatic Rust collections.
+// Value-shaped Rust port of `ts/src/base/ws/*.ts`. Each TS class is
+// represented as a `Value::Dict` marker map; the factories live in
+// this module and the runtime methods (`append`, `clear`, `store`,
+// `store_array`, `limit`, `reset`, `update`, `get_limit`) live on
+// `Value` itself (see `value.rs` and `runtime.rs`).
 //
-//   * `cache.rs`            — ArrayCache + variants
-//   * `order_book_side.rs`  — Asks / Bids + Counted / Indexed variants
-//   * `order_book.rs`       — OrderBook + variants
+// The transpiled WS base tests in `rust/tests/base_ws/` operate on
+// Value-typed locals throughout — making the factories return Value
+// keeps the call sites the AST transpiler emits valid without any
+// post-processing of the test bodies.
 
 pub mod cache;
-pub mod order_book_side;
 pub mod order_book;
 
 pub use cache::{
     ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide,
-    BaseCache, NewUpdatesEntry,
+    KIND_ARRAY_CACHE, KIND_ARRAY_CACHE_BY_TIMESTAMP,
+    KIND_ARRAY_CACHE_BY_SYMBOL_ID, KIND_ARRAY_CACHE_BY_SYMBOL_SIDE,
 };
-pub use order_book_side::{
-    Side, OrderBookSide, CountedOrderBookSide, IndexedOrderBookSide,
+pub use order_book::{
+    OrderBook, IndexedOrderBook, CountedOrderBook,
+    BOOK_PLAIN, BOOK_INDEXED, BOOK_COUNTED,
+    SIDE_PLAIN, SIDE_INDEXED, SIDE_COUNTED,
 };
-pub use order_book::{OrderBook, BookSides};

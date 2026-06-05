@@ -428,14 +428,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_bool2(&self, mut dictionary: Value, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
-        let mut defaultValue = get_arg(optional_args, 0, Value::Null);
-        return self.safe_bool_n(dictionary.clone(), Value::List(vec![key1.clone(), key2.clone()]), &[defaultValue.clone()]);
-
-    Value::Null
-}
-
-    pub fn safe_bool(&self, mut dictionary: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_bool2(&self, mut dictionaryOrList: Value, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -443,7 +436,28 @@ impl Exchange {
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        let mut value: Value = self.safe_value(dictionary.clone(), key.clone(), &[defaultValue.clone()]);
+        let mut value: Value = self.safe_value(dictionaryOrList.clone(), key1.clone(), &[]);
+        if is_bool(&value) {
+            return value;
+        }
+        let mut value2: Value = self.safe_value(dictionaryOrList.clone(), key2.clone(), &[]);
+        if is_bool(&value2) {
+            return value2;
+        }
+        return defaultValue;
+
+    Value::Null
+}
+
+    pub fn safe_bool(&self, mut dictionaryOrList: Value, mut key: Value, optional_args: &[Value]) -> Value {
+        let mut defaultValue = get_arg(optional_args, 0, Value::Null);
+        /*
+         * @ignore
+         * @method
+         * @description safely extract boolean value from dictionary or list
+         * @returns {bool | undefined}
+         */
+        let mut value: Value = self.safe_value(dictionaryOrList.clone(), key.clone(), &[defaultValue.clone()]);
         if is_bool(&value) {
             return value;
         }
@@ -472,7 +486,7 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_dict(&self, mut dictionary: Value, mut key: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_dict(&self, mut dictionaryOrList: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -480,7 +494,7 @@ impl Exchange {
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        let mut value: Value = self.safe_value(dictionary.clone(), key.clone(), &[defaultValue.clone()]);
+        let mut value: Value = self.safe_value(dictionaryOrList.clone(), key.clone(), &[defaultValue.clone()]);
         if is_equal(&value, &Value::Null) {
             return defaultValue;
         }
@@ -492,9 +506,23 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn safe_dict2(&self, mut dictionary: Value, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_dict2(&self, mut dictionaryOrList: Value, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
-        return self.safe_dict_n(dictionary.clone(), Value::List(vec![key1.clone(), key2.clone()]), &[defaultValue.clone()]);
+        /*
+         * @ignore
+         * @method
+         * @description safely extract a dictionary from dictionary or list
+         * @returns {object | undefined}
+         */
+        let mut value: Value = self.safe_value(dictionaryOrList.clone(), key1.clone(), &[]);
+        if is_true(&(!is_equal(&value, &Value::Null))) && is_true(&(is_object(&value))) && !is_true(&Value::Bool(is_array(&value))) {
+            return value;
+        }
+        let mut value2: Value = self.safe_value(dictionaryOrList.clone(), key2.clone(), &[]);
+        if is_true(&(!is_equal(&value2, &Value::Null))) && is_true(&(is_object(&value2))) && !is_true(&Value::Bool(is_array(&value2))) {
+            return value2;
+        }
+        return defaultValue;
 
     Value::Null
 }
@@ -527,7 +555,21 @@ impl Exchange {
 
     pub fn safe_list2(&self, mut dictionaryOrList: Value, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
-        return self.safe_list_n(dictionaryOrList.clone(), Value::List(vec![key1.clone(), key2.clone()]), &[defaultValue.clone()]);
+        /*
+         * @ignore
+         * @method
+         * @description safely extract an Array from dictionary or list
+         * @returns {Array | undefined}
+         */
+        let mut value: Value = self.safe_value(dictionaryOrList.clone(), key1.clone(), &[]);
+        if is_true(&(!is_equal(&value, &Value::Null))) && is_true(&Value::Bool(is_array(&value))) {
+            return value;
+        }
+        let mut value2: Value = self.safe_value(dictionaryOrList.clone(), key2.clone(), &[]);
+        if is_true(&(!is_equal(&value2, &Value::Null))) && is_true(&Value::Bool(is_array(&value2))) {
+            return value2;
+        }
+        return defaultValue;
 
     Value::Null
 }
@@ -1418,6 +1460,9 @@ impl Exchange {
             let mut __for_first_75: bool = true;
             while { if !__for_first_75 { i = add(&i, &Value::Int(1)); } __for_first_75 = false; is_less_than(&i, &get_array_length(&arr)) } {
             let mut parsed: Value = self.parse_currency(get_value(&arr, &i));
+            if is_equal(&parsed, &Value::Null) {
+                continue;
+            }
             let mut code: Value = get_value(&parsed, &Value::Str("code".to_string()));
             add_element_to_object(&mut result, &code, parsed.clone());
         }
@@ -2148,7 +2193,7 @@ impl Exchange {
                 add_element_to_object(&mut self.features, &marketType, Value::Null);
             }  else {
                 if is_equal(&marketType, &Value::Str("spot".to_string())) {
-                    { let __be_tmp = self.features_mapper(initialFeatures.clone(), marketType.clone(), &[Value::Null]); add_element_to_object(&mut self.features, &marketType, __be_tmp); };
+                    { let __be_tmp = self.features_mapper(initialFeatures.clone(), marketType.clone(), &[]); add_element_to_object(&mut self.features, &marketType, __be_tmp); };
                 }  else {
                     add_element_to_object(&mut self.features, &marketType, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2466,20 +2511,6 @@ impl Exchange {
                 let mut currencyWithdraw: Value = self.safe_bool_k(currency.clone(), "withdraw", &[]);
                 if is_equal(&currencyWithdraw, &Value::Null) || is_true(&withdraw) {
                     add_element_to_object(&mut currency, &Value::Str("withdraw".to_string()), withdraw.clone());
-                }
-                // set network 'active' to false if D or W is disabled
-                let mut active: Value = self.safe_bool_k(network.clone(), "active", &[]);
-                if is_equal(&active, &Value::Null) {
-                    if is_true(&deposit) && is_true(&withdraw) {
-                        add_element_to_object(get_value_mut(get_value_mut(&mut currency, &Value::Str("networks".to_string())), &key), &Value::Str("active".to_string()), Value::Bool(true));
-                    }  else if !is_equal(&deposit, &Value::Null) && !is_equal(&withdraw, &Value::Null) {
-                        add_element_to_object(get_value_mut(get_value_mut(&mut currency, &Value::Str("networks".to_string())), &key), &Value::Str("active".to_string()), Value::Bool(false));
-                    }
-                }
-                active = self.safe_bool(get_value(&get_value(&currency, &Value::Str("networks".to_string())), &key), Value::Str("active".to_string()), &[]); // dict might have been updated on above lines, so access directly instead of `network` variable
-                let mut currencyActive: Value = self.safe_bool_k(currency.clone(), "active", &[]);
-                if is_equal(&currencyActive, &Value::Null) || is_true(&active) {
-                    add_element_to_object(&mut currency, &Value::Str("active".to_string()), active.clone());
                 }
                 // find lowest fee (which is more desired)
                 let mut fee: Value = self.safe_string_k(network.clone(), "fee", &[]);
@@ -4677,7 +4708,7 @@ impl Exchange {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_114: bool = true;
             while { if !__for_first_114 { i = add(&i, &Value::Int(1)); } __for_first_114 = false; is_less_than(&i, &get_array_length(&positions)) } {
-            let mut position: Value = self.extend(self.parse_position(get_value(&positions, &i), &[Value::Null]), &[params.clone()]);
+            let mut position: Value = self.extend(self.parse_position(get_value(&positions, &i), &[]), &[params.clone()]);
             append_to_array(&mut result, position.clone());
         }
         }
@@ -4709,7 +4740,7 @@ impl Exchange {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_115: bool = true;
             while { if !__for_first_115 { i = add(&i, &Value::Int(1)); } __for_first_115 = false; is_less_than(&i, &get_array_length(&ranks)) } {
-            let mut rank: Value = self.extend(self.parse_adl_rank(get_value(&ranks, &i), &[Value::Null]), &[params.clone()]);
+            let mut rank: Value = self.extend(self.parse_adl_rank(get_value(&ranks, &i), &[]), &[params.clone()]);
             append_to_array(&mut result, rank.clone());
         }
         }

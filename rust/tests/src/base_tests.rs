@@ -11,8 +11,9 @@ use crate::{assert_eq_msg, assert_true};
 
 pub fn run(ws: bool) -> Result<(), String> {
     if ws {
-        // WS base tests will land here once Cache / OrderBook / Client are ported.
-        // For now we just report success so the harness exit code is meaningful.
+        // WS base tests are transpiled from ts/src/pro/test/base/*.ts
+        // into rust/tests/base_ws/ — wired up in main.rs (gated behind
+        // the same `transpiled-tests` feature as the REST suite).
         return Ok(());
     }
     test_precise_arithmetic()?;
@@ -23,6 +24,17 @@ pub fn run(ws: bool) -> Result<(), String> {
     test_get_set_value()?;
     test_deep_extend()?;
     test_json_roundtrip()?;
+    Ok(())
+}
+
+fn run_ws_panicable(f: fn(), name: &str) -> Result<(), String> {
+    let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(f));
+    if let Err(payload) = outcome {
+        let msg = payload.downcast_ref::<String>().cloned()
+            .or_else(|| payload.downcast_ref::<&str>().map(|s| (*s).to_string()))
+            .unwrap_or_else(|| "<panic>".to_string());
+        return Err(format!("{name}: {msg}"));
+    }
     Ok(())
 }
 

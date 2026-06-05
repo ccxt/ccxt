@@ -88,43 +88,42 @@ impl Value {
     /// `append(item)` on an Array — pushes the item. Mirrors TS
     /// `array.push` shape (single arg, no return).
     ///
-    /// On a WS-cache Map (carrying a `__cacheKind` marker — see the
-    /// cache shims in `rust/tests/src/tests_support.rs`) it pushes to
-    /// `_data` and updates the `hashmap` index keyed by the cache kind.
+    /// On a WS-cache Map (carrying a `__cacheKind` marker; see
+    /// `crate::pro::cache`) it dispatches to the per-kind logic below.
     pub fn append(&mut self, item: Value) {
         match self {
             Value::Arr(a) => Arc::make_mut(a).push(item),
             Value::Dict(m) if m.contains_key("__cacheKind") => {
+                cache_append(self, item);
+            }
+            _ => {}
+        }
+    }
+
+    /// `clear()` — resets the rolling buffer for a cache marker (or
+    /// truncates the inner array of an `Arr` value).
+    pub fn clear(&mut self) {
+        match self {
+            Value::Arr(a) => Arc::make_mut(a).clear(),
+            Value::Dict(m) if m.contains_key("__cacheKind") => {
                 let m = Arc::make_mut(m);
-                let kind = match m.get("__cacheKind") {
-                    Some(Value::Str(s)) => s.clone(),
-                    _ => String::new(),
-                };
                 if let Some(Value::Arr(data)) = m.get_mut("_data") {
-                    Arc::make_mut(data).push(item.clone());
-                }
-                let get_str = |v: &Value, k: &str| -> Option<String> {
-                    match v { Value::Dict(im) => match im.get(k) {
-                        Some(Value::Str(s)) => Some(s.clone()), _ => None,
-                    }, _ => None }
-                };
-                let symbol = get_str(&item, "symbol");
-                let second = match kind.as_str() {
-                    "ArrayCacheBySymbolById"   => get_str(&item, "id"),
-                    "ArrayCacheBySymbolBySide" => get_str(&item, "side"),
-                    _ => None,
-                };
-                if let (Some(sym), Some(key)) = (symbol, second) {
-                    if let Some(Value::Dict(hm)) = m.get_mut("hashmap") {
-                        let bucket = Arc::make_mut(hm).entry(sym)
-                            .or_insert_with(|| Value::Map(HashMap::new()));
-                        if let Value::Dict(bm) = bucket {
-                            Arc::make_mut(bm).insert(key, item);
-                        }
-                    }
+                    Arc::make_mut(data).clear();
                 }
             }
             _ => {}
+        }
+    }
+
+    /// `getLimit(symbol, limit)` for the cache markers. Returns the
+    /// count of new updates since the last call (clamped by `limit`
+    /// when supplied) and arms the per-symbol / global reset flag so
+    /// the next `append` zeroes the counter.
+    pub fn get_limit(&mut self, symbol: Value, limit: Value) -> Value {
+        if matches!(self, Value::Dict(d) if d.contains_key("__cacheKind")) {
+            cache_get_limit(self, symbol, limit)
+        } else {
+            limit
         }
     }
 
@@ -240,7 +239,14 @@ impl Value {
     pub fn describe(&self) -> Value { Value::Null }
     pub fn reject<T, U>(&self, _err: T, _msg_hash: U) -> Value { Value::Null }
     pub fn resolve<T, U>(&self, _v: T, _msg_hash: U) -> Value { Value::Null }
-    pub fn store_array(&self, _v: Value) {}
+    /// `side.storeArray(delta)` — insert/update/delete by price (or
+    /// by id for the indexed variant). Defined here (rather than next
+    /// to `store`) so that derived exchange code which calls
+    /// `Value::store_array` on a non-side Value still compiles as a
+    /// no-op.
+    pub fn store_array(&mut self, delta: Value) {
+        if side_kind(self).is_some() { side_store_array(self, delta); }
+    }
     pub fn append_to_array(&self, _v: Value) {}
 
     // ── conversion to / from serde_json ───────────────────────────────────────
@@ -390,6 +396,23 @@ pub fn get_value_k(obj: &Value, key: &str) -> Value {
 /// Access a value in a map by string key, or array by integer key encoded as
 /// a `Value::Str` / `Value::Int`. Returns `Value::Null` on miss.
 pub fn get_value(obj: &Value, key: &Value) -> Value {
+    // Cache / order-book / side markers expose numeric indexing as if
+    // they were arrays — `cache[i]` reads `_data[i]`, `side[i]` reads
+    // `_entries[i]`. Handle this before the regular dict lookup so the
+    // transpiled `get_value(&cache, &Value::Int(0))` calls reach the
+    // right backing buffer.
+    if let (Value::Dict(m), Value::Int(i)) = (obj, key) {
+        if m.contains_key("__cacheKind") {
+            if let Some(Value::Arr(data)) = m.get("_data") {
+                return data.get(*i as usize).cloned().unwrap_or(Value::Null);
+            }
+        }
+        if m.contains_key("__sideKind") {
+            if let Some(Value::Arr(entries)) = m.get("_entries") {
+                return entries.get(*i as usize).cloned().unwrap_or(Value::Null);
+            }
+        }
+    }
     match (obj, key) {
         (Value::Dict(m), Value::Str(k)) => {
             // Snapshot value wins WHEN PRESENT AND NON-NULL. Tests that
@@ -510,5 +533,729 @@ pub fn deep_extend(dst: Value, src: Value) -> Value {
             Value::Dict(d)
         }
         (_, src) => src,
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// WS cache helpers — operate on the `Value::Dict` marker maps produced by
+// `crate::pro::cache`. Logic mirrors `ts/src/base/ws/Cache.ts`.
+// ────────────────────────────────────────────────────────────────────────────
+
+fn cache_str_field(item: &Value, key: &str) -> Option<String> {
+    match item {
+        Value::Dict(d) => match d.get(key) {
+            Some(Value::Str(s)) => Some(s.clone()),
+            _ => None,
+        },
+        _ => None,
+    }
+}
+
+fn cache_kind(v: &Value) -> Option<String> {
+    match v {
+        Value::Dict(d) => match d.get("__cacheKind") {
+            Some(Value::Str(s)) => Some(s.clone()),
+            _ => None,
+        },
+        _ => None,
+    }
+}
+
+fn cache_max_size(v: &Value) -> Option<usize> {
+    match v {
+        Value::Dict(d) => match d.get("maxSize") {
+            Some(Value::Int(n)) if *n > 0 => Some(*n as usize),
+            _ => None,
+        },
+        _ => None,
+    }
+}
+
+/// `_data` is the rolling buffer Vec for every cache kind. Returns a
+/// mutable handle to the inner Vec by going through `Arc::make_mut`.
+fn cache_data_mut(m: &mut HashMap<String, Value>) -> &mut Vec<Value> {
+    let entry = m.entry("_data".to_string()).or_insert_with(|| Value::Array(Vec::new()));
+    if let Value::Arr(a) = entry {
+        return Arc::make_mut(a);
+    }
+    *entry = Value::Array(Vec::new());
+    if let Value::Arr(a) = entry {
+        return Arc::make_mut(a);
+    }
+    unreachable!()
+}
+
+fn cache_dict_field_mut<'a>(m: &'a mut HashMap<String, Value>, key: &str) -> &'a mut HashMap<String, Value> {
+    let entry = m.entry(key.to_string()).or_insert_with(|| Value::Map(HashMap::new()));
+    if let Value::Dict(d) = entry {
+        return Arc::make_mut(d);
+    }
+    *entry = Value::Map(HashMap::new());
+    if let Value::Dict(d) = entry {
+        return Arc::make_mut(d);
+    }
+    unreachable!()
+}
+
+fn cache_int_field(m: &HashMap<String, Value>, key: &str) -> i64 {
+    match m.get(key) { Some(Value::Int(n)) => *n, _ => 0 }
+}
+
+fn cache_set_int(m: &mut HashMap<String, Value>, key: &str, value: i64) {
+    m.insert(key.to_string(), Value::Int(value));
+}
+
+fn cache_bool_field(m: &HashMap<String, Value>, key: &str) -> bool {
+    matches!(m.get(key), Some(Value::Bool(true)))
+}
+
+fn cache_set_bool(m: &mut HashMap<String, Value>, key: &str, value: bool) {
+    m.insert(key.to_string(), Value::Bool(value));
+}
+
+pub(crate) fn cache_append(target: &mut Value, item: Value) {
+    let kind = cache_kind(target).unwrap_or_default();
+    let cap = cache_max_size(target);
+    if let Value::Dict(m_arc) = target {
+        let m = Arc::make_mut(m_arc);
+        match kind.as_str() {
+            "ArrayCache" => {
+                let data = cache_data_mut(m);
+                if let Some(cap) = cap { if data.len() == cap { data.remove(0); } }
+                data.push(item.clone());
+                cache_reset_counters_if_needed(m, &item, /*by_id_set=*/ false, /*by_side_set=*/ false);
+                let sym = cache_str_field(&item, "symbol").unwrap_or_default();
+                {
+                    let nubs = cache_dict_field_mut(m, "_newUpdatesBySymbol");
+                    let cur = match nubs.get(&sym) { Some(Value::Int(n)) => *n, _ => 0 };
+                    nubs.insert(sym, Value::Int(cur + 1));
+                }
+                let all = cache_int_field(m, "_allNewUpdates");
+                cache_set_int(m, "_allNewUpdates", all + 1);
+            }
+            "ArrayCacheByTimestamp" => {
+                let ts_key = match item {
+                    Value::Arr(ref a) => match a.first() {
+                        Some(Value::Int(n))   => n.to_string(),
+                        Some(Value::Float(f)) => f.to_string(),
+                        Some(Value::Str(s))   => s.clone(),
+                        _ => String::new(),
+                    },
+                    _ => String::new(),
+                };
+                let existing_idx = {
+                    let hm = cache_dict_field_mut(m, "hashmap");
+                    match hm.get(&ts_key) { Some(Value::Int(n)) => Some(*n as usize), _ => None }
+                };
+                if let Some(idx) = existing_idx {
+                    let data = cache_data_mut(m);
+                    if idx < data.len() && data[idx] != item { data[idx] = item.clone(); }
+                } else {
+                    // Evict if at cap; shift hashmap indices down.
+                    let evicting = match cap { Some(c) => {
+                        let data_len = cache_data_mut(m).len();
+                        data_len == c
+                    }, None => false };
+                    if evicting {
+                        let removed = {
+                            let data = cache_data_mut(m);
+                            if data.is_empty() { Value::Null } else { data.remove(0) }
+                        };
+                        let removed_key = match &removed {
+                            Value::Arr(a) => match a.first() {
+                                Some(Value::Int(n))   => n.to_string(),
+                                Some(Value::Float(f)) => f.to_string(),
+                                Some(Value::Str(s))   => s.clone(),
+                                _ => String::new(),
+                            },
+                            _ => String::new(),
+                        };
+                        let hm = cache_dict_field_mut(m, "hashmap");
+                        hm.shift_remove(&removed_key);
+                        for v in hm.values_mut() {
+                            if let Value::Int(n) = v { *n = n.saturating_sub(1); }
+                        }
+                    }
+                    let new_idx = {
+                        let data = cache_data_mut(m);
+                        let i = data.len();
+                        data.push(item);
+                        i
+                    };
+                    let hm = cache_dict_field_mut(m, "hashmap");
+                    hm.insert(ts_key.clone(), Value::Int(new_idx as i64));
+                }
+                // size tracker / new updates
+                if cache_bool_field(m, "_clearUpdates") {
+                    cache_set_bool(m, "_clearUpdates", false);
+                    let st = cache_dict_field_mut(m, "_sizeTracker");
+                    st.clear();
+                }
+                {
+                    let st = cache_dict_field_mut(m, "_sizeTracker");
+                    st.insert(ts_key, Value::Bool(true));
+                }
+                let st_len = match m.get("_sizeTracker") {
+                    Some(Value::Dict(d)) => d.len() as i64,
+                    _ => 0,
+                };
+                cache_set_int(m, "_newUpdates", st_len);
+            }
+            "ArrayCacheBySymbolById" | "ArrayCacheBySymbolBySide" => {
+                let symbol = cache_str_field(&item, "symbol").unwrap_or_default();
+                let key2_name = if kind == "ArrayCacheBySymbolById" { "id" } else { "side" };
+                let key2 = cache_str_field(&item, key2_name).unwrap_or_default();
+                let was_duplicate = {
+                    let hm = cache_dict_field_mut(m, "hashmap");
+                    let bucket = hm.entry(symbol.clone())
+                        .or_insert_with(|| Value::Map(HashMap::new()));
+                    if let Value::Dict(bd) = bucket {
+                        Arc::make_mut(bd);
+                    }
+                    if let Some(Value::Dict(bd)) = hm.get(&symbol) {
+                        bd.contains_key(&key2)
+                    } else { false }
+                };
+                let item_to_store = if was_duplicate {
+                    let merged = {
+                        let hm = cache_dict_field_mut(m, "hashmap");
+                        let bucket = hm.get(&symbol).cloned();
+                        let existing = match bucket {
+                            Some(Value::Dict(bd)) => bd.get(&key2).cloned(),
+                            _ => None,
+                        };
+                        match (existing, item.clone()) {
+                            (Some(Value::Dict(old)), Value::Dict(new_)) => {
+                                let mut merged = (*old).clone();
+                                for (k, v) in new_.iter() { merged.insert(k.clone(), v.clone()); }
+                                Value::Dict(Arc::new(merged))
+                            }
+                            (_, new_) => new_,
+                        }
+                    };
+                    {
+                        let hm = cache_dict_field_mut(m, "hashmap");
+                        let bucket = hm.entry(symbol.clone())
+                            .or_insert_with(|| Value::Map(HashMap::new()));
+                        if let Value::Dict(bd) = bucket {
+                            Arc::make_mut(bd).insert(key2.clone(), merged.clone());
+                        }
+                    }
+                    // Remove the existing slot from _data.
+                    {
+                        let data = cache_data_mut(m);
+                        if let Some(pos) = data.iter().position(|x| {
+                            cache_str_field(x, key2_name).as_deref() == Some(&key2)
+                                && cache_str_field(x, "symbol").as_deref() == Some(&symbol)
+                        }) { data.remove(pos); }
+                    }
+                    merged
+                } else {
+                    let hm = cache_dict_field_mut(m, "hashmap");
+                    let bucket = hm.entry(symbol.clone())
+                        .or_insert_with(|| Value::Map(HashMap::new()));
+                    if let Value::Dict(bd) = bucket {
+                        Arc::make_mut(bd).insert(key2.clone(), item.clone());
+                    }
+                    item.clone()
+                };
+                // Evict from front if at cap.
+                let evicting = match cap { Some(c) => {
+                    cache_data_mut(m).len() == c
+                }, None => false };
+                if evicting {
+                    let removed = {
+                        let data = cache_data_mut(m);
+                        if data.is_empty() { Value::Null } else { data.remove(0) }
+                    };
+                    let r_sym = cache_str_field(&removed, "symbol").unwrap_or_default();
+                    let r_key2 = cache_str_field(&removed, key2_name).unwrap_or_default();
+                    let hm = cache_dict_field_mut(m, "hashmap");
+                    if let Some(Value::Dict(bd)) = hm.get_mut(&r_sym) {
+                        Arc::make_mut(bd).shift_remove(&r_key2);
+                    }
+                }
+                cache_data_mut(m).push(item_to_store);
+
+                // Per-symbol Set-based update tracking.
+                cache_reset_counters_if_needed(m, &item, /*by_id_set=*/ kind == "ArrayCacheBySymbolById", /*by_side_set=*/ kind == "ArrayCacheBySymbolBySide");
+                let before;
+                let after;
+                {
+                    let nubs = cache_dict_field_mut(m, "_newUpdatesBySymbol");
+                    let bucket = nubs.entry(symbol.clone())
+                        .or_insert_with(|| Value::Map(HashMap::new()));
+                    if let Value::Dict(bd) = bucket {
+                        let bd = Arc::make_mut(bd);
+                        before = bd.len() as i64;
+                        bd.insert(key2.clone(), Value::Bool(true));
+                        after = bd.len() as i64;
+                    } else { before = 0; after = 0; }
+                }
+                let all = cache_int_field(m, "_allNewUpdates");
+                cache_set_int(m, "_allNewUpdates", all + (after - before));
+            }
+            _ => {}
+        }
+    }
+}
+
+fn cache_reset_counters_if_needed(m: &mut HashMap<String, Value>, item: &Value, by_id_set: bool, by_side_set: bool) {
+    if cache_bool_field(m, "_clearAllUpdates") {
+        cache_set_bool(m, "_clearAllUpdates", false);
+        cache_dict_field_mut(m, "_clearUpdatesBySymbol").clear();
+        cache_set_int(m, "_allNewUpdates", 0);
+        cache_dict_field_mut(m, "_newUpdatesBySymbol").clear();
+    }
+    let sym = cache_str_field(item, "symbol").unwrap_or_default();
+    let pending = {
+        let cs = cache_dict_field_mut(m, "_clearUpdatesBySymbol");
+        matches!(cs.get(&sym), Some(Value::Bool(true)))
+    };
+    if pending {
+        cache_dict_field_mut(m, "_clearUpdatesBySymbol")
+            .insert(sym.clone(), Value::Bool(false));
+        let by_set = by_id_set || by_side_set;
+        let nubs = cache_dict_field_mut(m, "_newUpdatesBySymbol");
+        if by_set {
+            if let Some(Value::Dict(bd)) = nubs.get_mut(&sym) {
+                Arc::make_mut(bd).clear();
+            }
+        } else {
+            nubs.insert(sym, Value::Int(0));
+        }
+    }
+}
+
+pub(crate) fn cache_get_limit(target: &mut Value, symbol: Value, limit: Value) -> Value {
+    let kind = cache_kind(target).unwrap_or_default();
+    let nested_set = matches!(kind.as_str(), "ArrayCacheBySymbolById" | "ArrayCacheBySymbolBySide");
+    if let Value::Dict(m_arc) = target {
+        let m = Arc::make_mut(m_arc);
+        // `ArrayCacheByTimestamp` doesn't track per-symbol updates —
+        // both `getLimit(undefined, …)` and `getLimit(sym, …)` return
+        // `this.newUpdates` and arm a single global `clearUpdates` flag.
+        if kind == "ArrayCacheByTimestamp" {
+            let v = cache_int_field(m, "_newUpdates");
+            cache_set_bool(m, "_clearUpdates", true);
+            return match limit {
+                Value::Int(l) => Value::Int(v.min(l)),
+                _             => Value::Int(v),
+            };
+        }
+        let new_updates_value: Option<i64> = match &symbol {
+            Value::Null => {
+                cache_set_bool(m, "_clearAllUpdates", true);
+                Some(cache_int_field(m, "_allNewUpdates"))
+            }
+            Value::Str(sym) => {
+                let nubs = cache_dict_field_mut(m, "_newUpdatesBySymbol");
+                let v = match nubs.get(sym) {
+                    Some(Value::Int(n)) => Some(*n),
+                    Some(Value::Dict(bd)) if nested_set => Some(bd.len() as i64),
+                    _ => None,
+                };
+                cache_dict_field_mut(m, "_clearUpdatesBySymbol")
+                    .insert(sym.clone(), Value::Bool(true));
+                v
+            }
+            _ => None,
+        };
+        match (new_updates_value, &limit) {
+            (None,    _)              => limit.clone(),
+            (Some(v), Value::Int(l))  => Value::Int(v.min(*l)),
+            (Some(v), Value::Null)    => Value::Int(v),
+            (Some(v), _)              => Value::Int(v),
+        }
+    } else {
+        limit
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// WS order-book helpers — operate on the `Value::Dict` markers from
+// `crate::pro::order_book`. Tag layout:
+//   * `__bookKind`  ∈ {OrderBook, IndexedOrderBook, CountedOrderBook}
+//   * `__sideKind`  ∈ {OrderBookSide, IndexedOrderBookSide,
+//                      CountedOrderBookSide}  (carried under `bids`/`asks`)
+// ────────────────────────────────────────────────────────────────────────────
+
+fn as_f64(v: &Value) -> f64 {
+    match v {
+        Value::Float(f) => *f,
+        Value::Int(n)   => *n as f64,
+        Value::Str(s)   => s.parse().unwrap_or(0.0),
+        _ => 0.0,
+    }
+}
+
+fn book_kind(v: &Value) -> Option<String> {
+    match v { Value::Dict(d) => match d.get("__bookKind") {
+        Some(Value::Str(s)) => Some(s.clone()), _ => None,
+    }, _ => None }
+}
+
+fn side_kind(v: &Value) -> Option<String> {
+    match v { Value::Dict(d) => match d.get("__sideKind") {
+        Some(Value::Str(s)) => Some(s.clone()), _ => None,
+    }, _ => None }
+}
+
+fn side_is_bid(m: &HashMap<String, Value>) -> bool {
+    matches!(m.get("_isBid"), Some(Value::Bool(true)))
+}
+
+fn side_depth(m: &HashMap<String, Value>) -> usize {
+    match m.get("_depth") {
+        Some(Value::Int(n)) if *n > 0 => *n as usize,
+        _ => usize::MAX / 2,
+    }
+}
+
+fn side_entries_mut(m: &mut HashMap<String, Value>) -> &mut Vec<Value> {
+    let entry = m.entry("_entries".to_string()).or_insert_with(|| Value::Array(Vec::new()));
+    if let Value::Arr(a) = entry { return Arc::make_mut(a); }
+    *entry = Value::Array(Vec::new());
+    if let Value::Arr(a) = entry { return Arc::make_mut(a); }
+    unreachable!()
+}
+
+fn entry_at_price(entries: &[Value]) -> impl Fn(usize) -> f64 + '_ {
+    move |i: usize| match &entries[i] {
+        Value::Arr(a) => match a.first() { Some(v) => as_f64(v), None => 0.0 },
+        _ => 0.0,
+    }
+}
+
+fn bisect_left_by(len: usize, target: f64, is_bid: bool, get_price: impl Fn(usize) -> f64) -> usize {
+    let mut lo = 0usize;
+    let mut hi = len;
+    while lo < hi {
+        let mid = (lo + hi) / 2;
+        let p = get_price(mid);
+        let ip = if is_bid { -p } else { p };
+        if ip < target { lo = mid + 1; } else { hi = mid; }
+    }
+    lo
+}
+
+fn delta_field<T>(d: &Value, idx: usize, parse: impl Fn(&Value) -> T, default: T) -> T {
+    match d {
+        Value::Arr(a) => match a.get(idx) { Some(v) => parse(v), None => default },
+        _ => default,
+    }
+}
+
+fn entry_id(entries: &[Value], i: usize) -> String {
+    if let Value::Arr(a) = &entries[i] {
+        if let Some(v) = a.get(2) {
+            return match v {
+                Value::Str(s) => s.clone(),
+                Value::Int(n) => n.to_string(),
+                _ => String::new(),
+            };
+        }
+    }
+    String::new()
+}
+
+fn side_store_array(side: &mut Value, delta: Value) {
+    let kind = side_kind(side).unwrap_or_default();
+    let d = match side { Value::Dict(d) => d, _ => return };
+    let m = Arc::make_mut(d);
+    let is_bid = side_is_bid(m);
+    match kind.as_str() {
+        "OrderBookSide" => {
+            let price = delta_field(&delta, 0, as_f64, 0.0);
+            let size  = delta_field(&delta, 1, as_f64, 0.0);
+            let target = if is_bid { -price } else { price };
+            let entries = side_entries_mut(m);
+            let entries_view: Vec<Value> = entries.iter().cloned().collect();
+            let idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(&entries_view));
+            if size != 0.0 {
+                if idx < entries.len()
+                    && {
+                        let p = match &entries[idx] {
+                            Value::Arr(a) => a.first().map(as_f64).unwrap_or(0.0),
+                            _ => 0.0,
+                        };
+                        (if is_bid { -p } else { p }) == target
+                    }
+                {
+                    entries[idx] = delta;
+                } else {
+                    entries.insert(idx, delta);
+                }
+            } else if idx < entries.len() {
+                let p = match &entries[idx] {
+                    Value::Arr(a) => a.first().map(as_f64).unwrap_or(0.0),
+                    _ => 0.0,
+                };
+                if (if is_bid { -p } else { p }) == target { entries.remove(idx); }
+            }
+        }
+        "CountedOrderBookSide" => {
+            let price = delta_field(&delta, 0, as_f64, 0.0);
+            let size  = delta_field(&delta, 1, as_f64, 0.0);
+            let count = delta_field(&delta, 2, as_f64, 0.0);
+            let target = if is_bid { -price } else { price };
+            let entries = side_entries_mut(m);
+            let entries_view: Vec<Value> = entries.iter().cloned().collect();
+            let idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(&entries_view));
+            if size != 0.0 && count != 0.0 {
+                if idx < entries.len()
+                    && {
+                        let p = match &entries[idx] {
+                            Value::Arr(a) => a.first().map(as_f64).unwrap_or(0.0),
+                            _ => 0.0,
+                        };
+                        (if is_bid { -p } else { p }) == target
+                    }
+                {
+                    entries[idx] = delta;
+                } else {
+                    entries.insert(idx, delta);
+                }
+            } else if idx < entries.len() {
+                let p = match &entries[idx] {
+                    Value::Arr(a) => a.first().map(as_f64).unwrap_or(0.0),
+                    _ => 0.0,
+                };
+                if (if is_bid { -p } else { p }) == target { entries.remove(idx); }
+            }
+        }
+        "IndexedOrderBookSide" => {
+            let price_opt = match &delta {
+                Value::Arr(a) => a.first().and_then(|v| match v {
+                    Value::Float(f) => Some(*f),
+                    Value::Int(n)   => Some(*n as f64),
+                    _ => None,
+                }),
+                _ => None,
+            };
+            let size = delta_field(&delta, 1, as_f64, 0.0);
+            let id = match &delta {
+                Value::Arr(a) => match a.get(2) {
+                    Some(Value::Str(s)) => s.clone(),
+                    Some(Value::Int(n)) => n.to_string(),
+                    _ => String::new(),
+                },
+                _ => String::new(),
+            };
+            let mut index_price = price_opt.map(|p| if is_bid { -p } else { p });
+            let old_price_opt = {
+                if let Some(Value::Dict(hm)) = m.get("hashmap") {
+                    match hm.get(&id) {
+                        Some(Value::Float(f)) => Some(*f),
+                        Some(Value::Int(n))   => Some(*n as f64),
+                        _ => None,
+                    }
+                } else { None }
+            };
+            if size != 0.0 {
+                if let Some(old_price) = old_price_opt {
+                    index_price = index_price.or(Some(old_price));
+                    if Some(old_price) == index_price {
+                        // Find slot by walking from bisect_left
+                        let target = old_price;
+                        let entries = side_entries_mut(m);
+                        let entries_view: Vec<Value> = entries.iter().cloned().collect();
+                        let mut idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(&entries_view));
+                        while idx < entries.len() && entry_id(entries, idx) != id { idx += 1; }
+                        if idx < entries.len() { entries[idx] = delta; }
+                        return;
+                    }
+                    // Different price — remove old slot
+                    let target = old_price;
+                    let entries = side_entries_mut(m);
+                    let entries_view: Vec<Value> = entries.iter().cloned().collect();
+                    let mut old_idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(&entries_view));
+                    while old_idx < entries.len() && entry_id(entries, old_idx) != id { old_idx += 1; }
+                    if old_idx < entries.len() { entries.remove(old_idx); }
+                }
+                let target = match index_price { Some(p) => p, None => return };
+                // Insert sorted with secondary id tiebreaker
+                let entries = side_entries_mut(m);
+                let entries_view: Vec<Value> = entries.iter().cloned().collect();
+                let mut idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(&entries_view));
+                while idx < entries.len() {
+                    let p = match &entries[idx] {
+                        Value::Arr(a) => a.first().map(as_f64).unwrap_or(0.0),
+                        _ => 0.0,
+                    };
+                    let ip = if is_bid { -p } else { p };
+                    if ip != target { break; }
+                    if entry_id(entries, idx) >= id { break; }
+                    idx += 1;
+                }
+                entries.insert(idx, delta);
+                if let Some(Value::Dict(hm_arc)) = m.get_mut("hashmap") {
+                    Arc::make_mut(hm_arc).insert(id, Value::Float(target));
+                }
+            } else if let Some(old_price) = old_price_opt {
+                // Delete by id
+                let target = old_price;
+                let entries = side_entries_mut(m);
+                let entries_view: Vec<Value> = entries.iter().cloned().collect();
+                let mut idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(&entries_view));
+                while idx < entries.len() && entry_id(entries, idx) != id { idx += 1; }
+                if idx < entries.len() { entries.remove(idx); }
+                if let Some(Value::Dict(hm_arc)) = m.get_mut("hashmap") {
+                    Arc::make_mut(hm_arc).shift_remove(&id);
+                }
+            }
+        }
+        _ => {}
+    }
+}
+
+fn side_limit(side: &mut Value) {
+    let d = match side { Value::Dict(d) => d, _ => return };
+    let m = Arc::make_mut(d);
+    let depth = side_depth(m);
+    let entries = side_entries_mut(m);
+    if entries.len() > depth { entries.truncate(depth); }
+}
+
+fn book_reseed_sides(book: &mut Value, snapshot: &Value) {
+    let kind = book_kind(book).unwrap_or_default();
+    let side_kind_str = match kind.as_str() {
+        "IndexedOrderBook" => "IndexedOrderBookSide",
+        "CountedOrderBook" => "CountedOrderBookSide",
+        _                  => "OrderBookSide",
+    };
+    let bids_deltas = crate::get_value(snapshot, &Value::Str("bids".to_string()));
+    let asks_deltas = crate::get_value(snapshot, &Value::Str("asks".to_string()));
+    if let Value::Dict(book_arc) = book {
+        let book_m = Arc::make_mut(book_arc);
+        let depth = match book_m.get("_depth") {
+            Some(Value::Int(n)) => *n,
+            _ => i64::MAX / 2,
+        };
+        // Rebuild bids
+        for (side_key, deltas, is_bid) in [
+            ("bids", &bids_deltas, true),
+            ("asks", &asks_deltas, false),
+        ] {
+            let mut m = HashMap::new();
+            m.insert("__sideKind".to_string(),  Value::Str(side_kind_str.to_string()));
+            m.insert("_isBid".to_string(),      Value::Bool(is_bid));
+            m.insert("_depth".to_string(),      Value::Int(depth));
+            m.insert("_entries".to_string(),    Value::Array(Vec::new()));
+            m.insert("hashmap".to_string(),    Value::Map(HashMap::new()));
+            let mut side = Value::Map(m);
+            if let Value::Arr(rows) = deltas {
+                for row in rows.iter() {
+                    if let Value::Arr(_) = row { side_store_array(&mut side, row.clone()); }
+                }
+            }
+            book_m.insert(side_key.to_string(), side);
+        }
+    }
+}
+
+pub(crate) fn book_limit(book: &mut Value) {
+    if book_kind(book).is_none() { return; }
+    if let Value::Dict(arc) = book {
+        let m = Arc::make_mut(arc);
+        if let Some(side) = m.get_mut("bids") { side_limit(side); }
+        if let Some(side) = m.get_mut("asks") { side_limit(side); }
+    }
+}
+
+pub(crate) fn book_reset(book: &mut Value, snapshot: Value) {
+    if book_kind(book).is_none() { return; }
+    book_reseed_sides(book, &snapshot);
+    if let Value::Dict(arc) = book {
+        let m = Arc::make_mut(arc);
+        let ts = match crate::get_value(&snapshot, &Value::Str("timestamp".to_string())) {
+            Value::Int(n)   => Some(n),
+            Value::Float(f) => Some(f as i64),
+            _ => None,
+        };
+        let dt = ts.and_then(|n| chrono::DateTime::<chrono::Utc>::from_timestamp_millis(n)
+            .map(|t| t.to_rfc3339_opts(chrono::SecondsFormat::Millis, true)));
+        m.insert("timestamp".to_string(), ts.map(Value::Int).unwrap_or(Value::Null));
+        m.insert("datetime".to_string(),  dt.map(Value::Str).unwrap_or(Value::Null));
+        m.insert("nonce".to_string(),     crate::get_value(&snapshot, &Value::Str("nonce".to_string())));
+        m.insert("symbol".to_string(),    crate::get_value(&snapshot, &Value::Str("symbol".to_string())));
+    }
+}
+
+pub(crate) fn book_update(book: &mut Value, snapshot: Value) {
+    if book_kind(book).is_none() { return; }
+    // Skip stale updates.
+    let new_nonce = match crate::get_value(&snapshot, &Value::Str("nonce".to_string())) {
+        Value::Int(n) => Some(n), _ => None,
+    };
+    let cur_nonce = match book { Value::Dict(d) => match d.get("nonce") {
+        Some(Value::Int(n)) => Some(*n), _ => None,
+    }, _ => None };
+    if let (Some(n), Some(cur)) = (new_nonce, cur_nonce) {
+        if n <= cur { return; }
+    }
+    book_reset(book, snapshot);
+}
+
+pub(crate) fn book_store_array_side(book: &mut Value, side_key: &str, delta: Value) {
+    if let Value::Dict(arc) = book {
+        let m = Arc::make_mut(arc);
+        if let Some(side) = m.get_mut(side_key) {
+            side_store_array(side, delta);
+        }
+    }
+}
+
+pub(crate) fn book_store_side(book: &mut Value, side_key: &str, price: f64, size: f64) {
+    let delta = Value::List(vec![Value::Float(price), Value::Float(size)]);
+    book_store_array_side(book, side_key, delta);
+}
+
+// ─── Value method API exposed to the transpiled tests ─────────────────────
+
+impl Value {
+    /// `book.limit()` — trim both sides to `_depth`.
+    pub fn limit(&mut self) {
+        book_limit(self);
+    }
+
+    /// `book.reset(snapshot)` — wipe + reseed bids/asks + metadata.
+    pub fn reset(&mut self, snapshot: Value) {
+        book_reset(self, snapshot);
+    }
+
+    /// `book.update(snapshot)` — same as reset but only when the
+    /// supplied nonce moves forward.
+    pub fn update(&mut self, snapshot: Value) {
+        book_update(self, snapshot);
+    }
+
+    /// `side.store(price, size)` — convenience that builds a 2-element
+    /// delta. Routed through the side's `store_array`. Only useful on a
+    /// side marker (returned by `book['bids']`), not the book itself.
+    pub fn store(&mut self, price: Value, size: Value) {
+        if side_kind(self).is_some() {
+            let delta = Value::List(vec![price, size]);
+            side_store_array(self, delta);
+        }
+    }
+
+    /// Book-level side mutators — the transpiler rewrites side-extraction
+    /// patterns (`let bids = book['bids']; bids.X(...)`) into calls on
+    /// these methods so the mutation reaches the book's actual side
+    /// dict rather than a COW-cloned copy of it.
+    pub fn store_to_bids(&mut self, price: Value, size: Value) {
+        let delta = Value::List(vec![price, size]);
+        book_store_array_side(self, "bids", delta);
+    }
+    pub fn store_to_asks(&mut self, price: Value, size: Value) {
+        let delta = Value::List(vec![price, size]);
+        book_store_array_side(self, "asks", delta);
+    }
+    pub fn store_array_to_bids(&mut self, delta: Value) {
+        book_store_array_side(self, "bids", delta);
+    }
+    pub fn store_array_to_asks(&mut self, delta: Value) {
+        book_store_array_side(self, "asks", delta);
     }
 }

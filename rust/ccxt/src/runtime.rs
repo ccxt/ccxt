@@ -442,6 +442,22 @@ pub fn object_values(v: &Value) -> Value {
 }
 
 pub fn get_array_length(v: &Value) -> Value {
+    // Cache / order-book markers expose their rolling buffer via
+    // `_data` / `_entries` — `cache.length` in TS refers to the
+    // backing array, not the marker dict's keys. Look those up first
+    // so `get_array_length(&cache)` reports the right number.
+    if let Value::Dict(d) = v {
+        if d.contains_key("__cacheKind") {
+            if let Some(Value::Arr(data)) = d.get("_data") {
+                return Value::Int(data.len() as i64);
+            }
+        }
+        if d.contains_key("__sideKind") {
+            if let Some(Value::Arr(entries)) = d.get("_entries") {
+                return Value::Int(entries.len() as i64);
+            }
+        }
+    }
     Value::Int(v.len() as i64)
 }
 

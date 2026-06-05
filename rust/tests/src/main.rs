@@ -18,14 +18,20 @@ mod base_tests;
 mod fixtures;
 mod language_specific;
 mod registry;
-pub mod tests_support;  // public so transpiled base/ tests can reach it
-pub mod test_helpers;   // hand-written harness helpers for the transpiled tests.rs
-pub mod live_dispatch;  // one persistent real Core per id for live tests
+pub mod tests_support;       // public so transpiled base/ tests can reach it
+pub mod test_helpers;        // hand-written harness helpers for the transpiled tests.rs
+pub mod live_dispatch;       // one persistent real Core per id for live tests
+pub mod pro_test_helpers;    // hand-written ws_deep_equal used by transpiled WS tests
 // Transpiled base tests (test.safeMethods.rs, test.precise.rs, …),
 // generated from ts/src/test/base/. Behind a feature flag.
 #[cfg(feature = "transpiled-tests")]
 #[path = "../base/mod.rs"]
 mod base_transpiled;
+// Transpiled WS base tests (test.cache.rs, test.orderBook.rs, test.close.rs),
+// generated from ts/src/pro/test/base/. Same feature flag as REST.
+#[cfg(feature = "transpiled-tests")]
+#[path = "../base_ws/mod.rs"]
+mod base_ws_transpiled;
 // Transpiled exchange tests (unified-method tests + structure
 // validators), generated from ts/src/test/Exchange/. Behind its own
 // feature while the harness surface (ExchangeOps, validators) is
@@ -87,6 +93,26 @@ async fn main() -> ExitCode {
                 return ExitCode::FAILURE;
             }
         }
+        // WS base tests: same panic-shield model, runs the transpiled
+        // `run_all()` aggregator emitted by
+        // `build/rustTranspiler.ts::writeBaseTestsWsModFile`.
+        #[cfg(feature = "transpiled-tests")]
+        if ws_tests {
+            if !verbose {
+                std::panic::set_hook(Box::new(|_| {}));
+            }
+            let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(
+                || base_ws_transpiled::run_all()
+            ));
+            let _ = std::panic::take_hook();
+            if let Err(e) = outcome {
+                let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                    .or_else(|| e.downcast_ref::<&str>().copied())
+                    .unwrap_or("<panic>");
+                eprintln!("Base WS tests failed: {msg}");
+                return ExitCode::FAILURE;
+            }
+        }
         println!("Base {} tests passed!", if ws_tests { "WS" } else { "REST" });
         return ExitCode::SUCCESS;
     }
@@ -121,3 +147,4 @@ async fn main() -> ExitCode {
         }
     }
 }
+

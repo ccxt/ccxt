@@ -28,7 +28,7 @@ pub fn test_types_rest() -> Result<(), String> {
     // 1. Plain typed exchange.
     let mut binance = Binance::new(None);
     let _: std::pin::Pin<Box<dyn std::future::Future<Output = ccxt::Result<Vec<Trade>>> + '_>> =
-        Box::pin(binance.fetch_trades_typed("BTC/USDT", None, Some(5), Value::Null));
+        Box::pin(binance.fetch_trades("BTC/USDT", None, Some(5), Value::Null));
 
     // 2. Alias exchange: Myokx is a thin override of Okx
     //    (`MyokxCore: Deref<Target = OkxCore>`). The generator walks
@@ -36,12 +36,12 @@ pub fn test_types_rest() -> Result<(), String> {
     //    even though `myokx.rs` doesn't define `fetch_order` directly.
     let mut myokx = Myokx::new(None);
     let _: std::pin::Pin<Box<dyn std::future::Future<Output = ccxt::Result<Order>> + '_>> =
-        Box::pin(myokx.fetch_order_typed("iddd", Some("BTC/USDT"), Value::Null));
+        Box::pin(myokx.fetch_order("iddd", Some("BTC/USDT"), Value::Null));
 
     // 3. Subclass: Binanceusdm inherits its typed surface from Binance.
     let mut binusdm = Binanceusdm::new(None);
     let _: std::pin::Pin<Box<dyn std::future::Future<Output = ccxt::Result<Ticker>> + '_>> =
-        Box::pin(binusdm.fetch_ticker_typed("BTC/USDT:USDT", Value::Null));
+        Box::pin(binusdm.fetch_ticker("BTC/USDT:USDT", Value::Null));
 
     Ok(())
 }

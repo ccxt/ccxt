@@ -50,6 +50,7 @@ const ERRORS_FILE            = `${RUST_BASE}/exchange_errors.rs`;
 const EXCHANGES_FOLDER       = `${RUST_BASE}/exchanges`;
 const EXCHANGES_WS_FOLDER    = `${RUST_BASE}/pro`;
 const BASE_TESTS_FOLDER      = './rust/tests/base';
+const BASE_TESTS_WS_FOLDER   = './rust/tests/base_ws';
 const GENERATED_TESTS_FOLDER = './rust/tests/exchange';
 
 class RustTranspilerBuilder {
@@ -5364,6 +5365,322 @@ impl std::ops::DerefMut for ${coreName} {
         overwriteFileAndFolder(`${outDir}/mod.rs`, file);
     }
 
+    /**
+     * Transpiles `ts/src/pro/test/base/test.<name>.ts` → `rust/tests/base_ws/test.<name>.rs`.
+     * Runs the same regex/AST post-processing pipeline as the REST
+     * base tests, then emits a hand-stitched mod.rs whose `run_all()`
+     * mirrors the `testBaseWs` aggregator in `tests.init.ts`.
+     *
+     * The WS tests construct `ArrayCache`, `OrderBook`, etc. via
+     * `new X(...)` — these names are imported from the WS base
+     * module, so we override the transpiler's emitted import to
+     * point at `ccxt::pro::*`.
+     */
+    transpileBaseTestsWs(outDir: string) {
+        const baseFolder = './ts/src/pro/test/base';
+        if (!fs.existsSync(baseFolder)) return;
+
+        const testFiles = fs.readdirSync(baseFolder)
+            .filter(f => f.endsWith('.ts'))
+            .map(f => f.replace('.ts', ''));
+
+        const written: string[] = [];
+        // `test.close.ts` is excluded by the TS-side `tests.init.ts`
+        // itself ("// todo : testWsClose ()") and depends on live
+        // WebSocket plumbing we haven't ported yet. Skip it.
+        const SKIP = new Set<string>(['tests.init', 'test.close']);
+        for (const testName of testFiles) {
+            if (SKIP.has(testName)) continue;
+            const tsFile = `${baseFolder}/${testName}.ts`;
+            const tsContent = fs.readFileSync(tsFile).toString();
+            if (tsContent.includes('// NO_AUTO_TRANSPILE')) continue;
+
+            const outFile = `${outDir}/${testName}.rs`;
+            log.magenta('Transpiling WS base test from', (tsFile as any).yellow);
+
+            try {
+                const result = this.transpiler.transpileRustByPath(tsFile);
+                let content = result.content ?? '';
+                const asyncMethods = new Set<string>(
+                    (result.methodsTypes || [])
+                        .filter((m: any) => m.async)
+                        .map((m: any) => m.name)
+                );
+                content = this.regexAll(content, this.getRustRegexes(asyncMethods));
+                content = this.rewriteHashAlgoConstants(content);
+                content = this.rewriteBareErrorClassRefs(content);
+                content = this.rewriteDynamicThrows(content);
+                content = this.normalizeJwtCalls(content);
+                content = this.wrapBoolValueArgs(content);
+                content = this.stripCatchBlocks(content);
+                content = this.unwrapCatchUnwind(content);
+                content = this.rewriteNamespaceCalls(content, 'Math',    'crate::runtime::Math',    true);
+                content = this.rewriteNamespaceCalls(content, 'Precise', 'crate::precise::Precise', true);
+                content = this.renamePreciseStringDivPrec(content);
+                content = this.dropExtraPreciseArgs(content);
+                content = this.wrapVariadicCalls(content, this.handWrittenVariadics());
+                content = this.autoCloneCallArgs(content);
+                content = this.cloneInArrayLiterals(content);
+                content = this.rewriteValueFieldAccess(content);
+                content = this.rewriteGetValueAssignments(content);
+                content = this.stripMutSelfFieldClones(content);
+                content = this.splitAddElementBorrowConflicts(content);
+                content = this.splitGetValueMutAdds(content);
+                content = this.rewriteSelfFieldMutCloneCast(content);
+                content = this.rewriteCallMethodToDirect(content);
+                content = this.markMethodsAsyncIfBodyAwaits(content);
+                // `assert (cond, msg)` → `assert!(cond, "msg")` → strip
+                // the second arg → wrap inner in `is_true(&(…))`. Same
+                // sequence as the REST `transpileBaseTests` pipeline.
+                content = content
+                    .replace(/\bassert\s*\(/g, 'assert!(')
+                    .replace(/assert!!+\(/g,    'assert!(');
+                content = this.stripAssertSecondArg(content);
+                content = this.wrapAssertInIsTrue(content);
+
+                // The transpiler can't represent the JS `for (const prop in a)`
+                // loop the TS `equals(a, b)` helper uses, so it emits only the
+                // length-comparison head and drops the recursive walk. Replace
+                // the body with a runtime helper that does a real Value-deep-
+                // equal, ignoring the marker-tagged internal fields
+                // (`__cacheKind`, `_data`, `_hashmap`, `_newUpdatesBySymbol`,
+                // …).  Matches whether the transpiler emitted `mut a`/`mut b`
+                // or plain `a`/`b`.
+                content = content.replace(
+                    /fn\s+equals\s*\(\s*(?:mut\s+)?a:\s*Value\s*,\s*(?:mut\s+)?b:\s*Value\s*\)\s*->\s*Value\s*\{[\s\S]*?\n\}/,
+                    [
+                        'fn equals(a: Value, b: Value) -> Value {',
+                        '    Value::Bool(crate::pro_test_helpers::ws_deep_equal(&a, &b))',
+                        '}',
+                    ].join('\n'),
+                );
+
+                // Top-level `fn testWs<X>` is what `tests.init.ts` calls
+                // — make it `pub` so the generated `mod.rs` can re-
+                // export it for `run_all()`.
+                content = content.replace(
+                    /^(\s*)fn\s+(testWs[A-Z][a-zA-Z0-9]*)\b/gm,
+                    '$1pub fn $2',
+                );
+
+                // Zero-arg WS-class constructors (`new ArrayCacheByTimestamp()`
+                // → `ArrayCacheByTimestamp::new()`) need a `Value::Null` pad
+                // so they match our factory's `(Value)` signature.
+                content = content.replace(
+                    /\b(ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide))::new\(\)/g,
+                    '$1::new(Value::Null)',
+                );
+
+                // Auto-clone args passed to known cache / order-book methods.
+                // The base `autoCloneCallArgs` pass only matches well-known
+                // helper prefixes (`self.X`, `exchange.X`, `assert`, …) — it
+                // doesn't recognise method calls on arbitrary Value-typed
+                // locals like `timestampCache.append(ohlcv1)`, which means the
+                // raw arg is moved and the next reference fails to borrow-
+                // check. Append `.clone()` to bare-identifier arguments only;
+                // expression args (`Value::Null`, `Value::Map({...})`, etc.)
+                // are not at risk of being moved-from beyond the call site.
+                const cloneIdent = (s: string) =>
+                    /^[a-zA-Z_]\w*$/.test(s.trim()) ? `${s.trim()}.clone()` : s;
+                content = this.cloneIdentArgsToCalls(
+                    content,
+                    /\b([a-zA-Z_]\w*)\.(append|store|store_array|reset|update|get_limit)\(/g,
+                );
+
+                // Same idea for the WS factory constructors:
+                //   `OrderBook::new(snapshot, depth)`
+                //   `ArrayCacheBySymbolById::new(maxSize)`
+                // — clone bare-identifier args so the test can rebuild the
+                // book/cache later with the same snapshot.
+                content = this.cloneIdentArgsToCalls(
+                    content,
+                    /\b((?:Indexed|Counted)?OrderBook|ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide))::new\(/g,
+                );
+
+                // Side-extraction rewrite. TS uses reference semantics:
+                //   const bids = book['bids'];
+                //   bids.store(p, s);  // mutates book.bids in place
+                // Our `Value::Dict` is COW-cloned on read, so the mutation
+                // on `bids` never reaches `book`. Detect:
+                //   let mut <var>: Value = get_value(&<book>, &Value::Str("bids"|"asks"));
+                // and replace every subsequent `<var>.store(...)` /
+                // `<var>.store_array(...)` with `<book>.store_to_bids` /
+                // `<book>.store_array_to_bids` (likewise for asks) so the
+                // mutation lands on the actual side dict.
+                content = this.rewriteSideExtraction(content);
+
+                // Single-arg `OrderBook::new(snapshot)` → pad depth with
+                // `Value::Null` (factory takes 2 args).
+                content = content.replace(
+                    /\b((?:Indexed|Counted)?OrderBook)::new\(([^()]*(?:\([^()]*\)[^()]*)*)\)/g,
+                    (full, cls, args) => {
+                        if (args.includes(',')) return full; // already 2-arg
+                        return `${cls}::new(${args}, Value::Null)`;
+                    },
+                );
+
+                const file = [
+                    ...this.createGeneratedHeader(),
+                    '#![allow(unused, non_snake_case, dead_code, clippy::all)]',
+                    'use ccxt::Value;',
+                    'use ccxt::get_value;',
+                    'use ccxt::runtime::*;',
+                    'use ccxt::pro::*;',
+                    '',
+                    content,
+                ].join('\n')
+                    .replace(/\bstd::collections::HashMap\b/g, 'indexmap::IndexMap');
+
+                overwriteFileAndFolder(outFile, file);
+                log.magenta('→', (outFile as any).yellow);
+                written.push(testName);
+            } catch (e: any) {
+                log.red(`[rust] Error transpiling WS test ${testName}:`, e.message ?? e);
+            }
+        }
+
+        this.writeBaseTestsWsModFile(outDir, written);
+    }
+
+    /**
+     * Emits `rust/tests/base_ws/mod.rs` listing every transpiled WS
+     * base test plus a `run_all()` aggregator. The aggregator mirrors
+     * `testBaseWs` from `ts/src/pro/test/base/tests.init.ts`.
+     */
+    /**
+     * Walk through every call site whose opening `(` is matched by
+     * `headRe`, balance-parse the arg list (so nested `Value::Int(5)`
+     * etc. count), then append `.clone()` to each bare-identifier arg.
+     * Expression args (`Value::Null`, literals, …) are left untouched.
+     * Used by `transpileBaseTestsWs` to fix the move-once borrow
+     * pattern in transpiled cache / order-book test bodies.
+     */
+    cloneIdentArgsToCalls(content: string, headRe: RegExp): string {
+        let out = '';
+        let i = 0;
+        const re = new RegExp(headRe.source, headRe.flags.includes('g') ? headRe.flags : headRe.flags + 'g');
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(content)) !== null) {
+            const headEnd = m.index + m[0].length;
+            out += content.slice(i, headEnd);
+            // Balance-parse to find the matching closing `)`.
+            let depth = 1, j = headEnd, inStr = false, esc = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (esc) { esc = false; j++; continue; }
+                if (c === '\\') { esc = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) {
+                    if (c === '(') depth++;
+                    else if (c === ')') depth--;
+                    if (depth === 0) break;
+                }
+                j++;
+            }
+            if (depth !== 0) { out += content.slice(headEnd); i = content.length; break; }
+            const argsRaw = content.slice(headEnd, j);
+            const args = this.splitArgs(argsRaw) ?? [];
+            const rewritten = args
+                .map(a => /^[a-zA-Z_]\w*$/.test(a.trim()) ? `${a.trim()}.clone()` : a)
+                .join(', ');
+            out += rewritten + ')';
+            i = j + 1;
+            re.lastIndex = i;
+        }
+        out += content.slice(i);
+        return out;
+    }
+
+    /**
+     * Rewrites the TS-style side-extraction pattern in transpiled WS
+     * test bodies. See `transpileBaseTestsWs` for the full rationale.
+     *
+     * Detection (per function body):
+     *   `let mut <var>: Value = get_value(&<book>, &Value::Str("bids"|"asks"...))`
+     * From the assignment until end-of-function (or `<var>` reassigned),
+     * each `<var>.<method>(args)` is rewritten to a book-targeted call:
+     *   `bids.store(p, s)`       → `<book>.store_to_bids(p, s)`
+     *   `bids.store_array(d)`    → `<book>.store_array_to_bids(d)`
+     */
+    rewriteSideExtraction(content: string): string {
+        // Process per-function so the var binding is locally scoped.
+        // Function detection: `fn <name>(...) { ... }` — paren-balanced.
+        const lines = content.split('\n');
+        const extractRe = /let\s+mut\s+([a-zA-Z_]\w*)\s*:\s*Value\s*=\s*get_value\(\s*&([a-zA-Z_]\w*)\s*,\s*&Value::Str\(\s*"(bids|asks)"\s*\.to_string\s*\(\s*\)\s*\)\s*\)\s*;/;
+        // Stack of {var, book, side} active for the current function.
+        let active: { var: string; book: string; side: 'bids' | 'asks' }[] = [];
+        const out: string[] = [];
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            // Strip function-local state when we leave a body.
+            if (/^\s*\}\s*$/.test(line) && active.length > 0) {
+                // Conservative: clear at every top-level `}` since we're
+                // not tracking braces precisely. The base test bodies
+                // are short functions; the imprecision is fine here.
+            }
+            const m = line.match(extractRe);
+            if (m) {
+                active.push({ var: m[1], book: m[2], side: m[3] as 'bids' | 'asks' });
+                // Drop the extraction — the bookmark for subsequent
+                // method calls is enough; the var itself is unused.
+                continue;
+            }
+            // Rewrite method calls on any active var.
+            let rewritten = line;
+            for (const { var: v, book, side } of active) {
+                const sideCap = side.charAt(0).toUpperCase() + side.slice(1);
+                rewritten = rewritten.replace(
+                    new RegExp(`\\b${v}\\.store\\(`, 'g'),
+                    `${book}.store_to_${side}(`,
+                );
+                rewritten = rewritten.replace(
+                    new RegExp(`\\b${v}\\.store_array\\(`, 'g'),
+                    `${book}.store_array_to_${side}(`,
+                );
+                // Suppress eslint by using sideCap (unused otherwise).
+                void sideCap;
+            }
+            out.push(rewritten);
+        }
+        return out.join('\n');
+    }
+
+    writeBaseTestsWsModFile(outDir: string, names: string[]) {
+        // WS entry-point names follow the `testWs<Name>` pattern (e.g.
+        // `test.cache.ts` exports `testWsCache`). We can't reuse the
+        // REST `testEntryPointFor` which would emit `testCache`.
+        const wsEntry = (testFileName: string): string => {
+            const stem = testFileName.replace(/^test\./, '');
+            return 'testWs' + stem.charAt(0).toUpperCase() + stem.slice(1);
+        };
+        const modLines = names
+            .map(n => {
+                const ident = this.modIdentFor(n);
+                const entry = wsEntry(n);
+                return `#[path = "${n}.rs"] pub mod ${ident};\n` +
+                       `pub use ${ident}::${entry};`;
+            })
+            .join('\n');
+        const calls = names
+            .map(n => `    ${wsEntry(n)}();`)
+            .join('\n');
+        const file = [
+            ...this.createGeneratedHeader(),
+            '#![allow(non_snake_case, unused, dead_code, clippy::all)]',
+            '',
+            modLines,
+            '',
+            '/// Aggregator: mirrors `testBaseWs` from',
+            '/// `ts/src/pro/test/base/tests.init.ts`. Called by the',
+            '/// hand-written runner under `--baseTests --ws`.',
+            'pub fn run_all() {',
+            calls,
+            '}',
+            '',
+        ].join('\n');
+        overwriteFileAndFolder(`${outDir}/mod.rs`, file);
+    }
+
     /// Paren-balanced walker. For every `assert!(<expr>)`, wraps
     /// `<expr>` in `crate::ccxt_runtime_is_true_alias(&(<expr>))` — we
     /// use `ccxt::runtime::is_true` (re-exported). Lets Value-typed
@@ -5862,8 +6179,10 @@ impl std::ops::DerefMut for ${coreName} {
 
     transpileTests() {
         createFolderRecursively(BASE_TESTS_FOLDER);
+        createFolderRecursively(BASE_TESTS_WS_FOLDER);
         createFolderRecursively(GENERATED_TESTS_FOLDER);
         this.transpileBaseTests(BASE_TESTS_FOLDER);
+        this.transpileBaseTestsWs(BASE_TESTS_WS_FOLDER);
         this.transpileExchangeTests(GENERATED_TESTS_FOLDER);
         this.transpileTestsMain('./rust/tests/src');
     }

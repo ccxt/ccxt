@@ -1,61 +1,29 @@
-// Hand-written Rust port of `ts/src/base/ws/OrderBook.ts`.
+// CCXT-pro OrderBook types — Value-shaped facades.
 //
-// In TS each variant is a distinct subclass that swaps its `bids`/`asks`
-// implementation. In Rust we use an enum-shaped `BookSides` so a single
-// `OrderBook` struct holds whichever side variant was constructed —
-// keeps the call sites (`book.limit()`, `book.reset(snapshot)`,
-// `book.update(snapshot)`) uniform.
+// Mirrors `ts/src/base/ws/OrderBook.ts` and `OrderBookSide.ts` as
+// Value::Dict markers. Tags:
+//   * `__bookKind` ∈ {OrderBook, IndexedOrderBook, CountedOrderBook}
+//   * `__sideKind` (on the per-side markers carried under `bids`/`asks`)
+//     ∈ {OrderBookSide, IndexedOrderBookSide, CountedOrderBookSide}
+//
+// All mutation logic — `store`/`storeArray`/`limit`/`reset`/`update` —
+// lives in `Value::*` methods (see `value.rs`). The transpiled tests
+// in `rust/tests/base_ws/test.orderBook.rs` operate on Value-typed
+// locals throughout, so the factories must return Value to satisfy
+// the call sites the AST transpiler emits.
 
 use crate::Value;
-use super::order_book_side::{
-    Side, OrderBookSide, CountedOrderBookSide, IndexedOrderBookSide,
-};
+use indexmap::IndexMap;
 
-/// The three concrete side types share `limit()` plus a public
-/// `entries` accessor that exposes `[price, size, …]` deltas.
-#[derive(Debug, Clone)]
-pub enum BookSides {
-    Plain    { bids: OrderBookSide,        asks: OrderBookSide        },
-    Counted  { bids: CountedOrderBookSide, asks: CountedOrderBookSide },
-    Indexed  { bids: IndexedOrderBookSide, asks: IndexedOrderBookSide },
-}
+pub const BOOK_PLAIN:   &str = "OrderBook";
+pub const BOOK_INDEXED: &str = "IndexedOrderBook";
+pub const BOOK_COUNTED: &str = "CountedOrderBook";
 
-impl BookSides {
-    pub fn bids_entries(&self) -> &Vec<Vec<Value>> {
-        match self {
-            BookSides::Plain   { bids, .. } => &bids.entries,
-            BookSides::Counted { bids, .. } => &bids.entries,
-            BookSides::Indexed { bids, .. } => &bids.entries,
-        }
-    }
-    pub fn asks_entries(&self) -> &Vec<Vec<Value>> {
-        match self {
-            BookSides::Plain   { asks, .. } => &asks.entries,
-            BookSides::Counted { asks, .. } => &asks.entries,
-            BookSides::Indexed { asks, .. } => &asks.entries,
-        }
-    }
-    pub fn limit(&mut self) {
-        match self {
-            BookSides::Plain   { bids, asks } => { bids.limit(); asks.limit(); }
-            BookSides::Counted { bids, asks } => { bids.limit(); asks.limit(); }
-            BookSides::Indexed { bids, asks } => { bids.limit(); asks.limit(); }
-        }
-    }
-}
+pub const SIDE_PLAIN:   &str = "OrderBookSide";
+pub const SIDE_INDEXED: &str = "IndexedOrderBookSide";
+pub const SIDE_COUNTED: &str = "CountedOrderBookSide";
 
-/// Mirrors `OrderBook { bids, asks, timestamp, datetime, nonce, symbol, cache }`.
-/// `cache` is the snapshot-update reorder buffer used by the live-pro
-/// methods (unused in the base tests, but we keep the field shape).
-#[derive(Debug, Clone)]
-pub struct OrderBook {
-    pub sides:     BookSides,
-    pub timestamp: Option<i64>,
-    pub datetime:  Option<String>,
-    pub nonce:     Option<i64>,
-    pub symbol:    Option<String>,
-    pub cache:     Vec<Value>,
-}
+const MAX_DEPTH_SENTINEL: i64 = i64::MAX / 2;
 
 fn iso8601_millis(ts: i64) -> Option<String> {
     if ts < 0 { return None; }
@@ -63,117 +31,92 @@ fn iso8601_millis(ts: i64) -> Option<String> {
         .map(|t| t.to_rfc3339_opts(chrono::SecondsFormat::Millis, true))
 }
 
-/// Coerce a snapshot dict to a list of `[price, size, …]` deltas
-/// suitable for `OrderBookSide::seed`.
-fn snapshot_deltas(snapshot: &Value, key: &str) -> Vec<Vec<Value>> {
-    let arr = match snapshot {
-        Value::Dict(d) => match d.get(key) {
-            Some(Value::Arr(a)) => a.clone(),
-            _ => return Vec::new(),
-        },
-        _ => return Vec::new(),
+/// Build a side marker (`OrderBookSide` / `IndexedOrderBookSide` /
+/// `CountedOrderBookSide`) seeded from a `[[price, size, …], …]` list.
+/// `is_bid: true` flips the price comparison (TS uses `index_price =
+/// side ? -price : price`); we keep the same semantics inside
+/// `Value::store_array`.
+fn new_side(kind: &str, is_bid: bool, depth: i64, deltas: &Value) -> Value {
+    let mut m = IndexMap::new();
+    m.insert("__sideKind".to_string(),  Value::Str(kind.to_string()));
+    m.insert("_isBid".to_string(),      Value::Bool(is_bid));
+    m.insert("_depth".to_string(),      Value::Int(depth));
+    m.insert("_entries".to_string(),    Value::Array(Vec::new()));
+    m.insert("hashmap".to_string(),    Value::Map(IndexMap::new()));
+    let mut side = Value::Map(m);
+    if let Value::Arr(rows) = deltas {
+        for row in rows.iter() {
+            if let Value::Arr(_) = row {
+                side.store_array(row.clone());
+            }
+        }
+    }
+    side
+}
+
+fn build_book(kind: &str, snapshot: Value, depth: Value) -> Value {
+    let max_depth = match &depth {
+        Value::Int(n) if *n > 0 => *n,
+        _ => MAX_DEPTH_SENTINEL,
     };
-    arr.iter().map(|row| match row {
-        Value::Arr(a) => (**a).clone(),
-        _ => Vec::new(),
-    }).collect()
-}
+    let (side_kind, _) = match kind {
+        BOOK_INDEXED => (SIDE_INDEXED, true),
+        BOOK_COUNTED => (SIDE_COUNTED, true),
+        _            => (SIDE_PLAIN,   true),
+    };
+    let bids_deltas = crate::get_value(&snapshot, &Value::Str("bids".to_string()));
+    let asks_deltas = crate::get_value(&snapshot, &Value::Str("asks".to_string()));
+    let bids = new_side(side_kind, /*is_bid=*/ true,  max_depth, &bids_deltas);
+    let asks = new_side(side_kind, /*is_bid=*/ false, max_depth, &asks_deltas);
 
-fn snapshot_int(snapshot: &Value, key: &str) -> Option<i64> {
-    match snapshot {
-        Value::Dict(d) => match d.get(key) {
-            Some(Value::Int(n))   => Some(*n),
-            Some(Value::Float(f)) => Some(*f as i64),
-            _ => None,
-        },
+    let timestamp = match crate::get_value(&snapshot, &Value::Str("timestamp".to_string())) {
+        Value::Int(n)   => Some(n),
+        Value::Float(f) => Some(f as i64),
         _ => None,
-    }
+    };
+    let datetime = timestamp.and_then(iso8601_millis);
+    let nonce = match crate::get_value(&snapshot, &Value::Str("nonce".to_string())) {
+        Value::Int(n)   => Value::Int(n),
+        Value::Float(f) => Value::Int(f as i64),
+        _ => Value::Null,
+    };
+    let symbol = crate::get_value(&snapshot, &Value::Str("symbol".to_string()));
+
+    let mut m = IndexMap::new();
+    m.insert("__bookKind".to_string(), Value::Str(kind.to_string()));
+    m.insert("_depth".to_string(),     Value::Int(max_depth));
+    m.insert("bids".to_string(),       bids);
+    m.insert("asks".to_string(),       asks);
+    m.insert("timestamp".to_string(),  timestamp.map(Value::Int).unwrap_or(Value::Null));
+    m.insert("datetime".to_string(),   datetime.map(Value::Str).unwrap_or(Value::Null));
+    m.insert("nonce".to_string(),      nonce);
+    m.insert("symbol".to_string(),     symbol);
+    Value::Map(m)
 }
 
-fn snapshot_str(snapshot: &Value, key: &str) -> Option<String> {
-    match snapshot {
-        Value::Dict(d) => match d.get(key) {
-            Some(Value::Str(s)) => Some(s.clone()),
-            _ => None,
-        },
-        _ => None,
-    }
-}
+// ─── factories ────────────────────────────────────────────────────────────
 
+pub struct OrderBook;
 impl OrderBook {
-    /// Construct a plain (`OrderBookSide`) book from a snapshot dict.
-    pub fn new(snapshot: Value, depth: Option<usize>) -> Self {
-        let mut bids = OrderBookSide::new(Side::Bid, depth);
-        let mut asks = OrderBookSide::new(Side::Ask, depth);
-        bids.seed(&snapshot_deltas(&snapshot, "bids"));
-        asks.seed(&snapshot_deltas(&snapshot, "asks"));
-        Self::finish(BookSides::Plain { bids, asks }, &snapshot)
+    /// `new OrderBook(snapshot)` or `new OrderBook(snapshot, depth)`.
+    /// Both arities are emitted by the transpiler — `padCallsForVariadicFn`
+    /// pads the 1-arg call with `Value::Null`, so we can declare the
+    /// 2-arg signature unconditionally.
+    pub fn new(snapshot: Value, depth: Value) -> Value {
+        build_book(BOOK_PLAIN, snapshot, depth)
     }
+}
 
-    /// Construct a `CountedOrderBook` (3rd value = order count).
-    pub fn new_counted(snapshot: Value, depth: Option<usize>) -> Self {
-        let mut bids = CountedOrderBookSide::new(Side::Bid, depth);
-        let mut asks = CountedOrderBookSide::new(Side::Ask, depth);
-        bids.seed(&snapshot_deltas(&snapshot, "bids"));
-        asks.seed(&snapshot_deltas(&snapshot, "asks"));
-        Self::finish(BookSides::Counted { bids, asks }, &snapshot)
+pub struct IndexedOrderBook;
+impl IndexedOrderBook {
+    pub fn new(snapshot: Value, depth: Value) -> Value {
+        build_book(BOOK_INDEXED, snapshot, depth)
     }
+}
 
-    /// Construct an `IndexedOrderBook` (3rd value = order id).
-    pub fn new_indexed(snapshot: Value, depth: Option<usize>) -> Self {
-        let mut bids = IndexedOrderBookSide::new(Side::Bid, depth);
-        let mut asks = IndexedOrderBookSide::new(Side::Ask, depth);
-        bids.seed(&snapshot_deltas(&snapshot, "bids"));
-        asks.seed(&snapshot_deltas(&snapshot, "asks"));
-        Self::finish(BookSides::Indexed { bids, asks }, &snapshot)
-    }
-
-    fn finish(sides: BookSides, snapshot: &Value) -> Self {
-        let timestamp = snapshot_int(snapshot, "timestamp");
-        let datetime  = timestamp.and_then(iso8601_millis);
-        let nonce     = snapshot_int(snapshot, "nonce");
-        let symbol    = snapshot_str(snapshot, "symbol");
-        Self { sides, timestamp, datetime, nonce, symbol, cache: Vec::new() }
-    }
-
-    pub fn limit(&mut self) -> &mut Self {
-        self.sides.limit();
-        self
-    }
-
-    pub fn update(&mut self, snapshot: Value) -> &mut Self {
-        let new_nonce = snapshot_int(&snapshot, "nonce");
-        if let (Some(n), Some(cur)) = (new_nonce, self.nonce) {
-            if n <= cur { return self; }
-        }
-        self.nonce     = new_nonce;
-        self.timestamp = snapshot_int(&snapshot, "timestamp");
-        self.datetime  = self.timestamp.and_then(iso8601_millis);
-        self.reset(snapshot)
-    }
-
-    /// `reset(snapshot)` — wipe and reseed bids/asks; refresh metadata.
-    pub fn reset(&mut self, snapshot: Value) -> &mut Self {
-        let bids_deltas = snapshot_deltas(&snapshot, "bids");
-        let asks_deltas = snapshot_deltas(&snapshot, "asks");
-        match &mut self.sides {
-            BookSides::Plain { bids, asks } => {
-                bids.seed(&bids_deltas);
-                asks.seed(&asks_deltas);
-            }
-            BookSides::Counted { bids, asks } => {
-                bids.seed(&bids_deltas);
-                asks.seed(&asks_deltas);
-            }
-            BookSides::Indexed { bids, asks } => {
-                bids.seed(&bids_deltas);
-                asks.seed(&asks_deltas);
-            }
-        }
-        self.timestamp = snapshot_int(&snapshot, "timestamp");
-        self.datetime  = self.timestamp.and_then(iso8601_millis);
-        self.nonce     = snapshot_int(&snapshot, "nonce");
-        self.symbol    = snapshot_str(&snapshot, "symbol");
-        self
+pub struct CountedOrderBook;
+impl CountedOrderBook {
+    pub fn new(snapshot: Value, depth: Value) -> Value {
+        build_book(BOOK_COUNTED, snapshot, depth)
     }
 }
