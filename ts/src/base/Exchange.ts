@@ -9426,13 +9426,15 @@ export default class Exchange {
         }
         const replacementKeys = Object.keys (replacements);
         for (let i = 0; i < replacementKeys.length; i++) {
-            s = s.split (replacementKeys[i]).join (replacements[replacementKeys[i]] as string);
+            const replacementKey = replacementKeys[i];
+            const replacementValue = this.safeString (replacements, replacementKey);
+            s = s.replaceAll (replacementKey, replacementValue);
         }
         const rawParts = s.split ('-');
         const parts = [];
         for (let i = 0; i < rawParts.length; i++) {
             const w = rawParts[i];
-            if (w.length > 0 && stopWords.indexOf (w) === -1) {
+            if (w.length > 0 && !this.inArray (w, stopWords)) {
                 parts.push (w);
             }
         }

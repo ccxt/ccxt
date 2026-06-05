@@ -8348,12 +8348,14 @@ class Exchange(object):
                 lastDash = True
         replacementKeys = list(replacements.keys())
         for i in range(0, len(replacementKeys)):
-            s = s.split(replacementKeys[i]).join(replacements[replacementKeys[i]])
+            replacementKey = replacementKeys[i]
+            replacementValue = self.safe_string(replacements, replacementKey)
+            s = s.replace(replacementKey, replacementValue)
         rawParts = s.split('-')
         parts = []
         for i in range(0, len(rawParts)):
             w = rawParts[i]
-            if len(w) > 0 and stopWords.find(w) == -1:
+            if len(w) > 0 and not self.in_array(w, stopWords):
                 parts.append(w)
         return '_'.join(parts).upper()
 

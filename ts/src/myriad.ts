@@ -16,7 +16,7 @@
 
 import Exchange from './abstract/myriad.js';
 import type {
-    Int, Str, Num, Dict,
+    Int, Dict,
     Strings,
     Market, Ticker, OrderBook, OHLCV,
 } from './base/types.js';
@@ -142,7 +142,7 @@ export default class myriad extends Exchange {
                 for (let j = 0; j < found.length; j++) {
                     const rawEvent = found[j];
                     const eventId = this.safeString (rawEvent, 'id');
-                    if (eventId && !seen[eventId]) {
+                    if (eventId && !(eventId in seen)) {
                         seen[eventId] = true;
                         rawEvents.push (rawEvent);
                     }
@@ -191,7 +191,7 @@ export default class myriad extends Exchange {
                 const m = this.parseMyriadMarket (raw);
                 flatMarkets.push (m);
                 if (eventKey) {
-                    if (!networkGroups[eventKey]) {
+                    if (!(eventKey in networkGroups)) {
                         const optionsDict = this.options as Dict;
                         const networksMap = optionsDict['networks'] as Dict;
                         let networkName = networkId;
@@ -338,7 +338,7 @@ export default class myriad extends Exchange {
      * @param params
      * @see https://docs.myriad.markets/builders/myriad-api-reference#320c9e49da828116b12dec5bfeea306a
      */
-    async fetchTicker (symbol: Str, params = {}): Promise<Ticker> {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         const outcome = symbol;
         await this.loadMarkets ();
         const outcomeObj = this.outcome (outcome);
@@ -548,7 +548,7 @@ export default class myriad extends Exchange {
      * @param params
      * @see https://docs.myriad.markets/builders/myriad-api-reference#320c9e49da828116b12dec5bfeea306a
      */
-    async fetchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         const outcome = symbol;
         await this.loadMarkets ();
         const outcomeObj = this.outcome (outcome);
@@ -665,7 +665,7 @@ export default class myriad extends Exchange {
      * @param params
     * @see https://docs.myriad.markets/builders/myriad-api-reference#320c9e49da828116b12dec5bfeea306a
      */
-    async fetchOHLCV (symbol: Str, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const outcomeObj = this.outcome (symbol);
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
@@ -796,6 +796,7 @@ export default class myriad extends Exchange {
         queries = (queries === undefined) ? [] : queries;
         if (!queries || queries.length === 0) {
             await this.loadMarkets ();
+            this.populateOutcomes ();
             return Object.values (this.events as Dict) as any[];
         }
         const limit = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'defaultFetchEventsLimit', 50));
@@ -813,7 +814,7 @@ export default class myriad extends Exchange {
             for (let j = 0; j < found.length; j++) {
                 const rawEvent = found[j];
                 const eventId = this.safeString (rawEvent, 'id');
-                if (eventId && !seen[eventId]) {
+                if (eventId && !(eventId in seen)) {
                     seen[eventId] = true;
                     rawEvents.push (rawEvent);
                 }
@@ -842,7 +843,33 @@ export default class myriad extends Exchange {
                 result.push (parsedEvent);
             }
         }
+        this.populateOutcomes ();
         return result;
+    }
+
+    /**
+     * @ignore
+     * Rebuilds this.outcomes and this.outcomes_by_id from the outcomes of every loaded market.
+     */
+    populateOutcomes () {
+        this.outcomes = {};
+        this.outcomes_by_id = {};
+        const marketKeys = Object.keys (this.markets);
+        for (let i = 0; i < marketKeys.length; i++) {
+            const market = this.markets[marketKeys[i]] as Dict;
+            const outcomesList = this.safeList (market, 'outcomes', []) as any[];
+            for (let j = 0; j < outcomesList.length; j++) {
+                const oc = outcomesList[j];
+                const ocSymbol = this.safeString (oc, 'symbol');
+                if (ocSymbol !== undefined) {
+                    this.outcomes[ocSymbol] = oc;
+                }
+                const ocId = this.safeString (oc, 'id');
+                if (ocId !== undefined) {
+                    this.outcomes_by_id[ocId] = oc;
+                }
+            }
+        }
     }
 
     /**
@@ -891,13 +918,13 @@ export default class myriad extends Exchange {
      * @param headers
      * @param body
      */
-    sign (path: Str, api: any = 'myriad', method = 'GET', params = {}, headers: Dict = undefined, body: Dict = undefined) {
+    sign (path: string, api: any = 'myriad', method = 'GET', params = {}, headers: Dict = undefined, body: Dict = undefined) {
         const apiGroup = typeof api === 'string' ? api : api[0];
         const access = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['myriad'] as string);
-        let url = baseUrl + '/' + this.implodeParams (path as string, params);
-        const query = this.omit (params, this.extractParams (path as string));
+        let url = baseUrl + '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
         const querystring = this.urlencode (query);
         if (method === 'GET' && querystring) {
             url += '?' + querystring;

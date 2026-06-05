@@ -9818,13 +9818,15 @@ class Exchange {
         }
         $replacementKeys = is_array($replacements) ? array_keys($replacements) : array();
         for ($i = 0; $i < count($replacementKeys); $i++) {
-            $s = explode($replacementKeys[$i], implode($replacements[$replacementKeys[$i]], $s));
+            $replacementKey = $replacementKeys[$i];
+            $replacementValue = $this->safe_string($replacements, $replacementKey);
+            $s = str_replace($replacementKey, $replacementValue, $s);
         }
         $rawParts = explode('-', $s);
         $parts = array();
         for ($i = 0; $i < count($rawParts); $i++) {
             $w = $rawParts[$i];
-            if (strlen($w) > 0 && mb_strpos($stopWords, $w) === -1) {
+            if (strlen($w) > 0 && !$this->in_array($w, $stopWords)) {
                 $parts[] = $w;
             }
         }

@@ -206,7 +206,7 @@ export default class limitless extends Exchange {
                 for (let j = 0; j < found.length; j++) {
                     const raw = found[j];
                     const slug = this.safeString (raw, 'slug');
-                    if (slug && !seen[slug]) {
+                    if (slug && !(slug in seen)) {
                         seen[slug] = true;
                         allRaw.push (raw);
                     }
@@ -269,7 +269,7 @@ export default class limitless extends Exchange {
             const m = this.parseMarket (raw);
             markets.push (m);
             if (eventKey) {
-                if (!eventGroups[eventKey]) {
+                if (!(eventKey in eventGroups)) {
                     eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString (raw, 'title', groupId), 'raw': raw, 'markets': [] };
                 }
                 const eventGroup = eventGroups[eventKey] as Dict;
@@ -2249,7 +2249,7 @@ export default class limitless extends Exchange {
                 for (let j = 0; j < found.length; j++) {
                     const raw = found[j];
                     const rawSlug = this.safeString (raw, 'slug');
-                    if (rawSlug && !seen[rawSlug]) {
+                    if (rawSlug && !(rawSlug in seen)) {
                         seen[rawSlug] = true;
                         rawMarkets.push (raw);
                     }
@@ -2269,7 +2269,7 @@ export default class limitless extends Exchange {
                 const m = this.parseMarket (raw);
                 this.markets[m['symbol'] as string] = m;
                 if (eventKey) {
-                    if (!eventGroups[eventKey]) {
+                    if (!(eventKey in eventGroups)) {
                         eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString (raw, 'title', groupId), 'raw': raw, 'markets': [] };
                     }
                     const eventGroup = eventGroups[eventKey] as Dict;
@@ -2318,13 +2318,13 @@ export default class limitless extends Exchange {
      * @param headers
      * @param body
      */
-    sign (path: Str, api: any = 'limitless', method = 'GET', params = {}, headers: Dict = undefined, body: any = undefined) {
+    sign (path: string, api: any = 'limitless', method = 'GET', params = {}, headers: Dict = undefined, body: any = undefined) {
         const apiGroup = typeof api === 'string' ? api : api[0];
         const access = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['limitless'] as string);
-        let url = '/' + this.implodeParams (path as string, params);
-        const query = this.omit (params, this.extractParams (path as string));
+        let url = '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
         const querystring = this.urlencodeWithArrayRepeat (query);
         if (method === 'GET' && querystring) {
             url += '?' + querystring;

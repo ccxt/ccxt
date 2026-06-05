@@ -1717,7 +1717,7 @@ export default class hyperliquidprediction extends Exchange {
                     continue;
                 }
             }
-            if (!groupMap[parentSymbol]) {
+            if (!(parentSymbol in groupMap)) {
                 groupMap[parentSymbol] = [];
             }
             (groupMap[parentSymbol] as Market[]).push (mkt);

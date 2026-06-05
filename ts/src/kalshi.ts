@@ -166,7 +166,7 @@ export default class kalshi extends Exchange {
                     const m = parsed[j];
                     flatMarkets.push (m);
                     if (eventKey) {
-                        if (!eventsDict[eventKey]) {
+                        if (!(eventKey in eventsDict)) {
                             eventsDict[eventKey] = {
                                 'id': eventTicker,
                                 'slug': eventTicker,
@@ -1316,13 +1316,13 @@ export default class kalshi extends Exchange {
      * @param headers
      * @param body
      */
-    sign (path: Str, api: any = 'kalshi', method = 'GET', params = {}, headers: Dict = undefined, body: Dict = undefined) {
+    sign (path: string, api: any = 'kalshi', method = 'GET', params = {}, headers: Dict = undefined, body: Dict = undefined) {
         const apiGroup = typeof api === 'string' ? api : api[0];
         const access = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['kalshi'] as string);
-        let url = baseUrl + '/' + this.implodeParams (path as string, params);
-        const query = this.omit (params, this.extractParams (path as string));
+        let url = baseUrl + '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
         const querystring = this.urlencode (query);
         if (method === 'GET' && querystring) {
             url += '?' + querystring;

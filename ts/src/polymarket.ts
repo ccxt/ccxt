@@ -188,7 +188,7 @@ export default class polymarket extends Exchange {
                 for (let ei = 0; ei < allEvents.length; ei++) {
                     const rawEvent = allEvents[ei];
                     const eventId = this.safeString (rawEvent, 'id');
-                    if (eventId && !seen[eventId]) {
+                    if (eventId && !(eventId in seen)) {
                         seen[eventId] = true;
                         rawEvents.push (rawEvent);
                     }
@@ -203,7 +203,7 @@ export default class polymarket extends Exchange {
                 const parsedEvent = this.parseEvent (rawEvent);
                 const eventSlug = this.safeString (rawEvent, 'slug');
                 if (eventSlug) {
-                    const eventKey = this.shortenSlug (eventSlug as string);
+                    const eventKey = this.shortenSlug (eventSlug);
                     eventsDict[eventKey] = parsedEvent;
                 }
             }
@@ -258,7 +258,7 @@ export default class polymarket extends Exchange {
             const parsedEvent = this.parseEvent (rawEvent);
             const eventSlug = this.safeString (rawEvent, 'slug');
             if (eventSlug) {
-                const eventKey = this.shortenSlug (eventSlug as string);
+                const eventKey = this.shortenSlug (eventSlug);
                 eventsDict[eventKey] = parsedEvent;
             }
         }
@@ -1110,7 +1110,7 @@ export default class polymarket extends Exchange {
             for (let aei = 0; aei < allEvents.length; aei++) {
                 const rawEvent = allEvents[aei];
                 const eventId = this.safeString (rawEvent, 'id');
-                if (eventId && !seen[eventId]) {
+                if (eventId && !(eventId in seen)) {
                     seen[eventId] = true;
                     rawEvents.push (rawEvent);
                 }
@@ -1148,7 +1148,7 @@ export default class polymarket extends Exchange {
             const parsedEvent = this.parseEvent (eventForParsing);
             const eventSlug = this.safeString (eventForParsing, 'slug', this.safeString (rawEvent, 'slug'));
             if (eventSlug) {
-                const eventKey = this.shortenSlug (eventSlug as string);
+                const eventKey = this.shortenSlug (eventSlug);
                 this.events[eventKey] = parsedEvent;
             }
         }
@@ -1278,14 +1278,14 @@ export default class polymarket extends Exchange {
      * @param headers
      * @param body
      */
-    sign (path: Str, api: any = 'gamma', method = 'GET', params = {}, headers: Dict = undefined, body: Dict = undefined) {
+    sign (path: string, api: any = 'gamma', method = 'GET', params = {}, headers: Dict = undefined, body: Dict = undefined) {
         // api is either a string ('gamma') or array (['gamma', 'public'])
         const apiGroup = typeof api === 'string' ? api : api[0];
         const access = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['gamma'] as string);
-        let url = baseUrl + '/' + this.implodeParams (path as string, params);
-        const query = this.omit (params, this.extractParams (path as string));
+        let url = baseUrl + '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
         const querystring = this.urlencode (query);
         if (method === 'GET' && querystring) {
             url += '?' + querystring;
