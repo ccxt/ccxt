@@ -67,7 +67,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-modetrade.fetchStatus ([params])
+modetrade.fetchStatus (params?)
 ```
 
 
@@ -87,7 +87,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-modetrade.fetchTime ([params])
+modetrade.fetchTime (params?)
 ```
 
 
@@ -107,7 +107,7 @@ retrieves data on all markets for modetrade
 
 
 ```javascript
-modetrade.fetchMarkets ([params])
+modetrade.fetchMarkets (params?)
 ```
 
 
@@ -127,7 +127,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-modetrade.fetchCurrencies ([params])
+modetrade.fetchCurrencies (params?)
 ```
 
 
@@ -150,7 +150,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-modetrade.fetchTrades (symbol[, since, limit, params])
+modetrade.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -171,7 +171,7 @@ fetch the current funding rate interval
 
 
 ```javascript
-modetrade.fetchFundingInterval (symbol[, params])
+modetrade.fetchFundingInterval (symbol, params?)
 ```
 
 
@@ -192,7 +192,7 @@ fetch the current funding rate
 
 
 ```javascript
-modetrade.fetchFundingRate (symbol[, params])
+modetrade.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -213,7 +213,7 @@ fetch the current funding rate for multiple markets
 
 
 ```javascript
-modetrade.fetchFundingRates (symbols[, params])
+modetrade.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -238,7 +238,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-modetrade.fetchFundingRateHistory (symbol[, since, limit, params])
+modetrade.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -262,7 +262,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-modetrade.fetchFundingHistory ([symbol, since, limit, params])
+modetrade.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 
@@ -282,7 +282,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-modetrade.fetchTradingFees ([params])
+modetrade.fetchTradingFees (params?)
 ```
 
 
@@ -304,7 +304,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-modetrade.fetchOrderBook (symbol[, limit, params])
+modetrade.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -328,7 +328,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-modetrade.fetchOHLCV (symbol, timeframe[, since, limit, params])
+modetrade.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -365,7 +365,7 @@ create a trade order
 
 
 ```javascript
-modetrade.createOrder (symbol, type, side, amount[, price, params])
+modetrade.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -386,7 +386,7 @@ modetrade.createOrder (symbol, type, side, amount[, price, params])
 
 
 ```javascript
-modetrade.createOrders (orders[, params])
+modetrade.createOrders (orders, params?)
 ```
 
 
@@ -419,7 +419,7 @@ edit a trade order
 
 
 ```javascript
-modetrade.editOrder (id, symbol, type, side, amount[, price, params])
+modetrade.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -449,7 +449,7 @@ cancels an open order
 
 
 ```javascript
-modetrade.cancelOrder (id, symbol[, params])
+modetrade.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -476,7 +476,7 @@ cancel multiple orders
 
 
 ```javascript
-modetrade.cancelOrders (ids[, symbol, params])
+modetrade.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -502,7 +502,7 @@ cancel all open orders in a market
 
 
 ```javascript
-modetrade.cancelAllOrders (symbol[, params])
+modetrade.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -532,7 +532,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-modetrade.fetchOrder (id, symbol[, params])
+modetrade.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -564,7 +564,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-modetrade.fetchOrders (symbol[, since, limit, params])
+modetrade.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -596,7 +596,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-modetrade.fetchOpenOrders (symbol[, since, limit, params])
+modetrade.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -628,7 +628,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-modetrade.fetchClosedOrders (symbol[, since, limit, params])
+modetrade.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -652,7 +652,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-modetrade.fetchOrderTrades (id, symbol[, since, limit, params])
+modetrade.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -677,7 +677,7 @@ fetch all trades made by the user
 
 
 ```javascript
-modetrade.fetchMyTrades (symbol[, since, limit, params])
+modetrade.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -697,7 +697,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-modetrade.fetchBalance ([params])
+modetrade.fetchBalance (params?)
 ```
 
 
@@ -720,7 +720,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-modetrade.fetchLedger ([code, since, limit, params])
+modetrade.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -743,7 +743,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-modetrade.fetchDeposits (code[, since, limit, params])
+modetrade.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -766,7 +766,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-modetrade.fetchWithdrawals (code[, since, limit, params])
+modetrade.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -789,7 +789,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-modetrade.fetchDepositsWithdrawals ([code, since, limit, params])
+modetrade.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -813,7 +813,7 @@ make a withdrawal
 
 
 ```javascript
-modetrade.withdraw (code, amount, address, tag[, params])
+modetrade.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -834,7 +834,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-modetrade.fetchLeverage (symbol[, params])
+modetrade.fetchLeverage (symbol, params?)
 ```
 
 
@@ -856,7 +856,7 @@ set the level of leverage for a market
 
 
 ```javascript
-modetrade.setLeverage ([leverage, symbol, params])
+modetrade.setLeverage (leverage?, symbol?, params?)
 ```
 
 
@@ -877,7 +877,7 @@ fetch data on an open position
 
 
 ```javascript
-modetrade.fetchPosition (symbol[, params])
+modetrade.fetchPosition (symbol, params?)
 ```
 
 
@@ -898,7 +898,7 @@ fetch all open positions
 
 
 ```javascript
-modetrade.fetchPositions ([symbols, params])
+modetrade.fetchPositions (symbols?, params?)
 ```
 
 
@@ -920,7 +920,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-modetrade.watchOrderBook (symbol[, limit, params])
+modetrade.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -941,7 +941,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-modetrade.watchTicker (symbol[, params])
+modetrade.watchTicker (symbol, params?)
 ```
 
 
@@ -962,7 +962,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-modetrade.watchTickers (symbols[, params])
+modetrade.watchTickers (symbols, params?)
 ```
 
 
@@ -983,7 +983,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-modetrade.watchBidsAsks (symbols[, params])
+modetrade.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -1007,7 +1007,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-modetrade.watchOHLCV (symbol, timeframe[, since, limit, params])
+modetrade.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1030,7 +1030,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-modetrade.watchTrades (symbol[, since, limit, params])
+modetrade.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1058,7 +1058,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-modetrade.watchOrders (symbol[, since, limit, params])
+modetrade.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1086,7 +1086,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-modetrade.watchMyTrades (symbol[, since, limit, params])
+modetrade.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1109,7 +1109,7 @@ watch all open positions
 
 
 ```javascript
-modetrade.watchPositions ([symbols, since, limit, params])
+modetrade.watchPositions (symbols?, since?, limit?, params?)
 ```
 
 
@@ -1129,6 +1129,6 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-modetrade.watchBalance ([params])
+modetrade.watchBalance (params?)
 ```
 

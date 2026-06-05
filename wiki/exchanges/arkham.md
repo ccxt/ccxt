@@ -53,7 +53,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-arkham.fetchCurrencies ([params])
+arkham.fetchCurrencies (params?)
 ```
 
 
@@ -73,7 +73,7 @@ retrieves data on all markets for arkm
 
 
 ```javascript
-arkham.fetchMarkets ([params])
+arkham.fetchMarkets (params?)
 ```
 
 
@@ -93,7 +93,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-arkham.fetchTime ([params])
+arkham.fetchTime (params?)
 ```
 
 
@@ -115,7 +115,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-arkham.fetchOrderBook (symbol[, limit, params])
+arkham.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -141,7 +141,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-arkham.fetchOHLCV (symbol, timeframe[, since, limit, params])
+arkham.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -161,7 +161,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-arkham.fetchTicker (symbol[, params])
+arkham.fetchTicker (symbol, params?)
 ```
 
 
@@ -186,7 +186,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-arkham.fetchTrades (symbol[, since, limit, params])
+arkham.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -210,7 +210,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-arkham.fetchClosedOrders (symbol[, since, limit, params])
+arkham.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -234,7 +234,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-arkham.fetchOpenOrders (symbol[, since, limit, params])
+arkham.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -256,7 +256,7 @@ cancels an open order
 
 
 ```javascript
-arkham.cancelOrder (id, symbol[, params])
+arkham.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -277,7 +277,7 @@ cancel all open orders in a market
 
 
 ```javascript
-arkham.cancelAllOrders (symbol[, params])
+arkham.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -310,7 +310,7 @@ create a trade order on the exchange
 
 
 ```javascript
-arkham.createOrder (symbol, type, side, amount[, price, params])
+arkham.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -335,7 +335,7 @@ fetch all trades made by the user
 
 
 ```javascript
-arkham.fetchMyTrades ([symbol, since, limit, params])
+arkham.fetchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -355,7 +355,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-arkham.fetchAccounts ([params])
+arkham.fetchAccounts (params?)
 ```
 
 
@@ -375,7 +375,7 @@ query for account info
 
 
 ```javascript
-arkham.fetchBalance ([params])
+arkham.fetchBalance (params?)
 ```
 
 
@@ -396,7 +396,7 @@ create a currency deposit address
 
 
 ```javascript
-arkham.createDepositAddress (code[, params])
+arkham.createDepositAddress (code, params?)
 ```
 
 
@@ -417,7 +417,7 @@ fetch the deposit addresses for a currency associated with this account
 
 
 ```javascript
-arkham.fetchDepositAddressesByNetwork (code[, params])
+arkham.fetchDepositAddressesByNetwork (code, params?)
 ```
 
 
@@ -438,7 +438,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-arkham.fetchDepositAddress (code[, params])
+arkham.fetchDepositAddress (code, params?)
 ```
 
 
@@ -461,7 +461,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-arkham.fetchDeposits (code[, since, limit, params])
+arkham.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -482,7 +482,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-arkham.fetchTradingFees ([params])
+arkham.fetchTradingFees (params?)
 ```
 
 
@@ -506,7 +506,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-arkham.fetchFundingHistory ([symbol, since, limit, params])
+arkham.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 
@@ -527,7 +527,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-arkham.fetchLeverage (symbol[, params])
+arkham.fetchLeverage (symbol, params?)
 ```
 
 
@@ -549,7 +549,7 @@ set the level of leverage for a market
 
 
 ```javascript
-arkham.setLeverage (leverage, symbol[, params])
+arkham.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -570,7 +570,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-arkham.fetchLeverageTiers (symbols[, params])
+arkham.fetchLeverageTiers (symbols, params?)
 ```
 
 
@@ -591,7 +591,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-arkham.watchTicker (symbol[, params])
+arkham.watchTicker (symbol, params?)
 ```
 
 
@@ -615,7 +615,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-arkham.watchOHLCV (symbol, timeframe[, since, limit, params])
+arkham.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -637,7 +637,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-arkham.watchOrderBook (symbol[, limit, params])
+arkham.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -660,7 +660,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-arkham.watchTrades (symbol[, since, limit, params])
+arkham.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -681,7 +681,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-arkham.watchBalance ([params])
+arkham.watchBalance (params?)
 ```
 
 
@@ -704,7 +704,7 @@ watch all open positions
 
 
 ```javascript
-arkham.watchPositions ([symbols, since, limit, params])
+arkham.watchPositions (symbols?, since?, limit?, params?)
 ```
 
 
@@ -727,6 +727,6 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-arkham.watchOrders (symbol[, since, limit, params])
+arkham.watchOrders (symbol, since?, limit?, params?)
 ```
 
