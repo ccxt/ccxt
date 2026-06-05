@@ -147,7 +147,6 @@ from ccxt.exmo import exmo                                            # noqa: F4
 from ccxt.fmfwio import fmfwio                                        # noqa: F401
 from ccxt.foxbit import foxbit                                        # noqa: F401
 from ccxt.gate import gate                                            # noqa: F401
-from ccxt.gateio import gateio                                        # noqa: F401
 from ccxt.gemini import gemini                                        # noqa: F401
 from ccxt.grvt import grvt                                            # noqa: F401
 from ccxt.hashkey import hashkey                                      # noqa: F401
@@ -176,7 +175,6 @@ from ccxt.novadax import novadax                                      # noqa: F4
 from ccxt.okx import okx                                              # noqa: F401
 from ccxt.okxus import okxus                                          # noqa: F401
 from ccxt.onetrading import onetrading                                # noqa: F401
-from ccxt.oxfun import oxfun                                          # noqa: F401
 from ccxt.p2b import p2b                                              # noqa: F401
 from ccxt.pacifica import pacifica                                    # noqa: F401
 from ccxt.paradex import paradex                                      # noqa: F401
@@ -260,7 +258,6 @@ exchanges = [
     'fmfwio',
     'foxbit',
     'gate',
-    'gateio',
     'gemini',
     'grvt',
     'hashkey',
@@ -289,7 +286,6 @@ exchanges = [
     'okx',
     'okxus',
     'onetrading',
-    'oxfun',
     'p2b',
     'pacifica',
     'paradex',
