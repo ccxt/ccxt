@@ -167,6 +167,14 @@ function rewriteLinks (md: string): string {
     // docs.ccxt.com root
     s = s.replace(/https?:\/\/docs\.ccxt\.com\/?(?=[)\s"'#]|$)/g, '/docs/manual');
 
+    // unlink references to removed exchanges (their pages are no longer emitted)
+    // -> keep just the link text, so stale baseSpec/markets entries don't 404
+    const live = liveExchangeIds();
+    if (live) {
+        s = s.replace(/\[([^\]]+)\]\((?:\.\/)?\/?exchanges\/([\w]+)\.md(?:#[\w-]+)?\)/g,
+            (m, text, ex) => (live.has(ex) ? m : text));
+    }
+
     // absolute exchange links: /exchanges/<ex>.md(#m)
     s = s.replace(/\/exchanges\/([\w]+)\.md(#[\w-]+)?/g,
         (_m, ex, frag) => `/docs/exchanges/${ex}${frag ?? ''}`);
@@ -323,7 +331,27 @@ function readWiki (rel: string): string {                    // readFileSync fol
 // ---------------------------------------------------------------------------
 // Build the exchange order from _sidebar.md (falls back to sorted dir listing).
 // ---------------------------------------------------------------------------
+// Valid exchange ids = those with a real source file (ts/src/<id>.ts). jsdoc2md
+// never deletes pages for removed exchanges and misnames pages for
+// inheritance-only exchanges, so wiki/exchanges/ accumulates orphan pages
+// (probit, oxfun, …) and stray method-name pages (fetchBidsAsks, …). We use this
+// to drop those pages and unlink dangling references. Returns null (→ no
+// filtering) if ts/src is unavailable, so the build never empties on a bad cwd.
+let _liveIds: Set<string> | null | undefined;
+function liveExchangeIds (): Set<string> | null {
+    if (_liveIds === undefined) {
+        try {
+            _liveIds = new Set(fs.readdirSync(path.join(ROOT, 'ts', 'src'))
+                .filter((f) => f.endsWith('.ts'))
+                .map((f) => f.replace(/\.ts$/, '')));
+        } catch { _liveIds = null; }
+    }
+    return _liveIds ?? null;
+}
+
 function exchangeOrder (): string[] {
+    const liveIds = liveExchangeIds();
+    const isLive = (ex: string) => !liveIds || liveIds.has(ex);
     const order: string[] = [];
     try {
         const sb = readWiki('_sidebar.md');
@@ -335,7 +363,9 @@ function exchangeOrder (): string[] {
         .filter((f) => f.endsWith('.md'))
         // skip stray 0-byte files (e.g. fetchCurrencies.md) — they aren't real exchanges
         .filter((f) => fs.statSync(path.join(WIKI, 'exchanges', f)).size > 0)
-        .map((f) => f.replace(/\.md$/, ''));
+        .map((f) => f.replace(/\.md$/, ''))
+        // drop orphan / misnamed pages with no live source file
+        .filter(isLive);
     for (const ex of onDisk) if (!order.includes(ex)) order.push(ex);
     return order.filter((ex) => onDisk.includes(ex));
 }
