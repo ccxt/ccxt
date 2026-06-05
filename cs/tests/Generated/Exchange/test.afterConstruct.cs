@@ -9,7 +9,10 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testAfterConstruct(Exchange exchange, object skippedProperties)
     {
-        testOptionsNetworks(exchange, skippedProperties);
+        if (!isTrue((inOp(skippedProperties, "networks"))))
+        {
+            testOptionsNetworks(exchange, skippedProperties);
+        }
         return true;
     }
     public static void testOptionsNetworks(Exchange exchange, object skippedProperties)
