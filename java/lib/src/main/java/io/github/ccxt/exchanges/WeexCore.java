@@ -819,77 +819,76 @@ public class WeexCore extends WeexApi
             //         }
             //     ]
             //
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
-            {
-                Object currency = this.safeDict(response, i);
-                Object currencyId = this.safeString(currency, "coin");
-                Object code = this.safeCurrencyCode(currencyId);
-                Object name = this.safeString(currency, "name");
-                Object networks = new java.util.HashMap<String, Object>() {{}};
-                Object chains = this.safeList(currency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
-                {
-                    Object chain = this.safeDict(chains, j);
-                    Object networkId = this.safeString(chain, "network");
-                    Object networkCode = this.networkIdToCode(networkId);
-                    Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
-        put( "info", chain );
-        put( "id", networkId );
-        put( "network", networkCode );
-        put( "active", null );
-        put( "deposit", WeexCore.this.safeBool(chain, "depositEnable") );
-        put( "withdraw", WeexCore.this.safeBool(chain, "withdrawEnable") );
-        put( "fee", WeexCore.this.safeNumber(chain, "withdrawFee") );
-        put( "precision", WeexCore.this.safeNumber(chain, "withdrawIntegerMultiple") );
-        put( "isDefault", WeexCore.this.safeBool(chain, "isDefault", false) );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", WeexCore.this.safeNumber(chain, "withdrawMin") );
-                put( "max", null );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", WeexCore.this.safeNumber(chain, "depositDust") );
-                put( "max", null );
-            }} );
-        }} );
-    }});
-                }
-                Object networkKeys = Helpers.objectKeys(networks);
-                Object networksLength = Helpers.getArrayLength(networkKeys);
-                Object emptyChains = Helpers.isEqual(networksLength, 0); // non-functional coins
-                Object valueForEmpty = ((Helpers.isTrue(emptyChains))) ? false : null;
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "info", currency );
-        put( "code", code );
-        put( "id", currencyId );
-        put( "type", "crypto" );
-        put( "name", name );
-        put( "active", null );
-        put( "deposit", valueForEmpty );
-        put( "withdraw", valueForEmpty );
-        put( "fee", null );
-        put( "precision", null );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "networks", networks );
-    }}));
-            }
-            return result;
+            return this.parseCurrencies(response);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object currencyId = this.safeString(rawCurrency, "coin");
+        Object code = this.safeCurrencyCode(currencyId);
+        Object name = this.safeString(rawCurrency, "name");
+        Object networks = new java.util.HashMap<String, Object>() {{}};
+        Object chains = this.safeList(rawCurrency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
+        {
+            Object chain = this.safeDict(chains, j);
+            Object networkId = this.safeString(chain, "network");
+            Object networkCode = this.networkIdToCode(networkId);
+            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+    put( "info", chain );
+    put( "id", networkId );
+    put( "network", networkCode );
+    put( "active", null );
+    put( "deposit", WeexCore.this.safeBool(chain, "depositEnable") );
+    put( "withdraw", WeexCore.this.safeBool(chain, "withdrawEnable") );
+    put( "fee", WeexCore.this.safeNumber(chain, "withdrawFee") );
+    put( "precision", WeexCore.this.safeNumber(chain, "withdrawIntegerMultiple") );
+    put( "isDefault", WeexCore.this.safeBool(chain, "isDefault", false) );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", WeexCore.this.safeNumber(chain, "withdrawMin") );
+            put( "max", null );
+        }} );
+        put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "min", WeexCore.this.safeNumber(chain, "depositDust") );
+            put( "max", null );
+        }} );
+    }} );
+}});
+        }
+        Object networkKeys = Helpers.objectKeys(networks);
+        Object networksLength = Helpers.getArrayLength(networkKeys);
+        Object emptyChains = Helpers.isEqual(networksLength, 0); // non-functional coins
+        Object valueForEmpty = ((Helpers.isTrue(emptyChains))) ? false : null;
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "info", rawCurrency );
+            put( "code", code );
+            put( "id", currencyId );
+            put( "type", "crypto" );
+            put( "name", name );
+            put( "active", null );
+            put( "deposit", valueForEmpty );
+            put( "withdraw", valueForEmpty );
+            put( "fee", null );
+            put( "precision", null );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "amount", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "deposit", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "networks", networks );
+        }});
     }
 
     /**
