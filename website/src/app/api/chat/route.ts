@@ -65,9 +65,11 @@ const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
 });
 
-const primaryModel = process.env.OPENROUTER_MODEL ?? 'inclusionai/ling-2.6-flash';
-// Free models flap ("no healthy upstream" / 429). Fall back to a near-free paid model
-// so the chat keeps answering. Override either via env.
+// openrouter/free: OpenRouter's free-model router — picks a free model at random that
+// supports the request's features (incl. tool calling, which our search tool needs),
+// which avoids any single free model's "no healthy upstream" flapping.
+const primaryModel = process.env.OPENROUTER_MODEL ?? 'openrouter/free';
+// Last-resort fallback to a near-free paid model if every free model is down.
 const fallbackModel = process.env.OPENROUTER_FALLBACK_MODEL ?? 'inclusionai/ling-2.6-flash';
 const modelList = fallbackModel && fallbackModel !== primaryModel ? [primaryModel, fallbackModel] : [primaryModel];
 
