@@ -426,7 +426,13 @@ function main () {
     write(path.join(OUT, 'meta.json'),
         JSON.stringify({ title: 'Guide', icon: 'BookOpen', description: 'Install, manual & reference', root: true, pages: topPages }, null, 2));
 
-    console.log(`✅ wrote ${count} pages to ${path.relative(ROOT, OUT)}`);
+    // expose the CCXT version (from the root package.json) to the app, so the homepage
+    // Java/gradle install line shows the current version instead of a hardcoded one.
+    const ccxtVersion = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
+    fs.writeFileSync(path.join(ROOT, 'website', 'src', 'lib', 'ccxt-version.json'),
+        JSON.stringify({ version: ccxtVersion }, null, 2) + '\n');
+
+    console.log(`✅ wrote ${count} pages to ${path.relative(ROOT, OUT)} (ccxt v${ccxtVersion})`);
 }
 
 main();
