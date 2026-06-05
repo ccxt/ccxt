@@ -1339,11 +1339,11 @@ func (this *Exchange) ExtendedStarknetSign(a any, b any) any {
 	msgHash := parseStarknetBigInt(a)
 	privateKey := parseStarknetBigInt(b)
 	if msgHash == nil || privateKey == nil {
-		return nil // to do
+		panic(AuthenticationError(Add(this.Id, " extendedStarknetSign() invalid msgHash or privateKey")))
 	}
 	r, s, err := starkcurve.Sign(msgHash, privateKey)
 	if err != nil {
-		panic(AuthenticationError(Add(this.Id, Add(" starknetSign() failed: ", err.Error()))))
+		panic(AuthenticationError(Add(this.Id, Add(" extendedStarknetSign() failed: ", err.Error()))))
 	}
 	return this.Json([]any{r.String(), s.String()})
 }

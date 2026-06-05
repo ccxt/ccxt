@@ -3368,7 +3368,7 @@ export default class extended extends Exchange {
     }
 
     getExtendedStringToFelt (value: string) {
-        return this.convertToBigInt ('0x' + this.binaryToBase16 (this.encode (value)));
+        return this.convertToBigInt (this.stringToBase16 (value));
     }
 
     getExtendedEncodeI64 (value) {
