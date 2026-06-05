@@ -9,7 +9,14 @@ import type { MDXComponents } from 'mdx/types';
 function ZoomableImg(props: any) {
   return (
     <ImageZoom src={props.src}>
-      <img {...props} className={['rounded-lg', props.className].filter(Boolean).join(' ')} />
+      {/* lazy + async-decode: doc pages embed many remote badges/screenshots; don't
+          fetch them all eagerly (cuts layout shift + network on image-heavy pages). */}
+      <img
+        loading="lazy"
+        decoding="async"
+        {...props}
+        className={['rounded-lg', props.className].filter(Boolean).join(' ')}
+      />
     </ImageZoom>
   );
 }
