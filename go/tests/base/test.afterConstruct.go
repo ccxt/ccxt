@@ -10,7 +10,9 @@ func TestAfterConstruct(exchange ccxt.ICoreExchange, skippedProperties any) <-ch
 	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		TestOptionsNetworks(exchange, skippedProperties)
+		if !IsTrue((InOp(skippedProperties, "networks"))) {
+			TestOptionsNetworks(exchange, skippedProperties)
+		}
 
 		ch <- true
 		return nil
