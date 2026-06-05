@@ -9442,7 +9442,8 @@ export default class Exchange {
                 parts.push (w);
             }
         }
-        return parts.join ('_').toUpperCase ();
+        const joined = parts.join ('_');
+        return joined.toUpperCase ();
     }
 
     slugToMarketSymbol (eventSlug: string, marketSlug: string): string {

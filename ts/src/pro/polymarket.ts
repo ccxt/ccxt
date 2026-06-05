@@ -17,7 +17,7 @@ const WS_URL = 'wss://ws-subscriptions-clob.polymarket.com/ws/market';
  * @augments polymarketRest
  */
 export default class polymarket extends polymarketRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'pro': true,
             'has': {
@@ -217,13 +217,21 @@ export default class polymarket extends polymarketRest {
         const asks = orderbook['asks'] as any;
         let bestBid = undefined;
         let bestBidVolume = undefined;
-        if ((bids !== undefined) && (bids.length > 0)) {
+        let bidsLength = 0;
+        if (bids !== undefined) {
+            bidsLength = bids.length;
+        }
+        if ((bids !== undefined) && (bidsLength > 0)) {
             bestBid = bids[0][0];
             bestBidVolume = bids[0][1];
         }
         let bestAsk = undefined;
         let bestAskVolume = undefined;
-        if ((asks !== undefined) && (asks.length > 0)) {
+        let asksLength = 0;
+        if (asks !== undefined) {
+            asksLength = asks.length;
+        }
+        if ((asks !== undefined) && (asksLength > 0)) {
             bestAsk = asks[0][0];
             bestAskVolume = asks[0][1];
         }

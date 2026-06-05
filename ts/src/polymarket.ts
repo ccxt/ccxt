@@ -15,7 +15,7 @@ import { ArgumentsRequired, BadRequest } from '../ccxt.js';
  * @augments Exchange
  */
 export default class polymarket extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'polymarket',
             'name': 'Polymarket',
@@ -144,12 +144,13 @@ export default class polymarket extends Exchange {
     }
 
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const queries = this.safeList (params, 'queries', []) as string[];
+        const queries = this.safeList (params, 'queries', []) as any[];
         const rest0 = this.omit (params, [ 'queries' ]);
         let pageSize = 0;
         const flatMarkets: Market[] = [];
         const eventsDict: Dict = {};
-        if (queries && queries.length > 0) {
+        const queriesLength = queries.length;
+        if (queries && queriesLength > 0) {
             pageSize = this.safeInteger (rest0, 'limit', 50);
             const searchRest = this.omit (rest0, [ 'limit' ]);
             const seen: Dict = {};
@@ -161,8 +162,9 @@ export default class polymarket extends Exchange {
                 firstRequest = this.extend (this.extend (firstRequest, baseRequest1), searchRest);
                 const first = await this.gammaPublicGetPublicSearch (firstRequest);
                 const firstEvents = this.safeList (first, 'events', []) as any[];
+                const firstEventsLength = firstEvents.length;
                 const pagination = this.safeValue (first, 'pagination', {});
-                const totalResults = this.safeInteger (pagination, 'totalResults', firstEvents.length);
+                const totalResults = this.safeInteger (pagination, 'totalResults', firstEventsLength);
                 const totalPages = Math.ceil (totalResults / pageSize);
                 const remaining: number[] = [];
                 for (let p = 2; p <= totalPages; p++) {
@@ -226,11 +228,12 @@ export default class polymarket extends Exchange {
         firstPageRequest = this.extend (firstPageRequest, baseRequest);
         const firstPageResponse = await this.gammaPublicGetEvents (firstPageRequest);
         const firstPage = (firstPageResponse !== undefined) ? firstPageResponse : [];
+        const firstPageLength = firstPage.length;
         const allRawEvents: any[] = [];
         for (let fi = 0; fi < firstPage.length; fi++) {
             allRawEvents.push (firstPage[fi]);
         }
-        if (firstPage.length >= pageSize) {
+        if (firstPageLength >= pageSize) {
             const offsets: number[] = [];
             for (let p = 1; p < maxPages; p++) {
                 offsets.push (p * pageSize);
@@ -366,22 +369,36 @@ export default class polymarket extends Exchange {
             const tickSize = this.safeNumber (market, 'minimumTickSize', 0.01);
             const endDate = this.safeString (market, 'endDate', this.safeString (market, 'end_date_iso'));
             // Gamma API returns these arrays as JSON-encoded strings
-            let outcomeLabels: string[] = [];
-            let clobTokenIds: string[] = [];
-            let outcomePrices: string[] = [];
+            let outcomeLabels: any[] = [];
+            let clobTokenIds: any[] = [];
+            let outcomePrices: any[] = [];
             const parsedOutcomes = this.parseJson (this.safeString (market, 'outcomes', '[]'));
             const parsedTokenIds = this.parseJson (this.safeString (market, 'clobTokenIds', '[]'));
             const parsedPrices = this.parseJson (this.safeString (market, 'outcomePrices', '[]'));
-            if (parsedOutcomes && (parsedOutcomes as any[]).length !== undefined) {
-                outcomeLabels = parsedOutcomes as string[];
+            let parsedOutcomesLength = undefined;
+            if (parsedOutcomes !== undefined) {
+                parsedOutcomesLength = (parsedOutcomes as any[]).length;
             }
-            if (parsedTokenIds && (parsedTokenIds as any[]).length !== undefined) {
-                clobTokenIds = parsedTokenIds as string[];
+            let parsedTokenIdsLength = undefined;
+            if (parsedTokenIds !== undefined) {
+                parsedTokenIdsLength = (parsedTokenIds as any[]).length;
             }
-            if (parsedPrices && (parsedPrices as any[]).length !== undefined) {
-                outcomePrices = parsedPrices as string[];
+            let parsedPricesLength = undefined;
+            if (parsedPrices !== undefined) {
+                parsedPricesLength = (parsedPrices as any[]).length;
             }
-            if (outcomeLabels.length === 0 || clobTokenIds.length === 0) {
+            if (parsedOutcomes && (parsedOutcomesLength !== undefined)) {
+                outcomeLabels = parsedOutcomes as any[];
+            }
+            if (parsedTokenIds && (parsedTokenIdsLength !== undefined)) {
+                clobTokenIds = parsedTokenIds as any[];
+            }
+            if (parsedPrices && (parsedPricesLength !== undefined)) {
+                outcomePrices = parsedPrices as any[];
+            }
+            const outcomeLabelsLength = outcomeLabels.length;
+            const clobTokenIdsLength = clobTokenIds.length;
+            if (outcomeLabelsLength === 0 || clobTokenIdsLength === 0) {
                 continue;
             }
             // Market symbol (no outcome suffix)
@@ -515,7 +532,11 @@ export default class polymarket extends Exchange {
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         const outcomes = symbols;
-        if (outcomes && outcomes.length > 0) {
+        let outcomesLength = 0;
+        if (outcomes !== undefined) {
+            outcomesLength = outcomes.length;
+        }
+        if (outcomesLength > 0) {
             for (let i = 0; i < outcomes.length; i++) {
                 await this.checkEventsAndMarkets (outcomes[i]);
             }
@@ -523,9 +544,16 @@ export default class polymarket extends Exchange {
             await this.checkEventsAndMarkets ();
         }
         const outcomesMap = (this.outcomes !== undefined) ? this.outcomes : {};
-        let targets = Object.keys (outcomesMap);
+        const targets: any[] = [];
         if (outcomes !== undefined) {
-            targets = outcomes as string[];
+            for (let oi = 0; oi < outcomes.length; oi++) {
+                targets.push (outcomes[oi]);
+            }
+        } else {
+            const allOutcomeKeys = Object.keys (outcomesMap);
+            for (let ki = 0; ki < allOutcomeKeys.length; ki++) {
+                targets.push (allOutcomeKeys[ki]);
+            }
         }
         const result: Tickers = {};
         for (let i = 0; i < targets.length; i++) {
@@ -576,8 +604,10 @@ export default class polymarket extends Exchange {
         const mid = this.safeNumber (midpointData, 'mid');
         const bids = this.safeList (bookData, 'bids', []) as any[];
         const asks = this.safeList (bookData, 'asks', []) as any[];
-        const bestBid = bids.length ? this.safeNumber (bids[0], 'price') : undefined;
-        const bestAsk = asks.length ? this.safeNumber (asks[0], 'price') : undefined;
+        const bidsLength = bids.length;
+        const asksLength = asks.length;
+        const bestBid = bidsLength ? this.safeNumber (bids[0], 'price') : undefined;
+        const bestAsk = asksLength ? this.safeNumber (asks[0], 'price') : undefined;
         const symbol = this.safeSymbol (undefined, market);
         const now = this.milliseconds ();
         return this.safeTicker ({
@@ -587,9 +617,9 @@ export default class polymarket extends Exchange {
             'high': undefined,
             'low': undefined,
             'bid': bestBid,
-            'bidVolume': bids.length ? this.safeNumber (bids[0], 'size') : undefined,
+            'bidVolume': bidsLength ? this.safeNumber (bids[0], 'size') : undefined,
             'ask': bestAsk,
-            'askVolume': asks.length ? this.safeNumber (asks[0], 'size') : undefined,
+            'askVolume': asksLength ? this.safeNumber (asks[0], 'size') : undefined,
             'vwap': undefined,
             'open': undefined,
             'close': mid,
@@ -671,8 +701,8 @@ export default class polymarket extends Exchange {
                 endS = endBound < nowS ? endBound : nowS;
             }
         } else {
-            const count = (limit !== undefined) ? limit : 100;
-            startS = nowS - (count * fidelityMin * 60);
+            const barCount = (limit !== undefined) ? limit : 100;
+            startS = nowS - (barCount * fidelityMin * 60);
         }
         const request: Dict = {
             'market': tokenId,
@@ -695,9 +725,13 @@ export default class polymarket extends Exchange {
         const buckets = {};
         for (let i = 0; i < history.length; i++) {
             const item = history[i];
-            const rawMs = this.safeInteger (item, 't') as number * 1000;
+            const t = this.safeInteger (item, 't');
+            const price = this.safeNumber (item, 'p');
+            if ((t === undefined) || (price === undefined)) {
+                continue;
+            }
+            const rawMs = t * 1000;
             const snappedMs = Math.floor (rawMs / resolutionMs) * resolutionMs;
-            const price = this.safeNumber (item, 'p') as number;
             let vol = this.safeNumber (item, 's');
             if (vol === undefined) {
                 vol = this.safeNumber (item, 'v');
@@ -713,7 +747,7 @@ export default class polymarket extends Exchange {
                 candle[2] = Math.max (candle[2] as number, price); // high
                 candle[3] = Math.min (candle[3] as number, price); // low
                 candle[4] = price;                                  // close (last tick wins)
-                candle[5] = ((candle[5] as number) || 0) + vol;    // volume
+                candle[5] = (candle[5] as number) + vol;           // volume
             }
         }
         const bucketKeys = Object.keys (buckets);
@@ -722,10 +756,14 @@ export default class polymarket extends Exchange {
             unsortedCandles.push (buckets[bucketKeys[i]] as OHLCV);
         }
         const candles = this.sortBy (unsortedCandles, 0);
-        return (limit !== undefined && candles.length > limit) ? candles.slice (-limit) : candles;
+        const candlesLength = candles.length;
+        if ((limit !== undefined) && (candlesLength > limit)) {
+            return this.arraySlice (candles, -limit);
+        }
+        return candles;
     }
 
-    parseOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         // Unused: fetchOHLCV performs client-side bucket aggregation directly.
         //
         //     {
@@ -733,9 +771,8 @@ export default class polymarket extends Exchange {
         //         "p": "0.265"
         //     }
         //
-        const ts = this.safeInteger (ohlcv, 't');
         const price = this.safeNumber (ohlcv, 'p');
-        return [ ts !== undefined ? ts * 1000 : undefined, price, price, price, price, undefined ];
+        return [ this.safeTimestamp (ohlcv, 't'), price, price, price, price, 0 ];
     }
 
     /**
@@ -792,6 +829,7 @@ export default class polymarket extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
             'outcome': symbol,
             'outcomeId': this.safeString (trade, 'asset'),
             'order': this.safeString (trade, 'orderId'),
@@ -823,7 +861,7 @@ export default class polymarket extends Exchange {
      * Parses a portfolio value response into a CCXT Balances object with a USDC entry.
      * @param response
      */
-    parseBalance (response: Dict): Balances {
+    parseBalance (response): Balances {
         const result: Dict = { 'info': response };
         const total = this.safeNumber (response, 'value', this.safeNumber (response, 'total'));
         result['USDC'] = {
@@ -842,7 +880,11 @@ export default class polymarket extends Exchange {
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         const outcomes = symbols;
-        if (outcomes && outcomes.length > 0) {
+        let outcomesLength = 0;
+        if (outcomes !== undefined) {
+            outcomesLength = outcomes.length;
+        }
+        if (outcomesLength > 0) {
             for (let i = 0; i < outcomes.length; i++) {
                 await this.checkEventsAndMarkets (outcomes[i]);
             }
@@ -874,6 +916,10 @@ export default class polymarket extends Exchange {
         // const unrealizedPnl = (size !== undefined && entryPrice !== undefined && curPrice !== undefined)
         //     ? size * (curPrice - entryPrice)
         //     : undefined;
+        let notional = undefined;
+        if ((size !== undefined) && (curPrice !== undefined)) {
+            notional = size * curPrice;
+        }
         return {
             'id': this.safeString (position, 'id'),
             'symbol': marketData['symbol'],
@@ -882,7 +928,7 @@ export default class polymarket extends Exchange {
             'contracts': size,
             'contractSize': 1,
             'side': 'long',
-            'notional': (size !== undefined && curPrice !== undefined) ? size * curPrice : undefined,
+            'notional': notional,
             'leverage': 1,
             'unrealizedPnl': undefined,
             'realizedPnl': this.safeNumber (position, 'realizedPnl'),
@@ -1087,8 +1133,9 @@ export default class polymarket extends Exchange {
             const firstRequest: Dict = { 'page': 1 };
             const first = await this.gammaPublicGetPublicSearch (this.extend (this.extend (firstRequest, baseRequest), rest));
             const firstEvents = this.safeList (first, 'events', []) as any[];
+            const firstEventsLength = firstEvents.length;
             const pagination = this.safeValue (first, 'pagination', {});
-            const totalResults = this.safeInteger (pagination, 'totalResults', firstEvents.length);
+            const totalResults = this.safeInteger (pagination, 'totalResults', firstEventsLength);
             const totalPages = Math.ceil (totalResults / pageSize);
             const remainingPages: number[] = [];
             for (let p = 2; p <= totalPages; p++) {
@@ -1127,7 +1174,8 @@ export default class polymarket extends Exchange {
             const rawEvent = rawEvents[rei];
             let eventForParsing = rawEvent;
             let ccxtMarkets = this.parseEventToMarkets (eventForParsing);
-            if (ccxtMarkets.length === 0) {
+            const ccxtMarketsLength = ccxtMarkets.length;
+            if (ccxtMarketsLength === 0) {
                 const eventId = this.safeString (rawEvent, 'id');
                 const rawEventSlug = this.safeString (rawEvent, 'slug');
                 let detailedEvent = undefined;
@@ -1170,7 +1218,7 @@ export default class polymarket extends Exchange {
                 }
             }
         }
-        return Object.values (this.events);
+        return this.events;
     }
 
     parseEvent (rawEvent: Dict): Dict {
@@ -1278,7 +1326,7 @@ export default class polymarket extends Exchange {
      * @param headers
      * @param body
      */
-    sign (path: string, api: any = 'gamma', method = 'GET', params = {}, headers: Dict = undefined, body: Dict = undefined) {
+    sign (path: any, api: any = 'gamma', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         // api is either a string ('gamma') or array (['gamma', 'public'])
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const access: string = typeof api === 'string' ? 'public' : api[1];

@@ -8360,7 +8360,8 @@ class Exchange(object):
             w = rawParts[i]
             if len(w) > 0 and not self.in_array(w, stopWords):
                 parts.append(w)
-        return '_'.join(parts).upper()
+        joined = '_'.join(parts)
+        return joined.upper()
 
     def slug_to_market_symbol(self, eventSlug: str, marketSlug: str):
         return self.shorten_slug(marketSlug)

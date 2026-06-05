@@ -38,7 +38,7 @@ import { ecdsa } from './base/functions.js';
  * @augments Exchange
  */
 export default class limitless extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'limitless',
             'name': 'Limitless',
@@ -192,10 +192,11 @@ export default class limitless extends Exchange {
      * @see https://docs.limitless.exchange/api-reference/markets/get-active-markets
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const queries = this.safeList (params, 'queries', []) as string[];
+        const queries = this.safeList (params, 'queries', []) as any[];
         const rest = this.omit (params, [ 'queries' ]);
         let allRaw: any[] = [];
-        if (queries && queries.length > 0) {
+        const queriesLength = queries.length;
+        if (queries && queriesLength > 0) {
             const limit = this.safeInteger (rest, 'limit', 50);
             const searchRest = this.omit (rest, [ 'limit' ]);
             const seen: Dict = {};
@@ -247,14 +248,15 @@ export default class limitless extends Exchange {
                     const response = await this.limitlessPublicGetMarketsActive (this.extend (request, rest));
                     const rawPageMarkets = this.safeList (response, 'data', response as any);
                     const page_markets = (rawPageMarkets !== undefined) ? rawPageMarkets : [];
-                    if (!page_markets || page_markets.length === 0) {
+                    const pageMarketsLength = page_markets.length;
+                    if (!page_markets || pageMarketsLength === 0) {
                         break;
                     }
                     for (let i = 0; i < page_markets.length; i++) {
                         const raw = page_markets[i];
                         allRaw.push (raw);
                     }
-                    if (page_markets.length < pageSize) {
+                    if (pageMarketsLength < pageSize) {
                         break;
                     }
                 }
@@ -859,7 +861,7 @@ export default class limitless extends Exchange {
         //
         const rawLabel = market ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'yes')) : 'yes';
         const isYes = rawLabel.toLowerCase () !== 'no';
-        const prices = this.safeList (raw, 'prices', []) as number[];
+        const prices = this.safeList (raw, 'prices', []) as any[];
         const price = isYes ? (prices[0] as number) : (prices[1] as number);
         const tradePrices = this.safeValue (raw, 'tradePrices', {});
         const buySide  = this.safeValue (tradePrices, 'buy',  {});
@@ -868,11 +870,20 @@ export default class limitless extends Exchange {
         const sellMarket = this.safeList (sellSide, 'market', []) as any[];
         // tradePrices.buy.market entries: [price, size] — best ask is first buy entry
         // tradePrices.sell.market entries: [price, size] — best bid is first sell entry
-        const ask  = (buyMarket.length > 0) ? this.safeNumber (buyMarket[0], 0) : undefined;
-        const bid  = (sellMarket.length > 0) ? this.safeNumber (sellMarket[0], 0) : undefined;
+        const buyMarketLength = buyMarket.length;
+        const sellMarketLength = sellMarket.length;
+        const ask  = (buyMarketLength > 0) ? this.safeNumber (buyMarket[0], 0) : undefined;
+        const bid  = (sellMarketLength > 0) ? this.safeNumber (sellMarket[0], 0) : undefined;
         // Volume: 'volume' field is in USDC micro-units (6 decimals)
         const rawVolume = this.safeNumber (raw, 'volume');
-        const volume = (rawVolume !== undefined) ? rawVolume / 1e6 : undefined;
+        let volume = undefined;
+        if (rawVolume !== undefined) {
+            volume = rawVolume / 1e6;
+        }
+        let average = price;
+        if ((bid !== undefined) && (ask !== undefined)) {
+            average = (bid + ask) / 2;
+        }
         const now = this.milliseconds ();
         return this.safeTicker ({
             'symbol': this.safeSymbol (undefined, market),
@@ -891,7 +902,7 @@ export default class limitless extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': (bid !== undefined && ask !== undefined) ? (bid + ask) / 2 : price,
+            'average': average,
             'baseVolume': undefined,
             'quoteVolume': volume,
             'info': raw,
@@ -946,12 +957,20 @@ export default class limitless extends Exchange {
         for (let bi = 0; bi < rawBids.length; bi++) {
             const price = this.safeNumber (rawBids[bi], 'price');
             const sizeMicro = this.safeNumber (rawBids[bi], 'size');
-            bids.push ([ price, sizeMicro !== undefined ? sizeMicro / scale : undefined ]);
+            let size = undefined;
+            if (sizeMicro !== undefined) {
+                size = sizeMicro / scale;
+            }
+            bids.push ([ price, size ]);
         }
         for (let ai = 0; ai < rawAsks.length; ai++) {
             const price = this.safeNumber (rawAsks[ai], 'price');
             const sizeMicro = this.safeNumber (rawAsks[ai], 'size');
-            asks.push ([ price, sizeMicro !== undefined ? sizeMicro / scale : undefined ]);
+            let size = undefined;
+            if (sizeMicro !== undefined) {
+                size = sizeMicro / scale;
+            }
+            asks.push ([ price, size ]);
         }
         return {
             'symbol': this.safeString (outcomeObj, 'symbol', outcome),
@@ -1019,7 +1038,8 @@ export default class limitless extends Exchange {
         const rawHistoryList = this.safeList (response, 'data', this.safeList (response, 'prices', response as any));
         const rawHistory = (rawHistoryList !== undefined) ? rawHistoryList : [];
         let history: any[] = rawHistory;
-        if (rawHistory.length > 0) {
+        const rawHistoryLength = rawHistory.length;
+        if (rawHistoryLength > 0) {
             const first = this.safeDict (rawHistory, 0, {});
             const firstPrices = this.safeList (first, 'prices');
             if (firstPrices !== undefined) {
@@ -1035,7 +1055,16 @@ export default class limitless extends Exchange {
                 history = this.safeList (selectedSeries, 'prices', []);
             }
         }
-        return this.parseOHLCVs (history, outcomeObj, timeframe, since, limit);
+        const usableHistory = [];
+        for (let i = 0; i < history.length; i++) {
+            const point = history[i];
+            const pointPrice = this.safeNumber (point, 'price');
+            const pointTs = this.safeString (point, 'timestamp');
+            if ((pointPrice !== undefined) && (pointTs !== undefined)) {
+                usableHistory.push (point);
+            }
+        }
+        return this.parseOHLCVs (usableHistory, outcomeObj, timeframe, since, limit);
     }
 
     /**
@@ -1043,7 +1072,7 @@ export default class limitless extends Exchange {
      * @param ohlcv
      * @param market
      */
-    parseOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "timestamp": 1705318200000,
@@ -1064,7 +1093,7 @@ export default class limitless extends Exchange {
             ts = ts * 1000;
         }
         const price = this.safeNumber (ohlcv, 'price');
-        const volume = this.safeNumber (ohlcv, 'volume');
+        const volume = this.safeNumber (ohlcv, 'volume', 0);   // history endpoint has no volume → 0
         return [
             ts,
             price, price, price, price,   // synthetic OHLC from single tick
@@ -2040,7 +2069,11 @@ export default class limitless extends Exchange {
      * @see https://docs.limitless.exchange/api-reference/portfolio/get-positions
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        if (symbols && symbols.length > 0) {
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+        }
+        if (symbolsLength > 0) {
             for (let i = 0; i < symbols.length; i++) {
                 await this.checkEventsAndMarkets (symbols[i]);
             }
@@ -2228,10 +2261,11 @@ export default class limitless extends Exchange {
      * @param params
      * @see https://docs.limitless.exchange/api-reference/markets/search-markets
      */
-    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any[]> {
+    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any> {
         queries = (queries === undefined) ? [] : queries;
         let result = [];
-        if (!queries || queries.length === 0) {
+        const queriesLength = queries.length;
+        if (!queries || queriesLength === 0) {
             await this.loadMarkets ();
             result = Object.values (this.events as Dict) as any[];
         } else {
@@ -2282,8 +2316,7 @@ export default class limitless extends Exchange {
                 const eventKey = eventKeys[i];
                 const g = eventGroups[eventKey] as Dict;
                 const ev = this.parseEvent (g);
-                const eventsMap = this.events as Dict;
-                eventsMap[eventKey] = ev;
+                this.events[eventKey] = ev;
                 result.push (ev);
             }
         }
@@ -2306,7 +2339,7 @@ export default class limitless extends Exchange {
                 }
             }
         }
-        return result;
+        return this.events;
     }
 
     /**
@@ -2318,7 +2351,7 @@ export default class limitless extends Exchange {
      * @param headers
      * @param body
      */
-    sign (path: string, api: any = 'limitless', method = 'GET', params = {}, headers: Dict = undefined, body: any = undefined) {
+    sign (path: any, api: any = 'limitless', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const access: string = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'] as Dict;

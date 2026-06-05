@@ -4,7 +4,7 @@ import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
 import type {
-    Int, Str, Num, Dict,
+    Int, int, Str, Num, Dict,
     Market, Ticker, Tickers, OrderBook, Trade, OHLCV,
     Order, Balances, Position,
     Strings,
@@ -290,13 +290,14 @@ export default class hyperliquidprediction extends Exchange {
                             thresholds.push (trimmed);
                         }
                     }
+                    const thresholdsLength = thresholds.length;
                     const index = this.parseToInt (indexStr);
-                    if (thresholds.length > 0 && index !== undefined) {
+                    if (thresholdsLength > 0 && index !== undefined) {
                         let bucketLabel: string;
                         if (index <= 0) {
                             bucketLabel = 'BELOW-' + thresholds[0];
-                        } else if (index >= thresholds.length) {
-                            const lastIdx = thresholds.length - 1;
+                        } else if (index >= thresholdsLength) {
+                            const lastIdx = thresholdsLength - 1;
                             bucketLabel = 'ABOVE-' + thresholds[lastIdx];
                         } else {
                             bucketLabel = 'BETWEEN-' + thresholds[index - 1] + '-' + thresholds[index];
@@ -459,9 +460,10 @@ export default class hyperliquidprediction extends Exchange {
         if (expiry) {
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             const expParts = expiry.split ('-');
-            if (expParts.length >= 1 && expParts[0].length === 8) {
+            const expPartsLength = expParts.length;
+            if (expPartsLength >= 1 && expParts[0].length === 8) {
                 const ymd = expParts[0];
-                const hm = (expParts.length >= 2) ? expParts[1] : '0000';
+                const hm = (expPartsLength >= 2) ? expParts[1] : '0000';
                 const isoStr = ymd.slice (0, 4) + '-' + ymd.slice (4, 6) + '-' + ymd.slice (6, 8) + 'T' + hm.slice (0, 2) + ':' + hm.slice (2, 4) + ':00Z';
                 expiryMs = this.parse8601 (isoStr);
                 expiryDatetime = isoStr;
@@ -615,7 +617,9 @@ export default class hyperliquidprediction extends Exchange {
         //         "time": 1704290104840
         //     }
         //
-        const ticker = this.parseTicker (response, market);
+        // l2Book returns null for coins without an order book; coerce to an empty dict
+        const tickerData = this.safeDict ({ 'book': response }, 'book', {});
+        const ticker = this.parseTicker (tickerData, market);
         ticker['symbol'] = this.safeString (outcomeObj, 'symbol', outcome);
         return ticker;
     }
@@ -843,7 +847,7 @@ export default class hyperliquidprediction extends Exchange {
     /**
      * Parses a single Hyperliquid candle object into a CCXT OHLCV tuple.
      */
-    parseOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "T": 1704287699999,   // close time
@@ -1069,7 +1073,8 @@ export default class hyperliquidprediction extends Exchange {
         }
         const digitChars = '0123456789';
         const inputChars = this.stringToCharsArray (outcomeInput);
-        let isNumericInput = inputChars.length > 0;
+        const inputCharsLength = inputChars.length;
+        let isNumericInput = inputCharsLength > 0;
         for (let di = 0; di < inputChars.length; di++) {
             if (digitChars.indexOf (inputChars[di]) < 0) {
                 isNumericInput = false;
@@ -1614,7 +1619,7 @@ export default class hyperliquidprediction extends Exchange {
             const outcomeObj = this.outcome (outcome);
             symbol = this.safeString (outcomeObj, 'symbol');
         }
-        return this.filterBySymbolSinceLimit (parsed, symbol, since, limit) as Trade[];
+        return this.filterBySymbolSinceLimit (parsed, symbol, since, limit) as any[];
     }
 
     /**
@@ -1683,7 +1688,7 @@ export default class hyperliquidprediction extends Exchange {
      * @param {object} [params] extra parameters
      * @returns {PredictionEvent[]} array of event structures
      */
-    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any[]> {
+    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any> {
         queries = (queries === undefined) ? [] : queries;
         await this.loadMarkets ();
         const marketValues = Object.values (this.markets);
@@ -1694,6 +1699,7 @@ export default class hyperliquidprediction extends Exchange {
             const queryString = queries[i] as string;
             lowerQueries.push (queryString.toLowerCase ());
         }
+        const lowerQueriesLength = lowerQueries.length;
         for (let i = 0; i < marketValues.length; i++) {
             const mkt = marketValues[i] as Market;
             if (!this.safeBool (mkt as any, 'prediction', false)) {
@@ -1702,7 +1708,7 @@ export default class hyperliquidprediction extends Exchange {
             const info = this.safeDict (mkt as any, 'info', {});
             const parentSymbol = this.safeString (info, 'parentSymbol', this.safeString (mkt, 'symbol'));
             // Apply query filter
-            if (lowerQueries.length > 0) {
+            if (lowerQueriesLength > 0) {
                 const description = this.safeString (info, 'description', '').toLowerCase ();
                 const parentSymbolOrEmpty = (parentSymbol !== undefined) ? parentSymbol : '';
                 const symLower = parentSymbolOrEmpty.toLowerCase ();
@@ -1720,13 +1726,13 @@ export default class hyperliquidprediction extends Exchange {
             if (!(parentSymbol in groupMap)) {
                 groupMap[parentSymbol] = [];
             }
-            (groupMap[parentSymbol] as Market[]).push (mkt);
+            (groupMap[parentSymbol] as any[]).push (mkt);
         }
         const events = [];
         const groupKeys = Object.keys (groupMap);
         for (let gi = 0; gi < groupKeys.length; gi++) {
             const key = groupKeys[gi];
-            const groupMarkets = groupMap[key] as Market[];
+            const groupMarkets = groupMap[key] as any[];
             const event = this.parseEvent ({ 'parentSymbol': key, 'markets': groupMarkets });
             events.push (event);
         }
@@ -1737,7 +1743,7 @@ export default class hyperliquidprediction extends Exchange {
             const ev = events[i];
             this.events[ev['symbol']] = ev;
         }
-        return events;
+        return this.events;
     }
 
     /**
@@ -1745,9 +1751,10 @@ export default class hyperliquidprediction extends Exchange {
      */
     parseEvent (raw: Dict): any {
         const parentSymbol = this.safeString (raw, 'parentSymbol');
-        const markets = this.safeList (raw, 'markets', []) as Market[];
+        const markets = this.safeList (raw, 'markets', []) as any[];
         // Extract info from first market
-        const firstMarket = (markets.length > 0) ? markets[0] : {};
+        const marketsLength = markets.length;
+        const firstMarket = (marketsLength > 0) ? markets[0] : {};
         const firstInfo = this.safeDict (firstMarket as any, 'info', {});
         const desc = this.safeDict (firstInfo, 'parsedDescription', {});
         const underlying = this.safeString (desc, 'underlying');
@@ -1757,9 +1764,10 @@ export default class hyperliquidprediction extends Exchange {
         let expiryDatetime = undefined;
         if (expiryRaw) {
             const parts = expiryRaw.split ('-');
-            if (parts.length >= 1 && parts[0].length === 8) {
+            const partsLength = parts.length;
+            if (partsLength >= 1 && parts[0].length === 8) {
                 const ymd = parts[0];
-                const hm = (parts.length >= 2) ? parts[1] : '0000';
+                const hm = (partsLength >= 2) ? parts[1] : '0000';
                 const isoStr = ymd.slice (0, 4) + '-' + ymd.slice (4, 6) + '-' + ymd.slice (6, 8) + 'T' + hm.slice (0, 2) + ':' + hm.slice (2, 4) + ':00Z';
                 expiryMs = this.parse8601 (isoStr);
                 expiryDatetime = isoStr;
@@ -1919,7 +1927,7 @@ export default class hyperliquidprediction extends Exchange {
         return normalized.toLowerCase ();
     }
 
-    sign (path: any, api: any = 'public', method = 'POST', params = {}, headers: Dict = undefined, body: any = undefined) {
+    sign (path: any, api: any = 'public', method = 'POST', params = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup = Array.isArray (api) ? api[0] : api;
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', true);
         let baseUrl: string;
@@ -1938,7 +1946,7 @@ export default class hyperliquidprediction extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code: number, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (!response) {
             return undefined;
         }
@@ -1966,7 +1974,7 @@ export default class hyperliquidprediction extends Exchange {
         return undefined;
     }
 
-    calculateRateLimiterCost (api: any, method: string, path: string, params: Dict, config: Dict = {}) {
+    calculateRateLimiterCost (api, method, path, params, config = {}) {
         if (('byType' in config) && ('type' in params)) {
             const type = params['type'];
             const byType = config['byType'] as Dict;

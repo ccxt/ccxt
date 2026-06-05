@@ -28,7 +28,7 @@ import type {
  * @augments Exchange
  */
 export default class myriad extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'myriad',
             'name': 'Myriad',
@@ -127,9 +127,10 @@ export default class myriad extends Exchange {
      * @see https://docs.myriad.markets/api-reference/markets/list-markets
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const queries = this.safeList (params, 'queries', []) as string[];
+        const queries = this.safeList (params, 'queries', []) as any[];
         const rest0 = this.omit (params, [ 'queries' ]);
-        if (queries && queries.length > 0) {
+        const queriesLength = queries.length;
+        if (queries && queriesLength > 0) {
             const searchLimit = this.safeInteger (rest0, 'limit', this.safeInteger (this.options, 'defaultFetchMarketsLimit', 50));
             const searchRest = this.omit (rest0, [ 'limit' ]);
             const seen: Dict = {};
@@ -158,7 +159,7 @@ export default class myriad extends Exchange {
                 if (eventKey) {
                     qEventsDict[eventKey] = parsed;
                 }
-                const parsedMarkets = parsed['markets'] as unknown as Market[];
+                const parsedMarkets = parsed['markets'] as any[];
                 for (let j = 0; j < parsedMarkets.length; j++) {
                     const m = parsedMarkets[j];
                     qFlatMarkets.push (m);
@@ -181,7 +182,8 @@ export default class myriad extends Exchange {
             }, rest));
             const rawMarketsList = this.safeList (response, 'data', response as any);
             const rawMarkets = (rawMarketsList !== undefined) ? rawMarketsList : [];
-            if (!rawMarkets || rawMarkets.length === 0) {
+            const rawMarketsLength = rawMarkets.length;
+            if (!rawMarkets || rawMarketsLength === 0) {
                 break;
             }
             for (let i = 0; i < rawMarkets.length; i++) {
@@ -206,7 +208,7 @@ export default class myriad extends Exchange {
                 }
             }
             page = this.sum (page, 1);
-            if (rawMarkets.length < limit) {
+            if (rawMarketsLength < limit) {
                 break;
             }
         }
@@ -644,8 +646,12 @@ export default class myriad extends Exchange {
         }
         const timestamp = this.milliseconds ();
         // AMM: synthesize a single bid/ask pair at the current implied price
-        const bid = price !== undefined ? price - 0.001 : undefined;
-        const ask = price !== undefined ? price + 0.001 : undefined;
+        let bid = undefined;
+        let ask = undefined;
+        if (price !== undefined) {
+            bid = price - 0.001;
+            ask = price + 0.001;
+        }
         return {
             'symbol': this.safeOutcomeSymbol (outcome, outcomeObj),
             'bids': bid !== undefined ? [ [ bid, 9999 ] ] : [],
@@ -744,12 +750,23 @@ export default class myriad extends Exchange {
         }
         const pointsList = this.safeList (chart, 'prices', this.safeList (chart, 'data', chart as any));
         let points = (pointsList !== undefined) ? pointsList : [];
-        if (points.length === 0) {
+        const pointsLength = points.length;
+        if (pointsLength === 0) {
             const priceCharts = this.safeDict (response, 'price_charts', {});
             const bucket = this.safeValue (priceCharts, bucketKey, {});
             points = this.safeList (bucket, outcomeId, this.safeList (bucket, 'data', [])) as any[];
         }
-        return this.parseOHLCVs (points, outcomeObj, timeframe, since, limit);
+        const usablePoints = [];
+        for (let i = 0; i < points.length; i++) {
+            const point = points[i];
+            const pointOpen = this.safeNumber (point, 'open');
+            const pointPrice = this.safeNumber (point, 'price', this.safeNumber (point, 'value'));
+            const pointTs = this.safeInteger (point, 'timestamp');
+            if (((pointOpen !== undefined) || (pointPrice !== undefined)) && (pointTs !== undefined)) {
+                usablePoints.push (point);
+            }
+        }
+        return this.parseOHLCVs (usablePoints, outcomeObj, timeframe, since, limit);
     }
 
     /**
@@ -757,7 +774,7 @@ export default class myriad extends Exchange {
      * @param ohlcv
      * @param market
      */
-    parseOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "timestamp": 1705318200,
@@ -769,19 +786,18 @@ export default class myriad extends Exchange {
         //         "value": 0.42
         //     }
         //
-        const ts = this.safeInteger (ohlcv, 'timestamp');
         const open = this.safeNumber (ohlcv, 'open');
         const high = this.safeNumber (ohlcv, 'high');
         const low = this.safeNumber (ohlcv, 'low');
         const close = this.safeNumber (ohlcv, 'close');
         const price = this.safeNumber (ohlcv, 'price', this.safeNumber (ohlcv, 'value'));  // fallback single-value tick
         return [
-            ts !== undefined ? ts * 1000 : undefined,
+            this.safeTimestamp (ohlcv, 'timestamp'),
             open !== undefined ? open : price,
             high !== undefined ? high : price,
             low !== undefined ? low : price,
             close !== undefined ? close : price,
-            undefined,
+            0,   // price_charts endpoint has no volume
         ];
     }
 
@@ -792,9 +808,10 @@ export default class myriad extends Exchange {
      * @param params
      * @see https://docs.myriad.markets/api-reference/questions/list-questions
      */
-    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any[]> {
+    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any> {
         queries = (queries === undefined) ? [] : queries;
-        if (!queries || queries.length === 0) {
+        const queriesLength = queries.length;
+        if (!queries || queriesLength === 0) {
             await this.loadMarkets ();
             this.populateOutcomes ();
             return Object.values (this.events as Dict) as any[];
@@ -833,9 +850,8 @@ export default class myriad extends Exchange {
             const eventKey = questionSlug ? this.shortenSlug (questionSlug) : undefined;
             const parsedEvent = this.parseEvent (rawEvent);
             if (eventKey) {
-                const eventsDict = this.events as Dict;
-                eventsDict[eventKey] = parsedEvent;
-                const parsedMarkets = parsedEvent['markets'] as unknown as Market[];
+                this.events[eventKey] = parsedEvent;
+                const parsedMarkets = parsedEvent['markets'] as any[];
                 for (let j = 0; j < parsedMarkets.length; j++) {
                     const m = parsedMarkets[j];
                     this.markets[m['symbol'] as string] = m;
@@ -844,7 +860,7 @@ export default class myriad extends Exchange {
             }
         }
         this.populateOutcomes ();
-        return result;
+        return this.events;
     }
 
     /**
@@ -918,7 +934,7 @@ export default class myriad extends Exchange {
      * @param headers
      * @param body
      */
-    sign (path: string, api: any = 'myriad', method = 'GET', params = {}, headers: Dict = undefined, body: Dict = undefined) {
+    sign (path: any, api: any = 'myriad', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const access: string = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'] as Dict;

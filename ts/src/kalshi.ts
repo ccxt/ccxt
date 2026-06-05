@@ -15,7 +15,7 @@ import type {
  * @augments Exchange
  */
 export default class kalshi extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'kalshi',
             'name': 'Kalshi',
@@ -125,12 +125,13 @@ export default class kalshi extends Exchange {
      * @see https://trading-api.readme.io/reference/getmarkets
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const queries = this.safeList (params, 'queries', []) as string[];
+        const queries = this.safeList (params, 'queries', []) as any[];
         const rest = this.omit (params, [ 'queries' ]);
         const lowerQueries: string[] = [];
         for (let qi = 0; qi < queries.length; qi++) {
             lowerQueries.push (queries[qi].toLowerCase ());
         }
+        const lowerQueriesLength = lowerQueries.length;
         const flatMarkets: Market[] = [];
         const eventsDict: Dict = {};
         let cursor: Str = undefined;
@@ -142,9 +143,10 @@ export default class kalshi extends Exchange {
             }
             const response = await this.kalshiPublicGetMarkets (this.extend (request, rest));
             const rawMarkets = this.safeList (response, 'markets', []) as any[];
+            const rawMarketsLength = rawMarkets.length;
             for (let i = 0; i < rawMarkets.length; i++) {
                 const raw = rawMarkets[i];
-                if (lowerQueries.length > 0) {
+                if (lowerQueriesLength > 0) {
                     const ticker = this.safeString (raw, 'ticker', '').toLowerCase ();
                     const title = this.safeString (raw, 'title', '').toLowerCase ();
                     let matches = false;
@@ -181,7 +183,7 @@ export default class kalshi extends Exchange {
                 }
             }
             cursor = this.safeString (response, 'cursor');
-            if (!cursor || rawMarkets.length < limit) {
+            if (!cursor || rawMarketsLength < limit) {
                 break;
             }
         }
@@ -258,8 +260,9 @@ export default class kalshi extends Exchange {
             eventParts = eventTicker.split ('-');
         }
         let seriesTicker = eventTicker;
-        if (eventParts.length > 1) {
-            const seriesParts = eventParts.slice (0, -1);
+        const eventPartsLength = eventParts.length;
+        if (eventPartsLength > 1) {
+            const seriesParts = this.arraySlice (eventParts, 0, eventPartsLength - 1);
             seriesTicker = seriesParts.join ('-');
         }
         // Market symbol (no outcome suffix)
@@ -494,7 +497,7 @@ export default class kalshi extends Exchange {
         if (isNo) {
             bid   = noBid;
             ask   = noAsk;
-            close = last !== undefined ? 1 - last : undefined;
+            close = (last !== undefined) ? this.parseNumber (Precise.stringSub ('1', this.numberToString (last))) : undefined;
         } else {
             bid   = yesBid;
             ask   = yesAsk;
@@ -502,6 +505,10 @@ export default class kalshi extends Exchange {
         }
         const bidVolume = isNo ? undefined : this.safeNumber (raw, 'yes_bid_size_fp');
         const askVolume = isNo ? undefined : this.safeNumber (raw, 'yes_ask_size_fp');
+        let average = undefined;
+        if ((bid !== undefined) && (ask !== undefined)) {
+            average = (bid + ask) / 2;
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': now,
@@ -519,7 +526,7 @@ export default class kalshi extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': (bid !== undefined && ask !== undefined) ? (bid + ask) / 2 : undefined,
+            'average': average,
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber (raw, 'volume'),
             'info': raw,
@@ -572,7 +579,7 @@ export default class kalshi extends Exchange {
             }
             for (let ai = 0; ai < rawYes.length; ai++) {
                 const yesPrice = this.safeNumber (rawYes[ai], 0);
-                const price = yesPrice !== undefined ? 1 - yesPrice : undefined;
+                const price = (yesPrice !== undefined) ? this.parseNumber (Precise.stringSub ('1', this.numberToString (yesPrice))) : undefined;
                 asks.push ([ price, this.safeNumber (rawYes[ai], 1) ]);
             }
         } else {
@@ -583,7 +590,7 @@ export default class kalshi extends Exchange {
             }
             for (let ai = 0; ai < rawNo.length; ai++) {
                 const noPrice = this.safeNumber (rawNo[ai], 0);
-                const price = noPrice !== undefined ? 1 - noPrice : undefined;
+                const price = (noPrice !== undefined) ? this.parseNumber (Precise.stringSub ('1', this.numberToString (noPrice))) : undefined;
                 asks.push ([ price, this.safeNumber (rawNo[ai], 1) ]);
             }
         }
@@ -685,7 +692,17 @@ export default class kalshi extends Exchange {
         //     }
         //
         const candles = this.safeList (response, 'candlesticks', []) as any[];
-        return this.parseOHLCVs (candles, outcomeObj as any, timeframe, since, limit);
+        const usableCandles = [];
+        for (let i = 0; i < candles.length; i++) {
+            const candle = candles[i];
+            const priceObj = this.safeDict (candle, 'price', {});
+            const openPrice = this.safeNumber (priceObj, 'open_dollars');
+            const previousPrice = this.safeNumber (priceObj, 'previous_dollars');
+            if ((openPrice !== undefined) || (previousPrice !== undefined)) {
+                usableCandles.push (candle);
+            }
+        }
+        return this.parseOHLCVs (usableCandles, outcomeObj as any, timeframe, since, limit);
     }
 
     /**
@@ -693,7 +710,7 @@ export default class kalshi extends Exchange {
      * @param ohlcv
      * @param market
      */
-    parseOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "end_period_ts": 1776109260,
@@ -724,14 +741,15 @@ export default class kalshi extends Exchange {
         //     }
         //
         const price = this.safeDict (ohlcv, 'price', {});
-        const ts = this.safeInteger (ohlcv, 'end_period_ts');
+        // no-trade periods carry only previous_dollars (last trade price) → flat candle
+        const previous = this.safeNumber (price, 'previous_dollars');
         return [
-            ts !== undefined ? ts * 1000 : undefined,
-            this.safeNumber (price, 'open_dollars'),
-            this.safeNumber (price, 'high_dollars'),
-            this.safeNumber (price, 'low_dollars'),
-            this.safeNumber (price, 'close_dollars'),
-            this.safeNumber (ohlcv, 'volume_fp'),
+            this.safeTimestamp (ohlcv, 'end_period_ts'),
+            this.safeNumber (price, 'open_dollars', previous),
+            this.safeNumber (price, 'high_dollars', previous),
+            this.safeNumber (price, 'low_dollars', previous),
+            this.safeNumber (price, 'close_dollars', previous),
+            this.safeNumber (ohlcv, 'volume_fp', 0),
         ];
     }
 
@@ -798,6 +816,10 @@ export default class kalshi extends Exchange {
                 side = (rawSide === 'yes') ? 'buy' : 'sell';
             }
         }
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -812,7 +834,7 @@ export default class kalshi extends Exchange {
             'takerOrMaker': 'taker',
             'price': price,
             'amount': amount,
-            'cost': (price !== undefined && amount !== undefined) ? price * amount : undefined,
+            'cost': cost,
             'fee': undefined,
         }, market);
     }
@@ -832,11 +854,14 @@ export default class kalshi extends Exchange {
      * Parses a Kalshi balance response (cents) into a CCXT Balances object with a USD entry.
      * @param response
      */
-    parseBalance (response: Dict): Balances {
+    parseBalance (response): Balances {
         // Kalshi balance in cents → divide by 100
         const result: Dict = { 'info': response };
         const balanceCents = this.safeNumber (response, 'balance');
-        const total = balanceCents !== undefined ? balanceCents / 100 : undefined;
+        let total = undefined;
+        if (balanceCents !== undefined) {
+            total = balanceCents / 100;
+        }
         result['USD'] = { 'free': total, 'used': 0, 'total': total };
         return result as Balances;
     }
@@ -849,7 +874,11 @@ export default class kalshi extends Exchange {
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         const outcomes = symbols;
-        if (outcomes && outcomes.length > 0) {
+        let outcomesLength = 0;
+        if (outcomes !== undefined) {
+            outcomesLength = outcomes.length;
+        }
+        if (outcomesLength > 0) {
             for (let i = 0; i < outcomes.length; i++) {
                 await this.checkEventsAndMarkets (outcomes[i]);
             }
@@ -960,10 +989,16 @@ export default class kalshi extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.safeString (order, 'action') === 'buy' ? 'buy' : 'sell';
         const priceCents = this.safeNumber (order, 'no_price', this.safeNumber (order, 'yes_price'));
-        const price = priceCents !== undefined ? priceCents / 100 : undefined;
+        let price = undefined;
+        if (priceCents !== undefined) {
+            price = priceCents / 100;
+        }
         const amount = this.safeNumber (order, 'count');
         const filled = this.safeNumber (order, 'filled_count', 0);
-        const remaining = (amount !== undefined && filled !== undefined) ? amount - filled : undefined;
+        let remaining = undefined;
+        if ((amount !== undefined) && (filled !== undefined)) {
+            remaining = amount - filled;
+        }
         const ts = this.parse8601 (this.safeString (order, 'created_time'));
         return this.safeOrder ({
             'id': id,
@@ -1022,7 +1057,10 @@ export default class kalshi extends Exchange {
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const outcomeLabel = outcomeObj['label'];
-        const priceCents = price !== undefined ? this.parseToInt (price * 100 + 0.5) : undefined;
+        let priceCents = undefined;
+        if (price !== undefined) {
+            priceCents = this.parseToInt (price * 100 + 0.5);
+        }
         const request: Dict = {
             'action': side === 'buy' ? 'buy' : 'sell',
             'count': amount,
@@ -1101,6 +1139,7 @@ export default class kalshi extends Exchange {
         for (let qi = 0; qi < queries.length; qi++) {
             lowerQueries.push (queries[qi].toLowerCase ());
         }
+        const lowerQueriesLength = lowerQueries.length;
         // Phase 1: sequential cursor scan (lightweight — no nested markets) to collect matching tickers
         const matchedTickers: string[] = [];
         let cursor: string | undefined = undefined;
@@ -1112,12 +1151,13 @@ export default class kalshi extends Exchange {
             }
             const response = await this.kalshiPublicGetEvents (this.extend (request, rest));
             const rawEvents = this.safeList (response, 'events', []) as any[];
+            const rawEventsLength = rawEvents.length;
             cursor = this.safeString (response, 'cursor');
             for (let rei = 0; rei < rawEvents.length; rei++) {
                 const rawEvent = rawEvents[rei];
                 const ticker = this.safeString (rawEvent, 'event_ticker', '');
                 const title = this.safeString (rawEvent, 'title', '').toLowerCase ();
-                let matches = (lowerQueries.length === 0);
+                let matches = (lowerQueriesLength === 0);
                 for (let li = 0; li < lowerQueries.length; li++) {
                     if (ticker.toLowerCase ().indexOf (lowerQueries[li]) !== -1 || title.indexOf (lowerQueries[li]) !== -1) {
                         matches = true;
@@ -1129,7 +1169,7 @@ export default class kalshi extends Exchange {
                 }
             }
             page = this.sum (page, 1);
-            if (!cursor || rawEvents.length < pageLimit) {
+            if (!cursor || rawEventsLength < pageLimit) {
                 break;
             }
         }
@@ -1144,7 +1184,8 @@ export default class kalshi extends Exchange {
             const detail = detailResponses[di];
             const fullEvent = this.safeValue (detail, 'event', detail) as Dict;
             const rawNestedMarkets = this.safeList (fullEvent, 'markets', []) as any[];
-            if (rawNestedMarkets.length === 0) {
+            const rawNestedMarketsLength = rawNestedMarkets.length;
+            if (rawNestedMarketsLength === 0) {
                 const eventTicker = this.safeString (fullEvent, 'event_ticker');
                 if (eventTicker !== undefined) {
                     const eventMarkets: any[] = [];
@@ -1161,11 +1202,12 @@ export default class kalshi extends Exchange {
                         }
                         const marketResponse = await this.kalshiPublicGetMarkets (marketRequest);
                         const pageMarkets = this.safeList (marketResponse, 'markets', []) as any[];
+                        const pageMarketsLength = pageMarkets.length;
                         for (let mi = 0; mi < pageMarkets.length; mi++) {
                             eventMarkets.push (pageMarkets[mi]);
                         }
                         marketCursor = this.safeString (marketResponse, 'cursor');
-                        if ((marketCursor === undefined) || (marketCursor === '') || (pageMarkets.length < marketsLimit)) {
+                        if ((marketCursor === undefined) || (marketCursor === '') || (pageMarketsLength < marketsLimit)) {
                             break;
                         }
                     }
@@ -1176,8 +1218,7 @@ export default class kalshi extends Exchange {
             const eventTitle = this.safeString (fullEvent, 'title');
             const eventKey = eventTitle ? this.shortenSlug (eventTitle) : undefined;
             if (eventKey) {
-                const eventsCache = this.events as Dict;
-                eventsCache[eventKey] = parsedEvent;
+                this.events[eventKey] = parsedEvent;
                 result[eventKey] = parsedEvent;
                 const parsedMarketsRaw = parsedEvent['markets'];
                 const parsedMarkets = (parsedMarketsRaw !== undefined) ? parsedMarketsRaw : [];
@@ -1205,7 +1246,7 @@ export default class kalshi extends Exchange {
                 }
             }
         }
-        return Object.values (result);
+        return this.events;
     }
 
     /**
@@ -1316,7 +1357,7 @@ export default class kalshi extends Exchange {
      * @param headers
      * @param body
      */
-    sign (path: string, api: any = 'kalshi', method = 'GET', params = {}, headers: Dict = undefined, body: Dict = undefined) {
+    sign (path: any, api: any = 'kalshi', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const access: string = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'] as Dict;

@@ -9834,7 +9834,8 @@ class Exchange {
                 $parts[] = $w;
             }
         }
-        return implode('_', strtoupper($parts));
+        $joined = implode('_', $parts);
+        return strtoupper($joined);
     }
 
     public function slug_to_market_symbol(string $eventSlug, string $marketSlug) {
