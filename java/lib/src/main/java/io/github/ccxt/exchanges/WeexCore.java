@@ -435,20 +435,17 @@ public class WeexCore extends WeexApi
                     put( "ETH", "ERC20" );
                     put( "POLYGON", "POLYGON(MATIC)" );
                     put( "MATIC", "POLYGON(MATIC)" );
-                    put( "ARBITRUM", "ARBITRUM(ARB)" );
-                    put( "ARB", "ARBITRUM(ARB)" );
-                    put( "SOLANA", "SOLANA(SOL)" );
+                    put( "ARBONE", "ARBITRUM(ARB)" );
                     put( "SOL", "SOLANA(SOL)" );
                     put( "OP", "OPTIMISM(OP)" );
                     put( "OPTIMISM", "OPTIMISM(OP)" );
-                    put( "AVALANCHEC", "AVALANCHE_C(AVAX_C)" );
                     put( "AVAXC", "AVALANCHE_C(AVAX_C)" );
                 }} );
                 put( "networksById", new java.util.HashMap<String, Object>() {{
                     put( "BEP20(BSC)", "BEP20" );
                     put( "ERC20", "ERC20" );
                     put( "POLYGON(MATIC)", "MATIC" );
-                    put( "ARBITRUM(ARB)", "ARB" );
+                    put( "ARBITRUM(ARB)", "ARBONE" );
                     put( "SOLANA(SOL)", "SOL" );
                     put( "OPTIMISM(OP)", "OP" );
                     put( "AVALANCHE_C(AVAX_C)", "AVAXC" );
