@@ -581,10 +581,10 @@ class xt(Exchange, ImplicitAPI):
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
+                    'TRX': 'Tron',
                     'BEP20': 'BNB Smart Chain',
                     'BEP2': 'BNB-BEP2',
                     'ETH': 'Ethereum',
-                    'TRON': 'Tron',
                     'BNB': 'BNB Smart Chain',
                     'AVAX': 'AVAX C-Chain',
                     'GAL': 'GAL(FT)',

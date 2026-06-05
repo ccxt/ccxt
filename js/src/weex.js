@@ -854,73 +854,71 @@ export default class weex extends Exchange {
         //         }
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = this.safeDict(response, i);
-            const currencyId = this.safeString(currency, 'coin');
-            const code = this.safeCurrencyCode(currencyId);
-            const name = this.safeString(currency, 'name');
-            const networks = {};
-            const chains = this.safeList(currency, 'networkList', []);
-            for (let j = 0; j < chains.length; j++) {
-                const chain = this.safeDict(chains, j);
-                const networkId = this.safeString(chain, 'network');
-                const networkCode = this.networkIdToCode(networkId);
-                networks[networkCode] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.safeBool(chain, 'depositEnable'),
-                    'withdraw': this.safeBool(chain, 'withdrawEnable'),
-                    'fee': this.safeNumber(chain, 'withdrawFee'),
-                    'precision': this.safeNumber(chain, 'withdrawIntegerMultiple'),
-                    'isDefault': this.safeBool(chain, 'isDefault', false),
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(chain, 'withdrawMin'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.safeNumber(chain, 'depositDust'),
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            const networkKeys = Object.keys(networks);
-            const networksLength = networkKeys.length;
-            const emptyChains = networksLength === 0; // non-functional coins
-            const valueForEmpty = emptyChains ? false : undefined;
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'type': 'crypto',
-                'name': name,
+        return this.parseCurrencies(response);
+    }
+    parseCurrency(rawCurrency) {
+        const currencyId = this.safeString(rawCurrency, 'coin');
+        const code = this.safeCurrencyCode(currencyId);
+        const name = this.safeString(rawCurrency, 'name');
+        const networks = {};
+        const chains = this.safeList(rawCurrency, 'networkList', []);
+        for (let j = 0; j < chains.length; j++) {
+            const chain = this.safeDict(chains, j);
+            const networkId = this.safeString(chain, 'network');
+            const networkCode = this.networkIdToCode(networkId);
+            networks[networkCode] = {
+                'info': chain,
+                'id': networkId,
+                'network': networkCode,
                 'active': undefined,
-                'deposit': valueForEmpty,
-                'withdraw': valueForEmpty,
-                'fee': undefined,
-                'precision': undefined,
+                'deposit': this.safeBool(chain, 'depositEnable'),
+                'withdraw': this.safeBool(chain, 'withdrawEnable'),
+                'fee': this.safeNumber(chain, 'withdrawFee'),
+                'precision': this.safeNumber(chain, 'withdrawIntegerMultiple'),
+                'isDefault': this.safeBool(chain, 'isDefault', false),
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.safeNumber(chain, 'withdrawMin'),
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': undefined,
+                        'min': this.safeNumber(chain, 'depositDust'),
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-            });
+            };
         }
-        return result;
+        const networkKeys = Object.keys(networks);
+        const networksLength = networkKeys.length;
+        const emptyChains = networksLength === 0; // non-functional coins
+        const valueForEmpty = emptyChains ? false : undefined;
+        return this.safeCurrencyStructure({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'type': 'crypto',
+            'name': name,
+            'active': undefined,
+            'deposit': valueForEmpty,
+            'withdraw': valueForEmpty,
+            'fee': undefined,
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+        });
     }
     /**
      * @method
