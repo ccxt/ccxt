@@ -3810,8 +3810,8 @@ class binance extends \ccxt\async\binance {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $type = $this->get_market_type('fetchOpenOrdersWs', $market, $params);
-            if ($type !== 'spot' && $type !== 'future') {
-                throw new BadRequest($this->id . ' fetchOpenOrdersWs only supports spot or swap markets');
+            if ($type !== 'spot') {
+                throw new BadRequest($this->id . ' fetchOpenOrdersWs only supports spot markets');
             }
             $url = $this->urls['api']['ws']['ws-api'][$type];
             $requestId = $this->request_id($url);
