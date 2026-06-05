@@ -420,3 +420,14 @@ html > body[data-scroll-locked] {
     transition: none !important;
   }
 }
+
+/* Ask-AI panel on the home layout: the home navbar (#nd-nav, h-14, z-40) sits ABOVE the
+   panel (z-30), so the panel's lg:top-0 puts its header behind the navbar. Start it below
+   the navbar instead. Docs/notebook layouts drop the panel into grid-area:toc and are
+   unaffected (this is scoped to #nd-home-layout). */
+@media (min-width: 1024px) {
+  #nd-home-layout [class~='lg:sticky'][class~='lg:h-dvh'] {
+    top: 3.5rem; /* h-14 navbar */
+    height: calc(100dvh - 3.5rem);
+  }
+}
