@@ -1,20 +1,20 @@
-import PredictionExchange from './abstract/kalshi.js';
+import Exchange from './abstract/kalshi.js';
+import { Precise } from './base/Precise.js';
 import { rsa } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type {
-    Int, Str, Num, Dict,
+    Int, Str, Num, Dict, Strings,
     Market, Ticker, OrderBook, Trade, OHLCV,
     Order, Balances, Position,
-    PredictionEvent,
 } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
 /**
  * @class kalshi
- * @augments PredictionExchange
+ * @augments Exchange
  */
-export default class kalshi extends PredictionExchange {
+export default class kalshi extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kalshi',
@@ -124,28 +124,29 @@ export default class kalshi extends PredictionExchange {
      * @param params
      * @see https://trading-api.readme.io/reference/getmarkets
      */
-    async fetchMarkets (params: Dict = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         const queries = this.safeList (params, 'queries', []) as string[];
         const rest = this.omit (params, [ 'queries' ]);
-        const lowerQueries: string[] = [];
+        const lowerQueries = [];
         for (let qi = 0; qi < queries.length; qi++) {
-            lowerQueries.push ((queries[qi] as string).toLowerCase ());
+            lowerQueries.push (queries[qi].toLowerCase ());
         }
-        const flatMarkets: Market[] = [];
-        const eventsDict: Dict = {};
-        let cursor: Str = undefined;
+        const flatMarkets = [];
+        const eventsDict = {};
+        let cursor = undefined;
         const limit = this.safeInteger (this.options, 'maxFetchMarketsLimit', 1000);
         while (true) {
-            const request: Dict = { 'limit': limit };
+            const request = { 'limit': limit };
             if (cursor !== undefined) {
                 request['cursor'] = cursor;
             }
             const response = await this.kalshiPublicGetMarkets (this.extend (request, rest));
             const rawMarkets = this.safeList (response, 'markets', []) as any[];
-            for (const raw of rawMarkets) {
+            for (let i = 0; i < rawMarkets.length; i++) {
+                const raw = rawMarkets[i];
                 if (lowerQueries.length > 0) {
-                    const ticker = (this.safeString (raw, 'ticker') || '').toLowerCase ();
-                    const title = (this.safeString (raw, 'title') || '').toLowerCase ();
+                    const ticker = this.safeString (raw, 'ticker', '').toLowerCase ();
+                    const title = this.safeString (raw, 'title', '').toLowerCase ();
                     let matches = false;
                     for (let mi = 0; mi < lowerQueries.length; mi++) {
                         if (ticker.indexOf (lowerQueries[mi]) !== -1 || title.indexOf (lowerQueries[mi]) !== -1) {
@@ -161,7 +162,8 @@ export default class kalshi extends PredictionExchange {
                 const eventTicker = this.safeString (raw, 'event_ticker');
                 const eventTitle = this.safeString (raw, 'title', eventTicker);
                 const eventKey = eventTitle ? this.shortenSlug (eventTitle) : undefined;
-                for (const m of parsed) {
+                for (let j = 0; j < parsed.length; j++) {
+                    const m = parsed[j];
                     flatMarkets.push (m);
                     if (eventKey) {
                         if (!eventsDict[eventKey]) {
@@ -173,7 +175,8 @@ export default class kalshi extends PredictionExchange {
                                 'markets': [],
                             };
                         }
-                        (eventsDict[eventKey] as Dict)['markets'].push (m);
+                        const eventEntry = eventsDict[eventKey] as Dict;
+                        eventEntry['markets'].push (m);
                     }
                 }
             }
@@ -250,14 +253,22 @@ export default class kalshi extends PredictionExchange {
         const liquidity = this.safeNumber (raw, 'liquidity');
         const openInt = this.safeNumber (raw, 'open_interest');
         // Derive series ticker: drop last hyphen-segment from event_ticker
-        const eventParts = eventTicker ? eventTicker.split ('-') : [];
-        const seriesTicker = eventParts.length > 1 ? eventParts.slice (0, -1).join ('-') : eventTicker;
+        let eventParts = [];
+        if (eventTicker) {
+            eventParts = eventTicker.split ('-');
+        }
+        let seriesTicker = eventTicker;
+        if (eventParts.length > 1) {
+            const seriesParts = eventParts.slice (0, -1);
+            seriesTicker = seriesParts.join ('-');
+        }
         // Market symbol (no outcome suffix)
-        const marketSymbol = this.slugToMarketSymbol (eventTicker, subtitle || ticker);
+        const subtitleOrTicker = (subtitle !== undefined) ? subtitle : ticker;
+        const marketSymbol = this.slugToMarketSymbol (eventTicker, subtitleOrTicker);
         // Build outcomes
         const outcomeLabels = [ 'YES', 'NO' ];
         const outcomeIds = [ ticker, ticker + '-NO' ];
-        const outcomes: any[] = [];
+        const outcomes = [];
         for (let oi = 0; oi < outcomeLabels.length; oi++) {
             const label = outcomeLabels[oi];
             outcomes.push ({
@@ -338,12 +349,13 @@ export default class kalshi extends PredictionExchange {
      * @param params
      * @see https://docs.kalshi.com/api-reference/market/get-market
      */
-    async fetchTicker (outcome: Str, params: Dict = {}): Promise<Ticker> {
+    async fetchTicker (symbol: Str, params = {}): Promise<Ticker> {
+        const outcome = symbol;
         await this.loadMarkets ();
         await this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
-        const request: Dict = {
+        const request = {
             'ticker': ticker,
         };
         const response = await this.kalshiPublicGetMarketsTicker (this.extend (request, params));
@@ -467,7 +479,7 @@ export default class kalshi extends PredictionExchange {
         //         }
         //     }
         //
-        const outcomeLabel = market ? (this.safeString (market, 'label') || this.safeString (market['info'], 'outcomeLabel') || 'YES') : 'YES';
+        const outcomeLabel = market ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'YES')) : 'YES';
         const isNo = outcomeLabel.toUpperCase () === 'NO';
         const now = this.milliseconds ();
         const symbol = this.safeSymbol (undefined, market);
@@ -521,13 +533,14 @@ export default class kalshi extends PredictionExchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @see https://docs.kalshi.com/api-reference/market/get-market-orderbook
      */
-    async fetchOrderBook (outcome: Str, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+    async fetchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        const outcome = symbol;
         await this.loadMarkets ();
         await this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const isNo = outcomeObj['label'] === 'NO';
-        const request: Dict = {
+        const request = {
             'ticker': ticker,
         };
         const response = await this.kalshiPublicGetMarketsTickerOrderbook (this.extend (request, params));
@@ -549,8 +562,8 @@ export default class kalshi extends PredictionExchange {
         const rawYes = this.safeList (book, 'yes_dollars', []) as any[];
         const rawNo = this.safeList (book, 'no_dollars', []) as any[];
         // Convert [price_cents, size] → [price, size]
-        const bids: any[] = [];
-        const asks: any[] = [];
+        const bids = [];
+        const asks = [];
         if (isNo) {
             // NO perspective: NO bids come from rawNo, NO asks invert rawYes (NO ask = 1 - YES bid)
             for (let bi = 0; bi < rawNo.length; bi++) {
@@ -607,14 +620,15 @@ export default class kalshi extends PredictionExchange {
      * @param params
      * @see https://docs.kalshi.com/api-reference/market/get-market-candlesticks
      */
-    async fetchOHLCV (outcome: Str, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: Str, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        const outcome = symbol;
         await this.loadMarkets ();
         await this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const seriesTicker = this.safeString (outcomeObj['info'], 'seriesTicker', ticker);
         const periodMin = this.safeInteger (this.timeframes, timeframe, 1);
-        const request: Dict = {
+        const request = {
             'series_ticker': seriesTicker,
             'ticker': ticker,
             'period_interval': periodMin,
@@ -729,18 +743,19 @@ export default class kalshi extends PredictionExchange {
      * @param params
      * @see https://docs.kalshi.com/api-reference/market/get-trades
      */
-    async fetchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+    async fetchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        const outcome = symbol;
         await this.loadMarkets ();
         await this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
-        const request: Dict = { 'ticker': ticker };
+        const request = { 'ticker': ticker };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         const response = await this.kalshiPublicGetMarketsTrades (this.extend (request, params));
         const trades = this.safeList (response, 'trades', []) as any[];
-        const filteredTrades: any[] = [];
+        const filteredTrades = [];
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
             const tradeTicker = this.safeString2 (trade, 'ticker', 'market_ticker');
@@ -761,7 +776,12 @@ export default class kalshi extends PredictionExchange {
         const ts = this.parse8601 (this.safeString (trade, 'created_time'));
         const priceDollars = this.safeNumber2 (trade, 'yes_price_dollars', 'price_dollars');
         const priceCents = this.safeNumber2 (trade, 'yes_price', 'price');
-        const price = (priceDollars !== undefined) ? priceDollars : ((priceCents !== undefined) ? priceCents / 100 : undefined);
+        let price = undefined;
+        if (priceDollars !== undefined) {
+            price = priceDollars;
+        } else if (priceCents !== undefined) {
+            price = priceCents / 100;
+        }
         const amountFp = this.safeNumber2 (trade, 'count_fp', 'size_fp');
         const amount = this.safeNumber (trade, 'count', amountFp);
         const rawSide = this.safeStringLower (trade, 'taker_side');
@@ -770,7 +790,7 @@ export default class kalshi extends PredictionExchange {
         const requestedOutcomeLabel = this.safeStringLower (marketAny, 'label', this.safeStringLower (marketInfo, 'outcomeLabel'));
         const outcomeSymbol = this.safeString (marketAny, 'symbol', this.safeSymbol (undefined, market));
         const outcomeId = this.safeString (marketAny, 'id');
-        let side: string | undefined;
+        let side: Str;
         if (rawSide === 'yes' || rawSide === 'no') {
             if (requestedOutcomeLabel === 'yes' || requestedOutcomeLabel === 'no') {
                 side = (rawSide === requestedOutcomeLabel) ? 'buy' : 'sell';
@@ -802,7 +822,7 @@ export default class kalshi extends PredictionExchange {
      * @param params
      * @see https://trading-api.readme.io/reference/getbalance
      */
-    async fetchBalance (params: Dict = {}): Promise<Balances> {
+    async fetchBalance (params = {}): Promise<Balances> {
         await this.checkEventsAndMarkets ();
         const response = await this.kalshiPrivateGetPortfolioBalance (params);
         return this.parseBalance (response);
@@ -814,7 +834,7 @@ export default class kalshi extends PredictionExchange {
      */
     parseBalance (response: Dict): Balances {
         // Kalshi balance in cents → divide by 100
-        const result: Dict = { 'info': response };
+        const result = { 'info': response };
         const balanceCents = this.safeNumber (response, 'balance');
         const total = balanceCents !== undefined ? balanceCents / 100 : undefined;
         result['USD'] = { 'free': total, 'used': 0, 'total': total };
@@ -827,7 +847,8 @@ export default class kalshi extends PredictionExchange {
      * @param params
      * @see https://trading-api.readme.io/reference/getportfoliopositions
      */
-    async fetchPositions (outcomes?: Str[], params: Dict = {}): Promise<Position[]> {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        const outcomes = symbols;
         if (outcomes && outcomes.length > 0) {
             for (let i = 0; i < outcomes.length; i++) {
                 await this.checkEventsAndMarkets (outcomes[i]);
@@ -849,16 +870,18 @@ export default class kalshi extends PredictionExchange {
         const ticker = this.safeString (position, 'ticker');
         const outcomeObj = this.safeOutcome (ticker, market as any);
         const yesContracts = this.safeNumber (position, 'position');  // positive = long YES
-        let positionSide: string | undefined;
+        let positionSide: Str;
+        let contractsValue = undefined;
         if (yesContracts !== undefined) {
-            positionSide = yesContracts >= 0 ? 'long' : 'short';
+            positionSide = (yesContracts >= 0) ? 'long' : 'short';
+            contractsValue = this.parseNumber (Precise.stringAbs (this.numberToString (yesContracts)));
         }
         return {
             'id': undefined,
             'symbol': this.safeString (outcomeObj, 'symbol', ticker),
             'timestamp': undefined,
             'datetime': undefined,
-            'contracts': yesContracts !== undefined ? Math.abs (yesContracts) : undefined,
+            'contracts': contractsValue,
             'contractSize': 1,
             'side': positionSide,
             'notional': undefined,
@@ -890,14 +913,15 @@ export default class kalshi extends PredictionExchange {
      * @param params
      * @see https://trading-api.readme.io/reference/getorders
      */
-    async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const outcome = symbol;
         if (outcome !== undefined) {
             await this.checkEventsAndMarkets (outcome);
         } else {
             await this.checkEventsAndMarkets ();
         }
-        const request: Dict = { 'status': 'resting' };
-        let outcomeObj: any = undefined;
+        const request = { 'status': 'resting' };
+        let outcomeObj = undefined;
         if (outcome !== undefined) {
             outcomeObj = this.outcome (outcome);
             request['ticker'] = this.safeString (outcomeObj['info'], 'ticker');
@@ -914,7 +938,7 @@ export default class kalshi extends PredictionExchange {
      * @param params
      * @see https://trading-api.readme.io/reference/getorder
      */
-    async fetchOrder (id: Str, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+    async fetchOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
         if (symbol !== undefined) {
             await this.checkEventsAndMarkets (symbol);
         } else {
@@ -972,7 +996,7 @@ export default class kalshi extends PredictionExchange {
      * @param status
      */
     parseOrderStatus (status: Str): Str {
-        const statuses: Dict = {
+        const statuses = {
             'resting': 'open',
             'executed': 'closed',
             'canceled': 'canceled',
@@ -991,14 +1015,15 @@ export default class kalshi extends PredictionExchange {
      * @param params
      * @see https://trading-api.readme.io/reference/createorder
      */
-    async createOrder (outcome: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Promise<Order> {
+    async createOrder (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
+        const outcome = symbol;
         await this.loadMarkets ();
         await this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const outcomeLabel = outcomeObj['label'];
         const priceCents = price !== undefined ? this.parseToInt (price * 100 + 0.5) : undefined;
-        const request: Dict = {
+        const request = {
             'action': side === 'buy' ? 'buy' : 'sell',
             'count': amount,
             'side': outcomeLabel === 'NO' ? 'no' : 'yes',
@@ -1006,7 +1031,8 @@ export default class kalshi extends PredictionExchange {
             'type': type,
         };
         if (priceCents !== undefined) {
-            request[outcomeLabel === 'NO' ? 'no_price' : 'yes_price'] = priceCents;
+            const priceKey = (outcomeLabel === 'NO') ? 'no_price' : 'yes_price';
+            request[priceKey] = priceCents;
         }
         const response = await this.kalshiPrivatePostPortfolioOrders (this.extend (request, params));
         return this.parseOrder (this.safeValue (response, 'order', response), outcomeObj as any);
@@ -1019,7 +1045,7 @@ export default class kalshi extends PredictionExchange {
      * @param params
      * @see https://trading-api.readme.io/reference/cancelorder
      */
-    async cancelOrder (id: Str, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+    async cancelOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
         if (symbol !== undefined) {
             await this.checkEventsAndMarkets (symbol);
         } else {
@@ -1035,13 +1061,14 @@ export default class kalshi extends PredictionExchange {
      * @param params
      * @see https://trading-api.readme.io/reference/cancelorders
      */
-    async cancelAllOrders (outcome: Str = undefined, params: Dict = {}): Promise<Order[]> {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+        const outcome = symbol;
         if (outcome !== undefined) {
             await this.checkEventsAndMarkets (outcome);
         } else {
             await this.checkEventsAndMarkets ();
         }
-        const request: Dict = {};
+        const request = {};
         if (outcome !== undefined) {
             await this.loadMarkets ();
             const outcomeObj = this.outcome (outcome);
@@ -1058,7 +1085,8 @@ export default class kalshi extends PredictionExchange {
      * @param params
      * @see https://trading-api.readme.io/reference/getevents
      */
-    async fetchEvents (queries: string[] = [], params: Dict = {}): Promise<any> {
+    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any> {
+        queries = (queries === undefined) ? [] : queries;
         const status = this.safeString (params, 'status', this.safeString (this.options, 'defaultEventStatus', 'open'));
         const pageLimit = this.safeInteger (params, 'limit', 200);
         const maxPages = this.safeInteger (params, 'maxPages', 5);
@@ -1067,18 +1095,18 @@ export default class kalshi extends PredictionExchange {
             this.events = {};
         }
         if (!this.markets) {
-            this.markets = {};
+            this.markets = this.createSafeDictionary ();
         }
-        const lowerQueries: string[] = [];
+        const lowerQueries = [];
         for (let qi = 0; qi < queries.length; qi++) {
-            lowerQueries.push ((queries[qi] as string).toLowerCase ());
+            lowerQueries.push (queries[qi].toLowerCase ());
         }
         // Phase 1: sequential cursor scan (lightweight — no nested markets) to collect matching tickers
-        const matchedTickers: string[] = [];
-        let cursor: string | undefined = undefined;
+        const matchedTickers = [];
+        let cursor = undefined;
         let page = 0;
         while (page < maxPages) {
-            const request: Dict = { 'status': status, 'limit': pageLimit };
+            const request = { 'status': status, 'limit': pageLimit };
             if (cursor) {
                 request['cursor'] = cursor;
             }
@@ -1087,8 +1115,8 @@ export default class kalshi extends PredictionExchange {
             cursor = this.safeString (response, 'cursor');
             for (let rei = 0; rei < rawEvents.length; rei++) {
                 const rawEvent = rawEvents[rei];
-                const ticker = (this.safeString (rawEvent, 'event_ticker') || '');
-                const title = (this.safeString (rawEvent, 'title') || '').toLowerCase ();
+                const ticker = this.safeString (rawEvent, 'event_ticker', '');
+                const title = this.safeString (rawEvent, 'title', '').toLowerCase ();
                 let matches = (lowerQueries.length === 0);
                 for (let li = 0; li < lowerQueries.length; li++) {
                     if (ticker.toLowerCase ().indexOf (lowerQueries[li]) !== -1 || title.indexOf (lowerQueries[li]) !== -1) {
@@ -1100,18 +1128,18 @@ export default class kalshi extends PredictionExchange {
                     matchedTickers.push (ticker);
                 }
             }
-            page++;
+            page = this.sum (page, 1);
             if (!cursor || rawEvents.length < pageLimit) {
                 break;
             }
         }
         // Phase 2: fetch full event details (with nested markets) for all matched tickers in parallel
-        const detailPromises: any[] = [];
+        const detailPromises = [];
         for (let ti = 0; ti < matchedTickers.length; ti++) {
             detailPromises.push (this.kalshiPublicGetEventsEventTicker ({ 'event_ticker': matchedTickers[ti], 'with_nested_markets': true }));
         }
         const detailResponses = await Promise.all (detailPromises);
-        const result: Dict = {};
+        const result = {};
         for (let di = 0; di < detailResponses.length; di++) {
             const detail = detailResponses[di];
             const fullEvent = this.safeValue (detail, 'event', detail) as Dict;
@@ -1119,12 +1147,12 @@ export default class kalshi extends PredictionExchange {
             if (rawNestedMarkets.length === 0) {
                 const eventTicker = this.safeString (fullEvent, 'event_ticker');
                 if (eventTicker !== undefined) {
-                    const eventMarkets: any[] = [];
-                    let marketCursor: string | undefined = undefined;
+                    const eventMarkets = [];
+                    let marketCursor = undefined;
                     const marketsLimit = this.safeInteger (this.options, 'maxFetchMarketsLimit', 1000);
-                    let hasMoreMarkets = true;
-                    while (hasMoreMarkets) {
-                        const marketRequest: Dict = {
+                    const maxMarketPages = this.safeInteger (this.options, 'maxMarketPages', 1000);
+                    for (let mp = 0; mp < maxMarketPages; mp++) {
+                        const marketRequest = {
                             'event_ticker': eventTicker,
                             'limit': marketsLimit,
                         };
@@ -1137,7 +1165,9 @@ export default class kalshi extends PredictionExchange {
                             eventMarkets.push (pageMarkets[mi]);
                         }
                         marketCursor = this.safeString (marketResponse, 'cursor');
-                        hasMoreMarkets = !!marketCursor && (pageMarkets.length >= marketsLimit);
+                        if ((marketCursor === undefined) || (marketCursor === '') || (pageMarkets.length < marketsLimit)) {
+                            break;
+                        }
                     }
                     fullEvent['markets'] = eventMarkets;
                 }
@@ -1146,9 +1176,11 @@ export default class kalshi extends PredictionExchange {
             const eventTitle = this.safeString (fullEvent, 'title');
             const eventKey = eventTitle ? this.shortenSlug (eventTitle) : undefined;
             if (eventKey) {
-                (this.events as Dict)[eventKey] = parsedEvent;
+                const eventsCache = this.events as Dict;
+                eventsCache[eventKey] = parsedEvent;
                 result[eventKey] = parsedEvent;
-                const parsedMarkets = (parsedEvent['markets'] || []) as any[];
+                const parsedMarketsRaw = parsedEvent['markets'];
+                const parsedMarkets = (parsedMarketsRaw !== undefined) ? parsedMarketsRaw : [];
                 for (let mi = 0; mi < parsedMarkets.length; mi++) {
                     const m = parsedMarkets[mi];
                     this.markets[m['symbol']] = m;
@@ -1180,7 +1212,7 @@ export default class kalshi extends PredictionExchange {
      * Parses a raw Kalshi event object (with nested markets) into the unified CCXT event shape.
      * @param rawEvent
      */
-    parseEvent (rawEvent: Dict): PredictionEvent {
+    parseEvent (rawEvent: Dict): any {
         // {
         //         "available_on_brokers": true,
         //         "category": "Politics",
@@ -1246,8 +1278,9 @@ export default class kalshi extends PredictionExchange {
         //         "title": "Will Trump balance the budget?"
         // }
         const rawMarkets = this.safeList (rawEvent, 'markets', []) as any[];
-        const marketsList: any[] = [];
-        for (const rawMarket of rawMarkets) {
+        const marketsList = [];
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const rawMarket = rawMarkets[i];
             const parsed = this.parseMarket (rawMarket);
             marketsList.push (parsed);
         }
@@ -1283,9 +1316,9 @@ export default class kalshi extends PredictionExchange {
      * @param headers
      * @param body
      */
-    sign (path: Str, api: any = 'kalshi', method = 'GET', params: Dict = {}, headers: Dict = undefined, body: Dict = undefined) {
-        const apiGroup: string = typeof api === 'string' ? api : api[0];
-        const access: string = typeof api === 'string' ? 'public' : api[1];
+    sign (path: Str, api: any = 'kalshi', method = 'GET', params = {}, headers: Dict = undefined, body: Dict = undefined) {
+        const apiGroup = typeof api === 'string' ? api : api[0];
+        const access = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['kalshi'] as string);
         let url = baseUrl + '/' + this.implodeParams (path as string, params);
@@ -1294,10 +1327,11 @@ export default class kalshi extends PredictionExchange {
         if (method === 'GET' && querystring) {
             url += '?' + querystring;
         }
+        const existingHeaders = (headers !== undefined) ? headers : {};
         headers = this.extend ({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-        }, headers || {});
+        }, existingHeaders);
         if (access === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
@@ -1305,7 +1339,9 @@ export default class kalshi extends PredictionExchange {
             const pathForSigning = '/' + path;
             const payload = timestamp + method + pathForSigning;
             // RSA-PSS SHA-256 signature with the private key PEM
-            const signature = rsa (payload, this.privateKey.replace (/\\n/g, '\n'), sha256);
+            const keyParts = this.privateKey.split ('\\n');
+            const cleanPrivateKey = keyParts.join ('\n');
+            const signature = rsa (payload, cleanPrivateKey, sha256);
             headers = this.extend (headers, {
                 'KALSHI-ACCESS-KEY': this.apiKey,
                 'KALSHI-ACCESS-SIGNATURE': signature,

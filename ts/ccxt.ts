@@ -33,7 +33,7 @@ import { Exchange }  from './src/base/Exchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL } from './src/base/types.js'
+import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, PredictionEvent, PredictionOutcome, PredictionMarket, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL } from './src/base/types.js'
 import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError}  from './src/base/errors.js'
 
 
@@ -119,6 +119,7 @@ import hollaex from  './src/hollaex.js'
 import htx from  './src/htx.js'
 import huobi from  './src/huobi.js'
 import hyperliquid from  './src/hyperliquid.js'
+import hyperliquidprediction from  './src/hyperliquidprediction.js'
 import independentreserve from  './src/independentreserve.js'
 import indodax from  './src/indodax.js'
 import kalshi from  './src/kalshi.js'
@@ -129,11 +130,13 @@ import kucoinfutures from  './src/kucoinfutures.js'
 import latoken from  './src/latoken.js'
 import lbank from  './src/lbank.js'
 import lighter from  './src/lighter.js'
+import limitless from  './src/limitless.js'
 import luno from  './src/luno.js'
 import mercado from  './src/mercado.js'
 import mexc from  './src/mexc.js'
 import modetrade from  './src/modetrade.js'
 import myokx from  './src/myokx.js'
+import myriad from  './src/myriad.js'
 import ndax from  './src/ndax.js'
 import novadax from  './src/novadax.js'
 import okx from  './src/okx.js'
@@ -146,6 +149,7 @@ import paradex from  './src/paradex.js'
 import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
+import polymarket from  './src/polymarket.js'
 import tokocrypto from  './src/tokocrypto.js'
 import toobit from  './src/toobit.js'
 import upbit from  './src/upbit.js'
@@ -235,6 +239,7 @@ import pacificaPro from  './src/pro/pacifica.js'
 import paradexPro from  './src/pro/paradex.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
+import polymarketPro from  './src/pro/polymarket.js'
 import toobitPro from  './src/pro/toobit.js'
 import upbitPro from  './src/pro/upbit.js'
 import weexPro from  './src/pro/weex.js'
@@ -317,6 +322,7 @@ const exchanges = {
     'htx':                    htx,
     'huobi':                  huobi,
     'hyperliquid':            hyperliquid,
+    'hyperliquidprediction':  hyperliquidprediction,
     'independentreserve':     independentreserve,
     'indodax':                indodax,
     'kalshi':                 kalshi,
@@ -327,11 +333,13 @@ const exchanges = {
     'latoken':                latoken,
     'lbank':                  lbank,
     'lighter':                lighter,
+    'limitless':              limitless,
     'luno':                   luno,
     'mercado':                mercado,
     'mexc':                   mexc,
     'modetrade':              modetrade,
     'myokx':                  myokx,
+    'myriad':                 myriad,
     'ndax':                   ndax,
     'novadax':                novadax,
     'okx':                    okx,
@@ -344,6 +352,7 @@ const exchanges = {
     'paymium':                paymium,
     'phemex':                 phemex,
     'poloniex':               poloniex,
+    'polymarket':             polymarket,
     'tokocrypto':             tokocrypto,
     'toobit':                 toobit,
     'upbit':                  upbit,
@@ -433,6 +442,7 @@ const pro = {
     'paradex':                paradexPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
+    'polymarket':             polymarketPro,
     'toobit':                 toobitPro,
     'upbit':                  upbitPro,
     'weex':                   weexPro,
@@ -534,6 +544,9 @@ export {
     TradingFeeInterface,
     MarketMarginModes,
     MarketInterface,
+    PredictionEvent,
+    PredictionOutcome,
+    PredictionMarket,
     Trade,
     Order,
     OrderBook,
@@ -658,8 +671,10 @@ export {
     htx,
     huobi,
     hyperliquid,
+    hyperliquidprediction,
     independentreserve,
     indodax,
+    kalshi,
     kraken,
     krakenfutures,
     kucoin,
@@ -667,11 +682,13 @@ export {
     latoken,
     lbank,
     lighter,
+    limitless,
     luno,
     mercado,
     mexc,
     modetrade,
     myokx,
+    myriad,
     ndax,
     novadax,
     okx,
@@ -684,6 +701,7 @@ export {
     paymium,
     phemex,
     poloniex,
+    polymarket,
     tokocrypto,
     toobit,
     upbit,

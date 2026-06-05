@@ -14,19 +14,20 @@
 //
 // ---------------------------------------------------------------------------
 
-import PredictionExchange from './abstract/myriad.js';
+import Exchange from './abstract/myriad.js';
 import type {
     Int, Str, Num, Dict,
-    Market, Ticker, OrderBook, OHLCV, PredictionEvent,
+    Strings,
+    Market, Ticker, OrderBook, OHLCV,
 } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
 /**
  * @class myriad
- * @augments PredictionExchange
+ * @augments Exchange
  */
-export default class Myriad extends PredictionExchange {
+export default class myriad extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'myriad',
@@ -42,19 +43,19 @@ export default class Myriad extends PredictionExchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'prediction': true,
+                'cancelOrder': false,
+                'createOrder': false,
+                'fetchBalance': false,
+                'fetchCurrencies': false,
                 'fetchEvents': true,
                 'fetchMarkets': true,
-                'fetchTicker': true,
-                'fetchOrderBook': true,
                 'fetchOHLCV': true,
-                'fetchTrades': false,
-                'fetchBalance': false,
-                'fetchPositions': false,
                 'fetchOpenOrders': false,
-                'createOrder': false,
-                'cancelOrder': false,
-                'fetchCurrencies': false,
+                'fetchOrderBook': true,
+                'fetchPositions': false,
+                'fetchTicker': true,
+                'fetchTrades': false,
+                'prediction': true,
             },
             'timeframes': {
                 // Myriad maps timeframes to price_chart bucket keys
@@ -119,28 +120,27 @@ export default class Myriad extends PredictionExchange {
         });
     }
 
-    // -----------------------------------------------------------------------
-    // Markets — one CCXT market per raw market, outcomes list inside
-    // -----------------------------------------------------------------------
-
     /**
      * Fetches all Myriad markets paginated and returns one CCXT market per raw market,
      * each containing a list of outcome objects.
      * @param params
      * @see https://docs.myriad.markets/api-reference/markets/list-markets
      */
-    async fetchMarkets (params: Dict = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         const queries = this.safeList (params, 'queries', []) as string[];
         const rest0 = this.omit (params, [ 'queries' ]);
         if (queries && queries.length > 0) {
-            const limit = this.safeInteger (rest0, 'limit', this.safeInteger (this.options, 'defaultFetchMarketsLimit', 50));
+            const searchLimit = this.safeInteger (rest0, 'limit', this.safeInteger (this.options, 'defaultFetchMarketsLimit', 50));
             const searchRest = this.omit (rest0, [ 'limit' ]);
-            const seen: Dict = {};
-            const rawEvents: any[] = [];
-            for (const q of queries) {
-                const response = await this.myriadPublicGetQuestions (this.extend ({ 'keyword': q, 'limit': limit }, searchRest));
-                const found = (this.safeList (response, 'data', response as any) || []) as any[];
-                for (const rawEvent of found) {
+            const seen = {};
+            const rawEvents = [];
+            for (let i = 0; i < queries.length; i++) {
+                const q = queries[i];
+                const response = await this.myriadPublicGetQuestions (this.extend ({ 'keyword': q, 'limit': searchLimit }, searchRest));
+                const foundList = this.safeList (response, 'data', response as any);
+                const found = (foundList !== undefined) ? foundList : [];
+                for (let j = 0; j < found.length; j++) {
+                    const rawEvent = found[j];
                     const eventId = this.safeString (rawEvent, 'id');
                     if (eventId && !seen[eventId]) {
                         seen[eventId] = true;
@@ -148,57 +148,72 @@ export default class Myriad extends PredictionExchange {
                     }
                 }
             }
-            const qFlatMarkets: Market[] = [];
-            const qEventsDict: Dict = {};
-            for (const rawEvent of rawEvents) {
+            const qFlatMarkets = [];
+            const qEventsDict = {};
+            for (let i = 0; i < rawEvents.length; i++) {
+                const rawEvent = rawEvents[i];
                 const questionSlug = this.safeString (rawEvent, 'slug', this.safeString (rawEvent, 'id'));
                 const eventKey = questionSlug ? this.shortenSlug (questionSlug) : undefined;
                 const parsed = this.parseEvent (rawEvent);
                 if (eventKey) {
                     qEventsDict[eventKey] = parsed;
                 }
-                for (const m of (parsed['markets'] as unknown as Market[])) {
+                const parsedMarkets = parsed['markets'] as unknown as Market[];
+                for (let j = 0; j < parsedMarkets.length; j++) {
+                    const m = parsedMarkets[j];
                     qFlatMarkets.push (m);
                 }
             }
             this.events = qEventsDict;
             return qFlatMarkets;
         }
-        const flatMarkets: Market[] = [];
-        const networkGroups: Dict = {};
+        const flatMarkets = [];
+        const networkGroups = {};
         let page = 1;
         const limit = this.safeInteger (this.options, 'defaultFetchMarketsLimit', 50);
         const status = this.safeString (rest0, 'status', this.safeString (this.options, 'defaultMarketStatus', 'open'));
         const rest = this.omit (rest0, [ 'status' ]);
-        let hasMore = true;
-        while (hasMore) {
+        while (true) {
             const response = await this.myriadPublicGetMarkets (this.extend ({
                 'status': status,
                 'limit': limit,
                 'page': page,
             }, rest));
-            const rawMarkets = (this.safeList (response, 'data', response as any) || []) as any[];
+            const rawMarketsList = this.safeList (response, 'data', response as any);
+            const rawMarkets = (rawMarketsList !== undefined) ? rawMarketsList : [];
             if (!rawMarkets || rawMarkets.length === 0) {
                 break;
             }
-            for (const raw of rawMarkets) {
+            for (let i = 0; i < rawMarkets.length; i++) {
+                const raw = rawMarkets[i];
                 const networkId = this.safeString (raw, 'networkId');
                 const eventKey = networkId ? this.shortenSlug (networkId) : undefined;
-                const m = this.parseMarket (raw);
+                const m = this.parseMyriadMarket (raw);
                 flatMarkets.push (m);
                 if (eventKey) {
                     if (!networkGroups[eventKey]) {
-                        const networkName = (this.options as Dict)['networks'] ? ((this.options as Dict)['networks'] as Dict)[networkId] || networkId : networkId;
+                        const optionsDict = this.options as Dict;
+                        const networksMap = optionsDict['networks'] as Dict;
+                        let networkName = networkId;
+                        if (networksMap) {
+                            const mappedName = networksMap[networkId];
+                            networkName = (mappedName !== undefined) ? mappedName : networkId;
+                        }
                         networkGroups[eventKey] = { 'networkId': networkId, 'title': networkName, 'markets': [] };
                     }
-                    (networkGroups[eventKey] as Dict)['markets'].push (m);
+                    const networkGroup = networkGroups[eventKey] as Dict;
+                    networkGroup['markets'].push (m);
                 }
             }
-            hasMore = rawMarkets.length >= limit;
-            page++;
+            page = this.sum (page, 1);
+            if (rawMarkets.length < limit) {
+                break;
+            }
         }
-        const eventsDict: Dict = {};
-        for (const eventKey of Object.keys (networkGroups)) {
+        const eventsDict = {};
+        const networkGroupKeys = Object.keys (networkGroups);
+        for (let i = 0; i < networkGroupKeys.length; i++) {
+            const eventKey = networkGroupKeys[i];
             const g = networkGroups[eventKey] as Dict;
             const networkId = g['networkId'] as string;
             eventsDict[eventKey] = this.extend ({
@@ -219,7 +234,7 @@ export default class Myriad extends PredictionExchange {
                 'lastUpdatedAt': undefined,
                 'resolutionSource': undefined,
                 'info': { 'networkId': networkId },
-            }) as unknown as PredictionEvent;
+            }) as any;
         }
         this.events = eventsDict;
         return flatMarkets;
@@ -230,7 +245,7 @@ export default class Myriad extends PredictionExchange {
      * @param raw
      * @param eventSlug
      */
-    parseMarket (raw: Dict, eventSlug: string = undefined): Market {
+    parseMyriadMarket (raw: Dict, eventSlug: string = undefined): Market {
         const networkId = this.safeString (raw, 'networkId');
         const marketId = this.safeString (raw, 'id');
         const slug = this.safeString (raw, 'slug', marketId);
@@ -239,8 +254,9 @@ export default class Myriad extends PredictionExchange {
         const state = this.safeString (raw, 'state', 'open');
         const active = state === 'open';
         const volume24h = this.safeNumber (raw, 'volume24h');
-        const marketSymbol = this.slugToMarketSymbol (eventSlug || networkId, slug);
-        const outcomes: any[] = [];
+        const slugBase = (eventSlug !== undefined) ? eventSlug : networkId;
+        const marketSymbol = this.slugToMarketSymbol (slugBase, slug);
+        const outcomes = [];
         for (let i = 0; i < rawOutcomes.length; i++) {
             const outcome = this.safeDict (rawOutcomes, i, {});
             const outcomeId = this.safeString (outcome, 'outcomeId', this.safeString (outcome, 'id', i.toString ()));
@@ -248,7 +264,7 @@ export default class Myriad extends PredictionExchange {
             const price = this.safeNumber (outcome, 'price');
             outcomes.push ({
                 'id': networkId + ':' + marketId + '/' + outcomeId,
-                'symbol': this.slugToOutcomeSymbol (eventSlug || networkId, slug, outcomeLabel),
+                'symbol': this.slugToOutcomeSymbol (slugBase, slug, outcomeLabel),
                 'marketSymbol': marketSymbol,
                 'label': outcomeLabel,
                 'active': active,
@@ -316,22 +332,19 @@ export default class Myriad extends PredictionExchange {
         } as unknown as Market;
     }
 
-    // -----------------------------------------------------------------------
-    // Ticker
-    // -----------------------------------------------------------------------
-
     /**
      * Fetches the current price for a single Myriad outcome by loading the parent market.
      * @param outcome outcomeId like 2741:756/0 or the symbol, e.g. "TRUMP_WIN:YES"
      * @param params
      * @see https://docs.myriad.markets/builders/myriad-api-reference#320c9e49da828116b12dec5bfeea306a
      */
-    async fetchTicker (outcome: Str, params: Dict = {}): Promise<Ticker> {
+    async fetchTicker (symbol: Str, params = {}): Promise<Ticker> {
+        const outcome = symbol;
         await this.loadMarkets ();
         const outcomeObj = this.outcome (outcome);
         const networkId = this.safeString (outcomeObj['info'], 'networkId');
         const marketId = this.safeString (outcomeObj['info'], 'marketId');
-        const request: Dict = {
+        const request = {
             'id': marketId,
             'network_id': networkId,
         };
@@ -493,9 +506,10 @@ export default class Myriad extends PredictionExchange {
         //
         const outcomeId = market ? this.safeString (market['info'], 'outcomeId') : undefined;
         const outcomes = this.safeList (raw, 'outcomes', []) as any[];
-        let price: Num = undefined;
-        let change: Num = undefined;
-        for (const o of outcomes) {
+        let price = undefined;
+        let change = undefined;
+        for (let i = 0; i < outcomes.length; i++) {
+            const o = outcomes[i];
             if (this.safeString (o, 'outcomeId', this.safeString (o, 'id')) === outcomeId) {
                 price = this.safeNumber (o, 'price');
                 change = this.safeNumber (o, 'priceChange24h');
@@ -527,10 +541,6 @@ export default class Myriad extends PredictionExchange {
         }, market);
     }
 
-    // -----------------------------------------------------------------------
-    // Order book (synthesized from AMM — single price point on each side)
-    // -----------------------------------------------------------------------
-
     /**
      * Fetches a synthesized AMM order book for a single Myriad outcome using the market price.
      * @param outcome outcome id or symbol e.g. TRUMP_WIN:YES
@@ -538,13 +548,14 @@ export default class Myriad extends PredictionExchange {
      * @param params
      * @see https://docs.myriad.markets/builders/myriad-api-reference#320c9e49da828116b12dec5bfeea306a
      */
-    async fetchOrderBook (outcome: Str, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+    async fetchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        const outcome = symbol;
         await this.loadMarkets ();
         const outcomeObj = this.outcome (outcome);
         const networkId = this.safeString (outcomeObj['info'], 'networkId');
         const marketId = this.safeString (outcomeObj['info'], 'marketId');
         const outcomeId = this.safeString (outcomeObj['info'], 'outcomeId');
-        const request: Dict = {
+        const request = {
             'id': marketId,
             'network_id': networkId,
         };
@@ -623,8 +634,9 @@ export default class Myriad extends PredictionExchange {
         //     }
         //
         const outcomes = this.safeList (response, 'outcomes', []) as any[];
-        let price: Num = undefined;
-        for (const o of outcomes) {
+        let price = undefined;
+        for (let i = 0; i < outcomes.length; i++) {
+            const o = outcomes[i];
             if (this.safeString (o, 'outcomeId', this.safeString (o, 'id')) === outcomeId) {
                 price = this.safeNumber (o, 'price');
                 break;
@@ -644,10 +656,6 @@ export default class Myriad extends PredictionExchange {
         } as unknown as OrderBook;
     }
 
-    // -----------------------------------------------------------------------
-    // OHLCV — from price_charts field on market object
-    // -----------------------------------------------------------------------
-
     /**
      * Fetches OHLCV data for a Myriad outcome from the price_charts bucket embedded in the market response.
      * @param symbol  outcome symbol, e.g. "TRUMP_WIN:YES"
@@ -657,7 +665,7 @@ export default class Myriad extends PredictionExchange {
      * @param params
     * @see https://docs.myriad.markets/builders/myriad-api-reference#320c9e49da828116b12dec5bfeea306a
      */
-    async fetchOHLCV (symbol: Str, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: Str, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const outcomeObj = this.outcome (symbol);
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
@@ -708,8 +716,9 @@ export default class Myriad extends PredictionExchange {
         //     }
         //
         const outcomes = this.safeList (response, 'outcomes', []) as any[];
-        let selectedOutcome: Dict = undefined;
-        for (const outcome of outcomes) {
+        let selectedOutcome = undefined;
+        for (let i = 0; i < outcomes.length; i++) {
+            const outcome = outcomes[i];
             const currentId = this.safeString (outcome, 'id', this.safeString (outcome, 'outcomeId'));
             const currentTitle = this.safeString (outcome, 'title', this.safeString (outcome, 'label'));
             if ((outcomeId !== undefined) && (currentId === outcomeId)) {
@@ -723,7 +732,9 @@ export default class Myriad extends PredictionExchange {
         const outcomePriceCharts = this.safeDict (selectedOutcome, 'price_charts', {});
         let chart = this.safeValue (outcomePriceCharts, bucketKey);
         if (chart === undefined) {
-            for (const key of Object.keys (outcomePriceCharts)) {
+            const outcomePriceChartKeys = Object.keys (outcomePriceCharts);
+            for (let i = 0; i < outcomePriceChartKeys.length; i++) {
+                const key = outcomePriceChartKeys[i];
                 const chartObj = this.safeDict (outcomePriceCharts, key, {});
                 if (this.safeString (chartObj, 'timeframe') === bucketKey) {
                     chart = chartObj;
@@ -731,11 +742,12 @@ export default class Myriad extends PredictionExchange {
                 }
             }
         }
-        let points = (this.safeList (chart, 'prices', this.safeList (chart, 'data', chart as any)) || []) as any[];
+        const pointsList = this.safeList (chart, 'prices', this.safeList (chart, 'data', chart as any));
+        let points = (pointsList !== undefined) ? pointsList : [];
         if (points.length === 0) {
             const priceCharts = this.safeDict (response, 'price_charts', {});
             const bucket = this.safeValue (priceCharts, bucketKey, {});
-            points = (this.safeList (bucket, outcomeId, this.safeList (bucket, 'data', [])) || []) as any[];
+            points = this.safeList (bucket, outcomeId, this.safeList (bucket, 'data', [])) as any[];
         }
         return this.parseOHLCVs (points, outcomeObj, timeframe, since, limit);
     }
@@ -773,10 +785,6 @@ export default class Myriad extends PredictionExchange {
         ];
     }
 
-    // -----------------------------------------------------------------------
-    // Events (questions)
-    // -----------------------------------------------------------------------
-
     /**
      * Fetches Myriad questions matching the given search terms and merges them into this.events and this.markets.
      * With no queries, fetches all questions via loadMarkets() and returns this.events.
@@ -784,22 +792,26 @@ export default class Myriad extends PredictionExchange {
      * @param params
      * @see https://docs.myriad.markets/api-reference/questions/list-questions
      */
-    async fetchEvents (queries: string[] = [], params: Dict = {}): Promise<PredictionEvent[]> {
+    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any[]> {
+        queries = (queries === undefined) ? [] : queries;
         if (!queries || queries.length === 0) {
             await this.loadMarkets ();
-            return Object.values (this.events as Dict) as PredictionEvent[];
+            return Object.values (this.events as Dict) as any[];
         }
         const limit = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'defaultFetchEventsLimit', 50));
         const rest = this.omit (params, [ 'limit' ]);
-        const seen: Dict = {};
-        const rawEvents: any[] = [];
-        for (const q of queries) {
+        const seen = {};
+        const rawEvents = [];
+        for (let i = 0; i < queries.length; i++) {
+            const q = queries[i];
             const response = await this.myriadPublicGetQuestions (this.extend ({
                 'keyword': q,
                 'limit': limit,
             }, rest));
-            const found = (this.safeList (response, 'data', response as any) || []) as any[];
-            for (const rawEvent of found) {
+            const foundList = this.safeList (response, 'data', response as any);
+            const found = (foundList !== undefined) ? foundList : [];
+            for (let j = 0; j < found.length; j++) {
+                const rawEvent = found[j];
                 const eventId = this.safeString (rawEvent, 'id');
                 if (eventId && !seen[eventId]) {
                     seen[eventId] = true;
@@ -811,16 +823,20 @@ export default class Myriad extends PredictionExchange {
             this.events = {};
         }
         if (!this.markets) {
-            this.markets = {};
+            this.markets = this.createSafeDictionary ();
         }
-        const result: PredictionEvent[] = [];
-        for (const rawEvent of rawEvents) {
+        const result = [];
+        for (let i = 0; i < rawEvents.length; i++) {
+            const rawEvent = rawEvents[i];
             const questionSlug = this.safeString (rawEvent, 'slug', this.safeString (rawEvent, 'id'));
             const eventKey = questionSlug ? this.shortenSlug (questionSlug) : undefined;
             const parsedEvent = this.parseEvent (rawEvent);
             if (eventKey) {
-                (this.events as Dict)[eventKey] = parsedEvent;
-                for (const m of (parsedEvent['markets'] as unknown as Market[])) {
+                const eventsDict = this.events as Dict;
+                eventsDict[eventKey] = parsedEvent;
+                const parsedMarkets = parsedEvent['markets'] as unknown as Market[];
+                for (let j = 0; j < parsedMarkets.length; j++) {
+                    const m = parsedMarkets[j];
                     this.markets[m['symbol'] as string] = m;
                 }
                 result.push (parsedEvent);
@@ -834,12 +850,13 @@ export default class Myriad extends PredictionExchange {
      * Each market in the list contains its own outcomes array.
      * @param rawEvent
      */
-    parseEvent (rawEvent: Dict): PredictionEvent {
+    parseEvent (rawEvent: Dict): any {
         const questionSlug = this.safeString (rawEvent, 'slug', this.safeString (rawEvent, 'id'));
         const rawMarkets = this.safeList (rawEvent, 'markets', []) as any[];
-        const marketsList: Market[] = [];
-        for (const rawMarket of rawMarkets) {
-            marketsList.push (this.parseMarket (rawMarket, questionSlug));
+        const marketsList = [];
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const rawMarket = rawMarkets[i];
+            marketsList.push (this.parseMyriadMarket (rawMarket, questionSlug));
         }
         const endDate = this.safeString (rawEvent, 'expiresAt', this.safeString (rawEvent, 'endDate'));
         return this.extend (rawEvent, {
@@ -862,12 +879,8 @@ export default class Myriad extends PredictionExchange {
             'lastUpdatedAt': this.parse8601 (this.safeString (rawEvent, 'updatedAt')),
             'resolutionSource': this.safeString (rawEvent, 'resolutionSource'),
             'info': rawEvent,
-        }) as unknown as PredictionEvent;
+        }) as any;
     }
-
-    // -----------------------------------------------------------------------
-    // Signing (x-api-key header only)
-    // -----------------------------------------------------------------------
 
     /**
      * Builds the request URL and attaches the x-api-key header for private or authenticated endpoints.
@@ -878,9 +891,9 @@ export default class Myriad extends PredictionExchange {
      * @param headers
      * @param body
      */
-    sign (path: Str, api: any = 'myriad', method = 'GET', params: Dict = {}, headers: Dict = undefined, body: Dict = undefined) {
-        const apiGroup: string = typeof api === 'string' ? api : api[0];
-        const access: string = typeof api === 'string' ? 'public' : api[1];
+    sign (path: Str, api: any = 'myriad', method = 'GET', params = {}, headers: Dict = undefined, body: Dict = undefined) {
+        const apiGroup = typeof api === 'string' ? api : api[0];
+        const access = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['myriad'] as string);
         let url = baseUrl + '/' + this.implodeParams (path as string, params);
@@ -889,10 +902,11 @@ export default class Myriad extends PredictionExchange {
         if (method === 'GET' && querystring) {
             url += '?' + querystring;
         }
+        const existingHeaders = (headers !== undefined) ? headers : {};
         headers = this.extend ({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-        }, headers || {});
+        }, existingHeaders);
         if (access === 'private' || this.apiKey) {
             if (this.apiKey) {
                 headers = this.extend (headers, { 'x-api-key': this.apiKey });
