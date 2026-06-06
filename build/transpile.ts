@@ -455,10 +455,10 @@ class Transpiler {
             [ /undefined/g, 'null' ],
             [ /\} else if/g, '} elseif' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
-            [ /this\.string_to_base64\s*\(/g, 'base64_encode(' ],
-            [ /this\.binary_to_base16\s*\(/g, 'bin2hex(' ],
-            [ /this\.base64_to_binary\s*\(/g, 'base64_decode(' ],
-            [ /this\.base64_to_string\s*\(/g, 'base64_decode(' ],
+            [ /this\.string_to_base64/g, 'base64_encode' ],
+            [ /this\.binary_to_base16/g, 'bin2hex' ],
+            [ /this\.base64_to_binary/g, 'base64_decode' ],
+            [ /this\.base64_to_string/g, 'base64_decode' ],
             [ /Promise\.all\s*\(([^\)]+)\)/g, 'Promise\\all($1)' ],
             // deepExtend is commented for PHP because it does not overwrite linear arrays
             // a proper \ccxt\Exchange::deep_extend() base method is implemented instead
