@@ -9208,7 +9208,7 @@ class okx extends okx$1["default"] {
             request['end'] = until;
         }
         if (timeframe !== undefined) {
-            request['period'] = timeframe;
+            request['period'] = this.safeString(this.timeframes, timeframe, timeframe);
         }
         if (since !== undefined) {
             request['begin'] = since;

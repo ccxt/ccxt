@@ -189,7 +189,7 @@
                         "precision": 1e-8,
                         "type": null,
                         "name": "Tether USD",
-                        "active": true,
+                        "active": null,
                         "deposit": true,
                         "withdraw": true,
                         "fee": 0,
@@ -214,7 +214,7 @@
                                 "id": "BSC",
                                 "name": null,
                                 "code": "BEP20",
-                                "active": false,
+                                "active": null,
                                 "fee": 0,
                                 "deposit": true,
                                 "withdraw": false,
@@ -249,7 +249,7 @@
                                 "id": "ETH",
                                 "name": null,
                                 "code": "ERC20",
-                                "active": true,
+                                "active": null,
                                 "fee": 0.426006,
                                 "deposit": true,
                                 "withdraw": true,
@@ -284,7 +284,7 @@
                                 "id": "SOL",
                                 "name": null,
                                 "code": "SOL",
-                                "active": false,
+                                "active": null,
                                 "fee": 0.83,
                                 "deposit": true,
                                 "withdraw": false,
@@ -319,7 +319,7 @@
                                 "id": "TRX",
                                 "name": null,
                                 "code": "TRC20",
-                                "active": true,
+                                "active": null,
                                 "fee": 1.2,
                                 "deposit": true,
                                 "withdraw": true,
@@ -354,7 +354,7 @@
                                 "id": "OMNI",
                                 "name": null,
                                 "code": "OMNI",
-                                "active": false,
+                                "active": null,
                                 "fee": 0,
                                 "deposit": false,
                                 "withdraw": false,
@@ -612,25 +612,25 @@
         ],
         "withdraw": [
             {
-                "description": "withdraw USDT on ETH",
+                "description": "ethereum",
                 "method": "withdraw",
                 "input": [
                     "USDT",
                     5,
-                    "0x2a1cd2a93eac9403203ab118a4e7d90916ae3356",
+                    "0x883b79D31EA07AA200A4a83c50d444470A212eEE",
                     null,
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
                 "httpResponse": {
-                    "withdrawalRequestsId": 18514179
+                    "withdrawalRequestsId": 19165155
                 },
                 "parsedResponse": {
                     "info": {
-                        "withdrawalRequestsId": 18514179
+                        "withdrawalRequestsId": 19165155
                     },
-                    "id": "18514179",
+                    "id": "19165155",
                     "currency": null,
                     "amount": null,
                     "network": null,

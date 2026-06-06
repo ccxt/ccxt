@@ -9219,7 +9219,7 @@ class okx extends Exchange {
             $request['end'] = $until;
         }
         if ($timeframe !== null) {
-            $request['period'] = $timeframe;
+            $request['period'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         }
         if ($since !== null) {
             $request['begin'] = $since;

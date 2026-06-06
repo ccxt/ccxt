@@ -1191,69 +1191,68 @@ public class HashkeyCore extends HashkeyApi
             //         ]
             //     }
             //
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(coins)); i++)
-            {
-                Object currecy = Helpers.GetValue(coins, i);
-                Object currencyId = this.safeString(currecy, "coinId");
-                Object code = this.safeCurrencyCode(currencyId);
-                Object networks = this.safeList(currecy, "chainTypes");
-                Object parsedNetworks = new java.util.HashMap<String, Object>() {{}};
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
-                {
-                    Object network = Helpers.GetValue(networks, j);
-                    Object networkId = this.safeString(network, "chainType");
-                    Object networkCode = this.networkCodeToId(networkId);
-                    Helpers.addElementToObject(parsedNetworks, networkCode, new java.util.HashMap<String, Object>() {{
-        put( "id", networkId );
-        put( "network", networkCode );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", HashkeyCore.this.safeNumber(network, "minWithdrawQuantity") );
-                put( "max", HashkeyCore.this.parseNumber(HashkeyCore.this.omitZero(HashkeyCore.this.safeString(network, "maxWithdrawQuantity"))) );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", HashkeyCore.this.safeNumber(network, "minDepositQuantity") );
-                put( "max", null );
-            }} );
-        }} );
-        put( "active", null );
-        put( "deposit", HashkeyCore.this.safeBool(network, "allowDeposit") );
-        put( "withdraw", HashkeyCore.this.safeBool(network, "allowWithdraw") );
-        put( "fee", HashkeyCore.this.safeNumber(network, "withdrawFee") );
-        put( "precision", null );
-        put( "info", network );
-    }});
-                }
-                Object rawType = this.safeString(currecy, "tokenType");
-                Object type = ((Helpers.isTrue((Helpers.isEqual(rawType, "REAL_MONEY"))))) ? "fiat" : "crypto";
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", currencyId );
-        put( "code", code );
-        put( "precision", null );
-        put( "type", type );
-        put( "name", HashkeyCore.this.safeString(currecy, "coinFullName") );
-        put( "active", null );
-        put( "deposit", HashkeyCore.this.safeBool(currecy, "allowDeposit") );
-        put( "withdraw", HashkeyCore.this.safeBool(currecy, "allowWithdraw") );
-        put( "fee", null );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "networks", parsedNetworks );
-        put( "info", currecy );
-    }}));
-            }
-            return result;
+            return this.parseCurrencies(coins);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object currencyId = this.safeString(rawCurrency, "coinId");
+        Object code = this.safeCurrencyCode(currencyId);
+        Object networks = this.safeList(rawCurrency, "chainTypes");
+        Object parsedNetworks = new java.util.HashMap<String, Object>() {{}};
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
+        {
+            Object network = Helpers.GetValue(networks, j);
+            Object networkId = this.safeString(network, "chainType");
+            Object networkCode = this.networkCodeToId(networkId);
+            Helpers.addElementToObject(parsedNetworks, networkCode, new java.util.HashMap<String, Object>() {{
+    put( "id", networkId );
+    put( "network", networkCode );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", HashkeyCore.this.safeNumber(network, "minWithdrawQuantity") );
+            put( "max", HashkeyCore.this.parseNumber(HashkeyCore.this.omitZero(HashkeyCore.this.safeString(network, "maxWithdrawQuantity"))) );
+        }} );
+        put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "min", HashkeyCore.this.safeNumber(network, "minDepositQuantity") );
+            put( "max", null );
+        }} );
+    }} );
+    put( "active", null );
+    put( "deposit", HashkeyCore.this.safeBool(network, "allowDeposit") );
+    put( "withdraw", HashkeyCore.this.safeBool(network, "allowWithdraw") );
+    put( "fee", HashkeyCore.this.safeNumber(network, "withdrawFee") );
+    put( "precision", null );
+    put( "info", network );
+}});
+        }
+        Object rawType = this.safeString(rawCurrency, "tokenType");
+        Object type = ((Helpers.isTrue((Helpers.isEqual(rawType, "REAL_MONEY"))))) ? "fiat" : "crypto";
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", currencyId );
+            put( "code", code );
+            put( "precision", null );
+            put( "type", type );
+            put( "name", HashkeyCore.this.safeString(rawCurrency, "coinFullName") );
+            put( "active", null );
+            put( "deposit", HashkeyCore.this.safeBool(rawCurrency, "allowDeposit") );
+            put( "withdraw", HashkeyCore.this.safeBool(rawCurrency, "allowWithdraw") );
+            put( "fee", null );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "deposit", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "networks", parsedNetworks );
+            put( "info", rawCurrency );
+        }});
     }
 
     /**

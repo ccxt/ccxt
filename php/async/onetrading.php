@@ -443,30 +443,29 @@ class onetrading extends Exchange {
             //         ),
             //     )
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $currency = $response[$i];
-                $id = $this->safe_string($currency, 'code');
-                $code = $this->safe_currency_code($id);
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'code' => $code,
-                    'name' => $this->safe_string($currency, 'name'),
-                    'info' => $currency,
-                    'active' => null,
-                    'fee' => null,
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
-                    'withdraw' => null,
-                    'deposit' => null,
-                    'limits' => array(
-                        'amount' => array( 'min' => null, 'max' => null ),
-                        'withdraw' => array( 'min' => null, 'max' => null ),
-                    ),
-                    'networks' => array(),
-                ));
-            }
-            return $result;
+            return $this->parse_currencies($response);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'code');
+        $code = $this->safe_currency_code($id);
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'name' => $this->safe_string($rawCurrency, 'name'),
+            'info' => $rawCurrency,
+            'active' => null,
+            'fee' => null,
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'precision'))),
+            'withdraw' => null,
+            'deposit' => null,
+            'limits' => array(
+                'amount' => array( 'min' => null, 'max' => null ),
+                'withdraw' => array( 'min' => null, 'max' => null ),
+            ),
+            'networks' => array(),
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {

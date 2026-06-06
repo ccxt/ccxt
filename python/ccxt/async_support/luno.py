@@ -329,38 +329,19 @@ class luno(Exchange, ImplicitAPI):
         #     }
         #
         currenciesData = self.safe_list(response, 'data', [])
-        result: dict = {}
-        for i in range(0, len(currenciesData)):
-            networkEntry = currenciesData[i]
-            id = self.safe_string(networkEntry, 'native_currency')
-            code = self.safe_currency_code(id)
-            if not (code in result):
-                result[code] = {
-                    'id': id,
-                    'code': code,
-                    'precision': None,
-                    'type': None,
-                    'name': None,
-                    'active': None,
-                    'deposit': None,
-                    'withdraw': None,
-                    'fee': None,
-                    'limits': {
-                        'withdraw': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                    'networks': {},
-                    'info': {},
-                }
+        grouped = self.group_by(currenciesData, 'native_currency')
+        values = list(grouped.values())
+        return self.parse_currencies(values)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency[0], 'native_currency')  # first item is guaranteed
+        code = self.safe_currency_code(id)
+        networks = {}
+        for i in range(0, len(rawCurrency)):
+            networkEntry = rawCurrency[i]
             networkId = self.safe_string(networkEntry, 'name')
             networkCode = self.network_id_to_code(networkId)
-            result[code]['networks'][networkCode] = {
+            networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
                 'limits': {
@@ -380,16 +361,29 @@ class luno(Exchange, ImplicitAPI):
                 'precision': None,
                 'info': networkEntry,
             }
-            # add entry in info
-            info = self.safe_list(result[code], 'info', [])
-            info.append(networkEntry)
-            result[code]['info'] = info
-        # only after all entries are formed in currencies, restructure each entry
-        allKeys = list(result.keys())
-        for i in range(0, len(allKeys)):
-            code = allKeys[i]
-            result[code] = self.safe_currency_structure(result[code])  # self is needed after adding network entry
-        return result
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'precision': None,
+            'type': None,
+            'name': None,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'limits': {
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+            'info': rawCurrency,
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """

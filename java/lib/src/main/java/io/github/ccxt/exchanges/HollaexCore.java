@@ -507,70 +507,68 @@ public class HollaexCore extends HollaexApi
             //     }
             //
             Object coins = this.safeDict(response, "coins", new java.util.HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(coins);
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
-            {
-                Object key = Helpers.GetValue(keys, i);
-                Object currency = Helpers.GetValue(coins, key);
-                Object id = this.safeString(currency, "symbol");
-                Object code = this.safeCurrencyCode(id);
-                Object withdrawalLimits = this.safeList(currency, "withdrawal_limits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object rawType = this.safeString(currency, "type");
-                Object type = ((Helpers.isTrue((Helpers.isEqual(rawType, "blockchain"))))) ? "crypto" : "other";
-                Object rawNetworks = this.safeDict(currency, "withdrawal_fees", new java.util.HashMap<String, Object>() {{}});
-                Object networks = new java.util.HashMap<String, Object>() {{}};
-                Object networkIds = Helpers.objectKeys(rawNetworks);
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
-                {
-                    Object networkId = Helpers.GetValue(networkIds, j);
-                    Object networkEntry = this.safeDict(rawNetworks, networkId);
-                    Object networkCode = this.networkIdToCode(networkId);
-                    Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
-        put( "id", networkId );
-        put( "network", networkCode );
-        put( "active", HollaexCore.this.safeBool(networkEntry, "active") );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "fee", HollaexCore.this.safeNumber(networkEntry, "value") );
-        put( "precision", null );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "info", networkEntry );
-    }});
-                }
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", id );
-        put( "numericId", HollaexCore.this.safeInteger(currency, "id") );
-        put( "code", code );
-        put( "info", currency );
-        put( "name", HollaexCore.this.safeString(currency, "fullname") );
-        put( "active", HollaexCore.this.safeBool(currency, "active") );
-        put( "deposit", HollaexCore.this.safeBool(currency, "allow_deposit") );
-        put( "withdraw", HollaexCore.this.safeBool(currency, "allow_withdrawal") );
-        put( "fee", HollaexCore.this.safeNumber(currency, "withdrawal_fee") );
-        put( "precision", HollaexCore.this.safeNumber(currency, "increment_unit") );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", HollaexCore.this.safeNumber(currency, "min") );
-                put( "max", HollaexCore.this.safeNumber(currency, "max") );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", HollaexCore.this.safeValue(withdrawalLimits, 0) );
-            }} );
-        }} );
-        put( "networks", networks );
-        put( "type", type );
-    }}));
-            }
-            return result;
+            Object values = Helpers.objectValues(coins);
+            return this.parseCurrencies(values);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object id = this.safeString(rawCurrency, "symbol");
+        Object code = this.safeCurrencyCode(id);
+        Object withdrawalLimits = this.safeList(rawCurrency, "withdrawal_limits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object rawType = this.safeString(rawCurrency, "type");
+        Object type = ((Helpers.isTrue((Helpers.isEqual(rawType, "blockchain"))))) ? "crypto" : "other";
+        Object rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new java.util.HashMap<String, Object>() {{}});
+        Object networks = new java.util.HashMap<String, Object>() {{}};
+        Object networkIds = Helpers.objectKeys(rawNetworks);
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
+        {
+            Object networkId = Helpers.GetValue(networkIds, j);
+            Object networkEntry = this.safeDict(rawNetworks, networkId);
+            Object networkCode = this.networkIdToCode(networkId);
+            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+    put( "id", networkId );
+    put( "network", networkCode );
+    put( "active", HollaexCore.this.safeBool(networkEntry, "active") );
+    put( "deposit", null );
+    put( "withdraw", null );
+    put( "fee", HollaexCore.this.safeNumber(networkEntry, "value") );
+    put( "precision", null );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", null );
+        }} );
+    }} );
+    put( "info", networkEntry );
+}});
+        }
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", id );
+            put( "numericId", HollaexCore.this.safeInteger(rawCurrency, "id") );
+            put( "code", code );
+            put( "info", rawCurrency );
+            put( "name", HollaexCore.this.safeString(rawCurrency, "fullname") );
+            put( "active", HollaexCore.this.safeBool(rawCurrency, "active") );
+            put( "deposit", HollaexCore.this.safeBool(rawCurrency, "allow_deposit") );
+            put( "withdraw", HollaexCore.this.safeBool(rawCurrency, "allow_withdrawal") );
+            put( "fee", HollaexCore.this.safeNumber(rawCurrency, "withdrawal_fee") );
+            put( "precision", HollaexCore.this.safeNumber(rawCurrency, "increment_unit") );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "amount", new java.util.HashMap<String, Object>() {{
+                    put( "min", HollaexCore.this.safeNumber(rawCurrency, "min") );
+                    put( "max", HollaexCore.this.safeNumber(rawCurrency, "max") );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", HollaexCore.this.safeValue(withdrawalLimits, 0) );
+                }} );
+            }} );
+            put( "networks", networks );
+            put( "type", type );
+        }});
     }
 
     /**

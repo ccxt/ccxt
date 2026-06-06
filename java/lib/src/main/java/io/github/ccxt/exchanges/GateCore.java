@@ -2075,60 +2075,58 @@ public class GateCore extends GateApi
             //       },
             //    ]
             //
-            Object indexedCurrencies = this.indexBy(response, "currency");
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
-            {
-                Object entry = Helpers.GetValue(response, i);
-                Object currencyId = this.safeString(entry, "currency");
-                Object code = this.safeCurrencyCode(currencyId);
-                // check leveraged tokens (e.g. BTC3S, ETH5L)
-                Object type = ((Helpers.isTrue(this.isLeveragedCurrency(currencyId, true, indexedCurrencies)))) ? "leveraged" : "crypto";
-                Object chains = this.safeList(entry, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object networks = new java.util.HashMap<String, Object>() {{}};
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
-                {
-                    Object chain = Helpers.GetValue(chains, j);
-                    Object networkId = this.safeString(chain, "name");
-                    Object networkCode = this.networkIdToCode(networkId);
-                    Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
-        put( "info", chain );
-        put( "id", networkId );
-        put( "network", networkCode );
-        put( "active", null );
-        put( "deposit", !Helpers.isTrue(GateCore.this.safeBool(chain, "deposit_disabled")) );
-        put( "withdraw", !Helpers.isTrue(GateCore.this.safeBool(chain, "withdraw_disabled")) );
-        put( "fee", null );
-        put( "precision", GateCore.this.parseNumber("0.0001") );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-    }});
-                }
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", currencyId );
-        put( "code", code );
-        put( "name", GateCore.this.safeString(entry, "name") );
-        put( "type", type );
-        put( "active", !Helpers.isTrue(GateCore.this.safeBool(entry, "delisted")) );
-        put( "deposit", !Helpers.isTrue(GateCore.this.safeBool(entry, "deposit_disabled")) );
-        put( "withdraw", !Helpers.isTrue(GateCore.this.safeBool(entry, "withdraw_disabled")) );
-        put( "fee", null );
-        put( "networks", networks );
-        put( "precision", GateCore.this.parseNumber("0.0001") );
-        put( "info", entry );
-    }}));
-            }
-            return result;
+            return this.parseCurrencies(response);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object currencyId = this.safeString(rawCurrency, "currency");
+        Object code = this.safeCurrencyCode(currencyId);
+        // check leveraged tokens (e.g. BTC3S, ETH5L)
+        Object type = ((Helpers.isTrue(this.isLeveragedCurrency(currencyId)))) ? "leveraged" : "crypto";
+        Object chains = this.safeList(rawCurrency, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object networks = new java.util.HashMap<String, Object>() {{}};
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
+        {
+            Object chain = Helpers.GetValue(chains, j);
+            Object networkId = this.safeString(chain, "name");
+            Object networkCode = this.networkIdToCode(networkId);
+            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+    put( "info", chain );
+    put( "id", networkId );
+    put( "network", networkCode );
+    put( "active", null );
+    put( "deposit", !Helpers.isTrue(GateCore.this.safeBool(chain, "deposit_disabled")) );
+    put( "withdraw", !Helpers.isTrue(GateCore.this.safeBool(chain, "withdraw_disabled")) );
+    put( "fee", null );
+    put( "precision", GateCore.this.parseNumber("0.0001") );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", null );
+        }} );
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", null );
+        }} );
+    }} );
+}});
+        }
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", currencyId );
+            put( "code", code );
+            put( "name", GateCore.this.safeString(rawCurrency, "name") );
+            put( "type", type );
+            put( "active", !Helpers.isTrue(GateCore.this.safeBool(rawCurrency, "delisted")) );
+            put( "deposit", !Helpers.isTrue(GateCore.this.safeBool(rawCurrency, "deposit_disabled")) );
+            put( "withdraw", !Helpers.isTrue(GateCore.this.safeBool(rawCurrency, "withdraw_disabled")) );
+            put( "fee", null );
+            put( "networks", networks );
+            put( "precision", GateCore.this.parseNumber("0.0001") );
+            put( "info", rawCurrency );
+        }});
     }
 
     /**

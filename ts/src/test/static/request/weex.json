@@ -8,6 +8,15 @@
     ],
     "options": {},
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://api-spot.weex.com/api/v3/coins",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrderWithTakeProfitAndStopLoss": [
             {
                 "description": "create swap order with take profit and stop loss",

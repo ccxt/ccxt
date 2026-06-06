@@ -410,105 +410,104 @@ public class ZebpayCore extends ZebpayApi
             //     }
             //
             Object rows = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
-            {
-                Object currency = Helpers.GetValue(rows, i);
-                Object currencyId = this.safeString(currency, "currency");
-                Object code = this.safeCurrencyCode(currencyId);
-                Object name = this.safeString(currency, "name");
-                Object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
-                Object chains = this.safeList(currency, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object networks = new java.util.HashMap<String, Object>() {{}};
-                Object minWithdrawFeeString = null;
-                Object minWithdrawString = null;
-                Object minDepositString = null;
-                Object deposit = false;
-                Object withdraw = false;
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
-                {
-                    Object chain = Helpers.GetValue(chains, j);
-                    Object networkId = this.safeString(chain, "chainId");
-                    Object networkCode = this.networkIdToCode(networkId);
-                    Object depositAllowed = Helpers.isEqual(this.safeBool(chain, "isDepositEnabled"), true);
-                    deposit = ((Helpers.isTrue((depositAllowed)))) ? depositAllowed : deposit;
-                    Object withdrawAllowed = Helpers.isEqual(this.safeBool(chain, "isWithdrawEnabled"), true);
-                    withdraw = ((Helpers.isTrue((withdrawAllowed)))) ? withdrawAllowed : withdraw;
-                    Object withdrawFeeString = this.safeString(chain, "withdrawalFee");
-                    if (Helpers.isTrue(!Helpers.isEqual(withdrawFeeString, null)))
-                    {
-                        minWithdrawFeeString = ((Helpers.isTrue((Helpers.isEqual(minWithdrawFeeString, null))))) ? withdrawFeeString : Precise.stringMin(withdrawFeeString, minWithdrawFeeString);
-                    }
-                    Object minNetworkWithdrawString = this.safeString(chain, "withdrawalMinSize");
-                    if (Helpers.isTrue(!Helpers.isEqual(minNetworkWithdrawString, null)))
-                    {
-                        minWithdrawString = ((Helpers.isTrue((Helpers.isEqual(minWithdrawString, null))))) ? minNetworkWithdrawString : Precise.stringMin(minNetworkWithdrawString, minWithdrawString);
-                    }
-                    Object minNetworkDepositString = this.safeString(chain, "depositMinSize");
-                    if (Helpers.isTrue(!Helpers.isEqual(minNetworkDepositString, null)))
-                    {
-                        minDepositString = ((Helpers.isTrue((Helpers.isEqual(minDepositString, null))))) ? minNetworkDepositString : Precise.stringMin(minNetworkDepositString, minDepositString);
-                    }
-                    final Object finalDepositAllowed = depositAllowed;
-                    final Object finalWithdrawFeeString = withdrawFeeString;
-                    final Object finalMinNetworkWithdrawString = minNetworkWithdrawString;
-                    final Object finalMinNetworkDepositString = minNetworkDepositString;
-                    Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
-        put( "info", chain );
-        put( "id", networkId );
-        put( "network", networkCode );
-        put( "active", Helpers.isTrue(finalDepositAllowed) && Helpers.isTrue(withdrawAllowed) );
-        put( "deposit", finalDepositAllowed );
-        put( "withdraw", withdrawAllowed );
-        put( "fee", ZebpayCore.this.parseNumber(finalWithdrawFeeString) );
-        put( "precision", precision );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", ZebpayCore.this.parseNumber(finalMinNetworkWithdrawString) );
-                put( "max", null );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", ZebpayCore.this.parseNumber(finalMinNetworkDepositString) );
-                put( "max", null );
-            }} );
-        }} );
-    }});
-                }
-                final Object finalDeposit = deposit;
-                final Object finalWithdraw = withdraw;
-                final Object finalMinWithdrawFeeString = minWithdrawFeeString;
-                final Object finalMinWithdrawString = minWithdrawString;
-                final Object finalMinDepositString = minDepositString;
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "info", currency );
-        put( "code", code );
-        put( "id", currencyId );
-        put( "name", name );
-        put( "active", Helpers.isTrue(finalDeposit) && Helpers.isTrue(finalWithdraw) );
-        put( "deposit", finalDeposit );
-        put( "withdraw", finalWithdraw );
-        put( "fee", ZebpayCore.this.parseNumber(finalMinWithdrawFeeString) );
-        put( "precision", precision );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", ZebpayCore.this.parseNumber(finalMinWithdrawString) );
-                put( "max", null );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", ZebpayCore.this.parseNumber(finalMinDepositString) );
-                put( "max", null );
-            }} );
-        }} );
-        put( "networks", networks );
-    }}));
-            }
-            return result;
+            return this.parseCurrencies(rows);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object currencyId = this.safeString(rawCurrency, "currency");
+        Object code = this.safeCurrencyCode(currencyId);
+        Object name = this.safeString(rawCurrency, "name");
+        Object precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
+        Object chains = this.safeList(rawCurrency, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object networks = new java.util.HashMap<String, Object>() {{}};
+        Object minWithdrawFeeString = null;
+        Object minWithdrawString = null;
+        Object minDepositString = null;
+        Object deposit = false;
+        Object withdraw = false;
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
+        {
+            Object chain = Helpers.GetValue(chains, j);
+            Object networkId = this.safeString(chain, "chainId");
+            Object networkCode = this.networkIdToCode(networkId);
+            Object depositAllowed = Helpers.isEqual(this.safeBool(chain, "isDepositEnabled"), true);
+            deposit = ((Helpers.isTrue((depositAllowed)))) ? depositAllowed : deposit;
+            Object withdrawAllowed = Helpers.isEqual(this.safeBool(chain, "isWithdrawEnabled"), true);
+            withdraw = ((Helpers.isTrue((withdrawAllowed)))) ? withdrawAllowed : withdraw;
+            Object withdrawFeeString = this.safeString(chain, "withdrawalFee");
+            if (Helpers.isTrue(!Helpers.isEqual(withdrawFeeString, null)))
+            {
+                minWithdrawFeeString = ((Helpers.isTrue((Helpers.isEqual(minWithdrawFeeString, null))))) ? withdrawFeeString : Precise.stringMin(withdrawFeeString, minWithdrawFeeString);
+            }
+            Object minNetworkWithdrawString = this.safeString(chain, "withdrawalMinSize");
+            if (Helpers.isTrue(!Helpers.isEqual(minNetworkWithdrawString, null)))
+            {
+                minWithdrawString = ((Helpers.isTrue((Helpers.isEqual(minWithdrawString, null))))) ? minNetworkWithdrawString : Precise.stringMin(minNetworkWithdrawString, minWithdrawString);
+            }
+            Object minNetworkDepositString = this.safeString(chain, "depositMinSize");
+            if (Helpers.isTrue(!Helpers.isEqual(minNetworkDepositString, null)))
+            {
+                minDepositString = ((Helpers.isTrue((Helpers.isEqual(minDepositString, null))))) ? minNetworkDepositString : Precise.stringMin(minNetworkDepositString, minDepositString);
+            }
+            final Object finalDepositAllowed = depositAllowed;
+            final Object finalWithdrawFeeString = withdrawFeeString;
+            final Object finalMinNetworkWithdrawString = minNetworkWithdrawString;
+            final Object finalMinNetworkDepositString = minNetworkDepositString;
+            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+    put( "info", chain );
+    put( "id", networkId );
+    put( "network", networkCode );
+    put( "active", Helpers.isTrue(finalDepositAllowed) && Helpers.isTrue(withdrawAllowed) );
+    put( "deposit", finalDepositAllowed );
+    put( "withdraw", withdrawAllowed );
+    put( "fee", ZebpayCore.this.parseNumber(finalWithdrawFeeString) );
+    put( "precision", precision );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", ZebpayCore.this.parseNumber(finalMinNetworkWithdrawString) );
+            put( "max", null );
+        }} );
+        put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "min", ZebpayCore.this.parseNumber(finalMinNetworkDepositString) );
+            put( "max", null );
+        }} );
+    }} );
+}});
+        }
+        final Object finalDeposit = deposit;
+        final Object finalWithdraw = withdraw;
+        final Object finalMinWithdrawFeeString = minWithdrawFeeString;
+        final Object finalMinWithdrawString = minWithdrawString;
+        final Object finalMinDepositString = minDepositString;
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "info", rawCurrency );
+            put( "code", code );
+            put( "id", currencyId );
+            put( "name", name );
+            put( "active", Helpers.isTrue(finalDeposit) && Helpers.isTrue(finalWithdraw) );
+            put( "deposit", finalDeposit );
+            put( "withdraw", finalWithdraw );
+            put( "fee", ZebpayCore.this.parseNumber(finalMinWithdrawFeeString) );
+            put( "precision", precision );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "amount", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", ZebpayCore.this.parseNumber(finalMinWithdrawString) );
+                    put( "max", null );
+                }} );
+                put( "deposit", new java.util.HashMap<String, Object>() {{
+                    put( "min", ZebpayCore.this.parseNumber(finalMinDepositString) );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "networks", networks );
+        }});
     }
 
     /**

@@ -1118,7 +1118,9 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
         $client->resolve ($this->balance, $messageHash);
         $messageHashRequest = $this->safe_string($message, 'id');
-        $client->resolve ($this->balance, $messageHashRequest);
+        if ($messageHashRequest !== null) {
+            $client->resolve ($this->balance, $messageHashRequest);
+        }
     }
 
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {

@@ -1994,58 +1994,56 @@ public partial class gate : Exchange
         //       },
         //    ]
         //
-        object indexedCurrencies = this.indexBy(response, "currency");
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        return this.parseCurrencies(response);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object currencyId = this.safeString(rawCurrency, "currency");
+        object code = this.safeCurrencyCode(currencyId);
+        // check leveraged tokens (e.g. BTC3S, ETH5L)
+        object type = ((bool) isTrue(this.isLeveragedCurrency(currencyId))) ? "leveraged" : "crypto";
+        object chains = this.safeList(rawCurrency, "chains", new List<object>() {});
+        object networks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
-            object entry = getValue(response, i);
-            object currencyId = this.safeString(entry, "currency");
-            object code = this.safeCurrencyCode(currencyId);
-            // check leveraged tokens (e.g. BTC3S, ETH5L)
-            object type = ((bool) isTrue(this.isLeveragedCurrency(currencyId, true, indexedCurrencies))) ? "leveraged" : "crypto";
-            object chains = this.safeList(entry, "chains", new List<object>() {});
-            object networks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
-            {
-                object chain = getValue(chains, j);
-                object networkId = this.safeString(chain, "name");
-                object networkCode = this.networkIdToCode(networkId);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "info", chain },
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "active", null },
-                    { "deposit", !isTrue(this.safeBool(chain, "deposit_disabled")) },
-                    { "withdraw", !isTrue(this.safeBool(chain, "withdraw_disabled")) },
-                    { "fee", null },
-                    { "precision", this.parseNumber("0.0001") },
-                    { "limits", new Dictionary<string, object>() {
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", currencyId },
-                { "code", code },
-                { "name", this.safeString(entry, "name") },
-                { "type", type },
-                { "active", !isTrue(this.safeBool(entry, "delisted")) },
-                { "deposit", !isTrue(this.safeBool(entry, "deposit_disabled")) },
-                { "withdraw", !isTrue(this.safeBool(entry, "withdraw_disabled")) },
+            object chain = getValue(chains, j);
+            object networkId = this.safeString(chain, "name");
+            object networkCode = this.networkIdToCode(networkId);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "info", chain },
+                { "id", networkId },
+                { "network", networkCode },
+                { "active", null },
+                { "deposit", !isTrue(this.safeBool(chain, "deposit_disabled")) },
+                { "withdraw", !isTrue(this.safeBool(chain, "withdraw_disabled")) },
                 { "fee", null },
-                { "networks", networks },
                 { "precision", this.parseNumber("0.0001") },
-                { "info", entry },
-            });
+                { "limits", new Dictionary<string, object>() {
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", currencyId },
+            { "code", code },
+            { "name", this.safeString(rawCurrency, "name") },
+            { "type", type },
+            { "active", !isTrue(this.safeBool(rawCurrency, "delisted")) },
+            { "deposit", !isTrue(this.safeBool(rawCurrency, "deposit_disabled")) },
+            { "withdraw", !isTrue(this.safeBool(rawCurrency, "withdraw_disabled")) },
+            { "fee", null },
+            { "networks", networks },
+            { "precision", this.parseNumber("0.0001") },
+            { "info", rawCurrency },
+        });
     }
 
     /**

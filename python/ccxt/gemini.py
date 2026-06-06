@@ -447,50 +447,28 @@ class gemini(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        result: dict = {}
         self.options['tradingPairs'] = self.safe_list(data, 'tradingPairs')
         currenciesArray = self.safe_value(data, 'currencies', [])
-        for i in range(0, len(currenciesArray)):
-            currency = currenciesArray[i]
-            id = self.safe_string(currency, 0)
-            code = self.safe_currency_code(id)
-            type = 'fiat' if self.safe_string(currency, 7) else 'crypto'
-            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 5)))
-            networks: dict = {}
-            networkId = self.safe_string(currency, 9)
-            networkCode = None
-            if networkId is not None:
-                networkCode = self.network_id_to_code(networkId)
-                networks[networkCode] = {
-                    'info': currency,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': None,
-                    'deposit': None,
-                    'withdraw': None,
-                    'fee': None,
-                    'precision': precision,
-                    'limits': {
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'withdraw': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'name': self.safe_string(currency, 1),
+        return self.parse_currencies(currenciesArray)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 0)
+        code = self.safe_currency_code(id)
+        type = 'fiat' if self.safe_string(rawCurrency, 7) else 'crypto'
+        precision = self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 5)))
+        networks: dict = {}
+        networkId = self.safe_string(rawCurrency, 9)
+        networkCode = None
+        if networkId is not None:
+            networkCode = self.network_id_to_code(networkId)
+            networks[networkCode] = {
+                'info': rawCurrency,
+                'id': networkId,
+                'network': networkCode,
                 'active': None,
                 'deposit': None,
                 'withdraw': None,
                 'fee': None,
-                'type': type,
                 'precision': precision,
                 'limits': {
                     'deposit': {
@@ -502,9 +480,30 @@ class gemini(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-                'networks': networks,
-            })
-        return result
+            }
+        return self.safe_currency_structure({
+            'info': rawCurrency,
+            'id': id,
+            'code': code,
+            'name': self.safe_string(rawCurrency, 1),
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'type': type,
+            'precision': precision,
+            'limits': {
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """

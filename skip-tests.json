@@ -771,6 +771,9 @@
     },
     "coinbase": {
         "skipMethods": {
+            "afterConstruct": {
+                "networks": "weird implementation, todo fix in future"
+            },
             "loadMarkets": {
                 "currencyIdAndCode": "some curr not available"
             },

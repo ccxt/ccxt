@@ -347,7 +347,7 @@
                     "stopLossPrice": "51000"
                   }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"type\":\"stop_loss\",\"size\":1,\"price_type\":1,\"executive_price\":\"50000\",\"trigger_price\":\"51000\",\"side\":3}"
+                "output": "{\"symbol\":\"BTCUSDT\",\"size\":1,\"price_type\":1,\"executive_price\":\"50000\",\"category\":\"market\",\"trigger_price\":\"51000\",\"side\":3,\"type\":\"stop_loss\"}"
             },
             {
                 "description": "swap take profit order",
@@ -363,7 +363,7 @@
                     "takeProfitPrice": "71000"
                   }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"type\":\"take_profit\",\"size\":1,\"price_type\":1,\"executive_price\":\"70000\",\"trigger_price\":\"71000\",\"side\":3}"
+                "output": "{\"symbol\":\"BTCUSDT\",\"size\":1,\"price_type\":1,\"executive_price\":\"70000\",\"category\":\"market\",\"trigger_price\":\"71000\",\"side\":3,\"type\":\"take_profit\"}"
             },
             {
                 "description": "spot trigger create order",

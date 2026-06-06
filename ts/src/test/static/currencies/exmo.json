@@ -1,51 +1,57 @@
 {
     "BTC": {
-        "info": [
-            {
-                "type": "deposit",
+        "info": {
+            "currency": {
                 "name": "BTC",
-                "currency_name": "BTC",
-                "min": "0.0005",
-                "max": "0",
-                "enabled": true,
-                "comment": "We support only Bitcoin network for BTC deposits, please consider this when transferring funds.",
-                "commission_desc": "0%",
-                "currency_confirmations": "1"
+                "description": "Bitcoin"
             },
-            {
-                "type": "withdraw",
-                "name": "BTC",
-                "currency_name": "BTC",
-                "min": "0.00024",
-                "max": "350",
-                "enabled": true,
-                "comment": "We support only Bitcoin network for BTC withdrawals, please consider this when transferring funds.",
-                "commission_desc": "0.00006 BTC",
-                "currency_confirmations": "6"
-            }
-        ],
+            "providers": [
+                {
+                    "type": "withdraw",
+                    "name": "BITCOIN",
+                    "currency_name": "BTC",
+                    "min": "0.000144",
+                    "max": "350",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "0.000018 BTC",
+                    "currency_confirmations": "6"
+                },
+                {
+                    "type": "deposit",
+                    "name": "BITCOIN",
+                    "currency_name": "BTC",
+                    "min": "0.0005",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "",
+                    "currency_confirmations": "1"
+                }
+            ]
+        },
         "id": "BTC",
         "numericId": null,
         "code": "BTC",
         "precision": 1e-8,
         "type": "crypto",
         "name": "Bitcoin",
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": null,
         "fees": {},
         "networks": {
-            "BTC": {
-                "id": "BTC",
-                "network": "BTC",
-                "active": true,
+            "BITCOIN": {
+                "id": "BITCOIN",
+                "network": "BITCOIN",
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": null,
                 "limits": {
                     "withdraw": {
-                        "min": "0.00024",
+                        "min": "0.000144",
                         "max": "350"
                     },
                     "deposit": {
@@ -55,33 +61,33 @@
                 },
                 "info": [
                     {
+                        "type": "withdraw",
+                        "name": "BITCOIN",
+                        "currency_name": "BTC",
+                        "min": "0.000144",
+                        "max": "350",
+                        "enabled": true,
+                        "comment": "",
+                        "commission_desc": "0.000018 BTC",
+                        "currency_confirmations": "6"
+                    },
+                    {
                         "type": "deposit",
-                        "name": "BTC",
+                        "name": "BITCOIN",
                         "currency_name": "BTC",
                         "min": "0.0005",
                         "max": "0",
                         "enabled": true,
-                        "comment": "We support only Bitcoin network for BTC deposits, please consider this when transferring funds.",
-                        "commission_desc": "0%",
+                        "comment": "",
+                        "commission_desc": "",
                         "currency_confirmations": "1"
-                    },
-                    {
-                        "type": "withdraw",
-                        "name": "BTC",
-                        "currency_name": "BTC",
-                        "min": "0.00024",
-                        "max": "350",
-                        "enabled": true,
-                        "comment": "We support only Bitcoin network for BTC withdrawals, please consider this when transferring funds.",
-                        "commission_desc": "0.00006 BTC",
-                        "currency_confirmations": "6"
                     }
                 ]
             }
         },
         "limits": {
             "withdraw": {
-                "min": 0.00024,
+                "min": 0.000144,
                 "max": 350
             },
             "deposit": {
@@ -91,219 +97,150 @@
         }
     },
     "USDT": {
-        "info": [
-            {
-                "type": "deposit",
-                "name": "USDT (Arbitrum)",
-                "currency_name": "USDT",
-                "min": "1",
-                "max": "1000000",
-                "enabled": true,
-                "comment": "The minimum deposit amount is 1 USDT. If you want to deposit USDT via the Arbitrum One network, please make sure to use the ARB wallet address. Contract address: contains fcbb9.",
-                "commission_desc": "0%",
-                "currency_confirmations": "10"
+        "info": {
+            "currency": {
+                "name": "USDT",
+                "description": "Tether"
             },
-            {
-                "type": "withdraw",
-                "name": "USDT (Arbitrum)",
-                "currency_name": "USDT",
-                "min": "10",
-                "max": "150000",
-                "enabled": false,
-                "comment": "The minimum withdrawal amount is 10 USDT. If you want to withdraw USDT via the Arbitrum One network, please make sure to use the ARB wallet address.",
-                "commission_desc": "1 USDT",
-                "currency_confirmations": "10"
-            },
-            {
-                "type": "deposit",
-                "name": "USDT (BNB Chain)",
-                "currency_name": "USDT",
-                "min": "1",
-                "max": "1000000",
-                "enabled": true,
-                "comment": "The minimum deposit amount is 1 USDT. If you want to deposit USDT via the BSC network, please make sure to use the BSC wallet address. Contract address: contains 97955.",
-                "commission_desc": "0%",
-                "currency_confirmations": "10"
-            },
-            {
-                "type": "deposit",
-                "name": "USDT (ERC20)",
-                "currency_name": "USDT",
-                "min": "10",
-                "max": "1000000",
-                "enabled": true,
-                "comment": "The minimum deposit amount is 10 USDT. If you want to deposit USDT via the Ethereum network, please make sure to use the ERC-20 wallet address. Contract address: contains 31ec7.",
-                "commission_desc": "0%",
-                "currency_confirmations": "10"
-            },
-            {
-                "type": "withdraw",
-                "name": "USDT (ERC20)",
-                "currency_name": "USDT",
-                "min": "18",
-                "max": "200000",
-                "enabled": true,
-                "comment": "If you want to withdraw USDT via the Ethereum network, please make sure to use an ERC-20 wallet address.",
-                "commission_desc": "3 USDT",
-                "currency_confirmations": "10"
-            },
-            {
-                "type": "deposit",
-                "name": "USDT (OMNI)",
-                "currency_name": "USDT",
-                "min": "10",
-                "max": "0",
-                "enabled": false,
-                "comment": "Minimum deposit amount is 10 USDT",
-                "commission_desc": "0%",
-                "currency_confirmations": "10"
-            },
-            {
-                "type": "withdraw",
-                "name": "USDT (OMNI)",
-                "currency_name": "USDT",
-                "min": "10",
-                "max": "100000",
-                "enabled": false,
-                "comment": "Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.",
-                "commission_desc": "5 USDT",
-                "currency_confirmations": "10"
-            },
-            {
-                "type": "deposit",
-                "name": "USDT (Optimism)",
-                "currency_name": "USDT",
-                "min": "1",
-                "max": "1000000",
-                "enabled": true,
-                "comment": "The minimum deposit amount is 1 USDT. If you want to deposit USDT via the Optimism network, please make sure to use the Optimism wallet address. Contract address: contains 58e58.",
-                "commission_desc": "0%",
-                "currency_confirmations": "10"
-            },
-            {
-                "type": "deposit",
-                "name": "USDT (Polygon PoS)",
-                "currency_name": "USDT",
-                "min": "1",
-                "max": "1000000",
-                "enabled": true,
-                "comment": "The minimum deposit amount is 1 USDT. If you want to deposit USDT via the Polygon PoS  network, please make sure to use the Polygon PoS wallet address. Contract address: contains 58e8f.",
-                "commission_desc": "0%",
-                "currency_confirmations": "10"
-            },
-            {
-                "type": "deposit",
-                "name": "USDT (Solana)",
-                "currency_name": "USDT",
-                "min": "1",
-                "max": "1000000",
-                "enabled": true,
-                "comment": "The minimum deposit amount is 1 USDT. If you want to deposit USDT via the Solana network, please make sure to use the Solana wallet address. Contract address: contains nwNYB.",
-                "commission_desc": "0%",
-                "currency_confirmations": "10"
-            },
-            {
-                "type": "withdraw",
-                "name": "USDT (TON)",
-                "currency_name": "USDT",
-                "min": "6",
-                "max": "100000",
-                "enabled": true,
-                "comment": "",
-                "commission_desc": "0.36 USDT",
-                "currency_confirmations": "10"
-            },
-            {
-                "type": "deposit",
-                "name": "USDT (TON)",
-                "currency_name": "USDT",
-                "min": "1",
-                "max": "1000000",
-                "enabled": true,
-                "comment": "The minimum deposit amount is 1 USDT. If you want to deposit USDT via the TON network, please make sure to use the TON wallet address. Contract address: contains d_sDs.",
-                "commission_desc": "0%",
-                "currency_confirmations": "10"
-            },
-            {
-                "type": "deposit",
-                "name": "USDT (TRC20)",
-                "currency_name": "USDT",
-                "min": "5",
-                "max": "1000000",
-                "enabled": true,
-                "comment": "The minimum deposit amount is 5 USDT. If you want to deposit USDT via the Tron network, please make sure to use the TRC-20 wallet address. Contract address: contains jLj6t.",
-                "commission_desc": "0%",
-                "currency_confirmations": "10"
-            },
-            {
-                "type": "withdraw",
-                "name": "USDT (TRC20)",
-                "currency_name": "USDT",
-                "min": "5",
-                "max": "150000",
-                "enabled": true,
-                "comment": "If you want to withdraw USDT via the Tron network, please make sure you are using a TRC-20 wallet address.",
-                "commission_desc": "1.2 USDT",
-                "currency_confirmations": "10"
-            }
-        ],
+            "providers": [
+                {
+                    "type": "deposit",
+                    "name": "ARBITRUM ONE",
+                    "currency_name": "USDT",
+                    "min": "1",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "",
+                    "currency_confirmations": "2"
+                },
+                {
+                    "type": "deposit",
+                    "name": "BNB CHAIN BEP-20",
+                    "currency_name": "USDT",
+                    "min": "1",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "",
+                    "currency_confirmations": "2"
+                },
+                {
+                    "type": "withdraw",
+                    "name": "ETHEREUM ERC-20",
+                    "currency_name": "USDT",
+                    "min": "6",
+                    "max": "200000",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "0.48 USDT",
+                    "currency_confirmations": "6"
+                },
+                {
+                    "type": "deposit",
+                    "name": "ETHEREUM ERC-20",
+                    "currency_name": "USDT",
+                    "min": "10",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "",
+                    "currency_confirmations": "2"
+                },
+                {
+                    "type": "deposit",
+                    "name": "OPTIMISM",
+                    "currency_name": "USDT",
+                    "min": "1",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "",
+                    "currency_confirmations": "2"
+                },
+                {
+                    "type": "deposit",
+                    "name": "POLYGON POS",
+                    "currency_name": "USDT",
+                    "min": "1",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "",
+                    "currency_confirmations": "2"
+                },
+                {
+                    "type": "deposit",
+                    "name": "SOLANA",
+                    "currency_name": "USDT",
+                    "min": "1",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "",
+                    "currency_confirmations": "2"
+                },
+                {
+                    "type": "withdraw",
+                    "name": "TON",
+                    "currency_name": "USDT",
+                    "min": "6",
+                    "max": "100000",
+                    "enabled": true,
+                    "comment": "This withdrawal requires a Memo/Tag/Invoice to identify the transfer. No or incorrect Memo/Tag/Invoice will result in a loss of funds or a delayed deposit.",
+                    "commission_desc": "0.36 USDT",
+                    "currency_confirmations": "6"
+                },
+                {
+                    "type": "deposit",
+                    "name": "TON",
+                    "currency_name": "USDT",
+                    "min": "1",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "This deposit requires a Memo/Tag/Invoice to identify the transfer. No or incorrect Memo/Tag/Invoice will result in a loss of funds or a delayed deposit.",
+                    "commission_desc": "",
+                    "currency_confirmations": "2"
+                },
+                {
+                    "type": "deposit",
+                    "name": "TRON TRC-20",
+                    "currency_name": "USDT",
+                    "min": "5",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "",
+                    "currency_confirmations": "2"
+                },
+                {
+                    "type": "withdraw",
+                    "name": "TRON TRC-20",
+                    "currency_name": "USDT",
+                    "min": "5",
+                    "max": "150000",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "1 USDT",
+                    "currency_confirmations": "6"
+                }
+            ]
+        },
         "id": "USDT",
         "numericId": null,
         "code": "USDT",
         "precision": 1e-8,
         "type": "crypto",
         "name": "Tether",
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": null,
         "fees": {},
         "networks": {
-            "Arbitrum": {
-                "id": "Arbitrum",
-                "network": "Arbitrum",
-                "active": false,
-                "deposit": true,
-                "withdraw": false,
-                "fee": null,
-                "limits": {
-                    "withdraw": {
-                        "min": "10",
-                        "max": "150000"
-                    },
-                    "deposit": {
-                        "min": "1",
-                        "max": "1000000"
-                    }
-                },
-                "info": [
-                    {
-                        "type": "deposit",
-                        "name": "USDT (Arbitrum)",
-                        "currency_name": "USDT",
-                        "min": "1",
-                        "max": "1000000",
-                        "enabled": true,
-                        "comment": "The minimum deposit amount is 1 USDT. If you want to deposit USDT via the Arbitrum One network, please make sure to use the ARB wallet address. Contract address: contains fcbb9.",
-                        "commission_desc": "0%",
-                        "currency_confirmations": "10"
-                    },
-                    {
-                        "type": "withdraw",
-                        "name": "USDT (Arbitrum)",
-                        "currency_name": "USDT",
-                        "min": "10",
-                        "max": "150000",
-                        "enabled": false,
-                        "comment": "The minimum withdrawal amount is 10 USDT. If you want to withdraw USDT via the Arbitrum One network, please make sure to use the ARB wallet address.",
-                        "commission_desc": "1 USDT",
-                        "currency_confirmations": "10"
-                    }
-                ]
-            },
-            "BNB Chain": {
-                "id": "BNB Chain",
-                "network": "BNB Chain",
+            "ARBITRUM ONE": {
+                "id": "ARBITRUM ONE",
+                "network": "ARBITRUM ONE",
                 "active": null,
                 "deposit": true,
                 "withdraw": null,
@@ -315,76 +252,65 @@
                     },
                     "deposit": {
                         "min": "1",
-                        "max": "1000000"
+                        "max": "0"
                     }
                 },
                 "info": [
                     {
                         "type": "deposit",
-                        "name": "USDT (BNB Chain)",
+                        "name": "ARBITRUM ONE",
                         "currency_name": "USDT",
                         "min": "1",
-                        "max": "1000000",
+                        "max": "0",
                         "enabled": true,
-                        "comment": "The minimum deposit amount is 1 USDT. If you want to deposit USDT via the BSC network, please make sure to use the BSC wallet address. Contract address: contains 97955.",
-                        "commission_desc": "0%",
-                        "currency_confirmations": "10"
+                        "comment": "",
+                        "commission_desc": "",
+                        "currency_confirmations": "2"
                     }
                 ]
             },
-            "ETH": {
-                "id": "ERC20",
-                "network": "ETH",
-                "active": true,
+            "BNB CHAIN BEP-20": {
+                "id": "BNB CHAIN BEP-20",
+                "network": "BNB CHAIN BEP-20",
+                "active": null,
+                "deposit": true,
+                "withdraw": null,
+                "fee": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": "1",
+                        "max": "0"
+                    }
+                },
+                "info": [
+                    {
+                        "type": "deposit",
+                        "name": "BNB CHAIN BEP-20",
+                        "currency_name": "USDT",
+                        "min": "1",
+                        "max": "0",
+                        "enabled": true,
+                        "comment": "",
+                        "commission_desc": "",
+                        "currency_confirmations": "2"
+                    }
+                ]
+            },
+            "ETHEREUM ERC-20": {
+                "id": "ETHEREUM ERC-20",
+                "network": "ETHEREUM ERC-20",
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": null,
                 "limits": {
                     "withdraw": {
-                        "min": "18",
+                        "min": "6",
                         "max": "200000"
-                    },
-                    "deposit": {
-                        "min": "10",
-                        "max": "1000000"
-                    }
-                },
-                "info": [
-                    {
-                        "type": "deposit",
-                        "name": "USDT (ERC20)",
-                        "currency_name": "USDT",
-                        "min": "10",
-                        "max": "1000000",
-                        "enabled": true,
-                        "comment": "The minimum deposit amount is 10 USDT. If you want to deposit USDT via the Ethereum network, please make sure to use the ERC-20 wallet address. Contract address: contains 31ec7.",
-                        "commission_desc": "0%",
-                        "currency_confirmations": "10"
-                    },
-                    {
-                        "type": "withdraw",
-                        "name": "USDT (ERC20)",
-                        "currency_name": "USDT",
-                        "min": "18",
-                        "max": "200000",
-                        "enabled": true,
-                        "comment": "If you want to withdraw USDT via the Ethereum network, please make sure to use an ERC-20 wallet address.",
-                        "commission_desc": "3 USDT",
-                        "currency_confirmations": "10"
-                    }
-                ]
-            },
-            "OMNI": {
-                "id": "OMNI",
-                "network": "OMNI",
-                "active": false,
-                "deposit": false,
-                "withdraw": false,
-                "fee": null,
-                "limits": {
-                    "withdraw": {
-                        "min": "10",
-                        "max": "100000"
                     },
                     "deposit": {
                         "min": "10",
@@ -393,32 +319,32 @@
                 },
                 "info": [
                     {
+                        "type": "withdraw",
+                        "name": "ETHEREUM ERC-20",
+                        "currency_name": "USDT",
+                        "min": "6",
+                        "max": "200000",
+                        "enabled": true,
+                        "comment": "",
+                        "commission_desc": "0.48 USDT",
+                        "currency_confirmations": "6"
+                    },
+                    {
                         "type": "deposit",
-                        "name": "USDT (OMNI)",
+                        "name": "ETHEREUM ERC-20",
                         "currency_name": "USDT",
                         "min": "10",
                         "max": "0",
-                        "enabled": false,
-                        "comment": "Minimum deposit amount is 10 USDT",
-                        "commission_desc": "0%",
-                        "currency_confirmations": "10"
-                    },
-                    {
-                        "type": "withdraw",
-                        "name": "USDT (OMNI)",
-                        "currency_name": "USDT",
-                        "min": "10",
-                        "max": "100000",
-                        "enabled": false,
-                        "comment": "Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.",
-                        "commission_desc": "5 USDT",
-                        "currency_confirmations": "10"
+                        "enabled": true,
+                        "comment": "",
+                        "commission_desc": "",
+                        "currency_confirmations": "2"
                     }
                 ]
             },
-            "Optimism": {
-                "id": "Optimism",
-                "network": "Optimism",
+            "OPTIMISM": {
+                "id": "OPTIMISM",
+                "network": "OPTIMISM",
                 "active": null,
                 "deposit": true,
                 "withdraw": null,
@@ -430,26 +356,26 @@
                     },
                     "deposit": {
                         "min": "1",
-                        "max": "1000000"
+                        "max": "0"
                     }
                 },
                 "info": [
                     {
                         "type": "deposit",
-                        "name": "USDT (Optimism)",
+                        "name": "OPTIMISM",
                         "currency_name": "USDT",
                         "min": "1",
-                        "max": "1000000",
+                        "max": "0",
                         "enabled": true,
-                        "comment": "The minimum deposit amount is 1 USDT. If you want to deposit USDT via the Optimism network, please make sure to use the Optimism wallet address. Contract address: contains 58e58.",
-                        "commission_desc": "0%",
-                        "currency_confirmations": "10"
+                        "comment": "",
+                        "commission_desc": "",
+                        "currency_confirmations": "2"
                     }
                 ]
             },
-            "Polygon PoS": {
-                "id": "Polygon PoS",
-                "network": "Polygon PoS",
+            "POLYGON POS": {
+                "id": "POLYGON POS",
+                "network": "POLYGON POS",
                 "active": null,
                 "deposit": true,
                 "withdraw": null,
@@ -461,26 +387,26 @@
                     },
                     "deposit": {
                         "min": "1",
-                        "max": "1000000"
+                        "max": "0"
                     }
                 },
                 "info": [
                     {
                         "type": "deposit",
-                        "name": "USDT (Polygon PoS)",
+                        "name": "POLYGON POS",
                         "currency_name": "USDT",
                         "min": "1",
-                        "max": "1000000",
+                        "max": "0",
                         "enabled": true,
-                        "comment": "The minimum deposit amount is 1 USDT. If you want to deposit USDT via the Polygon PoS  network, please make sure to use the Polygon PoS wallet address. Contract address: contains 58e8f.",
-                        "commission_desc": "0%",
-                        "currency_confirmations": "10"
+                        "comment": "",
+                        "commission_desc": "",
+                        "currency_confirmations": "2"
                     }
                 ]
             },
-            "Solana": {
-                "id": "Solana",
-                "network": "Solana",
+            "SOLANA": {
+                "id": "SOLANA",
+                "network": "SOLANA",
                 "active": null,
                 "deposit": true,
                 "withdraw": null,
@@ -492,27 +418,27 @@
                     },
                     "deposit": {
                         "min": "1",
-                        "max": "1000000"
+                        "max": "0"
                     }
                 },
                 "info": [
                     {
                         "type": "deposit",
-                        "name": "USDT (Solana)",
+                        "name": "SOLANA",
                         "currency_name": "USDT",
                         "min": "1",
-                        "max": "1000000",
+                        "max": "0",
                         "enabled": true,
-                        "comment": "The minimum deposit amount is 1 USDT. If you want to deposit USDT via the Solana network, please make sure to use the Solana wallet address. Contract address: contains nwNYB.",
-                        "commission_desc": "0%",
-                        "currency_confirmations": "10"
+                        "comment": "",
+                        "commission_desc": "",
+                        "currency_confirmations": "2"
                     }
                 ]
             },
             "TON": {
                 "id": "TON",
                 "network": "TON",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": null,
@@ -523,38 +449,38 @@
                     },
                     "deposit": {
                         "min": "1",
-                        "max": "1000000"
+                        "max": "0"
                     }
                 },
                 "info": [
                     {
                         "type": "withdraw",
-                        "name": "USDT (TON)",
+                        "name": "TON",
                         "currency_name": "USDT",
                         "min": "6",
                         "max": "100000",
                         "enabled": true,
-                        "comment": "",
+                        "comment": "This withdrawal requires a Memo/Tag/Invoice to identify the transfer. No or incorrect Memo/Tag/Invoice will result in a loss of funds or a delayed deposit.",
                         "commission_desc": "0.36 USDT",
-                        "currency_confirmations": "10"
+                        "currency_confirmations": "6"
                     },
                     {
                         "type": "deposit",
-                        "name": "USDT (TON)",
+                        "name": "TON",
                         "currency_name": "USDT",
                         "min": "1",
-                        "max": "1000000",
+                        "max": "0",
                         "enabled": true,
-                        "comment": "The minimum deposit amount is 1 USDT. If you want to deposit USDT via the TON network, please make sure to use the TON wallet address. Contract address: contains d_sDs.",
-                        "commission_desc": "0%",
-                        "currency_confirmations": "10"
+                        "comment": "This deposit requires a Memo/Tag/Invoice to identify the transfer. No or incorrect Memo/Tag/Invoice will result in a loss of funds or a delayed deposit.",
+                        "commission_desc": "",
+                        "currency_confirmations": "2"
                     }
                 ]
             },
-            "TRX": {
-                "id": "TRC20",
-                "network": "TRX",
-                "active": true,
+            "TRON TRC-20": {
+                "id": "TRON TRC-20",
+                "network": "TRON TRC-20",
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": null,
@@ -565,31 +491,31 @@
                     },
                     "deposit": {
                         "min": "5",
-                        "max": "1000000"
+                        "max": "0"
                     }
                 },
                 "info": [
                     {
                         "type": "deposit",
-                        "name": "USDT (TRC20)",
+                        "name": "TRON TRC-20",
                         "currency_name": "USDT",
                         "min": "5",
-                        "max": "1000000",
+                        "max": "0",
                         "enabled": true,
-                        "comment": "The minimum deposit amount is 5 USDT. If you want to deposit USDT via the Tron network, please make sure to use the TRC-20 wallet address. Contract address: contains jLj6t.",
-                        "commission_desc": "0%",
-                        "currency_confirmations": "10"
+                        "comment": "",
+                        "commission_desc": "",
+                        "currency_confirmations": "2"
                     },
                     {
                         "type": "withdraw",
-                        "name": "USDT (TRC20)",
+                        "name": "TRON TRC-20",
                         "currency_name": "USDT",
                         "min": "5",
                         "max": "150000",
                         "enabled": true,
-                        "comment": "If you want to withdraw USDT via the Tron network, please make sure you are using a TRC-20 wallet address.",
-                        "commission_desc": "1.2 USDT",
-                        "currency_confirmations": "10"
+                        "comment": "",
+                        "commission_desc": "1 USDT",
+                        "currency_confirmations": "6"
                     }
                 ]
             }
@@ -601,12 +527,18 @@
             },
             "deposit": {
                 "min": 1,
-                "max": 1000000
+                "max": 0
             }
         }
     },
     "EUR": {
-        "info": null,
+        "info": {
+            "currency": {
+                "name": "EUR",
+                "description": "Euro"
+            },
+            "providers": null
+        },
         "id": "EUR",
         "numericId": null,
         "code": "EUR",
@@ -631,7 +563,13 @@
         }
     },
     "USD": {
-        "info": null,
+        "info": {
+            "currency": {
+                "name": "USD",
+                "description": "US Dollar"
+            },
+            "providers": null
+        },
         "id": "USD",
         "numericId": null,
         "code": "USD",
@@ -656,46 +594,52 @@
         }
     },
     "LTC": {
-        "info": [
-            {
-                "type": "deposit",
+        "info": {
+            "currency": {
                 "name": "LTC",
-                "currency_name": "LTC",
-                "min": "0.01",
-                "max": "0",
-                "enabled": true,
-                "comment": "When depositing LTC, please note that we support only the Litecoin network. We do not support the Binance Smart Chain (BEP-20) network for LTC deposits.",
-                "commission_desc": "",
-                "currency_confirmations": "1"
+                "description": "Litecoin"
             },
-            {
-                "type": "withdraw",
-                "name": "LTC",
-                "currency_name": "LTC",
-                "min": "0.0024",
-                "max": "1500",
-                "enabled": true,
-                "comment": "When withdrawing LTC, please note that we support only the Litecoin network. We do not support the Binance Smart Chain (BEP-20) network for LTC withdrawals.",
-                "commission_desc": "0.00012 LTC",
-                "currency_confirmations": "4"
-            }
-        ],
+            "providers": [
+                {
+                    "type": "deposit",
+                    "name": "LITECOIN",
+                    "currency_name": "LTC",
+                    "min": "0.01",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "",
+                    "currency_confirmations": "1"
+                },
+                {
+                    "type": "withdraw",
+                    "name": "LITECOIN",
+                    "currency_name": "LTC",
+                    "min": "0.0024",
+                    "max": "1500",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "0.00012 LTC",
+                    "currency_confirmations": "4"
+                }
+            ]
+        },
         "id": "LTC",
         "numericId": null,
         "code": "LTC",
         "precision": 1e-8,
         "type": "crypto",
         "name": "Litecoin",
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": null,
         "fees": {},
         "networks": {
-            "LTC": {
-                "id": "LTC",
-                "network": "LTC",
-                "active": true,
+            "LITECOIN": {
+                "id": "LITECOIN",
+                "network": "LITECOIN",
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": null,
@@ -712,23 +656,23 @@
                 "info": [
                     {
                         "type": "deposit",
-                        "name": "LTC",
+                        "name": "LITECOIN",
                         "currency_name": "LTC",
                         "min": "0.01",
                         "max": "0",
                         "enabled": true,
-                        "comment": "When depositing LTC, please note that we support only the Litecoin network. We do not support the Binance Smart Chain (BEP-20) network for LTC deposits.",
+                        "comment": "",
                         "commission_desc": "",
                         "currency_confirmations": "1"
                     },
                     {
                         "type": "withdraw",
-                        "name": "LTC",
+                        "name": "LITECOIN",
                         "currency_name": "LTC",
                         "min": "0.0024",
                         "max": "1500",
                         "enabled": true,
-                        "comment": "When withdrawing LTC, please note that we support only the Litecoin network. We do not support the Binance Smart Chain (BEP-20) network for LTC withdrawals.",
+                        "comment": "",
                         "commission_desc": "0.00012 LTC",
                         "currency_confirmations": "4"
                     }
@@ -747,112 +691,222 @@
         }
     },
     "ETH": {
-        "info": [
-            {
-                "type": "deposit",
+        "info": {
+            "currency": {
                 "name": "ETH",
-                "currency_name": "ETH",
-                "min": "0.01",
-                "max": "0",
-                "enabled": true,
-                "comment": "If you want to deposit ETH via the Ethereum network, please make sure to use the Ethereum wallet address.",
-                "commission_desc": "0%",
-                "currency_confirmations": "15"
+                "description": "Ethereum"
             },
-            {
-                "type": "withdraw",
-                "name": "ETH",
-                "currency_name": "ETH",
-                "min": "0.0024",
-                "max": "500",
-                "enabled": true,
-                "comment": "When withdrawing ETH, please note that we support only the Ethereum network. We do not support the Binance Smart Chain (BEP-20) network for ETH withdrawals.",
-                "commission_desc": "0.00072 ETH",
-                "currency_confirmations": "30"
-            },
-            {
-                "type": "deposit",
-                "name": "ETH (Arbitrum)",
-                "currency_name": "ETH",
-                "min": "0.01",
-                "max": "100000",
-                "enabled": true,
-                "comment": "",
-                "commission_desc": "",
-                "currency_confirmations": "15"
-            },
-            {
-                "type": "deposit",
-                "name": "ETH (Base)",
-                "currency_name": "ETH",
-                "min": "0.01",
-                "max": "100000",
-                "enabled": true,
-                "comment": "",
-                "commission_desc": "",
-                "currency_confirmations": "15"
-            },
-            {
-                "type": "withdraw",
-                "name": "ETH (Binance Smart Chain)",
-                "currency_name": "ETH",
-                "min": "0.000012",
-                "max": "150",
-                "enabled": true,
-                "comment": "",
-                "commission_desc": "0.00000624 ETH",
-                "currency_confirmations": "30"
-            },
-            {
-                "type": "deposit",
-                "name": "ETH (Binance Smart Chain)",
-                "currency_name": "ETH",
-                "min": "0.01",
-                "max": "100000",
-                "enabled": true,
-                "comment": "The minimum deposit amount is 0.01 ETH. If you want to deposit ETH via the BSC network, please make sure to use the BSC wallet address. Contract address: contains 933F8.",
-                "commission_desc": "",
-                "currency_confirmations": "15"
-            },
-            {
-                "type": "deposit",
-                "name": "ETH (Optimism)",
-                "currency_name": "ETH",
-                "min": "0.01",
-                "max": "100000",
-                "enabled": true,
-                "comment": "",
-                "commission_desc": "",
-                "currency_confirmations": "15"
-            },
-            {
-                "type": "deposit",
-                "name": "ETH (Polygon)",
-                "currency_name": "ETH",
-                "min": "0.01",
-                "max": "100000",
-                "enabled": true,
-                "comment": "This address only supports deposits of Wrapped ETH (WETH) on the Polygon network. Sending ETH (WETH) via other networks will result in irreversible loss of funds.",
-                "commission_desc": "",
-                "currency_confirmations": "15"
-            }
-        ],
+            "providers": [
+                {
+                    "type": "deposit",
+                    "name": "ARBITRUM ONE",
+                    "currency_name": "ETH",
+                    "min": "0.01",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "",
+                    "currency_confirmations": "15"
+                },
+                {
+                    "type": "deposit",
+                    "name": "BASE",
+                    "currency_name": "ETH",
+                    "min": "0.01",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "",
+                    "currency_confirmations": "15"
+                },
+                {
+                    "type": "withdraw",
+                    "name": "BNB CHAIN BEP-20",
+                    "currency_name": "ETH",
+                    "min": "0.0000264",
+                    "max": "150",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "0.0000132 ETH",
+                    "currency_confirmations": "30"
+                },
+                {
+                    "type": "deposit",
+                    "name": "BNB CHAIN BEP-20",
+                    "currency_name": "ETH",
+                    "min": "0.01",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "",
+                    "currency_confirmations": "15"
+                },
+                {
+                    "type": "withdraw",
+                    "name": "ETHEREUM ERC-20",
+                    "currency_name": "ETH",
+                    "min": "0.0024",
+                    "max": "500",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "0.000096 ETH",
+                    "currency_confirmations": "30"
+                },
+                {
+                    "type": "deposit",
+                    "name": "ETHEREUM ERC-20",
+                    "currency_name": "ETH",
+                    "min": "0.01",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "",
+                    "currency_confirmations": "15"
+                },
+                {
+                    "type": "deposit",
+                    "name": "OPTIMISM",
+                    "currency_name": "ETH",
+                    "min": "0.01",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "",
+                    "currency_confirmations": "15"
+                },
+                {
+                    "type": "deposit",
+                    "name": "POLYGON POS",
+                    "currency_name": "ETH",
+                    "min": "0.01",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "",
+                    "currency_confirmations": "15"
+                }
+            ]
+        },
         "id": "ETH",
         "numericId": null,
         "code": "ETH",
         "precision": 1e-8,
         "type": "crypto",
         "name": "Ethereum",
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": null,
         "fees": {},
         "networks": {
-            "ETH": {
-                "id": "ETH",
-                "network": "ETH",
-                "active": true,
+            "ARBITRUM ONE": {
+                "id": "ARBITRUM ONE",
+                "network": "ARBITRUM ONE",
+                "active": null,
+                "deposit": true,
+                "withdraw": null,
+                "fee": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": "0.01",
+                        "max": "0"
+                    }
+                },
+                "info": [
+                    {
+                        "type": "deposit",
+                        "name": "ARBITRUM ONE",
+                        "currency_name": "ETH",
+                        "min": "0.01",
+                        "max": "0",
+                        "enabled": true,
+                        "comment": "",
+                        "commission_desc": "",
+                        "currency_confirmations": "15"
+                    }
+                ]
+            },
+            "BASE": {
+                "id": "BASE",
+                "network": "BASE",
+                "active": null,
+                "deposit": true,
+                "withdraw": null,
+                "fee": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": "0.01",
+                        "max": "0"
+                    }
+                },
+                "info": [
+                    {
+                        "type": "deposit",
+                        "name": "BASE",
+                        "currency_name": "ETH",
+                        "min": "0.01",
+                        "max": "0",
+                        "enabled": true,
+                        "comment": "",
+                        "commission_desc": "",
+                        "currency_confirmations": "15"
+                    }
+                ]
+            },
+            "BNB CHAIN BEP-20": {
+                "id": "BNB CHAIN BEP-20",
+                "network": "BNB CHAIN BEP-20",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "0.0000264",
+                        "max": "150"
+                    },
+                    "deposit": {
+                        "min": "0.01",
+                        "max": "0"
+                    }
+                },
+                "info": [
+                    {
+                        "type": "withdraw",
+                        "name": "BNB CHAIN BEP-20",
+                        "currency_name": "ETH",
+                        "min": "0.0000264",
+                        "max": "150",
+                        "enabled": true,
+                        "comment": "",
+                        "commission_desc": "0.0000132 ETH",
+                        "currency_confirmations": "30"
+                    },
+                    {
+                        "type": "deposit",
+                        "name": "BNB CHAIN BEP-20",
+                        "currency_name": "ETH",
+                        "min": "0.01",
+                        "max": "0",
+                        "enabled": true,
+                        "comment": "",
+                        "commission_desc": "",
+                        "currency_confirmations": "15"
+                    }
+                ]
+            },
+            "ETHEREUM ERC-20": {
+                "id": "ETHEREUM ERC-20",
+                "network": "ETHEREUM ERC-20",
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": null,
@@ -868,157 +922,22 @@
                 },
                 "info": [
                     {
-                        "type": "deposit",
-                        "name": "ETH",
-                        "currency_name": "ETH",
-                        "min": "0.01",
-                        "max": "0",
-                        "enabled": true,
-                        "comment": "If you want to deposit ETH via the Ethereum network, please make sure to use the Ethereum wallet address.",
-                        "commission_desc": "0%",
-                        "currency_confirmations": "15"
-                    },
-                    {
                         "type": "withdraw",
-                        "name": "ETH",
+                        "name": "ETHEREUM ERC-20",
                         "currency_name": "ETH",
                         "min": "0.0024",
                         "max": "500",
                         "enabled": true,
-                        "comment": "When withdrawing ETH, please note that we support only the Ethereum network. We do not support the Binance Smart Chain (BEP-20) network for ETH withdrawals.",
-                        "commission_desc": "0.00072 ETH",
-                        "currency_confirmations": "30"
-                    }
-                ]
-            },
-            "Arbitrum": {
-                "id": "Arbitrum",
-                "network": "Arbitrum",
-                "active": null,
-                "deposit": true,
-                "withdraw": null,
-                "fee": null,
-                "limits": {
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    },
-                    "deposit": {
-                        "min": "0.01",
-                        "max": "100000"
-                    }
-                },
-                "info": [
-                    {
-                        "type": "deposit",
-                        "name": "ETH (Arbitrum)",
-                        "currency_name": "ETH",
-                        "min": "0.01",
-                        "max": "100000",
-                        "enabled": true,
                         "comment": "",
-                        "commission_desc": "",
-                        "currency_confirmations": "15"
-                    }
-                ]
-            },
-            "Base": {
-                "id": "Base",
-                "network": "Base",
-                "active": null,
-                "deposit": true,
-                "withdraw": null,
-                "fee": null,
-                "limits": {
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    },
-                    "deposit": {
-                        "min": "0.01",
-                        "max": "100000"
-                    }
-                },
-                "info": [
-                    {
-                        "type": "deposit",
-                        "name": "ETH (Base)",
-                        "currency_name": "ETH",
-                        "min": "0.01",
-                        "max": "100000",
-                        "enabled": true,
-                        "comment": "",
-                        "commission_desc": "",
-                        "currency_confirmations": "15"
-                    }
-                ]
-            },
-            "Binance Smart Chain": {
-                "id": "Binance Smart Chain",
-                "network": "Binance Smart Chain",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "limits": {
-                    "withdraw": {
-                        "min": "0.000012",
-                        "max": "150"
-                    },
-                    "deposit": {
-                        "min": "0.01",
-                        "max": "100000"
-                    }
-                },
-                "info": [
-                    {
-                        "type": "withdraw",
-                        "name": "ETH (Binance Smart Chain)",
-                        "currency_name": "ETH",
-                        "min": "0.000012",
-                        "max": "150",
-                        "enabled": true,
-                        "comment": "",
-                        "commission_desc": "0.00000624 ETH",
+                        "commission_desc": "0.000096 ETH",
                         "currency_confirmations": "30"
                     },
                     {
                         "type": "deposit",
-                        "name": "ETH (Binance Smart Chain)",
+                        "name": "ETHEREUM ERC-20",
                         "currency_name": "ETH",
                         "min": "0.01",
-                        "max": "100000",
-                        "enabled": true,
-                        "comment": "The minimum deposit amount is 0.01 ETH. If you want to deposit ETH via the BSC network, please make sure to use the BSC wallet address. Contract address: contains 933F8.",
-                        "commission_desc": "",
-                        "currency_confirmations": "15"
-                    }
-                ]
-            },
-            "Optimism": {
-                "id": "Optimism",
-                "network": "Optimism",
-                "active": null,
-                "deposit": true,
-                "withdraw": null,
-                "fee": null,
-                "limits": {
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    },
-                    "deposit": {
-                        "min": "0.01",
-                        "max": "100000"
-                    }
-                },
-                "info": [
-                    {
-                        "type": "deposit",
-                        "name": "ETH (Optimism)",
-                        "currency_name": "ETH",
-                        "min": "0.01",
-                        "max": "100000",
+                        "max": "0",
                         "enabled": true,
                         "comment": "",
                         "commission_desc": "",
@@ -1026,9 +945,9 @@
                     }
                 ]
             },
-            "Polygon": {
-                "id": "Polygon",
-                "network": "Polygon",
+            "OPTIMISM": {
+                "id": "OPTIMISM",
+                "network": "OPTIMISM",
                 "active": null,
                 "deposit": true,
                 "withdraw": null,
@@ -1040,18 +959,49 @@
                     },
                     "deposit": {
                         "min": "0.01",
-                        "max": "100000"
+                        "max": "0"
                     }
                 },
                 "info": [
                     {
                         "type": "deposit",
-                        "name": "ETH (Polygon)",
+                        "name": "OPTIMISM",
                         "currency_name": "ETH",
                         "min": "0.01",
-                        "max": "100000",
+                        "max": "0",
                         "enabled": true,
-                        "comment": "This address only supports deposits of Wrapped ETH (WETH) on the Polygon network. Sending ETH (WETH) via other networks will result in irreversible loss of funds.",
+                        "comment": "",
+                        "commission_desc": "",
+                        "currency_confirmations": "15"
+                    }
+                ]
+            },
+            "POLYGON POS": {
+                "id": "POLYGON POS",
+                "network": "POLYGON POS",
+                "active": null,
+                "deposit": true,
+                "withdraw": null,
+                "fee": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": "0.01",
+                        "max": "0"
+                    }
+                },
+                "info": [
+                    {
+                        "type": "deposit",
+                        "name": "POLYGON POS",
+                        "currency_name": "ETH",
+                        "min": "0.01",
+                        "max": "0",
+                        "enabled": true,
+                        "comment": "",
                         "commission_desc": "",
                         "currency_confirmations": "15"
                     }
@@ -1060,90 +1010,96 @@
         },
         "limits": {
             "withdraw": {
-                "min": 0.000012,
+                "min": 0.0000264,
                 "max": 500
             },
             "deposit": {
                 "min": 0.01,
-                "max": 100000
+                "max": 0
             }
         }
     },
     "ADA": {
-        "info": [
-            {
-                "type": "deposit",
+        "info": {
+            "currency": {
                 "name": "ADA",
-                "currency_name": "ADA",
-                "min": "5",
-                "max": "1000000",
-                "enabled": true,
-                "comment": "We support only Cardano network and Byron addresses for ADA deposits, please consider this when transferring funds.",
-                "commission_desc": "0%",
-                "currency_confirmations": "15"
+                "description": "Cardano"
             },
-            {
-                "type": "withdraw",
-                "name": "ADA",
-                "currency_name": "ADA",
-                "min": "2.4",
-                "max": "10000000",
-                "enabled": true,
-                "comment": "We support only Cardano network and Byron addresses for ADA withdrawals, please consider this when transferring funds.",
-                "commission_desc": "0.96 ADA",
-                "currency_confirmations": "15"
-            }
-        ],
+            "providers": [
+                {
+                    "type": "withdraw",
+                    "name": "CARDANO",
+                    "currency_name": "ADA",
+                    "min": "6",
+                    "max": "500000",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "1.8 ADA",
+                    "currency_confirmations": "15"
+                },
+                {
+                    "type": "deposit",
+                    "name": "CARDANO",
+                    "currency_name": "ADA",
+                    "min": "5",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "",
+                    "currency_confirmations": "15"
+                }
+            ]
+        },
         "id": "ADA",
         "numericId": null,
         "code": "ADA",
         "precision": 1e-8,
         "type": "crypto",
         "name": "Cardano",
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": null,
         "fees": {},
         "networks": {
-            "ADA": {
-                "id": "ADA",
-                "network": "ADA",
-                "active": true,
+            "CARDANO": {
+                "id": "CARDANO",
+                "network": "CARDANO",
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": null,
                 "limits": {
                     "withdraw": {
-                        "min": "2.4",
-                        "max": "10000000"
+                        "min": "6",
+                        "max": "500000"
                     },
                     "deposit": {
                         "min": "5",
-                        "max": "1000000"
+                        "max": "0"
                     }
                 },
                 "info": [
                     {
-                        "type": "deposit",
-                        "name": "ADA",
+                        "type": "withdraw",
+                        "name": "CARDANO",
                         "currency_name": "ADA",
-                        "min": "5",
-                        "max": "1000000",
+                        "min": "6",
+                        "max": "500000",
                         "enabled": true,
-                        "comment": "We support only Cardano network and Byron addresses for ADA deposits, please consider this when transferring funds.",
-                        "commission_desc": "0%",
+                        "comment": "",
+                        "commission_desc": "1.8 ADA",
                         "currency_confirmations": "15"
                     },
                     {
-                        "type": "withdraw",
-                        "name": "ADA",
+                        "type": "deposit",
+                        "name": "CARDANO",
                         "currency_name": "ADA",
-                        "min": "2.4",
-                        "max": "10000000",
+                        "min": "5",
+                        "max": "0",
                         "enabled": true,
-                        "comment": "We support only Cardano network and Byron addresses for ADA withdrawals, please consider this when transferring funds.",
-                        "commission_desc": "0.96 ADA",
+                        "comment": "",
+                        "commission_desc": "",
                         "currency_confirmations": "15"
                     }
                 ]
@@ -1151,56 +1107,62 @@
         },
         "limits": {
             "withdraw": {
-                "min": 2.4,
-                "max": 10000000
+                "min": 6,
+                "max": 500000
             },
             "deposit": {
                 "min": 5,
-                "max": 1000000
+                "max": 0
             }
         }
     },
     "XRP": {
-        "info": [
-            {
-                "type": "withdraw",
+        "info": {
+            "currency": {
                 "name": "XRP",
-                "currency_name": "XRP",
-                "min": "2.4",
-                "max": "400000",
-                "enabled": true,
-                "comment": "When withdrawing XRP, please note that we support only the Ripple network. We do not support the Binance Smart Chain (BEP-20) network for XRP withdrawals. To guarantee your withdrawal is credited correctly, please make sure to include the destination tag.",
-                "commission_desc": "0.24 XRP",
-                "currency_confirmations": "1"
+                "description": "Ripple"
             },
-            {
-                "type": "deposit",
-                "name": "XRP",
-                "currency_name": "XRP",
-                "min": "2",
-                "max": "0",
-                "enabled": true,
-                "comment": "When depositing XRP, please note that we support only the Ripple network. We do not support the Binance Smart Chain (BEP-20) network for XRP deposits. To guarantee your deposit is credited correctly, please make sure to include the destination tag.",
-                "commission_desc": "",
-                "currency_confirmations": "1"
-            }
-        ],
+            "providers": [
+                {
+                    "type": "withdraw",
+                    "name": "RIPPLE",
+                    "currency_name": "XRP",
+                    "min": "2.4",
+                    "max": "400000",
+                    "enabled": true,
+                    "comment": "This withdrawal requires a Memo/Tag/Invoice to identify the transfer. No or incorrect Memo/Tag/Invoice will result in a loss of funds or a delayed deposit.",
+                    "commission_desc": "0.24 XRP",
+                    "currency_confirmations": "1"
+                },
+                {
+                    "type": "deposit",
+                    "name": "RIPPLE",
+                    "currency_name": "XRP",
+                    "min": "2",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "This deposit requires a Memo/Tag/Invoice to identify the transfer. No or incorrect Memo/Tag/Invoice will result in a loss of funds or a delayed deposit.",
+                    "commission_desc": "",
+                    "currency_confirmations": "1"
+                }
+            ]
+        },
         "id": "XRP",
         "numericId": null,
         "code": "XRP",
         "precision": 1e-8,
         "type": "crypto",
         "name": "Ripple",
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": null,
         "fees": {},
         "networks": {
-            "XRP": {
-                "id": "XRP",
-                "network": "XRP",
-                "active": true,
+            "RIPPLE": {
+                "id": "RIPPLE",
+                "network": "RIPPLE",
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": null,
@@ -1217,23 +1179,23 @@
                 "info": [
                     {
                         "type": "withdraw",
-                        "name": "XRP",
+                        "name": "RIPPLE",
                         "currency_name": "XRP",
                         "min": "2.4",
                         "max": "400000",
                         "enabled": true,
-                        "comment": "When withdrawing XRP, please note that we support only the Ripple network. We do not support the Binance Smart Chain (BEP-20) network for XRP withdrawals. To guarantee your withdrawal is credited correctly, please make sure to include the destination tag.",
+                        "comment": "This withdrawal requires a Memo/Tag/Invoice to identify the transfer. No or incorrect Memo/Tag/Invoice will result in a loss of funds or a delayed deposit.",
                         "commission_desc": "0.24 XRP",
                         "currency_confirmations": "1"
                     },
                     {
                         "type": "deposit",
-                        "name": "XRP",
+                        "name": "RIPPLE",
                         "currency_name": "XRP",
                         "min": "2",
                         "max": "0",
                         "enabled": true,
-                        "comment": "When depositing XRP, please note that we support only the Ripple network. We do not support the Binance Smart Chain (BEP-20) network for XRP deposits. To guarantee your deposit is credited correctly, please make sure to include the destination tag.",
+                        "comment": "This deposit requires a Memo/Tag/Invoice to identify the transfer. No or incorrect Memo/Tag/Invoice will result in a loss of funds or a delayed deposit.",
                         "commission_desc": "",
                         "currency_confirmations": "1"
                     }
@@ -1252,70 +1214,65 @@
         }
     },
     "USDC": {
-        "info": [
-            {
-                "type": "deposit",
-                "name": "USDC (BASE)",
-                "currency_name": "USDC",
-                "min": "5",
-                "max": "1000000",
-                "enabled": true,
-                "comment": "",
-                "commission_desc": "",
-                "currency_confirmations": "30"
+        "info": {
+            "currency": {
+                "name": "USDC",
+                "description": "USD Coin"
             },
-            {
-                "type": "deposit",
-                "name": "USDC (ERC20)",
-                "currency_name": "USDC",
-                "min": "10",
-                "max": "1000000",
-                "enabled": true,
-                "comment": "If you want to deposit USDC via the Ethereum network, please make sure to use the Ethereum (ERC-20) wallet address. Contract address: contains 6eb48.",
-                "commission_desc": "0%",
-                "currency_confirmations": "30"
-            },
-            {
-                "type": "withdraw",
-                "name": "USDC (ERC20)",
-                "currency_name": "USDC",
-                "min": "18",
-                "max": "100000",
-                "enabled": true,
-                "comment": "",
-                "commission_desc": "3 USDC",
-                "currency_confirmations": "30"
-            },
-            {
-                "type": "withdraw",
-                "name": "USDC (Solana)",
-                "currency_name": "USDC",
-                "min": "12",
-                "max": "50000",
-                "enabled": true,
-                "comment": "",
-                "commission_desc": "0.6 USDC",
-                "currency_confirmations": "30"
-            },
-            {
-                "type": "deposit",
-                "name": "USDC (Solana)",
-                "currency_name": "USDC",
-                "min": "5",
-                "max": "1000000",
-                "enabled": true,
-                "comment": "The minimum deposit amount is 5 USDC. If you want to deposit USDC via the Solana network, please make sure to use the Solana wallet address. Contract address: contains TDt1v.",
-                "commission_desc": "",
-                "currency_confirmations": "30"
-            }
-        ],
+            "providers": [
+                {
+                    "type": "deposit",
+                    "name": "BASE",
+                    "currency_name": "USDC",
+                    "min": "5",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "",
+                    "currency_confirmations": "30"
+                },
+                {
+                    "type": "deposit",
+                    "name": "ETHEREUM ERC-20",
+                    "currency_name": "USDC",
+                    "min": "10",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "",
+                    "currency_confirmations": "30"
+                },
+                {
+                    "type": "withdraw",
+                    "name": "ETHEREUM ERC-20",
+                    "currency_name": "USDC",
+                    "min": "6",
+                    "max": "100000",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "0.6 USDC",
+                    "currency_confirmations": "30"
+                },
+                {
+                    "type": "deposit",
+                    "name": "SOLANA",
+                    "currency_name": "USDC",
+                    "min": "5",
+                    "max": "0",
+                    "enabled": true,
+                    "comment": "",
+                    "commission_desc": "",
+                    "currency_confirmations": "30"
+                }
+            ]
+        },
         "id": "USDC",
         "numericId": null,
         "code": "USDC",
         "precision": 1e-8,
         "type": "crypto",
         "name": "USD Coin",
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": null,
@@ -1335,16 +1292,16 @@
                     },
                     "deposit": {
                         "min": "5",
-                        "max": "1000000"
+                        "max": "0"
                     }
                 },
                 "info": [
                     {
                         "type": "deposit",
-                        "name": "USDC (BASE)",
+                        "name": "BASE",
                         "currency_name": "USDC",
                         "min": "5",
-                        "max": "1000000",
+                        "max": "0",
                         "enabled": true,
                         "comment": "",
                         "commission_desc": "",
@@ -1352,85 +1309,74 @@
                     }
                 ]
             },
-            "ETH": {
-                "id": "ERC20",
-                "network": "ETH",
-                "active": true,
+            "ETHEREUM ERC-20": {
+                "id": "ETHEREUM ERC-20",
+                "network": "ETHEREUM ERC-20",
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": null,
                 "limits": {
                     "withdraw": {
-                        "min": "18",
+                        "min": "6",
                         "max": "100000"
                     },
                     "deposit": {
                         "min": "10",
-                        "max": "1000000"
+                        "max": "0"
                     }
                 },
                 "info": [
                     {
                         "type": "deposit",
-                        "name": "USDC (ERC20)",
+                        "name": "ETHEREUM ERC-20",
                         "currency_name": "USDC",
                         "min": "10",
-                        "max": "1000000",
-                        "enabled": true,
-                        "comment": "If you want to deposit USDC via the Ethereum network, please make sure to use the Ethereum (ERC-20) wallet address. Contract address: contains 6eb48.",
-                        "commission_desc": "0%",
-                        "currency_confirmations": "30"
-                    },
-                    {
-                        "type": "withdraw",
-                        "name": "USDC (ERC20)",
-                        "currency_name": "USDC",
-                        "min": "18",
-                        "max": "100000",
+                        "max": "0",
                         "enabled": true,
                         "comment": "",
-                        "commission_desc": "3 USDC",
+                        "commission_desc": "",
                         "currency_confirmations": "30"
-                    }
-                ]
-            },
-            "Solana": {
-                "id": "Solana",
-                "network": "Solana",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "limits": {
-                    "withdraw": {
-                        "min": "12",
-                        "max": "50000"
                     },
-                    "deposit": {
-                        "min": "5",
-                        "max": "1000000"
-                    }
-                },
-                "info": [
                     {
                         "type": "withdraw",
-                        "name": "USDC (Solana)",
+                        "name": "ETHEREUM ERC-20",
                         "currency_name": "USDC",
-                        "min": "12",
-                        "max": "50000",
+                        "min": "6",
+                        "max": "100000",
                         "enabled": true,
                         "comment": "",
                         "commission_desc": "0.6 USDC",
                         "currency_confirmations": "30"
+                    }
+                ]
+            },
+            "SOLANA": {
+                "id": "SOLANA",
+                "network": "SOLANA",
+                "active": null,
+                "deposit": true,
+                "withdraw": null,
+                "fee": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
                     },
+                    "deposit": {
+                        "min": "5",
+                        "max": "0"
+                    }
+                },
+                "info": [
                     {
                         "type": "deposit",
-                        "name": "USDC (Solana)",
+                        "name": "SOLANA",
                         "currency_name": "USDC",
                         "min": "5",
-                        "max": "1000000",
+                        "max": "0",
                         "enabled": true,
-                        "comment": "The minimum deposit amount is 5 USDC. If you want to deposit USDC via the Solana network, please make sure to use the Solana wallet address. Contract address: contains TDt1v.",
+                        "comment": "",
                         "commission_desc": "",
                         "currency_confirmations": "30"
                     }
@@ -1439,12 +1385,12 @@
         },
         "limits": {
             "withdraw": {
-                "min": 12,
+                "min": 6,
                 "max": 100000
             },
             "deposit": {
                 "min": 5,
-                "max": 1000000
+                "max": 0
             }
         }
     }

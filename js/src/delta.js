@@ -566,62 +566,60 @@ export default class delta extends Exchange {
         //     }
         //
         const currencies = this.safeList(response, 'result', []);
-        const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = this.safeString(currency, 'symbol');
-            const numericId = this.safeInteger(currency, 'id');
-            const code = this.safeCurrencyCode(id);
-            const chains = this.safeList(currency, 'networks', []);
-            const networks = {};
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString(chain, 'network');
-                const networkCode = this.networkIdToCode(networkId);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'name': this.safeString(chain, 'name'),
-                    'info': chain,
-                    'active': this.safeString(chain, 'status') === 'enabled',
-                    'deposit': this.safeString(chain, 'deposit_status') === 'enabled',
-                    'withdraw': this.safeString(chain, 'withdrawal_status') === 'enabled',
-                    'fee': this.safeNumber(chain, 'base_withdrawal_fee'),
-                    'limits': {
-                        'deposit': {
-                            'min': this.safeNumber(chain, 'min_deposit_amount'),
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': this.safeNumber(chain, 'min_withdrawal_amount'),
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'numericId': numericId,
-                'code': code,
-                'name': this.safeString(currency, 'name'),
-                'info': currency,
-                'active': undefined,
-                'deposit': this.safeString(currency, 'deposit_status') === 'enabled',
-                'withdraw': this.safeString(currency, 'withdrawal_status') === 'enabled',
-                'fee': this.safeNumber(currency, 'base_withdrawal_fee'),
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'precision'))),
+        return this.parseCurrencies(currencies);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'symbol');
+        const numericId = this.safeInteger(rawCurrency, 'id');
+        const code = this.safeCurrencyCode(id);
+        const chains = this.safeList(rawCurrency, 'networks', []);
+        const networks = {};
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString(chain, 'network');
+            const networkCode = this.networkIdToCode(networkId);
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'name': this.safeString(chain, 'name'),
+                'info': chain,
+                'active': this.safeString(chain, 'status') === 'enabled',
+                'deposit': this.safeString(chain, 'deposit_status') === 'enabled',
+                'withdraw': this.safeString(chain, 'withdrawal_status') === 'enabled',
+                'fee': this.safeNumber(chain, 'base_withdrawal_fee'),
                 'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
+                    'deposit': {
+                        'min': this.safeNumber(chain, 'min_deposit_amount'),
+                        'max': undefined,
+                    },
                     'withdraw': {
-                        'min': this.safeNumber(currency, 'min_withdrawal_amount'),
+                        'min': this.safeNumber(chain, 'min_withdrawal_amount'),
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-                'type': 'crypto',
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'numericId': numericId,
+            'code': code,
+            'name': this.safeString(rawCurrency, 'name'),
+            'info': rawCurrency,
+            'active': undefined,
+            'deposit': this.safeString(rawCurrency, 'deposit_status') === 'enabled',
+            'withdraw': this.safeString(rawCurrency, 'withdrawal_status') === 'enabled',
+            'fee': this.safeNumber(rawCurrency, 'base_withdrawal_fee'),
+            'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'precision'))),
+            'limits': {
+                'amount': { 'min': undefined, 'max': undefined },
+                'withdraw': {
+                    'min': this.safeNumber(rawCurrency, 'min_withdrawal_amount'),
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+            'type': 'crypto',
+        });
     }
     async loadMarkets(reload = false, params = {}) {
         const markets = await super.loadMarkets(reload, params);

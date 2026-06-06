@@ -15,6 +15,8 @@ export default class cryptocom extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(currency: Dict): Currency;
+    addKeyInArrayItems(obj: any, keyName: any): any[];
     /**
      * @method
      * @name cryptocom#fetchMarkets

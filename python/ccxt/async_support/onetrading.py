@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.onetrading import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -446,28 +446,27 @@ class onetrading(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currency = response[i]
-            id = self.safe_string(currency, 'code')
-            code = self.safe_currency_code(id)
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'name': self.safe_string(currency, 'name'),
-                'info': currency,
-                'active': None,
-                'fee': None,
-                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
-                'withdraw': None,
-                'deposit': None,
-                'limits': {
-                    'amount': {'min': None, 'max': None},
-                    'withdraw': {'min': None, 'max': None},
-                },
-                'networks': {},
-            })
-        return result
+        return self.parse_currencies(response)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'code')
+        code = self.safe_currency_code(id)
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'name': self.safe_string(rawCurrency, 'name'),
+            'info': rawCurrency,
+            'active': None,
+            'fee': None,
+            'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'precision'))),
+            'withdraw': None,
+            'deposit': None,
+            'limits': {
+                'amount': {'min': None, 'max': None},
+                'withdraw': {'min': None, 'max': None},
+            },
+            'networks': {},
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """

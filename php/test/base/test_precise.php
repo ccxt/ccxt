@@ -109,4 +109,8 @@ function test_precise() {
     assert(Precise::string_le('-3.1415', '-2'));
     assert(Precise::string_le('3.1415', '3.1415'));
     assert(Precise::string_le('3.1415', '3.14150000000000000000001'));
+    assert(Precise::string_or('5', '3') === '7');
+    assert(Precise::string_or('10', '5') === '15'); // 1010 | 0101 = 1111 = 15
+    assert(Precise::string_or('0', '0') === '0');
+    assert(Precise::string_or('7', '0') === '7');
 }
