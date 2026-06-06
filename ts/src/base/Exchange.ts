@@ -5805,7 +5805,7 @@ export default class Exchange {
         const fetchDataCacheEnabled = this.recentFetchesCacheSize > 0;
         for (let i = 0; i < retries + 1; i++) {
             if (fetchDataCacheEnabled) {
-                fetchData = { 'request': undefined, 'response': undefined, 'error': undefined };
+                fetchData = { 'request': undefined, 'responseBody': undefined, 'error': undefined };
             }
             try {
                 this.lastRestRequestTimestamp = this.milliseconds ();
@@ -5818,7 +5818,7 @@ export default class Exchange {
                 this.last_request_url = request['url'];
                 const response = await this.fetch (request['url'], request['method'], request['headers'], request['body']);
                 if (fetchDataCacheEnabled) {
-                    fetchData['response'] = response;
+                    fetchData['responseBody'] = response;
                     this.addFetchCache (fetchData);
                 }
                 return response;
