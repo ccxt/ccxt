@@ -828,20 +828,6 @@ public partial class hitbtc : Exchange
         });
     }
 
-    public virtual object addKeyInArrayItems(object obj, object keyName)
-    {
-        object result = new List<object>() {};
-        object keys = new List<object>(((IDictionary<string,object>)obj).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
-        {
-            object key = getValue(keys, i);
-            object item = getValue(obj, key);
-            ((IDictionary<string,object>)item)[(string)keyName] = key;
-            ((IList<object>)result).Add(item);
-        }
-        return result;
-    }
-
     /**
      * @method
      * @name hitbtc#createDepositAddress
