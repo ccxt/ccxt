@@ -2747,7 +2747,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         //        "status":200,
         //        "result":{
         //            "symbol":"BTCUSDT",
-        //            "price":"73178.50",
+        //            "price":"73178.60",
         //            "time":1712527052374
         //        }
         //    }
