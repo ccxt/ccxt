@@ -4570,7 +4570,9 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] *contract only* if the orders are trigger trigger orders or not
      * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
-     * @param {boolean} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
+     * @param {bool} [params.stopLoss] *linear swap contract only* if the orders are stop-loss orders
+     * @param {bool} [params.takeProfit] *linear swap contract only* if the orders are take-profit orders
+     * @param {bool} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -4624,11 +4626,24 @@ export default class htx extends Exchange {
                 }
             }
             const trigger = this.safeBool2 (params, 'stop', 'trigger');
-            const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
+            const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
+            const stopLoss = this.safeBool (params, 'stopLoss');
+            const takeProfit = this.safeBool (params, 'takeProfit');
             const trailing = this.safeBool (params, 'trailing', false);
-            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
+            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit' ]);
             if (isLinear) {
-                if (trigger || trailing || stopLossTakeProfit) {
+                if (trigger || trailing || stopLossTakeProfit || stopLoss || takeProfit) {
+                    if (trigger) {
+                        request['type'] = 'trigger';
+                    } else if (trailing) {
+                        request['type'] = 'trailing_stop';
+                    } else if (stopLossTakeProfit) {
+                        request['type'] = 'tpsl';
+                    } else if (stopLoss) {
+                        request['type'] = 'sl';
+                    } else if (takeProfit) {
+                        request['type'] = 'tp';
+                    }
                     response = await this.contractPrivateGetV5AlgoOrderOpens (this.extend (request, params));
                 } else {
                     response = await this.contractPrivateGetV5TradeOrderOpens (this.extend (request, params));
@@ -4890,6 +4905,34 @@ export default class htx extends Exchange {
         //         "ts": 1780652167077
         //     }
         //
+        // linear swap algo
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "id": "162173672",
+        //                 "volume": "1",
+        //                 "type": "tp",
+        //                 "state": "active",
+        //                 "side": "sell",
+        //                 "algo_id": "1512871666507657216",
+        //                 "contract_code": "BTC-USDT",
+        //                 "position_side": "long",
+        //                 "margin_mode": "cross",
+        //                 "created_time": "1780738313091",
+        //                 "updated_time": "1780738313187",
+        //                 "order_source": "api",
+        //                 "tp_trigger_price": "101000",
+        //                 "tp_order_price": "0",
+        //                 "tp_type": "market",
+        //                 "tp_trigger_price_type": "last"
+        //             }
+        //         ],
+        //         "ts": 1780739390596
+        //     }
+        //
         let orders = this.safeValue (response, 'data');
         if (!Array.isArray (orders)) {
             orders = this.safeValue (orders, 'orders', []);
@@ -4915,6 +4958,11 @@ export default class htx extends Exchange {
             '6': 'closed',
             '7': 'canceled',
             '11': 'canceling',
+            // linear swap
+            'active': 'open',
+            'new': 'open',
+            'partially_filled': 'open',
+            'partially_canceled': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -4957,11 +5005,18 @@ export default class htx extends Exchange {
         //         "canceled-at":  0
         //     }
         //
-        // linear swap cross margin createOrder
+        // linear swap createOrder
         //
         //     {
         //         "order_id": "1512501029504577536",
         //         "client_order_id": "1512501029504577536"
+        //     }
+        //
+        // linear swap algo createOrder
+        //
+        //     {
+        //         "algo_id": "1512871666507657216",
+        //         "algo_client_order_id": null
         //     }
         //
         // contracts fetchOrder
@@ -5319,16 +5374,58 @@ export default class htx extends Exchange {
         //         "self_match_prevent": "cancel_taker"
         //     }
         //
+        // linear swap algo fetchOpenOrders
+        //
+        //     {
+        //         "id": "162173672",
+        //         "volume": "1",
+        //         "type": "tp",
+        //         "state": "active",
+        //         "side": "sell",
+        //         "algo_id": "1512871666507657216",
+        //         "contract_code": "BTC-USDT",
+        //         "position_side": "long",
+        //         "margin_mode": "cross",
+        //         "created_time": "1780738313091",
+        //         "updated_time": "1780738313187",
+        //         "order_source": "api",
+        //         "tp_trigger_price": "101000",
+        //         "tp_order_price": "0",
+        //         "tp_type": "market",
+        //         "tp_trigger_price_type": "last"
+        //     }
+        //
+        // linear swap trailing fetchOpenOrders
+        //
+        //     {
+        //         "id": "1163773",
+        //         "volume": "1",
+        //         "type": "trailing_stop",
+        //         "state": "active",
+        //         "side": "sell",
+        //         "algo_id": "1512889773167009792",
+        //         "contract_code": "BTC-USDT",
+        //         "position_side": "long",
+        //         "margin_mode": "cross",
+        //         "created_time": "1780742630055",
+        //         "updated_time": "1780742630223",
+        //         "order_source": "api",
+        //         "active_price": "90000",
+        //         "callback_rate": "0.05",
+        //         "reduce_only": true,
+        //         "order_price_type": "formula_price"
+        //     }
+        //
         const rejectedCreateOrders = this.safeString2 (order, 'err_code', 'err-code');
         let status = this.parseOrderStatus (this.safeString2 (order, 'state', 'status'));
         if (rejectedCreateOrders !== undefined) {
             status = 'rejected';
         }
-        const id = this.safeStringN (order, [ 'id', 'order_id_str', 'order-id', 'order_id' ]);
+        const id = this.safeStringN (order, [ 'id', 'order_id_str', 'order-id', 'order_id', 'algo_id' ]);
         let side = this.safeString2 (order, 'direction', 'side');
         let type = undefined;
         if (market['linear']) {
-            type = this.safeString (order, 'type');
+            type = this.safeStringN (order, [ 'tp_type', 'sl_type', 'type' ]);
         } else {
             type = this.safeString (order, 'order_price_type');
             if ('type' in order) {
@@ -5339,11 +5436,11 @@ export default class htx extends Exchange {
         }
         const marketId = this.safeString2 (order, 'contract_code', 'symbol');
         market = this.safeMarket (marketId, market);
-        const timestamp = this.safeIntegerN (order, [ 'created_at', 'created-at', 'create_date' ]);
-        const clientOrderId = this.safeString2 (order, 'client_order_id', 'client-or' + 'der-id'); // transpiler regex trick for php issue
+        const timestamp = this.safeIntegerN (order, [ 'created_at', 'created-at', 'create_date', 'created_time' ]);
+        const clientOrderId = this.safeStringN (order, [ 'client_order_id', 'client-or' + 'der-id', 'algo_client_order_id' ]); // transpiler regex trick for php issue
         let cost = undefined;
         let amount = undefined;
-        if ((type !== undefined) && (type.indexOf ('market') >= 0)) {
+        if ((type !== undefined) && (type.indexOf ('market') >= 0) && (!market['linear'])) {
             cost = this.safeString (order, 'field-cash-amount');
         } else {
             amount = this.safeString2 (order, 'volume', 'amount');
@@ -5392,6 +5489,8 @@ export default class htx extends Exchange {
             'side': side,
             'price': price,
             'triggerPrice': this.safeString2 (order, 'stop-price', 'trigger_price'),
+            'stopLossPrice': this.safeString (order, 'sl_trigger_price'),
+            'takeProfitPrice': this.safeString (order, 'tp_trigger_price'),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -5643,6 +5742,7 @@ export default class htx extends Exchange {
         if (isTrigger) {
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
             if (isLinear) {
+                request['type'] = 'trigger';
                 if (price !== undefined) {
                     request['price'] = this.priceToPrecision (symbol, price);
                 }
@@ -5657,6 +5757,8 @@ export default class htx extends Exchange {
             if (isStopLossTriggerOrder) {
                 if (!isLinear) {
                     request['sl_order_price_type'] = type;
+                } else {
+                    request['type'] = 'sl';
                 }
                 request['sl_trigger_price'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
                 if (price !== undefined) {
@@ -5665,6 +5767,8 @@ export default class htx extends Exchange {
             } else {
                 if (!isLinear) {
                     request['tp_order_price_type'] = type;
+                } else {
+                    request['type'] = 'tp';
                 }
                 request['tp_trigger_price'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
                 if (price !== undefined) {
@@ -5675,10 +5779,9 @@ export default class htx extends Exchange {
             const trailingPercentString = Precise.stringDiv (trailingPercent, '100');
             request['callback_rate'] = this.parseToNumeric (trailingPercentString);
             request['order_price_type'] = this.safeString (params, 'order_price_type', 'formula_price');
+            request['active_price'] = trailingTriggerPrice;
             if (isLinear) {
-                request['activation_price'] = trailingTriggerPrice;
-            } else {
-                request['active_price'] = trailingTriggerPrice;
+                request['type'] = 'trailing_stop';
             }
         } else {
             if (clientOrderId !== undefined) {
@@ -5831,6 +5934,20 @@ export default class htx extends Exchange {
         //         "ts": 1780649946353
         //     }
         //
+        // linear swap algo
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "algo_id": "1512871666507657216",
+        //                 "algo_client_order_id": null
+        //             }
+        //         ],
+        //         "ts": 1780738313102
+        //     }
+        //
         // stop-loss and take-profit
         //
         //     {
@@ -5869,7 +5986,8 @@ export default class htx extends Exchange {
                 'average': undefined,
             }, market);
         } else if (market['linear'] && (isTrigger || isTrailingPercentOrder || isStopLossTriggerOrder || isTakeProfitTriggerOrder)) {
-            result = this.safeValue (response, 'data', []);
+            data = this.safeList (response, 'data', []);
+            result = this.safeDict (data, 0, {});
         } else if (isStopLossTriggerOrder) {
             data = this.safeValue (response, 'data', {});
             result = this.safeValue (data, 'sl_order', {});
@@ -6048,6 +6166,10 @@ export default class htx extends Exchange {
             // 'pair': 'BTC-USDT',
             // 'contract_type': 'this_week', // swap, this_week, next_week, quarter, next_ quarter
         };
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
+        const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
+        const trailing = this.safeBool (params, 'trailing', false);
+        params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
         let response = undefined;
         if (marketType === 'spot') {
             const clientOrderId = this.safeString2 (params, 'client-order-id', 'clientOrderId');
@@ -6063,19 +6185,8 @@ export default class htx extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
             }
-            const trigger = this.safeBool2 (params, 'stop', 'trigger');
-            const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
-            const trailing = this.safeBool (params, 'trailing', false);
-            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
             const clientOrderId = this.safeStringN (params, [ 'client_order_id', 'clientOrderId', 'algo_client_order_id' ]);
-            if (isLinear && (trigger || stopLossTakeProfit || trailing)) {
-                if (clientOrderId === undefined) {
-                    request['algo_id'] = id;
-                } else {
-                    request['algo_client_order_id'] = clientOrderId;
-                    params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
-                }
-            } else {
+            if (!(isLinear && (trigger || stopLossTakeProfit || trailing))) {
                 if (clientOrderId === undefined) {
                     request['order_id'] = id;
                 } else {
@@ -6090,7 +6201,18 @@ export default class htx extends Exchange {
             }
             if (isLinear) {
                 if (trigger || stopLossTakeProfit || trailing) {
-                    response = await this.contractPrivatePostV5AlgoCancelOrders (this.extend (request, params));
+                    const requestBody = [ {
+                        'contract_code': market['id'],
+                    } ];
+                    if (clientOrderId === undefined) {
+                        requestBody[0]['algo_id'] = id;
+                        params = this.omit (params, 'algo_id');
+                    } else {
+                        requestBody[0]['algo_client_order_id'] = clientOrderId;
+                        params = this.omit (params, [ 'client_order_id', 'clientOrderId', 'algo_client_order_id' ]);
+                    }
+                    requestBody[0] = this.extend (requestBody[0], params);
+                    response = await this.contractPrivatePostV5AlgoCancelOrders (requestBody);
                 } else {
                     response = await this.contractPrivatePostV5TradeCancelOrder (this.extend (request, params));
                 }
@@ -6169,7 +6291,12 @@ export default class htx extends Exchange {
         //
         let result = undefined;
         if (isLinear) {
-            result = this.safeDict (response, 'data', {});
+            if (trigger || stopLossTakeProfit || trailing) {
+                const data = this.safeList (response, 'data', []);
+                result = this.safeDict (data, 0, {});
+            } else {
+                result = this.safeDict (response, 'data', {});
+            }
         } else {
             result = response;
         }
@@ -7554,7 +7681,13 @@ export default class htx extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
-        const query = this.omit (params, this.extractParams (path));
+        const isArrayParams = Array.isArray (params);
+        let query = undefined;
+        if (isArrayParams) {
+            query = {};
+        } else {
+            query = this.omit (params, this.extractParams (path));
+        }
         if (typeof api === 'string') {
             // signing implementation for the old endpoints
             if ((api === 'public') || (api === 'private')) {
@@ -7584,7 +7717,7 @@ export default class htx extends Exchange {
                 auth += '&' + this.urlencode ({ 'Signature': signature });
                 url += '?' + auth;
                 if (method === 'POST') {
-                    body = this.json (query);
+                    body = this.json (isArrayParams ? params : query);
                     headers = {
                         'Content-Type': 'application/json',
                     };
@@ -7627,17 +7760,19 @@ export default class htx extends Exchange {
                 if (method === 'POST') {
                     const options = this.safeValue (this.options, 'broker', {});
                     const id = this.safeString (options, 'id', 'AA03022abc');
-                    if (path.indexOf ('cancel') === -1 && path.endsWith ('order')) {
-                        // swap order placement
-                        const channelCode = this.safeString (params, 'channel_code');
-                        if (channelCode === undefined) {
-                            params['channel_code'] = id;
-                        }
-                    } else if (path.endsWith ('orders/place')) {
-                        // spot order placement
-                        const clientOrderId = this.safeString (params, 'client-order-id');
-                        if (clientOrderId === undefined) {
-                            params['client-order-id'] = id + this.uuid ();
+                    if (!isArrayParams) {
+                        if (path.indexOf ('cancel') === -1 && path.endsWith ('order')) {
+                            // swap order placement
+                            const channelCode = this.safeString (params, 'channel_code');
+                            if (channelCode === undefined) {
+                                params['channel_code'] = id;
+                            }
+                        } else if (path.endsWith ('orders/place')) {
+                            // spot order placement
+                            const clientOrderId = this.safeString (params, 'client-order-id');
+                            if (clientOrderId === undefined) {
+                                params['client-order-id'] = id + this.uuid ();
+                            }
                         }
                     }
                 }
@@ -7662,8 +7797,8 @@ export default class htx extends Exchange {
                 auth += '&' + this.urlencode ({ 'Signature': signature });
                 url += '?' + auth;
                 if (method === 'POST') {
-                    body = this.json (query);
-                    if (body.length === 2) {
+                    body = this.json (isArrayParams ? params : query);
+                    if (!isArrayParams && (body.length === 2)) {
                         body = '{}';
                     }
                     headers = {
