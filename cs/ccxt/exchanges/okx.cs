@@ -9733,7 +9733,7 @@ public partial class okx : Exchange
         }
         if (isTrue(!isEqual(timeframe, null)))
         {
-            ((IDictionary<string,object>)request)["period"] = timeframe;
+            ((IDictionary<string,object>)request)["period"] = this.safeString(this.timeframes, timeframe, timeframe);
         }
         if (isTrue(!isEqual(since, null)))
         {

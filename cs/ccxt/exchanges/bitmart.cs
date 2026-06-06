@@ -2924,8 +2924,11 @@ public partial class bitmart : Exchange
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "size", parseInt(this.amountToPrecision(symbol, amount)) },
         };
+        if (isTrue(!isEqual(amount, null)))
+        {
+            ((IDictionary<string,object>)request)["size"] = parseInt(this.amountToPrecision(symbol, amount));
+        }
         object timeInForce = this.safeString(parameters, "timeInForce");
         object mode = this.safeInteger(parameters, "mode"); // only for swap
         object isMarketOrder = isEqual(type, "market");
@@ -3002,7 +3005,12 @@ public partial class bitmart : Exchange
         {
             reduceOnly = true;
             ((IDictionary<string,object>)request)["price_type"] = this.safeInteger(parameters, "price_type", 1);
-            ((IDictionary<string,object>)request)["executive_price"] = this.priceToPrecision(symbol, price);
+            if (isTrue(!isEqual(price, null)))
+            {
+                ((IDictionary<string,object>)request)["executive_price"] = this.priceToPrecision(symbol, price);
+            }
+            object marketOrLimitStr = ((bool) isTrue(isLimitOrder)) ? "limit" : "market";
+            ((IDictionary<string,object>)request)["category"] = this.safeString(parameters, "category", marketOrLimitStr);
             if (isTrue(isStopLoss))
             {
                 ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, stopLossPrice);

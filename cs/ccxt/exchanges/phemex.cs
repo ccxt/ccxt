@@ -1129,52 +1129,51 @@ public partial class phemex : Exchange
         //     }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object currencies = this.safeValue(data, "currencies", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
+        return this.parseCurrencies(currencies);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, "currency");
+        object code = this.safeCurrencyCode(id);
+        object valueScaleString = this.safeString(rawCurrency, "valueScale");
+        object valueScale = parseInt(valueScaleString);
+        object minValueEv = this.safeString(rawCurrency, "minValueEv");
+        object maxValueEv = this.safeString(rawCurrency, "maxValueEv");
+        object minAmount = null;
+        object maxAmount = null;
+        object precision = null;
+        if (isTrue(!isEqual(valueScale, null)))
         {
-            object currency = getValue(currencies, i);
-            object id = this.safeString(currency, "currency");
-            object code = this.safeCurrencyCode(id);
-            object valueScaleString = this.safeString(currency, "valueScale");
-            object valueScale = parseInt(valueScaleString);
-            object minValueEv = this.safeString(currency, "minValueEv");
-            object maxValueEv = this.safeString(currency, "maxValueEv");
-            object minAmount = null;
-            object maxAmount = null;
-            object precision = null;
-            if (isTrue(!isEqual(valueScale, null)))
-            {
-                object precisionString = this.parsePrecision(valueScaleString);
-                precision = this.parseNumber(precisionString);
-                minAmount = this.parseNumber(Precise.stringMul(minValueEv, precisionString));
-                maxAmount = this.parseNumber(Precise.stringMul(maxValueEv, precisionString));
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "info", currency },
-                { "code", code },
-                { "name", this.safeString(currency, "name") },
-                { "active", isEqual(this.safeString(currency, "status"), "Listed") },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", precision },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", minAmount },
-                        { "max", maxAmount },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "valueScale", valueScale },
-                { "networks", null },
-                { "type", "crypto" },
-            });
+            object precisionString = this.parsePrecision(valueScaleString);
+            precision = this.parseNumber(precisionString);
+            minAmount = this.parseNumber(Precise.stringMul(minValueEv, precisionString));
+            maxAmount = this.parseNumber(Precise.stringMul(maxValueEv, precisionString));
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "info", rawCurrency },
+            { "code", code },
+            { "name", this.safeString(rawCurrency, "name") },
+            { "active", isEqual(this.safeString(rawCurrency, "status"), "Listed") },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", precision },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", minAmount },
+                    { "max", maxAmount },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "valueScale", valueScale },
+            { "networks", null },
+            { "type", "crypto" },
+        });
     }
 
     public virtual object customParseBidAsk(object bidask, object priceKey = null, object amountKey = null, object market = null)

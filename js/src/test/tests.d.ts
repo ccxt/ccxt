@@ -88,7 +88,6 @@ declare class testMainClass {
     testCoinbaseinternational(): Promise<boolean>;
     testCoinbaseAdvanced(): Promise<boolean>;
     testWoofiPro(): Promise<boolean>;
-    testOxfun(): Promise<boolean>;
     testXT(): Promise<boolean>;
     testParadex(): Promise<boolean>;
     testHashkey(): Promise<boolean>;
