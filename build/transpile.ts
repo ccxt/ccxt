@@ -223,11 +223,6 @@ class Transpiler {
             [ /\=\=\=?/g, '==' ],
             [ /\!\=\=?/g, '!=' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
-            [ /\.binaryToBase16/g, '.binary_to_base16'],
-            [ /\.binaryToBase64/g, '.binary_to_base64'],
-            [ /\.stringToBase64/g, '.string_to_base64'],
-            [ /\.base64ToBinary/g, '.base64_to_binary'],
-            [ /\.base64ToString/g, '.base64_to_string'],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
             // beware of .reverse() in python, because opposed to JS, python does in-place, so 
             // only cases like `x = x.reverse ()` should be transpiled, which will resul as 
