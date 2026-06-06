@@ -634,6 +634,7 @@ export default class Exchange {
     parsedFeeAndFees(container: any): Dictionary<any>[];
     parseFeeNumeric(fee: any): any;
     findNearestCeiling(arr: number[], providedValue: number): number;
+    addKeyInArrayItems(obj: any, keyName: any): any[];
     invertFlatStringDictionary(dict: any): {};
     stringToBase16(str: any): string;
     reduceFeesByCurrency(fees: any): any[];
