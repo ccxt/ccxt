@@ -257,9 +257,6 @@ class Transpiler {
             [ /\.padEnd\s/g, '.ljust'],
             [ /\.padStart\s/g, '.rjust' ],
 
-        // insert common regexes in the middle (critical)
-        ].concat (this.getCommonRegexes ()).concat ([
-
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /([a-zA-Z0-9_]+) in this(:?[^.])/g, 'hasattr(self, $1)$2' ],
             // [ /this\[[a-zA-Z0-9_]+\]/g, 'getattr(self, $1)' ],
@@ -364,7 +361,7 @@ class Transpiler {
             [ /(\s+) \* @returns \{(.+)\}/g, '$1:returns $2:' ], // docstring return
             [ /(\s+ \* @param \{[\]\[\|a-zA-Z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
             [ /(\s+) \* @([a-z]+) \{([\]\[a-zA-Z\|]+)\} ([a-zA-Z0-9_\-\.\[\]\']+)/g, '$1:$2 $3 $4:' ], // docstring param
-        ])
+        ]
     }
 
     getPython2Regexes () {
@@ -461,8 +458,8 @@ class Transpiler {
             [ /undefined/g, 'null' ],
             [ /\} else if/g, '} elseif' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
-            [ /this\.stringToBase64\s/g, 'base64_encode' ],
-            [ /this\.binaryToBase16\s/g, 'bin2hex' ],
+            [ /this\.string_to_base64\s/g, 'base64_encode' ],
+            [ /this\.binary_to_base16\s/g, 'bin2hex' ],
             [ /this\.base64ToBinary\s/g, 'base64_decode' ],
             [ /this\.base64ToString\s/g, 'base64_decode' ],
             [ /Promise\.all\s*\(([^\)]+)\)/g, 'Promise\\all($1)' ],
@@ -492,9 +489,6 @@ class Transpiler {
             [ /(\w+)\.padEnd\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_RIGHT)' ],
             [ /(\w+)\.padStart\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_LEFT)' ],
 
-        // insert common regexes in the middle (critical)
-        ].concat (this.getCommonRegexes ()).concat ([
-
             [ /([a-zA-Z0-9_]+) in this(:?[^.])/g, 'property_exists($this, $1)$2' ],
             [ /\(this,/g, '($this,' ],
             [ /this\./g, '$this->' ],
@@ -504,7 +498,7 @@ class Transpiler {
             [ /([^'])\[\](?!')/g, '$1array()' ],
 
         // add {}-array syntax conversions up to 20 levels deep on the same line
-        ]).concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
+        ].concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
             [ /\[\s*([^\]]+)\s\]\s=/g, 'list($1) =' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values(list($2))' ],
@@ -1180,6 +1174,9 @@ class Transpiler {
     // ------------------------------------------------------------------------
 
     transpileJavaScriptToPythonAndPHP (args:any) {
+
+        // apply common regexes once before branching to language-specific paths
+        args.js = this.regexAll (args.js, this.getCommonRegexes ())
 
         // transpile JS → Python 3
         let python3Body = ''
