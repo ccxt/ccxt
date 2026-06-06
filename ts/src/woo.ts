@@ -1076,7 +1076,7 @@ export default class woo extends Exchange {
                         'max': undefined,
                     },
                 },
-                'info': [ networkEntry, tokenEntry ],
+                'info': { 'network': networkEntry, 'token': tokenEntry },
             };
         }
         return this.safeCurrencyStructure ({

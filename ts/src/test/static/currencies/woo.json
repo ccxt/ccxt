@@ -104,8 +104,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "BTC",
                         "network": "BTC",
                         "token": "BTC",
@@ -115,7 +115,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "BTC",
                         "fullname": "Bitcoin",
                         "network": "BTC",
@@ -127,7 +127,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "BEP20": {
                 "id": "BSC",
@@ -148,8 +148,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "BEP20",
                         "network": "BSC",
                         "token": "BTC",
@@ -159,7 +159,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "BSC_BTCB",
                         "fullname": "Bitcoin",
                         "network": "BSC",
@@ -171,7 +171,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "MERLIN": {
                 "id": "MERLIN",
@@ -192,8 +192,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "MERLIN",
                         "network": "MERLIN",
                         "token": "BTC",
@@ -203,7 +203,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "0"
                     },
-                    {
+                    "token": {
                         "token": "MERLIN_BTC",
                         "fullname": "Bitcoin",
                         "network": "MERLIN",
@@ -215,7 +215,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             }
         },
         "limits": {
@@ -466,8 +466,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "ERC20",
                         "network": "ETH",
                         "token": "USDT",
@@ -477,7 +477,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "ETH_USDT",
                         "fullname": "Tether",
                         "network": "ETH",
@@ -489,7 +489,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "TRC20": {
                 "id": "TRX",
@@ -510,8 +510,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "TRC20",
                         "network": "TRX",
                         "token": "USDT",
@@ -521,7 +521,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "TRON_USDT",
                         "fullname": "Tether",
                         "network": "TRX",
@@ -533,7 +533,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "ARB": {
                 "id": "Arbitrum",
@@ -554,8 +554,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Arbitrum",
                         "network": "Arbitrum",
                         "token": "USDT",
@@ -565,7 +565,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "ARB_USDT",
                         "fullname": "Tether USD",
                         "network": "Arbitrum",
@@ -577,7 +577,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "AVAXC": {
                 "id": "AVAXC",
@@ -598,8 +598,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "C Chain",
                         "network": "AVAXC",
                         "token": "USDT",
@@ -609,7 +609,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "AVAXC_USDT",
                         "fullname": "Tether",
                         "network": "AVAXC",
@@ -621,7 +621,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "BEP20": {
                 "id": "BSC",
@@ -642,8 +642,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "BEP20",
                         "network": "BSC",
                         "token": "USDT",
@@ -653,7 +653,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "BSC_USDT",
                         "fullname": "Tether",
                         "network": "BSC",
@@ -665,7 +665,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "MATIC": {
                 "id": "MATIC",
@@ -686,8 +686,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Polygon",
                         "network": "MATIC",
                         "token": "USDT",
@@ -697,7 +697,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "MATIC_USDT",
                         "fullname": "Tether",
                         "network": "MATIC",
@@ -709,7 +709,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "OP": {
                 "id": "OP",
@@ -730,8 +730,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Optimism",
                         "network": "OP",
                         "token": "USDT",
@@ -741,7 +741,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "OP_USDT",
                         "fullname": "Tether USD",
                         "network": "OP",
@@ -753,7 +753,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "SOL": {
                 "id": "SOL",
@@ -774,8 +774,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "SOL",
                         "network": "SOL",
                         "token": "USDT",
@@ -785,7 +785,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "SOL_USDT",
                         "fullname": "Tether",
                         "network": "SOL",
@@ -797,7 +797,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "TON": {
                 "id": "TON",
@@ -818,8 +818,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "TON",
                         "network": "TON",
                         "token": "USDT",
@@ -829,7 +829,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "TON_USDT",
                         "fullname": "Tether",
                         "network": "TON",
@@ -841,7 +841,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             }
         },
         "limits": {
@@ -916,8 +916,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "LTC",
                         "network": "LTC",
                         "token": "LTC",
@@ -927,7 +927,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "LTC",
                         "fullname": "Litecoin",
                         "network": "LTC",
@@ -939,7 +939,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             }
         },
         "limits": {
@@ -1102,8 +1102,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "ERC20",
                         "network": "ETH",
                         "token": "ETH",
@@ -1113,7 +1113,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "ETH",
                         "fullname": "Ethereum",
                         "network": "ETH",
@@ -1125,7 +1125,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "BASE": {
                 "id": "BASE",
@@ -1146,8 +1146,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "BASE",
                         "network": "BASE",
                         "token": "ETH",
@@ -1157,7 +1157,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "0"
                     },
-                    {
+                    "token": {
                         "token": "BASE_ETH",
                         "fullname": "Ethereum",
                         "network": "BASE",
@@ -1169,7 +1169,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "BEP20": {
                 "id": "BSC",
@@ -1190,8 +1190,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "BEP20",
                         "network": "BSC",
                         "token": "ETH",
@@ -1201,7 +1201,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "BSC_ETH",
                         "fullname": "Ethereum",
                         "network": "BSC",
@@ -1213,7 +1213,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "ARB": {
                 "id": "Arbitrum",
@@ -1234,8 +1234,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Arbitrum",
                         "network": "Arbitrum",
                         "token": "ETH",
@@ -1245,7 +1245,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "ETH-AETH",
                         "fullname": "Ethereum",
                         "network": "Arbitrum",
@@ -1257,7 +1257,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             },
             "OP": {
                 "id": "OP",
@@ -1278,8 +1278,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Optimism",
                         "network": "OP",
                         "token": "ETH",
@@ -1289,7 +1289,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "0"
                     },
-                    {
+                    "token": {
                         "token": "OP_ETH",
                         "fullname": "Ethereum",
                         "network": "OP",
@@ -1301,7 +1301,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             }
         },
         "limits": {
@@ -1376,8 +1376,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "ADA",
                         "network": "ADA",
                         "token": "ADA",
@@ -1387,7 +1387,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "ADA",
                         "fullname": "Cardano",
                         "network": "ADA",
@@ -1399,7 +1399,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             }
         },
         "limits": {
@@ -1474,8 +1474,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "XRP",
                         "network": "XRP",
                         "token": "XRP",
@@ -1485,7 +1485,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "XRP",
                         "fullname": "Ripple",
                         "network": "XRP",
@@ -1497,7 +1497,7 @@
                         "can_collateral": true,
                         "can_short": true
                     }
-                ]
+                }
             }
         },
         "limits": {
@@ -1792,8 +1792,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "ERC20",
                         "network": "ETH",
                         "token": "USDC",
@@ -1803,7 +1803,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "ETH_USDC",
                         "fullname": "USD Coin",
                         "network": "ETH",
@@ -1815,7 +1815,7 @@
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "Arbitrum (Bridged)": {
                 "id": "Arbitrum (Bridged)",
@@ -1836,8 +1836,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Arbitrum",
                         "network": "Arbitrum (Bridged)",
                         "token": "USDC",
@@ -1847,7 +1847,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "0"
                     },
-                    {
+                    "token": {
                         "token": "ARB_USDC",
                         "fullname": "USD Coin",
                         "network": "Arbitrum (Bridged)",
@@ -1859,7 +1859,7 @@
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "Arbitrum (Native)": {
                 "id": "Arbitrum (Native)",
@@ -1880,8 +1880,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Arbitrum",
                         "network": "Arbitrum (Native)",
                         "token": "USDC",
@@ -1891,7 +1891,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "ARB_USDCNATIVE",
                         "fullname": "USD Coin",
                         "network": "Arbitrum (Native)",
@@ -1903,7 +1903,7 @@
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "C-Chain (Native)": {
                 "id": "C-Chain (Native)",
@@ -1924,8 +1924,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "C Chain",
                         "network": "C-Chain (Native)",
                         "token": "USDC",
@@ -1935,7 +1935,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "AVAXC_USDC2",
                         "fullname": "USD Coin",
                         "network": "C-Chain (Native)",
@@ -1947,7 +1947,7 @@
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "BEP20": {
                 "id": "BSC",
@@ -1968,8 +1968,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "BEP20",
                         "network": "BSC",
                         "token": "USDC",
@@ -1979,7 +1979,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "BSC_USDC",
                         "fullname": "USD Coin",
                         "network": "BSC",
@@ -1991,7 +1991,7 @@
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "MATIC_BRIDGED": {
                 "id": "MATIC_BRIDGED",
@@ -2012,8 +2012,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Polygon",
                         "network": "MATIC_BRIDGED",
                         "token": "USDC",
@@ -2023,7 +2023,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "0"
                     },
-                    {
+                    "token": {
                         "token": "MATIC_USDC",
                         "fullname": "USD Coin",
                         "network": "MATIC_BRIDGED",
@@ -2035,7 +2035,7 @@
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "MATIC_NATIVE": {
                 "id": "MATIC_NATIVE",
@@ -2056,8 +2056,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Polygon",
                         "network": "MATIC_NATIVE",
                         "token": "USDC",
@@ -2067,7 +2067,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "0"
                     },
-                    {
+                    "token": {
                         "token": "MATIC_USDCNATIVE",
                         "fullname": "USD Coin",
                         "network": "MATIC_NATIVE",
@@ -2079,7 +2079,7 @@
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "OP_BRIDGED": {
                 "id": "OP_BRIDGED",
@@ -2100,8 +2100,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Optimism",
                         "network": "OP_BRIDGED",
                         "token": "USDC",
@@ -2111,7 +2111,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "0"
                     },
-                    {
+                    "token": {
                         "token": "OP_USDC",
                         "fullname": "USD Coin",
                         "network": "OP_BRIDGED",
@@ -2123,7 +2123,7 @@
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "OP_NATIVE": {
                 "id": "OP_NATIVE",
@@ -2144,8 +2144,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "Optimism",
                         "network": "OP_NATIVE",
                         "token": "USDC",
@@ -2155,7 +2155,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "OP_USDC_NATIVE",
                         "fullname": "Optimism (Native)",
                         "network": "OP_NATIVE",
@@ -2167,7 +2167,7 @@
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "SOL": {
                 "id": "SOL",
@@ -2188,8 +2188,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "SOL",
                         "network": "SOL",
                         "token": "USDC",
@@ -2199,7 +2199,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "SOL_USDC",
                         "fullname": "USD Coin",
                         "network": "SOL",
@@ -2211,7 +2211,7 @@
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             },
             "BASE": {
                 "id": "BASE",
@@ -2232,8 +2232,8 @@
                         "max": null
                     }
                 },
-                "info": [
-                    {
+                "info": {
+                    "network": {
                         "protocol": "BASE",
                         "network": "BASE",
                         "token": "USDC",
@@ -2243,7 +2243,7 @@
                         "allow_deposit": "1",
                         "allow_withdraw": "1"
                     },
-                    {
+                    "token": {
                         "token": "BASE_USDC",
                         "fullname": "USD Coin",
                         "network": "BASE",
@@ -2255,7 +2255,7 @@
                         "can_collateral": true,
                         "can_short": false
                     }
-                ]
+                }
             }
         },
         "limits": {
