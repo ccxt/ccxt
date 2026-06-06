@@ -83,9 +83,14 @@ class Transpiler {
         if (!this.baseMethodsList) {
             this.defineImplicitMethodsList ();
         }
+        // Methods that should remain camelCase (handled by language-specific regexes)
+        const excludeFromSnakeCase = ['binaryToBase16', 'binaryToBase64', 'stringToBase64', 'base64ToBinary', 'base64ToString'];
         // we only need base methods
         let found = false;
         for (const methodName of this.baseMethodsList) {
+            if (excludeFromSnakeCase.includes(methodName)) {
+                continue;
+            }
             if (word.toLowerCase ().replace(' ','') === 'this.' + methodName.toLowerCase () + '(') {
                 found = true;
                 break;
@@ -134,9 +139,6 @@ class Transpiler {
             [ /\.buildOHLCVC/g, '.build_ohlcv'],
             [ /\.intToBase16/g, '.int_to_base16'],
             [ /\.parseDate/g, '.parse_date'],
-            [ /\.binaryToBase16/g, '.binary_to_base16'],
-            [ /\.binaryToBase64/g, '.binary_to_base64'],
-            [ /\.stringToBase64/g, '.string_to_base64'],
             [ /\.urlencodeBase64/g, '.urlencode_base64'],
             [ /\.parseOrderStatusByType /g, '.parse_order_status_by_type'],
             [ /\.parseOrderStatus /g, '.parse_order_status'],
@@ -226,6 +228,11 @@ class Transpiler {
             [ /\=\=\=?/g, '==' ],
             [ /\!\=\=?/g, '!=' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
+            [ /\.binaryToBase16/g, '.binary_to_base16'],
+            [ /\.binaryToBase64/g, '.binary_to_base64'],
+            [ /\.stringToBase64/g, '.string_to_base64'],
+            [ /\.base64ToBinary/g, '.base64_to_binary'],
+            [ /\.base64ToString/g, '.base64_to_string'],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
             // beware of .reverse() in python, because opposed to JS, python does in-place, so 
             // only cases like `x = x.reverse ()` should be transpiled, which will resul as 
@@ -458,10 +465,10 @@ class Transpiler {
             [ /undefined/g, 'null' ],
             [ /\} else if/g, '} elseif' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
-            [ /this\.string_to_base64\s*\(/g, 'base64_encode(' ],
-            [ /this\.binary_to_base16\s*\(/g, 'bin2hex(' ],
-            [ /this\.base64_to_binary\s*\(/g, 'base64_decode(' ],
-            [ /this\.base64_to_string\s*\(/g, 'base64_decode(' ],
+            [ /this\.stringToBase64\s/g, 'base64_encode' ],
+            [ /this\.binaryToBase16\s/g, 'bin2hex' ],
+            [ /this\.base64ToBinary\s/g, 'base64_decode' ],
+            [ /this\.base64ToString\s/g, 'base64_decode' ],
             [ /Promise\.all\s*\(([^\)]+)\)/g, 'Promise\\all($1)' ],
             // deepExtend is commented for PHP because it does not overwrite linear arrays
             // a proper \ccxt\Exchange::deep_extend() base method is implemented instead
