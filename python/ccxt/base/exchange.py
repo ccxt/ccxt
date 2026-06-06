@@ -562,7 +562,7 @@ class Exchange(object):
     def add_fetch_cache(self, data):
         if self.recent_fetches_cache_size <= 0:
             return
-        length = self.recent_fetches_cache.length
+        length = len(self.recent_fetches_cache)
         if (length == 0):
             self.recent_fetches_cache = collections.deque(maxlen=self.recent_fetches_cache_size)
         self.recent_fetches_cache.append(data)
