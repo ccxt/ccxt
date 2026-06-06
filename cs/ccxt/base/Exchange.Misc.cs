@@ -50,7 +50,7 @@ public partial class Exchange
         }
         recentFetchesCache.Enqueue(data as Dictionary<string,object>);
         while (recentFetchesCache.Count > recentFetchesCacheSize)
-            recentFetchesCache.TryDequeue(out _); // drops olde
+            recentFetchesCache.TryDequeue(out _); // drops oldest
     }
 
     public List<Dictionary<string, object>> getFetchCache()
