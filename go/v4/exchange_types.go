@@ -721,6 +721,12 @@ func NewBalance(balanceData2 any) Balance {
 
 // NewBalances initializes a Balances struct from a map.
 func NewBalances(balancesData2 any) Balances {
+	if balancesData2 == nil {
+		balancesData2 = make(map[string]any)
+	}
+	if dataMap, ok := balancesData2.(*sync.Map); ok {
+		balancesData2 = SafeMapToMap(dataMap)
+	}
 	balancesData := balancesData2.(map[string]any)
 	balancesMap := make(map[string]Balance)
 	freeBalances := make(map[string]*float64)

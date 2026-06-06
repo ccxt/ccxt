@@ -657,20 +657,6 @@ public class CryptocomCore extends CryptocomApi
         }});
     }
 
-    public Object addKeyInArrayItems(Object obj, Object keyName)
-    {
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object keys = Helpers.objectKeys(obj);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
-        {
-            Object key = Helpers.GetValue(keys, i);
-            Object item = Helpers.GetValue(obj, key);
-            Helpers.addElementToObject(item, keyName, key);
-            ((java.util.List<Object>)result).add(item);
-        }
-        return result;
-    }
-
     /**
      * @method
      * @name cryptocom#fetchMarkets
