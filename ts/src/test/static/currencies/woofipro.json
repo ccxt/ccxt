@@ -207,7 +207,7 @@
                 "fee": 2,
                 "precision": 0.000001,
                 "info": {
-                    "_networkEntry": {
+                    "network": {
                         "chain_id": "1",
                         "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
                         "decimals": "6",
@@ -216,7 +216,7 @@
                         "display_name": "USDC",
                         "exclusive_deposit_supported": false
                     },
-                    "_networkRow": {
+                    "networkRow": {
                         "name": "Ethereum",
                         "public_rpc_url": "https://mainnet.gateway.tenderly.co",
                         "chain_id": "1",
@@ -621,7 +621,7 @@
                 "fee": 1,
                 "precision": 0.000001,
                 "info": {
-                    "_networkEntry": {
+                    "network": {
                         "chain_id": "10",
                         "contract_address": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
                         "decimals": "6",
@@ -630,7 +630,7 @@
                         "display_name": "USDC",
                         "exclusive_deposit_supported": false
                     },
-                    "_networkRow": {
+                    "networkRow": {
                         "name": "Optimism",
                         "public_rpc_url": "https://mainnet.optimism.io",
                         "chain_id": "10",
@@ -1035,7 +1035,7 @@
                 "fee": 1,
                 "precision": 0.000001,
                 "info": {
-                    "_networkEntry": {
+                    "network": {
                         "chain_id": "1329",
                         "contract_address": "0xe15fC38F6D8c56aF07bbCBe3BAf5708A2Bf42392",
                         "decimals": "6",
@@ -1044,7 +1044,7 @@
                         "display_name": "USDC",
                         "exclusive_deposit_supported": false
                     },
-                    "_networkRow": {
+                    "networkRow": {
                         "name": "Sei Network",
                         "public_rpc_url": "https://evm-rpc.sei-apis.com",
                         "chain_id": "1329",
@@ -1449,7 +1449,7 @@
                 "fee": 1,
                 "precision": 0.000001,
                 "info": {
-                    "_networkEntry": {
+                    "network": {
                         "chain_id": "137",
                         "contract_address": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
                         "decimals": "6",
@@ -1458,7 +1458,7 @@
                         "display_name": "USDC",
                         "exclusive_deposit_supported": false
                     },
-                    "_networkRow": {
+                    "networkRow": {
                         "name": "Polygon",
                         "public_rpc_url": "https://polygon.drpc.org",
                         "chain_id": "137",
@@ -1492,7 +1492,7 @@
                 "fee": 1,
                 "precision": 0.000001,
                 "info": {
-                    "_networkEntry": {
+                    "network": {
                         "chain_id": "98866",
                         "contract_address": "0x78adD880A697070c1e765Ac44D65323a0DcCE913",
                         "decimals": "6",
@@ -1501,7 +1501,7 @@
                         "display_name": "USDC.e",
                         "exclusive_deposit_supported": false
                     },
-                    "_networkRow": null
+                    "networkRow": null
                 }
             },
             "Sonic": {
@@ -1523,7 +1523,7 @@
                 "fee": 1,
                 "precision": 0.000001,
                 "info": {
-                    "_networkEntry": {
+                    "network": {
                         "chain_id": "146",
                         "contract_address": "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
                         "decimals": "6",
@@ -1532,7 +1532,7 @@
                         "display_name": "USDC.e",
                         "exclusive_deposit_supported": false
                     },
-                    "_networkRow": {
+                    "networkRow": {
                         "name": "Sonic",
                         "public_rpc_url": "https://sonic.drpc.org",
                         "chain_id": "146",
@@ -1937,7 +1937,7 @@
                 "fee": 1,
                 "precision": 0.000001,
                 "info": {
-                    "_networkEntry": {
+                    "network": {
                         "chain_id": "2741",
                         "contract_address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
                         "decimals": "6",
@@ -1946,7 +1946,7 @@
                         "display_name": "USDC.e",
                         "exclusive_deposit_supported": false
                     },
-                    "_networkRow": {
+                    "networkRow": {
                         "name": "Abstract",
                         "public_rpc_url": "https://api.mainnet.abs.xyz",
                         "chain_id": "2741",
@@ -2351,7 +2351,7 @@
                 "fee": 1,
                 "precision": 0.000001,
                 "info": {
-                    "_networkEntry": {
+                    "network": {
                         "chain_id": "34443",
                         "contract_address": "0xd988097fb8612cc24eeC14542bC03424c656005f",
                         "decimals": "6",
@@ -2360,7 +2360,7 @@
                         "display_name": "USDC.e",
                         "exclusive_deposit_supported": false
                     },
-                    "_networkRow": {
+                    "networkRow": {
                         "name": "Mode",
                         "public_rpc_url": "https://mainnet.mode.network",
                         "chain_id": "34443",
@@ -2765,7 +2765,7 @@
                 "fee": 1,
                 "precision": 0.000001,
                 "info": {
-                    "_networkEntry": {
+                    "network": {
                         "chain_id": "42161",
                         "contract_address": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
                         "decimals": "6",
@@ -2774,7 +2774,7 @@
                         "display_name": "USDC",
                         "exclusive_deposit_supported": true
                     },
-                    "_networkRow": {
+                    "networkRow": {
                         "name": "Arbitrum",
                         "public_rpc_url": "https://arb1.arbitrum.io/rpc",
                         "chain_id": "42161",
@@ -3179,7 +3179,7 @@
                 "fee": 1,
                 "precision": 0.000001,
                 "info": {
-                    "_networkEntry": {
+                    "network": {
                         "chain_id": "43114",
                         "contract_address": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
                         "decimals": "6",
@@ -3188,7 +3188,7 @@
                         "display_name": "USDC",
                         "exclusive_deposit_supported": false
                     },
-                    "_networkRow": {
+                    "networkRow": {
                         "name": "Avalanche",
                         "public_rpc_url": "https://api.avax.network/ext/bc/C/rpc",
                         "chain_id": "43114",
@@ -3593,7 +3593,7 @@
                 "fee": 2,
                 "precision": 0.000001,
                 "info": {
-                    "_networkEntry": {
+                    "network": {
                         "chain_id": "5000",
                         "contract_address": "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9",
                         "decimals": "6",
@@ -3602,7 +3602,7 @@
                         "display_name": "USDC.e",
                         "exclusive_deposit_supported": false
                     },
-                    "_networkRow": {
+                    "networkRow": {
                         "name": "Mantle",
                         "public_rpc_url": "https://rpc.mantle.xyz/",
                         "chain_id": "5000",
@@ -4007,7 +4007,7 @@
                 "fee": 1,
                 "precision": 1e-18,
                 "info": {
-                    "_networkEntry": {
+                    "network": {
                         "chain_id": "56",
                         "contract_address": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
                         "decimals": "18",
@@ -4016,7 +4016,7 @@
                         "display_name": "USDC.e",
                         "exclusive_deposit_supported": true
                     },
-                    "_networkRow": {
+                    "networkRow": {
                         "name": "BNB Chain",
                         "public_rpc_url": "https://bsc-rpc.publicnode.com",
                         "chain_id": "56",
@@ -4421,7 +4421,7 @@
                 "fee": 1,
                 "precision": 0.000001,
                 "info": {
-                    "_networkEntry": {
+                    "network": {
                         "chain_id": "80094",
                         "contract_address": "0x549943e04f40284185054145c6e4e9568c1d3241",
                         "decimals": "6",
@@ -4430,7 +4430,7 @@
                         "display_name": "USDC.e",
                         "exclusive_deposit_supported": false
                     },
-                    "_networkRow": {
+                    "networkRow": {
                         "name": "Berachain",
                         "public_rpc_url": "https://rpc.berachain.com",
                         "chain_id": "80094",
@@ -4835,7 +4835,7 @@
                 "fee": 1,
                 "precision": 0.000001,
                 "info": {
-                    "_networkEntry": {
+                    "network": {
                         "chain_id": "8453",
                         "contract_address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
                         "decimals": "6",
@@ -4844,7 +4844,7 @@
                         "display_name": "USDC",
                         "exclusive_deposit_supported": false
                     },
-                    "_networkRow": {
+                    "networkRow": {
                         "name": "Base",
                         "public_rpc_url": "https://mainnet.base.org",
                         "chain_id": "8453",
@@ -5249,7 +5249,7 @@
                 "fee": 1,
                 "precision": 0.000001,
                 "info": {
-                    "_networkEntry": {
+                    "network": {
                         "chain_id": "900900900",
                         "contract_address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
                         "decimals": "6",
@@ -5258,7 +5258,7 @@
                         "display_name": "USDC",
                         "exclusive_deposit_supported": false
                     },
-                    "_networkRow": {
+                    "networkRow": {
                         "name": "Solana",
                         "public_rpc_url": "https://api.mainnet-beta.solana.com",
                         "chain_id": "900900900",

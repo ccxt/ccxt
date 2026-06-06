@@ -732,7 +732,7 @@ export default class woofipro extends Exchange {
                 'withdraw': undefined,
                 'fee': this.safeNumber (networkEntry, 'withdrawal_fee'),
                 'precision': this.parseNumber (this.parsePrecision (this.safeString (networkEntry, 'decimals'))),
-                'info': { '_networkEntry': networkEntry, '_networkRow': networkRow },
+                'info': { 'network': networkEntry, 'networkRow': networkRow },
             };
         }
         return this.safeCurrencyStructure ({
