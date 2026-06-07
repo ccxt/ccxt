@@ -3833,6 +3833,108 @@
                     }
                 ]
             }
+        ],
+        "cancelOrders": [
+            {
+                "description": "Linear swap cancel orders",
+                "method": "cancelOrders",
+                "input": [
+                    [
+                        "1513225117834096640",
+                        "1513225117834096641"
+                    ],
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "Success",
+                    "data": [
+                        {
+                            "code": "200",
+                            "message": "Success",
+                            "order_id": "1513225117834096640",
+                            "client_order_id": "1513225117834096640"
+                        },
+                        {
+                            "code": "200",
+                            "message": "Success",
+                            "order_id": "1513225117834096641",
+                            "client_order_id": "1513225117834096641"
+                        }
+                    ],
+                    "ts": "1780822640277"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "code": "200",
+                            "message": "Success",
+                            "order_id": "1513225117834096640",
+                            "client_order_id": "1513225117834096640"
+                        },
+                        "id": "1513225117834096640",
+                        "status": "canceled",
+                        "clientOrderId": "1513225117834096640",
+                        "fees": [],
+                        "timestamp": null,
+                        "datetime": null,
+                        "symbol": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    },
+                    {
+                        "info": {
+                            "code": "200",
+                            "message": "Success",
+                            "order_id": "1513225117834096641",
+                            "client_order_id": "1513225117834096641"
+                        },
+                        "id": "1513225117834096641",
+                        "status": "canceled",
+                        "clientOrderId": "1513225117834096641",
+                        "fees": [],
+                        "timestamp": null,
+                        "datetime": null,
+                        "symbol": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    }
+                ]
+            }
         ]
     }
 }

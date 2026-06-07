@@ -6332,6 +6332,7 @@ export default class htx extends Exchange {
      * @method
      * @name htx#cancelOrders
      * @description cancel multiple orders
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195894d0de8
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6357,6 +6358,9 @@ export default class htx extends Exchange {
             // 'contract_code': market['id'],
             // 'symbol': market['settleId'],
         };
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
+        const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
+        params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trigger' ]);
         let response = undefined;
         if (marketType === 'spot') {
             let clientOrderIds = this.safeValue2 (params, 'client-order-id', 'clientOrderId');
@@ -6380,41 +6384,47 @@ export default class htx extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
             }
-            let clientOrderIds = this.safeString2 (params, 'client_order_id', 'clientOrderId');
-            clientOrderIds = this.safeString2 (params, 'client_order_ids', 'clientOrderIds', clientOrderIds);
-            if (clientOrderIds === undefined) {
-                request['order_id'] = ids.join (',');
-            } else {
-                request['client_order_id'] = clientOrderIds;
-                params = this.omit (params, [ 'client_order_id', 'client_order_ids', 'clientOrderId', 'clientOrderIds' ]);
+            let clientOrderIds = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
+            clientOrderIds = this.safeValue2 (params, 'client_order_ids', 'clientOrderIds', clientOrderIds);
+            params = this.omit (params, [ 'client_order_id', 'client_order_ids', 'clientOrderId', 'clientOrderIds' ]);
+            if (!market['linear']) {
+                if (clientOrderIds === undefined) {
+                    request['order_id'] = ids.join (',');
+                } else {
+                    request['client_order_id'] = clientOrderIds;
+                }
             }
             if (market['future']) {
                 request['symbol'] = market['settleId'];
             } else {
                 request['contract_code'] = market['id'];
             }
-            const trigger = this.safeBool2 (params, 'stop', 'trigger');
-            const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
-            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trigger' ]);
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrders', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-                if (marginMode === 'isolated') {
+                if (!trigger && !stopLossTakeProfit) {
+                    if (clientOrderIds === undefined) {
+                        request['order_id'] = ids;
+                    } else {
+                        if (typeof clientOrderIds === 'string') {
+                            request['client_order_id'] = clientOrderIds.split (',');
+                        } else {
+                            request['client_order_id'] = clientOrderIds;
+                        }
+                    }
+                    response = await this.contractPrivatePostV5TradeCancelBatchOrders (this.extend (request, params));
+                } else if (marginMode === 'isolated') {
                     if (trigger) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerCancel (this.extend (request, params));
                     } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTpslCancel (this.extend (request, params));
-                    } else {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCancel (this.extend (request, params));
                     }
                 } else if (marginMode === 'cross') {
                     if (trigger) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel (this.extend (request, params));
                     } else if (stopLossTakeProfit) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel (this.extend (request, params));
-                    } else {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossCancel (this.extend (request, params));
                     }
                 }
             } else if (market['inverse']) {
@@ -6490,6 +6500,31 @@ export default class htx extends Exchange {
         //         "ts": 1604367997451
         //     }
         //
+        // linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "order_id": "1513217421638275072",
+        //                 "client_order_id": "1513217421638275072"
+        //             },
+        //             {
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "order_id": "1513217421638275073",
+        //                 "client_order_id": "1513217421638275073"
+        //             }
+        //         ],
+        //         "ts": 1780822053167
+        //     }
+        //
+        if (market['linear'] && !trigger && !stopLossTakeProfit) {
+            return this.parseCancelOrders (response) as Order[];
+        }
         const data = this.safeDict (response, 'data');
         return this.parseCancelOrders (data) as Order[];
     }
@@ -6523,6 +6558,28 @@ export default class htx extends Exchange {
         //        "successes": "1258075374411399168,1258075393254871040"
         //    }
         //
+        // linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "order_id": "1513217421638275072",
+        //                 "client_order_id": "1513217421638275072"
+        //             },
+        //             {
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "order_id": "1513217421638275073",
+        //                 "client_order_id": "1513217421638275073"
+        //             }
+        //         ],
+        //         "ts": 1780822053167
+        //     }
+        //
         const successes = this.safeString (orders, 'successes');
         let success = undefined;
         if (successes !== undefined) {
@@ -6531,7 +6588,17 @@ export default class htx extends Exchange {
             success = this.safeList (orders, 'success', []);
         }
         const failed = this.safeList2 (orders, 'errors', 'failed', []);
+        const data = this.safeList (orders, 'data', []);
         const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const order = data[i];
+            result.push (this.safeOrder ({
+                'info': order,
+                'id': this.safeString (order, 'order_id'),
+                'status': 'canceled',
+                'clientOrderId': this.safeString (order, 'client_order_id'),
+            }));
+        }
         for (let i = 0; i < success.length; i++) {
             const order = success[i];
             result.push (this.safeOrder ({
