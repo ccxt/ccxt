@@ -33,9 +33,7 @@ export default function HomePage() {
       {/* hero heading */}
       <div className="mb-10 flex max-w-3xl flex-col items-center text-center">
         <span className="mb-6 inline-flex items-center gap-2 rounded-full border bg-fd-card px-3 py-1.5 text-xs font-medium text-fd-muted-foreground">
-          <span className="grid size-5 place-items-center rounded-md bg-black text-white">
-            <CcxtMark className="size-3" />
-          </span>
+          <CcxtMark className="size-5 text-fd-foreground" />
           <b className="font-semibold text-fd-foreground">ccxt</b> · 100+ exchanges,
           one unified API
         </span>
