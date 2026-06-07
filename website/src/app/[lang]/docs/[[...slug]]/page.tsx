@@ -40,9 +40,9 @@ function wikiSourcePath(slugs: string[]): string | undefined {
   return file ? `wiki/${file}` : undefined;
 }
 
-export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
+export default async function Page(props: PageProps<'/[lang]/docs/[[...slug]]'>) {
   const params = await props.params;
-  const page = source.getPage(params.slug);
+  const page = source.getPage(params.slug, params.lang);
   if (!page) notFound();
 
   // /docs/examples — render the language chooser as a card grid (with brand logos)
@@ -84,9 +84,9 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
 
 // No generateStaticParams: render docs pages on demand (server mode) instead of baking
 // ~700 pages (each embedding the full nav tree) into the image. nginx caches responses.
-export async function generateMetadata(props: PageProps<'/docs/[[...slug]]'>): Promise<Metadata> {
+export async function generateMetadata(props: PageProps<'/[lang]/docs/[[...slug]]'>): Promise<Metadata> {
   const params = await props.params;
-  const page = source.getPage(params.slug);
+  const page = source.getPage(params.slug, params.lang);
   if (!page) notFound();
 
   return {

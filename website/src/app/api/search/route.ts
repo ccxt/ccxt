@@ -1,5 +1,6 @@
 import { source } from '@/lib/source';
 import { createFromSource } from 'fumadocs-core/search/server';
+import { i18n } from '@/lib/i18n';
 
 export const revalidate = false;
 
@@ -19,7 +20,18 @@ const HEADINGS_ONLY = new Set([
   '/docs/stats',
 ]);
 
-export const { staticGET: GET } = createFromSource(source, {
+// Index only the default locale, as a single (non-i18n) index. The reference content
+// is English across every locale (only the hand-written guides are translated), so one
+// English index serves all of them — and the per-locale i18n search would otherwise
+// replicate the full English content into each of the 7 locales, blowing the static
+// index past V8's max string length.
+const searchSource = {
+  ...source,
+  _i18n: undefined,
+  getPages: () => source.getPages(i18n.defaultLanguage),
+} as typeof source;
+
+export const { staticGET: GET } = createFromSource(searchSource, {
   language: 'english',
   async buildIndex(page) {
     const data = page.data as any;

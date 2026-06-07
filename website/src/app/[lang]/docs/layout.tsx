@@ -6,7 +6,8 @@ import { buttonVariants } from 'fumadocs-ui/components/ui/button';
 import { cn } from '@/lib/cn';
 import { MessageCircleIcon } from 'lucide-react';
 
-export default function Layout({ children }: LayoutProps<'/docs'>) {
+export default async function Layout({ params, children }: LayoutProps<'/[lang]/docs'>) {
+  const { lang } = await params;
   // Show "Ask AI" only when enabled at build AND the OpenRouter key is present at runtime
   // (read per-render) — otherwise the button would render and then fail on first message.
   const aiEnabled = process.env.NEXT_PUBLIC_AI_ENABLED === 'true' && Boolean(process.env.OPENROUTER_API_KEY);
@@ -14,7 +15,7 @@ export default function Layout({ children }: LayoutProps<'/docs'>) {
     // tabs={false}: drop the redundant sidebar root-switcher dropdown — the
     // Guide/Exchanges/Examples navbar links (baseOptions) already switch sections.
     // The sidebar still scopes to the active section by URL.
-    <DocsLayout tree={source.getPageTree()} tabs={false} {...baseOptions()}>
+    <DocsLayout tree={source.getPageTree(lang)} tabs={false} {...baseOptions(lang)}>
       {aiEnabled ? (
         <AISearch>
           <AISearchPanel />
