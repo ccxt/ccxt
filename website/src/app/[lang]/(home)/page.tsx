@@ -4,6 +4,8 @@ import { CodeSwapHero } from '@/components/code-swap-hero';
 import { InstallCommands } from '@/components/install-commands';
 import { CcxtMark } from '@/components/ccxt-mark';
 import { basePath, gitConfig } from '@/lib/shared';
+import { i18n } from '@/lib/i18n';
+import homeStrings from '@/lib/i18n-home.json';
 
 export const metadata: Metadata = {
   title: 'CCXT — Unified Crypto Trading API for 100+ Exchanges',
@@ -17,50 +19,50 @@ export const metadata: Metadata = {
   },
 };
 
-const cards: { href: string; title: string; desc: string }[] = [
-  { href: '/docs/install', title: 'Install', desc: 'Add CCXT to a JS, Python, PHP, C#, Go or Java project.' },
-  { href: '/docs/manual', title: 'Manual', desc: 'The unified API: markets, tickers, order books, orders, balances.' },
-  { href: '/docs/pro-manual', title: 'CCXT Pro', desc: 'WebSocket streaming: watch tickers, order books, trades and orders.' },
-  { href: '/docs/exchanges/binance', title: 'Exchanges', desc: 'Per-exchange API reference for 100+ supported exchanges.' },
-  { href: '/docs/base-spec', title: 'API Spec', desc: 'Every unified method and the exchanges that implement it.' },
-  { href: '/docs/examples', title: 'Examples', desc: 'Hundreds of runnable examples across all languages.' },
-  { href: '/docs/changelog', title: 'Changelog', desc: 'What changed in each CCXT release.' },
+const CARDS: { href: string; key: string }[] = [
+  { href: '/docs/install', key: 'cardInstall' },
+  { href: '/docs/manual', key: 'cardManual' },
+  { href: '/docs/pro-manual', key: 'cardPro' },
+  { href: '/docs/exchanges/binance', key: 'cardExchanges' },
+  { href: '/docs/base-spec', key: 'cardSpec' },
+  { href: '/docs/examples', key: 'cardExamples' },
+  { href: '/docs/changelog', key: 'cardChangelog' },
 ];
 
-export default function HomePage() {
+export default async function HomePage(props: PageProps<'/[lang]'>) {
+  const { lang } = await props.params;
+  const t = (homeStrings as Record<string, Record<string, string>>)[lang] ?? homeStrings.en;
+  // default locale keeps un-prefixed URLs (/docs/...); others get /<locale>/docs/...
+  const prefix = lang === i18n.defaultLanguage ? '' : `/${lang}`;
   return (
     <main className="flex flex-1 flex-col items-center px-4 pt-8 pb-16 sm:pt-10 sm:pb-20">
       {/* hero heading */}
       <div className="mb-10 flex max-w-3xl flex-col items-center text-center">
         <span className="mb-6 inline-flex items-center gap-2 rounded-full border bg-fd-card px-3 py-1.5 text-xs font-medium text-fd-muted-foreground">
           <CcxtMark className="size-5 text-fd-foreground" />
-          <b className="font-semibold text-fd-foreground">ccxt</b> · 100+ exchanges,
-          one unified API
+          <b className="font-semibold text-fd-foreground">ccxt</b> · {t.badge}
         </span>
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-          <span className="text-fd-muted-foreground">Change one word.</span>
+          <span className="text-fd-muted-foreground">{t.heroLine1}</span>
           <br />
-          Connect to any exchange.
+          {t.heroLine2}
         </h1>
         <p className="mt-5 max-w-xl text-fd-muted-foreground">
-          A unified cryptocurrency trading library — one API across 100+ exchanges in
-          JavaScript, Python, PHP, C#, Go and Java.{' '}
-          <b className="font-semibold text-fd-foreground">
-            Made for developers and AI agents.
-          </b>
+          {t.subtitle}{' '}
+          <b className="font-semibold text-fd-foreground">{t.subtitleBold}</b>
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
-            href="/docs/install"
+            href={`${prefix}/docs/install`}
             className="rounded-md bg-fd-primary px-4 py-2 font-medium text-fd-primary-foreground transition-opacity hover:opacity-90"
           >
-            Get Started
+            {t.getStarted}
           </Link>
           <Link
-            href="/docs/manual"
+            href={`${prefix}/docs/manual`}
             className="rounded-md border px-4 py-2 font-medium transition-colors hover:bg-fd-accent"
           >
-            Read the Manual
+            {t.readManual}
           </Link>
           <Link
             href={`https://github.com/${gitConfig.user}/${gitConfig.repo}`}
@@ -79,14 +81,14 @@ export default function HomePage() {
 
       {/* doc entry cards */}
       <div className="mt-20 grid w-full max-w-4xl grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-3">
-        {cards.map((c) => (
+        {CARDS.map((c) => (
           <Link
             key={c.href}
-            href={c.href}
+            href={`${prefix}${c.href}`}
             className="rounded-lg border p-4 transition-colors hover:bg-fd-accent"
           >
-            <h2 className="mb-1 font-semibold">{c.title}</h2>
-            <p className="text-sm text-fd-muted-foreground">{c.desc}</p>
+            <h2 className="mb-1 font-semibold">{t[`${c.key}Title`]}</h2>
+            <p className="text-sm text-fd-muted-foreground">{t[`${c.key}Desc`]}</p>
           </Link>
         ))}
       </div>

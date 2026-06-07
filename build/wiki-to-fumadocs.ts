@@ -468,7 +468,24 @@ function main () {
     fs.writeFileSync(path.join(ROOT, 'website', 'src', 'lib', 'ccxt-version.json'),
         JSON.stringify({ version: ccxtVersion }, null, 2) + '\n');
 
-    console.log(`✅ wrote ${count} pages to ${path.relative(ROOT, OUT)} (ccxt v${ccxtVersion})`);
+    // 5) translated guides: drop the committed per-locale markdown in as
+    // content/docs/<name>.<locale>.md so Fumadocs i18n serves it (others fall back to
+    // English). These are already final, transformed markdown — copied verbatim.
+    const I18N_DIR = path.join(ROOT, 'website', 'content-i18n');
+    let i18nCount = 0;
+    if (fs.existsSync(I18N_DIR)) {
+        for (const locale of fs.readdirSync(I18N_DIR)) {
+            const dir = path.join(I18N_DIR, locale);
+            if (!fs.statSync(dir).isDirectory()) continue;
+            for (const f of fs.readdirSync(dir)) {
+                if (!f.endsWith('.md')) continue;
+                write(path.join(OUT, `${f.replace(/\.md$/, '')}.${locale}.md`), fs.readFileSync(path.join(dir, f), 'utf8'));
+                i18nCount++;
+            }
+        }
+    }
+
+    console.log(`✅ wrote ${count} pages (+${i18nCount} translated) to ${path.relative(ROOT, OUT)} (ccxt v${ccxtVersion})`);
 }
 
 main();
