@@ -1,4 +1,7 @@
 {
+    "byteexchange": {
+        "skip": "private endpoints require an api key and an ip whitelist"
+    },
     "aftermath": {
         "skip": "exchange doesn't function for some reasons during last few days",
         "until": "2026-06-07",

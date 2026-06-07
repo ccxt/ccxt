@@ -3,7 +3,7 @@ import Exchange from './abstract/byteexchange.js';
 import { ExchangeError, AuthenticationError, InsufficientFunds, InvalidNonce, BadSymbol, PermissionDenied, RateLimitExceeded, InvalidOrder } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 /**
@@ -15,7 +15,7 @@ export default class byteexchange extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'byteexchange',
             'name': 'Byte Exchange',
-            'countries': [ ],
+            'countries': [ 'EE' ], // Estonia
             'version': 'v1',
             'rateLimit': 34, // published limit is 30 req/s per IP / per key
             'certified': false,
@@ -48,6 +48,10 @@ export default class byteexchange extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
+                'fetchTransactions': false,
+                'fetchWithdrawals': true,
                 'setLeverage': false,
                 'withdraw': true,
             },
@@ -76,7 +80,7 @@ export default class byteexchange extends Exchange {
                 },
                 'www': 'https://bexc.io',
                 'doc': [
-                    'https://docs.bexc.io/api/v1',
+                    'https://bexc.io/api-docs',
                 ],
                 'fees': 'https://bexc.io/fees',
             },
@@ -184,7 +188,7 @@ export default class byteexchange extends Exchange {
      * @method
      * @name byteexchange#fetchMarkets
      * @description retrieves data on all markets for the exchange
-     * @see https://docs.bexc.io/api/v1
+     * @see https://bexc.io/api-docs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -195,6 +199,19 @@ export default class byteexchange extends Exchange {
     }
 
     parseMarket (market: Dict): Market {
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "base_asset": "BTC",
+        //         "quote_asset": "USDT",
+        //         "is_active": true,
+        //         "maker_fee": "0.001000",
+        //         "taker_fee": "0.002000",
+        //         "min_quantity": "0.000100000000000000",
+        //         "price_precision": "2",
+        //         "quantity_precision": "6"
+        //     }
+        //
         const id = this.safeString (market, 'symbol'); // e.g. 'BTC_USDT'
         const baseId = this.safeString (market, 'base_asset');
         const quoteId = this.safeString (market, 'quote_asset');
@@ -233,7 +250,7 @@ export default class byteexchange extends Exchange {
      * @method
      * @name byteexchange#fetchCurrencies
      * @description fetches all available currencies on the exchange
-     * @see https://docs.bexc.io/api/v1
+     * @see https://bexc.io/api-docs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -278,10 +295,39 @@ export default class byteexchange extends Exchange {
 
     /**
      * @method
+     * @name byteexchange#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://bexc.io/api-docs
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of fee structures indexed by market symbols
+     */
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
+        await this.loadMarkets ();
+        const response = await this.publicGetApiV1Markets (params);
+        const markets = this.safeList (response, 'markets', []);
+        const result: Dict = {};
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const marketId = this.safeString (market, 'symbol');
+            const symbol = this.safeSymbol (marketId);
+            result[symbol] = {
+                'info': market,
+                'symbol': symbol,
+                'maker': this.safeNumber (market, 'maker_fee'),
+                'taker': this.safeNumber (market, 'taker_fee'),
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
+    }
+
+    /**
+     * @method
      * @name byteexchange#fetchTickers
      * @description fetches price tickers for multiple markets
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for
-     * @see https://docs.bexc.io/api/v1
+     * @see https://bexc.io/api-docs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of ticker structures
      */
@@ -303,7 +349,7 @@ export default class byteexchange extends Exchange {
      * @name byteexchange#fetchTicker
      * @description fetches a price ticker for a single market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @see https://docs.bexc.io/api/v1
+     * @see https://bexc.io/api-docs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a ticker structure
      */
@@ -314,6 +360,19 @@ export default class byteexchange extends Exchange {
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "base_asset": "BTC",
+        //         "quote_asset": "USDT",
+        //         "symbol": "BTC_USDT",
+        //         "last_price": "65000.00",
+        //         "high_24h": "66000.00",
+        //         "low_24h": "64000.00",
+        //         "change_24h": "1.5",
+        //         "volume_24h": "123.45",
+        //         "quote_volume_24h": "8000000.00"
+        //     }
+        //
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const last = this.safeString (ticker, 'last_price');
@@ -340,7 +399,7 @@ export default class byteexchange extends Exchange {
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
-     * @see https://docs.bexc.io/api/v1
+     * @see https://bexc.io/api-docs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of order book structures indexed by market symbols
      */
@@ -362,7 +421,7 @@ export default class byteexchange extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
-     * @see https://docs.bexc.io/api/v1
+     * @see https://bexc.io/api-docs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of trade structures
      */
@@ -379,6 +438,16 @@ export default class byteexchange extends Exchange {
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        //     {
+        //         "id": "t1",
+        //         "symbol": "BTC_USDT",
+        //         "price": "65000.00",
+        //         "quantity": "0.01",
+        //         "taker_side": "buy",
+        //         "created_at": "2026-06-03T19:53:09.494Z"
+        //     }
+        //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
@@ -411,7 +480,7 @@ export default class byteexchange extends Exchange {
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
-     * @see https://docs.bexc.io/api/v1
+     * @see https://bexc.io/api-docs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -430,6 +499,19 @@ export default class byteexchange extends Exchange {
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //     {
+        //         "open_time": 1780509600000,
+        //         "open": "65000.00",
+        //         "high": "65500.00",
+        //         "low": "64800.00",
+        //         "close": "65200.00",
+        //         "volume": "10.5",
+        //         "close_time": 1780513199999,
+        //         "quote_volume": "0",
+        //         "trade_count": 5
+        //     }
+        //
         return [
             this.safeInteger (ohlcv, 'open_time'),
             this.safeNumber (ohlcv, 'open'),
@@ -444,7 +526,7 @@ export default class byteexchange extends Exchange {
      * @method
      * @name byteexchange#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.bexc.io/api/v1
+     * @see https://bexc.io/api-docs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a balance structure
      */
@@ -455,6 +537,14 @@ export default class byteexchange extends Exchange {
     }
 
     parseBalance (response): Balances {
+        //
+        //     {
+        //         "balances": [
+        //             { "symbol": "BTC", "available": "1.0", "locked": "0.5", "total": "1.5" },
+        //             { "symbol": "USDT", "available": "1000.0", "locked": "0", "total": "1000.0" }
+        //         ]
+        //     }
+        //
         const balances = this.safeList (response, 'balances', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
@@ -479,7 +569,7 @@ export default class byteexchange extends Exchange {
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @see https://docs.bexc.io/api/v1
+     * @see https://bexc.io/api-docs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an order structure
      */
@@ -506,7 +596,7 @@ export default class byteexchange extends Exchange {
      * @description cancels an open order
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
-     * @see https://docs.bexc.io/api/v1
+     * @see https://bexc.io/api-docs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an order structure
      */
@@ -523,7 +613,7 @@ export default class byteexchange extends Exchange {
      * @description fetches information on an order made by the user
      * @param {string} id the order id
      * @param {string} [symbol] unified symbol of the market the order was made in
-     * @see https://docs.bexc.io/api/v1
+     * @see https://bexc.io/api-docs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an order structure
      */
@@ -541,7 +631,7 @@ export default class byteexchange extends Exchange {
      * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
-     * @see https://docs.bexc.io/api/v1
+     * @see https://bexc.io/api-docs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of order structures
      */
@@ -568,7 +658,7 @@ export default class byteexchange extends Exchange {
      * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
-     * @see https://docs.bexc.io/api/v1
+     * @see https://bexc.io/api-docs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of order structures
      */
@@ -578,6 +668,20 @@ export default class byteexchange extends Exchange {
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        //     {
+        //         "id": "1",
+        //         "symbol": "BTC_USDT",
+        //         "side": "buy",
+        //         "order_type": "limit",
+        //         "price": "50000.00",
+        //         "quantity": "1.0",
+        //         "filled_quantity": "0.0",
+        //         "avg_fill_price": "0",
+        //         "status": "open",
+        //         "created_at": "2026-06-03T19:53:09.494Z"
+        //     }
+        //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const id = this.safeString (order, 'id');
@@ -628,7 +732,7 @@ export default class byteexchange extends Exchange {
      * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
-     * @see https://docs.bexc.io/api/v1
+     * @see https://bexc.io/api-docs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of trade structures
      */
@@ -653,7 +757,7 @@ export default class byteexchange extends Exchange {
      * @name byteexchange#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
      * @param {string} code unified currency code
-     * @see https://docs.bexc.io/api/v1
+     * @see https://bexc.io/api-docs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an address structure
      */
@@ -680,7 +784,7 @@ export default class byteexchange extends Exchange {
      * @param {string} [code] unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposit structures to retrieve
-     * @see https://docs.bexc.io/api/v1
+     * @see https://bexc.io/api-docs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of transaction structures
      */
@@ -701,7 +805,48 @@ export default class byteexchange extends Exchange {
         return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
     }
 
+    /**
+     * @method
+     * @name byteexchange#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawal structures to retrieve
+     * @see https://bexc.io/api-docs
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of transaction structures
+     */
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        const response = await this.privateGetApiV1WalletWithdrawals (this.extend (request, params));
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
+    }
+
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        //     {
+        //         "id": "d1",
+        //         "txid": "0xabc0000000000000000000000000000000000000000000000000000000000001",
+        //         "timestamp": 1766145344000,
+        //         "currency": "USDT",
+        //         "network": "ethereum",
+        //         "address": "0x1234567890abcdef1234567890abcdef12345678",
+        //         "type": "deposit",
+        //         "amount": 200,
+        //         "status": "ok"
+        //     }
+        //
         const id = this.safeString (transaction, 'id');
         const txid = this.safeString (transaction, 'txid');
         const timestamp = this.safeInteger (transaction, 'timestamp');
@@ -750,7 +895,7 @@ export default class byteexchange extends Exchange {
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} [tag] a memo or tag for the withdrawal where required
-     * @see https://docs.bexc.io/api/v1
+     * @see https://bexc.io/api-docs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a transaction structure
      */
