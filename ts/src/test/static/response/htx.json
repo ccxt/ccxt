@@ -2567,7 +2567,7 @@
                         },
                         "id": "1512509978516443136",
                         "clientOrderId": "1512509978516443136",
-                        "timestamp": null,
+                        "timestamp": "1780652079954",
                         "datetime": null,
                         "lastTradeTimestamp": null,
                         "symbol": "LTC/USDT:USDT",
@@ -3506,12 +3506,10 @@
                     "ts": "1780738313102"
                 },
                 "parsedResponse": {
-                    "info": [
-                        {
-                            "algo_id": "1512871666507657216",
-                            "algo_client_order_id": null
-                        }
-                    ],
+                    "info": {
+                        "algo_id": "1512871666507657216",
+                        "algo_client_order_id": null
+                    },
                     "id": "1512871666507657216",
                     "clientOrderId": null,
                     "timestamp": null,
@@ -3620,13 +3618,8 @@
                 },
                 "parsedResponse": {
                     "info": {
-                        "code": "200",
-                        "message": "Success",
-                        "data": {
-                            "order_id": "1512515591962660864",
-                            "client_order_id": "1512515591962660864"
-                        },
-                        "ts": "1780653590126"
+                        "order_id": "1512515591962660864",
+                        "client_order_id": "1512515591962660864"
                     },
                     "id": "1512515591962660864",
                     "clientOrderId": "1512515591962660864",

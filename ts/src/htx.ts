@@ -5426,7 +5426,7 @@ export default class htx extends Exchange {
         const id = this.safeStringN (order, [ 'id', 'order_id_str', 'order-id', 'order_id', 'algo_id' ]);
         let side = this.safeString2 (order, 'direction', 'side');
         let type = undefined;
-        if (market['linear']) {
+        if (market['linear'] && market['contract']) {
             type = this.safeStringN (order, [ 'tp_type', 'sl_type', 'type' ]);
         } else {
             type = this.safeString (order, 'order_price_type');
@@ -5440,7 +5440,7 @@ export default class htx extends Exchange {
         const clientOrderId = this.safeStringN (order, [ 'client_order_id', 'client-or' + 'der-id', 'algo_client_order_id' ]); // transpiler regex trick for php issue
         let cost = undefined;
         let amount = undefined;
-        if ((type !== undefined) && (type.indexOf ('market') >= 0) && (!market['linear'])) {
+        if ((type !== undefined) && (type.indexOf ('market') >= 0) && (!market['linear'] && market['contract'])) {
             cost = this.safeString (order, 'field-cash-amount');
         } else {
             amount = this.safeString2 (order, 'volume', 'amount');
@@ -5467,7 +5467,7 @@ export default class htx extends Exchange {
         const average = this.safeString (order, 'trade_avg_price');
         const trades = this.safeValue (order, 'trades');
         let reduceOnly = undefined;
-        if (market['linear']) {
+        if (market['linear'] && market['contract']) {
             reduceOnly = this.safeBool (order, 'reduce_only');
         } else {
             const reduceOnlyInteger = this.safeInteger (order, 'reduce_only');
