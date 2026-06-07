@@ -285,7 +285,27 @@ class Client {
         }
     }
 
+    public $messageQueue = array();
+    public $processingQueue = false;
+
     public function on_message(Message $message) {
+        $this->messageQueue[] = $message;
+        if (!$this->processingQueue) {
+            $this->processingQueue = true;
+            $callback_loop = function () use (&$callback_loop) {
+                if (count($this->messageQueue) > 0) {
+                    $msg = array_shift($this->messageQueue);
+                    $this->handle_message($msg);
+                    Loop::futureTick($callback_loop);
+                } else {
+                    $this->processingQueue = false;
+                }
+            };
+            Loop::futureTick($callback_loop);
+        }
+    }
+
+    public function handle_message(Message $message) {
         $is_binary = preg_match('~[^\x20-\x7E\t\r\n]~', $message) > 0;
         if ($is_binary) { // only decompress if the message is a binary
             if (!$this->decompressBinary) {
