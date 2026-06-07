@@ -6007,8 +6007,7 @@ export default class htx extends Exchange {
      * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-batch-of-orders
      * @see https://huobiapi.github.io/docs/dm/v1/en/#place-a-batch-of-orders
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-a-batch-of-orders
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-a-batch-of-orders
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-a-batch-of-orders
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958935dae1
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -6060,15 +6059,10 @@ export default class htx extends Exchange {
         if (market['spot']) {
             response = await this.privatePostOrderBatchOrders (ordersRequests);
         } else {
-            request['orders_data'] = ordersRequests;
             if (market['linear']) {
-                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-                if (marginMode === 'isolated') {
-                    response = await this.contractPrivatePostLinearSwapApiV1SwapBatchorder (request);
-                } else if (marginMode === 'cross') {
-                    response = await this.contractPrivatePostLinearSwapApiV1SwapCrossBatchorder (request);
-                }
+                response = await this.contractPrivatePostV5TradeBatchOrders (ordersRequests);
             } else if (market['inverse']) {
+                request['orders_data'] = ordersRequests;
                 if (market['swap']) {
                     response = await this.contractPrivatePostSwapApiV1SwapBatchorder (request);
                 } else if (market['future']) {
@@ -6117,14 +6111,42 @@ export default class htx extends Exchange {
         //         "ts": 1699688256671
         //     }
         //
+        // linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "order_id": "1513217421638275072",
+        //                 "client_order_id": "1513217421638275072"
+        //             },
+        //             {
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "order_id": "1513217421638275073",
+        //                 "client_order_id": "1513217421638275073"
+        //             }
+        //         ],
+        //         "ts": 1780820747555
+        //     }
+        //
+        //
         let result = undefined;
         if (market['spot']) {
             result = this.safeValue (response, 'data', []);
         } else {
-            const data = this.safeValue (response, 'data', {});
-            const success = this.safeValue (data, 'success', []);
-            const errors = this.safeValue (data, 'errors', []);
-            result = this.arrayConcat (success, errors);
+            const data = this.safeValue (response, 'data');
+            if (Array.isArray (data)) {
+                result = data;
+            } else {
+                const batchData = this.safeValue (response, 'data', {});
+                const success = this.safeValue (batchData, 'success', []);
+                const errors = this.safeValue (batchData, 'errors', []);
+                result = this.arrayConcat (success, errors);
+            }
         }
         return this.parseOrders (result, market);
     }

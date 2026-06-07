@@ -3714,6 +3714,125 @@
                     "stopPrice": null
                 }
             }
+        ],
+        "createOrders": [
+            {
+                "description": "Linear swap create orders",
+                "method": "createOrders",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 1,
+                            "price": 40000,
+                            "params": {
+                                "position_side": "long"
+                            }
+                        },
+                        {
+                            "symbol": "BTC/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 1,
+                            "price": 35000,
+                            "params": {
+                                "position_side": "long"
+                            }
+                        }
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "Success",
+                    "data": [
+                        {
+                            "code": "200",
+                            "message": "Success",
+                            "order_id": "1513217421638275072",
+                            "client_order_id": "1513217421638275072"
+                        },
+                        {
+                            "code": "200",
+                            "message": "Success",
+                            "order_id": "1513217421638275073",
+                            "client_order_id": "1513217421638275073"
+                        }
+                    ],
+                    "ts": "1780820747555"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "code": "200",
+                            "message": "Success",
+                            "order_id": "1513217421638275072",
+                            "client_order_id": "1513217421638275072"
+                        },
+                        "id": "1513217421638275072",
+                        "clientOrderId": "1513217421638275072",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "average": null,
+                        "cost": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": null,
+                        "reduceOnly": null,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null
+                    },
+                    {
+                        "info": {
+                            "code": "200",
+                            "message": "Success",
+                            "order_id": "1513217421638275073",
+                            "client_order_id": "1513217421638275073"
+                        },
+                        "id": "1513217421638275073",
+                        "clientOrderId": "1513217421638275073",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "average": null,
+                        "cost": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": null,
+                        "reduceOnly": null,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null
+                    }
+                ]
+            }
         ]
     }
 }
