@@ -5416,6 +5416,8 @@ export default class htx extends Exchange {
         //         "order_price_type": "formula_price"
         //     }
         //
+        const marketId = this.safeString2 (order, 'contract_code', 'symbol');
+        market = this.safeMarket (marketId, market);
         const rejectedCreateOrders = this.safeString2 (order, 'err_code', 'err-code');
         let status = this.parseOrderStatus (this.safeString2 (order, 'state', 'status'));
         if (rejectedCreateOrders !== undefined) {
@@ -5434,8 +5436,6 @@ export default class htx extends Exchange {
                 type = orderType[1];
             }
         }
-        const marketId = this.safeString2 (order, 'contract_code', 'symbol');
-        market = this.safeMarket (marketId, market);
         const timestamp = this.safeIntegerN (order, [ 'created_at', 'created-at', 'create_date', 'created_time' ]);
         const clientOrderId = this.safeStringN (order, [ 'client_order_id', 'client-or' + 'der-id', 'algo_client_order_id' ]); // transpiler regex trick for php issue
         let cost = undefined;
