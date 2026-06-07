@@ -400,7 +400,6 @@ public class BitrueCore extends BitrueApi
                     put( "XML", "Stellar Lumens" );
                     put( "XYM", "Symbol" );
                     put( "XTZ", "Tezos" );
-                    put( "theta", "theta" );
                     put( "THETA", "THETA" );
                     put( "VECHAIN", "VeChain" );
                     put( "WANCHAIN", "Wanchain" );

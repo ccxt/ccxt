@@ -388,7 +388,6 @@ public partial class bitrue : Exchange
                     { "XML", "Stellar Lumens" },
                     { "XYM", "Symbol" },
                     { "XTZ", "Tezos" },
-                    { "theta", "theta" },
                     { "THETA", "THETA" },
                     { "VECHAIN", "VeChain" },
                     { "WANCHAIN", "Wanchain" },
