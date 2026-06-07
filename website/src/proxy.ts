@@ -20,12 +20,19 @@ export default function proxy(request: NextRequest, event: NextFetchEvent) {
       return NextResponse.rewrite(new URL(`${basePath}${result}`, request.nextUrl));
     }
   }
+  // The i18n middleware rewrites /docs -> /<default>/docs but leaves the bare root
+  // untouched, so the home (/<basePath>) 404s under a basePath. Rewrite it to the
+  // default-locale home ourselves.
+  if (request.nextUrl.pathname === '/') {
+    return NextResponse.rewrite(new URL(`${basePath}/${i18n.defaultLanguage}`, request.nextUrl));
+  }
   // Otherwise apply locale routing.
   return i18nProxy(request, event);
 }
 
 export const config = {
-  // Page routes only — skip api, _next, the og/ image routes, and any path with a file
-  // extension (sitemap.xml, robots.txt, icon.svg, llms.txt, *.md, ...).
-  matcher: ['/((?!api|_next|og|.*\\..*).*)'],
+  // Page routes only — the bare root must be listed explicitly (the negative-lookahead
+  // pattern alone doesn't match '/'); then skip api, _next, the og/ image routes, and any
+  // path with a file extension (sitemap.xml, robots.txt, icon.svg, llms.txt, *.md, ...).
+  matcher: ['/', '/((?!api|_next|og|.*\\..*).*)'],
 };

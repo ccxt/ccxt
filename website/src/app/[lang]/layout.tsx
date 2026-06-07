@@ -7,11 +7,10 @@ const inter = Inter({
   subsets: ['latin'],
 });
 
-// Enumerate the supported locales so the home page can prerender per-locale; docs
-// pages stay on-demand (their page.tsx has no generateStaticParams).
-export function generateStaticParams() {
-  return i18n.languages.map((lang) => ({ lang }));
-}
+// All routes render on demand (nginx caches). We deliberately do NOT prerender per
+// locale: with hideLocale: 'default-locale' + basePath, a statically prerendered /en
+// home redirects to / and the root rewrite can't resolve it (the bare /<basePath> 404s).
+// Keeping it dynamic lets the locale-routing proxy serve / as the default-locale home.
 
 export default async function LangLayout({ params, children }: LayoutProps<'/[lang]'>) {
   const { lang } = await params;
