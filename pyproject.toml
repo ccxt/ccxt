@@ -61,15 +61,6 @@ qa = [
 type = [
     "mypy==1.6.1",
 ]
-
-[project.urls]
-Homepage = "https://ccxt.com"
-Documentation = "https://github.com/ccxt/ccxt/wiki"
-Discord = "https://discord.gg/ccxt"
-Twitter = "https://twitter.com/ccxt_official"
-Funding = "https://opencollective.com/ccxt"
-
-[dependency-groups]
 dev = [
     "setuptools>=60.9.0",
     "certifi>=2018.1.18",
@@ -83,6 +74,13 @@ dev = [
     "tox>=4.8.0",
     "mypy==1.6.1",
 ]
+
+[project.urls]
+Homepage = "https://ccxt.com"
+Documentation = "https://github.com/ccxt/ccxt/wiki"
+Discord = "https://discord.gg/ccxt"
+Twitter = "https://twitter.com/ccxt_official"
+Funding = "https://opencollective.com/ccxt"
 
 [tool.setuptools.packages.find]
 where = ["python"]
