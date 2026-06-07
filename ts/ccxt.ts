@@ -110,6 +110,7 @@ import fmfwio from  './src/fmfwio.js'
 import foxbit from  './src/foxbit.js'
 import gate from  './src/gate.js'
 import gemini from  './src/gemini.js'
+import gmx from  './src/gmx.js'
 import grvt from  './src/grvt.js'
 import hashkey from  './src/hashkey.js'
 import hibachi from  './src/hibachi.js'
@@ -303,6 +304,7 @@ const exchanges = {
     'foxbit':                 foxbit,
     'gate':                   gate,
     'gemini':                 gemini,
+    'gmx':                    gmx,
     'grvt':                   grvt,
     'hashkey':                hashkey,
     'hibachi':                hibachi,
@@ -639,6 +641,7 @@ export {
     foxbit,
     gate,
     gemini,
+    gmx,
     grvt,
     hashkey,
     hibachi,
