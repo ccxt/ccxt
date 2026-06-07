@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 90 90">
+  <style>
+    .box { fill: #0a0a0a; }
+    .gl  { fill: #ffffff; }
+    @media (prefers-color-scheme: dark) {
+      .box { fill: #fafafa; }
+      .gl  { fill: #0a0a0a; }
+    }
+  </style>
+  <rect class="box" width="90" height="90"/>
+  <g class="gl">
+    <path d="M10 10h30v10H20v10h20v10H10z"/>
+    <path d="M50 10h30v10H60v10h20v10H50z"/>
+    <rect x="10" y="50" width="10" height="10"/>
+    <rect x="30" y="50" width="10" height="10"/>
+    <rect x="20" y="60" width="10" height="10"/>
+    <rect x="10" y="70" width="10" height="10"/>
+    <rect x="30" y="70" width="10" height="10"/>
+    <path d="M50 50h30v10H70v20h-10V60H50z"/>
+  </g>
+</svg>
