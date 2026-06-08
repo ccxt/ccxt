@@ -51,8 +51,11 @@ if command -v composer >/dev/null 2>&1; then
     }
 }
 JSON
-  (cd runtime/php && composer install --quiet --no-interaction)
-  echo "    php ccxt installed via composer"
+  if (cd runtime/php && composer install --quiet --no-interaction); then
+    echo "    php ccxt installed via composer"
+  else
+    echo "    warning: php composer install failed (PHP runner will be unavailable)"
+  fi
 else
   echo "    composer not found — runner will fall back to monorepo ../ccxt.php"
 fi
@@ -120,7 +123,11 @@ using ccxt;
 var exchange = new Binance();
 _ = exchange.id;
 CS
-  ( cd "$CS_APP" && DOTNET_NOLOGO=1 dotnet build >/dev/null 2>&1 ) && echo "    c# ccxt restored & build warmed"
+  if ( cd "$CS_APP" && DOTNET_NOLOGO=1 dotnet build >/dev/null 2>&1 ); then
+    echo "    c# ccxt restored & build warmed"
+  else
+    echo "    warning: c# restore/build failed (C# runner will be unavailable)"
+  fi
 else
   echo "    dotnet not found — the C# tab will show a 'provision' message until the .NET SDK is installed"
 fi

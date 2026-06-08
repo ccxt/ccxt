@@ -27,9 +27,11 @@ export type Language = {
   sample?: string;
 };
 
-// Languages listed here are forced install-only (not executed), e.g. to protect a
-// small shared host from a memory-heavy compiler. Set via NEXT_BASE_PATH-style
-// build arg PLAYGROUND_DISABLED (comma-separated ids, e.g. "go").
+// Languages listed here are forced install-only (not executed) — e.g. to shed
+// load or protect a small shared host from a memory-heavy compiler. Comma-
+// separated ids (e.g. "go" or "go,csharp"). Set the Docker build arg
+// PLAYGROUND_DISABLED, which the image exposes as NEXT_PUBLIC_PLAYGROUND_DISABLED
+// (read here, client + server) and PLAYGROUND_DISABLED (read by setup-runtimes.sh).
 const DISABLED = new Set(
   (process.env.NEXT_PUBLIC_PLAYGROUND_DISABLED ?? "")
     .split(",")
@@ -45,7 +47,7 @@ export const languages: Language[] = [
     monaco: "javascript",
     ext: "mjs",
     hint: "Node.js (ESM, top-level await)",
-    available: true,
+    available: enabled("js", true),
   },
   {
     id: "ts",
@@ -53,7 +55,7 @@ export const languages: Language[] = [
     monaco: "typescript",
     ext: "mts",
     hint: "Node.js native type-stripping",
-    available: true,
+    available: enabled("ts", true),
   },
   {
     id: "python",
@@ -61,7 +63,7 @@ export const languages: Language[] = [
     monaco: "python",
     ext: "py",
     hint: "CPython (synchronous ccxt)",
-    available: true,
+    available: enabled("python", true),
   },
   {
     id: "php",
@@ -69,7 +71,7 @@ export const languages: Language[] = [
     monaco: "php",
     ext: "php",
     hint: "PHP CLI (synchronous ccxt)",
-    available: true,
+    available: enabled("php", true),
   },
   {
     id: "go",

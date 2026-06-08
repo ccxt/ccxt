@@ -94,14 +94,28 @@ jobs:
           RUNFLAGS="--memory 2g --memory-swap 2g --cpus 2 --pids-limit 512 --security-opt no-new-privileges:true --cap-drop ALL"
 
           # Validate the new image end-to-end before it goes live: homepage renders
-          # AND the JS executor actually runs code (6*7 -> 42, no exchange needed).
+          # AND every runnable language actually executes (6*7 -> 42, no exchange
+          # needed) — so a silently-broken Python/PHP/C# warm-up can't be promoted.
+          # Install-only languages return a "runs locally" rejection → counted as skip.
+          smoke_lang() { # json-payload
+            local out
+            out=$(curl -fsS --max-time 60 -X POST "http://127.0.0.1:${SMOKE_PORT}${BASE_PATH}/api/run" -H 'Content-Type: application/json' -d "$1") \
+              || { echo "smoke[$1]: request failed"; return 1; }
+            echo "$out" | grep -q "runs locally, not in the browser" && { echo "smoke: skip (install-only) $1"; return 0; }
+            echo "$out" | grep -q '"stdout":"42' || { echo "smoke FAIL: $1 -> $out"; return 1; }
+            echo "smoke OK: $1"
+          }
           smoke() {
-            local port="$1" html out
-            for i in $(seq 1 30); do curl -fsS -o /dev/null "http://127.0.0.1:${port}${BASE_PATH}" 2>/dev/null && break; sleep 2; done
-            html=$(curl -fsS --max-time 25 "http://127.0.0.1:${port}${BASE_PATH}") || { echo "smoke: homepage not 200"; return 1; }
+            SMOKE_PORT="$1"; local html
+            for i in $(seq 1 30); do curl -fsS -o /dev/null "http://127.0.0.1:${SMOKE_PORT}${BASE_PATH}" 2>/dev/null && break; sleep 2; done
+            html=$(curl -fsS --max-time 25 "http://127.0.0.1:${SMOKE_PORT}${BASE_PATH}") || { echo "smoke: homepage not 200"; return 1; }
             echo "$html" | grep -q "CCXT Playground" || { echo "smoke: homepage content missing"; return 1; }
-            out=$(curl -fsS --max-time 30 -X POST "http://127.0.0.1:${port}${BASE_PATH}/api/run" -H 'Content-Type: application/json' -d '{"language":"js","code":"console.log(6*7)"}') || { echo "smoke: /api/run failed"; return 1; }
-            echo "$out" | grep -q '"stdout":"42' || { echo "smoke: js runner wrong output: $out"; return 1; }
+            smoke_lang '{"language":"js","code":"console.log(6*7)"}'               || return 1
+            smoke_lang '{"language":"ts","code":"console.log(6*7)"}'               || return 1
+            smoke_lang '{"language":"python","code":"print(6*7)"}'                 || return 1
+            smoke_lang '{"language":"php","code":"<?php echo 6*7;"}'               || return 1
+            smoke_lang '{"language":"csharp","code":"System.Console.Write(6*7);"}' || return 1
+            smoke_lang '{"language":"go","code":"package main\nimport \"fmt\"\nfunc main(){fmt.Print(6*7)}"}' || return 1
             echo "smoke: OK"
           }
 
@@ -114,7 +128,14 @@ jobs:
             docker rm -f "$CONTAINER" 2>/dev/null || true
             docker run -d --restart=always -p 127.0.0.1:${PORT}:3000 $ENVFILE_ARG $RUNFLAGS --name "$CONTAINER" "$IMAGE:$SHA"
             docker tag "$IMAGE:$SHA" "$IMAGE:latest"
-            docker image prune -f
+            # Reclaim disk: drop dangling layers, then remove OLD playground images.
+            # Each deploy tags a unique :SHA (multi-GB) which `prune -f` won't touch
+            # since it's tagged — without this the shared box's disk fills over time.
+            # Keep only the just-deployed SHA and :latest (same image id).
+            docker image prune -f >/dev/null 2>&1 || true
+            docker images "$IMAGE" --format '{{.ID}} {{.Tag}}' \
+              | awk -v keep="$SHA" '$2!=keep && $2!="latest" && $2!="<none>" {print $1}' \
+              | sort -u | xargs -r docker rmi -f >/dev/null 2>&1 || true
             docker logout ghcr.io || true
             echo "deployed $SHA"
           else

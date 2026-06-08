@@ -38,9 +38,10 @@ ENV PATH="/usr/share/dotnet:${PATH}" \
 
 WORKDIR /app
 
-# Node deps first (better layer caching)
-COPY package.json package-lock.json* ./
-RUN npm ci || npm install
+# Node deps first (better layer caching). Use `npm ci` (lockfile-exact, fails on
+# drift) rather than `npm install` — reproducible builds.
+COPY package.json package-lock.json ./
+RUN npm ci
 
 # App source
 COPY . .
