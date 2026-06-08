@@ -6,6 +6,14 @@
 import { useState } from 'react';
 import { CheckIcon, CopyIcon, SparklesIcon } from 'lucide-react';
 import ccxtVersion from '@/lib/ccxt-version.json';
+import homeStrings from '@/lib/i18n-home.json';
+
+const FALLBACK = {
+  installTitle: 'Install in seconds',
+  installSubtitle: 'Add CCXT to your stack — or let your AI agent set it up.',
+  installAi: 'For AI agents — install the CCXT skills',
+  installViewScript: 'view script',
+};
 
 const LANGS: { id: string; label: string; cmd: string; prompt?: string }[] = [
   { id: 'js', label: 'JavaScript', cmd: 'npm install ccxt' },
@@ -57,27 +65,27 @@ function CommandLine({ cmd, prompt = '$' }: { cmd: string; prompt?: string }) {
   );
 }
 
-export function InstallCommands() {
-  const [lang, setLang] = useState(0);
+export function InstallCommands({ lang = 'en', className }: { lang?: string; className?: string }) {
+  const [active, setActive] = useState(0);
+  const s = (homeStrings as Record<string, Partial<typeof FALLBACK>>)[lang] ?? {};
+  const t = (k: keyof typeof FALLBACK) => s[k] ?? FALLBACK[k];
   return (
-    <section className="mt-20 w-full max-w-2xl">
-      <h2 className="text-center text-2xl font-semibold tracking-tight">Install in seconds</h2>
-      <p className="mt-2 text-center text-sm text-fd-muted-foreground">
-        Add CCXT to your stack — or let your AI agent set it up.
-      </p>
+    <section className={className ?? 'mt-20 w-full max-w-2xl'}>
+      <h2 className="text-center text-2xl font-semibold tracking-tight">{t('installTitle')}</h2>
+      <p className="mt-2 text-center text-sm text-fd-muted-foreground">{t('installSubtitle')}</p>
 
       {/* AI one-liner */}
       <div className="mt-6 rounded-lg border bg-fd-card p-1.5">
         <div className="flex items-center gap-2 px-2.5 pt-1 pb-1.5 text-xs font-medium text-fd-muted-foreground">
-          <SparklesIcon className="size-3.5 text-fd-primary" />
-          For AI agents — install the CCXT skills
+          <SparklesIcon className="size-3.5 shrink-0 text-fd-primary" />
+          {t('installAi')}
           <a
             href={AI_SCRIPT_URL}
             target="_blank"
             rel="noreferrer"
-            className="ml-auto underline decoration-dotted underline-offset-2 hover:text-fd-foreground"
+            className="ml-auto shrink-0 underline decoration-dotted underline-offset-2 hover:text-fd-foreground"
           >
-            view script
+            {t('installViewScript')}
           </a>
         </div>
         <CommandLine cmd={AI_CMD} />
@@ -93,10 +101,10 @@ export function InstallCommands() {
             <button
               key={l.id}
               type="button"
-              aria-pressed={i === lang}
-              onClick={() => setLang(i)}
+              aria-pressed={i === active}
+              onClick={() => setActive(i)}
               className={`shrink-0 rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                i === lang
+                i === active
                   ? 'bg-fd-accent text-fd-foreground'
                   : 'text-fd-muted-foreground hover:text-fd-foreground'
               }`}
@@ -105,7 +113,7 @@ export function InstallCommands() {
             </button>
           ))}
         </div>
-        <CommandLine cmd={LANGS[lang].cmd} prompt={LANGS[lang].prompt} />
+        <CommandLine cmd={LANGS[active].cmd} prompt={LANGS[active].prompt} />
       </div>
     </section>
   );

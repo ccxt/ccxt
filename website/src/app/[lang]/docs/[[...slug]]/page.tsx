@@ -10,6 +10,7 @@ import {
 import { notFound } from 'next/navigation';
 import { getMDXComponents } from '@/components/mdx';
 import { ExamplesGrid } from '@/components/examples-grid';
+import { InstallCommands } from '@/components/install-commands';
 import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
 import { gitConfig } from '@/lib/shared';
@@ -61,6 +62,7 @@ export default async function Page(props: PageProps<'/[lang]/docs/[[...slug]]'>)
   const markdownUrl = getPageMarkdownUrl(page).url;
   const wikiPath = wikiSourcePath(page.slugs);
   const githubUrl = `https://github.com/${gitConfig.user}/${gitConfig.repo}/${wikiPath ? `blob/${WIKI_BRANCH}/${wikiPath}` : `tree/${WIKI_BRANCH}/wiki`}`;
+  const isInstall = page.slugs.length === 1 && page.slugs[0] === 'install';
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
@@ -70,6 +72,10 @@ export default async function Page(props: PageProps<'/[lang]/docs/[[...slug]]'>)
         <MarkdownCopyButton markdownUrl={markdownUrl} />
         <ViewOptionsPopover markdownUrl={markdownUrl} githubUrl={githubUrl} />
       </div>
+      {/* /docs/install — lead with the same quick-install block as the homepage */}
+      {isInstall ? (
+        <InstallCommands lang={params.lang} className="not-prose mx-auto mb-10 w-full max-w-2xl" />
+      ) : null}
       <DocsBody>
         <MDX
           components={getMDXComponents({

@@ -20,7 +20,11 @@
     "cardExamplesTitle": "Examples",
     "cardExamplesDesc": "Hundreds of runnable examples across all languages.",
     "cardChangelogTitle": "Changelog",
-    "cardChangelogDesc": "What changed in each CCXT release."
+    "cardChangelogDesc": "What changed in each CCXT release.",
+    "installTitle": "Install in seconds",
+    "installSubtitle": "Add CCXT to your stack — or let your AI agent set it up.",
+    "installAi": "For AI agents — install the CCXT skills",
+    "installViewScript": "view script"
   },
   "es": {
     "badge": "100+ exchanges, one unified API",
@@ -43,7 +47,11 @@
     "cardExamplesTitle": "Ejemplos",
     "cardExamplesDesc": "Cientos de ejemplos ejecutables en todos los lenguajes.",
     "cardChangelogTitle": "Registro de cambios",
-    "cardChangelogDesc": "Qué cambió en cada versión de CCXT."
+    "cardChangelogDesc": "Qué cambió en cada versión de CCXT.",
+    "installTitle": "Instala en segundos",
+    "installSubtitle": "Añade CCXT a tu stack — o deja que tu agente de IA lo configure.",
+    "installAi": "Para agentes de IA — instala las skills de CCXT",
+    "installViewScript": "ver script"
   },
   "pt": {
     "badge": "100+ exchanges, one unified API",
@@ -66,7 +74,11 @@
     "cardExamplesTitle": "Exemplos",
     "cardExamplesDesc": "Centenas de exemplos executáveis em todas as linguagens.",
     "cardChangelogTitle": "Changelog",
-    "cardChangelogDesc": "O que mudou em cada versão do CCXT."
+    "cardChangelogDesc": "O que mudou em cada versão do CCXT.",
+    "installTitle": "Instale em segundos",
+    "installSubtitle": "Adicione o CCXT à sua stack — ou deixe o seu agente de IA configurá-lo.",
+    "installAi": "Para agentes de IA — instale as skills do CCXT",
+    "installViewScript": "ver script"
   },
   "ko": {
     "badge": "100+ 거래소, 하나의 통합 API",
@@ -89,7 +101,11 @@
     "cardExamplesTitle": "예시",
     "cardExamplesDesc": "모든 언어에 걸친 수백 개의 실행 가능한 예시",
     "cardChangelogTitle": "변경 로그",
-    "cardChangelogDesc": "각 CCXT 릴리스의 변경 사항"
+    "cardChangelogDesc": "각 CCXT 릴리스의 변경 사항",
+    "installTitle": "몇 초 만에 설치",
+    "installSubtitle": "CCXT를 스택에 추가하거나 AI 에이전트가 설정하도록 하세요.",
+    "installAi": "AI 에이전트용 — CCXT 스킬 설치",
+    "installViewScript": "스크립트 보기"
   },
   "zh": {
     "badge": "100+ 交易所，一个统一的 API",
@@ -112,7 +128,11 @@
     "cardExamplesTitle": "示例",
     "cardExamplesDesc": "所有语言中的数百个可运行示例。",
     "cardChangelogTitle": "更新日志",
-    "cardChangelogDesc": "每个 CCXT 版本的变更。"
+    "cardChangelogDesc": "每个 CCXT 版本的变更。",
+    "installTitle": "几秒钟完成安装",
+    "installSubtitle": "将 CCXT 添加到您的技术栈 — 或让您的 AI 智能体来设置。",
+    "installAi": "面向 AI 智能体 — 安装 CCXT 技能",
+    "installViewScript": "查看脚本"
   },
   "fr": {
     "badge": "100+ exchanges, one unified API",
@@ -135,7 +155,11 @@
     "cardExamplesTitle": "Exemples",
     "cardExamplesDesc": "Centaines d'exemples exécutables dans toutes les langues.",
     "cardChangelogTitle": "Journal des modifications",
-    "cardChangelogDesc": "Ce qui a changé dans chaque version de CCXT."
+    "cardChangelogDesc": "Ce qui a changé dans chaque version de CCXT.",
+    "installTitle": "Installez en quelques secondes",
+    "installSubtitle": "Ajoutez CCXT à votre stack — ou laissez votre agent IA le configurer.",
+    "installAi": "Pour les agents IA — installez les skills CCXT",
+    "installViewScript": "voir le script"
   },
   "de": {
     "badge": "100+ Börsen, eine einheitliche API",
@@ -158,6 +182,10 @@
     "cardExamplesTitle": "Beispiele",
     "cardExamplesDesc": "Hunderte ausführbare Beispiele in allen Sprachen.",
     "cardChangelogTitle": "Änderungsprotokoll",
-    "cardChangelogDesc": "Was sich in jeder CCXT-Version geändert hat."
+    "cardChangelogDesc": "Was sich in jeder CCXT-Version geändert hat.",
+    "installTitle": "In Sekunden installieren",
+    "installSubtitle": "Füge CCXT zu deinem Stack hinzu — oder lass deinen KI-Agenten es einrichten.",
+    "installAi": "Für KI-Agenten — installiere die CCXT-Skills",
+    "installViewScript": "Skript ansehen"
   }
 }

@@ -91,7 +91,7 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
       <CodeSwapHero />
 
       {/* install commands (AI one-liner + per-language) */}
-      <InstallCommands />
+      <InstallCommands lang={lang} />
 
       {/* doc entry cards */}
       <div className="mt-20 grid w-full max-w-4xl grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-3">

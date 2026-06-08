@@ -2,6 +2,7 @@ import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
 import { appName, gitConfig } from './shared';
 import { i18n } from './i18n';
 import { CcxtMark } from '@/components/ccxt-mark';
+import { SiDiscord } from 'react-icons/si';
 
 // Top-nav section labels per locale (the Fumadocs UI chrome is translated separately
 // in lib/i18n-ui.ts). Falls back to English.
@@ -36,6 +37,18 @@ export function baseOptions(locale: string = i18n.defaultLanguage): BaseLayoutPr
       { text: t.guide, url: `${prefix}/docs` },
       { text: t.exchanges, url: `${prefix}/docs/exchanges/binance` },
       { text: t.examples, url: `${prefix}/docs/examples` },
+      // Playground lives at the site root (not under /v2), so use an absolute URL.
+      { text: 'Playground', url: 'https://docs.ccxt.com/playground', external: true },
+      // Discord icon in the secondary nav (next to GitHub) — currentColor matches the
+      // GitHub mark in both themes.
+      {
+        type: 'icon',
+        text: 'Discord',
+        label: 'Join the CCXT Discord',
+        icon: <SiDiscord className="size-5" />,
+        url: 'https://discord.gg/dhzSKYU',
+        external: true,
+      },
     ],
     githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
   };
