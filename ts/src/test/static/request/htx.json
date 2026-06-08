@@ -576,15 +576,14 @@
         ],
         "fetchPositions": [
             {
-                "description": "Fetch linear position",
+                "description": "Linear fetchPositions",
                 "method": "fetchPositions",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_position_info?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A58&Signature=fHh3rEyD%2FZFqX2z5IXhQNfsTODGyWF%2FYYJrOFniSPvo%3D",
+                "url": "https://api.hbdm.vn/v5/trade/position/opens?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-06-08T08%3A08%3A46&Signature=DGNpvgLcbGKB6w5%2FDyNOdLm0aHwrDQRm1BHR6R1Qhz0%3D",
                 "input": [
                     [
-                        "LTC/USDT:USDT"
+                        "BTC/USDT:USDT"
                     ]
-                ],
-                "output": "{}"
+                ]
             },
             {
                 "description": "Fetch inverse position",
@@ -613,11 +612,10 @@
             {
                 "description": "Fetch linear position",
                 "method": "fetchPosition",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_account_position_info?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A58&Signature=fHh3rEyD%2FZFqX2z5IXhQNfsTODGyWF%2FYYJrOFniSPvo%3D",
+                "url": "https://api.hbdm.vn/v5/trade/position/opens?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-06-08T08%3A05%3A56&contract_code=BTC-USDT&Signature=TDcpcIGjdzgVJQ87nbsf6x48oCKHNxhe5YNTY0cMOOw%3D",
                 "input": [
-                    "LTC/USDT:USDT"
-                ],
-                "output": "{\"margin_account\":\"USDT\",\"contract_code\":\"LTC-USDT\"}"
+                    "BTC/USDT:USDT"
+                ]
             },
             {
                 "description": "Fetch inverse position",
@@ -1517,20 +1515,6 @@
                 "output": "{\"contract_code\":\"BTC240628\",\"direction\":\"sell\",\"volume\":\"1\"}"
             },
             {
-                "description": "Fill this with a description of the method call",
-                "method": "closePosition",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_lightning_close_position?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-05-27T23%3A24%3A01&Signature=cDskzuI6HjGPNLBDQKWkUKmidBYM7ukoso%2BJKecAdiw%3D",
-                "input": [
-                  "ETH/USDT:USDT-240607",
-                  "sell",
-                  {
-                    "amount": 1,
-                    "marginMode": "cross"
-                  }
-                ],
-                "output": "{\"contract_code\":\"ETH-USDT-240607\",\"direction\":\"sell\"}"
-            },
-            {
                 "description": "Close position for an inverse swap",
                 "method": "closePosition",
                 "url": "https://api.hbdm.com/swap-api/v1/swap_lightning_close_position?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-05-24T04%3A49%3A14&Signature=JoyjhToitlWbE2Hc4aGDB31emyJWr%2BVk2PCQO0RFDrQ%3D",
@@ -1559,37 +1543,12 @@
         ],
         "fetchPositionADLRank": [
             {
-                "description": "linear swap cross fetchPositionADLRank",
+                "description": "Linear swap fetchPositionADLRank",
                 "method": "fetchPositionADLRank",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_position_info?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-01-15T15%3A15%3A22&Signature=UkzXGNGkdFHkVIteJl1A7As0fUNWZO1aoRk72b3tuII%3D",
+                "url": "https://api.hbdm.vn/v5/trade/position/opens?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-06-08T08%3A14%3A29&Signature=mKNovO%2FBrfxK%2B53FrfyQluGuGyWQ4cU58%2BYFBGriWsE%3D",
                 "input": [
-                    "BTC/USDT:USDT",
-                    {
-                        "marginMode": "cross"
-                    }
-                ],
-                "output": "{}"
-            },
-            {
-                "description": "linear swap isolated fetchPositionADLRank",
-                "method": "fetchPositionADLRank",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_position_info?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-01-15T15%3A20%3A10&Signature=HJChVCwYdewtpyNA4umdQOx3VMxd5VZ6OCDSAf35MzQ%3D",
-                "input": [
-                    "BTC/USDT:USDT",
-                    {
-                        "marginMode": "isolated"
-                    }
-                ],
-                "output": "{}"
-            },
-            {
-                "description": "linear future fetchPositionADLRank",
-                "method": "fetchPositionADLRank",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_position_info?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-01-15T15%3A46%3A04&Signature=UNr71QNQEq3F5INgkbrXAw%2FqGsOoaVQ3j0L2tskX%2Bv0%3D",
-                "input": [
-                    "BTC/USDT:USDT-240329"
-                ],
-                "output": "{}"
+                    "BTC/USDT:USDT"
+                ]
             }
         ],
         "fetchBalance": [

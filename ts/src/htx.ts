@@ -8198,15 +8198,43 @@ export default class htx extends Exchange {
         //        "margin_static": "24.965720070000000000"
         //    }
         //
+        // linear swap
+        //
+        //     {
+        //         "contract_code": "BTC-USDT",
+        //         "position_side": "long",
+        //         "direction": "buy",
+        //         "margin_mode": "cross",
+        //         "open_avg_price": "63204.5",
+        //         "volume": "1",
+        //         "available": "1",
+        //         "lever_rate": 20,
+        //         "adl_risk_percent": 3,
+        //         "liquidation_price": "-110163.844268282697306843",
+        //         "margin": "3.158275",
+        //         "initial_margin": "3.158275",
+        //         "maintenance_margin": "0.2147627",
+        //         "profit_unreal": "-0.039",
+        //         "profit_rate": "-0.0123",
+        //         "margin_rate": "0.0012",
+        //         "mark_price": "63165.5",
+        //         "last_price": "63163.3",
+        //         "margin_currency": "USDT",
+        //         "contract_type": "swap",
+        //         "created_time": "1780903703234",
+        //         "updated_time": "1780903703234"
+        //     }
+        //
         market = this.safeMarket (this.safeString (position, 'contract_code'));
         const symbol = market['symbol'];
         const contracts = this.safeString (position, 'volume');
         const contractSize = this.safeValue (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
-        const entryPrice = this.safeNumber (position, 'cost_open');
-        const initialMargin = this.safeString (position, 'position_margin');
+        const entryPrice = this.safeNumber2 (position, 'cost_open', 'open_avg_price');
+        const initialMargin = this.safeString2 (position, 'position_margin', 'initial_margin');
         const rawSide = this.safeString (position, 'direction');
-        const side = (rawSide === 'buy') ? 'long' : 'short';
+        const rawPositionSide = (rawSide === 'buy') ? 'long' : 'short';
+        const side = this.safeString (position, 'position_side', rawPositionSide);
         const unrealizedProfit = this.safeNumber (position, 'profit_unreal');
         let marginMode = this.safeString (position, 'margin_mode');
         const leverage = this.safeString (position, 'lever_rate');
@@ -8221,12 +8249,27 @@ export default class htx extends Exchange {
             marginMode = 'cross';
         }
         const intialMarginPercentage = Precise.stringDiv (initialMargin, notional);
-        const collateral = this.safeString (position, 'margin_balance');
-        const liquidationPrice = this.safeNumber (position, 'liquidation_price');
+        const collateral = this.safeString2 (position, 'margin_balance', 'margin');
         const adjustmentFactor = this.safeString (position, 'adjust_factor');
-        const maintenanceMarginPercentage = Precise.stringDiv (adjustmentFactor, leverage);
-        const maintenanceMargin = Precise.stringMul (maintenanceMarginPercentage, notional);
-        const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
+        const maintenanceMarginLinear = this.safeString (position, 'maintenance_margin');
+        const marginRatioLinear = this.safeString (position, 'margin_rate');
+        let maintenanceMarginPercentage = undefined;
+        let maintenanceMargin = undefined;
+        let marginRatio = undefined;
+        let maintenanceMarginPercentageResult = undefined;
+        if (maintenanceMarginLinear === undefined) {
+            maintenanceMarginPercentage = Precise.stringDiv (adjustmentFactor, leverage);
+            maintenanceMargin = Precise.stringMul (maintenanceMarginPercentage, notional);
+            maintenanceMarginPercentageResult = this.parseNumber (maintenanceMarginPercentage);
+        } else {
+            maintenanceMargin = maintenanceMarginLinear;
+        }
+        if (marginRatioLinear === undefined) {
+            marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
+        } else {
+            marginRatio = marginRatioLinear;
+        }
+        const timestamp = this.safeInteger (position, 'created_time');
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -8241,18 +8284,18 @@ export default class htx extends Exchange {
             'percentage': this.parseNumber (percentage),
             'marginMode': marginMode,
             'notional': this.parseNumber (notional),
-            'markPrice': undefined,
-            'lastPrice': undefined,
-            'liquidationPrice': liquidationPrice,
+            'markPrice': this.safeNumber (position, 'mark_price'),
+            'lastPrice': this.parseNumber (lastPrice),
+            'liquidationPrice': this.safeNumber (position, 'liquidation_price'),
             'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': this.parseNumber (intialMarginPercentage),
             'maintenanceMargin': this.parseNumber (maintenanceMargin),
-            'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentage),
+            'maintenanceMarginPercentage': maintenanceMarginPercentageResult,
             'marginRatio': this.parseNumber (marginRatio),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'hedged': undefined,
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger (position, 'updated_time'),
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
@@ -8262,8 +8305,7 @@ export default class htx extends Exchange {
      * @method
      * @name htx#fetchPositions
      * @description fetch all open positions
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-position-information
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-position-information
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-position-information
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-user-s-position-information
      * @param {string[]} [symbols] list of unified market symbols
@@ -8284,8 +8326,6 @@ export default class htx extends Exchange {
                 market = this.market (first);
             }
         }
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchPositions', params, 'cross');
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params, 'linear');
         let marketType = undefined;
@@ -8295,38 +8335,38 @@ export default class htx extends Exchange {
         }
         let response = undefined;
         if (subType === 'linear') {
-            if (marginMode === 'isolated') {
-                response = await this.contractPrivatePostLinearSwapApiV1SwapPositionInfo (params);
-            } else if (marginMode === 'cross') {
-                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo (params);
-            } else {
-                throw new NotSupported (this.id + ' fetchPositions() not support this market type');
-            }
+            response = await this.contractPrivateGetV5TradePositionOpens (params);
             //
             //     {
-            //       "status": "ok",
-            //       "data": [
-            //         {
-            //           "symbol": "BTC",
-            //           "contract_code": "BTC-USDT",
-            //           "volume": "1.000000000000000000",
-            //           "available": "1.000000000000000000",
-            //           "frozen": "0E-18",
-            //           "cost_open": "47162.000000000000000000",
-            //           "cost_hold": "47162.000000000000000000",
-            //           "profit_unreal": "0.047300000000000000",
-            //           "profit_rate": "0.002005852169119206",
-            //           "lever_rate": "2",
-            //           "position_margin": "23.604650000000000000",
-            //           "direction": "buy",
-            //           "profit": "0.047300000000000000",
-            //           "last_price": "47209.3",
-            //           "margin_asset": "USDT",
-            //           "margin_mode": "isolated",
-            //           "margin_account": "BTC-USDT"
-            //         }
-            //       ],
-            //       "ts": "1641108676768"
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": [
+            //             {
+            //                 "contract_code": "BTC-USDT",
+            //                 "position_side": "long",
+            //                 "direction": "buy",
+            //                 "margin_mode": "cross",
+            //                 "open_avg_price": "63204.5",
+            //                 "volume": "1",
+            //                 "available": "1",
+            //                 "lever_rate": 20,
+            //                 "adl_risk_percent": 3,
+            //                 "liquidation_price": "-110163.844268282697306843",
+            //                 "margin": "3.158275",
+            //                 "initial_margin": "3.158275",
+            //                 "maintenance_margin": "0.2147627",
+            //                 "profit_unreal": "-0.039",
+            //                 "profit_rate": "-0.0123",
+            //                 "margin_rate": "0.0012",
+            //                 "mark_price": "63165.5",
+            //                 "last_price": "63163.3",
+            //                 "margin_currency": "USDT",
+            //                 "contract_type": "swap",
+            //                 "created_time": "1780903703234",
+            //                 "updated_time": "1780903703234"
+            //             }
+            //         ],
+            //         "ts": 1780903761300
             //     }
             //
         } else {
@@ -8406,8 +8446,7 @@ export default class htx extends Exchange {
      * @method
      * @name htx#fetchPosition
      * @description fetch data on a single open contract trade position
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-assets-and-positions
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-assets-and-positions
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-assets-and-positions
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-assets-and-positions
      * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
@@ -8425,135 +8464,45 @@ export default class htx extends Exchange {
         if (market['future'] && market['inverse']) {
             request['symbol'] = market['settleId'];
         } else {
-            if (marginMode === 'cross') {
+            if (!market['linear'] && (marginMode === 'cross')) {
                 request['margin_account'] = 'USDT'; // only allowed value
             }
             request['contract_code'] = market['id'];
         }
         let response = undefined;
         if (market['linear']) {
-            if (marginMode === 'isolated') {
-                response = await this.contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo (this.extend (request, query));
-            } else if (marginMode === 'cross') {
-                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo (this.extend (request, query));
-            } else {
-                throw new NotSupported (this.id + ' fetchPosition() not support this market type');
-            }
-            //
-            // isolated
+            response = await this.contractPrivateGetV5TradePositionOpens (this.extend (request, query));
             //
             //     {
-            //         "status": "ok",
+            //         "code": 200,
+            //         "message": "Success",
             //         "data": [
             //             {
-            //                 "positions": [],
-            //                 "symbol": "BTC",
-            //                 "margin_balance": 1.949728350000000000,
-            //                 "margin_position": 0,
-            //                 "margin_frozen": 0E-18,
-            //                 "margin_available": 1.949728350000000000,
-            //                 "profit_real": -0.050271650000000000,
-            //                 "profit_unreal": 0,
-            //                 "risk_rate": null,
-            //                 "withdraw_available": 1.949728350000000000,
-            //                 "liquidation_price": null,
-            //                 "lever_rate": 20,
-            //                 "adjust_factor": 0.150000000000000000,
-            //                 "margin_static": 1.949728350000000000,
             //                 "contract_code": "BTC-USDT",
-            //                 "margin_asset": "USDT",
-            //                 "margin_mode": "isolated",
-            //                 "margin_account": "BTC-USDT",
-            //                 "trade_partition": "USDT",
-            //                 "position_mode": "dual_side"
-            //             },
-            //             ... opposite side position can be present here too (if hedge)
+            //                 "position_side": "long",
+            //                 "direction": "buy",
+            //                 "margin_mode": "cross",
+            //                 "open_avg_price": "63204.5",
+            //                 "volume": "1",
+            //                 "available": "1",
+            //                 "lever_rate": 20,
+            //                 "adl_risk_percent": 3,
+            //                 "liquidation_price": "-110163.844268282697306843",
+            //                 "margin": "3.158275",
+            //                 "initial_margin": "3.158275",
+            //                 "maintenance_margin": "0.2147627",
+            //                 "profit_unreal": "-0.039",
+            //                 "profit_rate": "-0.0123",
+            //                 "margin_rate": "0.0012",
+            //                 "mark_price": "63165.5",
+            //                 "last_price": "63163.3",
+            //                 "margin_currency": "USDT",
+            //                 "contract_type": "swap",
+            //                 "created_time": "1780903703234",
+            //                 "updated_time": "1780903703234"
+            //             }
             //         ],
-            //         "ts": 1653605008286
-            //     }
-            //
-            // cross
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": {
-            //             "positions": [
-            //                 {
-            //                     "symbol": "BTC",
-            //                     "contract_code": "BTC-USDT",
-            //                     "volume": "1.000000000000000000",
-            //                     "available": "1.000000000000000000",
-            //                     "frozen": "0E-18",
-            //                     "cost_open": "29530.000000000000000000",
-            //                     "cost_hold": "29530.000000000000000000",
-            //                     "profit_unreal": "-0.010000000000000000",
-            //                     "profit_rate": "-0.016931933626820200",
-            //                     "lever_rate": "50",
-            //                     "position_margin": "0.590400000000000000",
-            //                     "direction": "buy",
-            //                     "profit": "-0.010000000000000000",
-            //                     "last_price": "29520",
-            //                     "margin_asset": "USDT",
-            //                     "margin_mode": "cross",
-            //                     "margin_account": "USDT",
-            //                     "contract_type": "swap",
-            //                     "pair": "BTC-USDT",
-            //                     "business_type": "swap",
-            //                     "trade_partition": "USDT",
-            //                     "position_mode": "dual_side"
-            //                 },
-            //                 ... opposite side position can be present here too (if hedge)
-            //             ],
-            //             "futures_contract_detail": [
-            //                 {
-            //                     "symbol": "BTC",
-            //                     "contract_code": "BTC-USDT-220624",
-            //                     "margin_position": "0",
-            //                     "margin_frozen": "0E-18",
-            //                     "margin_available": "1.497799766913531118",
-            //                     "profit_unreal": "0",
-            //                     "liquidation_price": null,
-            //                     "lever_rate": "30",
-            //                     "adjust_factor": "0.250000000000000000",
-            //                     "contract_type": "quarter",
-            //                     "pair": "BTC-USDT",
-            //                     "business_type": "futures",
-            //                     "trade_partition": "USDT"
-            //                 },
-            //                 ... other items listed with different expiration (contract_code)
-            //             ],
-            //             "margin_mode": "cross",
-            //             "margin_account": "USDT",
-            //             "margin_asset": "USDT",
-            //             "margin_balance": "2.088199766913531118",
-            //             "margin_static": "2.098199766913531118",
-            //             "margin_position": "0.590400000000000000",
-            //             "margin_frozen": "0E-18",
-            //             "profit_real": "-0.016972710000000000",
-            //             "profit_unreal": "-0.010000000000000000",
-            //             "withdraw_available": "1.497799766913531118",
-            //             "risk_rate": "9.105496355562965147",
-            //             "contract_detail": [
-            //                {
-            //                     "symbol": "BTC",
-            //                     "contract_code": "BTC-USDT",
-            //                     "margin_position": "0.590400000000000000",
-            //                     "margin_frozen": "0E-18",
-            //                     "margin_available": "1.497799766913531118",
-            //                     "profit_unreal": "-0.010000000000000000",
-            //                     "liquidation_price": "27625.176468365024050352",
-            //                     "lever_rate": "50",
-            //                     "adjust_factor": "0.350000000000000000",
-            //                     "contract_type": "swap",
-            //                     "pair": "BTC-USDT",
-            //                     "business_type": "swap",
-            //                     "trade_partition": "USDT"
-            //                 },
-            //                 ... all symbols listed
-            //             ],
-            //             "position_mode": "dual_side"
-            //         },
-            //         "ts": "1653604697466"
+            //         "ts": 1780903761300
             //     }
             //
         } else {
@@ -8635,6 +8584,10 @@ export default class htx extends Exchange {
             //
         }
         const data = this.safeValue (response, 'data');
+        if (market['linear']) {
+            const linearPosition = this.safeDict (data, 0, {});
+            return this.parsePosition (linearPosition, market);
+        }
         let account = undefined;
         if (marginMode === 'cross') {
             account = data;
@@ -8656,7 +8609,7 @@ export default class htx extends Exchange {
             position = this.safeValue (positions, 0);
         }
         const timestamp = this.safeInteger (response, 'ts');
-        const parsed = this.parsePosition (this.extend (position, omitted));
+        const parsed = this.parsePosition (this.extend (position, omitted), market);
         parsed['timestamp'] = timestamp;
         parsed['datetime'] = this.iso8601 (timestamp);
         return parsed;
@@ -10005,8 +9958,7 @@ export default class htx extends Exchange {
      * @method
      * @name htx#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
-     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81b5a-77b5-11ed-9966-0242ac110003
-     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81c49-77b5-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c2f164-77ae-11ed-9966-0242ac110003
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=5d518648-77b6-11ed-9966-0242ac110003
      * @param {string[]} [symbols] a list of unified market symbols
@@ -10024,8 +9976,6 @@ export default class htx extends Exchange {
                 market = this.market (first);
             }
         }
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchPositionsADLRank', params, 'cross');
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsADLRank', market, params, 'linear');
         let marketType = undefined;
@@ -10035,59 +9985,38 @@ export default class htx extends Exchange {
         }
         let response = undefined;
         if (subType === 'linear') {
-            if (marginMode === 'isolated') {
-                response = await this.contractPrivatePostLinearSwapApiV1SwapPositionInfo (params);
-            } else if (marginMode === 'cross') {
-                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo (params);
-            } else {
-                throw new NotSupported (this.id + ' fetchPositionsADLRank() not support this market type');
-            }
+            response = await this.contractPrivateGetV5TradePositionOpens (params);
             //
-            //         {
-            //             "status": "ok",
+            //     {
+            //         "code": 200,
+            //         "message": "Success",
             //         "data": [
             //             {
-            //                 "symbol": "BTC",
             //                 "contract_code": "BTC-USDT",
-            //                 "volume": 1.000000000000000000,
-            //                 "available": 1.000000000000000000,
-            //                 "frozen": 0E-18,
-            //                 "cost_open": 96039.700000000000000000,
-            //                 "cost_hold": 96039.700000000000000000,
-            //                 "profit_unreal": 0.000600000000000000,
-            //                 "profit_rate": 0.000006247416432995,
-            //                 "lever_rate": 1,
-            //                 "position_margin": 96.040300000000000000,
+            //                 "position_side": "long",
             //                 "direction": "buy",
-            //                 "profit": 0.000600000000000000,
-            //                 "last_price": 96040.3,
-            //                 "margin_asset": "USDT",
             //                 "margin_mode": "cross",
-            //                 "margin_account": "USDT",
-            //                 "contract_type": "swap",
-            //                 "pair": "BTC-USDT",
-            //                 "business_type": "swap",
-            //                 "trade_partition":"USDT",
-            //                 "position_mode": "single_side",
-            //                 "store_time": "2023-10-08 20:05:06",
-            //                 "liquidation_price": null,
-            //                 "market_closing_slippage": null,
-            //                 "risk_rate": 249.274066168760049797,
-            //                 "new_risk_rate": 0.003995619743220614,
-            //                 "risk_rate_percent": 0.003995619743220614,
-            //                 "withdraw_available": null,
-            //                 "open_adl": 1,
+            //                 "open_avg_price": "63204.5",
+            //                 "volume": "1",
+            //                 "available": "1",
+            //                 "lever_rate": 20,
             //                 "adl_risk_percent": 3,
-            //                 "tp_trigger_price": null,
-            //                 "sl_trigger_price": null,
-            //                 "tp_order_id": null,
-            //                 "sl_order_id": null,
-            //                 "tp_trigger_type": null,
-            //                 "sl_trigger_type": null,
-            //                 "adjust_value": null
+            //                 "liquidation_price": "-110163.844268282697306843",
+            //                 "margin": "3.158275",
+            //                 "initial_margin": "3.158275",
+            //                 "maintenance_margin": "0.2147627",
+            //                 "profit_unreal": "-0.039",
+            //                 "profit_rate": "-0.0123",
+            //                 "margin_rate": "0.0012",
+            //                 "mark_price": "63165.5",
+            //                 "last_price": "63163.3",
+            //                 "margin_currency": "USDT",
+            //                 "contract_type": "swap",
+            //                 "created_time": "1780903703234",
+            //                 "updated_time": "1780903703234"
             //             }
             //         ],
-            //         "ts": 1768489640285
+            //         "ts": 1780903761300
             //     }
             //
         } else {
@@ -10181,47 +10110,31 @@ export default class htx extends Exchange {
 
     parseADLRank (info: Dict, market: Market = undefined): ADL {
         //
-        // fetchPositionADLRank linear swap and future
+        // fetchPositionADLRank linear
         //
         //     {
-        //         "symbol": "BTC",
         //         "contract_code": "BTC-USDT",
-        //         "volume": 1.000000000000000000,
-        //         "available": 1.000000000000000000,
-        //         "frozen": 0E-18,
-        //         "cost_open": 96039.700000000000000000,
-        //         "cost_hold": 96039.700000000000000000,
-        //         "profit_unreal": 0.000600000000000000,
-        //         "profit_rate": 0.000006247416432995,
-        //         "lever_rate": 1,
-        //         "position_margin": 96.040300000000000000,
+        //         "position_side": "long",
         //         "direction": "buy",
-        //         "profit": 0.000600000000000000,
-        //         "last_price": 96040.3,
-        //         "margin_asset": "USDT",
         //         "margin_mode": "cross",
-        //         "margin_account": "USDT",
-        //         "contract_type": "swap",
-        //         "pair": "BTC-USDT",
-        //         "business_type": "swap",
-        //         "trade_partition":"USDT",
-        //         "position_mode": "single_side",
-        //         "store_time": "2023-10-08 20:05:06",
-        //         "liquidation_price": null,
-        //         "market_closing_slippage": null,
-        //         "risk_rate": 249.274066168760049797,
-        //         "new_risk_rate": 0.003995619743220614,
-        //         "risk_rate_percent": 0.003995619743220614,
-        //         "withdraw_available": null,
-        //         "open_adl": 1,
+        //         "open_avg_price": "63204.5",
+        //         "volume": "1",
+        //         "available": "1",
+        //         "lever_rate": 20,
         //         "adl_risk_percent": 3,
-        //         "tp_trigger_price": null,
-        //         "sl_trigger_price": null,
-        //         "tp_order_id": null,
-        //         "sl_order_id": null,
-        //         "tp_trigger_type": null,
-        //         "sl_trigger_type": null,
-        //         "adjust_value": null
+        //         "liquidation_price": "-110163.844268282697306843",
+        //         "margin": "3.158275",
+        //         "initial_margin": "3.158275",
+        //         "maintenance_margin": "0.2147627",
+        //         "profit_unreal": "-0.039",
+        //         "profit_rate": "-0.0123",
+        //         "margin_rate": "0.0012",
+        //         "mark_price": "63165.5",
+        //         "last_price": "63163.3",
+        //         "margin_currency": "USDT",
+        //         "contract_type": "swap",
+        //         "created_time": "1780903703234",
+        //         "updated_time": "1780903703234"
         //     }
         //
         // fetchPositionADLRank inverse
@@ -10248,14 +10161,15 @@ export default class htx extends Exchange {
         //     }
         //
         const marketId = this.safeString (info, 'contract_code');
+        const timestamp = this.safeInteger (info, 'created_time');
         return {
             'info': info,
             'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
             'rank': this.safeInteger (info, 'adl_risk_percent'),
             'rating': undefined,
             'percentage': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
         } as ADL;
     }
 }
