@@ -37,7 +37,10 @@ jobs:
       PROXY: egress-proxy             # egress proxy container name (app reaches it by this DNS name)
       NET_INTERNAL: ccxt-pg-internal  # app network: no internet, no host access
       NET_EGRESS: ccxt-pg-egress      # proxy-only network: reaches the internet
-      PORT: '3007'                   # host port (nginx proxies /playground here)
+      SUBNET: 172.31.0.0/24           # internal subnet (lets us pin static IPs)
+      PROXY_IP: 172.31.0.2
+      APP_IP: 172.31.0.10             # nginx /playground proxy_pass -> http://172.31.0.10:3000
+      CANARY_IP: 172.31.0.11
       BASE_PATH: /playground
     steps:
       - uses: actions/checkout@v4
@@ -96,8 +99,9 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_deploy "${DEPLOY_USER}@${HOST}" \
             IMAGE="${IMAGE}" IMAGE_PROXY="${IMAGE_PROXY}" CONTAINER="${CONTAINER}" PROXY="${PROXY}" \
-            NET_INTERNAL="${NET_INTERNAL}" NET_EGRESS="${NET_EGRESS}" \
-            PORT="${PORT}" BASE_PATH="${BASE_PATH}" SHA="${SHA}" \
+            NET_INTERNAL="${NET_INTERNAL}" NET_EGRESS="${NET_EGRESS}" SUBNET="${SUBNET}" \
+            PROXY_IP="${PROXY_IP}" APP_IP="${APP_IP}" CANARY_IP="${CANARY_IP}" \
+            BASE_PATH="${BASE_PATH}" SHA="${SHA}" \
             GHCR_USER="${GHCR_USER}" GHCR_TOKEN="${GHCR_TOKEN}" 'bash -se' <<'EOF'
           set -e
           echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
@@ -106,12 +110,14 @@ jobs:
 
           # --- Egress lockdown: an internal (no-internet) network for the app, and a
           # squid proxy that bridges out but permits only the CCXT exchange allowlist.
-          # The app reaches the proxy as host "egress-proxy"; it has no other route. ---
-          docker network create --internal "$NET_INTERNAL" 2>/dev/null || true
+          # The app reaches the proxy as host "egress-proxy"; it has no other route.
+          # The internal network has a fixed subnet so the app gets a stable IP that
+          # nginx points at (publishing -p does NOT work on an internal network). ---
+          docker network create --internal --subnet "$SUBNET" "$NET_INTERNAL" 2>/dev/null || true
           docker network create "$NET_EGRESS" 2>/dev/null || true
           docker rm -f "$PROXY" 2>/dev/null || true
           docker run -d --restart=always --name "$PROXY" \
-            --network "$NET_INTERNAL" \
+            --network "$NET_INTERNAL" --ip "$PROXY_IP" \
             --memory 256m --pids-limit 256 --security-opt no-new-privileges:true \
             "$IMAGE_PROXY:$SHA"
           docker network connect "$NET_EGRESS" "$PROXY"
@@ -121,8 +127,7 @@ jobs:
           ENVFILE_ARG=""
           [ -f /root/ccxt-playground.env ] && ENVFILE_ARG="--env-file /root/ccxt-playground.env"
 
-          # Put the app on the internal network and force egress through the proxy.
-          NETARG="--network $NET_INTERNAL"
+          # Force the app's egress through the proxy (it has no other route out).
           PROXYENV="-e PLAYGROUND_EGRESS_PROXY=http://egress-proxy:3128 \
             -e HTTP_PROXY=http://egress-proxy:3128 -e HTTPS_PROXY=http://egress-proxy:3128 \
             -e http_proxy=http://egress-proxy:3128 -e https_proxy=http://egress-proxy:3128 \
@@ -137,16 +142,16 @@ jobs:
           # Install-only languages return a "runs locally" rejection → counted as skip.
           smoke_lang() { # json-payload
             local out
-            out=$(curl -fsS --max-time 60 -X POST "http://127.0.0.1:${SMOKE_PORT}${BASE_PATH}/api/run" -H 'Content-Type: application/json' -d "$1") \
+            out=$(curl -fsS --max-time 60 -X POST "${SMOKE_BASE}/api/run" -H 'Content-Type: application/json' -d "$1") \
               || { echo "smoke[$1]: request failed"; return 1; }
             echo "$out" | grep -q "runs locally, not in the browser" && { echo "smoke: skip (install-only) $1"; return 0; }
             echo "$out" | grep -q '"stdout":"42' || { echo "smoke FAIL: $1 -> $out"; return 1; }
             echo "smoke OK: $1"
           }
           smoke() {
-            SMOKE_PORT="$1"; local html
-            for i in $(seq 1 30); do curl -fsS -o /dev/null "http://127.0.0.1:${SMOKE_PORT}${BASE_PATH}" 2>/dev/null && break; sleep 2; done
-            html=$(curl -fsS --max-time 25 "http://127.0.0.1:${SMOKE_PORT}${BASE_PATH}") || { echo "smoke: homepage not 200"; return 1; }
+            SMOKE_BASE="http://$1:3000${BASE_PATH}"; local html
+            for i in $(seq 1 30); do curl -fsS -o /dev/null "$SMOKE_BASE" 2>/dev/null && break; sleep 2; done
+            html=$(curl -fsS --max-time 25 "$SMOKE_BASE") || { echo "smoke: homepage not 200"; return 1; }
             echo "$html" | grep -q "CCXT Playground" || { echo "smoke: homepage content missing"; return 1; }
             smoke_lang '{"language":"js","code":"console.log(6*7)"}'               || return 1
             smoke_lang '{"language":"ts","code":"console.log(6*7)"}'               || return 1
@@ -157,14 +162,16 @@ jobs:
             echo "smoke: OK"
           }
 
-          # Canary on a temp port — the live container is untouched until smoke passes.
-          CANARY="${CONTAINER}-canary"; TMP_PORT=3008
+          # Canary on a temp internal IP (no published port — the app is reached via
+          # its IP on the internal network; the host can route in even though the
+          # container can't route out). Live container is untouched until smoke passes.
+          CANARY="${CONTAINER}-canary"
           docker rm -f "$CANARY" 2>/dev/null || true
-          docker run -d -p 127.0.0.1:${TMP_PORT}:3000 $NETARG $PROXYENV $ENVFILE_ARG $RUNFLAGS --name "$CANARY" "$IMAGE:$SHA"
-          if smoke "$TMP_PORT"; then
+          docker run -d --network "$NET_INTERNAL" --ip "$CANARY_IP" $PROXYENV $ENVFILE_ARG $RUNFLAGS --name "$CANARY" "$IMAGE:$SHA"
+          if smoke "$CANARY_IP"; then
             docker rm -f "$CANARY"
             docker rm -f "$CONTAINER" 2>/dev/null || true
-            docker run -d --restart=always -p 127.0.0.1:${PORT}:3000 $NETARG $PROXYENV $ENVFILE_ARG $RUNFLAGS --name "$CONTAINER" "$IMAGE:$SHA"
+            docker run -d --restart=always --network "$NET_INTERNAL" --ip "$APP_IP" $PROXYENV $ENVFILE_ARG $RUNFLAGS --name "$CONTAINER" "$IMAGE:$SHA"
             docker tag "$IMAGE:$SHA" "$IMAGE:latest"
             # Reclaim disk: drop dangling layers, then remove OLD playground images.
             # Each deploy tags a unique :SHA (multi-GB) which `prune -f` won't touch

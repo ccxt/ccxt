@@ -110,8 +110,12 @@ runner → pushes to `ghcr.io/ccxt/ccxt-playground` → SSHes to the docs box �
 runs a **canary** on a temp port → smoke-tests (homepage + a real `6*7→42` JS
 run) → promotes to the live container only if green (else leaves the old one up).
 
-It's served behind the existing nginx as `location /playground` → the container
-on `127.0.0.1:3007`, alongside the Fumadocs `/v2` and Docsify `/`.
+It's served behind the existing nginx as `location /playground` → the app's
+**static IP on the internal network** (`http://172.31.0.10:3000`), alongside the
+Fumadocs `/v2` and Docsify `/`. (Publishing a host port doesn't work on a Docker
+`internal` network, but the host can route *into* it — so nginx targets the
+container's fixed internal IP, and the container still has no route *out* except
+via the egress proxy.)
 
 **Go is install-only in production** (`PLAYGROUND_DISABLED=go`) because compiling
 ccxt-go needs ~5 GB — unsafe on the shared 7.5 GB box. JS/TS/Python/PHP/C# run.

@@ -1,21 +1,21 @@
-// Preloaded (via `node --import`) before user JS/TS runs. ccxt-js uses node-fetch,
-// which doesn't read proxy env vars — so we point http/https globalAgent at the
-// egress proxy. Then every ccxt request (and any other http/https call) tunnels
-// through the allowlist proxy. No-op when no proxy is configured (local dev).
-import http from "node:http";
-import https from "node:https";
-
+// Preloaded (via `node --import`) before user JS/TS runs. ccxt-js doesn't read
+// proxy env vars, so we set its built-in `httpsProxy` on the Exchange prototype —
+// every `new ccxt.<exchange>()` then tunnels through the egress allowlist proxy.
+// (Only httpsProxy: ccxt rejects setting httpProxy and httpsProxy together.)
+// No-op when no proxy is configured (local dev). The internal network blocks any
+// non-proxied egress regardless, so this only enables the *allowed* exchange path.
 const proxy =
   process.env.HTTPS_PROXY || process.env.https_proxy ||
   process.env.HTTP_PROXY || process.env.http_proxy;
 
 if (proxy) {
   try {
-    const { HttpsProxyAgent } = await import("https-proxy-agent");
-    const { HttpProxyAgent } = await import("http-proxy-agent");
-    https.globalAgent = new HttpsProxyAgent(proxy);
-    http.globalAgent = new HttpProxyAgent(proxy);
+    const mod = await import("ccxt");
+    const ccxt = mod.default ?? mod;
+    if (ccxt?.Exchange?.prototype) {
+      ccxt.Exchange.prototype.httpsProxy = proxy;
+    }
   } catch {
-    // agents unavailable — leave direct (the internal network still blocks egress)
+    // ccxt not resolvable from here — the internal network still blocks egress
   }
 }

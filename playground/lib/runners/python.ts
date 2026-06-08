@@ -19,10 +19,22 @@ function resolvePython(): { cmd: string; env?: Record<string, string> } {
 
 export async function runPython(code: string): Promise<RunResult> {
   const { cmd, env } = resolvePython();
+  // When an egress proxy is configured, put our sitecustomize on PYTHONPATH so it
+  // auto-points ccxt at the proxy (ccxt-python's session ignores proxy env vars).
+  const proxied =
+    process.env.HTTPS_PROXY || process.env.https_proxy ||
+    process.env.HTTP_PROXY || process.env.http_proxy;
+  const parts = [env?.PYTHONPATH, proxied ? path.join(process.cwd(), "lib", "runners", "pyproxy") : ""]
+    .filter(Boolean);
+  const pythonPath = parts.join(":");
   const result = await runWithFile(code, "py", (file) => ({
     cmd,
     args: [file],
-    env: { PYTHONUNBUFFERED: "1", ...(env ?? {}) },
+    env: {
+      PYTHONUNBUFFERED: "1",
+      ...(env ?? {}),
+      ...(pythonPath ? { PYTHONPATH: pythonPath } : {}),
+    },
   }));
   return { ...result, stderr: stripImportNoise(result.stderr) };
 }
