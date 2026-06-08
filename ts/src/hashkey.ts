@@ -1185,7 +1185,7 @@ export default class hashkey extends Exchange {
         for (let j = 0; j < networks.length; j++) {
             const network = networks[j];
             const networkId = this.safeString (network, 'chainType');
-            const networkCode = this.networkCodeToId (networkId);
+            const networkCode = this.networkCodeToId (networkId, code);
             parsedNetworks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
@@ -2071,7 +2071,7 @@ export default class hashkey extends Exchange {
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chainType'] = this.networkCodeToId (networkCode);
+            request['chainType'] = this.networkCodeToId (networkCode, currency['code']);
         }
         const response = await this.privatePostApiV1AccountWithdraw (this.extend (request, params));
         //

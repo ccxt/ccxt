@@ -392,7 +392,6 @@ class bittrade(Exchange, ImplicitAPI):
                     'HECO': 'hrc20',
                     'HT': 'hrc20',
                     'ALGO': 'algo',
-                    'OMNI': '',
                 },
                 # https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'private_get_order_orders',  # 'private_get_order_history'  # https://github.com/ccxt/ccxt/pull/5392

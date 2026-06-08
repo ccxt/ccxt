@@ -3962,7 +3962,7 @@ class coinex extends Exchange {
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a "network" parameter');
         }
-        $request['chain'] = $this->network_code_to_id($networkCode); // required for on-chain, not required for inter-user transfer
+        $request['chain'] = $this->network_code_to_id($networkCode, $currency['code']); // required for on-chain, not required for inter-user transfer
         $response = $this->v2PrivateGetAssetsDepositAddress ($this->extend($request, $params));
         //
         //     {
@@ -4903,7 +4903,7 @@ class coinex extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['chain'] = $this->network_code_to_id($networkCode); // required for on-chain, not required for inter-user transfer
+            $request['chain'] = $this->network_code_to_id($networkCode, $currency['code']); // required for on-chain, not required for inter-user transfer
         }
         $response = $this->v2PrivatePostAssetsWithdraw ($this->extend($request, $params));
         //
@@ -5113,7 +5113,7 @@ class coinex extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,
@@ -5830,7 +5830,9 @@ class coinex extends Exchange {
                 $result['withdraw']['percentage'] = false;
                 $networkId = $this->safe_string($entry, 'chain');
                 if ($networkId) {
-                    $networkCode = $this->network_id_to_code($networkId, $this->safe_string($asset, 'ccy'));
+                    $currencyId = $this->safe_string($asset, 'ccy');
+                    $feeCode = $this->safe_currency_code($currencyId, $currency);
+                    $networkCode = $this->network_id_to_code($networkId, $feeCode);
                     $result['networks'][$networkCode] = array(
                         'withdraw' => array(
                             'fee' => $this->safe_number($entry, 'withdrawal_fee'),

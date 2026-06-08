@@ -538,7 +538,7 @@ class ascendex extends ascendex$1["default"] {
         for (let j = 0; j < chains.length; j++) {
             const networkEtnry = chains[j];
             const networkId = this.safeString(networkEtnry, 'chainName');
-            const networkCode = this.networkCodeToId(networkId);
+            const networkCode = this.networkCodeToId(networkId, code);
             networks[networkCode] = {
                 'fee': this.safeNumber(networkEtnry, 'withdrawFee'),
                 'active': undefined,
@@ -2598,7 +2598,7 @@ class ascendex extends ascendex$1["default"] {
         await this.loadMarkets();
         const currency = this.currency(code);
         const networkCode = this.safeString2(params, 'network', 'chainName');
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, currency['code']);
         params = this.omit(params, ['chainName']);
         const request = {
             'asset': currency['id'],

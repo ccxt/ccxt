@@ -641,7 +641,10 @@ export default class exmo extends Exchange {
             const provider = fee[i];
             const type = this.safeString (provider, 'type');
             const networkId = this.safeString (provider, 'name');
-            const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
+            const currencyId = this.safeString (provider, 'currency_name');
+            currency = this.safeCurrency (currencyId, currency);
+            const code = this.safeString (currency, 'code');
+            const networkCode = this.networkIdToCode (networkId, code);
             const commissionDesc = this.safeString (provider, 'commission_desc');
             let splitCommissionDesc = [];
             let percentage = undefined;
@@ -748,7 +751,7 @@ export default class exmo extends Exchange {
                 networkId = networkId.replace ('(', '');
                 const replaceChar = ')'; // transpiler trick
                 networkId = networkId.replace (replaceChar, '');
-                const networkCode = this.networkIdToCode (networkId);
+                const networkCode = this.networkIdToCode (networkId, code);
                 if (!(networkCode in networks)) {
                     networks[networkCode] = {
                         'id': networkId,

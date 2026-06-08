@@ -436,7 +436,7 @@ public partial class gemini : Exchange
         object networkCode = null;
         if (isTrue(!isEqual(networkId, null)))
         {
-            networkCode = this.networkIdToCode(networkId);
+            networkCode = this.networkIdToCode(networkId, code);
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "info", rawCurrency },
                 { "id", networkId },
@@ -2035,7 +2035,7 @@ public partial class gemini : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchDepositAddresses() requires a network parameter")) ;
         }
-        object networkId = this.networkCodeToId(networkCode);
+        object networkId = this.networkCodeToId(networkCode, getValue(currency, "code"));
         object request = new Dictionary<string, object>() {
             { "network", networkId },
         };

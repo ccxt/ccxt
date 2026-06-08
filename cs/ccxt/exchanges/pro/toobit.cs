@@ -655,7 +655,7 @@ public partial class toobit : ccxt.toobit
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseBidAsk(delta);
+        object bidAsk = this.parseOrderBookBidAsk(delta);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 

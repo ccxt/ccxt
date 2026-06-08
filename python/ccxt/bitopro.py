@@ -1518,7 +1518,7 @@ class bitopro(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'txid'),
             'type': None,
             'currency': code,
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'amount': self.safe_number(transaction, 'total'),
             'status': self.parse_transaction_status(status),
             'timestamp': timestamp,

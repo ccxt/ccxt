@@ -8752,7 +8752,7 @@ class okx(Exchange, ImplicitAPI):
         if until is not None:
             request['end'] = until
         if timeframe is not None:
-            request['period'] = timeframe
+            request['period'] = self.safe_string(self.timeframes, timeframe, timeframe)
         if since is not None:
             request['begin'] = since
         if limit is not None:

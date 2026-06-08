@@ -38,7 +38,7 @@ import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_
 import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
 const { isNode, selfIsDefined, deepExtend, extend, clone, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, binaryConcat, hash, 
 // ecdsa,
-arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, readFile, writeFile, existsFile, getTempDir, } = functions;
+arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, readFile, writeFile, existsFile, getTempDir, filePathToFileUrlForWindows, } = functions;
 // ----------------------------------------------------------------------------
 let protobufMexc = undefined;
 let encodeAsAny = undefined;
@@ -1610,7 +1610,7 @@ export default class Exchange {
         if (wasmExecPath === undefined || wasmExecPath === '') {
             throw new Error('loadLighterLibrary() requires "wasmExecPath" that should point to `wasm_exec.js`. You can check the location of the file locally if you have GO installed or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["wasmExecPath"] = "/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js"');
         }
-        await import(wasmExecPath);
+        await import(filePathToFileUrlForWindows(wasmExecPath));
         const go = new globalThis.Go();
         // read wasm from disks
         const bytes = new Uint8Array(readFile(libraryPath, null)); // it should point to lighter.wasm
@@ -2275,7 +2275,7 @@ export default class Exchange {
     }
     handleDeltasWithKeys(bookSide, deltas, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         for (let i = 0; i < deltas.length; i++) {
-            const bidAsk = this.parseBidAsk(deltas[i], priceKey, amountKey, countOrIdKey);
+            const bidAsk = this.parseOrderBookBidAsk(deltas[i], priceKey, amountKey, countOrIdKey);
             bookSide.storeArray(bidAsk);
         }
     }
@@ -4109,6 +4109,21 @@ export default class Exchange {
         }
         return arr[length - 1];
     }
+    addKeyInArrayItems(obj, keyName) {
+        const result = [];
+        const keys = Object.keys(obj);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const item = obj[key];
+            if (item === undefined) {
+                continue;
+            }
+            const itemWithKey = this.extend({}, item);
+            itemWithKey[keyName] = key;
+            result.push(itemWithKey);
+        }
+        return result;
+    }
     invertFlatStringDictionary(dict) {
         const reversed = {};
         const keys = Object.keys(dict);
@@ -4535,11 +4550,11 @@ export default class Exchange {
         }
         return result;
     }
-    parseBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+    parseOrderBookBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         bidasks = this.toArray(bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
-            result.push(this.parseBidAsk(bidasks[i], priceKey, amountKey, countOrIdKey));
+            result.push(this.parseOrderBookBidAsk(bidasks[i], priceKey, amountKey, countOrIdKey));
         }
         return result;
     }
@@ -4789,8 +4804,8 @@ export default class Exchange {
         return this.parseNumber(value, d);
     }
     parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, countOrIdKey = 2) {
-        const bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
-        const asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
+        const bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy(bids, 0, true),
@@ -5348,7 +5363,7 @@ export default class Exchange {
     async fetchLedgerEntry(id, code = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchLedgerEntry() is not supported yet');
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+    parseOrderBookBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeFloat(bidask, priceKey);
         const amount = this.safeFloat(bidask, amountKey);
         const countOrId = this.safeInteger(bidask, countOrIdKey);

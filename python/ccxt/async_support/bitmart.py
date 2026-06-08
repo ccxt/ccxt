@@ -2880,8 +2880,9 @@ class bitmart(Exchange, ImplicitAPI):
             type = 'take_profit'
         request: dict = {
             'symbol': market['id'],
-            'size': int(self.amount_to_precision(symbol, amount)),
         }
+        if amount is not None:
+            request['size'] = int(self.amount_to_precision(symbol, amount))
         timeInForce = self.safe_string(params, 'timeInForce')
         mode = self.safe_integer(params, 'mode')  # only for swap
         isMarketOrder = type == 'market'
@@ -2931,7 +2932,10 @@ class bitmart(Exchange, ImplicitAPI):
         if isStopLoss or isTakeProfit:
             reduceOnly = True
             request['price_type'] = self.safe_integer(params, 'price_type', 1)
-            request['executive_price'] = self.price_to_precision(symbol, price)
+            if price is not None:
+                request['executive_price'] = self.price_to_precision(symbol, price)
+            marketOrLimitStr = 'limit' if isLimitOrder else 'market'
+            request['category'] = self.safe_string(params, 'category', marketOrLimitStr)
             if isStopLoss:
                 request['trigger_price'] = self.price_to_precision(symbol, stopLossPrice)
             else:

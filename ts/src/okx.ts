@@ -9226,7 +9226,7 @@ export default class okx extends Exchange {
             request['end'] = until;
         }
         if (timeframe !== undefined) {
-            request['period'] = timeframe;
+            request['period'] = this.safeString (this.timeframes, timeframe, timeframe);
         }
         if (since !== undefined) {
             request['begin'] = since;

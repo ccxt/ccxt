@@ -655,7 +655,7 @@ final Object finalBase = base;
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networksArray)); j++)
         {
             Object networkId = Helpers.GetValue(networksArray, j);
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             final Object finalDeposit = deposit;
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "info", rawCurrency );

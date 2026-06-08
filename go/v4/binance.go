@@ -1652,7 +1652,7 @@ func (this *BinanceCore) Describe() any {
 					"symbolRequired":   true,
 				},
 				"fetchOHLCV": map[string]any{
-					"limit": 1500,
+					"limit": 500,
 				},
 			},
 			"swap": map[string]any{
@@ -2897,208 +2897,206 @@ func (this *BinanceCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 			var responseMarginables any = GetValue(results, 1)
 			marginablesById = this.IndexBy(responseMarginables, "assetName")
 		}
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(responseCurrencies)); i++ {
-			//
-			//    {
-			//        "coin": "LINK",
-			//        "depositAllEnable": true,
-			//        "withdrawAllEnable": true,
-			//        "name": "ChainLink",
-			//        "free": "0",
-			//        "locked": "0",
-			//        "freeze": "0",
-			//        "withdrawing": "0",
-			//        "ipoing": "0",
-			//        "ipoable": "0",
-			//        "storage": "0",
-			//        "isLegalMoney": false,
-			//        "trading": true,
-			//        "networkList": [
-			//            {
-			//                "network": "BSC",
-			//                "coin": "LINK",
-			//                "withdrawIntegerMultiple": "0.00000001",
-			//                "isDefault": false,
-			//                "depositEnable": true,
-			//                "withdrawEnable": true,
-			//                "depositDesc": "",
-			//                "withdrawDesc": "",
-			//                "specialTips": "",
-			//                "specialWithdrawTips": "The network you have selected is BSC. Please ensure that the withdrawal address supports the Binance Smart Chain network. You will lose your assets if the chosen platform does not support retrievals.",
-			//                "name": "BNB Smart Chain (BEP20)",
-			//                "resetAddressStatus": false,
-			//                "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
-			//                "addressRule": "",
-			//                "memoRegex": "",
-			//                "withdrawFee": "0.012",
-			//                "withdrawMin": "0.024",
-			//                "withdrawMax": "9999999999.99999999",
-			//                "minConfirm": "15",
-			//                "unLockConfirm": "0",
-			//                "sameAddress": false,
-			//                "estimatedArrivalTime": "5",
-			//                "busy": false,
-			//                "country": "AE,BINANCE_BAHRAIN_BSC"
-			//            },
-			//            {
-			//                "network": "BNB",
-			//                "coin": "LINK",
-			//                "withdrawIntegerMultiple": "0.00000001",
-			//                "isDefault": false,
-			//                "depositEnable": true,
-			//                "withdrawEnable": true,
-			//                "depositDesc": "",
-			//                "withdrawDesc": "",
-			//                "specialTips": "Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.",
-			//                "specialWithdrawTips": "",
-			//                "name": "BNB Beacon Chain (BEP2)",
-			//                "resetAddressStatus": false,
-			//                "addressRegex": "^(bnb1)[0-9a-z]{38}$",
-			//                "addressRule": "",
-			//                "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-			//                "withdrawFee": "0.003",
-			//                "withdrawMin": "0.01",
-			//                "withdrawMax": "10000000000",
-			//                "minConfirm": "1",
-			//                "unLockConfirm": "0",
-			//                "sameAddress": true,
-			//                "estimatedArrivalTime": "5",
-			//                "busy": false,
-			//                "country": "AE,BINANCE_BAHRAIN_BSC"
-			//            },
-			//            {
-			//                "network": "ETH",
-			//                "coin": "LINK",
-			//                "withdrawIntegerMultiple": "0.00000001",
-			//                "isDefault": true,
-			//                "depositEnable": true,
-			//                "withdrawEnable": true,
-			//                "depositDesc": "",
-			//                "withdrawDesc": "",
-			//                "name": "Ethereum (ERC20)",
-			//                "resetAddressStatus": false,
-			//                "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
-			//                "addressRule": "",
-			//                "memoRegex": "",
-			//                "withdrawFee": "0.55",
-			//                "withdrawMin": "1.1",
-			//                "withdrawMax": "10000000000",
-			//                "minConfirm": "12",
-			//                "unLockConfirm": "0",
-			//                "sameAddress": false,
-			//                "estimatedArrivalTime": "5",
-			//                "busy": false,
-			//                "country": "AE,BINANCE_BAHRAIN_BSC"
-			//            }
-			//        ]
-			//    }
-			//
-			//     some coins (e.g. ETH, BIGTIME, SONIC, etc) return extra fields under network entry
-			//
-			//                "specialTips": "",
-			//                "specialWithdrawTips": "",
-			//                "withdrawInternalMin": "0",
-			//                "contractAddressUrl": "https://etherscan.io/address/",
-			//                "contractAddress": "0x64bc2ca1be492be7185faa2c8835d9b824c8a194"
-			//
-			var entry any = GetValue(responseCurrencies, i)
-			var id any = this.SafeString(entry, "coin")
-			var name any = this.SafeString(entry, "name")
-			var code any = this.SafeCurrencyCode(id)
-			var isFiat any = this.SafeBool(entry, "isLegalMoney")
-			var networkList any = this.SafeList(entry, "networkList", []any{})
-			var fees any = map[string]any{}
-			var fee any = nil
-			var networks any = map[string]any{}
-			var isETF any = false
-			for j := 0; IsLessThan(j, GetArrayLength(networkList)); j++ {
-				var networkItem any = GetValue(networkList, j)
-				var network any = this.SafeString(networkItem, "network")
-				var networkCode any = this.NetworkIdToCode(network, code)
-				isETF = (IsEqual(network, "ETF")) // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
-				// const name = this.safeString (networkItem, 'name');
-				var withdrawFee any = this.SafeNumber(networkItem, "withdrawFee")
-				var depositEnable any = this.SafeBool(networkItem, "depositEnable")
-				var withdrawEnable any = this.SafeBool(networkItem, "withdrawEnable")
-				AddElementToObject(fees, network, withdrawFee)
-				var isDefault any = this.SafeBool(networkItem, "isDefault")
-				if IsTrue(IsTrue(isDefault) || IsTrue((IsEqual(fee, nil)))) {
-					fee = withdrawFee
-				}
-				// todo: default networks in "setMarkets" overload
-				// if (isDefault) {
-				//     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
-				// }
-				var withdrawPrecision any = this.OmitZero(this.SafeString2(networkItem, "withdrawIntegerMultiple", "withdrawInternalMin"))
-				// zero values happen only on fiat or leveraged(ETF) tokens: https://t.me/binance_api_english/393075
-				if IsTrue(IsTrue(IsEqual(withdrawPrecision, nil)) && IsTrue(isFiat)) {
-					withdrawPrecision = this.SafeString(this.Options, "defaultFiatWithdrawPrecision")
-				}
-				AddElementToObject(networks, networkCode, map[string]any{
-					"info":      networkItem,
-					"id":        network,
-					"network":   networkCode,
-					"active":    nil,
-					"deposit":   depositEnable,
-					"withdraw":  withdrawEnable,
-					"fee":       withdrawFee,
-					"precision": this.ParseNumber(withdrawPrecision),
-					"limits": map[string]any{
-						"withdraw": map[string]any{
-							"min": this.SafeNumber(networkItem, "withdrawMin"),
-							"max": this.SafeNumber(networkItem, "withdrawMax"),
-						},
-						"deposit": map[string]any{
-							"min": this.SafeNumber(networkItem, "depositDust"),
-							"max": nil,
-						},
-					},
-				})
-			}
-			var typeVar any = nil
-			if IsTrue(isETF) {
-				typeVar = "other"
-			} else if IsTrue(isFiat) {
-				typeVar = "fiat"
-			} else {
-				typeVar = "crypto"
-			}
-			var trading any = this.SafeBool(entry, "trading")
-			var marginEntry any = this.SafeDict(marginablesById, id, map[string]any{})
-			//
-			//     {
-			//         assetName: "BTC",
-			//         assetFullName: "Bitcoin",
-			//         isBorrowable: true,
-			//         isMortgageable: true,
-			//         userMinBorrow: "0",
-			//         userMinRepay: "0",
-			//     }
-			//
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"id":        id,
-				"name":      name,
-				"code":      code,
-				"type":      typeVar,
-				"precision": nil,
-				"info":      entry,
-				"active":    trading,
-				"deposit":   nil,
-				"withdraw":  nil,
-				"networks":  networks,
-				"fee":       nil,
-				"fees":      fees,
-				"limits":    nil,
-				"margin":    this.SafeBool(marginEntry, "isBorrowable"),
-			}))
-		}
 
-		ch <- result
+		ch <- this.ParseCurrenciesCustom(responseCurrencies, marginablesById)
 		return nil
 
 	}()
 	return ch
+}
+func (this *BinanceCore) ParseCurrenciesCustom(responseCurrencies any, marginablesById any) any {
+	var result any = map[string]any{}
+	for i := 0; IsLessThan(i, GetArrayLength(responseCurrencies)); i++ {
+		var parsed any = this.ParseCurrency(GetValue(responseCurrencies, i))
+		var code any = GetValue(parsed, "code")
+		var marginEntry any = this.SafeDict(marginablesById, GetValue(parsed, "id"))
+		AddElementToObject(parsed, "margin", this.SafeBool(marginEntry, "isBorrowable"))
+		AddElementToObject(result, code, parsed)
+	}
+	return result
+}
+func (this *BinanceCore) ParseCurrency(rawCurrency any) any {
+	//
+	//    {
+	//        "coin": "LINK",
+	//        "depositAllEnable": true,
+	//        "withdrawAllEnable": true,
+	//        "name": "ChainLink",
+	//        "free": "0",
+	//        "locked": "0",
+	//        "freeze": "0",
+	//        "withdrawing": "0",
+	//        "ipoing": "0",
+	//        "ipoable": "0",
+	//        "storage": "0",
+	//        "isLegalMoney": false,
+	//        "trading": true,
+	//        "networkList": [
+	//            {
+	//                "network": "BSC",
+	//                "coin": "LINK",
+	//                "withdrawIntegerMultiple": "0.00000001",
+	//                "isDefault": false,
+	//                "depositEnable": true,
+	//                "withdrawEnable": true,
+	//                "depositDesc": "",
+	//                "withdrawDesc": "",
+	//                "specialTips": "",
+	//                "specialWithdrawTips": "The network you have selected is BSC. Please ensure that the withdrawal address supports the Binance Smart Chain network. You will lose your assets if the chosen platform does not support retrievals.",
+	//                "name": "BNB Smart Chain (BEP20)",
+	//                "resetAddressStatus": false,
+	//                "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+	//                "addressRule": "",
+	//                "memoRegex": "",
+	//                "withdrawFee": "0.012",
+	//                "withdrawMin": "0.024",
+	//                "withdrawMax": "9999999999.99999999",
+	//                "minConfirm": "15",
+	//                "unLockConfirm": "0",
+	//                "sameAddress": false,
+	//                "estimatedArrivalTime": "5",
+	//                "busy": false,
+	//                "country": "AE,BINANCE_BAHRAIN_BSC"
+	//            },
+	//            {
+	//                "network": "BNB",
+	//                "coin": "LINK",
+	//                "withdrawIntegerMultiple": "0.00000001",
+	//                "isDefault": false,
+	//                "depositEnable": true,
+	//                "withdrawEnable": true,
+	//                "depositDesc": "",
+	//                "withdrawDesc": "",
+	//                "specialTips": "Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.",
+	//                "specialWithdrawTips": "",
+	//                "name": "BNB Beacon Chain (BEP2)",
+	//                "resetAddressStatus": false,
+	//                "addressRegex": "^(bnb1)[0-9a-z]{38}$",
+	//                "addressRule": "",
+	//                "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
+	//                "withdrawFee": "0.003",
+	//                "withdrawMin": "0.01",
+	//                "withdrawMax": "10000000000",
+	//                "minConfirm": "1",
+	//                "unLockConfirm": "0",
+	//                "sameAddress": true,
+	//                "estimatedArrivalTime": "5",
+	//                "busy": false,
+	//                "country": "AE,BINANCE_BAHRAIN_BSC"
+	//            },
+	//            {
+	//                "network": "ETH",
+	//                "coin": "LINK",
+	//                "withdrawIntegerMultiple": "0.00000001",
+	//                "isDefault": true,
+	//                "depositEnable": true,
+	//                "withdrawEnable": true,
+	//                "depositDesc": "",
+	//                "withdrawDesc": "",
+	//                "name": "Ethereum (ERC20)",
+	//                "resetAddressStatus": false,
+	//                "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+	//                "addressRule": "",
+	//                "memoRegex": "",
+	//                "withdrawFee": "0.55",
+	//                "withdrawMin": "1.1",
+	//                "withdrawMax": "10000000000",
+	//                "minConfirm": "12",
+	//                "unLockConfirm": "0",
+	//                "sameAddress": false,
+	//                "estimatedArrivalTime": "5",
+	//                "busy": false,
+	//                "country": "AE,BINANCE_BAHRAIN_BSC"
+	//            }
+	//        ]
+	//    }
+	//
+	//     some coins (e.g. ETH, BIGTIME, SONIC, etc) return extra fields under network entry
+	//
+	//                "specialTips": "",
+	//                "specialWithdrawTips": "",
+	//                "withdrawInternalMin": "0",
+	//                "contractAddressUrl": "https://etherscan.io/address/",
+	//                "contractAddress": "0x64bc2ca1be492be7185faa2c8835d9b824c8a194"
+	//
+	var entry any = rawCurrency
+	var id any = this.SafeString(entry, "coin")
+	var name any = this.SafeString(entry, "name")
+	var code any = this.SafeCurrencyCode(id)
+	var isFiat any = this.SafeBool(entry, "isLegalMoney")
+	var networkList any = this.SafeList(entry, "networkList", []any{})
+	var fees any = map[string]any{}
+	var fee any = nil
+	var networks any = map[string]any{}
+	var isETF any = false
+	for j := 0; IsLessThan(j, GetArrayLength(networkList)); j++ {
+		var networkItem any = GetValue(networkList, j)
+		var network any = this.SafeString(networkItem, "network")
+		var networkCode any = this.NetworkIdToCode(network, code)
+		isETF = (IsEqual(network, "ETF")) // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
+		// const name = this.safeString (networkItem, 'name');
+		var withdrawFee any = this.SafeNumber(networkItem, "withdrawFee")
+		var depositEnable any = this.SafeBool(networkItem, "depositEnable")
+		var withdrawEnable any = this.SafeBool(networkItem, "withdrawEnable")
+		AddElementToObject(fees, network, withdrawFee)
+		var isDefault any = this.SafeBool(networkItem, "isDefault")
+		if IsTrue(IsTrue(isDefault) || IsTrue((IsEqual(fee, nil)))) {
+			fee = withdrawFee
+		}
+		// todo: default networks in "setMarkets" overload
+		// if (isDefault) {
+		//     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
+		// }
+		var withdrawPrecision any = this.OmitZero(this.SafeString2(networkItem, "withdrawIntegerMultiple", "withdrawInternalMin"))
+		// zero values happen only on fiat or leveraged(ETF) tokens: https://t.me/binance_api_english/393075
+		if IsTrue(IsTrue(IsEqual(withdrawPrecision, nil)) && IsTrue(isFiat)) {
+			withdrawPrecision = this.SafeString(this.Options, "defaultFiatWithdrawPrecision")
+		}
+		AddElementToObject(networks, networkCode, map[string]any{
+			"info":      networkItem,
+			"id":        network,
+			"network":   networkCode,
+			"active":    nil,
+			"deposit":   depositEnable,
+			"withdraw":  withdrawEnable,
+			"fee":       withdrawFee,
+			"precision": this.ParseNumber(withdrawPrecision),
+			"limits": map[string]any{
+				"withdraw": map[string]any{
+					"min": this.SafeNumber(networkItem, "withdrawMin"),
+					"max": this.SafeNumber(networkItem, "withdrawMax"),
+				},
+				"deposit": map[string]any{
+					"min": this.SafeNumber(networkItem, "depositDust"),
+					"max": nil,
+				},
+			},
+		})
+	}
+	var typeVar any = nil
+	if IsTrue(isETF) {
+		typeVar = "other"
+	} else if IsTrue(isFiat) {
+		typeVar = "fiat"
+	} else {
+		typeVar = "crypto"
+	}
+	var trading any = this.SafeBool(entry, "trading")
+	return this.SafeCurrencyStructure(map[string]any{
+		"id":        id,
+		"name":      name,
+		"code":      code,
+		"type":      typeVar,
+		"precision": nil,
+		"info":      entry,
+		"active":    trading,
+		"deposit":   nil,
+		"withdraw":  nil,
+		"networks":  networks,
+		"fee":       nil,
+		"fees":      fees,
+		"limits":    nil,
+	})
 }
 
 /**

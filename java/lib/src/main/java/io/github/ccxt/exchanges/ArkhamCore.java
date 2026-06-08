@@ -494,7 +494,7 @@ public class ArkhamCore extends ArkhamApi
                 {
                     Object chain = Helpers.GetValue(chains, j);
                     Object networkId = this.safeString(chain, "symbol");
-                    Object network = this.networkIdToCode(networkId);
+                    Object network = this.networkIdToCode(networkId, code);
                     Helpers.addElementToObject(networks, network, new java.util.HashMap<String, Object>() {{
         put( "info", chain );
         put( "id", networkId );
@@ -1993,7 +1993,7 @@ final Object finalArkmFeePaid = arkmFeePaid;
             }
             final Object finalNetworkCode = networkCode;
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "chain", ArkhamCore.this.networkCodeToId(finalNetworkCode) );
+                put( "chain", ArkhamCore.this.networkCodeToId(finalNetworkCode, code) );
             }};
             Object response = (this.v1PrivateGetAccountDepositAddresses(this.extend(request, parameters))).join();
             //
@@ -2144,7 +2144,7 @@ final Object finalArkmFeePaid = arkmFeePaid;
             put( "txid", ArkhamCore.this.safeString(transaction, "transactionHash") );
             put( "type", null );
             put( "currency", code );
-            put( "network", ArkhamCore.this.networkIdToCode(ArkhamCore.this.safeString(transaction, "chain")) );
+            put( "network", ArkhamCore.this.networkIdToCode(ArkhamCore.this.safeString(transaction, "chain"), code) );
             put( "amount", ArkhamCore.this.safeNumber(transaction, "amount") );
             put( "status", finalStatus );
             put( "timestamp", timestamp );

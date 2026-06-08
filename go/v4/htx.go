@@ -179,7 +179,7 @@ func (this *HtxCore) Describe() any {
 			},
 			"www": "https://www.huobi.com",
 			"referral": map[string]any{
-				"url":      "https://www.htx.com.vc/invite/en-us/1h?invite_code=6rmm2223",
+				"url":      "https://www.htx.com/invite/en-us/1h?invite_code=6rmm2223",
 				"discount": 0.15,
 			},
 			"doc":  []any{"https://huobiapi.github.io/docs/spot/v1/en/", "https://huobiapi.github.io/docs/dm/v1/en/", "https://huobiapi.github.io/docs/coin_margined_swap/v1/en/", "https://huobiapi.github.io/docs/usdt_swap/v1/en/", "https://www.huobi.com/en-us/opend/newApiPages/"},
@@ -3702,7 +3702,7 @@ func (this *HtxCore) ParseCurrency(rawCurrency any) any {
 		var title any = this.SafeString2(chainEntry, "baseChain", "displayName") // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
 		AddElementToObject(GetValue(GetValue(this.Options, "networkChainIdsByNames"), code), title, uniqueChainId)
 		AddElementToObject(GetValue(this.Options, "networkNamesByChainIds"), uniqueChainId, title)
-		var networkCode any = this.NetworkIdToCode(uniqueChainId)
+		var networkCode any = this.NetworkIdToCode(uniqueChainId, code)
 		AddElementToObject(networks, networkCode, map[string]any{
 			"info":    chainEntry,
 			"id":      uniqueChainId,
@@ -3764,7 +3764,7 @@ func (this *HtxCore) NetworkIdToCode(optionalArgs ...any) any {
 		panic(ExchangeError(Add(this.Id, " networkIdToCode() - markets need to be loaded at first")))
 	}
 	var networkTitle any = this.SafeValue(GetValue(this.Options, "networkNamesByChainIds"), networkId, networkId)
-	return this.Exchange.NetworkIdToCode(networkTitle)
+	return this.Exchange.NetworkIdToCode(networkTitle, currencyCode)
 }
 func (this *HtxCore) NetworkCodeToId(networkCode any, optionalArgs ...any) any {
 	currencyCode := GetArg(optionalArgs, 0, nil)
@@ -3781,7 +3781,7 @@ func (this *HtxCore) NetworkCodeToId(networkCode any, optionalArgs ...any) any {
 	if IsTrue(InOp(uniqueNetworkIds, networkCode)) {
 		return GetValue(uniqueNetworkIds, networkCode)
 	} else {
-		var networkTitle any = this.Exchange.NetworkCodeToId(networkCode)
+		var networkTitle any = this.Exchange.NetworkCodeToId(networkCode, currencyCode)
 		return this.SafeValue(uniqueNetworkIds, networkTitle, networkTitle)
 	}
 }
@@ -7238,7 +7238,7 @@ func (this *HtxCore) ParseDepositAddress(depositAddress any, optionalArgs ...any
 		"currency": code,
 		"address":  address,
 		"tag":      tag,
-		"network":  this.NetworkIdToCode(networkId),
+		"network":  this.NetworkIdToCode(networkId, code),
 		"note":     note,
 		"info":     depositAddress,
 	}
@@ -7618,7 +7618,7 @@ func (this *HtxCore) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"txid":        txHash,
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-		"network":     this.NetworkIdToCode(networkId),
+		"network":     this.NetworkIdToCode(networkId, code),
 		"address":     this.SafeString(transaction, "address"),
 		"addressTo":   nil,
 		"addressFrom": nil,
@@ -10292,12 +10292,13 @@ func (this *HtxCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var chains any = this.SafeValue(fee, "chains", []any{})
+	var code any = this.SafeString(currency, "code")
 	var result any = this.DepositWithdrawFee(fee)
 	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
 		var chainEntry any = GetValue(chains, j)
 		var networkId any = this.SafeString(chainEntry, "chain")
 		var withdrawFeeType any = this.SafeString(chainEntry, "withdrawFeeType")
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var withdrawFee any = nil
 		var withdrawResult any = nil
 		if IsTrue(IsEqual(withdrawFeeType, "fixed")) {
@@ -10444,8 +10445,8 @@ func (this *HtxCore) FetchLiquidations(symbol any, optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes93858 := (<-this.LoadMarkets())
-		PanicOnError(retRes93858)
+		retRes93868 := (<-this.LoadMarkets())
+		PanicOnError(retRes93868)
 		var market any = this.Market(symbol)
 		var tradeType any = this.SafeInteger(params, "trade_type", 0)
 		var request any = map[string]any{
@@ -10572,8 +10573,8 @@ func (this *HtxCore) ClosePosition(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes94898 := (<-this.LoadMarkets())
-		PanicOnError(retRes94898)
+		retRes94908 := (<-this.LoadMarkets())
+		PanicOnError(retRes94908)
 		var market any = this.Market(symbol)
 		var clientOrderId any = this.SafeString(params, "clientOrderId")
 		if !IsTrue(GetValue(market, "contract")) {
@@ -10651,8 +10652,8 @@ func (this *HtxCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes95438 := (<-this.LoadMarkets())
-		PanicOnError(retRes95438)
+		retRes95448 := (<-this.LoadMarkets())
+		PanicOnError(retRes95448)
 		var posMode any = Ternary(IsTrue(hedged), "dual_side", "single_side")
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -10713,8 +10714,8 @@ func (this *HtxCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes96088 := (<-this.LoadMarkets())
-		PanicOnError(retRes96088)
+		retRes96098 := (<-this.LoadMarkets())
+		PanicOnError(retRes96098)
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {

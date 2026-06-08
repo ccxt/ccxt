@@ -996,7 +996,8 @@ class cryptocom(ccxt.async_support.cryptocom):
             self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, messageHash)
         messageHashRequest = self.safe_string(message, 'id')
-        client.resolve(self.balance, messageHashRequest)
+        if messageHashRequest is not None:
+            client.resolve(self.balance, messageHashRequest)
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """

@@ -2485,7 +2485,7 @@ export default class tokocrypto extends Exchange {
             request['addressTag'] = tag;
         }
         const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
-        const networkId = this.networkCodeToId (networkCode);
+        const networkId = this.networkCodeToId (networkCode, code);
         if (networkId !== undefined) {
             request['network'] = networkId.toUpperCase ();
         }

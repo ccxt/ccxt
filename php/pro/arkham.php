@@ -317,7 +317,7 @@ class arkham extends \ccxt\async\arkham {
     }
 
     public function handle_delta($bookside, $delta) {
-        $bidAsk = $this->parse_bid_ask($delta, 'price', 'size');
+        $bidAsk = $this->parse_order_book_bid_ask($delta, 'price', 'size');
         $bookside->storeArray ($bidAsk);
     }
 

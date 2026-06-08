@@ -629,7 +629,7 @@ export default class coinsph extends Exchange {
         for (let j = 0; j < networkList.length; j++) {
             const networkItem = networkList[j];
             const network = this.safeString(networkItem, 'network');
-            const networkCode = this.networkIdToCode(network);
+            const networkCode = this.networkIdToCode(network, code);
             networks[networkCode] = {
                 'info': networkItem,
                 'id': network,

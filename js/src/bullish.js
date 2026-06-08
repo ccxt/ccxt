@@ -2100,7 +2100,7 @@ export default class bullish extends Exchange {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['network'] = this.networkCodeToId(networkCode);
+            request['network'] = this.networkCodeToId(networkCode, code);
         }
         else {
             throw new ArgumentsRequired(this.id + ' withdraw() requires a network parameter');
@@ -2174,7 +2174,7 @@ export default class bullish extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(network),
+            'network': this.networkIdToCode(network, code),
             'addressFrom': sourceAddress,
             'address': address,
             'addressTo': address,
@@ -2371,7 +2371,7 @@ export default class bullish extends Exchange {
                 for (let i = 0; i < safeResponse.length; i++) {
                     const entry = this.safeDict(safeResponse, i, {});
                     const networkId = this.safeString(entry, 'network');
-                    const networkCode = this.networkIdToCode(networkId);
+                    const networkCode = this.networkIdToCode(networkId, code);
                     if (network === networkCode) {
                         data = entry;
                         break;
@@ -2387,10 +2387,11 @@ export default class bullish extends Exchange {
     parseDepositAddress(depositAddress, currency = undefined) {
         const id = this.safeString(depositAddress, 'symbol');
         const network = this.safeString(depositAddress, 'network');
+        const code = this.safeCurrencyCode(id, currency);
         return {
             'info': depositAddress,
-            'currency': this.safeCurrencyCode(id, currency),
-            'network': this.networkIdToCode(network),
+            'currency': code,
+            'network': this.networkIdToCode(network, code),
             'address': this.safeString(depositAddress, 'address'),
             'tag': undefined,
         };

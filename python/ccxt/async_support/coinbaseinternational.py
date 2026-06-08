@@ -1156,13 +1156,14 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         addressFrom = self.safe_string_n(transaction, ['from_address', 'from_cb_account', self.safe_string_n(fromPorfolio, ['id', 'uuid', 'name']), 'from_counterparty_id'])
         toPorfolio = self.safe_dict(transaction, 'from_portfolio', {})
         addressTo = self.safe_string_n(transaction, ['to_address', 'to_cb_account', self.safe_string_n(toPorfolio, ['id', 'uuid', 'name']), 'to_counterparty_id'])
+        code = self.safe_string(currency, 'code')
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'transfer_uuid'),
             'txid': self.safe_string(transaction, 'transaction_uuid'),
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
-            'network': self.network_id_to_code(self.safe_string(transaction, 'network_name')),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'network_name'), code),
             'address': None,  # TODO check if withdraw or deposit and populate
             'addressTo': addressTo,
             'addressFrom': addressFrom,

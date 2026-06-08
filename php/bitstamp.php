@@ -1547,10 +1547,11 @@ class bitstamp extends Exchange {
 
     public function parse_deposit_withdraw_fee($fee, $currency = null) {
         $result = $this->deposit_withdraw_fee($fee);
+        $code = $this->safe_string($currency, 'code');
         for ($j = 0; $j < count($fee); $j++) {
             $networkEntry = $fee[$j];
             $networkId = $this->safe_string($networkEntry, 'network');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $withdrawFee = $this->safe_number($networkEntry, 'fee');
             $result['withdraw'] = array(
                 'fee' => $withdrawFee,

@@ -507,7 +507,7 @@ export default class hollaex extends Exchange {
         for (let j = 0; j < networkIds.length; j++) {
             const networkId = networkIds[j];
             const networkEntry = this.safeDict(rawNetworks, networkId);
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,

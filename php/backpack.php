@@ -538,7 +538,7 @@ class backpack extends Exchange {
             $network = $networks[$j];
             $networkId = $this->safe_string($network, 'blockchain');
             $networkIdLowerCase = $this->safe_string_lower($network, 'blockchain');
-            $networkCode = $this->network_id_to_code($networkIdLowerCase);
+            $networkCode = $this->network_id_to_code($networkIdLowerCase, $code);
             $parsedNetworks[$networkCode] = array(
                 'id' => $networkId,
                 'network' => $networkCode,
@@ -1471,7 +1471,7 @@ class backpack extends Exchange {
             $request['clientId'] = $tag; // memo or $tag
         }
         list($networkCode, $query) = $this->handle_network_code_and_params($params);
-        $networkId = $this->network_code_to_id($networkCode);
+        $networkId = $this->network_code_to_id($networkCode, $currency['code']);
         if ($networkId === null) {
             throw new BadRequest($this->id . ' withdraw() requires a network parameter');
         }
@@ -1561,7 +1561,7 @@ class backpack extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($transaction, 'createdAt'));
         $amount = $this->safe_number($transaction, 'quantity');
         $networkId = $this->safe_string_lower_2($transaction, 'source', 'blockchain');
-        $network = $this->network_id_to_code($networkId);
+        $network = $this->network_id_to_code($networkId, $code);
         $addressTo = $this->safe_string($transaction, 'toAddress');
         $addressFrom = $this->safe_string($transaction, 'fromAddress');
         $tag = $this->safe_string($transaction, 'platformMemo');
@@ -1631,7 +1631,7 @@ class backpack extends Exchange {
         }
         $currency = $this->currency($code);
         $request = array(
-            'blockchain' => $this->network_code_to_id($networkCode),
+            'blockchain' => $this->network_code_to_id($networkCode, $currency['code']),
         );
         $response = $this->privateGetWapiV1CapitalDepositAddress ($this->extend($request, $params));
         return $this->parse_deposit_address($response, $currency);

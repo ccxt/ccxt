@@ -2500,14 +2500,14 @@ class bitfinex extends bitfinex$1["default"] {
             tag = this.safeString(data, 3);
             type = 'withdrawal';
             const networkId = this.safeString(data, 2);
-            network = this.networkIdToCode(networkId.toUpperCase()); // withdraw returns in lowercase
+            network = this.networkIdToCode(networkId.toUpperCase(), code); // withdraw returns in lowercase
         }
         else if (transactionLength === 22) {
             id = this.safeString(transaction, 0);
             const currencyId = this.safeString(transaction, 1);
             code = this.safeCurrencyCode(currencyId, currency);
             const networkId = this.safeString(transaction, 2);
-            network = this.networkIdToCode(networkId);
+            network = this.networkIdToCode(networkId, code);
             timestamp = this.safeInteger(transaction, 5);
             updated = this.safeInteger(transaction, 6);
             status = this.parseTransactionStatus(this.safeString(transaction, 9));

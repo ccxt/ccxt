@@ -626,7 +626,7 @@ class bitvavo extends bitvavo$1["default"] {
         // btw, absolutely all of them have 1 network atm
         for (let j = 0; j < networksArray.length; j++) {
             const networkId = networksArray[j];
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             networks[networkCode] = {
                 'info': rawCurrency,
                 'id': networkId,

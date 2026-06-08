@@ -716,7 +716,7 @@ public partial class gate : ccxt.gate
             object bidAsk = getValue(bidAsks, i);
             if (isTrue(((bidAsk is IList<object>) || (bidAsk.GetType().IsGenericType && bidAsk.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
-                (bookSide as IOrderBookSide).storeArray(this.parseBidAsk(bidAsk));
+                (bookSide as IOrderBookSide).storeArray(this.parseOrderBookBidAsk(bidAsk));
             } else
             {
                 object price = this.safeFloat(bidAsk, "p");

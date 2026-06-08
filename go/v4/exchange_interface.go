@@ -191,6 +191,8 @@ type ICoreExchange interface {
 	SafeValue2(obj any, key any, key2 any, defaultValue ...any) any
 	GroupBy(trades any, key2 any) map[string]any
 	DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...any) any
+	NetworkCodeToId(networkCode any, optionalArgs ...any) any
+	NetworkIdToCode(optionalArgs ...any) any
 	SafeValueN(obj any, keys any, defaultValue ...any) any
 	SafeDict2(dictionary any, key1 any, key2 any, optionalArgs ...any) any
 	SafeString2(obj any, key any, key2 any, defaultValue ...any) any
@@ -364,7 +366,7 @@ type IDerivedExchange interface {
 	ParseMarketLeverageTiers(info any, optionalArgs ...any) any
 	FetchMarginModes(optionalArgs ...any) <-chan any
 	FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
-	ParseBidsAsks(bidasks any, optionalArgs ...any) any
+	ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) any
 	FetchLeverages(optionalArgs ...any) <-chan any
 	SafeMarket(optionalArgs ...any) any
 	FetchTickers(optionalArgs ...any) <-chan any

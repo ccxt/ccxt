@@ -2839,7 +2839,7 @@ func (this *TokocryptoCore) Withdraw(code any, amount any, address any, optional
 		networkCodequeryVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode := GetValue(networkCodequeryVariable, 0)
 		query := GetValue(networkCodequeryVariable, 1)
-		var networkId any = this.NetworkCodeToId(networkCode)
+		var networkId any = this.NetworkCodeToId(networkCode, code)
 		if IsTrue(!IsEqual(networkId, nil)) {
 			AddElementToObject(request, "network", ToUpper(networkId))
 		}

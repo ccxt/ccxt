@@ -2888,13 +2888,13 @@ func (this *BitfinexCore) ParseTransaction(transaction any, optionalArgs ...any)
 		tag = this.SafeString(data, 3)
 		typeVar = "withdrawal"
 		var networkId any = this.SafeString(data, 2)
-		network = this.NetworkIdToCode(ToUpper(networkId)) // withdraw returns in lowercase
+		network = this.NetworkIdToCode(ToUpper(networkId), code) // withdraw returns in lowercase
 	} else if IsTrue(IsEqual(transactionLength, 22)) {
 		id = this.SafeString(transaction, 0)
 		var currencyId any = this.SafeString(transaction, 1)
 		code = this.SafeCurrencyCode(currencyId, currency)
 		var networkId any = this.SafeString(transaction, 2)
-		network = this.NetworkIdToCode(networkId)
+		network = this.NetworkIdToCode(networkId, code)
 		timestamp = this.SafeInteger(transaction, 5)
 		updated = this.SafeInteger(transaction, 6)
 		status = this.ParseTransactionStatus(this.SafeString(transaction, 9))

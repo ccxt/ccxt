@@ -3469,7 +3469,7 @@ public class PoloniexCore extends PoloniexApi
                     {
                         Object networkId = Helpers.GetValue(childChains, j);
                         networkId = Helpers.replace((String)networkId, (String)code, (String)"");
-                        Object networkCode = this.networkIdToCode(networkId);
+                        Object networkCode = this.networkIdToCode(networkId, Helpers.GetValue(currency, "code"));
                         Object networkInfo = this.safeValue(response, networkId);
                         Object networkObject = new java.util.HashMap<String, Object>() {{}};
                         Object withdrawFee = this.safeNumber(networkInfo, "withdrawalFee");
@@ -3510,7 +3510,7 @@ public class PoloniexCore extends PoloniexApi
         }};
         Helpers.addElementToObject(depositWithdrawFee, "withdraw", withdrawResult);
         Helpers.addElementToObject(depositWithdrawFee, "deposit", depositResult);
-        Object networkCode = this.networkIdToCode(networkId);
+        Object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
         Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFee, "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "withdraw", withdrawResult );
     put( "deposit", depositResult );

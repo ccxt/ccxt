@@ -1172,13 +1172,14 @@ export default class coinbase extends Exchange {
         const toObject = this.safeDict (transaction, 'to');
         const addressTo = this.safeString (toObject, 'address');
         const networkId = this.safeString (network, 'network_name');
+        const code = this.safeCurrencyCode (currencyId, currency);
         return {
             'info': transaction,
             'id': id,
             'txid': this.safeString (network, 'hash', id),
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
-            'network': this.networkIdToCode (networkId),
+            'network': this.networkIdToCode (networkId, code),
             'address': addressTo,
             'addressTo': addressTo,
             'addressFrom': undefined,
@@ -1187,7 +1188,7 @@ export default class coinbase extends Exchange {
             'tagFrom': undefined,
             'type': type,
             'amount': this.parseNumber (amountStringAbs),
-            'currency': this.safeCurrencyCode (currencyId, currency),
+            'currency': code,
             'status': status,
             'updated': this.parse8601 (this.safeString (transaction, 'updated_at')),
             'fee': {
@@ -3695,7 +3696,7 @@ export default class coinbase extends Exchange {
         //                     }
         //                 },
         //                 "side": "BUY",
-        //                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+        //                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4314",
         //                 "status": "FILLED",
         //                 "time_in_force": "IMMEDIATE_OR_CANCEL",
         //                 "created_time": "2023-01-18T01:37:37.975552Z",

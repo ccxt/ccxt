@@ -874,25 +874,6 @@ public partial class kraken : Exchange
         });
     }
 
-    public virtual object addKeyInArrayItems(object obj, object keyName)
-    {
-        object result = new List<object>() {};
-        object keys = new List<object>(((IDictionary<string,object>)obj).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
-        {
-            object key = getValue(keys, i);
-            object item = getValue(obj, key);
-            if (isTrue(isEqual(item, null)))
-            {
-                continue;
-            }
-            object itemWithKey = this.extend(new Dictionary<string, object>() {}, item);
-            ((IDictionary<string,object>)itemWithKey)[(string)keyName] = key;
-            ((IList<object>)result).Add(itemWithKey);
-        }
-        return result;
-    }
-
     public override object safeCurrencyCode(object currencyId, object currency = null)
     {
         if (isTrue(isEqual(currencyId, null)))
@@ -978,7 +959,7 @@ public partial class kraken : Exchange
         };
     }
 
-    public override object parseBidAsk(object bidask, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    public override object parseOrderBookBidAsk(object bidask, object priceKey = null, object amountKey = null, object countOrIdKey = null)
     {
         priceKey ??= 0;
         amountKey ??= 1;

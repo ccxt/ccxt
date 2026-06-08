@@ -3108,7 +3108,7 @@ public partial class bydfi : Exchange
             { "txid", this.safeString(transaction, "txId") },
             { "type", null },
             { "currency", code },
-            { "network", this.networkIdToCode(this.safeString(transaction, "network")) },
+            { "network", this.networkIdToCode(this.safeString(transaction, "network"), code) },
             { "amount", this.safeNumber(transaction, "amount") },
             { "status", this.parseTransactionStatus(rawStatus) },
             { "timestamp", timestamp },

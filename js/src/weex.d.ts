@@ -42,6 +42,7 @@ export default class weex extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name weex#fetchMarkets

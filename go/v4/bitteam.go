@@ -2671,7 +2671,7 @@ func (this *BitteamCore) ParseTransaction(transaction any, optionalArgs ...any) 
 		"txid":        txid,
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-		"network":     this.NetworkIdToCode(networkId),
+		"network":     this.NetworkIdToCode(networkId, code),
 		"addressFrom": addressFrom,
 		"address":     nil,
 		"addressTo":   addressTo,
