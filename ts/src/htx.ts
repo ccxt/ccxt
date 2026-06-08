@@ -774,8 +774,6 @@ export default class htx extends Exchange {
                             'linear-swap-api/v1/swap_balance_valuation': 1,
                             'linear-swap-api/v1/swap_account_info': 1,
                             'linear-swap-api/v1/swap_cross_account_info': 1,
-                            'linear-swap-api/v1/swap_position_info': 1,
-                            'linear-swap-api/v1/swap_cross_position_info': 1,
                             'linear-swap-api/v1/swap_account_position_info': 1,
                             'linear-swap-api/v1/swap_cross_account_position_info': 1,
                             'linear-swap-api/v1/swap_sub_auth': 1,
@@ -5424,10 +5422,16 @@ export default class htx extends Exchange {
         const id = this.safeStringN (order, [ 'algo_id', 'id', 'order_id_str', 'order-id', 'order_id' ]);
         let side = this.safeString2 (order, 'direction', 'side');
         const contractCode = this.safeString (order, 'contract_code');
-        const isLinearOrder = (contractCode !== undefined) && market['linear'];
+        const isLinearOrder = (contractCode !== undefined) && (market !== undefined) && market['linear'];
         let type = undefined;
         if (isLinearOrder) {
-            type = this.safeStringN (order, [ 'tp_type', 'sl_type', 'type' ]);
+            type = this.safeString (order, 'type');
+            if ((type === undefined) || (type === 'tp') || (type === 'sl') || (type === 'tpsl')) {
+                type = this.safeStringN (order, [ 'tp_type', 'sl_type' ]);
+            }
+            if (type === '0') {
+                type = undefined;
+            }
         } else {
             type = this.safeString (order, 'order_price_type');
             const rawType = this.safeString (order, 'type');
