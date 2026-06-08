@@ -1163,7 +1163,7 @@ export default class mexc extends Exchange {
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
             const networkId = this.safeString2 (chain, 'netWork', 'network');
-            const network = this.networkIdToCode (networkId);
+            const network = this.networkIdToCode (networkId, code);
             networks[network] = {
                 'info': chain,
                 'id': networkId,
@@ -4757,11 +4757,12 @@ export default class mexc extends Exchange {
         //
         const address = this.safeString (depositAddress, 'address');
         const currencyId = this.safeString (depositAddress, 'coin');
+        const code = this.safeCurrencyCode (currencyId, currency);
         const networkId = this.safeString (depositAddress, 'netWork');
         return {
             'info': depositAddress,
-            'currency': this.safeCurrencyCode (currencyId, currency),
-            'network': this.networkIdToCode (networkId, currencyId),
+            'currency': code,
+            'network': this.networkIdToCode (networkId, code),
             'address': address,
             'tag': this.safeString (depositAddress, 'memo'),
         } as DepositAddress;
@@ -5082,12 +5083,12 @@ export default class mexc extends Exchange {
         if (currencyWithNetwork !== undefined) {
             currencyId = currencyWithNetwork.split ('-')[0];
         }
+        const code = this.safeCurrencyCode (currencyId, currency);
         let network = undefined;
         const rawNetwork = this.safeString (transaction, 'network');
         if (rawNetwork !== undefined) {
-            network = this.networkIdToCode (rawNetwork);
+            network = this.networkIdToCode (rawNetwork, code);
         }
-        const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         let amountString = this.safeString (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
