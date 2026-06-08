@@ -1015,7 +1015,7 @@ public class MexcCore extends MexcApi
         {
             Object chain = Helpers.GetValue(chains, j);
             Object networkId = this.safeString2(chain, "netWork", "network");
-            Object network = this.networkIdToCode(networkId);
+            Object network = this.networkIdToCode(networkId, code);
             Helpers.addElementToObject(networks, network, new java.util.HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
@@ -5010,11 +5010,12 @@ final Object finalRiskIncrVol = riskIncrVol;
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object address = this.safeString(depositAddress, "address");
         Object currencyId = this.safeString(depositAddress, "coin");
+        Object code = this.safeCurrencyCode(currencyId, currency);
         Object networkId = this.safeString(depositAddress, "netWork");
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", MexcCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "network", MexcCore.this.networkIdToCode(networkId, currencyId) );
+            put( "currency", code );
+            put( "network", MexcCore.this.networkIdToCode(networkId, code) );
             put( "address", address );
             put( "tag", MexcCore.this.safeString(depositAddress, "memo") );
         }};
@@ -5389,13 +5390,13 @@ final Object finalRiskIncrVol = riskIncrVol;
         {
             currencyId = Helpers.GetValue(Helpers.split(currencyWithNetwork, "-"), 0);
         }
+        Object code = this.safeCurrencyCode(currencyId, currency);
         Object network = null;
         Object rawNetwork = this.safeString(transaction, "network");
         if (Helpers.isTrue(!Helpers.isEqual(rawNetwork, null)))
         {
-            network = this.networkIdToCode(rawNetwork);
+            network = this.networkIdToCode(rawNetwork, code);
         }
-        Object code = this.safeCurrencyCode(currencyId, currency);
         Object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         Object amountString = this.safeString(transaction, "amount");
         Object address = this.safeString(transaction, "address");

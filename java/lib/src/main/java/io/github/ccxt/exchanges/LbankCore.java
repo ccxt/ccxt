@@ -464,7 +464,7 @@ public class LbankCore extends LbankApi
             {
                 networkId = this.safeString(networkEntry, "assetCode"); // use type as fallback if networkId is not present
             }
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             final Object finalNetworkId = networkId;
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", finalNetworkId );
@@ -2587,7 +2587,7 @@ public class LbankCore extends LbankApi
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "currency", code );
-                put( "network", LbankCore.this.networkIdToCode(LbankCore.this.safeString(result, "netWork")) );
+                put( "network", LbankCore.this.networkIdToCode(LbankCore.this.safeString(result, "netWork"), code) );
                 put( "address", address );
                 put( "tag", tag );
             }};
@@ -2809,7 +2809,7 @@ public class LbankCore extends LbankApi
             put( "txid", txid );
             put( "timestamp", timestamp );
             put( "datetime", LbankCore.this.iso8601(timestamp) );
-            put( "network", LbankCore.this.networkIdToCode(LbankCore.this.safeString(transaction, "networkName")) );
+            put( "network", LbankCore.this.networkIdToCode(LbankCore.this.safeString(transaction, "networkName"), code) );
             put( "address", address );
             put( "addressTo", finalAddressTo );
             put( "addressFrom", finalAddressFrom );
@@ -3054,7 +3054,7 @@ public class LbankCore extends LbankApi
                     Object fee = this.safeNumber(networkEntry, "withdrawFee");
                     if (Helpers.isTrue(!Helpers.isEqual(fee, null)))
                     {
-                        Object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"));
+                        Object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
                         Helpers.addElementToObject(Helpers.GetValue(withdrawFees, code), networkCode, fee);
                     }
                 }
@@ -3117,7 +3117,7 @@ public class LbankCore extends LbankApi
                 {
                     Object currencyId = this.safeString(item, "assetCode");
                     Object codeInner = this.safeCurrencyCode(currencyId);
-                    Object network = this.networkIdToCode(this.safeString(item, "chain"));
+                    Object network = this.networkIdToCode(this.safeString(item, "chain"), codeInner);
                     if (Helpers.isTrue(Helpers.isEqual(network, null)))
                     {
                         network = codeInner;
@@ -3309,7 +3309,7 @@ public class LbankCore extends LbankApi
                             Object resultCodeInfo = Helpers.GetValue(Helpers.GetValue(result, code), "info");
                             ((java.util.List<Object>)resultCodeInfo).add(fee);
                         }
-                        Object networkCode = this.networkIdToCode(this.safeString(fee, "chain"));
+                        Object networkCode = this.networkIdToCode(this.safeString(fee, "chain"), code);
                         if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
                         {
                             final Object finalWithdrawFee = withdrawFee;
@@ -3368,11 +3368,12 @@ public class LbankCore extends LbankApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object result = this.depositWithdrawFee(fee);
+        Object code = this.safeString(currency, "code");
         Object networkList = this.safeValue(fee, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkList)); j++)
         {
             Object networkEntry = Helpers.GetValue(networkList, j);
-            Object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"));
+            Object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
             Object withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
             Object isDefault = this.safeValue(networkEntry, "isDefault");
             if (Helpers.isTrue(!Helpers.isEqual(withdrawFee, null)))

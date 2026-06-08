@@ -4211,7 +4211,7 @@ public class PhemexCore extends PhemexApi
             put( "txid", txid );
             put( "timestamp", timestamp );
             put( "datetime", PhemexCore.this.iso8601(timestamp) );
-            put( "network", PhemexCore.this.networkIdToCode(networkId) );
+            put( "network", PhemexCore.this.networkIdToCode(networkId, code) );
             put( "address", address );
             put( "addressTo", address );
             put( "addressFrom", null );
@@ -5726,7 +5726,7 @@ final Object finalI = i;
             Object networkId = null;
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
-                networkId = this.networkCodeToId(networkCode);
+                networkId = this.networkCodeToId(networkCode, code);
             }
             Object stableCoins = this.safeValue(this.options, "stableCoins");
             if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
