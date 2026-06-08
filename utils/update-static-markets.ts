@@ -3,7 +3,7 @@
 //
 //   tsx ./utils/update-static-markets.ts binance BTC/USDT ETH/USDT
 //                                        binance USDC LTC
-//                                        binance ALL
+//                                        binance --all
 //
 
 import fs from 'fs';
@@ -61,7 +61,7 @@ function die (errorMessage = undefined, code = 1) {
     const defaultMsg = 'Please specify correct format, e.g.: \n\n' +
                        '    npm run static-updater binance BTC/USDT ETH/USDT\n' +
                        '               ...                 USDC LTC\n' +
-                       '               ...                 ALL\n'
+                       '               ...                 --all\n'
     console.log (errorMessage || defaultMsg);
     process.exit(code);
 }
@@ -139,7 +139,7 @@ async function update_markets_and_currencies () {
             if (!argument) {
                 die ();
             }
-            if (argument === 'ALL') {
+            if (argument === '--all') {
                 // reserved keyword to update all markets and currencies
                 updateMarketsOrCurrencies (exchange, 'markets', exchange.markets);
                 updateMarketsOrCurrencies (exchange, 'currencies', currencies);
