@@ -659,7 +659,7 @@ class ndax(Exchange, ImplicitAPI):
             else:
                 newNonce = self.safe_integer(level, 0)
                 nonce = max(nonce, newNonce)
-            bidask = self.parse_bid_ask(level, priceKey, amountKey)
+            bidask = self.parse_order_book_bid_ask(level, priceKey, amountKey)
             levelSide = self.safe_integer(level, 9)
             side = asksKey if levelSide else bidsKey
             resultSide = result[side]

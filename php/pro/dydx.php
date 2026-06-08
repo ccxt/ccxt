@@ -263,7 +263,7 @@ class dydx extends \ccxt\async\dydx {
             $amount = $this->safe_float($delta, 1);
             $bookside->store ($price, $amount);
         } else {
-            $bidAsk = $this->parse_bid_ask($delta, 'price', 'size');
+            $bidAsk = $this->parse_order_book_bid_ask($delta, 'price', 'size');
             $bookside->storeArray ($bidAsk);
         }
     }

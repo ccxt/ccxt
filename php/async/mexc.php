@@ -1562,7 +1562,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+    public function parse_order_book_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $countKey = 2;
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);

@@ -128,7 +128,7 @@ class coinone(ccxt.async_support.coinone):
         client.resolve(orderbook, messageHash)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta, 'price', 'qty')
+        bidAsk = self.parse_order_book_bid_ask(delta, 'price', 'qty')
         bookside.storeArray(bidAsk)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:

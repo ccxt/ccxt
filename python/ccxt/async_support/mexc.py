@@ -1536,7 +1536,7 @@ class mexc(Exchange, ImplicitAPI):
             orderbook['nonce'] = self.safe_integer(data, 'version')
         return orderbook
 
-    def parse_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+    def parse_order_book_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         countKey = 2
         price = self.safe_number(bidask, priceKey)
         amount = self.safe_number(bidask, amountKey)

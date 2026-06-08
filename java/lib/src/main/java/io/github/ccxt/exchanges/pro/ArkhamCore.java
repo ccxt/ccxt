@@ -360,7 +360,7 @@ public class ArkhamCore extends io.github.ccxt.exchanges.Arkham
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = this.parseBidAsk(delta, "price", "size");
+        Object bidAsk = this.parseOrderBookBidAsk(delta, "price", "size");
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 

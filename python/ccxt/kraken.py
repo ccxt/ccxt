@@ -978,7 +978,7 @@ class kraken(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def parse_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+    def parse_order_book_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         price = self.safe_number(bidask, priceKey)
         amount = self.safe_number(bidask, amountKey)
         timestamp = self.safe_integer(bidask, 2)

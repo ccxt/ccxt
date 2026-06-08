@@ -676,8 +676,8 @@ class upbit(Exchange, ImplicitAPI):
             timestamp = self.safe_integer(orderbook, 'timestamp')
             result[symbol] = {
                 'symbol': symbol,
-                'bids': self.sort_by(self.parse_bids_asks(orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, True),
-                'asks': self.sort_by(self.parse_bids_asks(orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
+                'bids': self.sort_by(self.parse_order_book_bids_asks(orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, True),
+                'asks': self.sort_by(self.parse_order_book_bids_asks(orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
                 'nonce': None,
