@@ -2558,7 +2558,7 @@ class woo extends Exchange {
             list($networkCode, $params) = $this->handle_network_code_and_params($params);
             $request = array(
                 'token' => $currency['id'],
-                'network' => $this->network_code_to_id($networkCode),
+                'network' => $this->network_code_to_id($networkCode, $currency['code']),
             );
             $response = Async\await($this->v3PrivateGetAssetWalletDeposit ($this->extend($request, $params)));
             //
@@ -2613,7 +2613,7 @@ class woo extends Exchange {
             $networkCode = null;
             list($networkCode, $params) = $this->handle_network_code_and_params($params);
             if ($networkCode !== null) {
-                $request['network'] = $this->network_code_to_id($networkCode);
+                $request['network'] = $this->network_code_to_id($networkCode, $currency['code']);
             }
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -2878,7 +2878,7 @@ class woo extends Exchange {
             'comment' => null,
             'internal' => null,
             'fee' => $fee,
-            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network')),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network'), $code),
         );
     }
 
@@ -3112,7 +3112,7 @@ class woo extends Exchange {
             }
             $params = $this->omit($params, 'network');
             $request['token'] = $currency['id'];
-            $request['network'] = $this->network_code_to_id($network);
+            $request['network'] = $this->network_code_to_id($network, $currency['code']);
             $response = Async\await($this->v3PrivatePostAssetWalletWithdraw ($this->extend($request, $params)));
             //
             //     {
