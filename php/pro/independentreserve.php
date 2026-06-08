@@ -253,7 +253,7 @@ class independentreserve extends \ccxt\async\independentreserve {
     }
 
     public function handle_delta($bookside, $delta) {
-        $bidAsk = $this->parse_bid_ask($delta, 'Price', 'Volume');
+        $bidAsk = $this->parse_order_book_bid_ask($delta, 'Price', 'Volume');
         $bookside->storeArray ($bidAsk);
     }
 
