@@ -551,7 +551,7 @@ func (this *BackpackCore) ParseCurrency(rawCurrency any) any {
 		var network any = GetValue(networks, j)
 		var networkId any = this.SafeString(network, "blockchain")
 		var networkIdLowerCase any = this.SafeStringLower(network, "blockchain")
-		var networkCode any = this.NetworkIdToCode(networkIdLowerCase)
+		var networkCode any = this.NetworkIdToCode(networkIdLowerCase, code)
 		AddElementToObject(parsedNetworks, networkCode, map[string]any{
 			"id":      networkId,
 			"network": networkCode,
@@ -1753,7 +1753,7 @@ func (this *BackpackCore) Withdraw(code any, amount any, address any, optionalAr
 		networkCodequeryVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode := GetValue(networkCodequeryVariable, 0)
 		query := GetValue(networkCodequeryVariable, 1)
-		var networkId any = this.NetworkCodeToId(networkCode)
+		var networkId any = this.NetworkCodeToId(networkCode, GetValue(currency, "code"))
 		if IsTrue(IsEqual(networkId, nil)) {
 			panic(BadRequest(Add(this.Id, " withdraw() requires a network parameter")))
 		}
@@ -1851,7 +1851,7 @@ func (this *BackpackCore) ParseTransaction(transaction any, optionalArgs ...any)
 	var timestamp any = this.Parse8601(this.SafeString(transaction, "createdAt"))
 	var amount any = this.SafeNumber(transaction, "quantity")
 	var networkId any = this.SafeStringLower2(transaction, "source", "blockchain")
-	var network any = this.NetworkIdToCode(networkId)
+	var network any = this.NetworkIdToCode(networkId, code)
 	var addressTo any = this.SafeString(transaction, "toAddress")
 	var addressFrom any = this.SafeString(transaction, "fromAddress")
 	var tag any = this.SafeString(transaction, "platformMemo")
@@ -1930,7 +1930,7 @@ func (this *BackpackCore) FetchDepositAddress(code any, optionalArgs ...any) <-c
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
-			"blockchain": this.NetworkCodeToId(networkCode),
+			"blockchain": this.NetworkCodeToId(networkCode, GetValue(currency, "code")),
 		}
 
 		response := (<-this.PrivateGetWapiV1CapitalDepositAddress(this.Extend(request, params)))
