@@ -1,16 +1,28 @@
 import { source } from '@/lib/source';
-import { createFromSource } from 'fumadocs-core/search/server';
-import { i18n } from '@/lib/i18n';
+import { createI18nSearchAPI } from 'fumadocs-core/search/server';
+import { i18n, oramaLanguage } from '@/lib/i18n';
 
-export const revalidate = false;
+// Server-side (dynamic) search: the per-locale Orama indexes are built once in server
+// memory and queried per request, so the browser never downloads the index. A static
+// i18n export would ship every locale's partition to every visitor (penalising the
+// English majority with the translated guides they don't use); dynamic search avoids
+// that entirely and lets each locale be searched independently.
+export const dynamic = 'force-dynamic';
 
-// The static Orama index is downloaded by the browser, so keep it small.
-// CCXT's reference content is ~7.5MB of markdown which produces a ~110MB index if
-// fully indexed. Strategy:
-//   - full text for the prose guides (manual, pro-manual, faq, install, cli, ...)
-//   - headings only (method / exchange names stay searchable) for the huge
-//     auto-generated reference pages and changelog / market tables
-//   - title only for the 557 example pages (code, low search value)
+// Per-locale search index. Each locale becomes its own Orama partition so that, e.g.,
+// searching from /es queries the Spanish guides with a Spanish stemmer.
+//
+// The reference content (exchanges, examples, base-spec, changelog, market tables) is
+// English in every locale — only the hand-written guides are translated. Each locale is
+// its own partition, so anything indexed in a non-default locale is a full copy held in
+// memory. The ~7.8k per-exchange method headings are identical English in every language,
+// so replicating them ×7 would inflate the index for no benefit. We therefore trim by
+// locale:
+//   - default locale (en): full guides + method headings for exchanges + headings for the
+//     big reference tables + example titles  (the complete, method-level search)
+//   - other locales: the translated guides in full text + each exchange as a title-only
+//     entry (so you can still find an exchange by name while reading in your language).
+//     The method-level API reference stays fully searchable from the English locale.
 const HEADINGS_ONLY = new Set([
   '/docs/base-spec',
   '/docs/changelog',
@@ -20,38 +32,60 @@ const HEADINGS_ONLY = new Set([
   '/docs/stats',
 ]);
 
-// Index only the default locale, as a single (non-i18n) index. The reference content
-// is English across every locale (only the hand-written guides are translated), so one
-// English index serves all of them — and the per-locale i18n search would otherwise
-// replicate the full English content into each of the 7 locales, blowing the static
-// index past V8's max string length.
-const searchSource = {
-  ...source,
-  _i18n: undefined,
-  getPages: () => source.getPages(i18n.defaultLanguage),
-} as typeof source;
+// strip the locale prefix so the URL checks below work for every locale
+// (/es/docs/exchanges/binance -> /docs/exchanges/binance)
+function canonicalUrl(url: string, locale: string): string {
+  const prefix = `/${locale}`;
+  return locale !== i18n.defaultLanguage && url.startsWith(`${prefix}/`)
+    ? url.slice(prefix.length)
+    : url;
+}
 
-export const { staticGET: GET } = createFromSource(searchSource, {
-  language: 'english',
-  async buildIndex(page) {
-    const data = page.data as any;
-    const raw = data.structuredData;
-    const sd = (typeof raw === 'function' ? await raw() : raw) ?? { headings: [], contents: [] };
-    const url = page.url;
+async function buildIndexes() {
+  // shape matches fumadocs' advanced index entry; structuredData stays loose because we
+  // trim it (headings-only / empty) for the heavy reference pages.
+  const indexes: any[] = [];
 
-    let structuredData = sd;
-    if (url.startsWith('/docs/examples/')) {
-      structuredData = { headings: [], contents: [] };
-    } else if (url.startsWith('/docs/exchanges/') || HEADINGS_ONLY.has(url)) {
-      structuredData = { headings: sd.headings ?? [], contents: [] };
+  for (const locale of i18n.languages) {
+    const isDefault = locale === i18n.defaultLanguage;
+    for (const page of source.getPages(locale)) {
+      const data = page.data as any;
+      const url = canonicalUrl(page.url, locale);
+      const isExample = url.startsWith('/docs/examples/');
+      const isExchange = url.startsWith('/docs/exchanges/');
+      const isHeadingsOnly = HEADINGS_ONLY.has(url);
+
+      // non-default locales: drop the example pages and the big English reference tables
+      // entirely (they stay searchable from the en locale).
+      if (!isDefault && (isExample || isHeadingsOnly)) continue;
+
+      const raw = data.structuredData;
+      const sd = (typeof raw === 'function' ? await raw() : raw) ?? { headings: [], contents: [] };
+
+      let structuredData = sd;
+      if (isExample || (!isDefault && isExchange)) {
+        structuredData = { headings: [], contents: [] }; // title-only
+      } else if (isExchange || isHeadingsOnly) {
+        structuredData = { headings: sd.headings ?? [], contents: [] }; // headings-only
+      }
+
+      indexes.push({
+        title: data.title,
+        description: data.description,
+        url: page.url,
+        id: page.url,
+        structuredData,
+        locale,
+      });
     }
+  }
 
-    return {
-      title: data.title,
-      description: data.description,
-      url,
-      id: url,
-      structuredData,
-    };
-  },
+  return indexes;
+}
+
+export const { GET } = createI18nSearchAPI('advanced', {
+  i18n,
+  // pin the stemmer per locale explicitly (ko/zh have no Orama stemmer -> english)
+  localeMap: oramaLanguage,
+  indexes: buildIndexes,
 });

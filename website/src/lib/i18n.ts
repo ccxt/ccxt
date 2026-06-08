@@ -19,3 +19,17 @@ export const localeNames: Record<string, string> = {
   fr: 'Français',
   de: 'Deutsch',
 };
+
+// Orama stemmer per locale, used by the search route to build each locale's index
+// (localeMap). Orama ships stemmers for the Latin-script langs but has none for
+// Korean/Chinese (the CJK tokenizer needs an uninstalled package), so ko/zh fall back
+// to english.
+export const oramaLanguage: Record<string, string> = {
+  en: 'english',
+  es: 'spanish',
+  pt: 'portuguese',
+  fr: 'french',
+  de: 'german',
+  ko: 'english',
+  zh: 'english',
+};

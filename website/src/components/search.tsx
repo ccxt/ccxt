@@ -11,25 +11,17 @@ import {
   type SharedProps,
 } from 'fumadocs-ui/components/dialog/search';
 import { useDocsSearch } from 'fumadocs-core/search/client';
-import { create } from '@orama/orama';
 import { useI18n } from 'fumadocs-ui/contexts/i18n';
 
-function initOrama() {
-  return create({
-    schema: { _: 'string' },
-    // https://docs.orama.com/docs/orama-js/supported-languages
-    language: 'english',
-  });
-}
-
 export default function DefaultSearchDialog(props: SharedProps) {
-  const { locale } = useI18n(); // (optional) for i18n
+  const { locale } = useI18n();
   const { search, setSearch, query } = useDocsSearch({
-    type: 'static',
-    // basePath-aware: under /v2 the index lives at /v2/api/search (Next doesn't
-    // prepend basePath to fetch()). Empty for the root build.
-    from: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/api/search`,
-    initOrama,
+    // Server-side search: send the query (+ locale) to /api/search and let the server
+    // query the right per-locale Orama index. No index is downloaded to the browser.
+    type: 'fetch',
+    // basePath-aware: under /v2 the route lives at /v2/api/search (Next doesn't prepend
+    // basePath to fetch()). Empty for the root build.
+    api: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/api/search`,
     locale,
   });
 
