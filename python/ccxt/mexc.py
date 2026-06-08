@@ -334,6 +334,7 @@ class mexc(Exchange, ImplicitAPI):
                             'position/funding_records': 2,
                             'position/position_mode': 2,
                             'order/list/open_orders/{symbol}': 2,
+                            'order/list/open_orders': 2,
                             'order/list/history_orders': 2,
                             'order/list/order_deals/v3': 2,
                             'order/external/{symbol}/{external_oid}': 2,
@@ -1157,54 +1158,53 @@ class mexc(Exchange, ImplicitAPI):
         #     ]
         #   }
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currency = response[i]
-            id = self.safe_string(currency, 'coin')
-            code = self.safe_currency_code(id)
-            networks: dict = {}
-            chains = self.safe_value(currency, 'networkList', [])
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                networkId = self.safe_string_2(chain, 'netWork', 'network')
-                network = self.network_id_to_code(networkId)
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'active': None,
-                    'deposit': self.safe_bool(chain, 'depositEnable', False),
-                    'withdraw': self.safe_bool(chain, 'withdrawEnable', False),
-                    'fee': self.safe_number(chain, 'withdrawFee'),
-                    'precision': None,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_string(chain, 'withdrawMin'),
-                            'max': self.safe_string(chain, 'withdrawMax'),
-                        },
-                    },
-                    'contract': self.safe_string(chain, 'contract'),
-                }
-            result[code] = self.safe_currency_structure({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'name': self.safe_string(currency, 'name'),
+        return self.parse_currencies(response)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'coin')
+        code = self.safe_currency_code(id)
+        networks: dict = {}
+        chains = self.safe_value(rawCurrency, 'networkList', [])
+        for j in range(0, len(chains)):
+            chain = chains[j]
+            networkId = self.safe_string_2(chain, 'netWork', 'network')
+            network = self.network_id_to_code(networkId)
+            networks[network] = {
+                'info': chain,
+                'id': networkId,
+                'network': network,
                 'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
+                'deposit': self.safe_bool(chain, 'depositEnable', False),
+                'withdraw': self.safe_bool(chain, 'withdrawEnable', False),
+                'fee': self.safe_number(chain, 'withdrawFee'),
                 'precision': None,
                 'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
+                    'withdraw': {
+                        'min': self.safe_string(chain, 'withdrawMin'),
+                        'max': self.safe_string(chain, 'withdrawMax'),
                     },
                 },
-                'type': 'crypto',
-                'networks': networks,
-            })
-        return result
+                'contract': self.safe_string(chain, 'contract'),
+            }
+        return self.safe_currency_structure({
+            'info': rawCurrency,
+            'id': id,
+            'code': code,
+            'name': self.safe_string(rawCurrency, 'name'),
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': None,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'type': 'crypto',
+            'networks': networks,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -2995,8 +2995,11 @@ class mexc(Exchange, ImplicitAPI):
             #
             return self.parse_orders(response, market, since, limit)
         else:
-            # TO_DO: another possible way is through: open_orders/{symbol}, but have same ratelimits, and less granularity, i think historical orders are more convenient, supports more params(however, theoretically, open-orders endpoint might be sligthly fast)
-            return self.fetch_orders_by_state(2, symbol, since, limit, params)
+            if limit is None:
+                request['page_size'] = 100  # max
+            swapResponse = self.contractPrivateGetOrderListOpenOrders(self.extend(request, params))
+            data = self.safe_list(swapResponse, 'data', [])
+            return self.parse_orders(data, market, since, limit, params)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -3746,7 +3749,7 @@ class mexc(Exchange, ImplicitAPI):
             for i in range(0, len(wallet)):
                 entry = wallet[i]
                 marketId = self.safe_string(entry, 'symbol')
-                symbol = self.safe_symbol(marketId, None)
+                symbol = self.safe_symbol(marketId)
                 base = self.safe_value(entry, 'baseAsset', {})
                 quote = self.safe_value(entry, 'quoteAsset', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'asset'))
@@ -4517,14 +4520,17 @@ class mexc(Exchange, ImplicitAPI):
             ]
         while(Precise.string_lt(floor, maxVol)):
             cap = Precise.string_add(floor, riskIncrVol)
+            minNotional = self.parse_number(floor)
+            mainMarginRate = self.parse_number(maintenanceMarginRate)
+            maxLev = self.parse_number(Precise.string_div('1', initialMarginRate))
             tiers.append({
                 'tier': self.parse_number(Precise.string_div(cap, riskIncrVol)),
                 'symbol': self.safe_symbol(marketId, market, None, 'contract'),
                 'currency': self.safe_currency_code(quoteId),
-                'minNotional': self.parse_number(floor),
+                'minNotional': minNotional,
                 'maxNotional': self.parse_number(cap),
-                'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
-                'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRate)),
+                'maintenanceMarginRate': mainMarginRate,
+                'maxLeverage': maxLev,
                 'info': info,
             })
             initialMarginRate = Precise.string_add(initialMarginRate, riskIncrImr)
@@ -5121,9 +5127,9 @@ class mexc(Exchange, ImplicitAPI):
 
         https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
         https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
-        https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history    :param str code: unified currency code of the currency transferred
+        https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history
 
- @param code
+        :param str [code]: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of  transfers structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -5825,8 +5831,8 @@ class mexc(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['spot']:
             raise BadSymbol(self.id + ' setMarginMode() supports contract markets only')
-        marginMode = marginMode.lower()
-        if marginMode != 'isolated' and marginMode != 'cross':
+        marginModeLower = marginMode.lower()
+        if marginModeLower != 'isolated' and marginModeLower != 'cross':
             raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
         leverage = self.safe_integer(params, 'leverage')
         if leverage is None:
@@ -5834,7 +5840,7 @@ class mexc(Exchange, ImplicitAPI):
         direction = self.safe_string_lower_2(params, 'direction', 'positionId')
         request: dict = {
             'leverage': leverage,
-            'openType': 1 if (marginMode == 'isolated') else 2,
+            'openType': 1 if (marginModeLower == 'isolated') else 2,
         }
         if symbol is not None:
             request['symbol'] = market['id']
@@ -5930,7 +5936,7 @@ class mexc(Exchange, ImplicitAPI):
         success = self.safe_bool(response, 'success', False)  # v1
         if success is True:
             return None
-        responseCode = self.safe_string(response, 'code', None)
+        responseCode = self.safe_string(response, 'code')
         if (responseCode is not None) and (responseCode != '200') and (responseCode != '0'):
             feedback = self.id + ' ' + body
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)

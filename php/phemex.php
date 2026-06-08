@@ -726,6 +726,7 @@ class phemex extends Exchange {
             // "1.0"
             $contractSize = $this->parse_number($contractSizeString);
         }
+        $isLinear = !$inverse;
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote . ':' . $settle,
@@ -743,7 +744,7 @@ class phemex extends Exchange {
             'option' => false,
             'active' => $status === 'Listed',
             'contract' => true,
-            'linear' => !$inverse,
+            'linear' => $isLinear,
             'inverse' => $inverse,
             'taker' => $this->parse_number($this->from_en($takerFeeRateEr, $ratioScale)),
             'maker' => $this->parse_number($this->from_en($makerFeeRateEr, $ratioScale)),
@@ -1138,50 +1139,49 @@ class phemex extends Exchange {
         //     }
         $data = $this->safe_value($response, 'data', array());
         $currencies = $this->safe_value($data, 'currencies', array());
-        $result = array();
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currency = $currencies[$i];
-            $id = $this->safe_string($currency, 'currency');
-            $code = $this->safe_currency_code($id);
-            $valueScaleString = $this->safe_string($currency, 'valueScale');
-            $valueScale = intval($valueScaleString);
-            $minValueEv = $this->safe_string($currency, 'minValueEv');
-            $maxValueEv = $this->safe_string($currency, 'maxValueEv');
-            $minAmount = null;
-            $maxAmount = null;
-            $precision = null;
-            if ($valueScale !== null) {
-                $precisionString = $this->parse_precision($valueScaleString);
-                $precision = $this->parse_number($precisionString);
-                $minAmount = $this->parse_number(Precise::string_mul($minValueEv, $precisionString));
-                $maxAmount = $this->parse_number(Precise::string_mul($maxValueEv, $precisionString));
-            }
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $id,
-                'info' => $currency,
-                'code' => $code,
-                'name' => $this->safe_string($currency, 'name'),
-                'active' => $this->safe_string($currency, 'status') === 'Listed',
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
-                'precision' => $precision,
-                'limits' => array(
-                    'amount' => array(
-                        'min' => $minAmount,
-                        'max' => $maxAmount,
-                    ),
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'valueScale' => $valueScale,
-                'networks' => null,
-                'type' => 'crypto',
-            ));
+        return $this->parse_currencies($currencies);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'currency');
+        $code = $this->safe_currency_code($id);
+        $valueScaleString = $this->safe_string($rawCurrency, 'valueScale');
+        $valueScale = intval($valueScaleString);
+        $minValueEv = $this->safe_string($rawCurrency, 'minValueEv');
+        $maxValueEv = $this->safe_string($rawCurrency, 'maxValueEv');
+        $minAmount = null;
+        $maxAmount = null;
+        $precision = null;
+        if ($valueScale !== null) {
+            $precisionString = $this->parse_precision($valueScaleString);
+            $precision = $this->parse_number($precisionString);
+            $minAmount = $this->parse_number(Precise::string_mul($minValueEv, $precisionString));
+            $maxAmount = $this->parse_number(Precise::string_mul($maxValueEv, $precisionString));
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'info' => $rawCurrency,
+            'code' => $code,
+            'name' => $this->safe_string($rawCurrency, 'name'),
+            'active' => $this->safe_string($rawCurrency, 'status') === 'Listed',
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => $precision,
+            'limits' => array(
+                'amount' => array(
+                    'min' => $minAmount,
+                    'max' => $maxAmount,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'valueScale' => $valueScale,
+            'networks' => null,
+            'type' => 'crypto',
+        ));
     }
 
     public function custom_parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1, ?array $market = null) {
@@ -4620,11 +4620,12 @@ class phemex extends Exchange {
         for ($i = 0; $i < count($riskLimits); $i++) {
             $tier = $riskLimits[$i];
             $maxNotional = $this->safe_integer($tier, 'limit');
+            $minNotionalResponse = $minNotional; // java req
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
                 'symbol' => $this->safe_symbol($marketId, $market),
                 'currency' => $market['settle'],
-                'minNotional' => $minNotional,
+                'minNotional' => $minNotionalResponse,
                 'maxNotional' => $maxNotional,
                 'maintenanceMarginRate' => $this->safe_string($tier, 'maintenanceMargin'),
                 'maxLeverage' => null,

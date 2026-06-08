@@ -465,7 +465,6 @@ class bitrue(Exchange, ImplicitAPI):
                     'XML': 'Stellar Lumens',
                     'XYM': 'Symbol',
                     'XTZ': 'Tezos',
-                    'theta': 'theta',
                     'THETA': 'THETA',
                     'VECHAIN': 'VeChain',
                     'WANCHAIN': 'Wanchain',
@@ -616,6 +615,7 @@ class bitrue(Exchange, ImplicitAPI):
                     "You don't have permission.": PermissionDenied,  # {"msg":"You don't have permission.","success":false}
                     'Market is closed.': ExchangeNotAvailable,  # {"code":-1013,"msg":"Market is closed."}
                     'Too many requests. Please try again later.': DDoSProtection,  # {"msg":"Too many requests. Please try again later.","success":false}
+                    'quantity less then minQty': InvalidOrder,  # {"code":-1111,"msg":"quantity less then minQty.","data":null}
                     '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable,  # 'Internal error; unable to process your request. Please try again.'
                     '-1002': AuthenticationError,  # 'You are not authorized to execute self request.'
@@ -982,6 +982,7 @@ class bitrue(Exchange, ImplicitAPI):
         minCost = self.safe_number(amountFilter, 'minVal')
         if minCost is None:
             minCost = self.safe_number(market, 'minOrderMoney')
+        isSpot = (type == 'spot')
         return {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -993,7 +994,7 @@ class bitrue(Exchange, ImplicitAPI):
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': (type == 'spot'),
+            'spot': isSpot,
             'margin': False,
             'swap': isContract,
             'future': False,

@@ -31,7 +31,7 @@ async function main () {
         'coinbasepro': 'BTC/USD',
         'okx': 'BTC/USDT',
         'okex': 'BTC/USDT',
-        'gateio': 'BTC/USDT',
+        'gate': 'BTC/USDT',
     };
 
     await Promise.all (Object.keys (streams).map ((exchangeId) => eachRun (exchangeId, streams[exchangeId])));

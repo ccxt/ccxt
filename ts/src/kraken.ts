@@ -842,65 +842,65 @@ export default class kraken extends Exchange {
         //         },
         //     }
         //
-        const currencies = this.safeValue (response, 'result', {});
-        const ids = Object.keys (currencies);
-        const result: Dict = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const currency = currencies[id];
-            // todo: will need to rethink the fees
-            // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
+        const currencies = this.safeDict (response, 'result', {});
+        const enhancedArray = this.addKeyInArrayItems (currencies, '_coin_id');
+        return this.parseCurrencies (enhancedArray);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        // todo: will need to rethink the fees
+        // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
+        // to add support for multiple withdrawal/deposit methods and
+        // differentiated fees for each particular method
+        //
+        // Notes about abbreviations:
+        // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
+        // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
+        //
+        const id = this.safeString (rawCurrency, '_coin_id');
+        let code = this.safeCurrencyCode (id);
+        // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
+        if (id.indexOf ('.') < 0) {
+            const altName = this.safeString (rawCurrency, 'altname');
+            // handle cases like below:
             //
-            // Notes about abbreviations:
-            // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
-            // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
-            //
-            let code = this.safeCurrencyCode (id);
-            // the below can not be reliable done in `safeCurrencyCode`, so we have to do it here
-            if (id.indexOf ('.') < 0) {
-                const altName = this.safeString (currency, 'altname');
-                // handle cases like below:
-                //
-                //  id   | altname
-                // ---------------
-                // XXBT  |  XBT
-                // ZUSD  |  USD
-                if (id !== altName && (id.startsWith ('X') || id.startsWith ('Z'))) {
-                    code = this.safeCurrencyCode (altName);
-                    // also, add map in commonCurrencies:
-                    this.commonCurrencies[id] = code;
-                } else {
-                    code = this.safeCurrencyCode (id);
-                }
+            //  id   | altname
+            // ---------------
+            // XXBT  |  XBT
+            // ZUSD  |  USD
+            if (id !== altName && (id.startsWith ('X') || id.startsWith ('Z'))) {
+                code = this.safeCurrencyCode (altName);
+                // also, add map in commonCurrencies:
+                this.commonCurrencies[id] = code;
+            } else {
+                code = this.safeCurrencyCode (id);
             }
-            const isFiat = code.indexOf ('.HOLD') >= 0;
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': this.safeString (currency, 'altname'),
-                'active': this.safeString (currency, 'status') === 'enabled',
-                'type': isFiat ? 'fiat' : 'crypto',
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals'))),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': {},
-            });
         }
-        return result;
+        const isFiat = code.indexOf ('.HOLD') >= 0;
+        rawCurrency = this.omit (rawCurrency, '_coin_id');
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'name': this.safeString (rawCurrency, 'altname'),
+            'active': this.safeString (rawCurrency, 'status') === 'enabled',
+            'type': isFiat ? 'fiat' : 'crypto',
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'decimals'))),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': {},
+        });
     }
 
     safeCurrencyCode (currencyId: Str, currency: Currency = undefined): Str {
@@ -1751,10 +1751,11 @@ export default class kraken extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
+            const parsedAmount = this.amountToPrecision (market['symbol'], amount);
             const req: Dict = {
                 'type': side,
                 'ordertype': type,
-                'volume': this.amountToPrecision (market['symbol'], amount),
+                'volume': parsedAmount,
             };
             const orderRequest = this.orderRequest ('createOrders', marketId, type, req, amount, price, orderParams);
             ordersRequests.push (orderRequest[0]);
@@ -2085,12 +2086,12 @@ export default class kraken extends Exchange {
                 stopLossPrice = triggerPrice;
             }
         }
-        let finalType = this.parseOrderType (rawType);
+        let typeParsed = this.parseOrderType (rawType);
         // unlike from endpoints which provide eg: "take-profit-limit"
         // for "space-delimited" orders we dont have market/limit suffixes, their format is
         // eg: `stop loss > limit 123`, so we need to parse them manually
-        if (this.inArray (finalType, [ 'stop loss', 'take profit' ])) {
-            finalType = (price === undefined) ? 'market' : 'limit';
+        if (this.inArray (typeParsed, [ 'stop loss', 'take profit' ])) {
+            typeParsed = (price === undefined) ? 'market' : 'limit';
         }
         const amendId = this.safeString (order, 'amend_id');
         if (amendId !== undefined) {
@@ -2105,7 +2106,7 @@ export default class kraken extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': finalType,
+            'type': typeParsed,
             'timeInForce': undefined,
             'postOnly': isPostOnly,
             'side': side,
@@ -3522,16 +3523,16 @@ export default class kraken extends Exchange {
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        fromAccount = this.parseAccountType (fromAccount);
-        toAccount = this.parseAccountType (toAccount);
+        const fromAccountParsed = this.parseAccountType (fromAccount);
+        const toAccountParsed = this.parseAccountType (toAccount);
         const request: Dict = {
             'amount': this.currencyToPrecision (code, amount),
-            'from': fromAccount,
-            'to': toAccount,
+            'from': fromAccountParsed,
+            'to': toAccountParsed,
             'asset': currency['id'],
         };
-        if (fromAccount !== 'Spot Wallet') {
-            throw new BadRequest (this.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount + '. Use krakenfutures instead to transfer from the futures account.');
+        if (fromAccountParsed !== 'Spot Wallet') {
+            throw new BadRequest (this.id + ' transfer cannot transfer from ' + fromAccountParsed + ' to ' + toAccountParsed + '. Use krakenfutures instead to transfer from the futures account.');
         }
         const response = await this.privatePostWalletTransfer (this.extend (request, params));
         //
@@ -3546,8 +3547,8 @@ export default class kraken extends Exchange {
         const transfer = this.parseTransfer (response, currency);
         return this.extend (transfer, {
             'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
+            'fromAccount': fromAccountParsed,
+            'toAccount': toAccountParsed,
         });
     }
 

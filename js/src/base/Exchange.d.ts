@@ -431,11 +431,11 @@ export default class Exchange {
     lighterSignChangePubkey(signer: any, request: any): any[];
     describe(): any;
     safeBoolN(dictionaryOrList: any, keys: IndexType[], defaultValue?: boolean): boolean | undefined;
-    safeBool2(dictionary: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;
-    safeBool(dictionary: any, key: IndexType, defaultValue?: boolean): boolean | undefined;
+    safeBool2(dictionaryOrList: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;
+    safeBool(dictionaryOrList: any, key: IndexType, defaultValue?: boolean): boolean | undefined;
     safeDictN(dictionaryOrList: any, keys: IndexType[], defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
-    safeDict(dictionary: any, key: IndexType, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
-    safeDict2(dictionary: any, key1: IndexType, key2: string, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
+    safeDict(dictionaryOrList: any, key: IndexType, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
+    safeDict2(dictionaryOrList: any, key1: IndexType, key2: string, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
     safeListN(dictionaryOrList: any, keys: IndexType[], defaultValue?: any[]): any[] | undefined;
     isDictionary(value: any): boolean;
     safeList2(dictionaryOrList: any, key1: IndexType, key2: string, defaultValue?: any[]): any[] | undefined;
@@ -634,6 +634,7 @@ export default class Exchange {
     parsedFeeAndFees(container: any): Dictionary<any>[];
     parseFeeNumeric(fee: any): any;
     findNearestCeiling(arr: number[], providedValue: number): number;
+    addKeyInArrayItems(obj: any, keyName: any): any[];
     invertFlatStringDictionary(dict: any): {};
     stringToBase16(str: any): string;
     reduceFeesByCurrency(fees: any): any[];

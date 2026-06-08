@@ -852,74 +852,87 @@ export default class bitfinex extends Exchange {
             indexedNetworks[networkName] = networksList;
         }
         const ids = this.safeList(response, 0, []);
-        const result = {};
+        return this.parseCurrenciesCustom(ids, indexed, indexedNetworks);
+    }
+    parseCurrenciesCustom(ids, indexed, indexedNetworks) {
+        const allowedIds = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             if (id.endsWith('F0')) {
                 // we get a lot of F0 currencies, skip those
                 continue;
             }
-            const code = this.safeCurrencyCode(id);
-            const label = this.safeList(indexed['label'], id, []);
-            const name = this.safeString(label, 1);
-            const pool = this.safeList(indexed['pool'], id, []);
-            const rawType = this.safeString(pool, 1);
-            const isCryptoCoin = (rawType !== undefined) || (id in indexed['explorer']); // "hacky" solution
-            const type = isCryptoCoin ? 'crypto' : undefined;
-            const feeValues = this.safeList(indexed['fees'], id, []);
-            const fees = this.safeList(feeValues, 1, []);
-            const fee = this.safeNumber(fees, 1);
-            const undl = this.safeList(indexed['undl'], id, []);
-            const precision = this.safeString(this.options, 'defaultCurrencyPrecision', '8');
-            const networks = {};
-            const netwokIds = this.safeList(indexedNetworks, id, []);
-            for (let j = 0; j < netwokIds.length; j++) {
-                const networkId = netwokIds[j];
-                const network = this.networkIdToCode(networkId);
-                const dwStatuses = this.safeList(indexed['statuses'], networkId, []);
-                networks[network] = {
-                    'info': networkId,
-                    'id': networkId.toLowerCase(),
-                    'network': networkId,
-                    'active': undefined,
-                    'deposit': this.safeInteger(dwStatuses, 1) === 1,
-                    'withdraw': this.safeInteger(dwStatuses, 2) === 1,
-                    'fee': undefined,
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'info': [id, label, pool, feeValues, undl],
-                'type': type,
-                'name': name,
-                'active': true,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': fee,
-                'precision': this.parseNumber(precision),
+            allowedIds.push(id);
+        }
+        const result = {};
+        const arr = this.toArray(allowedIds);
+        for (let i = 0; i < arr.length; i++) {
+            const parsed = this.parseCurrencyCustom(arr[i], indexed, indexedNetworks);
+            const code = parsed['code'];
+            result[code] = parsed;
+        }
+        return result;
+    }
+    parseCurrencyCustom(id, indexed, indexedNetworks) {
+        const code = this.safeCurrencyCode(id);
+        const label = this.safeList(indexed['label'], id, []);
+        const name = this.safeString(label, 1);
+        const pool = this.safeList(indexed['pool'], id, []);
+        const rawType = this.safeString(pool, 1);
+        const isCryptoCoin = (rawType !== undefined) || (id in indexed['explorer']); // "hacky" solution
+        const type = isCryptoCoin ? 'crypto' : undefined;
+        const feeValues = this.safeList(indexed['fees'], id, []);
+        const fees = this.safeList(feeValues, 1, []);
+        const fee = this.safeNumber(fees, 1);
+        const undl = this.safeList(indexed['undl'], id, []);
+        const precision = this.safeString(this.options, 'defaultCurrencyPrecision', '8');
+        const networks = {};
+        const networkIds = this.safeList(indexedNetworks, id, []);
+        for (let j = 0; j < networkIds.length; j++) {
+            const networkId = networkIds[j];
+            const network = this.networkIdToCode(networkId, code);
+            const dwStatuses = this.safeList(indexed['statuses'], networkId, []);
+            networks[network] = {
+                'info': networkId,
+                'id': networkId.toLowerCase(),
+                'network': networkId,
+                'active': undefined,
+                'deposit': this.safeInteger(dwStatuses, 1) === 1,
+                'withdraw': this.safeInteger(dwStatuses, 2) === 1,
+                'fee': undefined,
+                'precision': undefined,
                 'limits': {
-                    'amount': {
+                    'withdraw': {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'withdraw': {
-                        'min': fee,
-                        'max': undefined,
-                    },
                 },
-                'networks': networks,
-                'margin': this.inArray(id, indexed['marginables']),
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'info': [id, label, pool, feeValues, undl],
+            'type': type,
+            'name': name,
+            'active': true,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': fee,
+            'precision': this.parseNumber(precision),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': fee,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+            'margin': this.inArray(id, indexed['marginables']),
+        });
     }
     /**
      * @method

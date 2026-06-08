@@ -1737,9 +1737,9 @@ class bingx extends Exchange {
             list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingRates', $firstMarket, $params, $subType);
             $response = null;
             if ($subType === 'inverse') {
-                $response = Async\await($this->cswapV1PublicGetMarketPremiumIndex ($this->extend($params)));
+                $response = Async\await($this->cswapV1PublicGetMarketPremiumIndex ($params));
             } else {
-                $response = Async\await($this->swapV2PublicGetQuotePremiumIndex ($this->extend($params)));
+                $response = Async\await($this->swapV2PublicGetQuotePremiumIndex ($params));
             }
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_funding_rates($data, $symbols);
@@ -5313,7 +5313,7 @@ class bingx extends Exchange {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
-            $recvWindow = $this->safe_integer(array($this, 'parse_params'), 'recvWindow', $defaultRecvWindow);
+            $recvWindow = $this->safe_integer($params, 'recvWindow', $defaultRecvWindow);
             $request = array(
                 'coin' => $currency['id'],
                 'offset' => 0,
@@ -6427,7 +6427,7 @@ class bingx extends Exchange {
              */
             Async\await($this->load_markets());
             $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
-            $recvWindow = $this->safe_integer(array($this, 'parse_params'), 'recvWindow', $defaultRecvWindow);
+            $recvWindow = $this->safe_integer($params, 'recvWindow', $defaultRecvWindow);
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('closeAllPositions', null, $params);
             $subType = null;

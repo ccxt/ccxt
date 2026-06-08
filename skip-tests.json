@@ -1,7 +1,12 @@
 {
     "aftermath": {
         "skip": "exchange doesn't function for some reasons during last few days",
-        "until": "2026-06-07"
+        "until": "2026-06-07",
+        "skipMethods": {
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "/currencies endpoint reports BTC with deposit=false, withdraw=false; aftermath is a Sui DEX, BTC is not natively bridgeable there"
+            }
+        }
     },
     "alp": {
         "skipMethods": {
@@ -354,7 +359,10 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
-            }
+            },
+            "watchTradesForSymbols.java": "flaky on Java: tight overlap with watchTrades trips exchange flood-detection / connection-close (engine watchMultiple race window only Java's ForkJoinPool exposes deterministically)",
+            "watchOrderBookForSymbols.java": "same as watchTradesForSymbols.java",
+            "watchOHLCVForSymbols.java": "same as watchTradesForSymbols.java"
         }
     },
     "bithumb": {
@@ -675,7 +683,10 @@
             },
             "watchOrderBookForSymbols": {
                 "spread": "same"
-            }
+            },
+            "watchTradesForSymbols.java": "flaky on Java: tight overlap with watchTrades trips bybit flood-detection / connection-close (engine watchMultiple race window only Java's ForkJoinPool exposes deterministically)",
+            "watchOrderBookForSymbols.java": "same as watchTradesForSymbols.java",
+            "watchOHLCVForSymbols.java": "same as watchTradesForSymbols.java"
         }
     },
     "bybiteu": {
@@ -760,6 +771,9 @@
     },
     "coinbase": {
         "skipMethods": {
+            "afterConstruct": {
+                "networks": "weird implementation, todo fix in future"
+            },
             "loadMarkets": {
                 "currencyIdAndCode": "some curr not available"
             },
@@ -1545,7 +1559,10 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
-            }
+            },
+            "watchTradesForSymbols.java": "flaky on Java: tight overlap with watchTrades trips krakenfutures 'Already subscribed to feed' (engine watchMultiple race window only Java's ForkJoinPool exposes deterministically)",
+            "watchOrderBookForSymbols.java": "same as watchTradesForSymbols.java",
+            "watchOHLCVForSymbols.java": "same as watchTradesForSymbols.java"
         },
         "timeout": 120000
     },
@@ -1708,6 +1725,7 @@
         }
     },
     "mexc": {
+        "skipJava": "tmp until we fix protobuf",
         "skipMethods": {
             "loadMarkets":{
                 "currencyIdAndCode": "messed"

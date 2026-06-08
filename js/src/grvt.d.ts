@@ -226,7 +226,7 @@ export default class grvt extends Exchange {
      */
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
-    loadAccountInfos(): Promise<void>;
+    loadAccountInfos(): Promise<boolean>;
     /**
      * @method
      * @name grvt#withdraw

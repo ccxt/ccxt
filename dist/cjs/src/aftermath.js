@@ -822,7 +822,8 @@ class aftermath extends aftermath$1["default"] {
         let account = undefined;
         [account, params] = this.handleOptionAndParams(params, 'createOrder', 'account');
         const order = this.parseCreateEditOrderArgs(undefined, symbol, type, side, amount, price, params);
-        const orders = await this.createOrders([order], { 'account': account });
+        const accountObj = { 'account': account };
+        const orders = await this.createOrders([order], accountObj);
         return orders[0];
     }
     /**
@@ -1181,10 +1182,14 @@ class aftermath extends aftermath$1["default"] {
         //     "collateral": 39.0
         // }
         //
-        return this.extend(this.parseTransaction(response, currency), {
-            'addressFrom': account,
-            'amount': amount,
-        });
+        const parsedTx = this.parseTransaction(response, currency);
+        parsedTx['addressFrom '] = account;
+        parsedTx['amount'] = amount;
+        return parsedTx;
+        // return this.extend (, {
+        //     'addressFrom': account,
+        //     'amount': amount,
+        // });
     }
     parseTransaction(transaction, currency = undefined) {
         return {

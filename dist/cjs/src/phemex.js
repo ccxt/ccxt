@@ -731,6 +731,7 @@ class phemex extends phemex$1["default"] {
             // "1.0"
             contractSize = this.parseNumber(contractSizeString);
         }
+        const isLinear = !inverse;
         return this.safeMarketStructure({
             'id': id,
             'symbol': base + '/' + quote + ':' + settle,
@@ -748,7 +749,7 @@ class phemex extends phemex$1["default"] {
             'option': false,
             'active': status === 'Listed',
             'contract': true,
-            'linear': !inverse,
+            'linear': isLinear,
             'inverse': inverse,
             'taker': this.parseNumber(this.fromEn(takerFeeRateEr, ratioScale)),
             'maker': this.parseNumber(this.fromEn(makerFeeRateEr, ratioScale)),
@@ -1143,50 +1144,48 @@ class phemex extends phemex$1["default"] {
         //     }
         const data = this.safeValue(response, 'data', {});
         const currencies = this.safeValue(data, 'currencies', []);
-        const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = this.safeString(currency, 'currency');
-            const code = this.safeCurrencyCode(id);
-            const valueScaleString = this.safeString(currency, 'valueScale');
-            const valueScale = parseInt(valueScaleString);
-            const minValueEv = this.safeString(currency, 'minValueEv');
-            const maxValueEv = this.safeString(currency, 'maxValueEv');
-            let minAmount = undefined;
-            let maxAmount = undefined;
-            let precision = undefined;
-            if (valueScale !== undefined) {
-                const precisionString = this.parsePrecision(valueScaleString);
-                precision = this.parseNumber(precisionString);
-                minAmount = this.parseNumber(Precise["default"].stringMul(minValueEv, precisionString));
-                maxAmount = this.parseNumber(Precise["default"].stringMul(maxValueEv, precisionString));
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'info': currency,
-                'code': code,
-                'name': this.safeString(currency, 'name'),
-                'active': this.safeString(currency, 'status') === 'Listed',
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': minAmount,
-                        'max': maxAmount,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'valueScale': valueScale,
-                'networks': undefined,
-                'type': 'crypto',
-            });
+        return this.parseCurrencies(currencies);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'currency');
+        const code = this.safeCurrencyCode(id);
+        const valueScaleString = this.safeString(rawCurrency, 'valueScale');
+        const valueScale = parseInt(valueScaleString);
+        const minValueEv = this.safeString(rawCurrency, 'minValueEv');
+        const maxValueEv = this.safeString(rawCurrency, 'maxValueEv');
+        let minAmount = undefined;
+        let maxAmount = undefined;
+        let precision = undefined;
+        if (valueScale !== undefined) {
+            const precisionString = this.parsePrecision(valueScaleString);
+            precision = this.parseNumber(precisionString);
+            minAmount = this.parseNumber(Precise["default"].stringMul(minValueEv, precisionString));
+            maxAmount = this.parseNumber(Precise["default"].stringMul(maxValueEv, precisionString));
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'info': rawCurrency,
+            'code': code,
+            'name': this.safeString(rawCurrency, 'name'),
+            'active': this.safeString(rawCurrency, 'status') === 'Listed',
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': minAmount,
+                    'max': maxAmount,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'valueScale': valueScale,
+            'networks': undefined,
+            'type': 'crypto',
+        });
     }
     customParseBidAsk(bidask, priceKey = 0, amountKey = 1, market = undefined) {
         if (market === undefined) {
@@ -4667,11 +4666,12 @@ class phemex extends phemex$1["default"] {
         for (let i = 0; i < riskLimits.length; i++) {
             const tier = riskLimits[i];
             const maxNotional = this.safeInteger(tier, 'limit');
+            const minNotionalResponse = minNotional; // java req
             tiers.push({
                 'tier': this.sum(i, 1),
                 'symbol': this.safeSymbol(marketId, market),
                 'currency': market['settle'],
-                'minNotional': minNotional,
+                'minNotional': minNotionalResponse,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': this.safeString(tier, 'maintenanceMargin'),
                 'maxLeverage': undefined,

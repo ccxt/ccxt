@@ -415,7 +415,7 @@ export default class digifinex extends Exchange {
                     'OTC': '3',
                 },
                 'networks': {
-                    'ARBITRUM': 'Arbitrum',
+                    'ARBONE': 'Arbitrum',
                     'AVALANCEC': 'AVAX-CCHAIN',
                     'AVALANCEX': 'AVAX-XCHAIN',
                     'BEP20': 'BEP20',
@@ -432,20 +432,19 @@ export default class digifinex extends Exchange {
                     'ETHW': 'ETHW',
                     'IOTA': 'MIOTA',
                     'KLAYTN': 'KLAY',
-                    'MATIC': 'Polygon',
                     'METIS': 'MetisDAO',
                     'MOONBEAM': 'GLMR',
                     'MOONRIVER': 'Moonriver',
                     'OPTIMISM': 'OPETH',
                     'POLYGON': 'Polygon',
+                    'MATIC': 'Polygon',
                     'RIPPLE': 'XRP',
-                    'SOLANA': 'SOL', // SOL & SPL
-                    'STELLAR': 'Stella', // XLM
+                    'SOL': 'SOL', // SOL & SPL
+                    'XLM': 'Stella', // STELLAR
                     'TERRACLASSIC': 'TerraClassic',
                     'TERRA': 'Terra',
                     'TON': 'Ton',
                     'TRC20': 'TRC20',
-                    'TRON': 'TRC20',
                     'TRX': 'TRC20',
                     'VECHAIN': 'Vechain', // VET
                 },
@@ -521,46 +520,47 @@ export default class digifinex extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const groupedById = this.groupBy (data, 'currency');
-        const keys = Object.keys (groupedById);
-        const result: Dict = {};
-        for (let i = 0; i < keys.length; i++) {
-            const id = keys[i];
-            const networkEntries = groupedById[id];
-            const code = this.safeCurrencyCode (id);
-            const networks = {};
-            for (let j = 0; j < networkEntries.length; j++) {
-                const networkEntry = networkEntries[j];
-                const networkId = this.safeString2 (networkEntry, 'chain', 'currency');
-                const networkCode = this.networkIdToCode (networkId);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.safeInteger (networkEntry, 'deposit_status') === 1,
-                    'withdraw': this.safeInteger (networkEntry, 'withdraw_status') === 1,
-                    'fee': this.safeNumber (networkEntry, 'min_withdraw_fee'),
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber (networkEntry, 'min_withdraw_amount'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.safeNumber (networkEntry, 'min_deposit_amount'),
-                            'max': undefined,
-                        },
+        const values = Object.values (groupedById);
+        return this.parseCurrencies (values);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const networkEntries = rawCurrency as Dict[];
+        const firstEntry = this.safeDict (networkEntries, 0, {}); // it must have at least one entry
+        const id = this.safeString (firstEntry, 'currency');
+        const code = this.safeCurrencyCode (id);
+        const networks = {};
+        for (let j = 0; j < networkEntries.length; j++) {
+            const networkEntry = networkEntries[j];
+            const networkId = this.safeString2 (networkEntry, 'chain', 'currency');
+            const networkCode = this.networkIdToCode (networkId);
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'active': undefined,
+                'deposit': this.safeInteger (networkEntry, 'deposit_status') === 1,
+                'withdraw': this.safeInteger (networkEntry, 'withdraw_status') === 1,
+                'fee': this.safeNumber (networkEntry, 'min_withdraw_fee'),
+                'precision': undefined,
+                'limits': {
+                    'withdraw': {
+                        'min': this.safeNumber (networkEntry, 'min_withdraw_amount'),
+                        'max': undefined,
                     },
-                    'info': networkEntry,
-                };
-            }
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'code': code,
-                'info': networkEntries,
-                'networks': networks,
-            });
+                    'deposit': {
+                        'min': this.safeNumber (networkEntry, 'min_deposit_amount'),
+                        'max': undefined,
+                    },
+                },
+                'info': networkEntry,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'code': code,
+            'info': networkEntries,
+            'networks': networks,
+        });
     }
 
     /**
@@ -685,6 +685,7 @@ export default class digifinex extends Exchange {
                     isAllowed = 1;
                 }
             }
+            const isActive = isAllowed ? true : false;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -700,7 +701,7 @@ export default class digifinex extends Exchange {
                 'swap': swap,
                 'future': false,
                 'option': false,
-                'active': isAllowed ? true : false,
+                'active': isActive,
                 'contract': swap,
                 'linear': isLinear,
                 'inverse': isInverse,

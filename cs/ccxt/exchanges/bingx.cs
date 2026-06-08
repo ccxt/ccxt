@@ -1762,10 +1762,10 @@ public partial class bingx : Exchange
         object response = null;
         if (isTrue(isEqual(subType, "inverse")))
         {
-            response = await this.cswapV1PublicGetMarketPremiumIndex(this.extend(parameters));
+            response = await this.cswapV1PublicGetMarketPremiumIndex(parameters);
         } else
         {
-            response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(parameters));
+            response = await this.swapV2PublicGetQuotePremiumIndex(parameters);
         }
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseFundingRates(data, symbols);
@@ -4955,7 +4955,7 @@ public partial class bingx : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
-        object recvWindow = this.safeInteger(this.parseParams, "recvWindow", defaultRecvWindow);
+        object recvWindow = this.safeInteger(parameters, "recvWindow", defaultRecvWindow);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "offset", 0 },
@@ -5975,7 +5975,7 @@ public partial class bingx : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
-        object recvWindow = this.safeInteger(this.parseParams, "recvWindow", defaultRecvWindow);
+        object recvWindow = this.safeInteger(parameters, "recvWindow", defaultRecvWindow);
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("closeAllPositions", null, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];

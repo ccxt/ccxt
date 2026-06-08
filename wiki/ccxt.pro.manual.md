@@ -7,6 +7,7 @@ The CCXT Pro stack is built upon [CCXT](https://ccxt.com) and extends the core C
 - JavaScript prototype-level mixins
 - Python multiple inheritance
 - PHP Traits
+- Java class inheritance (pro exchange classes extend base exchange classes)
 
 The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support).
 
@@ -54,7 +55,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
 ```
 
 ## Exchanges
-<!--- init list -->The CCXT Pro library currently supports the following 74 cryptocurrency exchange markets and WebSocket trading APIs:
+<!--- init list -->The CCXT Pro library currently supports the following 73 cryptocurrency exchange markets and WebSocket trading APIs:
 
 |logo                                                                                                                                                                                    |id                     |name                                                                                     |ver                                                                                                                                               |type                                                                                                    |certified                                                                                                                    |pro                                                                                                |
 |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|-----------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------:|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
@@ -88,7 +89,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
 | [![bybiteu](https://github.com/user-attachments/assets/97a5d0b3-de10-423d-90e1-6620960025ed)](https://www.bybit.com/invite?ref=XDK12WP)                                                | bybiteu               | [Bybit EU](https://www.bybit.com/invite?ref=XDK12WP)                                    | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://bybit-exchange.github.io/docs/inverse/)                                     | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![bydfi](https://github.com/user-attachments/assets/bfffb73d-29bd-465d-b75b-98e210491769)](https://partner.bydfi.com/j/DilWutCI)                                                      | bydfi                 | [BYDFi](https://partner.bydfi.com/j/DilWutCI)                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://developers.bydfi.com/en/)                                                   | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![cex](https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg)](https://cex.io/r/0/up105393824/0/)                                       | cex                   | [CEX.IO](https://cex.io/r/0/up105393824/0/)                                             | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://trade.cex.io/docs/)                                                         | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
-| [![coinbase](https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg)](https://www.coinbase.com/join/58cbe25a355148797479dbd2)             | coinbase              | [Coinbase Advanced](https://www.coinbase.com/join/58cbe25a355148797479dbd2)             | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://developers.coinbase.com/api/v2)                                             | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
+| [![coinbase](https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg)](https://www.coinbase.com/join/58cbe25a355148797479dbd2)             | coinbase              | [Coinbase Advanced](https://www.coinbase.com/join/58cbe25a355148797479dbd2)             | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.cdp.coinbase.com/coinbase-app/introduction/welcome)                    | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![coinbaseexchange](https://github.com/ccxt/ccxt/assets/43336371/34a65553-88aa-4a38-a714-064bd228b97e)](https://coinbase.com/)                                                        | coinbaseexchange      | [Coinbase Exchange](https://coinbase.com/)                                              | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.cloud.coinbase.com/exchange/docs/)                                     | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![coinbaseinternational](https://github.com/ccxt/ccxt/assets/43336371/866ae638-6ab5-4ebf-ab2c-cdcce9545625)](https://international.coinbase.com)                                      | coinbaseinternational | [Coinbase International](https://international.coinbase.com)                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.cloud.coinbase.com/intx/docs)                                          | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![coinex](https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg)](https://www.coinex.com/register?refer_code=yw5fz)                    | coinex                | [CoinEx](https://www.coinex.com/register?refer_code=yw5fz)                              | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.coinex.com/api/v2)                                                     | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
@@ -119,7 +120,6 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
 | [![okx](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.okx.com/join/CCXTCOM)                                       | okx                   | [OKX](https://www.okx.com/join/CCXTCOM)                                                 | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okx.com/docs-v5/en/)                                                    | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![okxus](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.app.okx.com/join/CCXT2023)                                | okxus                 | [OKX (US)](https://www.app.okx.com/join/CCXT2023)                                       | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://app.okx.com/docs-v5/en/#overview)                                           | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![onetrading](https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c)](https://onetrading.com/)                                                            | onetrading            | [One Trading](https://onetrading.com/)                                                  | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.onetrading.com)                                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
-| [![oxfun](https://github.com/ccxt/ccxt/assets/43336371/6a196124-c1ee-4fae-8573-962071b61a85)](https://ox.fun/register?shareAccountId=5ZUD4a7G)                                         | oxfun                 | [OXFUN](https://ox.fun/register?shareAccountId=5ZUD4a7G)                                | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://docs.ox.fun/)                                                               | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![p2b](https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755)](https://p2pb2b.com?referral=ee784c53)                                                      | p2b                   | [p2b](https://p2pb2b.com?referral=ee784c53)                                             | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md)                    | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![pacifica](https://github.com/user-attachments/assets/f795515a-828e-4a04-8fca-bf19fcf17ea4)](https://app.pacifica.fi?referral=ccxt)                                                  | pacifica              | [Pacifica](https://app.pacifica.fi?referral=ccxt)                                       | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.pacifica.fi/api-documentation/api/rest-api)                            | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
 | [![paradex](https://github.com/user-attachments/assets/84628770-784e-4ec4-a759-ec2fbb2244ea)](https://app.paradex.trade/r/ccxt24)                                                      | paradex               | [Paradex](https://app.paradex.trade/r/ccxt24)                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.api.testnet.paradex.trade/)                                            | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual) |
@@ -444,6 +444,11 @@ use \ccxt\pro; // optional, since you can use fully qualified names
 echo 'CCXT version ', \ccxt\pro\Exchange::VERSION, "\n";
 echo 'Supported exchanges: ', json_encode(\ccxt\pro\Exchange::$exchanges), "\n";
 ```
+#### **Java**
+```java
+import io.github.ccxt.exchanges.pro.Binance;
+// Pro exchange classes are in the io.github.ccxt.exchanges.pro package
+```
 <!-- tabs:end -->
 
 The imported CCXT Pro module wraps the CCXT inside itself – every exchange instantiated via CCXT Pro has all the CCXT methods as well as the additional functionality.
@@ -505,6 +510,27 @@ using ccxt.pro;
             Console.WriteLine("Trades: " + JsonConvert.SerializeObject(trades, Formatting.Indented));
         }
     }
+```
+
+#### **Java**
+```java
+import io.github.ccxt.exchanges.pro.Binance;
+import io.github.ccxt.types.Ticker;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
+Binance exchange = new Binance();
+exchange.loadMarkets(false);
+
+// Sync: blocks until next update
+while (true) {
+    Ticker ticker = exchange.watchTicker("BTC/USDT");
+    System.out.println(ticker.last);
+}
+
+// Or async: returns CompletableFuture<Ticker> — composable, supports timeouts
+CompletableFuture<Ticker> next = exchange.watchTickerAsync("BTC/USDT", null);
+Ticker tick = next.get(30, TimeUnit.SECONDS);
 ```
 
 <!-- tabs:end -->
@@ -676,6 +702,21 @@ if ($exchange->has['watchOrderBook']) {
     });
 }
 ```
+#### **Java**
+```java
+import io.github.ccxt.types.OrderBook;
+
+Binance exchange = new Binance();
+exchange.loadMarkets(false);
+while (true) {
+    try {
+        OrderBook orderbook = exchange.watchOrderBook(symbol);
+        System.out.println(orderbook.bids.get(0));
+    } catch (Exception e) {
+        System.out.println(e.getMessage());
+    }
+}
+```
 <!-- tabs:end -->
 
 #### watchOrderBookForSymbols
@@ -757,6 +798,13 @@ if ($exchange->has['watchTicker']) {
     });
 }
 ```
+#### **Java**
+```java
+while (true) {
+    Object ticker = exchange.watchTicker(symbol).get(30, TimeUnit.SECONDS);
+    System.out.println(ticker);
+}
+```
 <!-- tabs:end -->
 
 ### watchTickers
@@ -802,6 +850,13 @@ if ($exchange->has['watchTickers']) {
             }
         }
     });
+}
+```
+#### **Java**
+```java
+while (true) {
+    Object tickers = exchange.watchTickers(symbols).get(30, TimeUnit.SECONDS);
+    System.out.println(tickers);
 }
 ```
 <!-- tabs:end -->
@@ -890,6 +945,13 @@ if ($exchange->has['watchOHLCV']) {
     });
 }
 ```
+#### **Java**
+```java
+while (true) {
+    Object ohlcv = exchange.watchOHLCV(symbol, "1m").get(30, TimeUnit.SECONDS);
+    System.out.println(ohlcv);
+}
+```
 <!-- tabs:end -->
 
 
@@ -933,6 +995,13 @@ if exchange.has['watchOHLCVForSymbols']:
             print(e)
             # stop the loop on exception or leave it commented to retry
             # raise e
+```
+#### **Java**
+```java
+while (true) {
+    Object ohlcv = exchange.watchOHLCVForSymbols(symbols, "1m").get(30, TimeUnit.SECONDS);
+    System.out.println(ohlcv);
+}
 ```
 <!-- tabs:end -->
 
@@ -982,6 +1051,13 @@ if ($exchange->has['watchTrades']) {
     });
 }
 ```
+#### **Java**
+```java
+while (true) {
+    Object trades = exchange.watchTrades(symbol).get(30, TimeUnit.SECONDS);
+    System.out.println(trades);
+}
+```
 <!-- tabs:end -->
 ### watchTradesForSymbols
 
@@ -1014,6 +1090,13 @@ if exchange.has['watchTradesForSymbols']:
             print(e)
             # stop the loop on exception or leave it commented to retry
             # raise e
+```
+#### **Java**
+```java
+while (true) {
+    Object trades = exchange.watchTradesForSymbols(symbols).get(30, TimeUnit.SECONDS);
+    System.out.println(trades);
+}
 ```
 <!-- tabs:end -->
 
@@ -1065,6 +1148,13 @@ if ($exchange->has['watchBalance']) {
     });
 }
 ```
+#### **Java**
+```java
+while (true) {
+    Object balance = exchange.watchBalance().get(30, TimeUnit.SECONDS);
+    System.out.println(balance);
+}
+```
 <!-- tabs:end -->
 
 ### watchOrders
@@ -1088,6 +1178,13 @@ watch_orders($symbol = null, $since = null, $lmit = null, $params = array());
 ```c#
 public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
 ```
+#### **Java**
+```java
+while (true) {
+    Object orders = exchange.watchOrders(symbol).get(30, TimeUnit.SECONDS);
+    System.out.println(orders);
+}
+```
 <!-- tabs:end -->
 
 ### watchMyTrades
@@ -1110,6 +1207,13 @@ watch_my_trades($symbol = null, $since = null, $lmit = null, $params = array());
 ```c#
 public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
 
+```
+#### **Java**
+```java
+while (true) {
+    Object trades = exchange.watchMyTrades(symbol).get(30, TimeUnit.SECONDS);
+    System.out.println(trades);
+}
 ```
 <!-- tabs:end -->
 
@@ -1135,6 +1239,13 @@ watch_positions($symbols = null, $since = null, $lmit = null, $params = array())
 ```c#
 public async Task<List<Position>> WatchPositions(List<string> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
 ```
+#### **Java**
+```java
+while (true) {
+    Object positions = exchange.watchPositions(symbols).get(30, TimeUnit.SECONDS);
+    System.out.println(positions);
+}
+```
 <!-- tabs:end -->
 
 ### createOrderWs
@@ -1157,6 +1268,11 @@ create_order_ws(string $symbol, string $type, string $side, float $amount, ?floa
 ```c#
     public async Task<Order> CreateOrderWs(string symbol, string type, string side, float amount, float? price2 = 0, Dictionary<string, object> parameters = null)
 ```
+#### **Java**
+```java
+Object order = exchange.createOrderWs("BTC/USDT", "limit", "buy", 0.001, 50000.0).get(30, TimeUnit.SECONDS);
+System.out.println(order);
+```
 <!-- tabs:end -->
 ### editOrderWs
 <!-- tabs:start -->
@@ -1172,6 +1288,11 @@ edit_order_ws(self, id, symbol: str, type: OrderType, side: OrderSide, amount: f
 #### **PHP**
 ```php
 edit_order_ws(string id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ())
+```
+#### **Java**
+```java
+Object order = exchange.editOrderWs(orderId, "BTC/USDT", "limit", "buy", 0.002, 51000.0).get(30, TimeUnit.SECONDS);
+System.out.println(order);
 ```
 <!-- tabs:end -->
 
@@ -1190,6 +1311,11 @@ cancel_order_ws(self, id, symbol: str, params={})
 ```php
 cancel_order_ws(string $id, string $symbol, $params = array ())
 ```
+#### **Java**
+```java
+Object result = exchange.cancelOrderWs(orderId, "BTC/USDT").get(30, TimeUnit.SECONDS);
+System.out.println(result);
+```
 <!-- tabs:end -->
 
 ### cancelOrdersWs
@@ -1207,6 +1333,11 @@ cancel_orders_ws(self, ids, symbol: str, params={})
 ```php
 cancel_orders_ws(string[] $ids, string $symbol, $params = array ())
 ```
+#### **Java**
+```java
+Object result = exchange.cancelOrdersWs(orderIds, "BTC/USDT").get(30, TimeUnit.SECONDS);
+System.out.println(result);
+```
 <!-- tabs:end -->
 
 ### cancelAllOrdersWs
@@ -1222,6 +1353,11 @@ cancel_all_orders_ws(self, symbol: str, params={})
 #### **PHP**
 ```php
 cancel_all_orders_ws(string $symbol, $params = array ())
+```
+#### **Java**
+```java
+Object result = exchange.cancelAllOrdersWs("BTC/USDT").get(30, TimeUnit.SECONDS);
+System.out.println(result);
 ```
 <!-- tabs:end -->
 

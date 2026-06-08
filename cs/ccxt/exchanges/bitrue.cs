@@ -388,7 +388,6 @@ public partial class bitrue : Exchange
                     { "XML", "Stellar Lumens" },
                     { "XYM", "Symbol" },
                     { "XTZ", "Tezos" },
-                    { "theta", "theta" },
                     { "THETA", "THETA" },
                     { "VECHAIN", "VeChain" },
                     { "WANCHAIN", "Wanchain" },
@@ -539,6 +538,7 @@ public partial class bitrue : Exchange
                     { "You don't have permission.", typeof(PermissionDenied) },
                     { "Market is closed.", typeof(ExchangeNotAvailable) },
                     { "Too many requests. Please try again later.", typeof(DDoSProtection) },
+                    { "quantity less then minQty", typeof(InvalidOrder) },
                     { "-1000", typeof(ExchangeNotAvailable) },
                     { "-1001", typeof(ExchangeNotAvailable) },
                     { "-1002", typeof(AuthenticationError) },
@@ -953,6 +953,7 @@ public partial class bitrue : Exchange
         {
             minCost = this.safeNumber(market, "minOrderMoney");
         }
+        object isSpot = (isEqual(type, "spot"));
         return new Dictionary<string, object>() {
             { "id", id },
             { "lowercaseId", lowercaseId },
@@ -964,7 +965,7 @@ public partial class bitrue : Exchange
             { "quoteId", quoteId },
             { "settleId", settleId },
             { "type", type },
-            { "spot", (isEqual(type, "spot")) },
+            { "spot", isSpot },
             { "margin", false },
             { "swap", isContract },
             { "future", false },

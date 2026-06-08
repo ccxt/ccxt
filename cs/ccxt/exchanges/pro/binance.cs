@@ -1679,7 +1679,7 @@ public partial class binance : ccxt.binance
         }
         object isSpot = (isEqual(type, "spot"));
         object timezone = null;
-        var timezoneparametersVariable = this.handleParamString(parameters, "timezone", null);
+        var timezoneparametersVariable = this.handleParamString(parameters, "timezone");
         timezone = ((IList<object>)timezoneparametersVariable)[0];
         parameters = ((IList<object>)timezoneparametersVariable)[1];
         object isUtc8 = isTrue((!isEqual(timezone, null))) && isTrue((isTrue((isEqual(timezone, "+08:00"))) || isTrue(Precise.stringEq(timezone, "8"))));
@@ -1758,7 +1758,7 @@ public partial class binance : ccxt.binance
         }
         object isSpot = (isEqual(type, "spot"));
         object timezone = null;
-        var timezoneparametersVariable = this.handleParamString(parameters, "timezone", null);
+        var timezoneparametersVariable = this.handleParamString(parameters, "timezone");
         timezone = ((IList<object>)timezoneparametersVariable)[0];
         parameters = ((IList<object>)timezoneparametersVariable)[1];
         object isUtc8 = isTrue((!isEqual(timezone, null))) && isTrue((isTrue((isEqual(timezone, "+08:00"))) || isTrue(Precise.stringEq(timezone, "8"))));
@@ -2531,7 +2531,7 @@ public partial class binance : ccxt.binance
         //        "status":200,
         //        "result":{
         //            "symbol":"BTCUSDT",
-        //            "price":"73178.50",
+        //            "price":"73178.60",
         //            "time":1712527052374
         //        }
         //    }
@@ -2717,7 +2717,7 @@ public partial class binance : ccxt.binance
     /**
      * @name binance#ensureUserDataStreamWsSubscribeSignature
      * @description watches best bid & ask for symbols
-     * @param marketType {string} only support on 'spot'
+     * @param {string} [marketType] only supports 'spot'
      * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
      * @returns Promise<number> The subscription ID for the user data stream
      */
@@ -4184,9 +4184,9 @@ public partial class binance : ccxt.binance
         await this.loadMarkets();
         object market = this.market(symbol);
         object type = this.getMarketType("fetchOpenOrdersWs", market, parameters);
-        if (isTrue(isTrue(!isEqual(type, "spot")) && isTrue(!isEqual(type, "future"))))
+        if (isTrue(!isEqual(type, "spot")))
         {
-            throw new BadRequest ((string)add(this.id, " fetchOpenOrdersWs only supports spot or swap markets")) ;
+            throw new BadRequest ((string)add(this.id, " fetchOpenOrdersWs only supports spot markets")) ;
         }
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
         object requestId = this.requestId(url);

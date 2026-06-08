@@ -1013,18 +1013,6 @@ class hitbtc extends Exchange {
         ));
     }
 
-    public function add_key_in_array_items($obj, $keyName) {
-        $result = array();
-        $keys = is_array($obj) ? array_keys($obj) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            $item = $obj[$key];
-            $item[$keyName] = $key;
-            $result[] = $item;
-        }
-        return $result;
-    }
-
     public function create_deposit_address(string $code, $params = array ()): array {
         /**
          * create a $currency deposit address
@@ -3435,8 +3423,9 @@ class hitbtc extends Exchange {
         //         "positions" => null
         //     }
         //
+        $parsedAmount = $this->parse_number($amount);
         return $this->extend($this->parse_margin_modification($response, $market), array(
-            'amount' => $this->parse_number($amount),
+            'amount' => $parsedAmount,
             'type' => $type,
         ));
     }

@@ -1827,6 +1827,9 @@ export default class okx extends Exchange {
         let maxLeverage = this.safeString (market, 'lever', '1');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         const maxSpotCost = this.safeNumber (market, 'maxMktSz');
+        const leverageAboveOne = Precise.stringGt (maxLeverage, '1');
+        const quoteEqualSettle = (quoteId === settleId);
+        const baseEqualSettle = (baseId === settleId);
         const status = this.safeString (market, 'state');
         const instIdCode = this.safeInteger (market, 'instIdCode');
         return this.extend (fees, {
@@ -1841,14 +1844,14 @@ export default class okx extends Exchange {
             'settleId': settleId,
             'type': type,
             'spot': spot,
-            'margin': spot && (Precise.stringGt (maxLeverage, '1')),
+            'margin': spot && leverageAboveOne,
             'swap': swap,
             'future': future,
             'option': option,
             'active': status === 'live',
             'contract': contract,
-            'linear': contract ? (quoteId === settleId) : undefined,
-            'inverse': contract ? (baseId === settleId) : undefined,
+            'linear': contract ? quoteEqualSettle : undefined,
+            'inverse': contract ? baseEqualSettle : undefined,
             'contractSize': contract ? this.safeNumber (market, 'ctVal') : undefined,
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
@@ -9223,7 +9226,7 @@ export default class okx extends Exchange {
             request['end'] = until;
         }
         if (timeframe !== undefined) {
-            request['period'] = timeframe;
+            request['period'] = this.safeString (this.timeframes, timeframe, timeframe);
         }
         if (since !== undefined) {
             request['begin'] = since;

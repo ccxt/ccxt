@@ -71,7 +71,6 @@ var exmo = require('./src/exmo.js');
 var fmfwio = require('./src/fmfwio.js');
 var foxbit = require('./src/foxbit.js');
 var gate = require('./src/gate.js');
-var gateio = require('./src/gateio.js');
 var gemini = require('./src/gemini.js');
 var grvt = require('./src/grvt.js');
 var hashkey = require('./src/hashkey.js');
@@ -100,7 +99,6 @@ var novadax = require('./src/novadax.js');
 var okx = require('./src/okx.js');
 var okxus = require('./src/okxus.js');
 var onetrading = require('./src/onetrading.js');
-var oxfun = require('./src/oxfun.js');
 var p2b = require('./src/p2b.js');
 var pacifica = require('./src/pacifica.js');
 var paradex = require('./src/paradex.js');
@@ -163,7 +161,6 @@ var derive$1 = require('./src/pro/derive.js');
 var dydx$1 = require('./src/pro/dydx.js');
 var exmo$1 = require('./src/pro/exmo.js');
 var gate$1 = require('./src/pro/gate.js');
-var gateio$1 = require('./src/pro/gateio.js');
 var gemini$1 = require('./src/pro/gemini.js');
 var grvt$1 = require('./src/pro/grvt.js');
 var hashkey$1 = require('./src/pro/hashkey.js');
@@ -187,7 +184,6 @@ var ndax$1 = require('./src/pro/ndax.js');
 var okx$1 = require('./src/pro/okx.js');
 var okxus$1 = require('./src/pro/okxus.js');
 var onetrading$1 = require('./src/pro/onetrading.js');
-var oxfun$1 = require('./src/pro/oxfun.js');
 var p2b$1 = require('./src/pro/p2b.js');
 var pacifica$1 = require('./src/pro/pacifica.js');
 var paradex$1 = require('./src/pro/paradex.js');
@@ -203,7 +199,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.55';
+const version = '4.5.56';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'aftermath': aftermath["default"],
@@ -269,7 +265,6 @@ const exchanges = {
     'fmfwio': fmfwio["default"],
     'foxbit': foxbit["default"],
     'gate': gate["default"],
-    'gateio': gateio["default"],
     'gemini': gemini["default"],
     'grvt': grvt["default"],
     'hashkey': hashkey["default"],
@@ -298,7 +293,6 @@ const exchanges = {
     'okx': okx["default"],
     'okxus': okxus["default"],
     'onetrading': onetrading["default"],
-    'oxfun': oxfun["default"],
     'p2b': p2b["default"],
     'pacifica': pacifica["default"],
     'paradex': paradex["default"],
@@ -363,7 +357,6 @@ const pro = {
     'dydx': dydx$1["default"],
     'exmo': exmo$1["default"],
     'gate': gate$1["default"],
-    'gateio': gateio$1["default"],
     'gemini': gemini$1["default"],
     'grvt': grvt$1["default"],
     'hashkey': hashkey$1["default"],
@@ -387,7 +380,6 @@ const pro = {
     'okx': okx$1["default"],
     'okxus': okxus$1["default"],
     'onetrading': onetrading$1["default"],
-    'oxfun': oxfun$1["default"],
     'p2b': p2b$1["default"],
     'pacifica': pacifica$1["default"],
     'paradex': paradex$1["default"],
@@ -515,7 +507,6 @@ exports.exmo = exmo["default"];
 exports.fmfwio = fmfwio["default"];
 exports.foxbit = foxbit["default"];
 exports.gate = gate["default"];
-exports.gateio = gateio["default"];
 exports.gemini = gemini["default"];
 exports.grvt = grvt["default"];
 exports.hashkey = hashkey["default"];
@@ -544,7 +535,6 @@ exports.novadax = novadax["default"];
 exports.okx = okx["default"];
 exports.okxus = okxus["default"];
 exports.onetrading = onetrading["default"];
-exports.oxfun = oxfun["default"];
 exports.p2b = p2b["default"];
 exports.pacifica = pacifica["default"];
 exports.paradex = paradex["default"];

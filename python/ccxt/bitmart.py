@@ -2879,8 +2879,9 @@ class bitmart(Exchange, ImplicitAPI):
             type = 'take_profit'
         request: dict = {
             'symbol': market['id'],
-            'size': int(self.amount_to_precision(symbol, amount)),
         }
+        if amount is not None:
+            request['size'] = int(self.amount_to_precision(symbol, amount))
         timeInForce = self.safe_string(params, 'timeInForce')
         mode = self.safe_integer(params, 'mode')  # only for swap
         isMarketOrder = type == 'market'
@@ -2930,7 +2931,10 @@ class bitmart(Exchange, ImplicitAPI):
         if isStopLoss or isTakeProfit:
             reduceOnly = True
             request['price_type'] = self.safe_integer(params, 'price_type', 1)
-            request['executive_price'] = self.price_to_precision(symbol, price)
+            if price is not None:
+                request['executive_price'] = self.price_to_precision(symbol, price)
+            marketOrLimitStr = 'limit' if isLimitOrder else 'market'
+            request['category'] = self.safe_string(params, 'category', marketOrLimitStr)
             if isStopLoss:
                 request['trigger_price'] = self.price_to_precision(symbol, stopLossPrice)
             else:
@@ -3136,9 +3140,9 @@ class bitmart(Exchange, ImplicitAPI):
             return self.safe_order({'id': id}, market)
         succeeded = self.safe_value(data, 'succeed')
         if succeeded is not None:
-            id = self.safe_string(succeeded, 0)
-            if id is None:
-                raise InvalidOrder(self.id + ' cancelOrder() failed to cancel ' + symbol + ' order id ' + id)
+            id2 = self.safe_string(succeeded, 0)
+            if id2 is None:
+                raise InvalidOrder(self.id + ' cancelOrder() failed to cancel ' + symbol + ' order id ' + id2)
         else:
             result = self.safe_value(data, 'result')
             if not result:
@@ -4386,8 +4390,9 @@ class bitmart(Exchange, ImplicitAPI):
         self.load_markets()
         if limit is None:
             limit = 10
+        pageNumber = self.safe_integer(params, 'page', 1)
         request: dict = {
-            'page': self.safe_integer(params, 'page', 1),  # default is 1, max is 1000
+            'page': pageNumber,  # default is 1, max is 1000
             'limit': limit,  # default is 10, max is 100
         }
         currency = None

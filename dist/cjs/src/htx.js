@@ -1194,6 +1194,9 @@ class htx extends htx$1["default"] {
                     // 'BCC': 'BCC', BCH's somewhat chain
                     // 'DBC1': 'DBC1',
                 },
+                'networksById': {
+                    'MATIC': 'MATIC',
+                },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders',
                 'createMarketBuyOrderRequiresPrice': true,
@@ -3419,7 +3422,7 @@ class htx extends htx$1["default"] {
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             const info = this.safeValue(account, 'info');
-            const subtype = this.safeString(info, 'subtype', undefined);
+            const subtype = this.safeString(info, 'subtype');
             const typeFromAccount = this.safeString(account, 'type');
             if (type === 'margin') {
                 if (subtype === marketId) {
@@ -3480,75 +3483,79 @@ class htx extends htx$1["default"] {
         //    }
         //
         const data = this.safeList(response, 'data', []);
-        const result = {};
-        this.options['networkChainIdsByNames'] = {};
         this.options['networkNamesByChainIds'] = {};
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const currencyId = this.safeString(entry, 'currency');
-            const code = this.safeCurrencyCode(currencyId);
-            const assetType = this.safeString(entry, 'assetType');
-            const type = assetType === '1' ? 'crypto' : 'fiat';
-            this.options['networkChainIdsByNames'][code] = {};
-            const chains = this.safeList(entry, 'chains', []);
-            const networks = {};
-            for (let j = 0; j < chains.length; j++) {
-                const chainEntry = chains[j];
-                const uniqueChainId = this.safeString(chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
-                const title = this.safeString2(chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
-                this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
-                this.options['networkNamesByChainIds'][uniqueChainId] = title;
-                const networkCode = this.networkIdToCode(uniqueChainId);
-                networks[networkCode] = {
-                    'info': chainEntry,
-                    'id': uniqueChainId,
-                    'network': networkCode,
-                    'limits': {
-                        'deposit': {
-                            'min': this.safeNumber(chainEntry, 'minDepositAmt'),
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': this.safeNumber(chainEntry, 'minWithdrawAmt'),
-                            'max': this.safeNumber(chainEntry, 'maxWithdrawAmt'),
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': this.safeString(chainEntry, 'depositStatus') === 'allowed',
-                    'withdraw': this.safeString(chainEntry, 'withdrawStatus') === 'allowed',
-                    'fee': this.safeNumber(chainEntry, 'transactFeeWithdraw'),
-                    'precision': this.parseNumber(this.parsePrecision(this.safeString(chainEntry, 'withdrawPrecision'))),
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'info': entry,
-                'code': code,
-                'id': currencyId,
-                'active': this.safeString(entry, 'instStatus') === 'normal',
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'name': undefined,
-                'type': type,
+        this.options['networkChainIdsByNames'] = {};
+        return this.parseCurrencies(data);
+    }
+    parseCurrency(rawCurrency) {
+        if (!('networkNamesByChainIds' in this.options)) {
+            this.options['networkNamesByChainIds'] = {};
+        }
+        if (!('networkChainIdsByNames' in this.options)) {
+            this.options['networkChainIdsByNames'] = {};
+        }
+        const currencyId = this.safeString(rawCurrency, 'currency');
+        const code = this.safeCurrencyCode(currencyId);
+        const assetType = this.safeString(rawCurrency, 'assetType');
+        const type = (assetType === '1') ? 'crypto' : 'fiat';
+        this.options['networkChainIdsByNames'][code] = {};
+        const chains = this.safeList(rawCurrency, 'chains', []);
+        const networks = {};
+        for (let j = 0; j < chains.length; j++) {
+            const chainEntry = chains[j];
+            const uniqueChainId = this.safeString(chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
+            const title = this.safeString2(chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
+            this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
+            this.options['networkNamesByChainIds'][uniqueChainId] = title;
+            const networkCode = this.networkIdToCode(uniqueChainId);
+            networks[networkCode] = {
+                'info': chainEntry,
+                'id': uniqueChainId,
+                'network': networkCode,
                 'limits': {
-                    'amount': {
-                        'min': undefined,
+                    'deposit': {
+                        'min': this.safeNumber(chainEntry, 'minDepositAmt'),
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber(chainEntry, 'minWithdrawAmt'),
+                        'max': this.safeNumber(chainEntry, 'maxWithdrawAmt'),
                     },
                 },
-                'precision': undefined,
-                'networks': networks,
-            });
+                'active': undefined,
+                'deposit': this.safeString(chainEntry, 'depositStatus') === 'allowed',
+                'withdraw': this.safeString(chainEntry, 'withdrawStatus') === 'allowed',
+                'fee': this.safeNumber(chainEntry, 'transactFeeWithdraw'),
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(chainEntry, 'withdrawPrecision'))),
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'active': this.safeString(rawCurrency, 'instStatus') === 'normal',
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'name': undefined,
+            'type': type,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'precision': undefined,
+            'networks': networks,
+        });
     }
     networkIdToCode(networkId = undefined, currencyCode = undefined) {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
@@ -3852,7 +3859,8 @@ class htx extends htx$1["default"] {
         //         "ts": 1770293281344
         //     }
         //
-        let result = { 'info': response };
+        const finalResponse = response;
+        let result = { 'info': finalResponse };
         const data = this.safeValue(response, 'data');
         if (isMultiAssetMode) {
             const details = this.safeList(data, 'details', []);
@@ -7587,7 +7595,8 @@ class htx extends htx$1["default"] {
                 const sortedRequest = this.keysort(request);
                 let auth = this.urlencode(sortedRequest, true); // true is a go only requirment
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
-                const payload = [method, this.hostname, url, auth].join("\n"); // eslint-disable-line quotes
+                const content = [method, this.hostname, url, auth];
+                const payload = content.join("\n"); // eslint-disable-line quotes
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
                 auth += '&' + this.urlencode({ 'Signature': signature });
                 url += '?' + auth;
@@ -7669,7 +7678,8 @@ class htx extends htx$1["default"] {
                 }
                 let auth = this.urlencode(request, true).replace('%2c', '%2C'); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
-                const payload = [method, hostname, url, auth].join("\n"); // eslint-disable-line quotes
+                const content2 = [method, hostname, url, auth];
+                const payload = content2.join("\n"); // eslint-disable-line quotes
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
                 auth += '&' + this.urlencode({ 'Signature': signature });
                 url += '?' + auth;
@@ -7688,8 +7698,9 @@ class htx extends htx$1["default"] {
                     };
                 }
             }
+            const finalHostname = hostname; // java req
             url = this.implodeParams(this.urls['api'][type], {
-                'hostname': hostname,
+                'hostname': finalHostname,
             }) + url;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

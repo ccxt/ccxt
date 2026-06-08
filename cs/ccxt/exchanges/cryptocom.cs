@@ -534,7 +534,8 @@ public partial class cryptocom : Exchange
             response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
         } catch(Exception e)
         {
-            if (isTrue(e is ExchangeError))
+            object erString = this.exceptionMessage(e);
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(erString, "\"msg\":\"SYS_ERROR\""), 0)))
             {
                 // sub-accounts can't access this endpoint
                 // {"code":"10001","msg":"SYS_ERROR"}
@@ -586,59 +587,57 @@ public partial class cryptocom : Exchange
         //
         object resultData = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object currencyMap = this.safeDict(resultData, "currency_map", new Dictionary<string, object>() {});
-        object keys = new List<object>(((IDictionary<string,object>)currencyMap).Keys);
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        object enhancedArray = this.addKeyInArrayItems(currencyMap, "_coin_id");
+        return this.parseCurrencies(enhancedArray);
+    }
+
+    public override object parseCurrency(object currency)
+    {
+        object id = this.safeString(currency, "_coin_id");
+        object code = this.safeCurrencyCode(id);
+        object networks = new Dictionary<string, object>() {};
+        object chains = this.safeList(currency, "network_list", new List<object>() {});
+        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
-            object key = getValue(keys, i);
-            object currency = getValue(currencyMap, key);
-            object id = key;
-            object code = this.safeCurrencyCode(id);
-            object networks = new Dictionary<string, object>() {};
-            object chains = this.safeList(currency, "network_list", new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
-            {
-                object chain = getValue(chains, j);
-                object networkId = this.safeString(chain, "network_id");
-                object network = this.networkIdToCode(networkId);
-                ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
-                    { "info", chain },
-                    { "id", networkId },
-                    { "network", network },
-                    { "active", null },
-                    { "deposit", this.safeBool(chain, "deposit_enabled", false) },
-                    { "withdraw", this.safeBool(chain, "withdraw_enabled", false) },
-                    { "fee", this.safeNumber(chain, "withdrawal_fee") },
-                    { "precision", null },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(chain, "min_withdrawal_amount") },
-                            { "max", null },
-                        } },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", currency },
-                { "id", id },
-                { "code", code },
-                { "name", this.safeString(currency, "full_name") },
+            object chain = getValue(chains, j);
+            object networkId = this.safeString(chain, "network_id");
+            object network = this.networkIdToCode(networkId, code);
+            ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
+                { "info", chain },
+                { "id", networkId },
+                { "network", network },
                 { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
+                { "deposit", this.safeBool(chain, "deposit_enabled", false) },
+                { "withdraw", this.safeBool(chain, "withdraw_enabled", false) },
+                { "fee", this.safeNumber(chain, "withdrawal_fee") },
                 { "precision", null },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(chain, "min_withdrawal_amount") },
                         { "max", null },
                     } },
                 } },
-                { "type", "crypto" },
-                { "networks", networks },
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", currency },
+            { "id", id },
+            { "code", code },
+            { "name", this.safeString(currency, "full_name") },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "type", "crypto" },
+            { "networks", networks },
+        });
     }
 
     /**
@@ -787,6 +786,8 @@ public partial class cryptocom : Exchange
                 symbol = add(add(add(add(add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), symbolOptionType);
                 contract = true;
             }
+            object isLinear = ((bool) isTrue((contract))) ? true : null;
+            object isInverse = ((bool) isTrue((contract))) ? false : null;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "symbol") },
                 { "symbol", symbol },
@@ -804,8 +805,8 @@ public partial class cryptocom : Exchange
                 { "option", option },
                 { "active", this.safeBool(market, "tradable") },
                 { "contract", contract },
-                { "linear", ((bool) isTrue((contract))) ? true : null },
-                { "inverse", ((bool) isTrue((contract))) ? false : null },
+                { "linear", isLinear },
+                { "inverse", isInverse },
                 { "contractSize", this.safeNumber(market, "contract_size") },
                 { "expiry", expiry },
                 { "expiryDatetime", this.iso8601(expiry) },
@@ -2271,11 +2272,9 @@ public partial class cryptocom : Exchange
         if (isTrue(inOp(depositAddresses, network)))
         {
             return getValue(depositAddresses, network);
-        } else
-        {
-            object keys = new List<object>(((IDictionary<string,object>)depositAddresses).Keys);
-            return getValue(depositAddresses, getValue(keys, 0));
         }
+        object keys = new List<object>(((IDictionary<string,object>)depositAddresses).Keys);
+        return getValue(depositAddresses, getValue(keys, 0));
     }
 
     /**
@@ -3611,8 +3610,8 @@ public partial class cryptocom : Exchange
             paramsKeys = obj;
         } else
         {
-            object sorted = this.keysort(obj);
-            paramsKeys = new List<object>(((IDictionary<string,object>)sorted).Keys);
+            object objectKeys = new List<object>(((IDictionary<string,object>)obj).Keys);
+            paramsKeys = this.sort(objectKeys);
         }
         for (object i = 0; isLessThan(i, getArrayLength(paramsKeys)); postFixIncrement(ref i))
         {

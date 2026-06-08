@@ -392,7 +392,6 @@ class bittrade(Exchange, ImplicitAPI):
                     'HECO': 'hrc20',
                     'HT': 'hrc20',
                     'ALGO': 'algo',
-                    'OMNI': '',
                 },
                 # https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'private_get_order_orders',  # 'private_get_order_history'  # https://github.com/ccxt/ccxt/pull/5392
@@ -1887,8 +1886,9 @@ class bittrade(Exchange, ImplicitAPI):
             requestSorted = self.keysort(request)
             auth = self.urlencode(requestSorted)
             # unfortunately, PHP demands double quotes for the escaped newline symbol
+            content = [method, self.hostname, url, auth]
             # eslint-disable-next-line quotes
-            payload = "\n".join([method, self.hostname, url, auth])
+            payload = "\n".join(content)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             auth += '&' + self.urlencode({'Signature': signature})
             url += '?' + auth

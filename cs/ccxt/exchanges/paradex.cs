@@ -624,6 +624,7 @@ public partial class paradex : Exchange
         {
             expiry = null;
         }
+        object expireDatetime = ((bool) isTrue((isEqual(expiry, 0)))) ? null : this.iso8601(expiry);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -647,7 +648,7 @@ public partial class paradex : Exchange
             { "maker", makerFee },
             { "contractSize", this.parseNumber("1") },
             { "expiry", expiry },
-            { "expiryDatetime", ((bool) isTrue((isEqual(expiry, 0)))) ? null : this.iso8601(expiry) },
+            { "expiryDatetime", expireDatetime },
             { "strike", this.parseNumber(strikePrice) },
             { "optionType", this.safeStringLower(market, "option_type") },
             { "precision", new Dictionary<string, object>() {
@@ -1582,7 +1583,7 @@ public partial class paradex : Exchange
             { "GTC", "GTC" },
             { "POST_ONLY", "PO" },
         };
-        return this.safeString(timeInForces, timeInForce, null);
+        return this.safeString(timeInForces, timeInForce);
     }
 
     public virtual object parseOrderStatus(object status)

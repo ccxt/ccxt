@@ -1052,8 +1052,9 @@ public partial class bitso : Exchange
         // convert it to an integer unconditionally
         if (isTrue(markerInParams))
         {
+            object marker = parseInt(getValue(parameters, "marker"));
             parameters = this.extend(parameters, new Dictionary<string, object>() {
-                { "marker", parseInt(getValue(parameters, "marker")) },
+                { "marker", marker },
             });
         }
         object request = new Dictionary<string, object>() {
@@ -1299,8 +1300,9 @@ public partial class bitso : Exchange
         // convert it to an integer unconditionally
         if (isTrue(markerInParams))
         {
+            object marker = parseInt(getValue(parameters, "marker"));
             parameters = this.extend(parameters, new Dictionary<string, object>() {
-                { "marker", parseInt(getValue(parameters, "marker")) },
+                { "marker", marker },
             });
         }
         object request = new Dictionary<string, object>() {
@@ -1914,7 +1916,8 @@ public partial class bitso : Exchange
             this.checkRequiredCredentials();
             object nonce = ((object)this.nonce()).ToString();
             endpoint = add("/api", endpoint);
-            object request = String.Join("", ((IList<object>)new List<object>() {nonce, method, endpoint}).ToArray());
+            object content = new List<object>() {nonce, method, endpoint};
+            object request = String.Join("", ((IList<object>)content).ToArray());
             if (isTrue(isTrue(!isEqual(method, "GET")) && isTrue(!isEqual(method, "DELETE"))))
             {
                 if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))

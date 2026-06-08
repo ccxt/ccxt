@@ -1876,11 +1876,11 @@ func (this *BingxCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		var response any = nil
 		if IsTrue(IsEqual(subType, "inverse")) {
 
-			response = (<-this.CswapV1PublicGetMarketPremiumIndex(this.Extend(params)))
+			response = (<-this.CswapV1PublicGetMarketPremiumIndex(params))
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.SwapV2PublicGetQuotePremiumIndex(this.Extend(params)))
+			response = (<-this.SwapV2PublicGetQuotePremiumIndex(params))
 			PanicOnError(response)
 		}
 		var data any = this.SafeList(response, "data", []any{})
@@ -5387,7 +5387,7 @@ func (this *BingxCore) FetchDepositAddressesByNetwork(code any, optionalArgs ...
 		PanicOnError(retRes52368)
 		var currency any = this.Currency(code)
 		var defaultRecvWindow any = this.SafeInteger(this.Options, "recvWindow")
-		var recvWindow any = this.SafeInteger(this.ParseParams, "recvWindow", defaultRecvWindow)
+		var recvWindow any = this.SafeInteger(params, "recvWindow", defaultRecvWindow)
 		var request any = map[string]any{
 			"coin":       GetValue(currency, "id"),
 			"offset":     0,
@@ -6591,7 +6591,7 @@ func (this *BingxCore) CloseAllPositions(optionalArgs ...any) <-chan any {
 		retRes63218 := (<-this.LoadMarkets())
 		PanicOnError(retRes63218)
 		var defaultRecvWindow any = this.SafeInteger(this.Options, "recvWindow")
-		var recvWindow any = this.SafeInteger(this.ParseParams, "recvWindow", defaultRecvWindow)
+		var recvWindow any = this.SafeInteger(params, "recvWindow", defaultRecvWindow)
 		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("closeAllPositions", nil, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)

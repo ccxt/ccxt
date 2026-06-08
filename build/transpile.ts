@@ -134,9 +134,6 @@ class Transpiler {
             [ /\.buildOHLCVC/g, '.build_ohlcv'],
             [ /\.intToBase16/g, '.int_to_base16'],
             [ /\.parseDate/g, '.parse_date'],
-            [ /\.binaryToBase16/g, '.binary_to_base16'],
-            [ /\.binaryToBase64/g, '.binary_to_base64'],
-            [ /\.stringToBase64/g, '.string_to_base64'],
             [ /\.urlencodeBase64/g, '.urlencode_base64'],
             [ /\.parseOrderStatusByType /g, '.parse_order_status_by_type'],
             [ /\.parseOrderStatus /g, '.parse_order_status'],
@@ -257,9 +254,6 @@ class Transpiler {
             [ /\.padEnd\s/g, '.ljust'],
             [ /\.padStart\s/g, '.rjust' ],
 
-        // insert common regexes in the middle (critical)
-        ].concat (this.getCommonRegexes ()).concat ([
-
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /([a-zA-Z0-9_]+) in this(:?[^.])/g, 'hasattr(self, $1)$2' ],
             // [ /this\[[a-zA-Z0-9_]+\]/g, 'getattr(self, $1)' ],
@@ -364,7 +358,7 @@ class Transpiler {
             [ /(\s+) \* @returns \{(.+)\}/g, '$1:returns $2:' ], // docstring return
             [ /(\s+ \* @param \{[\]\[\|a-zA-Z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
             [ /(\s+) \* @([a-z]+) \{([\]\[a-zA-Z\|]+)\} ([a-zA-Z0-9_\-\.\[\]\']+)/g, '$1:$2 $3 $4:' ], // docstring param
-        ])
+        ]
     }
 
     getPython2Regexes () {
@@ -461,10 +455,10 @@ class Transpiler {
             [ /undefined/g, 'null' ],
             [ /\} else if/g, '} elseif' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
-            [ /this\.stringToBase64\s/g, 'base64_encode' ],
-            [ /this\.binaryToBase16\s/g, 'bin2hex' ],
-            [ /this\.base64ToBinary\s/g, 'base64_decode' ],
-            [ /this\.base64ToString\s/g, 'base64_decode' ],
+            [ /this\.string_to_base64/g, 'base64_encode' ],
+            [ /this\.binary_to_base16/g, 'bin2hex' ],
+            [ /this\.base64_to_binary/g, 'base64_decode' ],
+            [ /this\.base64_to_string/g, 'base64_decode' ],
             [ /Promise\.all\s*\(([^\)]+)\)/g, 'Promise\\all($1)' ],
             // deepExtend is commented for PHP because it does not overwrite linear arrays
             // a proper \ccxt\Exchange::deep_extend() base method is implemented instead
@@ -492,9 +486,6 @@ class Transpiler {
             [ /(\w+)\.padEnd\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_RIGHT)' ],
             [ /(\w+)\.padStart\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_LEFT)' ],
 
-        // insert common regexes in the middle (critical)
-        ].concat (this.getCommonRegexes ()).concat ([
-
             [ /([a-zA-Z0-9_]+) in this(:?[^.])/g, 'property_exists($this, $1)$2' ],
             [ /\(this,/g, '($this,' ],
             [ /this\./g, '$this->' ],
@@ -504,7 +495,7 @@ class Transpiler {
             [ /([^'])\[\](?!')/g, '$1array()' ],
 
         // add {}-array syntax conversions up to 20 levels deep on the same line
-        ]).concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
+        ].concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
             [ /\[\s*([^\]]+)\s\]\s=/g, 'list($1) =' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values(list($2))' ],
@@ -1180,6 +1171,9 @@ class Transpiler {
     // ------------------------------------------------------------------------
 
     transpileJavaScriptToPythonAndPHP (args:any) {
+
+        // apply common regexes once before branching to language-specific paths
+        args.js = this.regexAll (args.js, this.getCommonRegexes ())
 
         // transpile JS → Python 3
         let python3Body = ''
@@ -3068,7 +3062,7 @@ class Transpiler {
     }
 }
 
-function parallelizeTranspiling (exchanges: string[], processes = undefined, force = false, python = false, php = false) {
+async function parallelizeTranspiling (exchanges: string[], processes = undefined, force = false, python = false, php = false) {
     const processesNum = Math.min(processes || os.cpus ().length, exchanges.length)
     log.bright.green ('starting ' + processesNum + ' new processes...')
     let isFirst = true
@@ -3082,14 +3076,32 @@ function parallelizeTranspiling (exchanges: string[], processes = undefined, for
     if (php) {
         args.push('--php')
     }
+    // Wait for all forked workers to finish before returning. Previously this
+    // returned immediately after spawning, which let the next shell `&&` step
+    // (e.g. `tsx build/javaTranspiler.ts --ws`) run against a partially-written
+    // EXCHANGES_FOLDER — the WS filter then picked up only the handful of REST
+    // files that had landed and emitted pro/* for only those exchanges (the
+    // rest were missing from the JAR at runtime → ClassNotFoundException in CI).
+    const childPromises: Promise<void>[] = [];
     for (let i = 0; i < processesNum; i ++) {
         const toProcess = exchanges.filter ((_, index) => index % processesNum === i)
-        fork (process.argv[1], toProcess.concat (args))
+        const child = fork (process.argv[1], toProcess.concat (args))
+        childPromises.push (new Promise<void> ((resolve, reject) => {
+            child.on ('exit', (code) => {
+                if (code === 0 || code === null) {
+                    resolve ()
+                } else {
+                    reject (new Error ('transpile worker exited with code ' + code))
+                }
+            })
+            child.on ('error', (err) => reject (err))
+        }));
         if (isFirst) {
             args.push ('--child');
             isFirst = false
         }
     }
+    await Promise.all (childPromises);
 }
 
 function isMainEntry(metaUrl: any) {
@@ -3142,7 +3154,9 @@ if (isMainEntry(metaFileUrl)) {
     } else if (errors) {
         transpiler.transpileErrorHierarchy ()
     } else if (multiprocess) {
-        parallelizeTranspiling (exchangeIds, undefined, force, pyOnly, phpOnly)
+        (async () => {
+            await parallelizeTranspiling (exchangeIds, undefined, force, pyOnly, phpOnly)
+        })()
     } else if (addJsHeaders) {
         transpiler.addGeneratedHeaderToJs ('./js/')
     } else {

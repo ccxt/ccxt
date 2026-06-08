@@ -294,8 +294,9 @@ public partial class coinbaseinternational : Exchange
         throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]")) ;
     }
 
-    public async virtual Task<object> handleNetworkIdAndParams(object currencyCode, object methodName, object parameters)
+    public async virtual Task<object> handleNetworkIdAndParams(object currencyCode, object methodName, object parameters = null)
     {
+        parameters ??= new Dictionary<string, object>();
         object networkId = null;
         var networkIdparametersVariable = this.handleOptionAndParams(parameters, methodName, "network_arn_id");
         networkId = ((IList<object>)networkIdparametersVariable)[0];
@@ -495,9 +496,10 @@ public partial class coinbaseinternational : Exchange
         }
         object market = this.market(symbol);
         object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
+        object offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
         object request = new Dictionary<string, object>() {
             { "instrument", getValue(market, "id") },
-            { "result_offset", this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest)) },
+            { "result_offset", offSet },
         };
         if (isTrue(!isEqual(limit, null)))
         {
@@ -985,8 +987,9 @@ public partial class coinbaseinternational : Exchange
             return await this.fetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, parameters, pageKey, maxEntriesPerRequest);
         }
         object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
+        object offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
         object request = new Dictionary<string, object>() {
-            { "result_offset", this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest)) },
+            { "result_offset", offSet },
         };
         if (isTrue(!isEqual(since, null)))
         {
@@ -1461,16 +1464,18 @@ public partial class coinbaseinternational : Exchange
             settleId = quoteId;
             symbol = add(symbol, add(":", quoteId));
         }
+        object isLinear = ((bool) isTrue(isSpot)) ? null : (isEqual(settleId, quoteId));
+        object isInverse = ((bool) isTrue(isSpot)) ? null : (!isEqual(settleId, quoteId));
         return new Dictionary<string, object>() {
             { "id", marketId },
             { "lowercaseId", ((string)marketId).ToLower() },
             { "symbol", symbol },
             { "base", baseId },
             { "quote", quoteId },
-            { "settle", ((bool) isTrue(settleId)) ? settleId : null },
+            { "settle", settleId },
             { "baseId", baseId },
             { "quoteId", quoteId },
-            { "settleId", ((bool) isTrue(settleId)) ? settleId : null },
+            { "settleId", settleId },
             { "type", ((bool) isTrue(isSpot)) ? "spot" : "swap" },
             { "spot", isSpot },
             { "margin", false },
@@ -1479,8 +1484,8 @@ public partial class coinbaseinternational : Exchange
             { "option", false },
             { "active", isEqual(this.safeString(market, "trading_state"), "TRADING") },
             { "contract", !isTrue(isSpot) },
-            { "linear", ((bool) isTrue(isSpot)) ? null : (isEqual(settleId, quoteId)) },
-            { "inverse", ((bool) isTrue(isSpot)) ? null : (!isEqual(settleId, quoteId)) },
+            { "linear", isLinear },
+            { "inverse", isInverse },
             { "taker", getValue(getValue(fees, "trading"), "taker") },
             { "maker", getValue(getValue(fees, "trading"), "maker") },
             { "contractSize", ((bool) isTrue(isSpot)) ? null : 1 },
@@ -2213,9 +2218,10 @@ public partial class coinbaseinternational : Exchange
             return await this.fetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, parameters, pageKey, maxEntriesPerRequest);
         }
         object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
+        object offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
         object request = new Dictionary<string, object>() {
             { "portfolio", portfolio },
-            { "result_offset", this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest)) },
+            { "result_offset", offSet },
         };
         object market = null;
         if (isTrue(symbol))
@@ -2310,8 +2316,9 @@ public partial class coinbaseinternational : Exchange
             market = this.market(symbol);
         }
         object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
+        object offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
         object request = new Dictionary<string, object>() {
-            { "result_offset", this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest)) },
+            { "result_offset", offSet },
         };
         if (isTrue(!isEqual(limit, null)))
         {

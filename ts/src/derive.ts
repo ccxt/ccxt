@@ -456,7 +456,6 @@ export default class derive extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const result: Dict = {};
         const tokenResponse = await this.publicGetGetAllCurrencies (params);
         //
         //    {
@@ -507,34 +506,34 @@ export default class derive extends Exchange {
         // }
         //
         const currencies = this.safeList (tokenResponse, 'result', []);
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const currencyId = this.safeString (currency, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            result[code] = this.safeCurrencyStructure ({
-                'id': currencyId,
-                'name': undefined,
-                'code': code,
-                'precision': undefined,
-                'active': undefined,
-                'fee': undefined,
-                'networks': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+        return this.parseCurrencies (currencies);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const currencyId = this.safeString (rawCurrency, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        return this.safeCurrencyStructure ({
+            'id': currencyId,
+            'name': undefined,
+            'code': code,
+            'precision': undefined,
+            'active': undefined,
+            'fee': undefined,
+            'networks': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'info': currency,
-            });
-        }
-        return result;
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': rawCurrency,
+        });
     }
 
     /**
@@ -685,6 +684,8 @@ export default class derive extends Exchange {
             linear = true;
             inverse = false;
         }
+        const contractSize = (spot) ? undefined : 1;
+        const isContract = (swap || option);
         return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
@@ -701,10 +702,10 @@ export default class derive extends Exchange {
             'future': false,
             'option': option,
             'active': this.safeBool (market, 'is_active'),
-            'contract': (swap || option),
+            'contract': isContract,
             'linear': linear,
             'inverse': inverse,
-            'contractSize': (spot) ? undefined : 1,
+            'contractSize': contractSize,
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
             'taker': this.safeNumber (market, 'taker_fee_rate'),
@@ -1844,7 +1845,7 @@ export default class derive extends Exchange {
             'gtc': 'GTC',
             'post_only': 'PO',
         };
-        return this.safeString (timeInForces, timeInForce, undefined);
+        return this.safeString (timeInForces, timeInForce);
     }
 
     parseOrderStatus (status: Str) {

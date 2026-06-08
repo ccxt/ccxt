@@ -848,62 +848,62 @@ class kraken(Exchange, ImplicitAPI):
         #         },
         #     }
         #
-        currencies = self.safe_value(response, 'result', {})
-        ids = list(currencies.keys())
-        result: dict = {}
-        for i in range(0, len(ids)):
-            id = ids[i]
-            currency = currencies[id]
-            # todo: will need to rethink the fees
-            # see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
-            # to add support for multiple withdrawal/deposit methods and
-            # differentiated fees for each particular method
+        currencies = self.safe_dict(response, 'result', {})
+        enhancedArray = self.add_key_in_array_items(currencies, '_coin_id')
+        return self.parse_currencies(enhancedArray)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        # todo: will need to rethink the fees
+        # see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
+        # to add support for multiple withdrawal/deposit methods and
+        # differentiated fees for each particular method
+        #
+        # Notes about abbreviations:
+        # Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
+        # S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
+        #
+        id = self.safe_string(rawCurrency, '_coin_id')
+        code = self.safe_currency_code(id)
+        # the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
+        if id.find('.') < 0:
+            altName = self.safe_string(rawCurrency, 'altname')
+            # handle cases like below:
             #
-            # Notes about abbreviations:
-            # Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
-            # S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
-            #
-            code = self.safe_currency_code(id)
-            # the below can not be reliable done in `safeCurrencyCode`, so we have to do it here
-            if id.find('.') < 0:
-                altName = self.safe_string(currency, 'altname')
-                # handle cases like below:
-                #
-                #  id   | altname
-                # ---------------
-                # XXBT  |  XBT
-                # ZUSD  |  USD
-                if id != altName and (id.startswith('X') or id.startswith('Z')):
-                    code = self.safe_currency_code(altName)
-                    # also, add map in commonCurrencies:
-                    self.commonCurrencies[id] = code
-                else:
-                    code = self.safe_currency_code(id)
-            isFiat = code.find('.HOLD') >= 0
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': self.safe_string(currency, 'altname'),
-                'active': self.safe_string(currency, 'status') == 'enabled',
-                'type': 'fiat' if isFiat else 'crypto',
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
+            #  id   | altname
+            # ---------------
+            # XXBT  |  XBT
+            # ZUSD  |  USD
+            if id != altName and (id.startswith('X') or id.startswith('Z')):
+                code = self.safe_currency_code(altName)
+                # also, add map in commonCurrencies:
+                self.commonCurrencies[id] = code
+            else:
+                code = self.safe_currency_code(id)
+        isFiat = code.find('.HOLD') >= 0
+        rawCurrency = self.omit(rawCurrency, '_coin_id')
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'name': self.safe_string(rawCurrency, 'altname'),
+            'active': self.safe_string(rawCurrency, 'status') == 'enabled',
+            'type': 'fiat' if isFiat else 'crypto',
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'decimals'))),
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
                 },
-                'networks': {},
-            })
-        return result
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': {},
+        })
 
     def safe_currency_code(self, currencyId: Str, currency: Currency = None) -> Str:
         if currencyId is None:
@@ -1700,10 +1700,11 @@ class kraken(Exchange, ImplicitAPI):
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
+            parsedAmount = self.amount_to_precision(market['symbol'], amount)
             req: dict = {
                 'type': side,
                 'ordertype': type,
-                'volume': self.amount_to_precision(market['symbol'], amount),
+                'volume': parsedAmount,
             }
             orderRequest = self.order_request('createOrders', marketId, type, req, amount, price, orderParams)
             ordersRequests.append(orderRequest[0])
@@ -2008,12 +2009,12 @@ class kraken(Exchange, ImplicitAPI):
                 takeProfitPrice = triggerPrice
             elif rawType == 'stop loss':
                 stopLossPrice = triggerPrice
-        finalType = self.parse_order_type(rawType)
+        typeParsed = self.parse_order_type(rawType)
         # unlike from endpoints which provide eg: "take-profit-limit"
         # for "space-delimited" orders we dont have market/limit suffixes, their format is
         # eg: `stop loss > limit 123`, so we need to parse them manually
-        if self.in_array(finalType, ['stop loss', 'take profit']):
-            finalType = 'market' if (price is None) else 'limit'
+        if self.in_array(typeParsed, ['stop loss', 'take profit']):
+            typeParsed = 'market' if (price is None) else 'limit'
         amendId = self.safe_string(order, 'amend_id')
         if amendId is not None:
             isPostOnly = None
@@ -2026,7 +2027,7 @@ class kraken(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': finalType,
+            'type': typeParsed,
             'timeInForce': None,
             'postOnly': isPostOnly,
             'side': side,
@@ -3334,16 +3335,16 @@ class kraken(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        fromAccount = self.parse_account_type(fromAccount)
-        toAccount = self.parse_account_type(toAccount)
+        fromAccountParsed = self.parse_account_type(fromAccount)
+        toAccountParsed = self.parse_account_type(toAccount)
         request: dict = {
             'amount': self.currency_to_precision(code, amount),
-            'from': fromAccount,
-            'to': toAccount,
+            'from': fromAccountParsed,
+            'to': toAccountParsed,
             'asset': currency['id'],
         }
-        if fromAccount != 'Spot Wallet':
-            raise BadRequest(self.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount + '. Use krakenfutures instead to transfer from the futures account.')
+        if fromAccountParsed != 'Spot Wallet':
+            raise BadRequest(self.id + ' transfer cannot transfer from ' + fromAccountParsed + ' to ' + toAccountParsed + '. Use krakenfutures instead to transfer from the futures account.')
         response = await self.privatePostWalletTransfer(self.extend(request, params))
         #
         #   {
@@ -3357,8 +3358,8 @@ class kraken(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(response, currency)
         return self.extend(transfer, {
             'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
+            'fromAccount': fromAccountParsed,
+            'toAccount': toAccountParsed,
         })
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:

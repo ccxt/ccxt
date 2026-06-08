@@ -739,6 +739,7 @@ class phemex(Exchange, ImplicitAPI):
         else:
             # "1.0"
             contractSize = self.parse_number(contractSizeString)
+        isLinear = not inverse
         return self.safe_market_structure({
             'id': id,
             'symbol': base + '/' + quote + ':' + settle,
@@ -756,7 +757,7 @@ class phemex(Exchange, ImplicitAPI):
             'option': False,
             'active': status == 'Listed',
             'contract': True,
-            'linear': not inverse,
+            'linear': isLinear,
             'inverse': inverse,
             'taker': self.parse_number(self.from_en(takerFeeRateEr, ratioScale)),
             'maker': self.parse_number(self.from_en(makerFeeRateEr, ratioScale)),
@@ -1146,48 +1147,47 @@ class phemex(Exchange, ImplicitAPI):
         #     }
         data = self.safe_value(response, 'data', {})
         currencies = self.safe_value(data, 'currencies', [])
-        result: dict = {}
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            id = self.safe_string(currency, 'currency')
-            code = self.safe_currency_code(id)
-            valueScaleString = self.safe_string(currency, 'valueScale')
-            valueScale = int(valueScaleString)
-            minValueEv = self.safe_string(currency, 'minValueEv')
-            maxValueEv = self.safe_string(currency, 'maxValueEv')
-            minAmount: Num = None
-            maxAmount: Num = None
-            precision: Num = None
-            if valueScale is not None:
-                precisionString = self.parse_precision(valueScaleString)
-                precision = self.parse_number(precisionString)
-                minAmount = self.parse_number(Precise.string_mul(minValueEv, precisionString))
-                maxAmount = self.parse_number(Precise.string_mul(maxValueEv, precisionString))
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'info': currency,
-                'code': code,
-                'name': self.safe_string(currency, 'name'),
-                'active': self.safe_string(currency, 'status') == 'Listed',
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': minAmount,
-                        'max': maxAmount,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
+        return self.parse_currencies(currencies)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'currency')
+        code = self.safe_currency_code(id)
+        valueScaleString = self.safe_string(rawCurrency, 'valueScale')
+        valueScale = int(valueScaleString)
+        minValueEv = self.safe_string(rawCurrency, 'minValueEv')
+        maxValueEv = self.safe_string(rawCurrency, 'maxValueEv')
+        minAmount: Num = None
+        maxAmount: Num = None
+        precision: Num = None
+        if valueScale is not None:
+            precisionString = self.parse_precision(valueScaleString)
+            precision = self.parse_number(precisionString)
+            minAmount = self.parse_number(Precise.string_mul(minValueEv, precisionString))
+            maxAmount = self.parse_number(Precise.string_mul(maxValueEv, precisionString))
+        return self.safe_currency_structure({
+            'id': id,
+            'info': rawCurrency,
+            'code': code,
+            'name': self.safe_string(rawCurrency, 'name'),
+            'active': self.safe_string(rawCurrency, 'status') == 'Listed',
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': minAmount,
+                    'max': maxAmount,
                 },
-                'valueScale': valueScale,
-                'networks': None,
-                'type': 'crypto',
-            })
-        return result
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'valueScale': valueScale,
+            'networks': None,
+            'type': 'crypto',
+        })
 
     def custom_parse_bid_ask(self, bidask, priceKey=0, amountKey=1, market: Market = None):
         if market is None:
@@ -4398,11 +4398,12 @@ class phemex(Exchange, ImplicitAPI):
         for i in range(0, len(riskLimits)):
             tier = riskLimits[i]
             maxNotional = self.safe_integer(tier, 'limit')
+            minNotionalResponse = minNotional  # java req
             tiers.append({
                 'tier': self.sum(i, 1),
                 'symbol': self.safe_symbol(marketId, market),
                 'currency': market['settle'],
-                'minNotional': minNotional,
+                'minNotional': minNotionalResponse,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': self.safe_string(tier, 'maintenanceMargin'),
                 'maxLeverage': None,

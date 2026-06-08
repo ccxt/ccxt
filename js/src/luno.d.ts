@@ -14,6 +14,7 @@ export default class luno extends Exchange {
      * @returns {dict} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name luno#fetchMarkets

@@ -1676,9 +1676,9 @@ class bingx(Exchange, ImplicitAPI):
         subType, params = self.handle_sub_type_and_params('fetchFundingRates', firstMarket, params, subType)
         response = None
         if subType == 'inverse':
-            response = await self.cswapV1PublicGetMarketPremiumIndex(self.extend(params))
+            response = await self.cswapV1PublicGetMarketPremiumIndex(params)
         else:
-            response = await self.swapV2PublicGetQuotePremiumIndex(self.extend(params))
+            response = await self.swapV2PublicGetQuotePremiumIndex(params)
         data = self.safe_list(response, 'data', [])
         return self.parse_funding_rates(data, symbols)
 
@@ -5016,7 +5016,7 @@ class bingx(Exchange, ImplicitAPI):
         await self.load_markets()
         currency = self.currency(code)
         defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
-        recvWindow = self.safe_integer(self.parse_params, 'recvWindow', defaultRecvWindow)
+        recvWindow = self.safe_integer(params, 'recvWindow', defaultRecvWindow)
         request: dict = {
             'coin': currency['id'],
             'offset': 0,
@@ -6032,7 +6032,7 @@ class bingx(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
-        recvWindow = self.safe_integer(self.parse_params, 'recvWindow', defaultRecvWindow)
+        recvWindow = self.safe_integer(params, 'recvWindow', defaultRecvWindow)
         marketType = None
         marketType, params = self.handle_market_type_and_params('closeAllPositions', None, params)
         subType = None

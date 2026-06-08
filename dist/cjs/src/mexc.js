@@ -322,6 +322,7 @@ class mexc extends mexc$1["default"] {
                             'position/funding_records': 2,
                             'position/position_mode': 2,
                             'order/list/open_orders/{symbol}': 2,
+                            'order/list/open_orders': 2,
                             'order/list/history_orders': 2,
                             'order/list/order_deals/v3': 2,
                             'order/external/{symbol}/{external_oid}': 2,
@@ -1150,56 +1151,54 @@ class mexc extends mexc$1["default"] {
         //     ]
         //   }
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString(currency, 'coin');
-            const code = this.safeCurrencyCode(id);
-            const networks = {};
-            const chains = this.safeValue(currency, 'networkList', []);
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString2(chain, 'netWork', 'network');
-                const network = this.networkIdToCode(networkId);
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'active': undefined,
-                    'deposit': this.safeBool(chain, 'depositEnable', false),
-                    'withdraw': this.safeBool(chain, 'withdrawEnable', false),
-                    'fee': this.safeNumber(chain, 'withdrawFee'),
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeString(chain, 'withdrawMin'),
-                            'max': this.safeString(chain, 'withdrawMax'),
-                        },
-                    },
-                    'contract': this.safeString(chain, 'contract'),
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'name': this.safeString(currency, 'name'),
+        return this.parseCurrencies(response);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'coin');
+        const code = this.safeCurrencyCode(id);
+        const networks = {};
+        const chains = this.safeValue(rawCurrency, 'networkList', []);
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString2(chain, 'netWork', 'network');
+            const network = this.networkIdToCode(networkId);
+            networks[network] = {
+                'info': chain,
+                'id': networkId,
+                'network': network,
                 'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
+                'deposit': this.safeBool(chain, 'depositEnable', false),
+                'withdraw': this.safeBool(chain, 'withdrawEnable', false),
+                'fee': this.safeNumber(chain, 'withdrawFee'),
                 'precision': undefined,
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+                    'withdraw': {
+                        'min': this.safeString(chain, 'withdrawMin'),
+                        'max': this.safeString(chain, 'withdrawMax'),
                     },
                 },
-                'type': 'crypto',
-                'networks': networks,
-            });
+                'contract': this.safeString(chain, 'contract'),
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'info': rawCurrency,
+            'id': id,
+            'code': code,
+            'name': this.safeString(rawCurrency, 'name'),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'type': 'crypto',
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -3132,8 +3131,12 @@ class mexc extends mexc$1["default"] {
             return this.parseOrders(response, market, since, limit);
         }
         else {
-            // TO_DO: another possible way is through: open_orders/{symbol}, but as they have same ratelimits, and less granularity, i think historical orders are more convenient, as it supports more params (however, theoretically, open-orders endpoint might be sligthly fast)
-            return await this.fetchOrdersByState(2, symbol, since, limit, params);
+            if (limit === undefined) {
+                request['page_size'] = 100; // max
+            }
+            const swapResponse = await this.contractPrivateGetOrderListOpenOrders(this.extend(request, params));
+            const data = this.safeList(swapResponse, 'data', []);
+            return this.parseOrders(data, market, since, limit, params);
         }
     }
     /**
@@ -3922,7 +3925,7 @@ class mexc extends mexc$1["default"] {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = wallet[i];
                 const marketId = this.safeString(entry, 'symbol');
-                const symbol = this.safeSymbol(marketId, undefined);
+                const symbol = this.safeSymbol(marketId);
                 const base = this.safeValue(entry, 'baseAsset', {});
                 const quote = this.safeValue(entry, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode(this.safeString(base, 'asset'));
@@ -4732,14 +4735,17 @@ class mexc extends mexc$1["default"] {
         }
         while (Precise["default"].stringLt(floor, maxVol)) {
             const cap = Precise["default"].stringAdd(floor, riskIncrVol);
+            const minNotional = this.parseNumber(floor);
+            const mainMarginRate = this.parseNumber(maintenanceMarginRate);
+            const maxLev = this.parseNumber(Precise["default"].stringDiv('1', initialMarginRate));
             tiers.push({
                 'tier': this.parseNumber(Precise["default"].stringDiv(cap, riskIncrVol)),
                 'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
                 'currency': this.safeCurrencyCode(quoteId),
-                'minNotional': this.parseNumber(floor),
+                'minNotional': minNotional,
                 'maxNotional': this.parseNumber(cap),
-                'maintenanceMarginRate': this.parseNumber(maintenanceMarginRate),
-                'maxLeverage': this.parseNumber(Precise["default"].stringDiv('1', initialMarginRate)),
+                'maintenanceMarginRate': mainMarginRate,
+                'maxLeverage': maxLev,
                 'info': info,
             });
             initialMarginRate = Precise["default"].stringAdd(initialMarginRate, riskIncrImr);
@@ -5365,8 +5371,8 @@ class mexc extends mexc$1["default"] {
      * @description fetch a history of internal transfers made on an account
      * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
-     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history     * @param {string} code unified currency code of the currency transferred
-     * @param code
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history
+     * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6104,8 +6110,8 @@ class mexc extends mexc$1["default"] {
         if (market['spot']) {
             throw new errors.BadSymbol(this.id + ' setMarginMode() supports contract markets only');
         }
-        marginMode = marginMode.toLowerCase();
-        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+        const marginModeLower = marginMode.toLowerCase();
+        if (marginModeLower !== 'isolated' && marginModeLower !== 'cross') {
             throw new errors.BadRequest(this.id + ' setMarginMode() marginMode argument should be isolated or cross');
         }
         const leverage = this.safeInteger(params, 'leverage');
@@ -6115,7 +6121,7 @@ class mexc extends mexc$1["default"] {
         const direction = this.safeStringLower2(params, 'direction', 'positionId');
         const request = {
             'leverage': leverage,
-            'openType': (marginMode === 'isolated') ? 1 : 2,
+            'openType': (marginModeLower === 'isolated') ? 1 : 2,
         };
         if (symbol !== undefined) {
             request['symbol'] = market['id'];
@@ -6231,7 +6237,7 @@ class mexc extends mexc$1["default"] {
         if (success === true) {
             return undefined;
         }
-        const responseCode = this.safeString(response, 'code', undefined);
+        const responseCode = this.safeString(response, 'code');
         if ((responseCode !== undefined) && (responseCode !== '200') && (responseCode !== '0')) {
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);

@@ -1004,7 +1004,7 @@ class bitopro(Exchange, ImplicitAPI):
             '4': 'canceled',
             '6': 'canceled',
         }
-        return self.safe_string(statuses, status, None)
+        return self.safe_string(statuses, status)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #

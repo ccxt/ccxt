@@ -1813,7 +1813,7 @@ func  (this *BinanceCore) WatchOHLCVForSymbols(symbolsAndTimeframes any, optiona
             }
             var isSpot any =     (ccxt.IsEqual(typeVar, "spot"))
             var timezone any = nil
-            timezoneparamsVariable := this.HandleParamString(params, "timezone", nil)
+            timezoneparamsVariable := this.HandleParamString(params, "timezone")
             timezone = ccxt.GetValue(timezoneparamsVariable,0)
             params = ccxt.GetValue(timezoneparamsVariable,1)
             var isUtc8 any = ccxt.IsTrue((!ccxt.IsEqual(timezone, nil))) && ccxt.IsTrue((ccxt.IsTrue((ccxt.IsEqual(timezone, "+08:00"))) || ccxt.IsTrue(ccxt.Precise.StringEq(timezone, "8"))))
@@ -1900,7 +1900,7 @@ func  (this *BinanceCore) UnWatchOHLCVForSymbols(symbolsAndTimeframes any, optio
             }
             var isSpot any =     (ccxt.IsEqual(typeVar, "spot"))
             var timezone any = nil
-            timezoneparamsVariable := this.HandleParamString(params, "timezone", nil)
+            timezoneparamsVariable := this.HandleParamString(params, "timezone")
             timezone = ccxt.GetValue(timezoneparamsVariable,0)
             params = ccxt.GetValue(timezoneparamsVariable,1)
             var isUtc8 any = ccxt.IsTrue((!ccxt.IsEqual(timezone, nil))) && ccxt.IsTrue((ccxt.IsTrue((ccxt.IsEqual(timezone, "+08:00"))) || ccxt.IsTrue(ccxt.Precise.StringEq(timezone, "8"))))
@@ -2806,7 +2806,7 @@ func  (this *BinanceCore) HandleTickerWs(client any, message any)  {
     //        "status":200,
     //        "result":{
     //            "symbol":"BTCUSDT",
-    //            "price":"73178.50",
+    //            "price":"73178.60",
     //            "time":1712527052374
     //        }
     //    }
@@ -2965,7 +2965,7 @@ func  (this *BinanceCore) SignParams(optionalArgs ...any) any  {
 /**
  * @name binance#ensureUserDataStreamWsSubscribeSignature
  * @description watches best bid & ask for symbols
- * @param marketType {string} only support on 'spot'
+ * @param {string} [marketType] only supports 'spot'
  * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
  * @returns Promise<number> The subscription ID for the user data stream
  */
@@ -4573,8 +4573,8 @@ func  (this *BinanceCore) FetchOpenOrdersWs(optionalArgs ...any) <- chan any {
             ccxt.PanicOnError(retRes37178)
             var market any = this.Market(symbol)
             var typeVar any = this.GetMarketType("fetchOpenOrdersWs", market, params)
-            if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "future"))) {
-                panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchOpenOrdersWs only supports spot or swap markets")))
+            if ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) {
+                panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchOpenOrdersWs only supports spot markets")))
             }
             var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
             var requestId any = this.RequestId(url)

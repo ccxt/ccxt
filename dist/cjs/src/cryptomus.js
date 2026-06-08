@@ -79,7 +79,7 @@ class cryptomus extends cryptomus$1["default"] {
                 'fetchConvertTradeHistory': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
@@ -406,46 +406,50 @@ class cryptomus extends cryptomus$1["default"] {
         //
         const coins = this.safeList(response, 'result');
         const groupedById = this.groupBy(coins, 'currency_code');
-        const keys = Object.keys(groupedById);
-        const result = {};
-        for (let i = 0; i < keys.length; i++) {
-            const id = keys[i];
-            const code = this.safeCurrencyCode(id);
-            const networks = {};
-            const networkEntries = groupedById[id];
-            for (let j = 0; j < networkEntries.length; j++) {
-                const networkEntry = networkEntries[j];
-                const networkId = this.safeString(networkEntry, 'network_code');
-                const networkCode = this.networkIdToCode(networkId);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(networkEntry, 'min_withdraw'),
-                            'max': this.safeNumber(networkEntry, 'max_withdraw'),
-                        },
-                        'deposit': {
-                            'min': this.safeNumber(networkEntry, 'min_deposit'),
-                            'max': this.safeNumber(networkEntry, 'max_deposit'),
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': this.safeBool(networkEntry, 'can_withdraw'),
-                    'withdraw': this.safeBool(networkEntry, 'can_deposit'),
-                    'fee': undefined,
-                    'precision': undefined,
-                    'info': networkEntry,
-                };
+        const groupedArray = Object.values(groupedById);
+        return this.parseCurrencies(groupedArray);
+    }
+    parseCurrency(rawCurrency) {
+        // currency here is array of networks
+        let id = undefined; // all entried have same id, as they were grouped by
+        let code = undefined;
+        const networks = {};
+        for (let i = 0; i < rawCurrency.length; i++) {
+            const networkEntry = rawCurrency[i];
+            // set ID on first loop
+            if (id === undefined) {
+                id = this.safeString(networkEntry, 'currency_code');
+                code = this.safeCurrencyCode(id);
             }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'networks': networks,
-                'info': networkEntries,
-            });
+            const networkId = this.safeString(networkEntry, 'network_code');
+            const networkCode = this.networkIdToCode(networkId);
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'limits': {
+                    'withdraw': {
+                        'min': this.safeNumber(networkEntry, 'min_withdraw'),
+                        'max': this.safeNumber(networkEntry, 'max_withdraw'),
+                    },
+                    'deposit': {
+                        'min': this.safeNumber(networkEntry, 'min_deposit'),
+                        'max': this.safeNumber(networkEntry, 'max_deposit'),
+                    },
+                },
+                'active': undefined,
+                'deposit': this.safeBool(networkEntry, 'can_deposit'),
+                'withdraw': this.safeBool(networkEntry, 'can_withdraw'),
+                'fee': undefined,
+                'precision': undefined,
+                'info': networkEntry,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'networks': networks,
+            'info': rawCurrency,
+        });
     }
     /**
      * @method

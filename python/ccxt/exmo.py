@@ -396,8 +396,7 @@ class exmo(Exchange, ImplicitAPI):
         params = self.omit(params, 'method')
         if method == 'fetchPrivateTradingFees':
             return self.fetch_private_trading_fees(params)
-        else:
-            return self.fetch_public_trading_fees(params)
+        return self.fetch_public_trading_fees(params)
 
     def fetch_private_trading_fees(self, params={}):
         self.load_markets()
@@ -705,90 +704,96 @@ class exmo(Exchange, ImplicitAPI):
         responses = promises
         currencyList = responses[0]
         cryptoList = responses[1]
-        result: dict = {}
+        newArray = []
         for i in range(0, len(currencyList)):
             currency = currencyList[i]
             currencyId = self.safe_string(currency, 'name')
-            code = self.safe_currency_code(currencyId)
-            type = 'crypto'
-            networks = {}
             providers = self.safe_list(cryptoList, currencyId)
-            if providers is None:
-                type = 'fiat'
-            else:
-                for j in range(0, len(providers)):
-                    provider = providers[j]
-                    name = self.safe_string(provider, 'name')
-                    # get network-id by removing extra things
-                    networkId = name.replace(currencyId + ' ', '')
-                    networkId = networkId.replace('(', '')
-                    replaceChar = ')'  # transpiler trick
-                    networkId = networkId.replace(replaceChar, '')
-                    networkCode = self.network_id_to_code(networkId)
-                    if not (networkCode in networks):
-                        networks[networkCode] = {
-                            'id': networkId,
-                            'network': networkCode,
-                            'active': None,
-                            'deposit': None,
-                            'withdraw': None,
-                            'fee': None,
-                            'limits': {
-                                'withdraw': {
-                                    'min': None,
-                                    'max': None,
-                                },
-                                'deposit': {
-                                    'min': None,
-                                    'max': None,
-                                },
+            newArray.append({'currency': currency, 'providers': providers})
+        return self.parse_currencies(newArray)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        currency = self.safe_dict(rawCurrency, 'currency', {})
+        providers = self.safe_list(rawCurrency, 'providers', [])
+        currencyId = self.safe_string(currency, 'name')
+        code = self.safe_currency_code(currencyId)
+        type = 'crypto'
+        networks = {}
+        if providers is None:
+            type = 'fiat'
+        else:
+            for j in range(0, len(providers)):
+                provider = providers[j]
+                name = self.safe_string(provider, 'name')
+                # get network-id by removing extra things
+                networkId = name.replace(currencyId + ' ', '')
+                networkId = networkId.replace('(', '')
+                replaceChar = ')'  # transpiler trick
+                networkId = networkId.replace(replaceChar, '')
+                networkCode = self.network_id_to_code(networkId)
+                if not (networkCode in networks):
+                    networks[networkCode] = {
+                        'id': networkId,
+                        'network': networkCode,
+                        'active': None,
+                        'deposit': None,
+                        'withdraw': None,
+                        'fee': None,
+                        'limits': {
+                            'withdraw': {
+                                'min': None,
+                                'max': None,
                             },
-                            'info': [],  # set, because of multiple network sub-entries
-                        }
-                    typeInner = self.safe_string(provider, 'type')
-                    minValue = self.safe_string(provider, 'min')
-                    maxValue = self.safe_string(provider, 'max')
-                    activeProvider = self.safe_bool(provider, 'enabled')
-                    networkEntry = networks[networkCode]
-                    if typeInner == 'deposit':
-                        networkEntry['deposit'] = activeProvider
-                        networkEntry['limits']['deposit']['min'] = minValue
-                        networkEntry['limits']['deposit']['max'] = maxValue
-                    elif typeInner == 'withdraw':
-                        networkEntry['withdraw'] = activeProvider
-                        networkEntry['limits']['withdraw']['min'] = minValue
-                        networkEntry['limits']['withdraw']['max'] = maxValue
-                    info = self.safe_list(networkEntry, 'info')
-                    info.append(provider)
-                    networkEntry['info'] = info
-                    networks[networkCode] = networkEntry
-            result[code] = self.safe_currency_structure({
-                'id': currencyId,
-                'code': code,
-                'name': self.safe_string(currency, 'description'),
-                'type': type,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': self.parse_number('1e-8'),
-                'limits': {
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
+                            'deposit': {
+                                'min': None,
+                                'max': None,
+                            },
+                        },
+                        'info': [],  # set, because of multiple network sub-entries
+                    }
+                typeInner = self.safe_string(provider, 'type')
+                minValue = self.safe_string(provider, 'min')
+                maxValue = self.safe_string(provider, 'max')
+                activeProvider = self.safe_bool(provider, 'enabled')
+                networkEntry = networks[networkCode]
+                if typeInner == 'deposit':
+                    networkEntry['deposit'] = activeProvider
+                    networkEntry['limits']['deposit']['min'] = minValue
+                    networkEntry['limits']['deposit']['max'] = maxValue
+                elif typeInner == 'withdraw':
+                    networkEntry['withdraw'] = activeProvider
+                    networkEntry['limits']['withdraw']['min'] = minValue
+                    networkEntry['limits']['withdraw']['max'] = maxValue
+                info = self.safe_list(networkEntry, 'info')
+                info.append(provider)
+                networkEntry['info'] = info
+                networks[networkCode] = networkEntry
+        return self.safe_currency_structure({
+            'id': currencyId,
+            'code': code,
+            'name': self.safe_string(currency, 'description'),
+            'type': type,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': self.parse_number('1e-8'),
+            'limits': {
+                'withdraw': {
+                    'min': None,
+                    'max': None,
                 },
-                'info': {
-                    'currency': currency,
-                    'providers': providers,
+                'deposit': {
+                    'min': None,
+                    'max': None,
                 },
-                'networks': networks,
-            })
-        return result
+            },
+            'info': {
+                'currency': currency,
+                'providers': providers,
+            },
+            'networks': networks,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -1111,7 +1116,8 @@ class exmo(Exchange, ImplicitAPI):
         self.load_markets()
         ids = None
         if symbols is None:
-            ids = ','.join(self.ids)
+            allIds = self.ids
+            ids = ','.join(allIds)
             # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if len(ids) > 2048:
                 numIds = len(self.ids)
@@ -2064,40 +2070,15 @@ class exmo(Exchange, ImplicitAPI):
                 'status': 'canceled',
             })
             return self.parse_orders(response, market, since, limit, params)
-        else:
-            responseSwap = self.privatePostMarginUserOrderHistory(self.extend(request, params))
-            #
-            #    {
-            #        "items": [
-            #            {
-            #                "event_id": "692862104574106858",
-            #                "event_time": "1694116400173489405",
-            #                "event_type": "OrderCancelStarted",
-            #                "order_id": "692862104561289319",
-            #                "order_type": "stop_limit_sell",
-            #                "order_status": "cancel_started",
-            #                "trade_id": "0",
-            #                "trade_type":"",
-            #                "trade_quantity": "0",
-            #                "trade_price": "0",
-            #                "pair": "ADA_USDT",
-            #                "quantity": "12",
-            #                "price": "0.23",
-            #                "stop_price": "0.22",
-            #                "distance": "0"
-            #            }
-            #            ...
-            #        ]
-            #    }
-            #
-            items = self.safe_value(responseSwap, 'items')
-            orders = self.parse_orders(items, market, since, limit, params)
-            result = []
-            for i in range(0, len(orders)):
-                order = orders[i]
-                if order['status'] == 'canceled':
-                    result.append(order)
-            return result
+        responseSwap = self.privatePostMarginUserOrderHistory(self.extend(request, params))
+        items = self.safe_value(responseSwap, 'items')
+        orders = self.parse_orders(items, market, since, limit, params)
+        result = []
+        for i in range(0, len(orders)):
+            order = orders[i]
+            if order['status'] == 'canceled':
+                result.append(order)
+        return result
 
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """

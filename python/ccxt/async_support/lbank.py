@@ -460,63 +460,63 @@ class lbank(Exchange, ImplicitAPI):
         #
         currenciesData = self.safe_list(response, 'data', [])
         grouped = self.group_by(currenciesData, 'assetCode')
-        groupedKeys = list(grouped.keys())
-        result: dict = {}
-        for i in range(0, len(groupedKeys)):
-            id = str((groupedKeys[i]))  # some currencies are numeric
-            code = self.safe_currency_code(id)
-            networksRaw = grouped[id]
-            networks = {}
-            for j in range(0, len(networksRaw)):
-                networkEntry = networksRaw[j]
-                networkId = self.safe_string(networkEntry, 'chain')
-                if networkId is None:
-                    networkId = self.safe_string(networkEntry, 'assetCode')  # use type if networkId is not present
-                networkCode = self.network_id_to_code(networkId)
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(networkEntry, 'min'),
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': self.safe_number(networkEntry, 'minTransfer'),
-                            'max': None,
-                        },
-                    },
-                    'active': None,
-                    'deposit': None,
-                    'withdraw': self.safe_bool(networkEntry, 'canWithDraw'),
-                    'fee': self.safe_number(networkEntry, 'fee'),
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(networkEntry, 'transferAmtScale'))),
-                    'info': networkEntry,
-                }
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'precision': None,
-                'type': None,
-                'name': None,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
+        values = list(grouped.values())
+        return self.parse_currencies(values)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency[0], 'assetCode')  # first member is guaranteed
+        code = self.safe_currency_code(id)
+        networksRaw = rawCurrency
+        networks = {}
+        for j in range(0, len(networksRaw)):
+            networkEntry = networksRaw[j]
+            networkId = self.safe_string(networkEntry, 'chain')
+            if networkId is None:
+                networkId = self.safe_string(networkEntry, 'assetCode')  # use type if networkId is not present
+            networkCode = self.network_id_to_code(networkId)
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'limits': {
                     'withdraw': {
-                        'min': None,
+                        'min': self.safe_number(networkEntry, 'min'),
                         'max': None,
                     },
                     'deposit': {
-                        'min': None,
+                        'min': self.safe_number(networkEntry, 'minTransfer'),
                         'max': None,
                     },
                 },
-                'networks': networks,
-                'info': networksRaw,
-            })
-        return result
+                'active': None,
+                'deposit': None,
+                'withdraw': self.safe_bool(networkEntry, 'canWithDraw'),
+                'fee': self.safe_number(networkEntry, 'fee'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(networkEntry, 'transferAmtScale'))),
+                'info': networkEntry,
+            }
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'precision': None,
+            'type': None,
+            'name': None,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'limits': {
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+            'info': networksRaw,
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -1044,9 +1044,10 @@ class lbank(Exchange, ImplicitAPI):
         fee = None
         feeCost = self.safe_string(trade, 'tradeFee')
         if feeCost is not None:
+            feeCurr = market['base'] if (side == 'buy') else market['quote']
             fee = {
                 'cost': feeCost,
-                'currency': market['base'] if (side == 'buy') else market['quote'],
+                'currency': feeCurr,
                 'rate': self.safe_string(trade, 'tradeFeeRate'),
             }
         return self.safe_trade({
@@ -1160,11 +1161,13 @@ class lbank(Exchange, ImplicitAPI):
         if since is None:
             duration = self.parse_timeframe(timeframe)
             since = self.milliseconds() - (duration * 1000 * limit)
+        parsedSince = self.parse_to_int(since / 1000)
+        parsedLimit = min(limit + 1, 2000)  # max 2000
         request: dict = {
             'symbol': market['id'],
             'type': self.safe_string(self.timeframes, timeframe, timeframe),
-            'time': self.parse_to_int(since / 1000),
-            'size': min(limit + 1, 2000),  # max 2000
+            'time': parsedSince,
+            'size': parsedLimit,
         }
         response = await self.spotPublicGetKline(self.extend(request, params))
         ohlcvs = self.safe_list(response, 'data', [])
@@ -2854,9 +2857,10 @@ class lbank(Exchange, ImplicitAPI):
                 signatureMethod = 'RSA'
             else:
                 signatureMethod = 'HmacSHA256'
+            finalSig = signatureMethod  # java req
             auth = self.rawencode(self.keysort(self.extend({
                 'echostr': echostr,
-                'signature_method': signatureMethod,
+                'signature_method': finalSig,
                 'timestamp': timestamp,
             }, query)))
             encoded = self.encode(auth)

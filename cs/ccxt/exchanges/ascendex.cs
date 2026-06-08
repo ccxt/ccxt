@@ -922,11 +922,13 @@ public partial class ascendex : Exchange
             accountGroup = this.safeString(data, "accountGroup");
             ((IDictionary<string,object>)this.options)["account-group"] = accountGroup;
         }
+        object finalResponse = response; // java req
+        object finalAccountGroup = accountGroup;
         return new List<object>() {new Dictionary<string, object>() {
-    { "id", accountGroup },
+    { "id", finalAccountGroup },
     { "type", null },
     { "code", null },
-    { "info", response },
+    { "info", finalResponse },
 }};
     }
 
@@ -3217,8 +3219,9 @@ public partial class ascendex : Exchange
         {
             amount = Precise.stringAbs(amount);
         }
+        object parsedAmount = this.parseNumber(amount);
         return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
-            { "amount", this.parseNumber(amount) },
+            { "amount", parsedAmount },
             { "type", type },
         });
     }

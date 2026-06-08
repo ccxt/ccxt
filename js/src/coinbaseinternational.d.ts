@@ -7,7 +7,7 @@ import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction,
 export default class coinbaseinternational extends Exchange {
     describe(): any;
     handlePortfolioAndParams(methodName: string, params?: {}): Promise<any[]>;
-    handleNetworkIdAndParams(currencyCode: string, methodName: string, params: any): Promise<any[]>;
+    handleNetworkIdAndParams(currencyCode: string, methodName: string, params?: {}): Promise<any[]>;
     /**
      * @method
      * @name coinbaseinternational#fetchAccounts

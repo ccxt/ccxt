@@ -765,7 +765,9 @@ public partial class bingx : ccxt.bingx
             // const limit = [ 5, 10, 20, 50, 100 ]
             object subscriptionHash = dataType;
             object subscription = getValue(((WebSocketClient)client).subscriptions, subscriptionHash);
-            object limit = this.safeInteger(subscription, "limit");
+            // see handleOHLCV — subscription.limit may be missing for non-orderbook callers;
+            // default to a reasonable depth instead of throwing NPE in the Java port.
+            object limit = this.safeInteger(subscription, "limit", 100);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
         orderbook = getValue(this.orderbooks, symbol);
@@ -914,7 +916,10 @@ public partial class bingx : ccxt.bingx
         {
             object subscriptionHash = dataType;
             object subscription = getValue(((WebSocketClient)client).subscriptions, subscriptionHash);
-            object limit = this.safeInteger(subscription, "limit");
+            // subscription.limit is only set when watchOHLCV registers the subscription;
+            // when handleMessage routes a non-OHLCV-originated subscription here (or the
+            // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
+            object limit = this.safeInteger(subscription, "limit", this.safeInteger(this.options, "OHLCVLimit", 1000));
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = new ArrayCacheByTimestamp(limit);
         }
         object stored = getValue(getValue(this.ohlcvs, symbol), unifiedTimeframe);

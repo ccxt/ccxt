@@ -2980,8 +2980,10 @@ export default class bitmart extends Exchange {
         }
         const request = {
             'symbol': market['id'],
-            'size': parseInt(this.amountToPrecision(symbol, amount)),
         };
+        if (amount !== undefined) {
+            request['size'] = parseInt(this.amountToPrecision(symbol, amount));
+        }
         const timeInForce = this.safeString(params, 'timeInForce');
         const mode = this.safeInteger(params, 'mode'); // only for swap
         const isMarketOrder = type === 'market';
@@ -3045,7 +3047,11 @@ export default class bitmart extends Exchange {
         if (isStopLoss || isTakeProfit) {
             reduceOnly = true;
             request['price_type'] = this.safeInteger(params, 'price_type', 1);
-            request['executive_price'] = this.priceToPrecision(symbol, price);
+            if (price !== undefined) {
+                request['executive_price'] = this.priceToPrecision(symbol, price);
+            }
+            const marketOrLimitStr = isLimitOrder ? 'limit' : 'market';
+            request['category'] = this.safeString(params, 'category', marketOrLimitStr);
             if (isStopLoss) {
                 request['trigger_price'] = this.priceToPrecision(symbol, stopLossPrice);
             }
@@ -3302,9 +3308,9 @@ export default class bitmart extends Exchange {
         }
         const succeeded = this.safeValue(data, 'succeed');
         if (succeeded !== undefined) {
-            id = this.safeString(succeeded, 0);
-            if (id === undefined) {
-                throw new InvalidOrder(this.id + ' cancelOrder() failed to cancel ' + symbol + ' order id ' + id);
+            const id2 = this.safeString(succeeded, 0);
+            if (id2 === undefined) {
+                throw new InvalidOrder(this.id + ' cancelOrder() failed to cancel ' + symbol + ' order id ' + id2);
             }
         }
         else {
@@ -4642,8 +4648,9 @@ export default class bitmart extends Exchange {
         if (limit === undefined) {
             limit = 10;
         }
+        const pageNumber = this.safeInteger(params, 'page', 1);
         const request = {
-            'page': this.safeInteger(params, 'page', 1),
+            'page': pageNumber,
             'limit': limit, // default is 10, max is 100
         };
         let currency = undefined;

@@ -1504,7 +1504,7 @@ class binance extends binance$1["default"] {
         }
         const isSpot = (type === 'spot');
         let timezone = undefined;
-        [timezone, params] = this.handleParamString(params, 'timezone', undefined);
+        [timezone, params] = this.handleParamString(params, 'timezone');
         const isUtc8 = (timezone !== undefined) && ((timezone === '+08:00') || Precise["default"].stringEq(timezone, '8'));
         const rawHashes = [];
         const messageHashes = [];
@@ -1569,7 +1569,7 @@ class binance extends binance$1["default"] {
         }
         const isSpot = (type === 'spot');
         let timezone = undefined;
-        [timezone, params] = this.handleParamString(params, 'timezone', undefined);
+        [timezone, params] = this.handleParamString(params, 'timezone');
         const isUtc8 = (timezone !== undefined) && ((timezone === '+08:00') || Precise["default"].stringEq(timezone, '8'));
         const rawHashes = [];
         const subMessageHashes = [];
@@ -2244,7 +2244,7 @@ class binance extends binance$1["default"] {
         //        "status":200,
         //        "result":{
         //            "symbol":"BTCUSDT",
-        //            "price":"73178.50",
+        //            "price":"73178.60",
         //            "time":1712527052374
         //        }
         //    }
@@ -2407,7 +2407,7 @@ class binance extends binance$1["default"] {
     /**
      * @name binance#ensureUserDataStreamWsSubscribeSignature
      * @description watches best bid & ask for symbols
-     * @param marketType {string} only support on 'spot'
+     * @param {string} [marketType] only supports 'spot'
      * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
      * @returns Promise<number> The subscription ID for the user data stream
      */
@@ -3679,8 +3679,8 @@ class binance extends binance$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         const type = this.getMarketType('fetchOpenOrdersWs', market, params);
-        if (type !== 'spot' && type !== 'future') {
-            throw new errors.BadRequest(this.id + ' fetchOpenOrdersWs only supports spot or swap markets');
+        if (type !== 'spot') {
+            throw new errors.BadRequest(this.id + ' fetchOpenOrdersWs only supports spot markets');
         }
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId(url);

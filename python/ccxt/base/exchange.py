@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.55'
+__version__ = '4.5.56'
 
 # -----------------------------------------------------------------------------
 
@@ -1513,6 +1513,24 @@ class Exchange(object):
     def eth_get_address_from_private_key(private_key):
         # method returns the Ethereum address from a "0x"-prefixed private key
         # Remove "0x" prefix if present
+        if coincurve is not None:
+            return Exchange.eth_get_address_from_private_key_with_coincurve(private_key)
+        clean_private_key = Exchange.remove0x_prefix(private_key)
+        # Build secp256k1 private key from raw 32-byte hex
+        private_key_bytes = bytes.fromhex(clean_private_key)
+        signing_key = ecdsa.SigningKey.from_string(private_key_bytes, curve=ecdsa.SECP256k1)
+        # 64-byte uncompressed public key (X || Y), no 0x04 prefix
+        public_key_bytes = signing_key.verifying_key.to_string()
+        # Hash the public key with Keccak256
+        address_bytes = keccak.SHA3(public_key_bytes)[-20:]
+        # Convert to hex and add 0x prefix
+        address_hex = '0x' + address_bytes.hex()
+        return address_hex
+
+    @staticmethod
+    def eth_get_address_from_private_key_with_coincurve(private_key):
+        # method returns the Ethereum address from a "0x"-prefixed private key
+        # Remove "0x" prefix if present
         clean_private_key = Exchange.remove0x_prefix(private_key)
         # Use coincurve to get the public key
         private_key_obj = coincurve.PrivateKey(bytes.fromhex(clean_private_key))
@@ -2901,21 +2919,27 @@ class Exchange(object):
             return value
         return defaultValue
 
-    def safe_bool_2(self, dictionary, key1: IndexType, key2: IndexType, defaultValue: bool = None):
+    def safe_bool_2(self, dictionaryOrList, key1: IndexType, key2: IndexType, defaultValue: bool = None):
         """
  @ignore
         safely extract boolean value from dictionary or list
         :returns bool | None:
         """
-        return self.safe_bool_n(dictionary, [key1, key2], defaultValue)
+        value = self.safe_value(dictionaryOrList, key1)
+        if isinstance(value, bool):
+            return value
+        value2 = self.safe_value(dictionaryOrList, key2)
+        if isinstance(value2, bool):
+            return value2
+        return defaultValue
 
-    def safe_bool(self, dictionary, key: IndexType, defaultValue: bool = None):
+    def safe_bool(self, dictionaryOrList, key: IndexType, defaultValue: bool = None):
         """
  @ignore
         safely extract boolean value from dictionary or list
         :returns bool | None:
         """
-        value = self.safe_value(dictionary, key, defaultValue)
+        value = self.safe_value(dictionaryOrList, key, defaultValue)
         if isinstance(value, bool):
             return value
         return defaultValue
@@ -2933,26 +2957,32 @@ class Exchange(object):
             return value
         return defaultValue
 
-    def safe_dict(self, dictionary, key: IndexType, defaultValue: dict = None):
+    def safe_dict(self, dictionaryOrList, key: IndexType, defaultValue: dict = None):
         """
  @ignore
         safely extract a dictionary from dictionary or list
         :returns dict | None:
         """
-        value = self.safe_value(dictionary, key, defaultValue)
+        value = self.safe_value(dictionaryOrList, key, defaultValue)
         if value is None:
             return defaultValue
         if self.is_dictionary(value):
             return value
         return defaultValue
 
-    def safe_dict_2(self, dictionary, key1: IndexType, key2: str, defaultValue: dict = None):
+    def safe_dict_2(self, dictionaryOrList, key1: IndexType, key2: str, defaultValue: dict = None):
         """
  @ignore
         safely extract a dictionary from dictionary or list
         :returns dict | None:
         """
-        return self.safe_dict_n(dictionary, [key1, key2], defaultValue)
+        value = self.safe_value(dictionaryOrList, key1)
+        if (value is not None) and isinstance(value, dict):
+            return value
+        value2 = self.safe_value(dictionaryOrList, key2)
+        if (value2 is not None) and isinstance(value2, dict):
+            return value2
+        return defaultValue
 
     def safe_list_n(self, dictionaryOrList, keys: List[IndexType], defaultValue: List[Any] = None):
         """
@@ -2976,7 +3006,13 @@ class Exchange(object):
         safely extract an Array from dictionary or list
         :returns Array | None:
         """
-        return self.safe_list_n(dictionaryOrList, [key1, key2], defaultValue)
+        value = self.safe_value(dictionaryOrList, key1)
+        if (value is not None) and isinstance(value, list):
+            return value
+        value2 = self.safe_value(dictionaryOrList, key2)
+        if (value2 is not None) and isinstance(value2, list):
+            return value2
+        return defaultValue
 
     def safe_list(self, dictionaryOrList, key: IndexType, defaultValue: List[Any] = None):
         """
@@ -3386,6 +3422,8 @@ class Exchange(object):
         arr = self.to_array(rawCurrencies)
         for i in range(0, len(arr)):
             parsed = self.parse_currency(arr[i])
+            if parsed is None:
+                continue
             code = parsed['code']
             result[code] = parsed
         return result
@@ -3656,7 +3694,7 @@ class Exchange(object):
                 self.features[marketType] = None
             else:
                 if marketType == 'spot':
-                    self.features[marketType] = self.features_mapper(initialFeatures, marketType, None)
+                    self.features[marketType] = self.features_mapper(initialFeatures, marketType)
                 else:
                     self.features[marketType] = {}
                     for j in range(0, len(subTypes)):
@@ -3849,17 +3887,6 @@ class Exchange(object):
                 currencyWithdraw = self.safe_bool(currency, 'withdraw')
                 if currencyWithdraw is None or withdraw:
                     currency['withdraw'] = withdraw
-                # set network 'active' to False if D or W is disabled
-                active = self.safe_bool(network, 'active')
-                if active is None:
-                    if deposit and withdraw:
-                        currency['networks'][key]['active'] = True
-                    elif deposit is not None and withdraw is not None:
-                        currency['networks'][key]['active'] = False
-                active = self.safe_bool(currency['networks'][key], 'active')  # dict might have been updated on above lines, so access directly instead of `network` variable
-                currencyActive = self.safe_bool(currency, 'active')
-                if currencyActive is None or active:
-                    currency['active'] = active
                 # find lowest fee(which is more desired)
                 fee = self.safe_string(network, 'fee')
                 feeMain = self.safe_string(currency, 'fee')
@@ -4574,6 +4601,19 @@ class Exchange(object):
                 return current
         return arr[length - 1]
 
+    def add_key_in_array_items(self, obj, keyName):
+        result = []
+        keys = list(obj.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            item = obj[key]
+            if item is None:
+                continue
+            itemWithKey = self.extend({}, item)
+            itemWithKey[keyName] = key
+            result.append(itemWithKey)
+        return result
+
     def invert_flat_string_dictionary(self, dict):
         reversed = {}
         keys = list(dict.keys())
@@ -5232,7 +5272,7 @@ class Exchange(object):
         positions = self.to_array(positions)
         result = []
         for i in range(0, len(positions)):
-            position = self.extend(self.parse_position(positions[i], None), params)
+            position = self.extend(self.parse_position(positions[i]), params)
             result.append(position)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
@@ -5244,7 +5284,7 @@ class Exchange(object):
         ranks = self.to_array(ranks)
         result = []
         for i in range(0, len(ranks)):
-            rank = self.extend(self.parse_adl_rank(ranks[i], None), params)
+            rank = self.extend(self.parse_adl_rank(ranks[i]), params)
             result.append(rank)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 

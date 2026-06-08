@@ -581,10 +581,10 @@ class xt(Exchange, ImplicitAPI):
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
+                    'TRX': 'Tron',
                     'BEP20': 'BNB Smart Chain',
                     'BEP2': 'BNB-BEP2',
                     'ETH': 'Ethereum',
-                    'TRON': 'Tron',
                     'BNB': 'BNB Smart Chain',
                     'AVAX': 'AVAX C-Chain',
                     'GAL': 'GAL(FT)',
@@ -4181,11 +4181,12 @@ class xt(Exchange, ImplicitAPI):
             tier = brackets[i]
             marketId = self.safe_string(info, 'symbol')
             market = self.safe_market(marketId, market, '_', 'contract')
+            minNotional = self.safe_number(brackets[i - 1], 'maxNominalValue', 0)
             tiers.append({
                 'tier': self.safe_integer(tier, 'bracket'),
                 'symbol': self.safe_symbol(marketId, market, '_', 'contract'),
                 'currency': market['settle'],
-                'minNotional': self.safe_number(brackets[i - 1], 'maxNominalValue', 0),
+                'minNotional': minNotional,
                 'maxNotional': self.safe_number(tier, 'maxNominalValue'),
                 'maintenanceMarginRate': self.safe_number(tier, 'maintMarginRate'),
                 'maxLeverage': self.safe_number(tier, 'maxLeverage'),

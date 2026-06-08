@@ -360,7 +360,6 @@ public partial class bittrade : Exchange
                     { "HECO", "hrc20" },
                     { "HT", "hrc20" },
                     { "ALGO", "algo" },
-                    { "OMNI", "" },
                 } },
                 { "fetchOrdersByStatesMethod", "private_get_order_orders" },
                 { "fetchOpenOrdersMethod", "fetch_open_orders_v1" },
@@ -2141,8 +2140,9 @@ public partial class bittrade : Exchange
             object requestSorted = this.keysort(request);
             object auth = this.urlencode(requestSorted);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
+            object content = new List<object>() {method, this.hostname, url, auth};
             // eslint-disable-next-line quotes
-            object payload = String.Join("\n", ((IList<object>)new List<object>() {method, this.hostname, url, auth}).ToArray());
+            object payload = String.Join("\n", ((IList<object>)content).ToArray());
             object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             auth = add(auth, add("&", this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },

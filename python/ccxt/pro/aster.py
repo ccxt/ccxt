@@ -370,13 +370,11 @@ class aster(ccxt.async_support.aster):
 
     def parse_ws_ticker(self, message, marketType):
         event = self.safe_string(message, 'e')
-        part = event.split('@')
-        channel = self.safe_string(part, 1)
         marketId = self.safe_string(message, 's')
         timestamp = self.safe_integer(message, 'E')
         market = self.safe_market(marketId, None, None, marketType)
         last = self.safe_string(message, 'c')
-        if channel == 'markPriceUpdate':
+        if event == 'markPriceUpdate':
             return self.safe_ticker({
                 'symbol': market['symbol'],
                 'timestamp': timestamp,
@@ -1159,7 +1157,10 @@ class aster(ccxt.async_support.aster):
         if listenKey is None:
             return
         try:
-            await self.sapiPrivatePutV3ListenKey()  # self.extend the expiry
+            if type == 'spot':
+                await self.sapiPrivatePutV3ListenKey()  # self.extend the expiry
+            else:
+                await self.fapiPrivatePutV3ListenKey()  # self.extend the expiry
         except Exception as error:
             url = self.urls['api']['ws']['private'][type] + '/' + listenKey
             client = self.client(url)
@@ -1776,13 +1777,11 @@ class aster(ccxt.async_support.aster):
         messageInner = self.safe_dict(message, 'data', message)  # can be either wrapped in 'data' or full object itself
         event = self.safe_string(messageInner, 'e')
         methods: dict = {
-            'ticker': self.handle_ticker,
+            '24hrTicker': self.handle_ticker,
             'aggTrade': self.handle_trade,
-            'depth5': self.handle_order_book,
-            'depth10': self.handle_order_book,
-            'depth20': self.handle_order_book,
+            'depthUpdate': self.handle_order_book,
             'kline': self.handle_ohlcv,
-            'markPrice': self.handle_ticker,
+            'markPriceUpdate': self.handle_ticker,
             'bookTicker': self.handle_bid_ask,
             'outboundAccountPosition': self.handle_balance,
             'ACCOUNT_UPDATE': self.handle_balance_and_position,

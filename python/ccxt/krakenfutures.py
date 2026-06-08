@@ -1982,6 +1982,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             innerStatus = self.safe_string(order, 'status')
             fetchOrderPriceTriggerOptions = self.safe_dict(orderDictFromFetchOrder, 'priceTriggerOptions', {})
             fetchOrderTriggerPrice = self.safe_string(fetchOrderPriceTriggerOptions, 'triggerPrice')
+            unifiedSymbol = self.safe_symbol(self.safe_string(orderDictFromFetchOrder, 'symbol'), market)
             return self.safe_order({
                 'info': order,
                 'id': self.safe_string(orderDictFromFetchOrder, 'orderId'),
@@ -1990,7 +1991,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'datetime': datetime,
                 'lastTradeTimestamp': None,
                 'lastUpdateTimestamp': self.parse8601(self.safe_string(orderDictFromFetchOrder, 'lastUpdateTimestamp')),
-                'symbol': self.safe_symbol(self.safe_string(orderDictFromFetchOrder, 'symbol'), market),
+                'symbol': unifiedSymbol,
                 'type': None,
                 'timeInForce': None,
                 'postOnly': None,

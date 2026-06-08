@@ -3015,8 +3015,10 @@ class bitmart extends Exchange {
         }
         $request = array(
             'symbol' => $market['id'],
-            'size' => intval($this->amount_to_precision($symbol, $amount)),
         );
+        if ($amount !== null) {
+            $request['size'] = intval($this->amount_to_precision($symbol, $amount));
+        }
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $mode = $this->safe_integer($params, 'mode'); // only for swap
         $isMarketOrder = $type === 'market';
@@ -3074,7 +3076,11 @@ class bitmart extends Exchange {
         if ($isStopLoss || $isTakeProfit) {
             $reduceOnly = true;
             $request['price_type'] = $this->safe_integer($params, 'price_type', 1);
-            $request['executive_price'] = $this->price_to_precision($symbol, $price);
+            if ($price !== null) {
+                $request['executive_price'] = $this->price_to_precision($symbol, $price);
+            }
+            $marketOrLimitStr = $isLimitOrder ? 'limit' : 'market';
+            $request['category'] = $this->safe_string($params, 'category', $marketOrLimitStr);
             if ($isStopLoss) {
                 $request['trigger_price'] = $this->price_to_precision($symbol, $stopLossPrice);
             } else {
@@ -3311,9 +3317,9 @@ class bitmart extends Exchange {
             }
             $succeeded = $this->safe_value($data, 'succeed');
             if ($succeeded !== null) {
-                $id = $this->safe_string($succeeded, 0);
-                if ($id === null) {
-                    throw new InvalidOrder($this->id . ' cancelOrder() failed to cancel ' . $symbol . ' $order $id ' . $id);
+                $id2 = $this->safe_string($succeeded, 0);
+                if ($id2 === null) {
+                    throw new InvalidOrder($this->id . ' cancelOrder() failed to cancel ' . $symbol . ' $order $id ' . $id2);
                 }
             } else {
                 $result = $this->safe_value($data, 'result');
@@ -4692,8 +4698,9 @@ class bitmart extends Exchange {
             if ($limit === null) {
                 $limit = 10;
             }
+            $pageNumber = $this->safe_integer($params, 'page', 1);
             $request = array(
-                'page' => $this->safe_integer($params, 'page', 1), // default is 1, max is 1000
+                'page' => $pageNumber, // default is 1, max is 1000
                 'limit' => $limit, // default is 10, max is 100
             );
             $currency = null;

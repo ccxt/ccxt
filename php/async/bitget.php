@@ -1968,9 +1968,8 @@ class bitget extends Exchange {
             list($uta, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'uta', false);
             if ($uta) {
                 return Async\await($this->fetch_uta_markets($params));
-            } else {
-                return Async\await($this->fetch_default_markets($params));
             }
+            return Async\await($this->fetch_default_markets($params));
         }) ();
     }
 
@@ -5368,6 +5367,13 @@ class bitget extends Exchange {
         $trailingTriggerPrice = $this->safe_string($params, 'trailingTriggerPrice', $this->number_to_string($price));
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRatio');
         $isTrailingPercentOrder = $trailingPercent !== null;
+        // $multipleTriggers = ($isTriggerOrder && ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder || $isTrailingPercentOrder))
+        //     || ($isStopLossTriggerOrder && ($isTakeProfitTriggerOrder || $isTrailingPercentOrder))
+        //     || ($isTakeProfitTriggerOrder && $isTrailingPercentOrder);
+        // if ($multipleTriggers) {
+        //     throw new ExchangeError($this->id . ' createOrder() $params can only contain one of $triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
+        // }
+        //
         if ($this->sum($isTriggerOrder, $isStopLossTriggerOrder, $isTakeProfitTriggerOrder, $isTrailingPercentOrder) > 1) {
             throw new ExchangeError($this->id . ' createOrder() $params can only contain one of $triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         }
@@ -5774,6 +5780,12 @@ class bitget extends Exchange {
             $trailingTriggerPrice = $this->safe_string($params, 'trailingTriggerPrice', $this->number_to_string($price));
             $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'newCallbackRatio');
             $isTrailingPercentOrder = $trailingPercent !== null;
+            // $multipleTriggers = ($isTriggerOrder && ($isStopLossOrder || $isTakeProfitOrder || $isTrailingPercentOrder))
+            //     || ($isStopLossOrder && ($isTakeProfitOrder || $isTrailingPercentOrder))
+            //     || ($isTakeProfitOrder && $isTrailingPercentOrder);
+            // if ($multipleTriggers) {
+            //     throw new ExchangeError($this->id . ' editOrder() $params can only contain one of $triggerPrice, $stopLossPrice, $takeProfitPrice, trailingPercent');
+            // }
             if ($this->sum($isTriggerOrder, $isStopLossOrder, $isTakeProfitOrder, $isTrailingPercentOrder) > 1) {
                 throw new ExchangeError($this->id . ' editOrder() $params can only contain one of $triggerPrice, $stopLossPrice, $takeProfitPrice, trailingPercent');
             }

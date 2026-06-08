@@ -735,7 +735,7 @@ class apex(ccxt.async_support.apex):
     async def load_positions_snapshot(self, client, messageHash):
         # one ws channel gives positions for all types, for snapshot must load all positions
         fetchFunctions = [
-            self.fetch_positions(None),
+            self.fetch_positions(),
         ]
         promises = await asyncio.gather(*fetchFunctions)
         self.positions = ArrayCacheBySymbolBySide()
@@ -894,6 +894,14 @@ class apex(ccxt.async_support.apex):
                 ret_msg = self.safe_string(message, 'ret_msg')
                 request = self.safe_value(message, 'request', {})
                 op = self.safe_string(request, 'op')
+                # Benign re-subscribe notice(same shape 90008 /
+                # krakenfutures "Already subscribed"): the original subscription
+                # is still active and delivering data on self socket. Without
+                # self short-circuit the catch-clause's `client.reject(error,
+                # messageHash)` rejects every in-flight future on the connection
+                # because apex doesn't echo a `reqId` on these warnings.
+                if ret_msg is not None and ret_msg.find('already subscribed') >= 0:
+                    return False
                 if op == 'auth':
                     raise AuthenticationError('Authentication failed: ' + ret_msg)
                 else:

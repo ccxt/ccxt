@@ -77,7 +77,7 @@
             "enableDisplay": true,
             "displayDigitMerge": "0.01,0.1,0.5,1,5",
             "displayNew": false,
-            "displayHot": false
+            "displayHot": true
         },
         "tierBased": true,
         "percentage": true,
@@ -193,7 +193,7 @@
         "optionType": null,
         "precision": {
             "amount": 0.000001,
-            "price": 0.1
+            "price": 0.01
         },
         "limits": {
             "leverage": {
@@ -201,7 +201,7 @@
                 "max": null
             },
             "amount": {
-                "min": 0.00001,
+                "min": 0.000002,
                 "max": 99999
             },
             "price": {
@@ -225,9 +225,9 @@
             "baseAssetPrecision": "8",
             "quoteAsset": "USDT",
             "quoteAssetPrecision": "8",
-            "tickSize": "0.1",
+            "tickSize": "0.01",
             "stepSize": "0.000001",
-            "minTradeAmount": "0.00001",
+            "minTradeAmount": "0.000002",
             "maxTradeAmount": "99999",
             "takerFeeRate": "0.001",
             "makerFeeRate": "0.001",
@@ -238,9 +238,9 @@
             "marketFallbackPriceRatio": "0",
             "enableTrade": true,
             "enableDisplay": true,
-            "displayDigitMerge": "0.1,1,10,100,1000",
+            "displayDigitMerge": "0.01,0.1,1,10,100,1000",
             "displayNew": false,
-            "displayHot": false
+            "displayHot": true
         },
         "tierBased": true,
         "percentage": true,
@@ -403,7 +403,7 @@
             "enableDisplay": true,
             "displayDigitMerge": "0.00001,0.0001,0.0005,0.001,0.005",
             "displayNew": false,
-            "displayHot": false
+            "displayHot": true
         },
         "tierBased": true,
         "percentage": true,
@@ -546,6 +546,7 @@
         "created": null,
         "info": {
             "symbol": "BTCUSDT",
+            "displaySymbol": "BTCUSDT",
             "baseAsset": "BTC",
             "quoteAsset": "USDT",
             "marginAsset": "USDT",
@@ -712,6 +713,7 @@
         "created": null,
         "info": {
             "symbol": "ETHUSDT",
+            "displaySymbol": "ETHUSDT",
             "baseAsset": "ETH",
             "quoteAsset": "USDT",
             "marginAsset": "USDT",
@@ -860,7 +862,7 @@
             },
             "amount": {
                 "min": 100,
-                "max": 200200000
+                "max": 30000000
             },
             "price": {
                 "min": null,
@@ -878,6 +880,7 @@
         "created": null,
         "info": {
             "symbol": "DOGEUSDT",
+            "displaySymbol": "DOGEUSDT",
             "baseAsset": "DOGE",
             "quoteAsset": "USDT",
             "marginAsset": "USDT",
@@ -899,9 +902,9 @@
             "makerFeeRate": "0.0002",
             "takerFeeRate": "0.0008",
             "minOrderSize": "100",
-            "maxOrderSize": "200200000",
-            "maxPositionSize": "500000000",
-            "marketOpenLimitSize": "200200000"
+            "maxOrderSize": "30000000",
+            "maxPositionSize": "50000000",
+            "marketOpenLimitSize": "30000000"
         },
         "tierBased": true,
         "percentage": true,

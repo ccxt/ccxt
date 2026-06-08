@@ -1013,18 +1013,6 @@ export default class hitbtc extends Exchange {
         });
     }
 
-    addKeyInArrayItems (obj, keyName) {
-        const result = [];
-        const keys = Object.keys (obj);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const item = obj[key];
-            item[keyName] = key;
-            result.push (item);
-        }
-        return result;
-    }
-
     /**
      * @method
      * @name hitbtc#createDepositAddress
@@ -3436,8 +3424,9 @@ export default class hitbtc extends Exchange {
         //         "positions": null
         //     }
         //
+        const parsedAmount = this.parseNumber (amount);
         return this.extend (this.parseMarginModification (response, market), {
-            'amount': this.parseNumber (amount),
+            'amount': parsedAmount,
             'type': type,
         });
     }

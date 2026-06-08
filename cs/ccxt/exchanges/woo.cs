@@ -1853,7 +1853,7 @@ public partial class woo : Exchange
             { "fok", "FOK" },
             { "post_only", "PO" },
         };
-        return this.safeString(timeInForces, timeInForce, null);
+        return this.safeString(timeInForces, timeInForce);
     }
 
     public override object parseOrder(object order, object market = null)

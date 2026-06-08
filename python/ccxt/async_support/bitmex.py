@@ -1445,13 +1445,14 @@ class bitmex(Exchange, ImplicitAPI):
         status = self.safe_string(transaction, 'transactStatus')
         if status is not None:
             status = self.parse_transaction_status(status)
+        code = currency['code']
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'transactID'),
             'txid': self.safe_string(transaction, 'tx'),
             'type': type,
-            'currency': currency['code'],
-            'network': self.network_id_to_code(self.safe_string(transaction, 'network'), currency['code']),
+            'currency': code,
+            'network': self.network_id_to_code(self.safe_string(transaction, 'network'), code),
             'amount': self.parse_number(amount),
             'status': status,
             'timestamp': transactTime,
@@ -1961,6 +1962,7 @@ class bitmex(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         orderType = self.capitalize(type)
+        capitalizeOrderType = orderType
         reduceOnly = self.safe_value(params, 'reduceOnly')
         if reduceOnly is not None:
             if (not market['swap']) and (not market['future']):
@@ -1973,7 +1975,7 @@ class bitmex(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'side': self.capitalize(side),
             'orderQty': qty,  # lot size multiplied by the number of contracts
-            'ordType': orderType,
+            'ordType': capitalizeOrderType,
             'text': brokerId,
         }
         execInstructions = []
@@ -2735,9 +2737,10 @@ class bitmex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchDepositAddress requires params["network"]')
         currency = self.currency(code)
         params = self.omit(params, 'network')
+        parsedNetwork = self.network_code_to_id(networkCode, currency['code'])
         request: dict = {
             'currency': currency['id'],
-            'network': self.network_code_to_id(networkCode, currency['code']),
+            'network': parsedNetwork,
         }
         response = await self.privateGetUserDepositAddress(self.extend(request, params))
         #

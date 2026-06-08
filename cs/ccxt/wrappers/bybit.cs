@@ -56,7 +56,7 @@ public partial class bybit
         var res = await this.fetchSpotMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<MarketInterface>> FetchFutureMarkets(object parameters)
+    public async Task<List<MarketInterface>> FetchFutureMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFutureMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();

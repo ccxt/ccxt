@@ -701,6 +701,7 @@ func (this *PhemexCore) ParseSwapMarket(market any) any {
 		// "1.0"
 		contractSize = this.ParseNumber(contractSizeString)
 	}
+	var isLinear any = !IsTrue(inverse)
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         Add(Add(Add(Add(base, "/"), quote), ":"), settle),
@@ -718,7 +719,7 @@ func (this *PhemexCore) ParseSwapMarket(market any) any {
 		"option":         false,
 		"active":         IsEqual(status, "Listed"),
 		"contract":       true,
-		"linear":         !IsTrue(inverse),
+		"linear":         isLinear,
 		"inverse":        inverse,
 		"taker":          this.ParseNumber(this.FromEn(takerFeeRateEr, ratioScale)),
 		"maker":          this.ParseNumber(this.FromEn(makerFeeRateEr, ratioScale)),
@@ -1137,55 +1138,53 @@ func (this *PhemexCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		//     }
 		var data any = this.SafeValue(response, "data", map[string]any{})
 		var currencies any = this.SafeValue(data, "currencies", []any{})
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(currencies)); i++ {
-			var currency any = GetValue(currencies, i)
-			var id any = this.SafeString(currency, "currency")
-			var code any = this.SafeCurrencyCode(id)
-			var valueScaleString any = this.SafeString(currency, "valueScale")
-			var valueScale any = ParseInt(valueScaleString)
-			var minValueEv any = this.SafeString(currency, "minValueEv")
-			var maxValueEv any = this.SafeString(currency, "maxValueEv")
-			var minAmount any = nil
-			var maxAmount any = nil
-			var precision any = nil
-			if IsTrue(!IsEqual(valueScale, nil)) {
-				var precisionString any = this.ParsePrecision(valueScaleString)
-				precision = this.ParseNumber(precisionString)
-				minAmount = this.ParseNumber(Precise.StringMul(minValueEv, precisionString))
-				maxAmount = this.ParseNumber(Precise.StringMul(maxValueEv, precisionString))
-			}
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"id":        id,
-				"info":      currency,
-				"code":      code,
-				"name":      this.SafeString(currency, "name"),
-				"active":    IsEqual(this.SafeString(currency, "status"), "Listed"),
-				"deposit":   nil,
-				"withdraw":  nil,
-				"fee":       nil,
-				"precision": precision,
-				"limits": map[string]any{
-					"amount": map[string]any{
-						"min": minAmount,
-						"max": maxAmount,
-					},
-					"withdraw": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-				"valueScale": valueScale,
-				"networks":   nil,
-				"type":       "crypto",
-			}))
-		}
 
-		ch <- result
+		ch <- this.ParseCurrencies(currencies)
 		return nil
 
 	}()
 	return ch
+}
+func (this *PhemexCore) ParseCurrency(rawCurrency any) any {
+	var id any = this.SafeString(rawCurrency, "currency")
+	var code any = this.SafeCurrencyCode(id)
+	var valueScaleString any = this.SafeString(rawCurrency, "valueScale")
+	var valueScale any = ParseInt(valueScaleString)
+	var minValueEv any = this.SafeString(rawCurrency, "minValueEv")
+	var maxValueEv any = this.SafeString(rawCurrency, "maxValueEv")
+	var minAmount any = nil
+	var maxAmount any = nil
+	var precision any = nil
+	if IsTrue(!IsEqual(valueScale, nil)) {
+		var precisionString any = this.ParsePrecision(valueScaleString)
+		precision = this.ParseNumber(precisionString)
+		minAmount = this.ParseNumber(Precise.StringMul(minValueEv, precisionString))
+		maxAmount = this.ParseNumber(Precise.StringMul(maxValueEv, precisionString))
+	}
+	return this.SafeCurrencyStructure(map[string]any{
+		"id":        id,
+		"info":      rawCurrency,
+		"code":      code,
+		"name":      this.SafeString(rawCurrency, "name"),
+		"active":    IsEqual(this.SafeString(rawCurrency, "status"), "Listed"),
+		"deposit":   nil,
+		"withdraw":  nil,
+		"fee":       nil,
+		"precision": precision,
+		"limits": map[string]any{
+			"amount": map[string]any{
+				"min": minAmount,
+				"max": maxAmount,
+			},
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"valueScale": valueScale,
+		"networks":   nil,
+		"type":       "crypto",
+	})
 }
 func (this *PhemexCore) CustomParseBidAsk(bidask any, optionalArgs ...any) any {
 	priceKey := GetArg(optionalArgs, 0, 0)
@@ -5187,11 +5186,12 @@ func (this *PhemexCore) ParseMarketLeverageTiers(info any, optionalArgs ...any) 
 	for i := 0; IsLessThan(i, GetArrayLength(riskLimits)); i++ {
 		var tier any = GetValue(riskLimits, i)
 		var maxNotional any = this.SafeInteger(tier, "limit")
+		var minNotionalResponse any = minNotional // java req
 		AppendToArray(&tiers, map[string]any{
 			"tier":                  this.Sum(i, 1),
 			"symbol":                this.SafeSymbol(marketId, market),
 			"currency":              GetValue(market, "settle"),
-			"minNotional":           minNotional,
+			"minNotional":           minNotionalResponse,
 			"maxNotional":           maxNotional,
 			"maintenanceMarginRate": this.SafeString(tier, "maintenanceMargin"),
 			"maxLeverage":           nil,
@@ -5288,8 +5288,8 @@ func (this *PhemexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 			panic(BadRequest(Add(this.Id, " setLeverage() leverage should be between -100 and 100")))
 		}
 
-		retRes47218 := (<-this.LoadMarkets())
-		PanicOnError(retRes47218)
+		retRes47228 := (<-this.LoadMarkets())
+		PanicOnError(retRes47228)
 		var isHedged any = this.SafeBool(params, "hedged", false)
 		var longLeverageRr any = this.SafeInteger(params, "longLeverageRr")
 		var shortLeverageRr any = this.SafeInteger(params, "shortLeverageRr")
@@ -5346,8 +5346,8 @@ func (this *PhemexCore) Transfer(code any, amount any, fromAccount any, toAccoun
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes47628 := (<-this.LoadMarkets())
-		PanicOnError(retRes47628)
+		retRes47638 := (<-this.LoadMarkets())
+		PanicOnError(retRes47638)
 		var currency any = this.Currency(code)
 		var accountsByType any = this.SafeValue(this.Options, "accountsByType", map[string]any{})
 		var fromId any = this.SafeString(accountsByType, fromAccount, fromAccount)
@@ -5454,8 +5454,8 @@ func (this *PhemexCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes48478 := (<-this.LoadMarkets())
-		PanicOnError(retRes48478)
+		retRes48488 := (<-this.LoadMarkets())
+		PanicOnError(retRes48488)
 		if IsTrue(IsEqual(code, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchTransfers() requires a code argument")))
 		}
@@ -5598,8 +5598,8 @@ func (this *PhemexCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
 
-		retRes49708 := (<-this.LoadMarkets())
-		PanicOnError(retRes49708)
+		retRes49718 := (<-this.LoadMarkets())
+		PanicOnError(retRes49718)
 		var market any = this.Market(symbol)
 		var isUsdtSettled any = IsTrue(IsEqual(GetValue(market, "settle"), "USDT")) || IsTrue(IsEqual(GetValue(market, "settle"), "USDC"))
 		if !IsTrue(GetValue(market, "swap")) {
@@ -5611,9 +5611,9 @@ func (this *PhemexCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any 
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes497919 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
-			PanicOnError(retRes497919)
-			ch <- retRes497919
+			retRes498019 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
+			PanicOnError(retRes498019)
+			ch <- retRes498019
 			return nil
 		}
 		var customSymbol any = nil
@@ -5709,8 +5709,8 @@ func (this *PhemexCore) Withdraw(code any, amount any, address any, optionalArgs
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 
-		retRes50528 := (<-this.LoadMarkets())
-		PanicOnError(retRes50528)
+		retRes50538 := (<-this.LoadMarkets())
+		PanicOnError(retRes50538)
 		this.CheckAddress(address)
 		var currency any = this.Currency(code)
 		var networkCode any = nil
@@ -5794,8 +5794,8 @@ func (this *PhemexCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes51208 := (<-this.LoadMarkets())
-		PanicOnError(retRes51208)
+		retRes51218 := (<-this.LoadMarkets())
+		PanicOnError(retRes51218)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
 			panic(BadRequest(Add(this.Id, " fetchOpenInterest is only supported for contract markets.")))
@@ -5890,8 +5890,8 @@ func (this *PhemexCore) FetchConvertQuote(fromCode any, toCode any, optionalArgs
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes51988 := (<-this.LoadMarkets())
-		PanicOnError(retRes51988)
+		retRes51998 := (<-this.LoadMarkets())
+		PanicOnError(retRes51998)
 		var fromCurrency any = this.Currency(fromCode)
 		var toCurrency any = this.Currency(toCode)
 		var valueScale any = this.SafeInteger(fromCurrency, "valueScale")
@@ -5952,8 +5952,8 @@ func (this *PhemexCore) CreateConvertTrade(id any, fromCode any, toCode any, opt
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes52438 := (<-this.LoadMarkets())
-		PanicOnError(retRes52438)
+		retRes52448 := (<-this.LoadMarkets())
+		PanicOnError(retRes52448)
 		var fromCurrency any = this.Currency(fromCode)
 		var toCurrency any = this.Currency(toCode)
 		var valueScale any = this.SafeInteger(fromCurrency, "valueScale")
@@ -6024,8 +6024,8 @@ func (this *PhemexCore) FetchConvertTradeHistory(optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes52948 := (<-this.LoadMarkets())
-		PanicOnError(retRes52948)
+		retRes52958 := (<-this.LoadMarkets())
+		PanicOnError(retRes52958)
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(code, nil)) {
 			AddElementToObject(request, "fromCurrency", code)
@@ -6174,8 +6174,8 @@ func (this *PhemexCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes54228 := (<-this.LoadMarkets())
-		PanicOnError(retRes54228)
+		retRes54238 := (<-this.LoadMarkets())
+		PanicOnError(retRes54238)
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var subType any = nil
 		var code any = this.SafeString2(params, "currency", "code", "USDT")

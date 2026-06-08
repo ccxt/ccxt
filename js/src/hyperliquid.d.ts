@@ -39,6 +39,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name hyperliquid#fetchMarkets
@@ -237,8 +238,8 @@ export default class hyperliquid extends Exchange {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
      * @description returns enableUnifiedMargin so the user can check if unified account is enabled
      * @param {string} method the method for which we want to check if unified margin is enabled, this is used to check options for specific methods (e.g. fetchBalance can have a specific option to enable unified margin)
-     * @param address
-     * @param shouldRefresh
+     * @param {string} [address] the wallet address to query; defaults to the configured walletAddress
+     * @param {boolean} [shouldRefresh] force a fresh request instead of returning the cached value
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {bool} enableUnifiedMargin
      */
@@ -258,8 +259,8 @@ export default class hyperliquid extends Exchange {
      * @method
      * @name hyperliquid#enableUserDexAbstraction
      * @description If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
-     * @param enabled
-     * @param params
+     * @param {boolean} enabled whether to enable user dex abstraction
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
      * @returns dictionary response from the exchange
      */

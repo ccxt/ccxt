@@ -453,66 +453,65 @@ class lbank extends lbank$1["default"] {
         //
         const currenciesData = this.safeList(response, 'data', []);
         const grouped = this.groupBy(currenciesData, 'assetCode');
-        const groupedKeys = Object.keys(grouped);
-        const result = {};
-        for (let i = 0; i < groupedKeys.length; i++) {
-            const id = (groupedKeys[i]).toString(); // some currencies are numeric
-            const code = this.safeCurrencyCode(id);
-            const networksRaw = grouped[id];
-            const networks = {};
-            for (let j = 0; j < networksRaw.length; j++) {
-                const networkEntry = networksRaw[j];
-                let networkId = this.safeString(networkEntry, 'chain');
-                if (networkId === undefined) {
-                    networkId = this.safeString(networkEntry, 'assetCode'); // use type as fallback if networkId is not present
-                }
-                const networkCode = this.networkIdToCode(networkId);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(networkEntry, 'min'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.safeNumber(networkEntry, 'minTransfer'),
-                            'max': undefined,
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': this.safeBool(networkEntry, 'canWithDraw'),
-                    'fee': this.safeNumber(networkEntry, 'fee'),
-                    'precision': this.parseNumber(this.parsePrecision(this.safeString(networkEntry, 'transferAmtScale'))),
-                    'info': networkEntry,
-                };
+        const values = Object.values(grouped);
+        return this.parseCurrencies(values);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency[0], 'assetCode'); // first member is guaranteed
+        const code = this.safeCurrencyCode(id);
+        const networksRaw = rawCurrency;
+        const networks = {};
+        for (let j = 0; j < networksRaw.length; j++) {
+            const networkEntry = networksRaw[j];
+            let networkId = this.safeString(networkEntry, 'chain');
+            if (networkId === undefined) {
+                networkId = this.safeString(networkEntry, 'assetCode'); // use type as fallback if networkId is not present
             }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'precision': undefined,
-                'type': undefined,
-                'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
+            const networkCode = this.networkIdToCode(networkId);
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'limits': {
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.safeNumber(networkEntry, 'min'),
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': undefined,
+                        'min': this.safeNumber(networkEntry, 'minTransfer'),
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-                'info': networksRaw,
-            });
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': this.safeBool(networkEntry, 'canWithDraw'),
+                'fee': this.safeNumber(networkEntry, 'fee'),
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(networkEntry, 'transferAmtScale'))),
+                'info': networkEntry,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'precision': undefined,
+            'type': undefined,
+            'name': undefined,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'limits': {
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+            'info': networksRaw,
+        });
     }
     /**
      * @method
@@ -1060,9 +1059,10 @@ class lbank extends lbank$1["default"] {
         let fee = undefined;
         const feeCost = this.safeString(trade, 'tradeFee');
         if (feeCost !== undefined) {
+            const feeCurr = (side === 'buy') ? market['base'] : market['quote'];
             fee = {
                 'cost': feeCost,
-                'currency': (side === 'buy') ? market['base'] : market['quote'],
+                'currency': feeCurr,
                 'rate': this.safeString(trade, 'tradeFeeRate'),
             };
         }
@@ -1185,11 +1185,13 @@ class lbank extends lbank$1["default"] {
             const duration = this.parseTimeframe(timeframe);
             since = this.milliseconds() - (duration * 1000 * limit);
         }
+        const parsedSince = this.parseToInt(since / 1000);
+        const parsedLimit = Math.min(limit + 1, 2000); // max 2000;
         const request = {
             'symbol': market['id'],
             'type': this.safeString(this.timeframes, timeframe, timeframe),
-            'time': this.parseToInt(since / 1000),
-            'size': Math.min(limit + 1, 2000), // max 2000
+            'time': parsedSince,
+            'size': parsedLimit,
         };
         const response = await this.spotPublicGetKline(this.extend(request, params));
         const ohlcvs = this.safeList(response, 'data', []);
@@ -2978,9 +2980,10 @@ class lbank extends lbank$1["default"] {
             else {
                 signatureMethod = 'HmacSHA256';
             }
+            const finalSig = signatureMethod; // java req
             const auth = this.rawencode(this.keysort(this.extend({
                 'echostr': echostr,
-                'signature_method': signatureMethod,
+                'signature_method': finalSig,
                 'timestamp': timestamp,
             }, query)));
             const encoded = this.encode(auth);

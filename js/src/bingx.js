@@ -1705,10 +1705,10 @@ export default class bingx extends Exchange {
         [subType, params] = this.handleSubTypeAndParams('fetchFundingRates', firstMarket, params, subType);
         let response = undefined;
         if (subType === 'inverse') {
-            response = await this.cswapV1PublicGetMarketPremiumIndex(this.extend(params));
+            response = await this.cswapV1PublicGetMarketPremiumIndex(params);
         }
         else {
-            response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(params));
+            response = await this.swapV2PublicGetQuotePremiumIndex(params);
         }
         const data = this.safeList(response, 'data', []);
         return this.parseFundingRates(data, symbols);
@@ -5255,7 +5255,7 @@ export default class bingx extends Exchange {
         await this.loadMarkets();
         const currency = this.currency(code);
         const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
-        const recvWindow = this.safeInteger(this.parseParams, 'recvWindow', defaultRecvWindow);
+        const recvWindow = this.safeInteger(params, 'recvWindow', defaultRecvWindow);
         const request = {
             'coin': currency['id'],
             'offset': 0,
@@ -6326,7 +6326,7 @@ export default class bingx extends Exchange {
     async closeAllPositions(params = {}) {
         await this.loadMarkets();
         const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
-        const recvWindow = this.safeInteger(this.parseParams, 'recvWindow', defaultRecvWindow);
+        const recvWindow = this.safeInteger(params, 'recvWindow', defaultRecvWindow);
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('closeAllPositions', undefined, params);
         let subType = undefined;

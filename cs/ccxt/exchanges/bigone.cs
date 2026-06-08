@@ -1183,27 +1183,30 @@ public partial class bigone : Exchange
         object takerFeeCost = this.safeString(trade, "taker_fee");
         if (isTrue(!isEqual(makerFeeCost, null)))
         {
+            object makerCode = makerCurrencyCode;
             if (isTrue(!isEqual(takerFeeCost, null)))
             {
+                object takerCode = takerCurrencyCode;
                 ((IDictionary<string,object>)result)["fees"] = new List<object>() {new Dictionary<string, object>() {
     { "cost", makerFeeCost },
-    { "currency", makerCurrencyCode },
+    { "currency", makerCode },
 }, new Dictionary<string, object>() {
     { "cost", takerFeeCost },
-    { "currency", takerCurrencyCode },
+    { "currency", takerCode },
 }};
             } else
             {
                 ((IDictionary<string,object>)result)["fee"] = new Dictionary<string, object>() {
                     { "cost", makerFeeCost },
-                    { "currency", makerCurrencyCode },
+                    { "currency", makerCode },
                 };
             }
         } else if (isTrue(!isEqual(takerFeeCost, null)))
         {
+            object takerCode2 = takerCurrencyCode;
             ((IDictionary<string,object>)result)["fee"] = new Dictionary<string, object>() {
                 { "cost", takerFeeCost },
-                { "currency", takerCurrencyCode },
+                { "currency", takerCode2 },
             };
         } else
         {

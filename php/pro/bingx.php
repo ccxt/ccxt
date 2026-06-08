@@ -720,7 +720,9 @@ class bingx extends \ccxt\async\bingx {
             // $limit = array( 5, 10, 20, 50, 100 )
             $subscriptionHash = $dataType;
             $subscription = $client->subscriptions[$subscriptionHash];
-            $limit = $this->safe_integer($subscription, 'limit');
+            // see handleOHLCV — $subscription->limit may be missing for non-$orderbook callers;
+            // default to a reasonable depth instead of throwing NPE in the Java port.
+            $limit = $this->safe_integer($subscription, 'limit', 100);
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -865,7 +867,10 @@ class bingx extends \ccxt\async\bingx {
         if ($this->safe_value($this->ohlcvs[$symbol], $rawTimeframe) === null) {
             $subscriptionHash = $dataType;
             $subscription = $client->subscriptions[$subscriptionHash];
-            $limit = $this->safe_integer($subscription, 'limit');
+            // $subscription->limit is only set when watchOHLCV registers the $subscription;
+            // when handleMessage routes a non-OHLCV-originated $subscription here (or the
+            // $subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
+            $limit = $this->safe_integer($subscription, 'limit', $this->safe_integer($this->options, 'OHLCVLimit', 1000));
             $this->ohlcvs[$symbol][$unifiedTimeframe] = new ArrayCacheByTimestamp ($limit);
         }
         $stored = $this->ohlcvs[$symbol][$unifiedTimeframe];

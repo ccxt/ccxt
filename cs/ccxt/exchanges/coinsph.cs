@@ -1310,13 +1310,13 @@ public partial class coinsph : Exchange
                 { "currency", this.safeCurrencyCode(feeCurrencyId) },
             };
         }
-        object isBuyer = this.safeBool2(trade, "isBuyer", "isBuyerMaker", null);
+        object isBuyer = this.safeBool2(trade, "isBuyer", "isBuyerMaker");
         object side = null;
         if (isTrue(!isEqual(isBuyer, null)))
         {
             side = ((bool) isTrue((isEqual(isBuyer, true)))) ? "buy" : "sell";
         }
-        object isMaker = this.safeString2(trade, "isMaker", null);
+        object isMaker = this.safeString(trade, "isMaker");
         object takerOrMaker = null;
         if (isTrue(!isEqual(isMaker, null)))
         {
@@ -1756,7 +1756,7 @@ public partial class coinsph : Exchange
         object marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeInteger2(order, "time", "transactTime");
-        object trades = this.safeValue(order, "fills", null);
+        object trades = this.safeValue(order, "fills");
         object triggerPrice = this.safeString(order, "stopPrice");
         if (isTrue(Precise.stringEq(triggerPrice, "0")))
         {
@@ -2380,7 +2380,7 @@ public partial class coinsph : Exchange
         {
             return null;
         }
-        object responseCode = this.safeString(response, "code", null);
+        object responseCode = this.safeString(response, "code");
         if (isTrue(isTrue(isTrue((!isEqual(responseCode, null))) && isTrue((!isEqual(responseCode, "200")))) && isTrue((!isEqual(responseCode, "0")))))
         {
             object feedback = add(add(this.id, " "), body);

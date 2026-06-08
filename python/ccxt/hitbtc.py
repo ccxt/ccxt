@@ -1021,16 +1021,6 @@ class hitbtc(Exchange, ImplicitAPI):
             'type': None,  # 'crypto' field emits incorrect values
         })
 
-    def add_key_in_array_items(self, obj, keyName):
-        result = []
-        keys = list(obj.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            item = obj[key]
-            item[keyName] = key
-            result.append(item)
-        return result
-
     def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
@@ -3276,8 +3266,9 @@ class hitbtc(Exchange, ImplicitAPI):
         #         "positions": null
         #     }
         #
+        parsedAmount = self.parse_number(amount)
         return self.extend(self.parse_margin_modification(response, market), {
-            'amount': self.parse_number(amount),
+            'amount': parsedAmount,
             'type': type,
         })
 

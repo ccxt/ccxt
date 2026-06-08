@@ -546,61 +546,62 @@ func (this *BitrueCore) Describe() any {
 				"You don\\'t have permission.":                           PermissionDenied,
 				"Market is closed.":                                      ExchangeNotAvailable,
 				"Too many requests. Please try again later.":             DDoSProtection,
-				"-1000":  ExchangeNotAvailable,
-				"-1001":  ExchangeNotAvailable,
-				"-1002":  AuthenticationError,
-				"-1003":  RateLimitExceeded,
-				"-1013":  InvalidOrder,
-				"-1015":  RateLimitExceeded,
-				"-1016":  ExchangeNotAvailable,
-				"-1020":  BadRequest,
-				"-1021":  InvalidNonce,
-				"-1022":  AuthenticationError,
-				"-1100":  BadRequest,
-				"-1101":  BadRequest,
-				"-1102":  BadRequest,
-				"-1103":  BadRequest,
-				"-1104":  BadRequest,
-				"-1105":  BadRequest,
-				"-1106":  BadRequest,
-				"-1111":  BadRequest,
-				"-1112":  InvalidOrder,
-				"-1114":  BadRequest,
-				"-1115":  BadRequest,
-				"-1116":  BadRequest,
-				"-1117":  BadRequest,
-				"-1166":  InvalidOrder,
-				"-1118":  BadRequest,
-				"-1119":  BadRequest,
-				"-1120":  BadRequest,
-				"-1121":  BadSymbol,
-				"-1125":  AuthenticationError,
-				"-1127":  BadRequest,
-				"-1128":  BadRequest,
-				"-1130":  BadRequest,
-				"-1131":  BadRequest,
-				"-1160":  InvalidOrder,
-				"-1156":  InvalidOrder,
-				"-2008":  AuthenticationError,
-				"-2010":  ExchangeError,
-				"-2011":  OrderNotFound,
-				"-2013":  OrderNotFound,
-				"-2014":  AuthenticationError,
-				"-2015":  AuthenticationError,
-				"-2017":  InsufficientFunds,
-				"-2019":  InsufficientFunds,
-				"-3005":  InsufficientFunds,
-				"-3006":  InsufficientFunds,
-				"-3008":  InsufficientFunds,
-				"-3010":  ExchangeError,
-				"-3015":  ExchangeError,
-				"-3022":  AccountSuspended,
-				"-4028":  BadRequest,
-				"-3020":  InsufficientFunds,
-				"-3041":  InsufficientFunds,
-				"-5013":  InsufficientFunds,
-				"-11008": InsufficientFunds,
-				"-4051":  InsufficientFunds,
+				"quantity less then minQty":                              InvalidOrder,
+				"-1000":                                                  ExchangeNotAvailable,
+				"-1001":                                                  ExchangeNotAvailable,
+				"-1002":                                                  AuthenticationError,
+				"-1003":                                                  RateLimitExceeded,
+				"-1013":                                                  InvalidOrder,
+				"-1015":                                                  RateLimitExceeded,
+				"-1016":                                                  ExchangeNotAvailable,
+				"-1020":                                                  BadRequest,
+				"-1021":                                                  InvalidNonce,
+				"-1022":                                                  AuthenticationError,
+				"-1100":                                                  BadRequest,
+				"-1101":                                                  BadRequest,
+				"-1102":                                                  BadRequest,
+				"-1103":                                                  BadRequest,
+				"-1104":                                                  BadRequest,
+				"-1105":                                                  BadRequest,
+				"-1106":                                                  BadRequest,
+				"-1111":                                                  BadRequest,
+				"-1112":                                                  InvalidOrder,
+				"-1114":                                                  BadRequest,
+				"-1115":                                                  BadRequest,
+				"-1116":                                                  BadRequest,
+				"-1117":                                                  BadRequest,
+				"-1166":                                                  InvalidOrder,
+				"-1118":                                                  BadRequest,
+				"-1119":                                                  BadRequest,
+				"-1120":                                                  BadRequest,
+				"-1121":                                                  BadSymbol,
+				"-1125":                                                  AuthenticationError,
+				"-1127":                                                  BadRequest,
+				"-1128":                                                  BadRequest,
+				"-1130":                                                  BadRequest,
+				"-1131":                                                  BadRequest,
+				"-1160":                                                  InvalidOrder,
+				"-1156":                                                  InvalidOrder,
+				"-2008":                                                  AuthenticationError,
+				"-2010":                                                  ExchangeError,
+				"-2011":                                                  OrderNotFound,
+				"-2013":                                                  OrderNotFound,
+				"-2014":                                                  AuthenticationError,
+				"-2015":                                                  AuthenticationError,
+				"-2017":                                                  InsufficientFunds,
+				"-2019":                                                  InsufficientFunds,
+				"-3005":                                                  InsufficientFunds,
+				"-3006":                                                  InsufficientFunds,
+				"-3008":                                                  InsufficientFunds,
+				"-3010":                                                  ExchangeError,
+				"-3015":                                                  ExchangeError,
+				"-3022":                                                  AccountSuspended,
+				"-4028":                                                  BadRequest,
+				"-3020":                                                  InsufficientFunds,
+				"-3041":                                                  InsufficientFunds,
+				"-5013":                                                  InsufficientFunds,
+				"-11008":                                                 InsufficientFunds,
+				"-4051":                                                  InsufficientFunds,
 			},
 			"broad": map[string]any{
 				"Insufficient account balance": InsufficientFunds,
@@ -919,8 +920,8 @@ func (this *BitrueCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		//
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes92712 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes92712)
+			retRes92812 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes92812)
 		}
 
 		ch <- this.ParseMarkets(markets)
@@ -983,6 +984,7 @@ func (this *BitrueCore) ParseMarket(market any) any {
 	if IsTrue(IsEqual(minCost, nil)) {
 		minCost = this.SafeNumber(market, "minOrderMoney")
 	}
+	var isSpot any = (IsEqual(typeVar, "spot"))
 	return map[string]any{
 		"id":             id,
 		"lowercaseId":    lowercaseId,
@@ -994,7 +996,7 @@ func (this *BitrueCore) ParseMarket(market any) any {
 		"quoteId":        quoteId,
 		"settleId":       settleId,
 		"type":           typeVar,
-		"spot":           (IsEqual(typeVar, "spot")),
+		"spot":           isSpot,
 		"margin":         false,
 		"swap":           isContract,
 		"future":         false,
@@ -1120,8 +1122,8 @@ func (this *BitrueCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes11178 := (<-this.LoadMarkets())
-		PanicOnError(retRes11178)
+		retRes11198 := (<-this.LoadMarkets())
+		PanicOnError(retRes11198)
 		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
@@ -1180,8 +1182,8 @@ func (this *BitrueCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes12298 := (<-this.LoadMarkets())
-		PanicOnError(retRes12298)
+		retRes12318 := (<-this.LoadMarkets())
+		PanicOnError(retRes12318)
 		var market any = this.Market(symbol)
 		var response any = nil
 		if IsTrue(GetValue(market, "swap")) {
@@ -1344,8 +1346,8 @@ func (this *BitrueCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes13738 := (<-this.LoadMarkets())
-		PanicOnError(retRes13738)
+		retRes13758 := (<-this.LoadMarkets())
+		PanicOnError(retRes13758)
 		var market any = this.Market(symbol)
 		var response any = nil
 		var data any = nil
@@ -1448,8 +1450,8 @@ func (this *BitrueCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes14528 := (<-this.LoadMarkets())
-		PanicOnError(retRes14528)
+		retRes14548 := (<-this.LoadMarkets())
+		PanicOnError(retRes14548)
 		var market any = this.Market(symbol)
 		var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
 		var response any = nil
@@ -1588,8 +1590,8 @@ func (this *BitrueCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes15798 := (<-this.LoadMarkets())
-		PanicOnError(retRes15798)
+		retRes15818 := (<-this.LoadMarkets())
+		PanicOnError(retRes15818)
 		symbols = this.MarketSymbols(symbols, nil, false)
 		var first any = this.SafeString(symbols, 0)
 		var market any = this.Market(first)
@@ -1672,8 +1674,8 @@ func (this *BitrueCore) FetchTickers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes16428 := (<-this.LoadMarkets())
-		PanicOnError(retRes16428)
+		retRes16448 := (<-this.LoadMarkets())
+		PanicOnError(retRes16448)
 		symbols = this.MarketSymbols(symbols)
 		var response any = nil
 		var data any = nil
@@ -1877,8 +1879,8 @@ func (this *BitrueCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes18238 := (<-this.LoadMarkets())
-		PanicOnError(retRes18238)
+		retRes18258 := (<-this.LoadMarkets())
+		PanicOnError(retRes18258)
 		var market any = this.Market(symbol)
 		var response any = nil
 		if IsTrue(GetValue(market, "spot")) {
@@ -2067,17 +2069,17 @@ func (this *BitrueCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optio
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes19998 := (<-this.LoadMarkets())
-		PanicOnError(retRes19998)
+		retRes20018 := (<-this.LoadMarkets())
+		PanicOnError(retRes20018)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports swap orders only")))
 		}
 		AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-		retRes200515 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-		PanicOnError(retRes200515)
-		ch <- retRes200515
+		retRes200715 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+		PanicOnError(retRes200715)
+		ch <- retRes200715
 		return nil
 
 	}()
@@ -2118,8 +2120,8 @@ func (this *BitrueCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes20338 := (<-this.LoadMarkets())
-		PanicOnError(retRes20338)
+		retRes20358 := (<-this.LoadMarkets())
+		PanicOnError(retRes20358)
 		var market any = this.Market(symbol)
 		var response any = nil
 		var data any = nil
@@ -2260,8 +2262,8 @@ func (this *BitrueCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
 
-		retRes21578 := (<-this.LoadMarkets())
-		PanicOnError(retRes21578)
+		retRes21598 := (<-this.LoadMarkets())
+		PanicOnError(retRes21598)
 		var market any = this.Market(symbol)
 		var origClientOrderId any = this.SafeValue2(params, "origClientOrderId", "clientOrderId")
 		params = this.Omit(params, []any{"origClientOrderId", "clientOrderId"})
@@ -2378,8 +2380,8 @@ func (this *BitrueCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchClosedOrders() requires a symbol argument")))
 		}
 
-		retRes22508 := (<-this.LoadMarkets())
-		PanicOnError(retRes22508)
+		retRes22528 := (<-this.LoadMarkets())
+		PanicOnError(retRes22528)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " fetchClosedOrders only support spot markets")))
@@ -2455,8 +2457,8 @@ func (this *BitrueCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires a symbol argument")))
 		}
 
-		retRes23108 := (<-this.LoadMarkets())
-		PanicOnError(retRes23108)
+		retRes23128 := (<-this.LoadMarkets())
+		PanicOnError(retRes23128)
 		var market any = this.Market(symbol)
 		var response any = nil
 		var data any = nil
@@ -2561,8 +2563,8 @@ func (this *BitrueCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
 
-		retRes23958 := (<-this.LoadMarkets())
-		PanicOnError(retRes23958)
+		retRes23978 := (<-this.LoadMarkets())
+		PanicOnError(retRes23978)
 		var market any = this.Market(symbol)
 		var origClientOrderId any = this.SafeValue2(params, "origClientOrderId", "clientOrderId")
 		params = this.Omit(params, []any{"origClientOrderId", "clientOrderId"})
@@ -2648,8 +2650,8 @@ func (this *BitrueCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes24618 := (<-this.LoadMarkets())
-		PanicOnError(retRes24618)
+		retRes24638 := (<-this.LoadMarkets())
+		PanicOnError(retRes24638)
 		var market any = this.Market(symbol)
 		var response any = nil
 		var data any = nil
@@ -2713,8 +2715,8 @@ func (this *BitrueCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes25038 := (<-this.LoadMarkets())
-		PanicOnError(retRes25038)
+		retRes25058 := (<-this.LoadMarkets())
+		PanicOnError(retRes25058)
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 		}
@@ -2833,8 +2835,8 @@ func (this *BitrueCore) FetchDeposits(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchDeposits() requires a code argument")))
 		}
 
-		retRes25988 := (<-this.LoadMarkets())
-		PanicOnError(retRes25988)
+		retRes26008 := (<-this.LoadMarkets())
+		PanicOnError(retRes26008)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"coin":   GetValue(currency, "id"),
@@ -2922,8 +2924,8 @@ func (this *BitrueCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchWithdrawals() requires a code argument")))
 		}
 
-		retRes26718 := (<-this.LoadMarkets())
-		PanicOnError(retRes26718)
+		retRes26738 := (<-this.LoadMarkets())
+		PanicOnError(retRes26738)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"coin":   GetValue(currency, "id"),
@@ -3144,8 +3146,8 @@ func (this *BitrueCore) Withdraw(code any, amount any, address any, optionalArgs
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes28748 := (<-this.LoadMarkets())
-		PanicOnError(retRes28748)
+		retRes28768 := (<-this.LoadMarkets())
+		PanicOnError(retRes28768)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"coin":      GetValue(currency, "id"),
@@ -3257,8 +3259,8 @@ func (this *BitrueCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes29658 := (<-this.LoadMarkets())
-		PanicOnError(retRes29658)
+		retRes29678 := (<-this.LoadMarkets())
+		PanicOnError(retRes29678)
 
 		response := (<-this.SpotV1PublicGetExchangeInfo(params))
 		PanicOnError(response)
@@ -3338,8 +3340,8 @@ func (this *BitrueCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes30248 := (<-this.LoadMarkets())
-		PanicOnError(retRes30248)
+		retRes30268 := (<-this.LoadMarkets())
+		PanicOnError(retRes30268)
 		var typeVar any = this.SafeString2(params, "type", "transferType")
 		var request any = map[string]any{
 			"transferType": typeVar,
@@ -3409,8 +3411,8 @@ func (this *BitrueCore) Transfer(code any, amount any, fromAccount any, toAccoun
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes30808 := (<-this.LoadMarkets())
-		PanicOnError(retRes30808)
+		retRes30828 := (<-this.LoadMarkets())
+		PanicOnError(retRes30828)
 		var currency any = this.Currency(code)
 		var accountTypes any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
 		var fromId any = this.SafeString(accountTypes, fromAccount, fromAccount)
@@ -3466,8 +3468,8 @@ func (this *BitrueCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 			panic(BadRequest(Add(this.Id, " leverage should be between 1 and 125")))
 		}
 
-		retRes31208 := (<-this.LoadMarkets())
-		PanicOnError(retRes31208)
+		retRes31228 := (<-this.LoadMarkets())
+		PanicOnError(retRes31228)
 		var market any = this.Market(symbol)
 		var response any = nil
 		var request any = map[string]any{
@@ -3538,8 +3540,8 @@ func (this *BitrueCore) SetMargin(symbol any, amount any, optionalArgs ...any) <
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes31748 := (<-this.LoadMarkets())
-		PanicOnError(retRes31748)
+		retRes31768 := (<-this.LoadMarkets())
+		PanicOnError(retRes31768)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(NotSupported(Add(this.Id, " setMargin only support swap markets")))

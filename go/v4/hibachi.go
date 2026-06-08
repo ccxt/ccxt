@@ -830,7 +830,7 @@ func (this *HibachiCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @method
  * @name hibachi#fetchTradingFees
  * @description fetch the trading fee
- * @param params extra parameters
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *HibachiCore) FetchTradingFees(optionalArgs ...any) <-chan any {

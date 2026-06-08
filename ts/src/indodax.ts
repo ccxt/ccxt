@@ -1411,10 +1411,11 @@ export default class indodax extends Exchange {
                         network = this.networkIdToCode (networkId).toUpperCase ();
                     }
                 }
+                const finalNetwork = network; // java req
                 result[code] = {
                     'info': {},
                     'currency': code,
-                    'network': network,
+                    'network': finalNetwork,
                     'address': address,
                     'tag': undefined,
                 } as DepositAddress;

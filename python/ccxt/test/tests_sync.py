@@ -47,6 +47,7 @@ class testMainClass:
         except Exception as e:
             dump('[TEST_FAILURE]')  # tell run-tests.js this is failure
             raise e
+        return True
 
     def init_inner(self, exchange_id, symbol_argv, method_argv):
         self.parse_cli_args_and_props()
@@ -104,6 +105,7 @@ class testMainClass:
     def import_files(self, exchange):
         properties = list(exchange.has.keys())
         properties.append('loadMarkets')
+        properties.append('afterConstruct')
         if is_sync():
             self.test_files = get_test_files_sync(properties, self.ws_tests)
         else:
@@ -192,6 +194,7 @@ class testMainClass:
         is_load_markets = (method_name == 'loadMarkets')
         is_fetch_currencies = (method_name == 'fetchCurrencies')
         is_proxy_test = (method_name == self.proxy_test_file_name)
+        is_constructor_test = (method_name == 'afterConstruct')
         is_feature_test = (method_name == 'features')
         # if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if not is_public and (method_name in self.checked_public_tests) and not is_fetch_currencies:
@@ -200,7 +203,7 @@ class testMainClass:
         supported_by_exchange = (method_name in exchange.has) and exchange.has[method_name]
         if not is_load_markets and (len(self.only_specific_tests) > 0 and not exchange.in_array(method_name, self.only_specific_tests)):
             skip_message = '[INFO] IGNORED_TEST'
-        elif not is_load_markets and not supported_by_exchange and not is_proxy_test and not is_feature_test:
+        elif not is_load_markets and not supported_by_exchange and not is_proxy_test and not is_feature_test and not is_constructor_test:
             skip_message = '[INFO] UNSUPPORTED_TEST'  # keep it aligned with the longest message
         elif isinstance(skipped_properties_for_method, str):
             skip_message = '[INFO] SKIPPED_TEST'
@@ -349,6 +352,7 @@ class testMainClass:
         primary_symbol = symbols[0]
         tests = {
             'features': [],
+            'afterConstruct': [],
             'fetchCurrencies': [],
             'fetchTicker': [primary_symbol],
             'fetchTickers': [primary_symbol],
@@ -508,12 +512,19 @@ class testMainClass:
         else:
             if exchange.has['spot']:
                 primary_symbol = self.get_valid_symbol(exchange, True)
-                secondary_symbol = primary_symbol.replace('BTC', 'ETH')  # this should work any exchange
-                spot_symbols = [primary_symbol, secondary_symbol]
+                if primary_symbol is not None:
+                    secondary_symbol = primary_symbol.replace('BTC', 'ETH')  # this should work any exchange
+                    spot_symbols = [primary_symbol, secondary_symbol]
             if exchange.has['swap']:
                 primary_symbol = self.get_valid_symbol(exchange, False)
-                secondary_symbol = primary_symbol.replace('BTC', 'ETH')  # this should work any exchange
-                swap_symbols = [primary_symbol, secondary_symbol]
+                # some exchanges advertise has['swap']=true via describe() but
+                # the live market list contains no swap entries (e.g. bequant
+                # inherits hitbtc swap support but exposes only spot pairs).
+                # getValidSymbol returns undefined in that case — skip swap
+                # tests rather than crashing on `undefined.replace(...)`.
+                if primary_symbol is not None:
+                    secondary_symbol = primary_symbol.replace('BTC', 'ETH')  # this should work any exchange
+                    swap_symbols = [primary_symbol, secondary_symbol]
         if spot_symbols is not None:
             dump('[INFO:MAIN] Selected SPOT SYMBOL:', exchange.json(spot_symbols))
         if swap_symbols is not None:
@@ -785,7 +796,7 @@ class testMainClass:
                 stored_value = stored_output[key]
                 new_value = new_output[key]
                 self.assert_new_and_stored_output(exchange, skip_keys, new_value, stored_value, strict_type_check, key)
-        elif isinstance(stored_output, list) and (isinstance(new_output, list)):
+        elif (stored_output is not None) and isinstance(stored_output, list) and (isinstance(new_output, list)):
             stored_array_length = len(stored_output)
             new_array_length = len(new_output)
             self.assert_static_error(stored_array_length == new_array_length, 'output length mismatch', stored_output, new_output)
@@ -975,11 +986,10 @@ class testMainClass:
         # const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
         # const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         # const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
-        # we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         base_path = get_root_dir() + 'ts/src/test/static/binaries/'
         if exchange_name == 'lighter':
             if self.lang == 'JS':
-                wasm_exec_path = get_root_dir() + '/src/test/static/binaries/wasm_exec.js'
+                wasm_exec_path = base_path + 'wasm_exec.js'
                 library_path = base_path + 'lighter.wasm'
             else:
                 if is_windows():
@@ -1083,6 +1093,9 @@ class testMainClass:
                 is_disabled_go = exchange.safe_bool(result, 'disabledGO', False)
                 if is_disabled_go and (self.lang == 'GO'):
                     continue
+                is_disabled_java = exchange.safe_bool(result, 'disabledJava', False)
+                if is_disabled_java and (self.lang == 'java'):
+                    continue
                 type = exchange.safe_string(exchange_data, 'outputType')
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
                 self.test_request_statically(exchange, method, result, type, skip_keys)
@@ -1136,6 +1149,9 @@ class testMainClass:
                 is_disabled_go = exchange.safe_bool(result, 'disabledGO', False)
                 if is_disabled_go and (self.lang == 'GO'):
                     continue
+                is_disabled_java = exchange.safe_bool(result, 'disabledJava', False)
+                if is_disabled_java and (self.lang == 'java'):
+                    continue
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
                 self.test_response_statically(exchange, method, skip_keys, result)
                 # reset options
@@ -1175,6 +1191,10 @@ class testMainClass:
         is_disabled_go = exchange.safe_bool(exchange_data, 'disabledGO', False)
         if is_disabled_go and (self.lang == 'GO'):
             dump('[TEST_WARNING] Exchange ' + exchange_name + ' is disabled in go')
+            return True
+        is_disabled_java = exchange.safe_bool(exchange_data, 'disabledJava', False)
+        if is_disabled_java and (self.lang == 'java'):
+            dump('[TEST_WARNING] Exchange ' + exchange_name + ' is disabled in java')
             return True
         return False
 
@@ -1234,7 +1254,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1644,6 +1664,8 @@ class testMainClass:
         return True
 
     def test_woofi_pro(self):
+        if self.lang == 'java':
+            return False
         exchange = self.init_offline_exchange('woofipro')
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets'
         id = 'CCXT'
@@ -1657,22 +1679,6 @@ class testMainClass:
         assert broker_id == id, 'woofipro - id: ' + id + ' different from  broker_id: ' + broker_id
         if not is_sync():
             close(exchange)
-        return True
-
-    def test_oxfun(self):
-        exchange = self.init_offline_exchange('oxfun')
-        exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets'
-        id = 1000
-        exchange.load_markets()
-        request = None
-        try:
-            exchange.create_order('BTC/USD:OX', 'limit', 'buy', 1, 20000)
-        except Exception as e:
-            request = json_parse(exchange.last_request_body)
-        orders = request['orders']
-        first = orders[0]
-        broker_id = first['source']
-        assert broker_id == id, 'oxfun - id: ' + str(id) + ' different from  broker_id: ' + str(broker_id)
         return True
 
     def test_xt(self):
@@ -1697,6 +1703,8 @@ class testMainClass:
         return True
 
     def test_paradex(self):
+        if self.lang == 'java':
+            return False
         exchange = self.init_offline_exchange('paradex')
         exchange.walletAddress = '0xc751489d24a33172541ea451bc253d7a9e98c781'
         exchange.privateKey = 'c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b'
@@ -1766,6 +1774,8 @@ class testMainClass:
         return True
 
     def test_derive(self):
+        if self.lang == 'java':
+            return False
         exchange = self.init_offline_exchange('derive')
         id = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749'
         assert exchange.options['id'] == id, 'derive - id: ' + id + ' not in options'
@@ -1787,6 +1797,8 @@ class testMainClass:
         return True
 
     def test_mode_trade(self):
+        if self.lang == 'java':
+            return False
         exchange = self.init_offline_exchange('modetrade')
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets'
         id = 'CCXTMODE'

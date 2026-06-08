@@ -448,7 +448,6 @@ export default class bitrue extends Exchange {
                     'XML': 'Stellar Lumens',
                     'XYM': 'Symbol',
                     'XTZ': 'Tezos',
-                    'theta': 'theta',
                     'THETA': 'THETA',
                     'VECHAIN': 'VeChain',
                     'WANCHAIN': 'Wanchain',
@@ -599,6 +598,7 @@ export default class bitrue extends Exchange {
                     "You don't have permission.": PermissionDenied,
                     'Market is closed.': ExchangeNotAvailable,
                     'Too many requests. Please try again later.': DDoSProtection,
+                    'quantity less then minQty': InvalidOrder,
                     '-1000': ExchangeNotAvailable,
                     '-1001': ExchangeNotAvailable,
                     '-1002': AuthenticationError,
@@ -984,6 +984,7 @@ export default class bitrue extends Exchange {
         if (minCost === undefined) {
             minCost = this.safeNumber(market, 'minOrderMoney');
         }
+        const isSpot = (type === 'spot');
         return {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -995,7 +996,7 @@ export default class bitrue extends Exchange {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': (type === 'spot'),
+            'spot': isSpot,
             'margin': false,
             'swap': isContract,
             'future': false,

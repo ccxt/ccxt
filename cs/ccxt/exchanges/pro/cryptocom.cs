@@ -1188,7 +1188,10 @@ public partial class cryptocom : ccxt.cryptocom
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, messageHash});
         object messageHashRequest = this.safeString(message, "id");
-        callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, messageHashRequest});
+        if (isTrue(!isEqual(messageHashRequest, null)))
+        {
+            callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, messageHashRequest});
+        }
     }
 
     /**

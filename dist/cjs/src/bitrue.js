@@ -447,7 +447,6 @@ class bitrue extends bitrue$1["default"] {
                     'XML': 'Stellar Lumens',
                     'XYM': 'Symbol',
                     'XTZ': 'Tezos',
-                    'theta': 'theta',
                     'THETA': 'THETA',
                     'VECHAIN': 'VeChain',
                     'WANCHAIN': 'Wanchain',
@@ -598,6 +597,7 @@ class bitrue extends bitrue$1["default"] {
                     "You don't have permission.": errors.PermissionDenied,
                     'Market is closed.': errors.ExchangeNotAvailable,
                     'Too many requests. Please try again later.': errors.DDoSProtection,
+                    'quantity less then minQty': errors.InvalidOrder,
                     '-1000': errors.ExchangeNotAvailable,
                     '-1001': errors.ExchangeNotAvailable,
                     '-1002': errors.AuthenticationError,
@@ -983,6 +983,7 @@ class bitrue extends bitrue$1["default"] {
         if (minCost === undefined) {
             minCost = this.safeNumber(market, 'minOrderMoney');
         }
+        const isSpot = (type === 'spot');
         return {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -994,7 +995,7 @@ class bitrue extends bitrue$1["default"] {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': (type === 'spot'),
+            'spot': isSpot,
             'margin': false,
             'swap': isContract,
             'future': false,

@@ -459,7 +459,6 @@ class derive extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of $currencies
              */
-            $result = array();
             $tokenResponse = Async\await($this->publicGetGetAllCurrencies ($params));
             //
             //    {
@@ -510,35 +509,35 @@ class derive extends Exchange {
             // }
             //
             $currencies = $this->safe_list($tokenResponse, 'result', array());
-            for ($i = 0; $i < count($currencies); $i++) {
-                $currency = $currencies[$i];
-                $currencyId = $this->safe_string($currency, 'currency');
-                $code = $this->safe_currency_code($currencyId);
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $currencyId,
-                    'name' => null,
-                    'code' => $code,
-                    'precision' => null,
-                    'active' => null,
-                    'fee' => null,
-                    'networks' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'limits' => array(
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'info' => $currency,
-                ));
-            }
-            return $result;
+            return $this->parse_currencies($currencies);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'currency');
+        $code = $this->safe_currency_code($currencyId);
+        return $this->safe_currency_structure(array(
+            'id' => $currencyId,
+            'name' => null,
+            'code' => $code,
+            'precision' => null,
+            'active' => null,
+            'fee' => null,
+            'networks' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'limits' => array(
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'info' => $rawCurrency,
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
@@ -696,6 +695,8 @@ class derive extends Exchange {
             $linear = true;
             $inverse = false;
         }
+        $contractSize = ($spot) ? null : 1;
+        $isContract = ($swap || $option);
         return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -712,10 +713,10 @@ class derive extends Exchange {
             'future' => false,
             'option' => $option,
             'active' => $this->safe_bool($market, 'is_active'),
-            'contract' => ($swap || $option),
+            'contract' => $isContract,
             'linear' => $linear,
             'inverse' => $inverse,
-            'contractSize' => ($spot) ? null : 1,
+            'contractSize' => $contractSize,
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
             'taker' => $this->safe_number($market, 'taker_fee_rate'),
@@ -1879,7 +1880,7 @@ class derive extends Exchange {
             'gtc' => 'GTC',
             'post_only' => 'PO',
         );
-        return $this->safe_string($timeInForces, $timeInForce, null);
+        return $this->safe_string($timeInForces, $timeInForce);
     }
 
     public function parse_order_status(?string $status) {

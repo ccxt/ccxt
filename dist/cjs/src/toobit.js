@@ -2518,7 +2518,7 @@ class toobit extends toobit$1["default"] {
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchDepositsOrWithdrawalsHelper('withdrawals', code, since, limit, params);
     }
-    async fetchDepositsOrWithdrawalsHelper(type, code, since, limit, params) {
+    async fetchDepositsOrWithdrawalsHelper(type, code, since, limit, params = {}) {
         await this.loadMarkets();
         let currency = undefined;
         let request = {};

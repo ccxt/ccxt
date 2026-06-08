@@ -1499,7 +1499,7 @@ public partial class woofipro : Exchange
             { "fok", "FOK" },
             { "post_only", "PO" },
         };
-        return this.safeString(timeInForces, timeInForce, null);
+        return this.safeString(timeInForces, timeInForce);
     }
 
     public virtual object parseOrderStatus(object status)

@@ -578,7 +578,8 @@ class cryptocom(Exchange, ImplicitAPI):
         try:
             response = await self.v1PrivatePostPrivateGetCurrencyNetworks(params)
         except Exception as e:
-            if isinstance(e, ExchangeError):
+            erString = self.exception_message(e)
+            if erString.find('"msg":"SYS_ERROR"') >= 0:
                 # sub-accounts can't access self endpoint
                 # {"code":"10001","msg":"SYS_ERROR"}
                 return {}
@@ -629,55 +630,53 @@ class cryptocom(Exchange, ImplicitAPI):
         #
         resultData = self.safe_dict(response, 'result', {})
         currencyMap = self.safe_dict(resultData, 'currency_map', {})
-        keys = list(currencyMap.keys())
-        result: dict = {}
-        for i in range(0, len(keys)):
-            key = keys[i]
-            currency = currencyMap[key]
-            id = key
-            code = self.safe_currency_code(id)
-            networks: dict = {}
-            chains = self.safe_list(currency, 'network_list', [])
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                networkId = self.safe_string(chain, 'network_id')
-                network = self.network_id_to_code(networkId)
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'active': None,
-                    'deposit': self.safe_bool(chain, 'deposit_enabled', False),
-                    'withdraw': self.safe_bool(chain, 'withdraw_enabled', False),
-                    'fee': self.safe_number(chain, 'withdrawal_fee'),
-                    'precision': None,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(chain, 'min_withdrawal_amount'),
-                            'max': None,
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'name': self.safe_string(currency, 'full_name'),
+        enhancedArray = self.add_key_in_array_items(currencyMap, '_coin_id')
+        return self.parse_currencies(enhancedArray)
+
+    def parse_currency(self, currency: dict) -> Currency:
+        id = self.safe_string(currency, '_coin_id')
+        code = self.safe_currency_code(id)
+        networks: dict = {}
+        chains = self.safe_list(currency, 'network_list', [])
+        for j in range(0, len(chains)):
+            chain = chains[j]
+            networkId = self.safe_string(chain, 'network_id')
+            network = self.network_id_to_code(networkId, code)
+            networks[network] = {
+                'info': chain,
+                'id': networkId,
+                'network': network,
                 'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
+                'deposit': self.safe_bool(chain, 'deposit_enabled', False),
+                'withdraw': self.safe_bool(chain, 'withdraw_enabled', False),
+                'fee': self.safe_number(chain, 'withdrawal_fee'),
                 'precision': None,
                 'limits': {
-                    'amount': {
-                        'min': None,
+                    'withdraw': {
+                        'min': self.safe_number(chain, 'min_withdrawal_amount'),
                         'max': None,
                     },
                 },
-                'type': 'crypto',  # only crypto now
-                'networks': networks,
-            })
-        return result
+            }
+        return self.safe_currency_structure({
+            'info': currency,
+            'id': id,
+            'code': code,
+            'name': self.safe_string(currency, 'full_name'),
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': None,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'type': 'crypto',  # only crypto now
+            'networks': networks,
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -817,6 +816,8 @@ class cryptocom(Exchange, ImplicitAPI):
                 symbolOptionType = 'C' if (optionType == 'call') else 'P'
                 symbol = symbol + ':' + quote + '-' + self.yymmdd(expiry) + '-' + strike + '-' + symbolOptionType
                 contract = True
+            isLinear = True if (contract) else None
+            isInverse = False if (contract) else None
             result.append({
                 'id': self.safe_string(market, 'symbol'),
                 'symbol': symbol,
@@ -834,8 +835,8 @@ class cryptocom(Exchange, ImplicitAPI):
                 'option': option,
                 'active': self.safe_bool(market, 'tradable'),
                 'contract': contract,
-                'linear': True if (contract) else None,
-                'inverse': False if (contract) else None,
+                'linear': isLinear,
+                'inverse': isInverse,
                 'contractSize': self.safe_number(market, 'contract_size'),
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
@@ -2010,9 +2011,8 @@ class cryptocom(Exchange, ImplicitAPI):
         depositAddresses = await self.fetch_deposit_addresses_by_network(code, params)
         if network in depositAddresses:
             return depositAddresses[network]
-        else:
-            keys = list(depositAddresses.keys())
-            return depositAddresses[keys[0]]
+        keys = list(depositAddresses.keys())
+        return depositAddresses[keys[0]]
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
@@ -3174,8 +3174,8 @@ class cryptocom(Exchange, ImplicitAPI):
         if isinstance(object, list):
             paramsKeys = object
         else:
-            sorted = self.keysort(object)
-            paramsKeys = list(sorted.keys())
+            objectKeys = list(object.keys())
+            paramsKeys = self.sort(objectKeys)
         for i in range(0, len(paramsKeys)):
             key = paramsKeys[i]
             returnString += key

@@ -1487,13 +1487,14 @@ export default class bitmex extends Exchange {
         if (status !== undefined) {
             status = this.parseTransactionStatus(status);
         }
+        const code = currency['code'];
         return {
             'info': transaction,
             'id': this.safeString(transaction, 'transactID'),
             'txid': this.safeString(transaction, 'tx'),
             'type': type,
-            'currency': currency['code'],
-            'network': this.networkIdToCode(this.safeString(transaction, 'network'), currency['code']),
+            'currency': code,
+            'network': this.networkIdToCode(this.safeString(transaction, 'network'), code),
             'amount': this.parseNumber(amount),
             'status': status,
             'timestamp': transactTime,
@@ -2028,6 +2029,7 @@ export default class bitmex extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         let orderType = this.capitalize(type);
+        const capitalizeOrderType = orderType;
         const reduceOnly = this.safeValue(params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             if ((!market['swap']) && (!market['future'])) {
@@ -2042,7 +2044,7 @@ export default class bitmex extends Exchange {
             'symbol': market['id'],
             'side': this.capitalize(side),
             'orderQty': qty,
-            'ordType': orderType,
+            'ordType': capitalizeOrderType,
             'text': brokerId,
         };
         const execInstructions = [];
@@ -2863,9 +2865,10 @@ export default class bitmex extends Exchange {
         }
         const currency = this.currency(code);
         params = this.omit(params, 'network');
+        const parsedNetwork = this.networkCodeToId(networkCode, currency['code']);
         const request = {
             'currency': currency['id'],
-            'network': this.networkCodeToId(networkCode, currency['code']),
+            'network': parsedNetwork,
         };
         const response = await this.privateGetUserDepositAddress(this.extend(request, params));
         //
