@@ -1,0 +1,15 @@
+{
+    "exchange": "nado",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://gateway.prod.nado.xyz/v2/assets",
+                "input": []
+            }
+        ]
+    }
+}
