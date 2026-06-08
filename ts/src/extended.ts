@@ -188,7 +188,6 @@ export default class extended extends Exchange {
                             'info/{market}/funding',
                             'info/{market}/open-interests',
                             'info/builder/dashboard',
-                            'info/builder/trades',
                         ],
                     },
                     'private': {
@@ -221,6 +220,7 @@ export default class extended extends Exchange {
                             'portfolio/charts/pnl',
                             'vault/public/performance',
                             'vault/public/summary',
+                            'info/builder/trades',
                         ],
                         'post': [
                             'user/order',
