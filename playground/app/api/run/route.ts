@@ -34,24 +34,52 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "code too large" }, { status: 413 });
   }
 
-  try {
-    const result = await runCode(language, code);
-    logEvent({
-      kind: "run",
-      ip: clientIp(request),
-      ua: request.headers.get("user-agent") ?? "",
-      language,
-      codeBytes: Buffer.byteLength(code, "utf8"),
-      code: truncate(code),
-      durationMs: result.durationMs,
-      exitCode: result.exitCode,
-      timedOut: result.timedOut,
-      truncated: result.truncated,
-    });
-    return NextResponse.json(result);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "unknown error";
-    logEvent({ kind: "run", ip: clientIp(request), language, code: truncate(code), error: message });
-    return NextResponse.json({ error: `execution failed: ${message}` }, { status: 500 });
-  }
+  // Stream output as NDJSON so the client renders stdout/stderr live (one JSON
+  // object per line): {type:"chunk",stream,data} repeated, then a terminal
+  // {type:"end",...} (or {type:"error",message}). Errors during validation above
+  // still return plain JSON with a non-2xx status; once we start streaming the
+  // status is already 200, so failures surface as an "error" event.
+  const ip = clientIp(request);
+  const ua = request.headers.get("user-agent") ?? "";
+  const codeBytes = Buffer.byteLength(code, "utf8");
+  const lang = language;
+
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const send = (obj: unknown) =>
+        controller.enqueue(encoder.encode(JSON.stringify(obj) + "\n"));
+      try {
+        const result = await runCode(lang, code, (s, data) =>
+          send({ type: "chunk", stream: s, data }),
+        );
+        send({
+          type: "end",
+          exitCode: result.exitCode,
+          durationMs: result.durationMs,
+          timedOut: result.timedOut,
+          truncated: result.truncated,
+        });
+        logEvent({
+          kind: "run", ip, ua, language: lang, codeBytes, code: truncate(code),
+          durationMs: result.durationMs, exitCode: result.exitCode,
+          timedOut: result.timedOut, truncated: result.truncated,
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "unknown error";
+        send({ type: "error", message: `execution failed: ${message}` });
+        logEvent({ kind: "run", ip, language: lang, code: truncate(code), error: message });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "application/x-ndjson; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      "X-Accel-Buffering": "no", // ask nginx not to buffer the stream
+    },
+  });
 }

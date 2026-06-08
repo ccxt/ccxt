@@ -5,6 +5,7 @@ import {
   COMPILE_TIMEOUT_MS,
   RUNTIME_ROOT,
   runProcess,
+  type OnChunk,
   type RunResult,
 } from "./sandbox";
 
@@ -34,7 +35,7 @@ function goBin(): string {
   return "go";
 }
 
-export async function runGo(code: string): Promise<RunResult> {
+export async function runGo(code: string, onChunk?: OnChunk): Promise<RunResult> {
   if (!existsSync(path.join(GO_ROOT, "go.mod"))) {
     return notProvisioned();
   }
@@ -47,6 +48,7 @@ export async function runGo(code: string): Promise<RunResult> {
       { cmd: goBin(), args: ["run", `./runs/${id}`], env: goEnv() },
       GO_ROOT,
       COMPILE_TIMEOUT_MS,
+      onChunk,
     );
   } finally {
     await rm(dir, { recursive: true, force: true }).catch(() => {});

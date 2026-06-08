@@ -77,19 +77,62 @@ export default function Page() {
 
   const onRun = useCallback(async () => {
     if (!isRunnable(language)) return;
-    setRun({ status: "running" });
+    setRun({ status: "running", stdout: "", stderr: "" });
     try {
       const res = await fetch(apiUrl("/api/run"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ language, code: codeByLang[language] }),
       });
-      const data = await res.json();
-      if (!res.ok) {
+      // Validation failures come back as plain JSON with a non-2xx status.
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => ({}));
         setRun({ status: "error", message: data.error ?? "request failed" });
         return;
       }
-      setRun({ status: "done", result: data });
+      // Stream NDJSON: {type:"chunk",stream,data} … then {type:"end",…}/{type:"error"}.
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      let stdout = "";
+      let stderr = "";
+      const flush = (line: string) => {
+        if (!line.trim()) return;
+        let ev: { type: string; [k: string]: unknown };
+        try {
+          ev = JSON.parse(line);
+        } catch {
+          return;
+        }
+        if (ev.type === "chunk") {
+          if (ev.stream === "stderr") stderr += ev.data as string;
+          else stdout += ev.data as string;
+          setRun({ status: "running", stdout, stderr });
+        } else if (ev.type === "end") {
+          setRun({
+            status: "done",
+            result: {
+              stdout,
+              stderr,
+              exitCode: (ev.exitCode as number | null) ?? null,
+              durationMs: ev.durationMs as number,
+              timedOut: ev.timedOut as boolean,
+              truncated: ev.truncated as boolean,
+            },
+          });
+        } else if (ev.type === "error") {
+          setRun({ status: "error", message: ev.message as string });
+        }
+      };
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) flush(line);
+      }
+      if (buf) flush(buf);
     } catch (e) {
       setRun({ status: "error", message: e instanceof Error ? e.message : "network error" });
     }

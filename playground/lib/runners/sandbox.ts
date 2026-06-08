@@ -39,6 +39,9 @@ export type SpawnSpec = {
   env?: Record<string, string>;
 };
 
+// Called with each stdout/stderr chunk as it is produced (for live streaming).
+export type OnChunk = (stream: "stdout" | "stderr", data: string) => void;
+
 export function baseEnv(): Record<string, string> {
   const env: Record<string, string> = {
     PATH: process.env.PATH ?? "/usr/bin:/bin:/usr/local/bin",
@@ -63,6 +66,7 @@ export async function runProcess(
   spec: SpawnSpec,
   cwd: string,
   timeoutMs: number = RUN_TIMEOUT_MS,
+  onChunk?: OnChunk,
 ): Promise<RunResult> {
   const startedAt = Date.now();
   return await new Promise<RunResult>((resolve) => {
@@ -102,8 +106,10 @@ export async function runProcess(
         killGroup("SIGKILL");
         return;
       }
-      if (sink === "out") stdout += chunk.toString();
-      else stderr += chunk.toString();
+      const text = chunk.toString();
+      if (sink === "out") stdout += text;
+      else stderr += text;
+      onChunk?.(sink === "out" ? "stdout" : "stderr", text);
     };
 
     child.stdout.on("data", (c: Buffer) => append(c, "out"));
@@ -137,13 +143,14 @@ export async function runWithFile(
   ext: string,
   buildSpec: (file: string) => SpawnSpec,
   timeoutMs: number = RUN_TIMEOUT_MS,
+  onChunk?: OnChunk,
 ): Promise<RunResult> {
   await mkdir(RUN_ROOT, { recursive: true });
   const dir = await mkdtemp(path.join(RUN_ROOT, "run-"));
   const file = path.join(dir, `script.${ext}`);
   try {
     await writeFile(file, code, "utf8");
-    return await runProcess(buildSpec(file), dir, timeoutMs);
+    return await runProcess(buildSpec(file), dir, timeoutMs, onChunk);
   } finally {
     await rm(dir, { recursive: true, force: true }).catch(() => {});
   }

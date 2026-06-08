@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
-import { runWithFile, type RunResult } from "./sandbox";
+import { runWithFile, type OnChunk, type RunResult } from "./sandbox";
 
 // Prefer the composer install (scripts/setup-runtimes.sh). Fall back to the
 // monorepo's ccxt.php, which is itself the autoloader.
@@ -12,7 +12,7 @@ function resolveAutoload(): string | undefined {
   return undefined;
 }
 
-export async function runPhp(code: string): Promise<RunResult> {
+export async function runPhp(code: string, onChunk?: OnChunk): Promise<RunResult> {
   const autoload = resolveAutoload();
   // Raise memory_limit above PHP-CLI's 128M default: loadMarkets on large
   // exchanges (e.g. binance exchangeInfo) parses a multi-MB JSON payload.
@@ -22,5 +22,5 @@ export async function runPhp(code: string): Promise<RunResult> {
   return runWithFile(code, "php", (file) => ({
     cmd: "php",
     args: autoload ? [...base, "-d", `auto_prepend_file=${autoload}`, file] : [...base, file],
-  }));
+  }), undefined, onChunk);
 }

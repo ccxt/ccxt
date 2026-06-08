@@ -1,18 +1,28 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import type { RunResult } from "@/lib/runners";
 
 export type RunState =
   | { status: "idle" }
-  | { status: "running" }
+  | { status: "running"; stdout: string; stderr: string }
   | { status: "done"; result: RunResult }
   | { status: "error"; message: string };
 
 export default function OutputPanel({ state }: { state: RunState }) {
+  const streaming = state.status === "running" && (state.stdout.length > 0 || state.stderr.length > 0);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  // Follow the tail as output streams in (and on the final result).
+  const outLen = state.status === "running" ? state.stdout.length + state.stderr.length : 0;
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [outLen, state.status]);
   return (
     <div className="panel">
       <div className="panel-head">
         <span className="label">Output</span>
+        {state.status === "running" && <span className="badge outline">running<span className="dots" /></span>}
         {state.status === "done" && <StatusBadge result={state.result} />}
         {state.status === "done" && (
           <div className="output-meta">
@@ -21,16 +31,22 @@ export default function OutputPanel({ state }: { state: RunState }) {
           </div>
         )}
       </div>
-      <div className="output-body">
+      <div className="output-body" ref={bodyRef}>
         {state.status === "idle" && (
           <span className="placeholder">
             Run the code (⌘/Ctrl+Enter) to see live exchange data here.
           </span>
         )}
-        {state.status === "running" && (
+        {state.status === "running" && !streaming && (
           <span className="placeholder">
             Executing<span className="dots" />
           </span>
+        )}
+        {state.status === "running" && streaming && (
+          <>
+            {state.stdout.length > 0 && <span>{state.stdout}</span>}
+            {state.stderr.length > 0 && <span className="stderr">{state.stderr}</span>}
+          </>
         )}
         {state.status === "error" && <span className="stderr">{state.message}</span>}
         {state.status === "done" && <Result result={state.result} />}

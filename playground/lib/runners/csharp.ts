@@ -5,6 +5,7 @@ import {
   COMPILE_TIMEOUT_MS,
   RUNTIME_ROOT,
   runProcess,
+  type OnChunk,
   type RunResult,
 } from "./sandbox";
 
@@ -37,7 +38,7 @@ function csEnv(): Record<string, string> {
   return env;
 }
 
-export async function runCsharp(code: string): Promise<RunResult> {
+export async function runCsharp(code: string, onChunk?: OnChunk): Promise<RunResult> {
   if (!existsSync(path.join(APP_DIR, "app.csproj"))) {
     return notProvisioned();
   }
@@ -47,6 +48,7 @@ export async function runCsharp(code: string): Promise<RunResult> {
       { cmd: "dotnet", args: ["run", "--no-restore"], env: csEnv() },
       APP_DIR,
       COMPILE_TIMEOUT_MS,
+      onChunk,
     );
   };
   const result = queue.then(run, run);

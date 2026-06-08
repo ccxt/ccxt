@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
-import { runWithFile, type RunResult } from "./sandbox";
+import { runWithFile, type OnChunk, type RunResult } from "./sandbox";
 
 // Prefer the provisioned venv (scripts/setup-runtimes.sh). Fall back to the
 // system python3 with PYTHONPATH pointed at the monorepo's python/ source, which
@@ -17,7 +17,7 @@ function resolvePython(): { cmd: string; env?: Record<string, string> } {
   };
 }
 
-export async function runPython(code: string): Promise<RunResult> {
+export async function runPython(code: string, onChunk?: OnChunk): Promise<RunResult> {
   const { cmd, env } = resolvePython();
   // When an egress proxy is configured, put our sitecustomize on PYTHONPATH so it
   // auto-points ccxt at the proxy (ccxt-python's session ignores proxy env vars).
@@ -27,6 +27,14 @@ export async function runPython(code: string): Promise<RunResult> {
   const parts = [env?.PYTHONPATH, proxied ? path.join(process.cwd(), "lib", "runners", "pyproxy") : ""]
     .filter(Boolean);
   const pythonPath = parts.join(":");
+  // Stream stdout as-is; strip the known import-time stderr noise per chunk so the
+  // live view matches the filtered final result.
+  const onStream: OnChunk | undefined = onChunk
+    ? (stream, data) => {
+        const out = stream === "stderr" ? stripImportNoise(data) : data;
+        if (out) onChunk(stream, out);
+      }
+    : undefined;
   const result = await runWithFile(code, "py", (file) => ({
     cmd,
     args: [file],
@@ -35,7 +43,7 @@ export async function runPython(code: string): Promise<RunResult> {
       ...(env ?? {}),
       ...(pythonPath ? { PYTHONPATH: pythonPath } : {}),
     },
-  }));
+  }), undefined, onStream);
   return { ...result, stderr: stripImportNoise(result.stderr) };
 }
 

@@ -1,5 +1,5 @@
 import type { RunnableLanguageId } from "../languages";
-import type { RunResult } from "./sandbox";
+import type { OnChunk, RunResult } from "./sandbox";
 import { runJs } from "./js";
 import { runTs } from "./ts";
 import { runPython } from "./python";
@@ -7,7 +7,10 @@ import { runPhp } from "./php";
 import { runGo } from "./go";
 import { runCsharp } from "./csharp";
 
-const runners: Record<RunnableLanguageId, (code: string) => Promise<RunResult>> = {
+const runners: Record<
+  RunnableLanguageId,
+  (code: string, onChunk?: OnChunk) => Promise<RunResult>
+> = {
   js: runJs,
   ts: runTs,
   python: runPython,
@@ -16,8 +19,12 @@ const runners: Record<RunnableLanguageId, (code: string) => Promise<RunResult>> 
   csharp: runCsharp,
 };
 
-export function runCode(language: RunnableLanguageId, code: string): Promise<RunResult> {
-  return runners[language](code);
+export function runCode(
+  language: RunnableLanguageId,
+  code: string,
+  onChunk?: OnChunk,
+): Promise<RunResult> {
+  return runners[language](code, onChunk);
 }
 
-export type { RunResult } from "./sandbox";
+export type { OnChunk, RunResult } from "./sandbox";
