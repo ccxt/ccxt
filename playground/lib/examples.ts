@@ -170,6 +170,48 @@ foreach ($ids as $id) {
 `,
     },
   },
+  {
+    id: "watchTicker",
+    label: "Watch ticker (WebSocket)",
+    description: "Stream live ticker updates with CCXT Pro (ccxt.pro / watch*).",
+    code: {
+      js: `import ccxt from 'ccxt';
+
+// ccxt.pro = WebSockets. Use the .pro namespace for watch* methods.
+const exchange = new ccxt.pro.binance ();
+// Stream a few live updates, then close the socket so the run finishes.
+for (let i = 0; i < 5; i++) {
+    const ticker = await exchange.watchTicker ('BTC/USDT');
+    console.log (ticker['datetime'], ticker['symbol'], 'last=' + ticker['last']);
+}
+await exchange.close ();
+`,
+      ts: `import ccxt from 'ccxt';
+
+// ccxt.pro = WebSockets. Use the .pro namespace for watch* methods.
+const exchange = new ccxt.pro.binance ();
+// Stream a few live updates, then close the socket so the run finishes.
+for (let i = 0; i < 5; i++) {
+    const ticker = await exchange.watchTicker ('BTC/USDT');
+    console.log (ticker['datetime'], ticker['symbol'], 'last=' + ticker['last']);
+}
+await exchange.close ();
+`,
+      python: `import asyncio
+import ccxt.pro as ccxtpro  # ccxt.pro = WebSockets (async)
+
+async def main():
+    exchange = ccxtpro.binance()
+    # Stream a few live updates, then close the socket so the run finishes.
+    for _ in range(5):
+        ticker = await exchange.watch_ticker('BTC/USDT')
+        print(ticker['datetime'], ticker['symbol'], 'last=', ticker['last'])
+    await exchange.close()
+
+asyncio.run(main())
+`,
+    },
+  },
 ];
 
 export const defaultExample = examples[0];

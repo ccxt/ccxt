@@ -13,7 +13,8 @@ if (proxy) {
     const mod = await import("ccxt");
     const ccxt = mod.default ?? mod;
     if (ccxt?.Exchange?.prototype) {
-      ccxt.Exchange.prototype.httpsProxy = proxy;
+      ccxt.Exchange.prototype.httpsProxy = proxy; // REST
+      ccxt.Exchange.prototype.wssProxy = proxy;   // ccxt.pro WebSockets (watch*)
     }
   } catch {
     // ccxt not resolvable from here — the internal network still blocks egress
