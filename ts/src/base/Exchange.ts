@@ -4815,6 +4815,22 @@ export default class Exchange {
         return result;
     }
 
+    getPrecisionInteger (market: Market = undefined) {
+        let precision = 18;
+        if (market !== undefined) {
+            const marketPrecision = this.safeDict (market, 'precision');
+            const precisionPrice = this.safeString (marketPrecision, 'price');
+            if (precisionPrice !== undefined) {
+                if (this.isTickPrecision ()) {
+                    precision = this.precisionFromString (precisionPrice);
+                } else {
+                    precision = parseInt (precisionPrice);
+                }
+            }
+        }
+        return precision;
+    }
+
     safeTicker (ticker: Dict, market: Market = undefined): Ticker {
         let open = this.omitZero (this.safeString (ticker, 'open'));
         let close = this.omitZero (this.safeString2 (ticker, 'close', 'last'));
@@ -4861,7 +4877,7 @@ export default class Exchange {
         if (open !== undefined) {
             // percentage (using change)
             if (percentage === undefined && change !== undefined) {
-                percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
+                percentage = Precise.stringMul (Precise.stringDiv (change, open, this.getPrecisionInteger (market)), '100');
             }
             // close (using change)
             if (close === undefined && change !== undefined) {
@@ -4873,15 +4889,7 @@ export default class Exchange {
             }
             // average
             if (average === undefined && close !== undefined) {
-                let precision = 18;
-                if (market !== undefined && this.isTickPrecision ()) {
-                    const marketPrecision = this.safeDict (market, 'precision');
-                    const precisionPrice = this.safeString (marketPrecision, 'price');
-                    if (precisionPrice !== undefined) {
-                        precision = this.precisionFromString (precisionPrice);
-                    }
-                }
-                average = Precise.stringDiv (Precise.stringAdd (open, close), '2', precision);
+                average = Precise.stringDiv (Precise.stringAdd (last, open), '2', this.getPrecisionInteger (market));
             }
         }
         // timestamp and symbol operations don't belong in safeTicker
