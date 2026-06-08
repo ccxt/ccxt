@@ -832,7 +832,7 @@ public class WeexCore extends WeexApi
         {
             Object chain = this.safeDict(chains, j);
             Object networkId = this.safeString(chain, "network");
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );

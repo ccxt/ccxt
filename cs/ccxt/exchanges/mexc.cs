@@ -985,7 +985,7 @@ public partial class mexc : Exchange
         {
             object chain = getValue(chains, j);
             object networkId = this.safeString2(chain, "netWork", "network");
-            object network = this.networkIdToCode(networkId);
+            object network = this.networkIdToCode(networkId, code);
             ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
                 { "info", chain },
                 { "id", networkId },
@@ -4679,11 +4679,12 @@ public partial class mexc : Exchange
         //
         object address = this.safeString(depositAddress, "address");
         object currencyId = this.safeString(depositAddress, "coin");
+        object code = this.safeCurrencyCode(currencyId, currency);
         object networkId = this.safeString(depositAddress, "netWork");
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", this.safeCurrencyCode(currencyId, currency) },
-            { "network", this.networkIdToCode(networkId, currencyId) },
+            { "currency", code },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "tag", this.safeString(depositAddress, "memo") },
         };
@@ -5026,13 +5027,13 @@ public partial class mexc : Exchange
         {
             currencyId = getValue(((string)currencyWithNetwork).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>(), 0);
         }
+        object code = this.safeCurrencyCode(currencyId, currency);
         object network = null;
         object rawNetwork = this.safeString(transaction, "network");
         if (isTrue(!isEqual(rawNetwork, null)))
         {
-            network = this.networkIdToCode(rawNetwork);
+            network = this.networkIdToCode(rawNetwork, code);
         }
-        object code = this.safeCurrencyCode(currencyId, currency);
         object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         object amountString = this.safeString(transaction, "amount");
         object address = this.safeString(transaction, "address");

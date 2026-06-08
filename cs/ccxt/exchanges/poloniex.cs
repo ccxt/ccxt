@@ -3238,7 +3238,7 @@ public partial class poloniex : Exchange
                     {
                         object networkId = getValue(childChains, j);
                         networkId = ((string)networkId).Replace((string)code, (string)"");
-                        object networkCode = this.networkIdToCode(networkId);
+                        object networkCode = this.networkIdToCode(networkId, getValue(currency, "code"));
                         object networkInfo = this.safeValue(response, networkId);
                         object networkObject = new Dictionary<string, object>() {};
                         object withdrawFee = this.safeNumber(networkInfo, "withdrawalFee");
@@ -3276,7 +3276,7 @@ public partial class poloniex : Exchange
         };
         ((IDictionary<string,object>)depositWithdrawFee)["withdraw"] = withdrawResult;
         ((IDictionary<string,object>)depositWithdrawFee)["deposit"] = depositResult;
-        object networkCode = this.networkIdToCode(networkId);
+        object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
         ((IDictionary<string,object>)getValue(depositWithdrawFee, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
             { "withdraw", withdrawResult },
             { "deposit", depositResult },

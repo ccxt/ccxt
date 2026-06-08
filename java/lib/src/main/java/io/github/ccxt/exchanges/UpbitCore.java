@@ -2548,7 +2548,7 @@ public class UpbitCore extends UpbitApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );
-            put( "network", UpbitCore.this.networkIdToCode(networkId) );
+            put( "network", UpbitCore.this.networkIdToCode(networkId, code) );
             put( "address", address );
             put( "tag", tag );
         }};

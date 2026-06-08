@@ -1151,7 +1151,7 @@ public partial class deepcoin : Exchange
         object amount = this.safeNumber(transaction, "amount");
         object timestamp = this.safeTimestamp(transaction, "createTime");
         object networkId = this.safeString(transaction, "chainName");
-        object network = this.networkIdToCode(networkId);
+        object network = this.networkIdToCode(networkId, code);
         object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         return new Dictionary<string, object>() {
             { "info", transaction },
@@ -1314,10 +1314,11 @@ public partial class deepcoin : Exchange
         object chain = this.safeString(response, "chain");
         object address = this.safeString(response, "address");
         this.checkAddress(address);
+        object code = this.safeString(currency, "code");
         return new Dictionary<string, object>() {
             { "info", response },
             { "currency", null },
-            { "network", this.networkIdToCode(chain) },
+            { "network", this.networkIdToCode(chain, code) },
             { "address", address },
             { "tag", this.safeString(response, "memo") },
         };

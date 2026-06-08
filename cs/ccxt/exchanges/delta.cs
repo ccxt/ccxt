@@ -509,7 +509,7 @@ public partial class delta : Exchange
         {
             object chain = getValue(chains, j);
             object networkId = this.safeString(chain, "network");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "id", networkId },
                 { "network", networkCode },
@@ -2636,11 +2636,12 @@ public partial class delta : Exchange
         object address = this.safeString(depositAddress, "address");
         object marketId = this.safeString(depositAddress, "asset_symbol");
         object networkId = this.safeString(depositAddress, "network");
+        object code = this.safeCurrencyCode(marketId, currency);
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", this.safeCurrencyCode(marketId, currency) },
-            { "network", this.networkIdToCode(networkId) },
+            { "currency", code },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "tag", this.safeString(depositAddress, "memo") },
         };

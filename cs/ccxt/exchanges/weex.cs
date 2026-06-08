@@ -805,7 +805,7 @@ public partial class weex : Exchange
         {
             object chain = this.safeDict(chains, j);
             object networkId = this.safeString(chain, "network");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "info", chain },
                 { "id", networkId },

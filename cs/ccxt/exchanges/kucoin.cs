@@ -3447,7 +3447,7 @@ public partial class kucoin : Exchange
             parameters = ((IList<object>)networkCodeparametersVariable)[1];
             if (isTrue(!isEqual(networkCode, null)))
             {
-                ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode)).ToLower();
+                ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode, code)).ToLower();
             }
             //
             //     {

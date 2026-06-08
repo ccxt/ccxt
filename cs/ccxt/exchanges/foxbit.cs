@@ -1668,7 +1668,7 @@ public partial class foxbit : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["network_code"] = this.networkCodeToId(networkCode);
+            ((IDictionary<string,object>)request)["network_code"] = this.networkCodeToId(networkCode, code);
         }
         object response = await this.v3PrivatePostWithdrawals(this.extend(request, parameters));
         // {
