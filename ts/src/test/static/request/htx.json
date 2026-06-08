@@ -545,14 +545,11 @@
                 "output": "{\"symbol\":\"ltcusdt\"}"
             },
             {
-                "description": "Swap cancel all trailing orders",
+                "description": "Linear swap cancelAllOrders",
                 "method": "cancelAllOrders",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_track_cancelall?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-01-03T01%3A01%3A08&Signature=ug%2FwGTlkVE%2BmL5C%2BkBJV83nXrF8%2B8pLKOtSpdflruCU%3D",
+                "url": "https://api.hbdm.vn/v5/trade/cancel_all_orders?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-06-08T06%3A20%3A54&Signature=cpvCub5PjeIlH1eQWjMn38HfDxzlGAQKU1YLi7B3kQg%3D",
                 "input": [
-                  "BTC/USDT:USDT",
-                  {
-                    "trailing": true
-                  }
+                    "BTC/USDT:USDT"
                 ],
                 "output": "{\"contract_code\":\"BTC-USDT\"}"
             }

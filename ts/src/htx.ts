@@ -5423,24 +5423,29 @@ export default class htx extends Exchange {
         if (rejectedCreateOrders !== undefined) {
             status = 'rejected';
         }
-        const id = this.safeStringN (order, [ 'id', 'order_id_str', 'order-id', 'order_id', 'algo_id' ]);
+        const id = this.safeStringN (order, [ 'algo_id', 'id', 'order_id_str', 'order-id', 'order_id' ]);
         let side = this.safeString2 (order, 'direction', 'side');
         let type = undefined;
-        if (market['linear'] && market['contract']) {
+        if (market['linear']) {
             type = this.safeStringN (order, [ 'tp_type', 'sl_type', 'type' ]);
         } else {
             type = this.safeString (order, 'order_price_type');
-            if ('type' in order) {
-                const orderType = order['type'].split ('-');
-                side = orderType[0];
-                type = orderType[1];
+            const rawType = this.safeString (order, 'type');
+            if (rawType !== undefined) {
+                if (rawType.indexOf ('-') >= 0) {
+                    const orderType = rawType.split ('-');
+                    side = orderType[0];
+                    type = orderType[1];
+                } else if (type === undefined) {
+                    type = rawType;
+                }
             }
         }
         const timestamp = this.safeIntegerN (order, [ 'created_at', 'created-at', 'create_date', 'created_time' ]);
         const clientOrderId = this.safeStringN (order, [ 'client_order_id', 'client-or' + 'der-id', 'algo_client_order_id' ]); // transpiler regex trick for php issue
         let cost = undefined;
         let amount = undefined;
-        if ((type !== undefined) && (type.indexOf ('market') >= 0) && (!market['linear'] && market['contract'])) {
+        if ((type !== undefined) && (type.indexOf ('market') >= 0) && (!market['linear'])) {
             cost = this.safeString (order, 'field-cash-amount');
         } else {
             amount = this.safeString2 (order, 'volume', 'amount');
@@ -6623,6 +6628,7 @@ export default class htx extends Exchange {
      * @method
      * @name htx#cancelAllOrders
      * @description cancel all open orders
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195894f0cf6
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] *contract only* if the orders are trigger trigger orders or not
@@ -6690,6 +6696,24 @@ export default class htx extends Exchange {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
+                if (!trigger && !trailing && !stopLossTakeProfit) {
+                    response = await this.contractPrivatePostV5TradeCancelAllOrders (this.extend (request, params));
+                    //
+                    //     {
+                    //         "code": 200,
+                    //         "message": "Success",
+                    //         "data": [
+                    //             {
+                    //                 "code": 200,
+                    //                 "message": "Success",
+                    //                 "order_id": "1513547991763062784",
+                    //                 "client_order_id": "1513547991763062784"
+                    //             },
+                    //         ],
+                    //         "ts": 1780899655629
+                    //     }
+                    //
+                }
                 if (marginMode === 'isolated') {
                     if (trigger) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerCancelall (this.extend (request, params));
@@ -6697,8 +6721,6 @@ export default class htx extends Exchange {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTpslCancelall (this.extend (request, params));
                     } else if (trailing) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTrackCancelall (this.extend (request, params));
-                    } else {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCancelall (this.extend (request, params));
                     }
                 } else if (marginMode === 'cross') {
                     if (trigger) {
@@ -6707,8 +6729,6 @@ export default class htx extends Exchange {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall (this.extend (request, params));
                     } else if (trailing) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTrackCancelall (this.extend (request, params));
-                    } else {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossCancelall (this.extend (request, params));
                     }
                 }
             } else if (market['inverse']) {
@@ -6746,6 +6766,9 @@ export default class htx extends Exchange {
             //         "ts": "1683435723755"
             //     }
             //
+            if (market['linear'] && (!trigger && !trailing && !stopLossTakeProfit)) {
+                return this.parseCancelOrders (response) as Order[];
+            }
             const data = this.safeDict (response, 'data');
             return this.parseCancelOrders (data) as Order[];
         }
