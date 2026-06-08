@@ -2488,7 +2488,7 @@ public partial class woo : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "token", getValue(currency, "id") },
-            { "network", this.networkCodeToId(networkCode) },
+            { "network", this.networkCodeToId(networkCode, getValue(currency, "code")) },
         };
         object response = await this.v3PrivateGetAssetWalletDeposit(this.extend(request, parameters));
         //
@@ -2552,7 +2552,7 @@ public partial class woo : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode);
+            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode, getValue(currency, "code"));
         }
         if (isTrue(!isEqual(since, null)))
         {
@@ -2827,7 +2827,7 @@ public partial class woo : Exchange
             { "comment", null },
             { "internal", null },
             { "fee", fee },
-            { "network", this.networkIdToCode(this.safeString(transaction, "network")) },
+            { "network", this.networkIdToCode(this.safeString(transaction, "network"), code) },
         };
     }
 
@@ -3075,7 +3075,7 @@ public partial class woo : Exchange
         }
         parameters = this.omit(parameters, "network");
         ((IDictionary<string,object>)request)["token"] = getValue(currency, "id");
-        ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(network);
+        ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(network, getValue(currency, "code"));
         object response = await this.v3PrivatePostAssetWalletWithdraw(this.extend(request, parameters));
         //
         //     {
