@@ -279,6 +279,19 @@ namespace ccxt
                 return null;
             return (new Precise(string1.ToString()).sub(new Precise(string2.ToString()))).ToString();
         }
+
+        static public string stringAddWithZero(object string1, object string2)
+        {
+            if (string1 == null && string2 == null)
+                return null;
+            if (string1 == null)
+                return string2.ToString();
+            if (string2 == null)
+                return string1.ToString();
+
+            return (new Precise(string1.ToString()).add(new Precise(string2.ToString()))).ToString();
+        }
+
         static public string stringAdd(object string1, object string2)
         {
             if (string1 == null || string2 == null)

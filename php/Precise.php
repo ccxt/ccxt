@@ -188,6 +188,18 @@ class Precise {
         return strval((new Precise($string1))->div($string2_precise, $precision));
     }
 
+    public static function string_add_with_zero($string1, $string2) {
+        if (($string1 === null) && ($string2 === null)) {
+            return null;
+        }
+        if ($string1 === null) {
+            return $string2;
+        } elseif ($string2 === null) {
+            return $string1;
+        }
+        return strval((new Precise($string1))->add(new Precise($string2)));
+    }
+
     public static function string_add($string1, $string2) {
         if (($string1 === null) || ($string2 === null)) {
             return null;
