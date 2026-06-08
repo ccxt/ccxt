@@ -2789,7 +2789,7 @@ func (this *WooCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan a
 		params = GetValue(networkCodeparamsVariable, 1)
 		var request any = map[string]any{
 			"token":   GetValue(currency, "id"),
-			"network": this.NetworkCodeToId(networkCode),
+			"network": this.NetworkCodeToId(networkCode, GetValue(currency, "code")),
 		}
 
 		response := (<-this.V3PrivateGetAssetWalletDeposit(this.Extend(request, params)))
@@ -2866,7 +2866,7 @@ func (this *WooCore) GetAssetHistoryRows(optionalArgs ...any) <-chan any {
 		networkCode = GetValue(networkCodeparamsVariable, 0)
 		params = GetValue(networkCodeparamsVariable, 1)
 		if IsTrue(!IsEqual(networkCode, nil)) {
-			AddElementToObject(request, "network", this.NetworkCodeToId(networkCode))
+			AddElementToObject(request, "network", this.NetworkCodeToId(networkCode, GetValue(currency, "code")))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)
@@ -3205,7 +3205,7 @@ func (this *WooCore) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"comment":     nil,
 		"internal":    nil,
 		"fee":         fee,
-		"network":     this.NetworkIdToCode(this.SafeString(transaction, "network")),
+		"network":     this.NetworkIdToCode(this.SafeString(transaction, "network"), code),
 	}
 }
 func (this *WooCore) ParseTransactionStatus(status any) any {
@@ -3479,7 +3479,7 @@ func (this *WooCore) Withdraw(code any, amount any, address any, optionalArgs ..
 		}
 		params = this.Omit(params, "network")
 		AddElementToObject(request, "token", GetValue(currency, "id"))
-		AddElementToObject(request, "network", this.NetworkCodeToId(network))
+		AddElementToObject(request, "network", this.NetworkCodeToId(network, GetValue(currency, "code")))
 
 		response := (<-this.V3PrivatePostAssetWalletWithdraw(this.Extend(request, params)))
 		PanicOnError(response)

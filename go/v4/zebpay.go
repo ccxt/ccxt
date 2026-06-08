@@ -443,7 +443,7 @@ func (this *ZebpayCore) ParseCurrency(rawCurrency any) any {
 	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
 		var chain any = GetValue(chains, j)
 		var networkId any = this.SafeString(chain, "chainId")
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var depositAllowed any = IsEqual(this.SafeBool(chain, "isDepositEnabled"), true)
 		deposit = Ternary(IsTrue((depositAllowed)), depositAllowed, deposit)
 		var withdrawAllowed any = IsEqual(this.SafeBool(chain, "isWithdrawEnabled"), true)
