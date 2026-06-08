@@ -1158,7 +1158,7 @@ class mexc extends Exchange {
         for ($j = 0; $j < count($chains); $j++) {
             $chain = $chains[$j];
             $networkId = $this->safe_string_2($chain, 'netWork', 'network');
-            $network = $this->network_id_to_code($networkId);
+            $network = $this->network_id_to_code($networkId, $code);
             $networks[$network] = array(
                 'info' => $chain,
                 'id' => $networkId,
@@ -1537,7 +1537,7 @@ class mexc extends Exchange {
         return $orderbook;
     }
 
-    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+    public function parse_order_book_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $countKey = 2;
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
@@ -4752,11 +4752,12 @@ class mexc extends Exchange {
         //
         $address = $this->safe_string($depositAddress, 'address');
         $currencyId = $this->safe_string($depositAddress, 'coin');
+        $code = $this->safe_currency_code($currencyId, $currency);
         $networkId = $this->safe_string($depositAddress, 'netWork');
         return array(
             'info' => $depositAddress,
-            'currency' => $this->safe_currency_code($currencyId, $currency),
-            'network' => $this->network_id_to_code($networkId, $currencyId),
+            'currency' => $code,
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'memo'),
         );
@@ -5077,12 +5078,12 @@ class mexc extends Exchange {
         if ($currencyWithNetwork !== null) {
             $currencyId = explode('-', $currencyWithNetwork)[0];
         }
+        $code = $this->safe_currency_code($currencyId, $currency);
         $network = null;
         $rawNetwork = $this->safe_string($transaction, 'network');
         if ($rawNetwork !== null) {
-            $network = $this->network_id_to_code($rawNetwork);
+            $network = $this->network_id_to_code($rawNetwork, $code);
         }
-        $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amountString = $this->safe_string($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');

@@ -400,7 +400,6 @@ public class BitrueCore extends BitrueApi
                     put( "XML", "Stellar Lumens" );
                     put( "XYM", "Symbol" );
                     put( "XTZ", "Tezos" );
-                    put( "theta", "theta" );
                     put( "THETA", "THETA" );
                     put( "VECHAIN", "VeChain" );
                     put( "WANCHAIN", "Wanchain" );
@@ -3120,7 +3119,7 @@ public class BitrueCore extends BitrueApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
-                Helpers.addElementToObject(request, "chainName", this.networkCodeToId(networkCode));
+                Helpers.addElementToObject(request, "chainName", this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code")));
             }
             if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
             {

@@ -894,7 +894,7 @@ class coinmetro extends Exchange {
         return $orderbook;
     }
 
-    public function parse_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+    public function parse_order_book_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $prices = is_array($bidasks) ? array_keys($bidasks) : array();
         $result = array();
         for ($i = 0; $i < count($prices); $i++) {

@@ -37,7 +37,7 @@ export default class luno extends lunoRest {
         datetime: string;
         nonce: any;
     };
-    parseBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, thirdKey?: IndexType): any[];
+    parseOrderBookBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, thirdKey?: IndexType): any[];
     customParseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, thirdKey?: IndexType): number[];
     handleDelta(orderbook: any, message: any): void;
     handleMessage(client: Client, message: any): void;

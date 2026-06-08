@@ -668,18 +668,6 @@ export default class cryptocom extends Exchange {
         });
     }
 
-    addKeyInArrayItems (obj, keyName) {
-        const result = [];
-        const keys = Object.keys (obj);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const item = obj[key];
-            item[keyName] = key;
-            result.push (item);
-        }
-        return result;
-    }
-
     /**
      * @method
      * @name cryptocom#fetchMarkets
@@ -2011,7 +1999,7 @@ export default class cryptocom extends Exchange {
         }
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const networkId = this.networkCodeToId (networkCode);
+        const networkId = this.networkCodeToId (networkCode, code);
         if (networkId !== undefined) {
             request['network_id'] = networkId;
         }

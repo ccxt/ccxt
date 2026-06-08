@@ -9,7 +9,10 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testAfterConstruct(Exchange exchange, object skippedProperties)
     {
-        testOptionsNetworks(exchange, skippedProperties);
+        if (!isTrue((inOp(skippedProperties, "networks"))))
+        {
+            testOptionsNetworks(exchange, skippedProperties);
+        }
         return true;
     }
     public static void testOptionsNetworks(Exchange exchange, object skippedProperties)
@@ -17,7 +20,7 @@ public partial class testMainClass : BaseTest
         if (!isTrue((inOp(skippedProperties, "networks"))))
         {
             // only allow these whitelisted unified networkCodes to be repeated
-            object allowedUnifiedAliases = new List<object>() {"BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM"};
+            object allowedUnifiedAliases = new List<object>() {"BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SPL", "SOL", "POLYGON", "MATIC"};
             object networks = getValue(exchange.options, "networks");
             if (isTrue(isEqual(networks, null)))
             {

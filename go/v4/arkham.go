@@ -490,7 +490,7 @@ func (this *ArkhamCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 			for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
 				var chain any = GetValue(chains, j)
 				var networkId any = this.SafeString(chain, "symbol")
-				var network any = this.NetworkIdToCode(networkId)
+				var network any = this.NetworkIdToCode(networkId, code)
 				AddElementToObject(networks, network, map[string]any{
 					"info":      chain,
 					"id":        networkId,
@@ -2064,7 +2064,7 @@ func (this *ArkhamCore) FetchDepositAddressesByNetwork(code any, optionalArgs ..
 			panic(ArgumentsRequired(Add(this.Id, " fetchDepositAddressesByNetwork() requires a \"network\" param")))
 		}
 		var request any = map[string]any{
-			"chain": this.NetworkCodeToId(networkCode),
+			"chain": this.NetworkCodeToId(networkCode, code),
 		}
 
 		response := (<-this.V1PrivateGetAccountDepositAddresses(this.Extend(request, params)))
@@ -2232,7 +2232,7 @@ func (this *ArkhamCore) ParseTransaction(transaction any, optionalArgs ...any) a
 		"txid":        this.SafeString(transaction, "transactionHash"),
 		"type":        nil,
 		"currency":    code,
-		"network":     this.NetworkIdToCode(this.SafeString(transaction, "chain")),
+		"network":     this.NetworkIdToCode(this.SafeString(transaction, "chain"), code),
 		"amount":      this.SafeNumber(transaction, "amount"),
 		"status":      status,
 		"timestamp":   timestamp,

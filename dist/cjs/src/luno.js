@@ -342,7 +342,7 @@ class luno extends luno$1["default"] {
         for (let i = 0; i < rawCurrency.length; i++) {
             const networkEntry = rawCurrency[i];
             const networkId = this.safeString(networkEntry, 'name');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,

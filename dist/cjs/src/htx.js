@@ -189,7 +189,7 @@ class htx extends htx$1["default"] {
                 },
                 'www': 'https://www.huobi.com',
                 'referral': {
-                    'url': 'https://www.htx.com.vc/invite/en-us/1h?invite_code=6rmm2223',
+                    'url': 'https://www.htx.com/invite/en-us/1h?invite_code=6rmm2223',
                     'discount': 0.15,
                 },
                 'doc': [
@@ -3507,7 +3507,7 @@ class htx extends htx$1["default"] {
             const title = this.safeString2(chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
             this.options['networkNamesByChainIds'][uniqueChainId] = title;
-            const networkCode = this.networkIdToCode(uniqueChainId);
+            const networkCode = this.networkIdToCode(uniqueChainId, code);
             networks[networkCode] = {
                 'info': chainEntry,
                 'id': uniqueChainId,
@@ -3565,7 +3565,7 @@ class htx extends htx$1["default"] {
             throw new errors.ExchangeError(this.id + ' networkIdToCode() - markets need to be loaded at first');
         }
         const networkTitle = this.safeValue(this.options['networkNamesByChainIds'], networkId, networkId);
-        return super.networkIdToCode(networkTitle);
+        return super.networkIdToCode(networkTitle, currencyCode);
     }
     networkCodeToId(networkCode, currencyCode = undefined) {
         if (currencyCode === undefined) {
@@ -3581,7 +3581,7 @@ class htx extends htx$1["default"] {
             return uniqueNetworkIds[networkCode];
         }
         else {
-            const networkTitle = super.networkCodeToId(networkCode);
+            const networkTitle = super.networkCodeToId(networkCode, currencyCode);
             return this.safeValue(uniqueNetworkIds, networkTitle, networkTitle);
         }
     }
@@ -6606,7 +6606,7 @@ class htx extends htx$1["default"] {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'note': note,
             'info': depositAddress,
         };
@@ -6887,7 +6887,7 @@ class htx extends htx$1["default"] {
             'txid': txHash,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'address': this.safeString(transaction, 'address'),
             'addressTo': undefined,
             'addressFrom': undefined,
@@ -9421,12 +9421,13 @@ class htx extends htx$1["default"] {
         //          }
         //
         const chains = this.safeValue(fee, 'chains', []);
+        const code = this.safeString(currency, 'code');
         let result = this.depositWithdrawFee(fee);
         for (let j = 0; j < chains.length; j++) {
             const chainEntry = chains[j];
             const networkId = this.safeString(chainEntry, 'chain');
             const withdrawFeeType = this.safeString(chainEntry, 'withdrawFeeType');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             let withdrawFee = undefined;
             let withdrawResult = undefined;
             if (withdrawFeeType === 'fixed') {

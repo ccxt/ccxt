@@ -2,14 +2,16 @@ import assert from 'assert';
 import { Exchange } from "../../../ccxt";
 
 async function testAfterConstruct (exchange: Exchange, skippedProperties: object) {
-    testOptionsNetworks (exchange, skippedProperties);
+    if (!('networks' in skippedProperties)) {
+        testOptionsNetworks (exchange, skippedProperties);
+    }
     return true;
 }
 
 function testOptionsNetworks (exchange: Exchange, skippedProperties: object) {
     if (!('networks' in skippedProperties)) {
         // only allow these whitelisted unified networkCodes to be repeated
-        const allowedUnifiedAliases = [ 'BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM' ];
+        const allowedUnifiedAliases = [ 'BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM', 'SPL', 'SOL', 'POLYGON', 'MATIC' ];
         const networks = exchange.options['networks'];
         if (networks === undefined) {
             return;

@@ -17,7 +17,7 @@ def table(values):
 
 
 def main():
-    exchange = ccxt.gateio()
+    exchange = ccxt.gate()
     markets = exchange.load_markets()
     # exchange.verbose = True  # uncomment for debugging purposes if necessary
     since = exchange.parse8601('2022-01-01T00:00:00Z')

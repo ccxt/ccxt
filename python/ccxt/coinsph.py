@@ -644,7 +644,7 @@ class coinsph(Exchange, ImplicitAPI):
         for j in range(0, len(networkList)):
             networkItem = networkList[j]
             network = self.safe_string(networkItem, 'network')
-            networkCode = self.network_id_to_code(network)
+            networkCode = self.network_id_to_code(network, code)
             networks[networkCode] = {
                 'info': networkItem,
                 'id': network,

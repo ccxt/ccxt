@@ -552,7 +552,7 @@ public class ApexCore extends ApexApi
                 if (Helpers.isTrue(Helpers.isEqual(tokenName, currencyId)))
                 {
                     Object networkId = this.safeString(chain, "chainId");
-                    Object networkCode = this.networkIdToCode(networkId);
+                    Object networkCode = this.networkIdToCode(networkId, code);
                     Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );

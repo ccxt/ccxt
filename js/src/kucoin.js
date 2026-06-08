@@ -3615,7 +3615,7 @@ export default class kucoin extends Exchange {
             let networkCode = undefined;
             [networkCode, params] = this.handleNetworkCodeAndParams(params);
             if (networkCode !== undefined) {
-                request['chain'] = this.networkCodeToId(networkCode).toLowerCase();
+                request['chain'] = this.networkCodeToId(networkCode, code).toLowerCase();
             }
             //
             //     {

@@ -983,7 +983,7 @@ class hitbtc(Exchange, ImplicitAPI):
         for j in range(0, len(rawNetworks)):
             rawNetwork = rawNetworks[j]
             networkId = self.safe_string_2(rawNetwork, 'protocol', 'network')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             networkCode = networkCode.upper() if (networkCode is not None) else code  # is white label, ensure we safeguard from possible bugs
             networks[networkCode] = {
                 'info': rawNetwork,
@@ -1020,16 +1020,6 @@ class hitbtc(Exchange, ImplicitAPI):
             },
             'type': None,  # 'crypto' field emits incorrect values
         })
-
-    def add_key_in_array_items(self, obj, keyName):
-        result = []
-        keys = list(obj.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            item = obj[key]
-            item[keyName] = key
-            result.append(item)
-        return result
 
     async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
@@ -3528,7 +3518,8 @@ class hitbtc(Exchange, ImplicitAPI):
         for j in range(0, len(networks)):
             networkEntry = networks[j]
             networkId = self.safe_string(networkEntry, 'network')
-            networkCode = self.network_id_to_code(networkId)
+            code = self.safe_string(currency, 'code')
+            networkCode = self.network_id_to_code(networkId, code)
             networkCode = networkCode.upper() if (networkCode is not None) else None
             withdrawFee = self.safe_number(networkEntry, 'payout_fee')
             isDefault = self.safe_value(networkEntry, 'default')

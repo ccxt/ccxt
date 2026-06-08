@@ -217,9 +217,6 @@ func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
     case "onetrading":
         itf := NewOnetrading(options)
         return itf
-    case "oxfun":
-        itf := NewOxfun(options)
-        return itf
     case "p2b":
         itf := NewP2b(options)
         return itf

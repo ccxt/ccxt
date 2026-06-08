@@ -626,7 +626,7 @@ public partial class bitvavo : Exchange
         for (object j = 0; isLessThan(j, getArrayLength(networksArray)); postFixIncrement(ref j))
         {
             object networkId = getValue(networksArray, j);
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "info", rawCurrency },
                 { "id", networkId },

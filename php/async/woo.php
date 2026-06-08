@@ -1045,66 +1045,78 @@ class woo extends Exchange {
             $tokensById = $this->group_by($tokenRows, 'balance_token');
             $currencyIds = is_array($tokensById) ? array_keys($tokensById) : array();
             for ($i = 0; $i < count($currencyIds); $i++) {
-                $currencyId = $currencyIds[$i];
-                $code = $this->safe_currency_code($currencyId);
-                $tokensByNetworkId = $this->index_by($tokensById[$currencyId], 'network');
-                $chainsByNetworkId = $this->index_by($networksById[$currencyId], 'network');
-                $keys = is_array($chainsByNetworkId) ? array_keys($chainsByNetworkId) : array();
-                $resultingNetworks = array();
-                for ($j = 0; $j < count($keys); $j++) {
-                    $networkId = $keys[$j];
-                    $tokenEntry = $this->safe_dict($tokensByNetworkId, $networkId, array());
-                    $networkEntry = $this->safe_dict($chainsByNetworkId, $networkId, array());
-                    $networkCode = $this->network_id_to_code($networkId, $code);
-                    $specialNetworkId = $this->safe_string($tokenEntry, 'token');
-                    $resultingNetworks[$networkCode] = array(
-                        'id' => $networkId,
-                        'currencyNetworkId' => $specialNetworkId, // exchange uses special crrency-ids (coin . network junction)
-                        'network' => $networkCode,
-                        'active' => null,
-                        'deposit' => $this->safe_string($networkEntry, 'allow_deposit') === '1',
-                        'withdraw' => $this->safe_string($networkEntry, 'allow_withdraw') === '1',
-                        'fee' => $this->safe_number($networkEntry, 'withdrawal_fee'),
-                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($tokenEntry, 'decimals'))),
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($networkEntry, 'minimum_withdrawal'),
-                                'max' => null,
-                            ),
-                            'deposit' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
-                        ),
-                        'info' => array( $networkEntry, $tokenEntry ),
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $currencyId,
-                    'name' => null,
-                    'code' => $code,
-                    'precision' => null,
-                    'active' => null,
-                    'fee' => null,
-                    'networks' => $resultingNetworks,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'type' => 'crypto',
-                    'limits' => array(
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'info' => array( $tokensByNetworkId, $chainsByNetworkId ),
-                ));
+                $id = $currencyIds[$i];
+                $customCurrency = array(
+                    '_coin_id' => $id,
+                    '_tokens_by_id' => $tokensById[$id],
+                    '_networks_by_id' => $networksById[$id],
+                );
+                $parsed = $this->parse_currency($customCurrency);
+                $code = $parsed['code'];
+                $result[$code] = $parsed;
             }
             return $result;
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, '_coin_id');
+        $code = $this->safe_currency_code($currencyId);
+        $tokensByNetworkId = $this->index_by($rawCurrency['_tokens_by_id'], 'network');
+        $chainsByNetworkId = $this->index_by($rawCurrency['_networks_by_id'], 'network');
+        $keys = is_array($chainsByNetworkId) ? array_keys($chainsByNetworkId) : array();
+        $resultingNetworks = array();
+        for ($j = 0; $j < count($keys); $j++) {
+            $networkId = $keys[$j];
+            $tokenEntry = $this->safe_dict($tokensByNetworkId, $networkId, array());
+            $networkEntry = $this->safe_dict($chainsByNetworkId, $networkId, array());
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $specialNetworkId = $this->safe_string($tokenEntry, 'token');
+            $resultingNetworks[$networkCode] = array(
+                'id' => $networkId,
+                'currencyNetworkId' => $specialNetworkId, // exchange uses special crrency-ids (coin . network junction)
+                'network' => $networkCode,
+                'active' => null,
+                'deposit' => $this->safe_string($networkEntry, 'allow_deposit') === '1',
+                'withdraw' => $this->safe_string($networkEntry, 'allow_withdraw') === '1',
+                'fee' => $this->safe_number($networkEntry, 'withdrawal_fee'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($tokenEntry, 'decimals'))),
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($networkEntry, 'minimum_withdrawal'),
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'info' => array( 'network' => $networkEntry, 'token' => $tokenEntry ),
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $currencyId,
+            'name' => null,
+            'code' => $code,
+            'precision' => null,
+            'active' => null,
+            'fee' => null,
+            'networks' => $resultingNetworks,
+            'deposit' => null,
+            'withdraw' => null,
+            'type' => 'crypto',
+            'limits' => array(
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'info' => $rawCurrency,
+        ));
     }
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {

@@ -2001,7 +2001,7 @@ class gate extends Exchange {
         for ($j = 0; $j < count($chains); $j++) {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'name');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'info' => $chain,
                 'id' => $networkId,
@@ -2347,12 +2347,13 @@ class gate extends Exchange {
         //
         $address = $this->safe_string($depositAddress, 'address');
         $this->check_address($address);
+        $code = $this->safe_string($currency, 'code');
         return array(
             'info' => $depositAddress,
-            'currency' => $this->safe_string($currency, 'code'),
+            'currency' => $code,
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'payment_id'),
-            'network' => $this->network_id_to_code($this->safe_string($depositAddress, 'chain')),
+            'network' => $this->network_id_to_code($this->safe_string($depositAddress, 'chain'), $code),
         );
     }
 
@@ -2505,7 +2506,7 @@ class gate extends Exchange {
                 $networkIds = is_array($withdrawFixOnChains) ? array_keys($withdrawFixOnChains) : array();
                 for ($j = 0; $j < count($networkIds); $j++) {
                     $networkId = $networkIds[$j];
-                    $networkCode = $this->network_id_to_code($networkId);
+                    $networkCode = $this->network_id_to_code($networkId, $code);
                     $withdrawFees[$networkCode] = $this->parse_number($withdrawFixOnChains[$networkId]);
                 }
             }
@@ -2587,7 +2588,9 @@ class gate extends Exchange {
             $chainKeys = is_array($withdrawFixOnChains) ? array_keys($withdrawFixOnChains) : array();
             for ($i = 0; $i < count($chainKeys); $i++) {
                 $chainKey = $chainKeys[$i];
-                $networkCode = $this->network_id_to_code($chainKey, $this->safe_string($fee, 'currency'));
+                $currencyId = $this->safe_string($fee, 'currency');
+                $code = $this->safe_currency_code($currencyId, $currency);
+                $networkCode = $this->network_id_to_code($chainKey, $code);
                 $result['networks'][$networkCode] = array(
                     'withdraw' => array(
                         'fee' => $this->parse_number($withdrawFixOnChains[$chainKey]),
@@ -4087,7 +4090,7 @@ class gate extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['chain'] = $this->network_code_to_id($networkCode);
+            $request['chain'] = $this->network_code_to_id($networkCode, $code);
         }
         $response = $this->privateWithdrawalsPostWithdrawals ($this->extend($request, $params));
         //
@@ -4221,7 +4224,7 @@ class gate extends Exchange {
             'txid' => $txid,
             'currency' => $code,
             'amount' => $this->parse_number($amountString),
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'addressTo' => null,
             'addressFrom' => null,

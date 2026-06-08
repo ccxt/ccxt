@@ -421,7 +421,7 @@ class cryptomus extends Exchange {
                 $code = $this->safe_currency_code($id);
             }
             $networkId = $this->safe_string($networkEntry, 'network_code');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'id' => $networkId,
                 'network' => $networkCode,

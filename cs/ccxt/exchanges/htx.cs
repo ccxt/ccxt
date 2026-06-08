@@ -172,7 +172,7 @@ public partial class htx : Exchange
                 } },
                 { "www", "https://www.huobi.com" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://www.htx.com.vc/invite/en-us/1h?invite_code=6rmm2223" },
+                    { "url", "https://www.htx.com/invite/en-us/1h?invite_code=6rmm2223" },
                     { "discount", 0.15 },
                 } },
                 { "doc", new List<object>() {"https://huobiapi.github.io/docs/spot/v1/en/", "https://huobiapi.github.io/docs/dm/v1/en/", "https://huobiapi.github.io/docs/coin_margined_swap/v1/en/", "https://huobiapi.github.io/docs/usdt_swap/v1/en/", "https://www.huobi.com/en-us/opend/newApiPages/"} },
@@ -3512,7 +3512,7 @@ public partial class htx : Exchange
             object title = this.safeString2(chainEntry, "baseChain", "displayName"); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             ((IDictionary<string,object>)getValue(getValue(this.options, "networkChainIdsByNames"), code))[(string)title] = uniqueChainId;
             ((IDictionary<string,object>)getValue(this.options, "networkNamesByChainIds"))[(string)uniqueChainId] = title;
-            object networkCode = this.networkIdToCode(uniqueChainId);
+            object networkCode = this.networkIdToCode(uniqueChainId, code);
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "info", chainEntry },
                 { "id", uniqueChainId },
@@ -3573,7 +3573,7 @@ public partial class htx : Exchange
             throw new ExchangeError ((string)add(this.id, " networkIdToCode() - markets need to be loaded at first")) ;
         }
         object networkTitle = this.safeValue(getValue(this.options, "networkNamesByChainIds"), networkId, networkId);
-        return base.networkIdToCode(networkTitle);
+        return base.networkIdToCode(networkTitle, currencyCode);
     }
 
     public override object networkCodeToId(object networkCode, object currencyCode = null)
@@ -3594,7 +3594,7 @@ public partial class htx : Exchange
             return getValue(uniqueNetworkIds, networkCode);
         } else
         {
-            object networkTitle = base.networkCodeToId(networkCode);
+            object networkTitle = base.networkCodeToId(networkCode, currencyCode);
             return this.safeValue(uniqueNetworkIds, networkTitle, networkTitle);
         }
     }
@@ -6840,7 +6840,7 @@ public partial class htx : Exchange
             { "currency", code },
             { "address", address },
             { "tag", tag },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "note", note },
             { "info", depositAddress },
         };
@@ -7153,7 +7153,7 @@ public partial class htx : Exchange
             { "txid", txHash },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", this.safeString(transaction, "address") },
             { "addressTo", null },
             { "addressFrom", null },
@@ -9572,13 +9572,14 @@ public partial class htx : Exchange
         //          }
         //
         object chains = this.safeValue(fee, "chains", new List<object>() {});
+        object code = this.safeString(currency, "code");
         object result = this.depositWithdrawFee(fee);
         for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chainEntry = getValue(chains, j);
             object networkId = this.safeString(chainEntry, "chain");
             object withdrawFeeType = this.safeString(chainEntry, "withdrawFeeType");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             object withdrawFee = null;
             object withdrawResult = null;
             if (isTrue(isEqual(withdrawFeeType, "fixed")))

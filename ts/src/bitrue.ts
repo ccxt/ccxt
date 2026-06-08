@@ -447,7 +447,6 @@ export default class bitrue extends Exchange {
                     'XML': 'Stellar Lumens',
                     'XYM': 'Symbol',
                     'XTZ': 'Tezos',
-                    'theta': 'theta',
                     'THETA': 'THETA',
                     'VECHAIN': 'VeChain',
                     'WANCHAIN': 'Wanchain',
@@ -2888,7 +2887,7 @@ export default class bitrue extends Exchange {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chainName'] = this.networkCodeToId (networkCode);
+            request['chainName'] = this.networkCodeToId (networkCode, currency['code']);
         }
         if (tag !== undefined) {
             request['tag'] = tag;

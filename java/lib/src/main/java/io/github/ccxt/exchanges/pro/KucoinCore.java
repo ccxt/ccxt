@@ -2152,7 +2152,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
     {
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidAsks)); i++)
         {
-            Object bidAsk = this.parseBidAsk(Helpers.GetValue(bidAsks, i));
+            Object bidAsk = this.parseOrderBookBidAsk(Helpers.GetValue(bidAsks, i));
             Helpers.callDynamically(bookSide, "storeArray", new Object[]{bidAsk});
         }
     }

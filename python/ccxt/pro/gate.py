@@ -618,7 +618,7 @@ class gate(ccxt.async_support.gate):
         for i in range(0, len(bidAsks)):
             bidAsk = bidAsks[i]
             if isinstance(bidAsk, list):
-                bookSide.storeArray(self.parse_bid_ask(bidAsk))
+                bookSide.storeArray(self.parse_order_book_bid_ask(bidAsk))
             else:
                 price = self.safe_float(bidAsk, 'p')
                 amount = self.safe_float(bidAsk, 's')

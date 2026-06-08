@@ -1501,10 +1501,11 @@ class bitstamp(Exchange, ImplicitAPI):
 
     def parse_deposit_withdraw_fee(self, fee, currency=None):
         result = self.deposit_withdraw_fee(fee)
+        code = self.safe_string(currency, 'code')
         for j in range(0, len(fee)):
             networkEntry = fee[j]
             networkId = self.safe_string(networkEntry, 'network')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             withdrawFee = self.safe_number(networkEntry, 'fee')
             result['withdraw'] = {
                 'fee': withdrawFee,

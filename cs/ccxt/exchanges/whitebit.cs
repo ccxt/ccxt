@@ -528,78 +528,77 @@ public partial class whitebit : Exchange
         //   }
         // }
         //
-        object ids = new List<object>(((IDictionary<string,object>)response).Keys);
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        object enhancedArray = this.addKeyInArrayItems(response, "_coin_id");
+        return this.parseCurrencies(enhancedArray);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
+        object id = this.safeString(rawCurrency, "_coin_id");
+        object code = this.safeCurrencyCode(id);
+        object hasProvider = (inOp(rawCurrency, "providers"));
+        object networks = new Dictionary<string, object>() {};
+        object rawNetworks = this.safeDict(rawCurrency, "networks", new Dictionary<string, object>() {});
+        object depositsNetworks = this.safeList(rawNetworks, "deposits", new List<object>() {});
+        object withdrawsNetworks = this.safeList(rawNetworks, "withdraws", new List<object>() {});
+        object networkLimits = this.safeDict(rawCurrency, "limits", new Dictionary<string, object>() {});
+        object depositLimits = this.safeDict(networkLimits, "deposit", new Dictionary<string, object>() {});
+        object withdrawLimits = this.safeDict(networkLimits, "withdraw", new Dictionary<string, object>() {});
+        object allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
+        for (object j = 0; isLessThan(j, getArrayLength(allNetworks)); postFixIncrement(ref j))
         {
-            object id = getValue(ids, i);
-            object currency = getValue(response, id);
-            // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
-            object code = this.safeCurrencyCode(id);
-            object hasProvider = (inOp(currency, "providers"));
-            object networks = new Dictionary<string, object>() {};
-            object rawNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
-            object depositsNetworks = this.safeList(rawNetworks, "deposits", new List<object>() {});
-            object withdrawsNetworks = this.safeList(rawNetworks, "withdraws", new List<object>() {});
-            object networkLimits = this.safeDict(currency, "limits", new Dictionary<string, object>() {});
-            object depositLimits = this.safeDict(networkLimits, "deposit", new Dictionary<string, object>() {});
-            object withdrawLimits = this.safeDict(networkLimits, "withdraw", new Dictionary<string, object>() {});
-            object allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
-            for (object j = 0; isLessThan(j, getArrayLength(allNetworks)); postFixIncrement(ref j))
-            {
-                object networkId = getValue(allNetworks, j);
-                object networkCode = this.networkIdToCode(networkId);
-                object networkDepositLimits = this.safeDict(depositLimits, networkId, new Dictionary<string, object>() {});
-                object networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, new Dictionary<string, object>() {});
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "active", null },
-                    { "deposit", this.inArray(networkId, depositsNetworks) },
-                    { "withdraw", this.inArray(networkId, withdrawsNetworks) },
-                    { "fee", null },
-                    { "precision", null },
-                    { "limits", new Dictionary<string, object>() {
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(networkDepositLimits, "min") },
-                            { "max", this.safeNumber(networkDepositLimits, "max") },
-                        } },
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(networkWithdrawLimits, "min") },
-                            { "max", this.safeNumber(networkWithdrawLimits, "max") },
-                        } },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "info", currency },
-                { "name", null },
+            object networkId = getValue(allNetworks, j);
+            object networkCode = this.networkIdToCode(networkId);
+            object networkDepositLimits = this.safeDict(depositLimits, networkId, new Dictionary<string, object>() {});
+            object networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
                 { "active", null },
-                { "deposit", this.safeBool(currency, "can_deposit") },
-                { "withdraw", this.safeBool(currency, "can_withdraw") },
+                { "deposit", this.inArray(networkId, depositsNetworks) },
+                { "withdraw", this.inArray(networkId, withdrawsNetworks) },
                 { "fee", null },
-                { "networks", networks },
-                { "type", ((bool) isTrue(hasProvider)) ? "fiat" : "crypto" },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "currency_precision"))) },
+                { "precision", null },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(networkDepositLimits, "min") },
+                        { "max", this.safeNumber(networkDepositLimits, "max") },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(currency, "min_withdraw") },
-                        { "max", this.safeNumber(currency, "max_withdraw") },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(currency, "min_deposit") },
-                        { "max", this.safeNumber(currency, "max_deposit") },
+                        { "min", this.safeNumber(networkWithdrawLimits, "min") },
+                        { "max", this.safeNumber(networkWithdrawLimits, "max") },
                     } },
                 } },
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "info", rawCurrency },
+            { "name", null },
+            { "active", null },
+            { "deposit", this.safeBool(rawCurrency, "can_deposit") },
+            { "withdraw", this.safeBool(rawCurrency, "can_withdraw") },
+            { "fee", null },
+            { "networks", networks },
+            { "type", ((bool) isTrue(hasProvider)) ? "fiat" : "crypto" },
+            { "precision", this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "currency_precision"))) },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(rawCurrency, "min_withdraw") },
+                    { "max", this.safeNumber(rawCurrency, "max_withdraw") },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(rawCurrency, "min_deposit") },
+                    { "max", this.safeNumber(rawCurrency, "max_deposit") },
+                } },
+            } },
+        });
     }
 
     /**

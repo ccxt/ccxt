@@ -586,7 +586,7 @@ class delta extends Exchange {
         for ($j = 0; $j < count($chains); $j++) {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'network');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'id' => $networkId,
                 'network' => $networkCode,
@@ -2675,11 +2675,12 @@ class delta extends Exchange {
         $address = $this->safe_string($depositAddress, 'address');
         $marketId = $this->safe_string($depositAddress, 'asset_symbol');
         $networkId = $this->safe_string($depositAddress, 'network');
+        $code = $this->safe_currency_code($marketId, $currency);
         $this->check_address($address);
         return array(
             'info' => $depositAddress,
-            'currency' => $this->safe_currency_code($marketId, $currency),
-            'network' => $this->network_id_to_code($networkId),
+            'currency' => $code,
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'memo'),
         );

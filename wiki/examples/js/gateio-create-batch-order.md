@@ -5,7 +5,7 @@ console.log ('CCXT Version:', ccxt.version);
 
 async function main () {
 
-    const exchange = new ccxt.gateio ({
+    const exchange = new ccxt.gate ({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_API_SECRET',
     });

@@ -269,7 +269,7 @@ public partial class dydx : ccxt.dydx
             (bookside as IOrderBookSide).store(price, amount);
         } else
         {
-            object bidAsk = this.parseBidAsk(delta, "price", "size");
+            object bidAsk = this.parseOrderBookBidAsk(delta, "price", "size");
             (bookside as IOrderBookSide).storeArray(bidAsk);
         }
     }

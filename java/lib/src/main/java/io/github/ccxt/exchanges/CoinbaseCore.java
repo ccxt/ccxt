@@ -1267,6 +1267,7 @@ public class CoinbaseCore extends CoinbaseApi
         Object toObject = this.safeDict(transaction, "to");
         Object addressTo = this.safeString(toObject, "address");
         Object networkId = this.safeString(network, "network_name");
+        Object code = this.safeCurrencyCode(currencyId, currency);
         final Object finalType = type;
         final Object finalStatus = status;
         final Object finalFeeObject = feeObject;
@@ -1276,7 +1277,7 @@ public class CoinbaseCore extends CoinbaseApi
             put( "txid", CoinbaseCore.this.safeString(network, "hash", id) );
             put( "timestamp", CoinbaseCore.this.parse8601(datetime) );
             put( "datetime", datetime );
-            put( "network", CoinbaseCore.this.networkIdToCode(networkId) );
+            put( "network", CoinbaseCore.this.networkIdToCode(networkId, code) );
             put( "address", addressTo );
             put( "addressTo", addressTo );
             put( "addressFrom", null );
@@ -1285,7 +1286,7 @@ public class CoinbaseCore extends CoinbaseApi
             put( "tagFrom", null );
             put( "type", finalType );
             put( "amount", CoinbaseCore.this.parseNumber(amountStringAbs) );
-            put( "currency", CoinbaseCore.this.safeCurrencyCode(currencyId, currency) );
+            put( "currency", code );
             put( "status", finalStatus );
             put( "updated", CoinbaseCore.this.parse8601(CoinbaseCore.this.safeString(transaction, "updated_at")) );
             put( "fee", new java.util.HashMap<String, Object>() {{
@@ -4197,7 +4198,7 @@ public class CoinbaseCore extends CoinbaseApi
             //                     }
             //                 },
             //                 "side": "BUY",
-            //                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+            //                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4314",
             //                 "status": "FILLED",
             //                 "time_in_force": "IMMEDIATE_OR_CANCEL",
             //                 "created_time": "2023-01-18T01:37:37.975552Z",

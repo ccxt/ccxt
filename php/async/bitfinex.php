@@ -2574,13 +2574,13 @@ class bitfinex extends Exchange {
             $tag = $this->safe_string($data, 3);
             $type = 'withdrawal';
             $networkId = $this->safe_string($data, 2);
-            $network = $this->network_id_to_code(strtoupper($networkId)); // withdraw returns in lowercase
+            $network = $this->network_id_to_code(strtoupper($networkId), $code); // withdraw returns in lowercase
         } elseif ($transactionLength === 22) {
             $id = $this->safe_string($transaction, 0);
             $currencyId = $this->safe_string($transaction, 1);
             $code = $this->safe_currency_code($currencyId, $currency);
             $networkId = $this->safe_string($transaction, 2);
-            $network = $this->network_id_to_code($networkId);
+            $network = $this->network_id_to_code($networkId, $code);
             $timestamp = $this->safe_integer($transaction, 5);
             $updated = $this->safe_integer($transaction, 6);
             $status = $this->parse_transaction_status($this->safe_string($transaction, 9));

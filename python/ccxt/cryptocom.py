@@ -678,16 +678,6 @@ class cryptocom(Exchange, ImplicitAPI):
             'networks': networks,
         })
 
-    def add_key_in_array_items(self, obj, keyName):
-        result = []
-        keys = list(obj.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            item = obj[key]
-            item[keyName] = key
-            result.append(item)
-        return result
-
     def fetch_markets(self, params={}) -> List[Market]:
         """
 
@@ -1924,7 +1914,7 @@ class cryptocom(Exchange, ImplicitAPI):
             request['address_tag'] = tag
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode)
+        networkId = self.network_code_to_id(networkCode, code)
         if networkId is not None:
             request['network_id'] = networkId
         response = self.v1PrivatePostPrivateCreateWithdrawal(self.extend(request, params))

@@ -445,7 +445,7 @@ func (this *CryptomusCore) ParseCurrency(rawCurrency any) any {
 			code = this.SafeCurrencyCode(id)
 		}
 		var networkId any = this.SafeString(networkEntry, "network_code")
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		AddElementToObject(networks, networkCode, map[string]any{
 			"id":      networkId,
 			"network": networkCode,

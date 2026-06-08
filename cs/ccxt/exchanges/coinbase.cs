@@ -1174,13 +1174,14 @@ public partial class coinbase : Exchange
         object toObject = this.safeDict(transaction, "to");
         object addressTo = this.safeString(toObject, "address");
         object networkId = this.safeString(network, "network_name");
+        object code = this.safeCurrencyCode(currencyId, currency);
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", id },
             { "txid", this.safeString(network, "hash", id) },
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", addressTo },
             { "addressTo", addressTo },
             { "addressFrom", null },
@@ -1189,7 +1190,7 @@ public partial class coinbase : Exchange
             { "tagFrom", null },
             { "type", type },
             { "amount", this.parseNumber(amountStringAbs) },
-            { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "currency", code },
             { "status", status },
             { "updated", this.parse8601(this.safeString(transaction, "updated_at")) },
             { "fee", new Dictionary<string, object>() {
@@ -3910,7 +3911,7 @@ public partial class coinbase : Exchange
         //                     }
         //                 },
         //                 "side": "BUY",
-        //                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+        //                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4314",
         //                 "status": "FILLED",
         //                 "time_in_force": "IMMEDIATE_OR_CANCEL",
         //                 "created_time": "2023-01-18T01:37:37.975552Z",

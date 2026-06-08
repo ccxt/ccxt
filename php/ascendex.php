@@ -534,7 +534,7 @@ class ascendex extends Exchange {
         for ($j = 0; $j < count($chains); $j++) {
             $networkEtnry = $chains[$j];
             $networkId = $this->safe_string($networkEtnry, 'chainName');
-            $networkCode = $this->network_code_to_id($networkId);
+            $networkCode = $this->network_code_to_id($networkId, $code);
             $networks[$networkCode] = array(
                 'fee' => $this->safe_number($networkEtnry, 'withdrawFee'),
                 'active' => null,
@@ -2580,7 +2580,7 @@ class ascendex extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $networkCode = $this->safe_string_2($params, 'network', 'chainName');
-        $networkId = $this->network_code_to_id($networkCode);
+        $networkId = $this->network_code_to_id($networkCode, $currency['code']);
         $params = $this->omit($params, array( 'chainName' ));
         $request = array(
             'asset' => $currency['id'],

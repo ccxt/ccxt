@@ -2481,7 +2481,7 @@ class tokocrypto extends Exchange {
             $request['addressTag'] = $tag;
         }
         list($networkCode, $query) = $this->handle_network_code_and_params($params);
-        $networkId = $this->network_code_to_id($networkCode);
+        $networkId = $this->network_code_to_id($networkCode, $code);
         if ($networkId !== null) {
             $request['network'] = strtoupper($networkId);
         }

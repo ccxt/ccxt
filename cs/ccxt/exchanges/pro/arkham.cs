@@ -324,7 +324,7 @@ public partial class arkham : ccxt.arkham
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseBidAsk(delta, "price", "size");
+        object bidAsk = this.parseOrderBookBidAsk(delta, "price", "size");
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 

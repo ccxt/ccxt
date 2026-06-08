@@ -863,7 +863,7 @@ func  (this *GateCore) HandleBidAsks(bookSide any, bidAsks any)  {
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(bidAsks)); i++ {
         var bidAsk any = ccxt.GetValue(bidAsks, i)
         if ccxt.IsTrue(ccxt.IsArray(bidAsk)) {
-            bookSide.(ccxt.IOrderBookSide).StoreArray(this.ParseBidAsk(bidAsk))
+            bookSide.(ccxt.IOrderBookSide).StoreArray(this.ParseOrderBookBidAsk(bidAsk))
         } else {
             var price any = this.SafeFloat(bidAsk, "p")
             var amount any = this.SafeFloat(bidAsk, "s")

@@ -308,7 +308,7 @@ export default class arkham extends arkhamRest {
     }
 
     handleDelta (bookside, delta) {
-        const bidAsk = this.parseBidAsk (delta, 'price', 'size');
+        const bidAsk = this.parseOrderBookBidAsk (delta, 'price', 'size');
         bookside.storeArray (bidAsk);
     }
 
