@@ -448,6 +448,10 @@ func (e *PreciseStruct) StringAdd(string1, string2 any) any {
 	return StringAdd(string1, string2)
 }
 
+func (e *PreciseStruct) StringAddWithZero(string1, string2 any) any {
+	return StringAddWithZero(string1, string2)
+}
+
 func (e *PreciseStruct) StringOr(string1, string2 any) any {
 	return StringOr(string1, string2)
 }
