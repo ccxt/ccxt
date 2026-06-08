@@ -2011,7 +2011,7 @@ export default class gate extends Exchange {
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
             const networkId = this.safeString (chain, 'name');
-            const networkCode = this.networkIdToCode (networkId, code);
+            const networkCode = this.networkIdToCode (networkId);
             networks[networkCode] = {
                 'info': chain,
                 'id': networkId,
@@ -2356,14 +2356,13 @@ export default class gate extends Exchange {
         //     }
         //
         const address = this.safeString (depositAddress, 'address');
-        const code = this.safeString (currency, 'code');
         this.checkAddress (address);
         return {
             'info': depositAddress,
-            'currency': code,
+            'currency': this.safeString (currency, 'code'),
             'address': address,
             'tag': this.safeString (depositAddress, 'payment_id'),
-            'network': this.networkIdToCode (this.safeString (depositAddress, 'chain'), code),
+            'network': this.networkIdToCode (this.safeString (depositAddress, 'chain')),
         };
     }
 
@@ -2516,7 +2515,7 @@ export default class gate extends Exchange {
                 const networkIds = Object.keys (withdrawFixOnChains);
                 for (let j = 0; j < networkIds.length; j++) {
                     const networkId = networkIds[j];
-                    const networkCode = this.networkIdToCode (networkId, code);
+                    const networkCode = this.networkIdToCode (networkId);
                     withdrawFees[networkCode] = this.parseNumber (withdrawFixOnChains[networkId]);
                 }
             }
@@ -2598,9 +2597,7 @@ export default class gate extends Exchange {
             const chainKeys = Object.keys (withdrawFixOnChains);
             for (let i = 0; i < chainKeys.length; i++) {
                 const chainKey = chainKeys[i];
-                const currencyId = this.safeString (fee, 'currency');
-                const code = this.safeCurrencyCode (currencyId, currency);
-                const networkCode = this.networkIdToCode (chainKey, code);
+                const networkCode = this.networkIdToCode (chainKey, this.safeString (fee, 'currency'));
                 result['networks'][networkCode] = {
                     'withdraw': {
                         'fee': this.parseNumber (withdrawFixOnChains[chainKey]),
@@ -4100,7 +4097,7 @@ export default class gate extends Exchange {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode, code);
+            request['chain'] = this.networkCodeToId (networkCode);
         }
         const response = await this.privateWithdrawalsPostWithdrawals (this.extend (request, params));
         //
@@ -4234,7 +4231,7 @@ export default class gate extends Exchange {
             'txid': txid,
             'currency': code,
             'amount': this.parseNumber (amountString),
-            'network': this.networkIdToCode (networkId, code),
+            'network': this.networkIdToCode (networkId),
             'address': address,
             'addressTo': undefined,
             'addressFrom': undefined,
