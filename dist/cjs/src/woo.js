@@ -2493,7 +2493,7 @@ class woo extends woo$1["default"] {
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         const request = {
             'token': currency['id'],
-            'network': this.networkCodeToId(networkCode),
+            'network': this.networkCodeToId(networkCode, currency['code']),
         };
         const response = await this.v3PrivateGetAssetWalletDeposit(this.extend(request, params));
         //
@@ -2543,7 +2543,7 @@ class woo extends woo$1["default"] {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['network'] = this.networkCodeToId(networkCode);
+            request['network'] = this.networkCodeToId(networkCode, currency['code']);
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2792,7 +2792,7 @@ class woo extends woo$1["default"] {
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
-            'network': this.networkIdToCode(this.safeString(transaction, 'network')),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network'), code),
         };
     }
     parseTransactionStatus(status) {
@@ -3015,7 +3015,7 @@ class woo extends woo$1["default"] {
         }
         params = this.omit(params, 'network');
         request['token'] = currency['id'];
-        request['network'] = this.networkCodeToId(network);
+        request['network'] = this.networkCodeToId(network, currency['code']);
         const response = await this.v3PrivatePostAssetWalletWithdraw(this.extend(request, params));
         //
         //     {
