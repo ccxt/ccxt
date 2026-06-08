@@ -676,7 +676,7 @@ public partial class ndax : Exchange
                 object newNonce = this.safeInteger(level, 0);
                 nonce = mathMax(nonce, newNonce);
             }
-            object bidask = this.parseBidAsk(level, priceKey, amountKey);
+            object bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             object levelSide = this.safeInteger(level, 9);
             object side = ((bool) isTrue(levelSide)) ? asksKey : bidsKey;
             object resultSide = getValue(result, side);
