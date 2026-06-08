@@ -431,3 +431,14 @@ html > body[data-scroll-locked] {
     height: calc(100dvh - 3.5rem);
   }
 }
+
+/* Per-exchange table (Manual #exchanges): images get `rounded-lg` from the MDX <img>
+   component, but the exchange logos are rectangular brand marks — soften only slightly,
+   and centre the logo within its column (scoped to cells that actually hold an image, so
+   text/param tables keep their left-aligned first column). */
+.prose td img {
+  border-radius: 3px;
+}
+.prose td:first-child:has(img) {
+  text-align: center;
+}
