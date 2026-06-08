@@ -2620,7 +2620,7 @@ func (this *UpbitCore) ParseDepositAddress(depositAddress any, optionalArgs ...a
 	return map[string]any{
 		"info":     depositAddress,
 		"currency": code,
-		"network":  this.NetworkIdToCode(networkId),
+		"network":  this.NetworkIdToCode(networkId, code),
 		"address":  address,
 		"tag":      tag,
 	}
