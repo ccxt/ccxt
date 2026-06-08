@@ -6568,7 +6568,7 @@ export default class gate extends Exchange {
         let floor = '0';
         const tiers = [];
         while (Precise.stringLt (floor, riskLimitMax)) {
-            const cap = Precise.stringAddW (this.zeroIfUndefined (floor), this.zeroIfUndefined (riskLimitStep));
+            const cap = Precise.stringAdd (this.zeroIfUndefined (floor), this.zeroIfUndefined (riskLimitStep));
             tiers.push ({
                 'tier': this.parseNumber (Precise.stringDiv (cap, riskLimitStep)),
                 'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
