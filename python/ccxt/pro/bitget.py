@@ -913,7 +913,7 @@ class bitget(ccxt.async_support.bitget):
         client.reject(error, messageHash)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta, 0, 1)
+        bidAsk = self.parse_order_book_bid_ask(delta, 0, 1)
         # we store the string representations in the orderbook for checksum calculation
         # self simplifies the code for generating checksums do not need to do any complex number transformations
         bidAsk.append(delta)

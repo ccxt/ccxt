@@ -566,7 +566,7 @@ class toobit(ccxt.async_support.toobit):
             client.resolve(orderBook, messageHash)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta)
+        bidAsk = self.parse_order_book_bid_ask(delta)
         bookside.storeArray(bidAsk)
 
     def handle_order_book_partial_snapshot(self, client: Client, message):

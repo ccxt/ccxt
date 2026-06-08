@@ -859,7 +859,7 @@ class weex(ccxt.async_support.weex):
         client.resolve(orderbook, messageHash)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta)
+        bidAsk = self.parse_order_book_bid_ask(delta)
         bookside.storeArray(bidAsk)
 
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
