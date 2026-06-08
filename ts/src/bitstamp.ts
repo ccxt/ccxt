@@ -1552,10 +1552,11 @@ export default class bitstamp extends Exchange {
 
     parseDepositWithdrawFee (fee, currency = undefined) {
         const result = this.depositWithdrawFee (fee);
+        const code = this.safeString (currency, 'code');
         for (let j = 0; j < fee.length; j++) {
             const networkEntry = fee[j];
             const networkId = this.safeString (networkEntry, 'network');
-            const networkCode = this.networkIdToCode (networkId);
+            const networkCode = this.networkIdToCode (networkId, code);
             const withdrawFee = this.safeNumber (networkEntry, 'fee');
             result['withdraw'] = {
                 'fee': withdrawFee,

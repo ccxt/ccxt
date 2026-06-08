@@ -375,7 +375,7 @@ export default class cex extends Exchange {
         for (let j = 0; j < keys.length; j++) {
             const networkId = keys[j];
             const rawNetwork = rawNetworks[networkId];
-            const networkCode = this.networkIdToCode (networkId);
+            const networkCode = this.networkIdToCode (networkId, code);
             const deposit = this.safeString (rawNetwork, 'deposit') === 'enabled';
             const withdraw = this.safeString (rawNetwork, 'withdrawal') === 'enabled';
             networks[networkCode] = {
@@ -1735,7 +1735,7 @@ export default class cex extends Exchange {
         const request: Dict = {
             'accountId': accountId,
             'currency': currency['id'], // documentation is wrong about this param
-            'blockchain': this.networkCodeToId (networkCode),
+            'blockchain': this.networkCodeToId (networkCode, currency['code']),
         };
         const response = await this.privatePostGetDepositAddress (this.extend (request, params));
         //
@@ -1761,7 +1761,7 @@ export default class cex extends Exchange {
         return {
             'info': depositAddress,
             'currency': currency['code'],
-            'network': this.networkIdToCode (this.safeString (depositAddress, 'blockchain')),
+            'network': this.networkIdToCode (this.safeString (depositAddress, 'blockchain'), currency['code']),
             'address': address,
             'tag': undefined,
         } as DepositAddress;

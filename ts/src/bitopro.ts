@@ -1578,7 +1578,7 @@ export default class bitopro extends Exchange {
             'txid': this.safeString (transaction, 'txid'),
             'type': undefined,
             'currency': code,
-            'network': this.networkIdToCode (networkId),
+            'network': this.networkIdToCode (networkId, code),
             'amount': this.safeNumber (transaction, 'total'),
             'status': this.parseTransactionStatus (status),
             'timestamp': timestamp,
