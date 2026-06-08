@@ -875,7 +875,7 @@ class weex extends Exchange {
         for ($j = 0; $j < count($chains); $j++) {
             $chain = $this->safe_dict($chains, $j);
             $networkId = $this->safe_string($chain, 'network');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'info' => $chain,
                 'id' => $networkId,

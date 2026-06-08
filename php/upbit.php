@@ -2176,7 +2176,7 @@ class upbit extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $code,
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'tag' => $tag,
         );

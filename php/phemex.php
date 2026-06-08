@@ -3764,7 +3764,7 @@ class phemex extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,
@@ -5037,7 +5037,7 @@ class phemex extends Exchange {
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         $networkId = null;
         if ($networkCode !== null) {
-            $networkId = $this->network_code_to_id($networkCode);
+            $networkId = $this->network_code_to_id($networkCode, $code);
         }
         $stableCoins = $this->safe_value($this->options, 'stableCoins');
         if ($networkId === null) {

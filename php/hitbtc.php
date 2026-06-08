@@ -973,7 +973,7 @@ class hitbtc extends Exchange {
         for ($j = 0; $j < count($rawNetworks); $j++) {
             $rawNetwork = $rawNetworks[$j];
             $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : $code; // is white label, ensure we safeguard from possible bugs
             $networks[$networkCode] = array(
                 'info' => $rawNetwork,
@@ -3690,7 +3690,8 @@ class hitbtc extends Exchange {
         for ($j = 0; $j < count($networks); $j++) {
             $networkEntry = $networks[$j];
             $networkId = $this->safe_string($networkEntry, 'network');
-            $networkCode = $this->network_id_to_code($networkId);
+            $code = $this->safe_string($currency, 'code');
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : null;
             $withdrawFee = $this->safe_number($networkEntry, 'payout_fee');
             $isDefault = $this->safe_value($networkEntry, 'default');

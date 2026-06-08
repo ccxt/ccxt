@@ -526,7 +526,7 @@ class digifinex extends Exchange {
         for ($j = 0; $j < count($networkEntries); $j++) {
             $networkEntry = $networkEntries[$j];
             $networkId = $this->safe_string_2($networkEntry, 'chain', 'currency');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'id' => $networkId,
                 'network' => $networkCode,
@@ -4131,7 +4131,7 @@ class digifinex extends Exchange {
                     'percentage' => null,
                 );
                 if ($networkId !== null) {
-                    $networkCode = $this->network_id_to_code($networkId);
+                    $networkCode = $this->network_id_to_code($networkId, $code);
                     $depositWithdrawFees[$code]['networks'][$networkCode] = array(
                         'withdraw' => $withdrawResult,
                         'deposit' => $depositResult,

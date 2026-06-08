@@ -2044,7 +2044,7 @@ class cryptocom extends Exchange {
             }
             $networkCode = null;
             list($networkCode, $params) = $this->handle_network_code_and_params($params);
-            $networkId = $this->network_code_to_id($networkCode);
+            $networkId = $this->network_code_to_id($networkCode, $code);
             if ($networkId !== null) {
                 $request['network_id'] = $networkId;
             }
