@@ -483,7 +483,7 @@ export default class bitmex extends Exchange {
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'asset');
-            const network = this.networkIdToCode(networkId);
+            const network = this.networkIdToCode(networkId, code);
             const withdrawalFeeRaw = this.safeString(chain, 'withdrawalFee');
             const withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
             const isDepositEnabled = this.safeBool(chain, 'depositEnabled', false);
