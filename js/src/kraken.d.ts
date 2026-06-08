@@ -61,7 +61,7 @@ export default class kraken extends Exchange {
         percentage: boolean;
         tierBased: boolean;
     };
-    parseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): number[];
+    parseOrderBookBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): number[];
     /**
      * @method
      * @name kraken#fetchOrderBook
