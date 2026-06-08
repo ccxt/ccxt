@@ -13,6 +13,8 @@
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
     "ccxt": "^4.5.49",
+    "http-proxy-agent": "^7.0.2",
+    "https-proxy-agent": "^7.0.6",
     "next": "^15.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"

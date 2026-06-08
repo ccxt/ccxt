@@ -32,7 +32,11 @@ jobs:
     runs-on: ubuntu-24.04-arm        # arm64 — native build matching the docs server
     env:
       IMAGE: ghcr.io/ccxt/ccxt-playground
+      IMAGE_PROXY: ghcr.io/ccxt/ccxt-playground-egress
       CONTAINER: ccxt-playground
+      PROXY: egress-proxy             # egress proxy container name (app reaches it by this DNS name)
+      NET_INTERNAL: ccxt-pg-internal  # app network: no internet, no host access
+      NET_EGRESS: ccxt-pg-egress      # proxy-only network: reaches the internet
       PORT: '3007'                   # host port (nginx proxies /playground here)
       BASE_PATH: /playground
     steps:
@@ -62,6 +66,16 @@ jobs:
             ${{ env.IMAGE }}:latest
             ${{ env.IMAGE }}:${{ github.sha }}
 
+      - name: Build & push egress proxy image
+        uses: docker/build-push-action@v6
+        with:
+          context: playground/proxy
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ${{ env.IMAGE_PROXY }}:latest
+            ${{ env.IMAGE_PROXY }}:${{ github.sha }}
+
       - name: Configure SSH (pinned host key)
         env:
           SSH_KEY: ${{ secrets.DOCS_DEPLOY_SSH_KEY }}
@@ -81,17 +95,41 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           ssh -i ~/.ssh/id_deploy "${DEPLOY_USER}@${HOST}" \
-            IMAGE="${IMAGE}" CONTAINER="${CONTAINER}" PORT="${PORT}" BASE_PATH="${BASE_PATH}" SHA="${SHA}" \
+            IMAGE="${IMAGE}" IMAGE_PROXY="${IMAGE_PROXY}" CONTAINER="${CONTAINER}" PROXY="${PROXY}" \
+            NET_INTERNAL="${NET_INTERNAL}" NET_EGRESS="${NET_EGRESS}" \
+            PORT="${PORT}" BASE_PATH="${BASE_PATH}" SHA="${SHA}" \
             GHCR_USER="${GHCR_USER}" GHCR_TOKEN="${GHCR_TOKEN}" 'bash -se' <<'EOF'
           set -e
           echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
           docker pull "$IMAGE:$SHA"
+          docker pull "$IMAGE_PROXY:$SHA"
+
+          # --- Egress lockdown: an internal (no-internet) network for the app, and a
+          # squid proxy that bridges out but permits only the CCXT exchange allowlist.
+          # The app reaches the proxy as host "egress-proxy"; it has no other route. ---
+          docker network create --internal "$NET_INTERNAL" 2>/dev/null || true
+          docker network create "$NET_EGRESS" 2>/dev/null || true
+          docker rm -f "$PROXY" 2>/dev/null || true
+          docker run -d --restart=always --name "$PROXY" \
+            --network "$NET_INTERNAL" \
+            --memory 256m --pids-limit 256 --security-opt no-new-privileges:true \
+            "$IMAGE_PROXY:$SHA"
+          docker network connect "$NET_EGRESS" "$PROXY"
+          docker tag "$IMAGE_PROXY:$SHA" "$IMAGE_PROXY:latest"
+
           # OpenRouter key lives only on the box (root-only env-file, never in GitHub).
           ENVFILE_ARG=""
           [ -f /root/ccxt-playground.env ] && ENVFILE_ARG="--env-file /root/ccxt-playground.env"
 
+          # Put the app on the internal network and force egress through the proxy.
+          NETARG="--network $NET_INTERNAL"
+          PROXYENV="-e PLAYGROUND_EGRESS_PROXY=http://egress-proxy:3128 \
+            -e HTTP_PROXY=http://egress-proxy:3128 -e HTTPS_PROXY=http://egress-proxy:3128 \
+            -e http_proxy=http://egress-proxy:3128 -e https_proxy=http://egress-proxy:3128 \
+            -e NO_PROXY=localhost,127.0.0.1 -e no_proxy=localhost,127.0.0.1"
+
           # Hardening flags so a user run can't reach the host or exhaust it.
-          RUNFLAGS="--memory 2g --memory-swap 2g --cpus 2 --pids-limit 512 --security-opt no-new-privileges:true --cap-drop ALL"
+          RUNFLAGS="--init --memory 2g --memory-swap 2g --cpus 2 --pids-limit 512 --security-opt no-new-privileges:true --cap-drop ALL"
 
           # Validate the new image end-to-end before it goes live: homepage renders
           # AND every runnable language actually executes (6*7 -> 42, no exchange
@@ -122,20 +160,26 @@ jobs:
           # Canary on a temp port — the live container is untouched until smoke passes.
           CANARY="${CONTAINER}-canary"; TMP_PORT=3008
           docker rm -f "$CANARY" 2>/dev/null || true
-          docker run -d -p 127.0.0.1:${TMP_PORT}:3000 $ENVFILE_ARG $RUNFLAGS --name "$CANARY" "$IMAGE:$SHA"
+          docker run -d -p 127.0.0.1:${TMP_PORT}:3000 $NETARG $PROXYENV $ENVFILE_ARG $RUNFLAGS --name "$CANARY" "$IMAGE:$SHA"
           if smoke "$TMP_PORT"; then
             docker rm -f "$CANARY"
             docker rm -f "$CONTAINER" 2>/dev/null || true
-            docker run -d --restart=always -p 127.0.0.1:${PORT}:3000 $ENVFILE_ARG $RUNFLAGS --name "$CONTAINER" "$IMAGE:$SHA"
+            docker run -d --restart=always -p 127.0.0.1:${PORT}:3000 $NETARG $PROXYENV $ENVFILE_ARG $RUNFLAGS --name "$CONTAINER" "$IMAGE:$SHA"
             docker tag "$IMAGE:$SHA" "$IMAGE:latest"
             # Reclaim disk: drop dangling layers, then remove OLD playground images.
             # Each deploy tags a unique :SHA (multi-GB) which `prune -f` won't touch
             # since it's tagged — without this the shared box's disk fills over time.
             # Keep only the just-deployed SHA and :latest (same image id).
             docker image prune -f >/dev/null 2>&1 || true
-            docker images "$IMAGE" --format '{{.ID}} {{.Tag}}' \
-              | awk -v keep="$SHA" '$2!=keep && $2!="latest" && $2!="<none>" {print $1}' \
-              | sort -u | xargs -r docker rmi -f >/dev/null 2>&1 || true
+            for repo in "$IMAGE" "$IMAGE_PROXY"; do
+              docker images "$repo" --format '{{.ID}} {{.Tag}}' \
+                | awk -v keep="$SHA" '$2!=keep && $2!="latest" && $2!="<none>" {print $1}' \
+                | sort -u | xargs -r docker rmi -f >/dev/null 2>&1 || true
+            done
+            # Daily clean: restart the app to wipe any in-container state (defense in
+            # depth; runs are already killed at their timeout and temp dirs cleaned).
+            printf '0 4 * * * root docker restart %s >/dev/null 2>&1\n' "$CONTAINER" > /etc/cron.d/ccxt-playground-clean
+            chmod 644 /etc/cron.d/ccxt-playground-clean
             docker logout ghcr.io || true
             echo "deployed $SHA"
           else

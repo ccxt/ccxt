@@ -1,5 +1,6 @@
 import path from "node:path";
 import { runWithFile, type RunResult } from "./sandbox";
+import { nodeProxyArgs } from "./js";
 
 // Node 23+ strips types and runs TypeScript natively — no tsc, no ts-node.
 // The .mts extension forces ESM so `import ccxt from 'ccxt'` and top-level await
@@ -8,7 +9,7 @@ import { runWithFile, type RunResult } from "./sandbox";
 export async function runTs(code: string): Promise<RunResult> {
   return runWithFile(code, "mts", (file) => ({
     cmd: process.execPath,
-    args: [file],
+    args: [...nodeProxyArgs(), file],
     env: {
       NODE_PATH: path.join(process.cwd(), "node_modules"),
     },

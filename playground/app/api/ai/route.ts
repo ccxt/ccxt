@@ -6,6 +6,7 @@ import {
   isFreeModel,
   buildSystemPrompt,
 } from "@/lib/ai/openrouter";
+import { clientIp, logEvent, truncate } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -40,6 +41,17 @@ export async function POST(request: Request) {
   const model = body.model && isFreeModel(body.model) ? body.model : DEFAULT_MODEL;
   const language: LanguageId = isLanguageId(body.language ?? "") ? (body.language as LanguageId) : "js";
   const code = typeof body.code === "string" ? body.code : "";
+
+  const lastUser = [...messages].reverse().find((m) => m.role === "user");
+  logEvent({
+    kind: "ai",
+    ip: clientIp(request),
+    ua: request.headers.get("user-agent") ?? "",
+    language,
+    model,
+    prompt: truncate(lastUser?.content, 1000),
+    turns: messages.length,
+  });
 
   const payloadMessages = [
     { role: "system", content: buildSystemPrompt(language, code) },

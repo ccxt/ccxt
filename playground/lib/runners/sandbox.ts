@@ -40,11 +40,23 @@ export type SpawnSpec = {
 };
 
 export function baseEnv(): Record<string, string> {
-  return {
+  const env: Record<string, string> = {
     PATH: process.env.PATH ?? "/usr/bin:/bin:/usr/local/bin",
     HOME: process.env.HOME ?? "/tmp",
     LANG: "en_US.UTF-8",
   };
+  // Forward egress-proxy settings into the (otherwise scrubbed) child env so runs
+  // reach exchanges only via the allowlist proxy. Python(requests)/PHP(libcurl)/
+  // Go(net-http)/C#(HttpClient) honor these automatically; the JS/TS runner also
+  // wires node-fetch's agent to the proxy (see node-proxy-preload.mjs).
+  for (const k of [
+    "HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy",
+    "ALL_PROXY", "all_proxy", "NO_PROXY", "no_proxy",
+  ]) {
+    const v = process.env[k];
+    if (v) env[k] = v;
+  }
+  return env;
 }
 
 export async function runProcess(

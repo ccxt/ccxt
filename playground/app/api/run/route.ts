@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isLanguageId, isRunnable } from "@/lib/languages";
 import { runCode } from "@/lib/runners";
+import { clientIp, logEvent, truncate } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -35,9 +36,22 @@ export async function POST(request: Request) {
 
   try {
     const result = await runCode(language, code);
+    logEvent({
+      kind: "run",
+      ip: clientIp(request),
+      ua: request.headers.get("user-agent") ?? "",
+      language,
+      codeBytes: Buffer.byteLength(code, "utf8"),
+      code: truncate(code),
+      durationMs: result.durationMs,
+      exitCode: result.exitCode,
+      timedOut: result.timedOut,
+      truncated: result.truncated,
+    });
     return NextResponse.json(result);
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown error";
+    logEvent({ kind: "run", ip: clientIp(request), language, code: truncate(code), error: message });
     return NextResponse.json({ error: `execution failed: ${message}` }, { status: 500 });
   }
 }

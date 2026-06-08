@@ -58,11 +58,31 @@ ccxt-go (~5 GB) would OOM. Pass `--build-arg NEXT_BASE_PATH=/playground` to serv
 under a sub-path. `docker-compose.yml` enforces the host protections:
 
 - **no bind mounts** → nothing on the host filesystem is reachable from a run;
-- **`mem_limit` / `cpus` / `pids_limit`** → a user can't exhaust host RAM/CPU or fork-bomb it;
+- **`mem_limit` / `cpus` / `pids_limit` + `--init`** → a user can't exhaust host RAM/CPU, fork-bomb it, or orphan processes;
 - **non-root + `no-new-privileges` + `cap_drop: ALL`** → minimal blast radius;
+- **egress allowlist** → the app runs on an internet-less `internal` network; all
+  outbound goes through the `egress-proxy` (squid) sidecar, which permits **only
+  the exchange API domains generated from CCXT** (`proxy/`). Mining pools, C2,
+  data-exfil endpoints, and the host's neighbor services are all unreachable —
+  even via a raw socket, because the app has no other route out;
 - the **OpenRouter key is injected as env**, never baked into the image or on a
   file in the image (`.env.local` is `.dockerignore`d), and run children get a
-  scrubbed env.
+  scrubbed env (the AI feature's egress to OpenRouter is the one non-exchange host
+  on the allowlist);
+- **submission logging** → every `/api/run` and `/api/ai` request is logged as
+  JSONL (`lib/log.ts`) for abuse inspection (stdout / `docker logs`; set
+  `PLAYGROUND_LOG_FILE` to also append to a file);
+- **daily clean** → the deploy installs a cron that restarts the container nightly
+  to wipe any in-container state (runs are already killed at their timeout).
+
+### Egress allowlist — how it stays "exchanges only"
+`proxy/generate-allowlist.mjs` instantiates every CCXT exchange and extracts the
+hostnames from each `exchange.urls.api`/`urls.test`, producing the squid
+`dstdomain` allowlist at proxy-build time. So the permitted set is exactly the
+exchange API hosts for the bundled CCXT version (currently ~250 rules). The
+production canary smoke test makes real exchange calls *through* the proxy, so a
+mis-generated allowlist that blocked exchanges would fail the smoke and abort the
+deploy — the egress path is verified on every release.
 
 Code from different users *can* see each other inside the container — that's an
 accepted trade-off; the boundary is host-vs-container, not run-vs-run. Note this
@@ -103,6 +123,16 @@ One-time box setup (already done on the current box):
 - the nginx `location /playground` + rate-limited `location /playground/api` block
 - GitHub repo secrets reused from the Fumadocs deploy: `DOCS_DEPLOY_SSH_KEY`,
   `DOCS_DEPLOY_KNOWN_HOSTS`, `DOCS_DEPLOY_HOST`, `DOCS_DEPLOY_USER`.
+
+The deploy puts the app on the internal network behind the egress proxy and
+installs the nightly-restart cron automatically.
+
+> **Defense in depth on the box (optional):** the neighbor services on this host
+> (grafana `:3001`, prometheus `:9090`, benchmark `:3000/:3003`) are bound to
+> `0.0.0.0`. The egress proxy already denies the playground any route to them, but
+> rebinding those services to `127.0.0.1` (as the docs container already is) closes
+> the path for anything else on the box too. That change lives in those projects'
+> compose files, not here.
 
 ## Runtimes
 
