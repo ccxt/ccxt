@@ -340,7 +340,7 @@ class luno(Exchange, ImplicitAPI):
         for i in range(0, len(rawCurrency)):
             networkEntry = rawCurrency[i]
             networkId = self.safe_string(networkEntry, 'name')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,

@@ -206,7 +206,7 @@ class htx(Exchange, ImplicitAPI):
                 },
                 'www': 'https://www.huobi.com',
                 'referral': {
-                    'url': 'https://www.htx.com.vc/invite/en-us/1h?invite_code=6rmm2223',
+                    'url': 'https://www.htx.com/invite/en-us/1h?invite_code=6rmm2223',
                     'discount': 0.15,
                 },
                 'doc': [

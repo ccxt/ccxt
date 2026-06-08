@@ -868,7 +868,7 @@ class weex(Exchange, ImplicitAPI):
         for j in range(0, len(chains)):
             chain = self.safe_dict(chains, j)
             networkId = self.safe_string(chain, 'network')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             networks[networkCode] = {
                 'info': chain,
                 'id': networkId,

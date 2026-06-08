@@ -3587,7 +3587,7 @@ class phemex(Exchange, ImplicitAPI):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': None,
@@ -4778,7 +4778,7 @@ class phemex(Exchange, ImplicitAPI):
         networkCode, params = self.handle_network_code_and_params(params)
         networkId = None
         if networkCode is not None:
-            networkId = self.network_code_to_id(networkCode)
+            networkId = self.network_code_to_id(networkCode, code)
         stableCoins = self.safe_value(self.options, 'stableCoins')
         if networkId is None:
             if not (self.in_array(code, stableCoins)):
