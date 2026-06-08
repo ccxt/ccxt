@@ -1174,13 +1174,14 @@ public partial class coinbase : Exchange
         object toObject = this.safeDict(transaction, "to");
         object addressTo = this.safeString(toObject, "address");
         object networkId = this.safeString(network, "network_name");
+        object code = this.safeCurrencyCode(currencyId, currency);
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", id },
             { "txid", this.safeString(network, "hash", id) },
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", addressTo },
             { "addressTo", addressTo },
             { "addressFrom", null },
@@ -1189,7 +1190,7 @@ public partial class coinbase : Exchange
             { "tagFrom", null },
             { "type", type },
             { "amount", this.parseNumber(amountStringAbs) },
-            { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "currency", code },
             { "status", status },
             { "updated", this.parse8601(this.safeString(transaction, "updated_at")) },
             { "fee", new Dictionary<string, object>() {
