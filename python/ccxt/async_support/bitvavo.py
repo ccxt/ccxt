@@ -639,7 +639,7 @@ class bitvavo(Exchange, ImplicitAPI):
         # btw, absolutely all of them have 1 network atm
         for j in range(0, len(networksArray)):
             networkId = networksArray[j]
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             networks[networkCode] = {
                 'info': rawCurrency,
                 'id': networkId,

@@ -539,7 +539,7 @@ class bigone(Exchange, ImplicitAPI):
         for j in range(0, len(chains)):
             chain = chains[j]
             networkId = self.safe_string(chain, 'gateway_name')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             deposit = self.safe_bool(chain, 'is_deposit_enabled')
             withdraw = self.safe_bool(chain, 'is_withdrawal_enabled')
             minDepositAmount = self.safe_string(chain, 'min_deposit_amount')
@@ -1928,7 +1928,7 @@ class bigone(Exchange, ImplicitAPI):
         return {
             'info': response,
             'currency': code,
-            'network': self.network_id_to_code(selectedNetworkId),
+            'network': self.network_id_to_code(selectedNetworkId, code),
             'address': address,
             'tag': tag,
         }
@@ -2228,7 +2228,7 @@ class bigone(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['gateway_name'] = self.network_code_to_id(networkCode)
+            request['gateway_name'] = self.network_code_to_id(networkCode, currency['code'])
         # requires write permission on the wallet
         response = await self.privatePostWithdrawals(self.extend(request, params))
         #
