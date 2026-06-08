@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { CodeSwapHero } from '@/components/code-swap-hero';
 import { InstallCommands } from '@/components/install-commands';
 import { CcxtMark } from '@/components/ccxt-mark';
+import { SiDiscord, SiGithub } from 'react-icons/si';
 import { basePath, gitConfig } from '@/lib/shared';
 import { i18n } from '@/lib/i18n';
 import homeStrings from '@/lib/i18n-home.json';
@@ -66,8 +67,10 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
           </Link>
           <Link
             href={`https://github.com/${gitConfig.user}/${gitConfig.repo}`}
-            className="rounded-md border px-4 py-2 font-medium transition-colors hover:bg-fd-accent"
+            className="inline-flex items-center gap-2 rounded-md border px-4 py-2 font-medium transition-colors hover:bg-fd-accent"
           >
+            {/* currentColor: black on light, white on dark — the conventional GitHub mark */}
+            <SiGithub className="size-4" />
             GitHub
           </Link>
           {/* community support: join the CCXT Discord */}
@@ -75,8 +78,10 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
             href="https://discord.gg/dhzSKYU"
             target="_blank"
             rel="noreferrer"
-            className="rounded-md border px-4 py-2 font-medium transition-colors hover:bg-fd-accent"
+            className="inline-flex items-center gap-2 rounded-md border px-4 py-2 font-medium transition-colors hover:bg-fd-accent"
           >
+            {/* Discord brand blurple — legible on both light and dark button backgrounds */}
+            <SiDiscord className="size-4 text-[#5865F2]" />
             Discord
           </Link>
         </div>
