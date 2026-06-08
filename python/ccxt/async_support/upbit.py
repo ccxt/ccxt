@@ -2074,7 +2074,7 @@ class upbit(Exchange, ImplicitAPI):
         return {
             'info': depositAddress,
             'currency': code,
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'address': address,
             'tag': tag,
         }

@@ -23,7 +23,7 @@ def test_after_construct(exchange, skipped_properties):
 def test_options_networks(exchange, skipped_properties):
     if not ('networks' in skipped_properties):
         # only allow these whitelisted unified networkCodes to be repeated
-        allowed_unified_aliases = ['BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM', 'POLYGON', 'MATIC']
+        allowed_unified_aliases = ['BTC', 'ERC20', 'ETH', 'TRX', 'TRC20', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT', 'OP', 'OPTIMISM', 'SPL', 'SOL', 'POLYGON', 'MATIC']
         networks = exchange.options['networks']
         if networks is None:
             return

@@ -1914,7 +1914,7 @@ class cryptocom(Exchange, ImplicitAPI):
             request['address_tag'] = tag
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode)
+        networkId = self.network_code_to_id(networkCode, code)
         if networkId is not None:
             request['network_id'] = networkId
         response = await self.v1PrivatePostPrivateCreateWithdrawal(self.extend(request, params))

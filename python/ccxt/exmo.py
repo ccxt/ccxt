@@ -629,7 +629,10 @@ class exmo(Exchange, ImplicitAPI):
             provider = fee[i]
             type = self.safe_string(provider, 'type')
             networkId = self.safe_string(provider, 'name')
-            networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
+            currencyId = self.safe_string(provider, 'currency_name')
+            currency = self.safe_currency(currencyId, currency)
+            code = self.safe_string(currency, 'code')
+            networkCode = self.network_id_to_code(networkId, code)
             commissionDesc = self.safe_string(provider, 'commission_desc')
             splitCommissionDesc = []
             percentage = None
@@ -730,7 +733,7 @@ class exmo(Exchange, ImplicitAPI):
                 networkId = networkId.replace('(', '')
                 replaceChar = ')'  # transpiler trick
                 networkId = networkId.replace(replaceChar, '')
-                networkCode = self.network_id_to_code(networkId)
+                networkCode = self.network_id_to_code(networkId, code)
                 if not (networkCode in networks):
                     networks[networkCode] = {
                         'id': networkId,
