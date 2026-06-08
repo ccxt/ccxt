@@ -580,7 +580,7 @@ public class WhitebitCore extends WhitebitApi
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(allNetworks)); j++)
         {
             Object networkId = Helpers.GetValue(allNetworks, j);
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             Object networkDepositLimits = this.safeDict(depositLimits, networkId, new java.util.HashMap<String, Object>() {{}});
             Object networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
@@ -847,7 +847,7 @@ public class WhitebitCore extends WhitebitApi
                 {
                     Object networkLength = ((String)networkId).length();
                     networkId = Helpers.slice(networkId, 1, Helpers.subtract(networkLength, 1));
-                    Object networkCode = this.networkIdToCode(networkId);
+                    Object networkCode = this.networkIdToCode(networkId, code);
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "withdraw", withdrawResult );
     put( "deposit", depositResult );
