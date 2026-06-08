@@ -1464,7 +1464,7 @@ func (this *MexcCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
 	}()
 	return ch
 }
-func (this *MexcCore) ParseBidAsk(bidask any, optionalArgs ...any) any {
+func (this *MexcCore) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) any {
 	priceKey := GetArg(optionalArgs, 0, 0)
 	_ = priceKey
 	amountKey := GetArg(optionalArgs, 1, 1)

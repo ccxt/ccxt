@@ -1325,7 +1325,7 @@ func  (this *BybitCore) HandleOrderBook(client any, message any)  {
     }
 }
 func  (this *BybitCore) HandleDelta(bookside any, delta any)  {
-    var bidAsk any = this.ParseBidAsk(delta, 0, 1)
+    var bidAsk any = this.ParseOrderBookBidAsk(delta, 0, 1)
     bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 func  (this *BybitCore) HandleDeltas(bookside any, deltas any)  {

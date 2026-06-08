@@ -738,7 +738,7 @@ func  (this *ToobitCore) HandleOrderBook(client any, message any)  {
     }
 }
 func  (this *ToobitCore) HandleDelta(bookside any, delta any)  {
-    var bidAsk any = this.ParseBidAsk(delta)
+    var bidAsk any = this.ParseOrderBookBidAsk(delta)
     bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 func  (this *ToobitCore) HandleOrderBookPartialSnapshot(client any, message any)  {

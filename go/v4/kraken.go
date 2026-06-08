@@ -993,7 +993,7 @@ func (this *KrakenCore) ParseTradingFee(response any, market any) any {
 		"tierBased":  true,
 	}
 }
-func (this *KrakenCore) ParseBidAsk(bidask any, optionalArgs ...any) any {
+func (this *KrakenCore) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) any {
 	priceKey := GetArg(optionalArgs, 0, 0)
 	_ = priceKey
 	amountKey := GetArg(optionalArgs, 1, 1)

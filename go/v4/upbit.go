@@ -770,8 +770,8 @@ func (this *UpbitCore) FetchOrderBooks(optionalArgs ...any) <-chan any {
 			var timestamp any = this.SafeInteger(orderbook, "timestamp")
 			AddElementToObject(result, symbol, map[string]any{
 				"symbol":    symbol,
-				"bids":      this.SortBy(this.ParseBidsAsks(GetValue(orderbook, "orderbook_units"), "bid_price", "bid_size"), 0, true),
-				"asks":      this.SortBy(this.ParseBidsAsks(GetValue(orderbook, "orderbook_units"), "ask_price", "ask_size"), 0),
+				"bids":      this.SortBy(this.ParseOrderBookBidsAsks(GetValue(orderbook, "orderbook_units"), "bid_price", "bid_size"), 0, true),
+				"asks":      this.SortBy(this.ParseOrderBookBidsAsks(GetValue(orderbook, "orderbook_units"), "ask_price", "ask_size"), 0),
 				"timestamp": timestamp,
 				"datetime":  this.Iso8601(timestamp),
 				"nonce":     nil,
