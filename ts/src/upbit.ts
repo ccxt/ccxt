@@ -2185,7 +2185,7 @@ export default class upbit extends Exchange {
         return {
             'info': depositAddress,
             'currency': code,
-            'network': this.networkIdToCode (networkId),
+            'network': this.networkIdToCode (networkId, code),
             'address': address,
             'tag': tag,
         } as DepositAddress;
