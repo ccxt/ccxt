@@ -2160,7 +2160,7 @@ public partial class cryptocom : Exchange
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
-        object networkId = this.networkCodeToId(networkCode);
+        object networkId = this.networkCodeToId(networkCode, code);
         if (isTrue(!isEqual(networkId, null)))
         {
             ((IDictionary<string,object>)request)["network_id"] = networkId;
