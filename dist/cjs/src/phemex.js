@@ -3809,7 +3809,7 @@ class phemex extends phemex$1["default"] {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -5082,7 +5082,7 @@ class phemex extends phemex$1["default"] {
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         let networkId = undefined;
         if (networkCode !== undefined) {
-            networkId = this.networkCodeToId(networkCode);
+            networkId = this.networkCodeToId(networkCode, code);
         }
         const stableCoins = this.safeValue(this.options, 'stableCoins');
         if (networkId === undefined) {

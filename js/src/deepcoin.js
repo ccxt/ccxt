@@ -1067,7 +1067,7 @@ export default class deepcoin extends Exchange {
         const amount = this.safeNumber(transaction, 'amount');
         const timestamp = this.safeTimestamp(transaction, 'createTime');
         const networkId = this.safeString(transaction, 'chainName');
-        const network = this.networkIdToCode(networkId);
+        const network = this.networkIdToCode(networkId, code);
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
         return {
             'info': transaction,
@@ -1214,10 +1214,11 @@ export default class deepcoin extends Exchange {
         const chain = this.safeString(response, 'chain');
         const address = this.safeString(response, 'address');
         this.checkAddress(address);
+        const code = this.safeString(currency, 'code');
         return {
             'info': response,
             'currency': undefined,
-            'network': this.networkIdToCode(chain),
+            'network': this.networkIdToCode(chain, code),
             'address': address,
             'tag': this.safeString(response, 'memo'),
         };

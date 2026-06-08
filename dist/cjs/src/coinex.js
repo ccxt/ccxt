@@ -3996,7 +3996,7 @@ class coinex extends coinex$1["default"] {
         if (networkCode === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddress() requires a "network" parameter');
         }
-        request['chain'] = this.networkCodeToId(networkCode); // required for on-chain, not required for inter-user transfer
+        request['chain'] = this.networkCodeToId(networkCode, currency['code']); // required for on-chain, not required for inter-user transfer
         const response = await this.v2PrivateGetAssetsDepositAddress(this.extend(request, params));
         //
         //     {
@@ -4922,7 +4922,7 @@ class coinex extends coinex$1["default"] {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId(networkCode); // required for on-chain, not required for inter-user transfer
+            request['chain'] = this.networkCodeToId(networkCode, currency['code']); // required for on-chain, not required for inter-user transfer
         }
         const response = await this.v2PrivatePostAssetsWithdraw(this.extend(request, params));
         //
@@ -5129,7 +5129,7 @@ class coinex extends coinex$1["default"] {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -5832,7 +5832,9 @@ class coinex extends coinex$1["default"] {
                 result['withdraw']['percentage'] = false;
                 const networkId = this.safeString(entry, 'chain');
                 if (networkId) {
-                    const networkCode = this.networkIdToCode(networkId, this.safeString(asset, 'ccy'));
+                    const currencyId = this.safeString(asset, 'ccy');
+                    const feeCode = this.safeCurrencyCode(currencyId, currency);
+                    const networkCode = this.networkIdToCode(networkId, feeCode);
                     result['networks'][networkCode] = {
                         'withdraw': {
                             'fee': this.safeNumber(entry, 'withdrawal_fee'),

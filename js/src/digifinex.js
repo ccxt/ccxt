@@ -531,7 +531,7 @@ export default class digifinex extends Exchange {
         for (let j = 0; j < networkEntries.length; j++) {
             const networkEntry = networkEntries[j];
             const networkId = this.safeString2(networkEntry, 'chain', 'currency');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
@@ -4176,7 +4176,7 @@ export default class digifinex extends Exchange {
                     'percentage': undefined,
                 };
                 if (networkId !== undefined) {
-                    const networkCode = this.networkIdToCode(networkId);
+                    const networkCode = this.networkIdToCode(networkId, code);
                     depositWithdrawFees[code]['networks'][networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult,

@@ -2170,7 +2170,7 @@ class upbit extends upbit$1["default"] {
         return {
             'info': depositAddress,
             'currency': code,
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'tag': tag,
         };

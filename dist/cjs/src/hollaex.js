@@ -506,7 +506,7 @@ class hollaex extends hollaex$1["default"] {
         for (let j = 0; j < networkIds.length; j++) {
             const networkId = networkIds[j];
             const networkEntry = this.safeDict(rawNetworks, networkId);
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,

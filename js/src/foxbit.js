@@ -1535,7 +1535,7 @@ export default class foxbit extends Exchange {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['network_code'] = this.networkCodeToId(networkCode);
+            request['network_code'] = this.networkCodeToId(networkCode, code);
         }
         const response = await this.v3PrivatePostWithdrawals(this.extend(request, params));
         // {

@@ -862,7 +862,7 @@ export default class weex extends Exchange {
         for (let j = 0; j < chains.length; j++) {
             const chain = this.safeDict(chains, j);
             const networkId = this.safeString(chain, 'network');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             networks[networkCode] = {
                 'info': chain,
                 'id': networkId,

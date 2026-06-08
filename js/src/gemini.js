@@ -454,7 +454,7 @@ export default class gemini extends Exchange {
         const networkId = this.safeString(rawCurrency, 9);
         let networkCode = undefined;
         if (networkId !== undefined) {
-            networkCode = this.networkIdToCode(networkId);
+            networkCode = this.networkIdToCode(networkId, code);
             networks[networkCode] = {
                 'info': rawCurrency,
                 'id': networkId,
@@ -1911,7 +1911,7 @@ export default class gemini extends Exchange {
         if (networkCode === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchDepositAddresses() requires a network parameter');
         }
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, currency['code']);
         const request = {
             'network': networkId,
         };

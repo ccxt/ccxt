@@ -1385,11 +1385,11 @@ export default class indodax extends Exchange {
                         network = [];
                         const networkIds = networkId.split(',');
                         for (let j = 0; j < networkIds.length; j++) {
-                            network.push(this.networkIdToCode(networkIds[j]).toUpperCase());
+                            network.push(this.networkIdToCode(networkIds[j], code).toUpperCase());
                         }
                     }
                     else {
-                        network = this.networkIdToCode(networkId).toUpperCase();
+                        network = this.networkIdToCode(networkId, code).toUpperCase();
                     }
                 }
                 const finalNetwork = network; // java req

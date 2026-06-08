@@ -2019,7 +2019,7 @@ class cryptocom extends cryptocom$1["default"] {
         }
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, code);
         if (networkId !== undefined) {
             request['network_id'] = networkId;
         }

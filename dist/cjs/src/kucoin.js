@@ -3614,7 +3614,7 @@ class kucoin extends kucoin$1["default"] {
             let networkCode = undefined;
             [networkCode, params] = this.handleNetworkCodeAndParams(params);
             if (networkCode !== undefined) {
-                request['chain'] = this.networkCodeToId(networkCode).toLowerCase();
+                request['chain'] = this.networkCodeToId(networkCode, code).toLowerCase();
             }
             //
             //     {
