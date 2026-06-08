@@ -448,7 +448,7 @@ public class DigifinexCore extends DigifinexApi
         {
             Object networkEntry = Helpers.GetValue(networkEntries, j);
             Object networkId = this.safeString2(networkEntry, "chain", "currency");
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", networkCode );
@@ -4767,7 +4767,7 @@ final Object finalI = i;
                 }};
                 if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
                 {
-                    Object networkCode = this.networkIdToCode(networkId);
+                    Object networkCode = this.networkIdToCode(networkId, code);
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "withdraw", withdrawResult );
     put( "deposit", depositResult );

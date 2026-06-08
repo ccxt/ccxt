@@ -665,7 +665,10 @@ public class ExmoCore extends ExmoApi
             Object provider = Helpers.GetValue(fee, i);
             Object type = this.safeString(provider, "type");
             Object networkId = this.safeString(provider, "name");
-            Object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
+            Object currencyId = this.safeString(provider, "currency_name");
+            currency = this.safeCurrency(currencyId, currency);
+            Object code = this.safeString(currency, "code");
+            Object networkCode = this.networkIdToCode(networkId, code);
             Object commissionDesc = this.safeString(provider, "commission_desc");
             Object splitCommissionDesc = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object percentage = null;
@@ -791,7 +794,7 @@ public class ExmoCore extends ExmoApi
                 networkId = Helpers.replace((String)networkId, (String)"(", (String)"");
                 Object replaceChar = ")"; // transpiler trick
                 networkId = Helpers.replace((String)networkId, (String)replaceChar, (String)"");
-                Object networkCode = this.networkIdToCode(networkId);
+                Object networkCode = this.networkIdToCode(networkId, code);
                 if (!Helpers.isTrue((Helpers.inOp(networks, networkCode))))
                 {
                     final Object finalNetworkId = networkId;

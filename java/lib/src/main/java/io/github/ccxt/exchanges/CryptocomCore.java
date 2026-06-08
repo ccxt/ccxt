@@ -2304,7 +2304,7 @@ public class CryptocomCore extends CryptocomApi
             var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
             networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
-            Object networkId = this.networkCodeToId(networkCode);
+            Object networkId = this.networkCodeToId(networkCode, code);
             if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
             {
                 Helpers.addElementToObject(request, "network_id", networkId);

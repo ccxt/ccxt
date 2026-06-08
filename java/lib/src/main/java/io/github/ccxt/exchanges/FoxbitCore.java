@@ -1859,7 +1859,7 @@ public class FoxbitCore extends FoxbitApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
-                Helpers.addElementToObject(request, "network_code", this.networkCodeToId(networkCode));
+                Helpers.addElementToObject(request, "network_code", this.networkCodeToId(networkCode, code));
             }
             Object response = (this.v3PrivatePostWithdrawals(this.extend(request, parameters))).join();
             // {

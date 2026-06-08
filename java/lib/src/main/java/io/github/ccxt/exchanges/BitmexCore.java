@@ -481,7 +481,7 @@ public class BitmexCore extends BitmexApi
         {
             Object chain = Helpers.GetValue(chains, j);
             Object networkId = this.safeString(chain, "asset");
-            Object network = this.networkIdToCode(networkId);
+            Object network = this.networkIdToCode(networkId, code);
             Object withdrawalFeeRaw = this.safeString(chain, "withdrawalFee");
             Object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
             Object isDepositEnabled = this.safeBool(chain, "depositEnabled", false);

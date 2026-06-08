@@ -3119,7 +3119,7 @@ public class BitrueCore extends BitrueApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
-                Helpers.addElementToObject(request, "chainName", this.networkCodeToId(networkCode));
+                Helpers.addElementToObject(request, "chainName", this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code")));
             }
             if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
             {
