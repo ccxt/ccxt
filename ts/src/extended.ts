@@ -188,6 +188,7 @@ export default class extended extends Exchange {
                             'info/{market}/funding',
                             'info/{market}/open-interests',
                             'info/builder/dashboard',
+                            'info/builder/trades',
                         ],
                     },
                     'private': {
