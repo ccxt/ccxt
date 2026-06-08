@@ -1,0 +1,34 @@
+# Run the playground in an isolated container.
+#   OPENROUTER_API_KEY=sk-... docker compose up --build
+# (or put OPENROUTER_API_KEY in a .env file next to this one)
+#
+# The container is the trust boundary. The settings below protect the HOST:
+#   - no volumes / bind mounts  → the host filesystem is unreachable from runs
+#   - mem/cpu/pids limits        → a user can't exhaust host RAM/CPU or fork-bomb it
+#   - non-root + no-new-privileges + cap_drop → minimal blast radius if escaped
+# The OpenRouter key is injected as env (never baked into the image, never on a
+# file a run could read — the run children get a scrubbed env).
+
+services:
+  playground:
+    build: .
+    image: ccxt-playground
+    container_name: ccxt-playground
+    ports:
+      - "3000:3000"
+    environment:
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      RUN_TIMEOUT_MS: ${RUN_TIMEOUT_MS:-15000}
+      COMPILE_TIMEOUT_MS: ${COMPILE_TIMEOUT_MS:-90000}
+    # --- host resource caps ---
+    mem_limit: 2g
+    memswap_limit: 2g      # == mem_limit → no swap, hard memory ceiling
+    cpus: 2.0
+    pids_limit: 512        # blunts fork bombs (capped within the container)
+    # --- privilege reduction ---
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped
+    # IMPORTANT: do NOT add volumes/bind mounts that expose host paths.
