@@ -1999,7 +1999,7 @@ export default class cryptocom extends Exchange {
         }
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const networkId = this.networkCodeToId (networkCode);
+        const networkId = this.networkCodeToId (networkCode, code);
         if (networkId !== undefined) {
             request['network_id'] = networkId;
         }

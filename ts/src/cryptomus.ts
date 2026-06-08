@@ -426,7 +426,7 @@ export default class cryptomus extends Exchange {
                 code = this.safeCurrencyCode (id);
             }
             const networkId = this.safeString (networkEntry, 'network_code');
-            const networkCode = this.networkIdToCode (networkId);
+            const networkCode = this.networkIdToCode (networkId, code);
             networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
