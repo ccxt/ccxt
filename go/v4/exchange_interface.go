@@ -150,6 +150,7 @@ type ICoreExchange interface {
 	Milliseconds() int64
 	ParseNumber(v any, a ...any) any
 	OmitZero(v any) any
+	ZeroIfUndefined(v any) any
 	FetchOHLCV(symbol any, optionalArgs ...any) <-chan any
 	FetchLeverageTiers(optionalArgs ...any) <-chan any
 	FetchMarginMode(symbol any, optionalArgs ...any) <-chan any

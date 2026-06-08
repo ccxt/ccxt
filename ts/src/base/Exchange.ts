@@ -1252,10 +1252,6 @@ export default class Exchange {
         }
     }
 
-    zeroIfUndefined (value) {
-        return (value === undefined) ? '0' : value;
-    }
-
     remove0xPrefix (hexData) {
         if (hexData.slice (0, 2) === '0x') {
             return hexData.slice (2);
@@ -2942,6 +2938,10 @@ export default class Exchange {
         if (proxyAgentSet && proxyUrlSet) {
             throw new InvalidProxySettings (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
+    }
+
+    zeroIfUndefined (value) {
+        return (value === undefined) ? '0' : value;
     }
 
     checkAddress (address: Str = undefined): Str {

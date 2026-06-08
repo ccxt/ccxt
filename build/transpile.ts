@@ -351,6 +351,7 @@ class Transpiler {
             [ /\sdelete\s/g, ' del ' ],
             [ /(?<!#.+)null/, 'None' ],
             [ /.market_or_None/g, '.market_or_null'],
+            [ /.zero_if_None/g, '.zero_if_undefined'],
             [ /\/\*\*/, '\"\"\"' ], // Doc strings
             [ / \*\//, '\"\"\"' ], // Doc strings
             [ /\[([^\[\]]*)\]\{@link (.*)\}/g, '`$1 <$2>`' ], // docstring item with link
