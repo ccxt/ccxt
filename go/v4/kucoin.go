@@ -3718,7 +3718,7 @@ func (this *KucoinCore) FetchDepositAddressesByNetwork(code any, optionalArgs ..
 			networkCode = GetValue(networkCodeparamsVariable, 0)
 			params = GetValue(networkCodeparamsVariable, 1)
 			if IsTrue(!IsEqual(networkCode, nil)) {
-				AddElementToObject(request, "chain", ToLower(this.NetworkCodeToId(networkCode)))
+				AddElementToObject(request, "chain", ToLower(this.NetworkCodeToId(networkCode, code)))
 			}
 			//
 			//     {

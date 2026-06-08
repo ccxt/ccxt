@@ -415,7 +415,7 @@ func (this *CoinbaseexchangeCore) ParseCurrency(rawCurrency any) any {
 	for j := 0; IsLessThan(j, GetArrayLength(supportedNetworks)); j++ {
 		var network any = GetValue(supportedNetworks, j)
 		var networkId any = this.SafeString(network, "id")
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		AddElementToObject(networks, networkCode, map[string]any{
 			"id":        networkId,
 			"name":      this.SafeString(network, "name"),
@@ -2378,7 +2378,7 @@ func (this *CoinbaseexchangeCore) ParseTransaction(transaction any, optionalArgs
 		"txid":        this.SafeString(details, "crypto_transaction_hash"),
 		"type":        typeVar,
 		"currency":    code,
-		"network":     this.NetworkIdToCode(networkId),
+		"network":     this.NetworkIdToCode(networkId, code),
 		"amount":      amount,
 		"status":      this.ParseTransactionStatus(transaction),
 		"timestamp":   timestamp,
