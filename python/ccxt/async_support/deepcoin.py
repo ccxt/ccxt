@@ -1040,7 +1040,7 @@ class deepcoin(Exchange, ImplicitAPI):
         amount = self.safe_number(transaction, 'amount')
         timestamp = self.safe_timestamp(transaction, 'createTime')
         networkId = self.safe_string(transaction, 'chainName')
-        network = self.network_id_to_code(networkId)
+        network = self.network_id_to_code(networkId, code)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         return {
             'info': transaction,
@@ -1181,10 +1181,11 @@ class deepcoin(Exchange, ImplicitAPI):
         chain = self.safe_string(response, 'chain')
         address = self.safe_string(response, 'address')
         self.check_address(address)
+        code = self.safe_string(currency, 'code')
         return {
             'info': response,
             'currency': None,
-            'network': self.network_id_to_code(chain),
+            'network': self.network_id_to_code(chain, code),
             'address': address,
             'tag': self.safe_string(response, 'memo'),
         }

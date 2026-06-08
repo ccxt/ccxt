@@ -423,7 +423,7 @@ class cryptomus(Exchange, ImplicitAPI):
                 id = self.safe_string(networkEntry, 'currency_code')
                 code = self.safe_currency_code(id)
             networkId = self.safe_string(networkEntry, 'network_code')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,

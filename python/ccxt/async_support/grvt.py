@@ -1561,20 +1561,20 @@ class grvt(Exchange, ImplicitAPI):
         networkCode: Str = None
         addressFrom = self.safe_string(transaction, 'from_account_id')
         addressTo = self.safe_string(transaction, 'to_account_id')
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
         if 'transfer_metadata' in transaction:
             metaData = self.omit_zero(self.safe_string(transaction, 'transfer_metadata'))
             if metaData is not None:
                 parsedMeta = self.parse_json(metaData)
                 direction = self.safe_string_lower(parsedMeta, 'direction')
                 txId = self.safe_string(parsedMeta, 'provider_tx_id')
-                networkCode = self.network_id_to_code(self.safe_string(parsedMeta, 'chainid'))
+                networkCode = self.network_id_to_code(self.safe_string(parsedMeta, 'chainid'), code)
                 if direction == 'withdrawal':
                     addressTo = self.safe_string(parsedMeta, 'endpoint')
                 elif direction == 'deposit':
                     addressFrom = self.safe_string(parsedMeta, 'endpoint')
         timestamp = self.safe_integer_product_2(transaction, 'event_time', 'initiated_time', 0.000001)
-        currencyId = self.safe_string(transaction, 'currency')
-        code = self.safe_currency_code(currencyId, currency)
         return {
             'info': transaction,
             'id': None,
@@ -1858,7 +1858,7 @@ class grvt(Exchange, ImplicitAPI):
             'signature': self.default_signature(),
         }
         networkCode, query = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode)
+        networkId = self.network_code_to_id(networkCode, code)
         if networkId is None:
             raise BadRequest(self.id + ' withdraw() requires a network parameter')
         request['signature']['chain_id'] = networkId

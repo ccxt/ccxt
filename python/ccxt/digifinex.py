@@ -546,7 +546,7 @@ class digifinex(Exchange, ImplicitAPI):
         for j in range(0, len(networkEntries)):
             networkEntry = networkEntries[j]
             networkId = self.safe_string_2(networkEntry, 'chain', 'currency')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
@@ -3928,7 +3928,7 @@ class digifinex(Exchange, ImplicitAPI):
                     'percentage': None,
                 }
                 if networkId is not None:
-                    networkCode = self.network_id_to_code(networkId)
+                    networkCode = self.network_id_to_code(networkId, code)
                     depositWithdrawFees[code]['networks'][networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult,

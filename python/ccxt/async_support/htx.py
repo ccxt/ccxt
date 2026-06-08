@@ -3349,7 +3349,7 @@ class htx(Exchange, ImplicitAPI):
             title = self.safe_string_2(chainEntry, 'baseChain', 'displayName')  # baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             self.options['networkChainIdsByNames'][code][title] = uniqueChainId
             self.options['networkNamesByChainIds'][uniqueChainId] = title
-            networkCode = self.network_id_to_code(uniqueChainId)
+            networkCode = self.network_id_to_code(uniqueChainId, code)
             networks[networkCode] = {
                 'info': chainEntry,
                 'id': uniqueChainId,
@@ -3405,7 +3405,7 @@ class htx(Exchange, ImplicitAPI):
         if keysLength == 0:
             raise ExchangeError(self.id + ' networkIdToCode() - markets need to be loaded at first')
         networkTitle = self.safe_value(self.options['networkNamesByChainIds'], networkId, networkId)
-        return super(htx, self).network_id_to_code(networkTitle)
+        return super(htx, self).network_id_to_code(networkTitle, currencyCode)
 
     def network_code_to_id(self, networkCode: str, currencyCode: Str = None):
         if currencyCode is None:
@@ -3418,7 +3418,7 @@ class htx(Exchange, ImplicitAPI):
         if networkCode in uniqueNetworkIds:
             return uniqueNetworkIds[networkCode]
         else:
-            networkTitle = super(htx, self).network_code_to_id(networkCode)
+            networkTitle = super(htx, self).network_code_to_id(networkCode, currencyCode)
             return self.safe_value(uniqueNetworkIds, networkTitle, networkTitle)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -6098,7 +6098,7 @@ class htx(Exchange, ImplicitAPI):
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'note': note,
             'info': depositAddress,
         }
@@ -6366,7 +6366,7 @@ class htx(Exchange, ImplicitAPI):
             'txid': txHash,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'address': self.safe_string(transaction, 'address'),
             'addressTo': None,
             'addressFrom': None,
@@ -8751,12 +8751,13 @@ class htx(Exchange, ImplicitAPI):
         #          }
         #
         chains = self.safe_value(fee, 'chains', [])
+        code = self.safe_string(currency, 'code')
         result = self.deposit_withdraw_fee(fee)
         for j in range(0, len(chains)):
             chainEntry = chains[j]
             networkId = self.safe_string(chainEntry, 'chain')
             withdrawFeeType = self.safe_string(chainEntry, 'withdrawFeeType')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             withdrawFee = None
             withdrawResult = None
             if withdrawFeeType == 'fixed':
