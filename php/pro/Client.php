@@ -291,8 +291,6 @@ class Client {
 
     public function on_message(Message $message) {
         if ($this->isNewPacket) {
-            // Because MessageBuffer->onData synchronously parses and emits all frames in a TCP packet,
-            // we use this flag to detect the start of a new packet. 
             // If the queue still has unprocessed messages from a previous packet, we flush them 
             // synchronously to prevent the backlog from growing infinitely (memory leak).
             while (count($this->messageQueue) > 0) {
@@ -301,7 +299,7 @@ class Client {
             }
             $this->isNewPacket = false;
             // futureTick schedules this closure to run on the next event loop tick, 
-            // which guarantees it runs AFTER the current TCP packet has finished parsing.
+            // which runs after the current TCP packet has finished synchronously parsing.
             Loop::futureTick(function () {
                 $this->isNewPacket = true;
             });
