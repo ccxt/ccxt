@@ -150,7 +150,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = this.parseBidAsk(delta, "price", "qty");
+        Object bidAsk = this.parseOrderBookBidAsk(delta, "price", "qty");
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 

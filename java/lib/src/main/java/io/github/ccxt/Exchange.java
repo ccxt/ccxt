@@ -3821,7 +3821,7 @@ public Object describe()
         Object countOrIdKey = Helpers.getArg(optionalArgs, 2, 2);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
         {
-            Object bidAsk = this.parseBidAsk(Helpers.GetValue(deltas, i), priceKey, amountKey, countOrIdKey);
+            Object bidAsk = this.parseOrderBookBidAsk(Helpers.GetValue(deltas, i), priceKey, amountKey, countOrIdKey);
             ((IOrderBookSide)bookSide).storeArray(bidAsk);
         }
     }
@@ -7332,7 +7332,7 @@ public Object describe()
         return result;
     }
 
-    public Object parseBidsAsks(Object bidasks, Object... optionalArgs)
+    public Object parseOrderBookBidsAsks(Object bidasks, Object... optionalArgs)
     {
         Object priceKey = Helpers.getArg(optionalArgs, 0, 0);
         Object amountKey = Helpers.getArg(optionalArgs, 1, 1);
@@ -7341,7 +7341,7 @@ public Object describe()
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidasks)); i++)
         {
-            ((java.util.List<Object>)result).add(this.parseBidAsk(Helpers.GetValue(bidasks, i), priceKey, amountKey, countOrIdKey));
+            ((java.util.List<Object>)result).add(this.parseOrderBookBidAsk(Helpers.GetValue(bidasks, i), priceKey, amountKey, countOrIdKey));
         }
         return result;
     }
@@ -7664,8 +7664,8 @@ public Object describe()
         Object priceKey = Helpers.getArg(optionalArgs, 3, 0);
         Object amountKey = Helpers.getArg(optionalArgs, 4, 1);
         Object countOrIdKey = Helpers.getArg(optionalArgs, 5, 2);
-        Object bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, new java.util.ArrayList<Object>(java.util.Arrays.asList())), priceKey, amountKey, countOrIdKey);
-        Object asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, new java.util.ArrayList<Object>(java.util.Arrays.asList())), priceKey, amountKey, countOrIdKey);
+        Object bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, new java.util.ArrayList<Object>(java.util.Arrays.asList())), priceKey, amountKey, countOrIdKey);
+        Object asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, new java.util.ArrayList<Object>(java.util.Arrays.asList())), priceKey, amountKey, countOrIdKey);
         return new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "bids", Exchange.this.sortBy(bids, 0, true) );
@@ -8625,7 +8625,7 @@ public Object describe()
 
     }
 
-    public Object parseBidAsk(Object bidask, Object... optionalArgs)
+    public Object parseOrderBookBidAsk(Object bidask, Object... optionalArgs)
     {
         Object priceKey = Helpers.getArg(optionalArgs, 0, 0);
         Object amountKey = Helpers.getArg(optionalArgs, 1, 1);
