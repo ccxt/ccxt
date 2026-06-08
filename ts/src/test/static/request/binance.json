@@ -4,6 +4,7 @@
         "signature",
         "timestamp",
         "recvWindow",
+        "clientAlgoId",
         "newClientOrderId",
         "newClientStrategyId"
     ],
@@ -53,6 +54,74 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "spot sell +limit +triggerPrice +descending",
+                "method": "createOrder",
+                "url": "https://api.binance.com/api/v3/order",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "sell",
+                    0.06,
+                    91,
+                    {
+                        "triggerPrice": 90,
+                        "triggerDirection": "descending"
+                    }
+                ],
+                "output": "timestamp=1778847434731&symbol=SOLUSDT&side=SELL&newClientOrderId=x-TKT5PX2F685c5b6e2c2a40f5b628cb&newOrderRespType=FULL&type=STOP_LOSS_LIMIT&quantity=0.06&price=91&stopPrice=90&timeInForce=GTC&recvWindow=10000&signature=b96d1912326b873f3cbd207e342c8a31d233de425ea408bba3aa53570791eda7"
+            },
+            {
+                "description": "spot buy +limit +triggerPrice +ascending",
+                "method": "createOrder",
+                "url": "https://api.binance.com/api/v3/order",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "sell",
+                    0.06,
+                    111,
+                    {
+                        "triggerPrice": 100,
+                        "triggerDirection": "ascending"
+                    }
+                ],
+                "output": "timestamp=1778847479291&symbol=SOLUSDT&side=SELL&newClientOrderId=x-TKT5PX2F546259d116c24083b40a38&newOrderRespType=FULL&type=TAKE_PROFIT_LIMIT&quantity=0.06&price=111&stopPrice=100&timeInForce=GTC&recvWindow=10000&signature=59e8463268657ea2c6a87a69ced19a08013556b161361dac66fc1f8221911eb6"
+            },
+            {
+                "description": "swap sell +limit +triggerPrice +descending",
+                "method": "createOrder",
+                "url": "https://fapi.binance.com/fapi/v1/algoOrder",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "limit",
+                    "sell",
+                    1,
+                    91,
+                    {
+                        "triggerPrice": 90,
+                        "triggerDirection": "descending"
+                    }
+                ],
+                "output": "timestamp=1778847341990&symbol=SOLUSDT&side=SELL&clientAlgoId=x-cvBPrNm9656c999bb60c477b920647&newOrderRespType=RESULT&type=STOP&quantity=1&price=91&triggerPrice=90&algoType=CONDITIONAL&recvWindow=10000&signature=e93384bd82c2f43a1c49348517c943f43fe86fb6cfe7e95436766048ef8744d5"
+            },
+            {
+                "description": "swap sell +limit +triggerPrice +ascending",
+                "method": "createOrder",
+                "url": "https://fapi.binance.com/fapi/v1/algoOrder",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "limit",
+                    "sell",
+                    1,
+                    111,
+                    {
+                        "triggerPrice": 110,
+                        "triggerDirection": "ascending"
+                    }
+                ],
+                "output": "timestamp=1778847320230&symbol=SOLUSDT&side=SELL&clientAlgoId=x-cvBPrNm957ac44a9f4b74d8480b10d&newOrderRespType=RESULT&type=TAKE_PROFIT&quantity=1&price=111&triggerPrice=110&algoType=CONDITIONAL&recvWindow=10000&signature=2af101196157627333863dbe5a63161273b119df394c86ee27e16c44a2ab45a9"
+            },
             {
                 "description": "spot +selfTradePrevention +iceberg",
                 "method": "createOrder",
