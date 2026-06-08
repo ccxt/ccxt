@@ -70,6 +70,15 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
           >
             GitHub
           </Link>
+          {/* community support: join the CCXT Discord */}
+          <Link
+            href="https://discord.gg/dhzSKYU"
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-md border px-4 py-2 font-medium transition-colors hover:bg-fd-accent"
+          >
+            Discord
+          </Link>
         </div>
       </div>
 
