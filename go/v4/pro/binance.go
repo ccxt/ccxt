@@ -2806,7 +2806,7 @@ func  (this *BinanceCore) HandleTickerWs(client any, message any)  {
     //        "status":200,
     //        "result":{
     //            "symbol":"BTCUSDT",
-    //            "price":"73178.50",
+    //            "price":"73178.60",
     //            "time":1712527052374
     //        }
     //    }

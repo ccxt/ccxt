@@ -41,7 +41,7 @@ async function watchOrderBook (exchange, symbol) {
 }
 
 async function main () {
-    const exchange = new ccxt.pro.gateio ({ // eslint-disable-line import/no-named-as-default-member
+    const exchange = new ccxt.pro.gate ({ // eslint-disable-line import/no-named-as-default-member
         'options': {
             'defaultType': 'swap',
         },

@@ -1072,7 +1072,9 @@ export default class cryptocom extends cryptocomRest {
         }
         client.resolve (this.balance, messageHash);
         const messageHashRequest = this.safeString (message, 'id');
-        client.resolve (this.balance, messageHashRequest);
+        if (messageHashRequest !== undefined) {
+            client.resolve (this.balance, messageHashRequest);
+        }
     }
 
     /**

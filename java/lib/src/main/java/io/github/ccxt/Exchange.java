@@ -7042,6 +7042,25 @@ public Object describe()
         return Helpers.GetValue(arr, Helpers.subtract(length, 1));
     }
 
+    public Object addKeyInArrayItems(Object obj, Object keyName)
+    {
+        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object keys = Helpers.objectKeys(obj);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
+        {
+            Object key = Helpers.GetValue(keys, i);
+            Object item = Helpers.GetValue(obj, key);
+            if (Helpers.isTrue(Helpers.isEqual(item, null)))
+            {
+                continue;
+            }
+            Object itemWithKey = this.extend(new java.util.HashMap<String, Object>() {{}}, item);
+            Helpers.addElementToObject(itemWithKey, keyName, key);
+            ((java.util.List<Object>)result).add(itemWithKey);
+        }
+        return result;
+    }
+
     public Object invertFlatStringDictionary(Object dict)
     {
         Object reversed = new java.util.HashMap<String, Object>() {{}};

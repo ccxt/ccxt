@@ -42,7 +42,6 @@ export default class kraken extends Exchange {
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): Currency;
-    addKeyInArrayItems(obj: any, keyName: any): any[];
     safeCurrencyCode(currencyId: Str, currency?: Currency): Str;
     /**
      * @method

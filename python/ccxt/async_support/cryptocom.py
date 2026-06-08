@@ -678,16 +678,6 @@ class cryptocom(Exchange, ImplicitAPI):
             'networks': networks,
         })
 
-    def add_key_in_array_items(self, obj, keyName):
-        result = []
-        keys = list(obj.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            item = obj[key]
-            item[keyName] = key
-            result.append(item)
-        return result
-
     async def fetch_markets(self, params={}) -> List[Market]:
         """
 

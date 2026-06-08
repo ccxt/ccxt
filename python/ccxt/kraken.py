@@ -904,19 +904,6 @@ class kraken(Exchange, ImplicitAPI):
             'networks': {},
         })
 
-    def add_key_in_array_items(self, obj, keyName):
-        result = []
-        keys = list(obj.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            item = obj[key]
-            if item is None:
-                continue
-            itemWithKey = self.extend({}, item)
-            itemWithKey[keyName] = key
-            result.append(itemWithKey)
-        return result
-
     def safe_currency_code(self, currencyId: Str, currency: Currency = None) -> Str:
         if currencyId is None:
             return currencyId

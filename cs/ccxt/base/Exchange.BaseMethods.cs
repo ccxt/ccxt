@@ -2963,6 +2963,25 @@ public partial class Exchange
         return getValue(arr, subtract(length, 1));
     }
 
+    public virtual object addKeyInArrayItems(object obj, object keyName)
+    {
+        object result = new List<object>() {};
+        object keys = new List<object>(((IDictionary<string,object>)obj).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object item = getValue(obj, key);
+            if (isTrue(isEqual(item, null)))
+            {
+                continue;
+            }
+            object itemWithKey = this.extend(new Dictionary<string, object>() {}, item);
+            ((IDictionary<string,object>)itemWithKey)[(string)keyName] = key;
+            ((IList<object>)result).Add(itemWithKey);
+        }
+        return result;
+    }
+
     public virtual object invertFlatStringDictionary(object dict)
     {
         object reversed = new Dictionary<string, object>() {};

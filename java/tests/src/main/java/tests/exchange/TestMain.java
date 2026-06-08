@@ -1973,7 +1973,7 @@ public class TestMain extends BaseTest
             //  -----------------------------------------------------------------------------
             //  --- Init of brokerId tests functions-----------------------------------------
             //  -----------------------------------------------------------------------------
-            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex()));
+            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex()));
             (Helpers.promiseAll(promises)).join();
             Object successMessage = Helpers.add(Helpers.add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
             dump(Helpers.add("[INFO]", successMessage));
@@ -2654,32 +2654,6 @@ public class TestMain extends BaseTest
             {
                 (close(exchange)).join();
             }
-            return true;
-        });
-
-    }
-
-    public java.util.concurrent.CompletableFuture<Object> testOxfun()
-    {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Exchange exchange = this.initOfflineExchange("oxfun");
-            exchange.secret = "secretsecretsecretsecretsecretsecretsecrets";
-            Object id = 1000;
-            (exchange.loadMarkets()).join();
-            Object request = null;
-            try
-            {
-                (exchange.createOrder("BTC/USD:OX", "limit", "buy", 1, 20000)).join();
-            } catch(Exception e)
-            {
-                request = jsonParse(exchange.last_request_body);
-            }
-            Object orders = Helpers.GetValue(request, "orders");
-            Object first = Helpers.GetValue(orders, 0);
-            Object brokerId = Helpers.GetValue(first, "source");
-            Assert(Helpers.isEqual(brokerId, id), Helpers.add(Helpers.add(Helpers.add("oxfun - id: ", String.valueOf(id)), " different from  broker_id: "), String.valueOf(brokerId)));
             return true;
         });
 

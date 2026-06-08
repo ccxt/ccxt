@@ -3,7 +3,7 @@
 import ccxt from '../../js/ccxt.js';
 console.log('CCXT Version:', ccxt.version); // eslint-disable-line import/no-named-as-default-member
 async function main() {
-    const exchange = new ccxt.pro.gateio({
+    const exchange = new ccxt.pro.gate({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
     });

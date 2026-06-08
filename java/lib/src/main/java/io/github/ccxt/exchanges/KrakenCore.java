@@ -911,25 +911,6 @@ public class KrakenCore extends KrakenApi
         }});
     }
 
-    public Object addKeyInArrayItems(Object obj, Object keyName)
-    {
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object keys = Helpers.objectKeys(obj);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
-        {
-            Object key = Helpers.GetValue(keys, i);
-            Object item = Helpers.GetValue(obj, key);
-            if (Helpers.isTrue(Helpers.isEqual(item, null)))
-            {
-                continue;
-            }
-            Object itemWithKey = this.extend(new java.util.HashMap<String, Object>() {{}}, item);
-            Helpers.addElementToObject(itemWithKey, keyName, key);
-            ((java.util.List<Object>)result).add(itemWithKey);
-        }
-        return result;
-    }
-
     public Object safeCurrencyCode(Object currencyId, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
