@@ -1351,7 +1351,7 @@ export default class apex extends Exchange {
         const fees = this.safeDict (this.fees, 'swap', {});
         const taker = this.safeString (fees, 'taker', '0.0005');
         const maker = this.safeString (fees, 'maker', '0.0002');
-        const limitFee = this.decimalToPrecision (Precise.stringAddWithZero (Precise.stringMul (Precise.stringMul (orderPrice, orderSize), taker), this.numberToString (market['precision']['price'])), TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
+        const limitFee = this.decimalToPrecision (Precise.stringAdd (this.zeroIfUndefined (Precise.stringMul (Precise.stringMul (orderPrice, orderSize), taker)), this.zeroIfUndefined (this.numberToString (market['precision']['price']))), TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
         const timeNow = this.milliseconds ();
         let triggerPrice = this.safeString (params, 'triggerPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');

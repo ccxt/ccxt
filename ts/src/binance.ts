@@ -3656,7 +3656,7 @@ export default class binance extends Exchange {
         account['free'] = this.safeString (entry, 'free');
         const interest = this.safeString (entry, 'interest');
         const debt = this.safeString (entry, 'borrowed');
-        account['debt'] = Precise.stringAddWithZero (debt, interest);
+        account['debt'] = Precise.stringAdd (this.zeroIfUndefined (debt), this.zeroIfUndefined (interest));
         return account;
     }
 
@@ -3682,16 +3682,16 @@ export default class binance extends Exchange {
                 } else if (cross) {
                     const borrowed = this.safeString (entry, 'crossMarginBorrowed');
                     const interest = this.safeString (entry, 'crossMarginInterest');
-                    account['debt'] = Precise.stringAddWithZero (borrowed, interest);
+                    account['debt'] = Precise.stringAdd (this.zeroIfUndefined (borrowed), this.zeroIfUndefined (interest));
                     account['free'] = this.safeString (entry, 'crossMarginFree');
                     account['used'] = this.safeString (entry, 'crossMarginLocked');
                     account['total'] = this.safeString (entry, 'crossMarginAsset');
                 } else {
                     const usedLinear = this.safeString (entry, 'umUnrealizedPNL');
                     const usedInverse = this.safeString (entry, 'cmUnrealizedPNL');
-                    const totalUsed = Precise.stringAddWithZero (usedLinear, usedInverse);
+                    const totalUsed = Precise.stringAdd (this.zeroIfUndefined (usedLinear), this.zeroIfUndefined (usedInverse));
                     const totalWalletBalance = this.safeString (entry, 'totalWalletBalance');
-                    account['total'] = Precise.stringAddWithZero (totalUsed, totalWalletBalance);
+                    account['total'] = Precise.stringAdd (this.zeroIfUndefined (totalUsed), this.zeroIfUndefined (totalWalletBalance));
                 }
                 result[code] = account;
             }
@@ -3708,7 +3708,7 @@ export default class binance extends Exchange {
                 if (cross) {
                     const debt = this.safeString (balance, 'borrowed');
                     const interest = this.safeString (balance, 'interest');
-                    account['debt'] = Precise.stringAddWithZero (debt, interest);
+                    account['debt'] = Precise.stringAdd (this.zeroIfUndefined (debt), this.zeroIfUndefined (interest));
                 }
                 result[code] = account;
             }
@@ -3749,7 +3749,7 @@ export default class binance extends Exchange {
                 const frozen = this.safeString (entry, 'freeze');
                 const withdrawing = this.safeString (entry, 'withdrawing');
                 const locked = this.safeString (entry, 'locked');
-                account['used'] = Precise.stringAddWithZero (frozen, Precise.stringAddWithZero (locked, withdrawing));
+                account['used'] = Precise.stringAdd (this.zeroIfUndefined (frozen), Precise.stringAdd (this.zeroIfUndefined (locked), this.zeroIfUndefined (withdrawing)));
                 result[code] = account;
             }
         } else {
@@ -10118,7 +10118,7 @@ export default class binance extends Exchange {
             const crossWalletBalance = this.safeString (entry, 'crossWalletBalance');
             const crossUnPnl = this.safeString (entry, 'crossUnPnl');
             balances[code] = {
-                'crossMargin': Precise.stringAddWithZero (crossWalletBalance, crossUnPnl),
+                'crossMargin': Precise.stringAdd (this.zeroIfUndefined (crossWalletBalance), this.zeroIfUndefined (crossUnPnl)),
                 'crossWalletBalance': crossWalletBalance,
             };
         }
@@ -10245,7 +10245,7 @@ export default class binance extends Exchange {
             initialMarginPercentageString = Precise.stringDiv ('1', leverageString, 8);
             const rational = this.isRoundNumber (1000 % leverage);
             if (!rational) {
-                initialMarginPercentageString = Precise.stringDiv (Precise.stringAddWithZero (initialMarginPercentageString, '1e-8'), '1', 8);
+                initialMarginPercentageString = Precise.stringDiv (Precise.stringAdd (this.zeroIfUndefined (initialMarginPercentageString), '1e-8'), '1', 8);
             }
         }
         // as oppose to notionalValue
@@ -10263,7 +10263,7 @@ export default class binance extends Exchange {
             const entryNotional = Precise.stringMul (Precise.stringMul (leverageString, initialMarginString), entryPriceString);
             const contractSizeNew = this.safeString (market, 'contractSize');
             contractsString = Precise.stringDiv (entryNotional, contractSizeNew);
-            contractsStringAbs = Precise.stringDiv (Precise.stringAddWithZero (contractsString, '0.5'), '1', 0);
+            contractsStringAbs = Precise.stringDiv (Precise.stringAdd (this.zeroIfUndefined (contractsString), '0.5'), '1', 0);
         }
         const contracts = this.parseNumber (contractsStringAbs);
         const leverageBrackets = this.safeDict (this.options, 'leverageBrackets', {});
@@ -10294,7 +10294,7 @@ export default class binance extends Exchange {
         if (isolated) {
             marginMode = 'isolated';
             walletBalance = this.safeString (position, 'isolatedWallet');
-            collateralString = Precise.stringAddWithZero (walletBalance, unrealizedPnlString);
+            collateralString = Precise.stringAdd (this.zeroIfUndefined (walletBalance), this.zeroIfUndefined (unrealizedPnlString));
         } else {
             marginMode = 'cross';
             walletBalance = this.safeString (position, 'crossWalletBalance');
@@ -10312,7 +10312,7 @@ export default class binance extends Exchange {
             entryPrice = undefined;
         } else {
             side = Precise.stringLt (notionalString, '0') ? 'short' : 'long';
-            marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAddWithZero (Precise.stringDiv (maintenanceMarginString, collateralString), '5e-5'), '1', 4));
+            marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAdd (this.zeroIfUndefined (Precise.stringDiv (maintenanceMarginString, collateralString)), '5e-5'), '1', 4));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
             if (usdm) {
                 // calculate liquidation price
@@ -10325,14 +10325,14 @@ export default class binance extends Exchange {
                 let onePlusMaintenanceMarginPercentageString = undefined;
                 let entryPriceSignString = entryPriceString;
                 if (side === 'short') {
-                    onePlusMaintenanceMarginPercentageString = Precise.stringAddWithZero ('1', maintenanceMarginPercentageString);
+                    onePlusMaintenanceMarginPercentageString = Precise.stringAdd (this.zeroIfUndefined ('1'), this.zeroIfUndefined (maintenanceMarginPercentageString));
                 } else {
-                    onePlusMaintenanceMarginPercentageString = Precise.stringAddWithZero ('-1', maintenanceMarginPercentageString);
+                    onePlusMaintenanceMarginPercentageString = Precise.stringAdd (this.zeroIfUndefined ('-1'), this.zeroIfUndefined (maintenanceMarginPercentageString));
                     entryPriceSignString = Precise.stringMul ('-1', entryPriceSignString);
                 }
                 const leftSide = Precise.stringDiv (walletBalance, Precise.stringMul (contractsStringAbs, onePlusMaintenanceMarginPercentageString));
                 const rightSide = Precise.stringDiv (entryPriceSignString, onePlusMaintenanceMarginPercentageString);
-                liquidationPriceStringRaw = Precise.stringAddWithZero (leftSide, rightSide);
+                liquidationPriceStringRaw = Precise.stringAdd (this.zeroIfUndefined (leftSide), this.zeroIfUndefined (rightSide));
             } else {
                 // calculate liquidation price
                 //
@@ -10357,7 +10357,7 @@ export default class binance extends Exchange {
             // round half up
             const rounder = new Precise ('5e-' + pricePrecisionPlusOneString);
             const rounderString = rounder.toString ();
-            const liquidationPriceRoundedString = Precise.stringAddWithZero (rounderString, liquidationPriceStringRaw);
+            const liquidationPriceRoundedString = Precise.stringAdd (this.zeroIfUndefined (rounderString), this.zeroIfUndefined (liquidationPriceStringRaw));
             let truncatedLiquidationPrice = Precise.stringDiv (liquidationPriceRoundedString, '1', pricePrecision);
             if (truncatedLiquidationPrice !== undefined && truncatedLiquidationPrice[0] === '-') {
                 // user cannot be liquidated
@@ -10533,13 +10533,13 @@ export default class binance extends Exchange {
                     let onePlusMaintenanceMarginPercentageString = undefined;
                     let entryPriceSignString = entryPriceString;
                     if (side === 'short') {
-                        onePlusMaintenanceMarginPercentageString = Precise.stringAddWithZero ('1', maintenanceMarginPercentageString);
+                        onePlusMaintenanceMarginPercentageString = Precise.stringAdd ('1', this.zeroIfUndefined (maintenanceMarginPercentageString));
                         entryPriceSignString = Precise.stringMul ('-1', entryPriceSignString);
                     } else {
-                        onePlusMaintenanceMarginPercentageString = Precise.stringAddWithZero ('-1', maintenanceMarginPercentageString);
+                        onePlusMaintenanceMarginPercentageString = Precise.stringAdd ('-1', this.zeroIfUndefined (maintenanceMarginPercentageString));
                     }
                     const inner = Precise.stringMul (liquidationPriceString, onePlusMaintenanceMarginPercentageString);
-                    const leftSide = Precise.stringAddWithZero (inner, entryPriceSignString);
+                    const leftSide = Precise.stringAdd (this.zeroIfUndefined (inner), this.zeroIfUndefined (entryPriceSignString));
                     const quotePrecision = this.precisionFromString (this.safeString2 (precision, 'quote', 'price'));
                     if (quotePrecision !== undefined) {
                         collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
@@ -10587,7 +10587,7 @@ export default class binance extends Exchange {
             const rational = this.isRoundNumber (1000 % leverage);
             initialMarginPercentageString = Precise.stringDiv ('1', leverageString, 8);
             if (!rational) {
-                initialMarginPercentageString = Precise.stringAddWithZero (initialMarginPercentageString, '1e-8');
+                initialMarginPercentageString = Precise.stringAdd (this.zeroIfUndefined (initialMarginPercentageString), '1e-8');
             }
             const unrounded = Precise.stringMul (notionalStringAbs, initialMarginPercentageString);
             initialMarginString = Precise.stringDiv (unrounded, '1', 8);
@@ -10599,7 +10599,7 @@ export default class binance extends Exchange {
         let marginRatio = undefined;
         let percentage = undefined;
         if (!Precise.stringEquals (collateralString, '0')) {
-            marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAddWithZero (Precise.stringDiv (maintenanceMarginString, collateralString), '5e-5'), '1', 4));
+            marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAdd (this.zeroIfUndefined (Precise.stringDiv (maintenanceMarginString, collateralString)), '5e-5'), '1', 4));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
         }
         const positionSide = this.safeString (position, 'positionSide');

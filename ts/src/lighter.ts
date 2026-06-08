@@ -1819,8 +1819,8 @@ export default class lighter extends Exchange {
                     const codeId = this.safeString (asset, 'symbol');
                     const code = this.safeCurrencyCode (codeId);
                     const balance = this.safeDict (result, code, this.account ());
-                    balance['total'] = Precise.stringAddWithZero (balance['total'], this.safeString (asset, 'balance'));
-                    balance['used'] = Precise.stringAddWithZero (balance['used'], this.safeString (asset, 'locked_balance'));
+                    balance['total'] = Precise.stringAdd (this.zeroIfUndefined (balance['total']), this.zeroIfUndefined (this.safeString (asset, 'balance')));
+                    balance['used'] = Precise.stringAdd (this.zeroIfUndefined (balance['used']), this.zeroIfUndefined (this.safeString (asset, 'locked_balance')));
                     result[code] = balance;
                 }
             } else {
@@ -1829,8 +1829,8 @@ export default class lighter extends Exchange {
                 const perpFree = this.safeString (perpBalance, 'free', '0');
                 const perpUSDCTotal = this.safeString (account, 'collateral', '0');
                 const perpUSDCFree = this.safeString (account, 'available_balance', '0');
-                perpBalance['total'] = Precise.stringAddWithZero (perpTotal, perpUSDCTotal);
-                perpBalance['free'] = Precise.stringAddWithZero (perpFree, perpUSDCFree);
+                perpBalance['total'] = Precise.stringAdd (this.zeroIfUndefined (perpTotal), this.zeroIfUndefined (perpUSDCTotal));
+                perpBalance['free'] = Precise.stringAdd (this.zeroIfUndefined (perpFree), this.zeroIfUndefined (perpUSDCFree));
                 result['USDC'] = perpBalance;
             }
         }

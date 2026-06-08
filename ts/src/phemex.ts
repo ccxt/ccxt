@@ -2046,7 +2046,7 @@ export default class phemex extends Exchange {
             const total = this.fromEn (balanceEv, scale);
             const lockedTradingBalance = this.fromEn (lockedTradingBalanceEv, scale);
             const lockedWithdraw = this.fromEn (lockedWithdrawEv, scale);
-            const used = Precise.stringAddWithZero (lockedTradingBalance, lockedWithdraw);
+            const used = Precise.stringAdd (this.zeroIfUndefined (lockedTradingBalance), this.zeroIfUndefined (lockedWithdraw));
             const lastUpdateTimeNs = this.safeIntegerProduct (balance, 'lastUpdateTimeNs', 0.000001);
             timestamp = (timestamp === undefined) ? lastUpdateTimeNs : Math.max (timestamp, lastUpdateTimeNs);
             account['total'] = total;

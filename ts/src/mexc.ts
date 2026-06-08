@@ -3619,7 +3619,7 @@ export default class mexc extends Exchange {
         if (feeCurrency !== undefined) {
             const takerFee = this.safeString (order, 'takerFee');
             const makerFee = this.safeString (order, 'makerFee');
-            const feeSum = Precise.stringAddWithZero (takerFee, makerFee);
+            const feeSum = Precise.stringAdd (this.zeroIfUndefined (takerFee), this.zeroIfUndefined (makerFee));
             fee = {
                 'currency': feeCurrency,
                 'cost': this.parseNumber (feeSum),
@@ -3954,7 +3954,7 @@ export default class mexc extends Exchange {
         account['total'] = this.safeString (entry, 'totalAsset');
         const debt = this.safeString (entry, 'borrowed');
         const interest = this.safeString (entry, 'interest');
-        account['debt'] = Precise.stringAddWithZero (debt, interest);
+        account['debt'] = Precise.stringAdd (this.zeroIfUndefined (debt), this.zeroIfUndefined (interest));
         return account;
     }
 
@@ -4725,7 +4725,7 @@ export default class mexc extends Exchange {
             ];
         }
         while (Precise.stringLt (floor, maxVol)) {
-            const cap = Precise.stringAddWithZero (floor, riskIncrVol);
+            const cap = Precise.stringAdd (this.zeroIfUndefined (floor), this.zeroIfUndefined (riskIncrVol));
             const minNotional = this.parseNumber (floor);
             const mainMarginRate = this.parseNumber (maintenanceMarginRate);
             const maxLev = this.parseNumber (Precise.stringDiv ('1', initialMarginRate));
@@ -4739,8 +4739,8 @@ export default class mexc extends Exchange {
                 'maxLeverage': maxLev,
                 'info': info,
             });
-            initialMarginRate = Precise.stringAddWithZero (initialMarginRate, riskIncrImr);
-            maintenanceMarginRate = Precise.stringAddWithZero (maintenanceMarginRate, riskIncrMmr);
+            initialMarginRate = Precise.stringAdd (this.zeroIfUndefined (initialMarginRate), this.zeroIfUndefined (riskIncrImr));
+            maintenanceMarginRate = Precise.stringAdd (this.zeroIfUndefined (maintenanceMarginRate), this.zeroIfUndefined (riskIncrMmr));
             floor = cap;
         }
         return tiers as LeverageTier[];

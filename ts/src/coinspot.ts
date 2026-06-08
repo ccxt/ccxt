@@ -627,7 +627,7 @@ export default class coinspot extends Exchange {
             const audfeeExGst = this.safeString (trade, 'audfeeExGst');
             const audGst = this.safeString (trade, 'audGst');
             // The transaction fee which consumers pay is inclusive of GST by default
-            const feeCost = Precise.stringAddWithZero (audfeeExGst, audGst);
+            const feeCost = Precise.stringAdd (this.zeroIfUndefined (audfeeExGst), this.zeroIfUndefined (audGst));
             const feeCurrencyId = 'AUD';
             fee = {
                 'cost': this.parseNumber (feeCost),

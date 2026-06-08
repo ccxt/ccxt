@@ -119,7 +119,7 @@ export default class phemex extends phemexRest {
         const open = this.parseNumber (openString);
         if ((openString !== undefined) && (lastString !== undefined)) {
             change = this.parseNumber (Precise.stringSub (lastString, openString));
-            average = this.parseNumber (Precise.stringDiv (Precise.stringAddWithZero (lastString, openString), '2'));
+            average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (this.zeroIfUndefined (lastString), this.zeroIfUndefined (openString)), '2'));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringSub (Precise.stringDiv (lastString, openString), '1'), '100'));
         }
         return this.safeTicker ({
@@ -179,7 +179,7 @@ export default class phemex extends phemexRest {
         const open = this.parseNumber (openString);
         if ((openString !== undefined) && (lastString !== undefined)) {
             change = this.parseNumber (Precise.stringSub (lastString, openString));
-            average = this.parseNumber (Precise.stringDiv (Precise.stringAddWithZero (lastString, openString), '2'));
+            average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (this.zeroIfUndefined (lastString), this.zeroIfUndefined (openString)), '2'));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringSub (Precise.stringDiv (lastString, openString), '1'), '100'));
         }
         return this.safeTicker ({
@@ -385,7 +385,7 @@ export default class phemex extends phemexRest {
                 if (usedEv === undefined) {
                     const lockedTradingBalanceEv = this.safeString (balance, 'lockedTradingBalanceEv');
                     const lockedWithdrawEv = this.safeString2 (balance, 'lockedWithdrawEv', 'lockedWithdrawRv');
-                    usedEv = Precise.stringAddWithZero (lockedTradingBalanceEv, lockedWithdrawEv);
+                    usedEv = Precise.stringAdd (this.zeroIfUndefined (lockedTradingBalanceEv), this.zeroIfUndefined (lockedWithdrawEv));
                 }
                 used = this.fromEn (usedEv, scale);
             }

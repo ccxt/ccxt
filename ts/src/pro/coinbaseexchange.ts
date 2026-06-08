@@ -660,7 +660,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                         previousOrder['cost'] = this.parseNumber (totalCost);
                         const previousOrderFilled = this.safeString (previousOrder, 'filled');
                         if (previousOrderFilled !== undefined) {
-                            previousOrder['filled'] = this.parseNumber (Precise.stringAddWithZero (previousOrderFilled, this.safeString (trade, 'amount')));
+                            previousOrder['filled'] = this.parseNumber (Precise.stringAdd (this.zeroIfUndefined (previousOrderFilled), this.zeroIfUndefined (this.safeString (trade, 'amount'))));
                             if (previousOrder['amount'] !== undefined) {
                                 previousOrder['remaining'] = this.parseNumber (Precise.stringSub (this.safeString (previousOrder, 'amount'), this.safeString (previousOrder, 'filled')));
                             }
@@ -675,7 +675,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                             previousOrder['fee']['cost'] = this.sum (previousOrder['fee']['cost'], trade['fee']['cost']);
                             const previousOrderFee = this.safeDict (previousOrder, 'fee');
                             const tradeFee = this.safeDict (trade, 'fee');
-                            previousOrder['fee']['cost'] = this.parseNumber (Precise.stringAddWithZero (this.safeString (previousOrderFee, 'cost'), this.safeString (tradeFee, 'cost')));
+                            previousOrder['fee']['cost'] = this.parseNumber (Precise.stringAdd (this.zeroIfUndefined (this.safeString (previousOrderFee, 'cost')), this.zeroIfUndefined (this.safeString (tradeFee, 'cost'))));
                         }
                         // update the newUpdates count
                         orders.append (previousOrder);

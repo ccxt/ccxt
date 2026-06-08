@@ -2215,7 +2215,7 @@ export default class hyperliquid extends Exchange {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + '  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).');
             }
-            px = (isBuy) ? Precise.stringMul (price, Precise.stringAddWithZero ('1', slippage)) : Precise.stringMul (price, Precise.stringSub ('1', slippage));
+            px = (isBuy) ? Precise.stringMul (price, Precise.stringAdd ('1', this.zeroIfUndefined (slippage))) : Precise.stringMul (price, Precise.stringSub ('1', slippage));
             px = this.priceToPrecision (symbol, px); // round after adding slippage
         } else {
             px = this.priceToPrecision (symbol, price);
@@ -2752,7 +2752,7 @@ export default class hyperliquid extends Exchange {
             orderParams = this.omit (orderParams, [ 'slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly' ]);
             let px = this.numberToString (price);
             if (isMarket) {
-                px = (isBuy) ? Precise.stringMul (px, Precise.stringAddWithZero ('1', slippage)) : Precise.stringMul (px, Precise.stringSub ('1', slippage));
+                px = (isBuy) ? Precise.stringMul (px, Precise.stringAdd ('1', this.zeroIfUndefined (slippage))) : Precise.stringMul (px, Precise.stringSub ('1', slippage));
                 px = this.priceToPrecision (symbol, px);
             } else {
                 px = this.priceToPrecision (symbol, px);
@@ -3563,7 +3563,7 @@ export default class hyperliquid extends Exchange {
         }
         const builderFee = this.safeString (trade, 'builderFee');
         if (builderFee !== undefined) {
-            fee = Precise.stringAddWithZero (fee, builderFee);
+            fee = Precise.stringAdd (this.zeroIfUndefined (fee), builderFee);
         }
         return this.safeTrade ({
             'info': trade,

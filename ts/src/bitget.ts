@@ -4657,7 +4657,7 @@ export default class bitget extends Exchange {
                 const interest = this.safeString (entry, 'interest');
                 account['free'] = this.safeString (entry, 'transferable');
                 account['total'] = this.safeString (entry, 'totalAmount');
-                account['debt'] = Precise.stringAddWithZero (borrow, interest);
+                account['debt'] = Precise.stringAdd (this.zeroIfUndefined (borrow), this.zeroIfUndefined (interest));
             } else {
                 // Use transferable instead of available for swap and margin https://github.com/ccxt/ccxt/pull/19127
                 const spotAccountFree = this.safeString (entry, 'available');
@@ -4669,7 +4669,7 @@ export default class bitget extends Exchange {
                     account['free'] = spotAccountFree;
                     const frozen = this.safeString (entry, 'frozen');
                     const locked = this.safeString (entry, 'locked');
-                    account['used'] = Precise.stringAddWithZero (frozen, locked);
+                    account['used'] = Precise.stringAdd (this.zeroIfUndefined (frozen), this.zeroIfUndefined (locked));
                 }
             }
             result[code] = account;
@@ -8270,7 +8270,7 @@ export default class bitget extends Exchange {
         const unrealizedPnl = this.safeString2 (position, 'unrealizedPL', 'unrealisedPnl');
         const rawCollateral = this.safeString2 (position, 'marginSize', 'positionBalance');
         if (marginMode === 'isolated') {
-            collateral = Precise.stringAddWithZero (rawCollateral, unrealizedPnl);
+            collateral = Precise.stringAdd (this.zeroIfUndefined (rawCollateral), this.zeroIfUndefined (unrealizedPnl));
         } else if (marginMode === 'crossed') {
             marginMode = 'cross';
             initialMargin = rawCollateral;
@@ -8321,7 +8321,7 @@ export default class bitget extends Exchange {
         }
         let feeToClose = Precise.stringMul (notional, calcTakerFeeRate);
         feeToClose = (feeToClose !== undefined) ? feeToClose : '0';
-        const maintenanceMargin = Precise.stringAddWithZero (Precise.stringMul (maintenanceMarginPercentage, notional), feeToClose);
+        const maintenanceMargin = Precise.stringAdd (this.zeroIfUndefined (Precise.stringMul (maintenanceMarginPercentage, notional)), this.zeroIfUndefined (feeToClose));
         const percentage = Precise.stringMul (Precise.stringDiv (unrealizedPnl, initialMargin, 4), '100');
         return this.safePosition ({
             'info': position,
@@ -9951,7 +9951,7 @@ export default class bitget extends Exchange {
         const timestamp = this.safeInteger (liquidation, 'liqEndTime');
         const liquidationFee = this.safeString2 (liquidation, 'LiqFee', 'liqFee');
         const totalDebt = this.safeString (liquidation, 'totalDebt');
-        const quoteValueString = Precise.stringAddWithZero (liquidationFee, totalDebt);
+        const quoteValueString = Precise.stringAdd (this.zeroIfUndefined (liquidationFee), this.zeroIfUndefined (totalDebt));
         return this.safeLiquidation ({
             'info': liquidation,
             'symbol': this.safeSymbol (marketId, market),

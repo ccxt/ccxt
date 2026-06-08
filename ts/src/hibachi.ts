@@ -1586,7 +1586,7 @@ export default class hibachi extends Exchange {
         const quantity = this.safeString (position, 'quantity');
         const unrealizedFunding = this.safeString (position, 'unrealizedFundingPnl', '0');
         const unrealizedTrading = this.safeString (position, 'unrealizedTradingPnl', '0');
-        const unrealizedPnl = Precise.stringAddWithZero (unrealizedFunding, unrealizedTrading);
+        const unrealizedPnl = Precise.stringAdd (this.zeroIfUndefined (unrealizedFunding), this.zeroIfUndefined (unrealizedTrading));
         return this.safePosition ({
             'info': position,
             'id': undefined,

@@ -524,11 +524,11 @@ export default class luno extends Exchange {
             const reserved = this.safeString (wallet, 'reserved');
             const unconfirmed = this.safeString (wallet, 'unconfirmed');
             const balance = this.safeString (wallet, 'balance');
-            const reservedUnconfirmed = Precise.stringAddWithZero (reserved, unconfirmed);
-            const balanceUnconfirmed = Precise.stringAddWithZero (balance, unconfirmed);
+            const reservedUnconfirmed = Precise.stringAdd (this.zeroIfUndefined (reserved), this.zeroIfUndefined (unconfirmed));
+            const balanceUnconfirmed = Precise.stringAdd (this.zeroIfUndefined (balance), this.zeroIfUndefined (unconfirmed));
             if (code in result) {
-                result[code]['used'] = Precise.stringAddWithZero (result[code]['used'], reservedUnconfirmed);
-                result[code]['total'] = Precise.stringAddWithZero (result[code]['total'], balanceUnconfirmed);
+                result[code]['used'] = Precise.stringAdd (this.zeroIfUndefined (result[code]['used']), this.zeroIfUndefined (reservedUnconfirmed));
+                result[code]['total'] = Precise.stringAdd (this.zeroIfUndefined (result[code]['total']), this.zeroIfUndefined (balanceUnconfirmed));
             } else {
                 const account = this.account ();
                 account['used'] = reservedUnconfirmed;

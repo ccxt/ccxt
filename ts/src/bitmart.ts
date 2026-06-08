@@ -2392,7 +2392,7 @@ export default class bitmart extends Exchange {
         account['total'] = this.safeString (entry, 'total_asset');
         const debt = this.safeString (entry, 'borrow_unpaid');
         const interest = this.safeString (entry, 'interest_unpaid');
-        account['debt'] = Precise.stringAddWithZero (debt, interest);
+        account['debt'] = Precise.stringAdd (this.zeroIfUndefined (debt), this.zeroIfUndefined (interest));
         return account;
     }
 

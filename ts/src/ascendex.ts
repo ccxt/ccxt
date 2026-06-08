@@ -960,7 +960,7 @@ export default class ascendex extends Exchange {
             account['total'] = this.safeString (balance, 'totalBalance');
             const debt = this.safeString (balance, 'borrowed');
             const interest = this.safeString (balance, 'interest');
-            account['debt'] = Precise.stringAddWithZero (debt, interest);
+            account['debt'] = Precise.stringAdd (this.zeroIfUndefined (debt), this.zeroIfUndefined (interest));
             result[code] = account;
         }
         return this.safeBalance (result);

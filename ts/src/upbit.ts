@@ -1863,12 +1863,12 @@ export default class upbit extends Exchange {
             cost = '0';
             for (let i = 0; i < numTrades; i++) {
                 const trade = trades[i];
-                cost = Precise.stringAddWithZero (cost, this.safeString (trade, 'cost'));
+                cost = Precise.stringAdd (this.zeroIfUndefined (cost), this.zeroIfUndefined (this.safeString (trade, 'cost')));
                 if (getFeesFromTrades) {
                     const tradeFee = this.safeValue (trades[i], 'fee', {});
                     const tradeFeeCost = this.safeString (tradeFee, 'cost');
                     if (tradeFeeCost !== undefined) {
-                        feeCost = Precise.stringAddWithZero (feeCost, tradeFeeCost);
+                        feeCost = Precise.stringAdd (this.zeroIfUndefined (this.zeroIfUndefined (feeCost), this.zeroIfUndefined (tradeFeeCost));
                     }
                 }
             }

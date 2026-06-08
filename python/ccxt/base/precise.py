@@ -209,16 +209,6 @@ class Precise:
         return str(Precise(string1).div(string2_precise, precision))
 
     @staticmethod
-    def string_add_with_zero(string1, string2):
-        if string1 is None and string2 is None:
-            return None
-        if string1 is None:
-            return string2
-        elif string2 is None:
-            return string1
-        return str(Precise(string1).add(Precise(string2)))
-
-    @staticmethod
     def string_add(string1, string2):
         if string1 is None or string2 is None:
             return None
