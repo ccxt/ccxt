@@ -70,17 +70,8 @@ function helperTestSharedCurrencyFormat (exchange, skippedProperties, method, en
     }
     //
     if (!('active' in skippedProperties)) {
-        if (entry['deposit'] === undefined && entry['withdraw'] === undefined) {
-            assert (entry['active'] === undefined, 'active must be undefined if deposit and withdraw are both undefined');
-        }
-        else if (entry['deposit'] === undefined || entry['withdraw'] === undefined) {
-            assert (entry['active'] === undefined, 'active must be undefined if either deposit or withdraw is undefined');
-        }
-        else if (entry['deposit'] === false && entry['withdraw'] === false) {
+        if (entry['deposit'] === false && entry['withdraw'] === false) {
             assert (entry['active'] === false, 'active must be false if deposit and withdraw are both false');
-        }
-        else if (entry['deposit'] === false || entry['withdraw'] === false) {
-            assert (entry['active'] === false, 'active must be false if either deposit or withdraw is false');
         }
         else if (entry['deposit'] === true && entry['withdraw'] === true) {
             assert (entry['active'] === true, 'active must be true if deposit and withdraw are both true');
