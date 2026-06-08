@@ -815,8 +815,6 @@ export default class htx extends Exchange {
                             'linear-swap-api/v1/swap_cross_cancelall': 1,
                             'linear-swap-api/v1/swap_switch_lever_rate': 30,
                             'linear-swap-api/v1/swap_cross_switch_lever_rate': 30,
-                            'linear-swap-api/v1/swap_lightning_close_position': 1,
-                            'linear-swap-api/v1/swap_cross_lightning_close_position': 1,
                             'linear-swap-api/v1/swap_order_info': 1,
                             'linear-swap-api/v1/swap_cross_order_info': 1,
                             'linear-swap-api/v1/swap_order_detail': 1,
@@ -4138,7 +4136,7 @@ export default class htx extends Exchange {
         if (Array.isArray (order)) {
             order = this.safeValue (order, 0);
         }
-        return this.parseOrder (order);
+        return this.parseOrder (order, market);
     }
 
     parseMarginBalanceHelper (balance, code, result) {
@@ -5005,7 +5003,7 @@ export default class htx extends Exchange {
         //         "canceled-at":  0
         //     }
         //
-        // linear swap createOrder
+        // linear swap createOrder, closePosition
         //
         //     {
         //         "order_id": "1512501029504577536",
@@ -5425,8 +5423,10 @@ export default class htx extends Exchange {
         }
         const id = this.safeStringN (order, [ 'algo_id', 'id', 'order_id_str', 'order-id', 'order_id' ]);
         let side = this.safeString2 (order, 'direction', 'side');
+        const contractCode = this.safeString (order, 'contract_code');
+        const isLinearOrder = (contractCode !== undefined) && market['linear'];
         let type = undefined;
-        if (market['linear']) {
+        if (isLinearOrder) {
             type = this.safeStringN (order, [ 'tp_type', 'sl_type', 'type' ]);
         } else {
             type = this.safeString (order, 'order_price_type');
@@ -5445,7 +5445,7 @@ export default class htx extends Exchange {
         const clientOrderId = this.safeStringN (order, [ 'client_order_id', 'client-or' + 'der-id', 'algo_client_order_id' ]); // transpiler regex trick for php issue
         let cost = undefined;
         let amount = undefined;
-        if ((type !== undefined) && (type.indexOf ('market') >= 0) && (!market['linear'])) {
+        if ((type !== undefined) && (type.indexOf ('market') >= 0) && (!isLinearOrder)) {
             cost = this.safeString (order, 'field-cash-amount');
         } else {
             amount = this.safeString2 (order, 'volume', 'amount');
@@ -5472,7 +5472,7 @@ export default class htx extends Exchange {
         const average = this.safeString (order, 'trade_avg_price');
         const trades = this.safeValue (order, 'trades');
         let reduceOnly = undefined;
-        if (market['linear'] && market['contract']) {
+        if (isLinearOrder) {
             reduceOnly = this.safeBool (order, 'reduce_only');
         } else {
             const reduceOnlyInteger = this.safeInteger (order, 'reduce_only');
@@ -9866,10 +9866,9 @@ export default class htx extends Exchange {
 
     /**
      * @method
-     * @name htx#closePositions
-     * @description closes open positions for a contract market, requires 'amount' in params, unlike other exchanges
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-lightning-close-order  // USDT-M (isolated)
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-lightning-close-position  // USDT-M (cross)
+     * @name htx#closePosition
+     * @description closes open positions for a contract market
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958953a715    // USDT-M
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-lightning-close-order  // Coin-M swap
      * @see https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      // Coin-M futures
      * @param {string} symbol unified CCXT market symbol
@@ -9881,6 +9880,7 @@ export default class htx extends Exchange {
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {number} [params.amount] order quantity
      * @param {string} [params.order_price_type] 'lightning' by default, 'lightning_fok': lightning fok type, 'lightning_ioc': lightning ioc type 'market' by default, 'market': market order type, 'lightning_fok': lightning
+     * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} [an order structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
@@ -9890,37 +9890,48 @@ export default class htx extends Exchange {
         if (!market['contract']) {
             throw new BadRequest (this.id + ' closePosition() symbol supports contract markets only');
         }
-        this.checkRequiredArgument ('closePosition', side, 'side');
         const request: Dict = {
             'contract_code': market['id'],
-            'direction': side,
         };
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
+            params = this.omit (params, 'clientOrderId');
         }
-        if (market['inverse']) {
+        let response = undefined;
+        if (market['linear']) {
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', params, 'cross');
+            request['margin_mode'] = marginMode;
+            response = await this.contractPrivatePostV5TradePosition (this.extend (request, params));
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": {
+            //             "order_id": 1513557136321597440,
+            //             "client_order_id": "1513557136321597440"
+            //         },
+            //         "ts": 1780901741840
+            //     }
+            //
+        } else {
+            this.checkRequiredArgument ('closePosition', side, 'side');
             const amount = this.safeString2 (params, 'volume', 'amount');
             if (amount === undefined) {
                 throw new ArgumentsRequired (this.id + ' closePosition () requires an extra argument params["amount"] for inverse markets');
             }
             request['volume'] = this.amountToPrecision (symbol, amount);
-        }
-        params = this.omit (params, [ 'clientOrderId', 'volume', 'amount' ]);
-        let response = undefined;
-        if (market['inverse']) {  // Coin-M
+            request['direction'] = side;
+            params = this.omit (params, [ 'volume', 'amount' ]);
             if (market['swap']) {
                 response = await this.contractPrivatePostSwapApiV1SwapLightningClosePosition (this.extend (request, params));
             } else {  // future
                 response = await this.contractPrivatePostApiV1LightningClosePosition (this.extend (request, params));
             }
-        } else {  // USDT-M
-            let marginMode = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', params, 'cross');
-            if (marginMode === 'cross') {
-                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition (this.extend (request, params));
-            } else {  // isolated
-                response = await this.contractPrivatePostLinearSwapApiV1SwapLightningClosePosition (this.extend (request, params));
-            }
+        }
+        if (market['linear']) {
+            const data = this.safeDict (response, 'data', {});
+            return this.parseOrder (data, market);
         }
         return this.parseOrder (response, market);
     }

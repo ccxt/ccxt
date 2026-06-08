@@ -2568,7 +2568,7 @@
                         "id": "1512509978516443136",
                         "clientOrderId": "1512509978516443136",
                         "timestamp": 1780652079954,
-                        "datetime": null,
+                        "datetime": "2026-06-05T09:34:39.954Z",
                         "lastTradeTimestamp": null,
                         "symbol": "LTC/USDT:USDT",
                         "type": "limit",
@@ -4025,6 +4025,60 @@
                         "fee": null
                     }
                 ]
+            }
+        ],
+        "closePosition": [
+            {
+                "description": "Linear swap close position",
+                "method": "closePosition",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    {
+                        "position_side": "long"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "Success",
+                    "data": {
+                        "order_id": "1513558112158212096",
+                        "client_order_id": "1513558112158212096"
+                    },
+                    "ts": "1780901974493"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order_id": "1513558112158212096",
+                        "client_order_id": "1513558112158212096"
+                    },
+                    "id": "1513558112158212096",
+                    "clientOrderId": "1513558112158212096",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "reduceOnly": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null
+                }
             }
         ]
     }
