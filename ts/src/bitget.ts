@@ -2887,7 +2887,7 @@ export default class bitget extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const networkId = this.networkCodeToId (networkCode);
+        const networkId = this.networkCodeToId (networkCode, code);
         const request: Dict = {
             'coin': currency['id'],
             'address': address,
@@ -3058,7 +3058,7 @@ export default class bitget extends Exchange {
             'txid': this.safeString (transaction, 'tradeId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.networkIdToCode (networkId),
+            'network': this.networkIdToCode (networkId, code),
             'addressFrom': this.safeString (transaction, 'fromAddress'),
             'address': this.safeString (transaction, 'toAddress'),
             'addressTo': this.safeString (transaction, 'toAddress'),
@@ -3138,14 +3138,14 @@ export default class bitget extends Exchange {
         //
         const currencyId = this.safeString (depositAddress, 'coin');
         const networkId = this.safeString (depositAddress, 'chain');
-        const parsedCurrency = this.safeCurrencyCode (currencyId, currency);
+        const code = this.safeCurrencyCode (currencyId, currency);
         let network = undefined;
         if (networkId !== undefined) {
-            network = this.networkIdToCode (networkId, parsedCurrency);
+            network = this.networkIdToCode (networkId, code);
         }
         return {
             'info': depositAddress,
-            'currency': parsedCurrency,
+            'currency': code,
             'network': network,
             'address': this.safeString (depositAddress, 'address'),
             'tag': this.safeString (depositAddress, 'tag'),
