@@ -4821,11 +4821,15 @@ export default class Exchange {
         let change = this.omitZero (this.safeString (ticker, 'change'));
         let percentage = this.omitZero (this.safeString (ticker, 'percentage'));
         let average = this.omitZero (this.safeString (ticker, 'average'));
-        let vwap = this.safeString (ticker, 'vwap');
-        const baseVolume = this.safeString (ticker, 'baseVolume');
-        const quoteVolume = this.safeString (ticker, 'quoteVolume');
+        let vwap = this.omitZero (this.safeString (ticker, 'vwap'));
+        let baseVolume = this.safeString (ticker, 'baseVolume');
+        let quoteVolume = this.safeString (ticker, 'quoteVolume');
         if (vwap === undefined) {
             vwap = Precise.stringDiv (this.omitZero (quoteVolume), baseVolume);
+        } else if ((quoteVolume === undefined) && (baseVolume !== undefined)) {
+            quoteVolume = Precise.stringMul (vwap, baseVolume);
+        } else if ((quoteVolume !== undefined) && (baseVolume === undefined)) {
+            baseVolume = Precise.stringDiv (quoteVolume, vwap);
         }
         // calculate open
         if (change !== undefined) {
