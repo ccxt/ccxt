@@ -2104,7 +2104,7 @@ export default class kucoin extends kucoinRest {
         const rawTimeInForce = this.safeString (order, 'tIF');
         const remainSize = this.safeString (order, 'rS');
         const canceledSize = this.safeString (order, 'cS');
-        const remaining = Precise.stringAdd (remainSize, canceledSize);
+        const remaining = Precise.stringAddWithZero (remainSize, canceledSize);
         market = this.safeMarket (marketId, market);
         const fee = {
             'cost': this.safeString (order, 'f'),
@@ -2676,7 +2676,7 @@ export default class kucoin extends kucoinRest {
         let used = this.safeString2 (data, 'hold', 'holdBalance');
         const isolatedPosMargin = this.omitZero (this.safeString (data, 'isolatedPosMargin'));
         if (isolatedPosMargin !== undefined) {
-            used = Precise.stringAdd (used, isolatedPosMargin);
+            used = Precise.stringAddWithZero (used, isolatedPosMargin);
         }
         account['free'] = this.safeString2 (data, 'available', 'availableBalance');
         account['used'] = used;

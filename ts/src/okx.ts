@@ -6224,7 +6224,7 @@ export default class okx extends Exchange {
         let collateralString = undefined;
         if (marginMode === 'cross') {
             initialMarginString = this.safeString (position, 'imr');
-            collateralString = Precise.stringAdd (initialMarginString, unrealizedPnlString);
+            collateralString = Precise.stringAddWithZero (initialMarginString, unrealizedPnlString);
         } else if (marginMode === 'isolated') {
             initialMarginPercentage = Precise.stringDiv ('1', leverageString);
             collateralString = this.safeString (position, 'margin');
@@ -6242,7 +6242,7 @@ export default class okx extends Exchange {
             }
         }
         const rounder = '0.00005'; // round to closest 0.01%
-        const maintenanceMarginPercentage = this.parseNumber (Precise.stringDiv (Precise.stringAdd (maintenanceMarginPercentageString, rounder), '1', 4));
+        const maintenanceMarginPercentage = this.parseNumber (Precise.stringDiv (Precise.stringAddWithZero (maintenanceMarginPercentageString, rounder), '1', 4));
         const liquidationPrice = this.safeNumber (position, 'liqPx');
         const percentageString = this.safeString (position, 'uplRatio');
         const percentage = this.parseNumber (Precise.stringMul (percentageString, '100'));

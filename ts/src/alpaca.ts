@@ -1771,7 +1771,7 @@ export default class alpaca extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const fees = this.safeString (transaction, 'fees');
         const networkFee = this.safeString (transaction, 'network_fee');
-        const totalFee = Precise.stringAdd (fees, networkFee);
+        const totalFee = Precise.stringAddWithZero (fees, networkFee);
         const fee = {
             'cost': this.parseNumber (totalFee),
             'currency': code,

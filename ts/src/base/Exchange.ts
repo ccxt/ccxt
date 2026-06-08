@@ -3796,7 +3796,7 @@ export default class Exchange {
             if (before === undefined && after !== undefined) {
                 before = Precise.stringSub (after, amount);
             } else if (before !== undefined && after === undefined) {
-                after = Precise.stringAdd (before, amount);
+                after = Precise.stringAddWithZero (before, amount);
             }
         }
         if (before !== undefined && after !== undefined) {
@@ -4171,7 +4171,7 @@ export default class Exchange {
             let used = this.safeString (balance[code], 'used');
             const debt = this.safeString (balance[code], 'debt');
             if ((total === undefined) && (free !== undefined) && (used !== undefined)) {
-                total = Precise.stringAdd (free, used);
+                total = Precise.stringAddWithZero (free, used);
             }
             if ((free === undefined) && (total !== undefined) && (used !== undefined)) {
                 free = Precise.stringSub (total, used);
@@ -4267,11 +4267,11 @@ export default class Exchange {
                     const trade = trades[i];
                     const tradeAmount = this.safeString (trade, 'amount');
                     if (parseFilled && (tradeAmount !== undefined)) {
-                        filled = Precise.stringAdd (filled, tradeAmount);
+                        filled = Precise.stringAddWithZero (filled, tradeAmount);
                     }
                     const tradeCost = this.safeString (trade, 'cost');
                     if (parseCost && (tradeCost !== undefined)) {
-                        cost = Precise.stringAdd (cost, tradeCost);
+                        cost = Precise.stringAddWithZero (cost, tradeCost);
                     }
                     if (parseSymbol) {
                         symbol = this.safeString (trade, 'symbol');
@@ -4330,7 +4330,7 @@ export default class Exchange {
         if (amount === undefined) {
             // ensure amount = filled + remaining
             if (filled !== undefined && remaining !== undefined) {
-                amount = Precise.stringAdd (filled, remaining);
+                amount = Precise.stringAddWithZero (filled, remaining);
             } else if (status === 'closed') {
                 amount = filled;
             }
@@ -4778,7 +4778,7 @@ export default class Exchange {
                 }
                 const rateKey = (rate === undefined) ? '' : rate;
                 if (rateKey in reduced[feeCurrencyCode]) {
-                    reduced[feeCurrencyCode][rateKey]['cost'] = Precise.stringAdd (reduced[feeCurrencyCode][rateKey]['cost'], cost);
+                    reduced[feeCurrencyCode][rateKey]['cost'] = Precise.stringAddWithZero (reduced[feeCurrencyCode][rateKey]['cost'], cost);
                 } else {
                     reduced[feeCurrencyCode][rateKey] = {
                         'currency': code,
@@ -4814,7 +4814,7 @@ export default class Exchange {
         // calculate open
         if (change !== undefined) {
             if (close === undefined && average !== undefined) {
-                close = Precise.stringAdd (average, Precise.stringDiv (change, '2'));
+                close = Precise.stringAddWithZero (average, Precise.stringDiv (change, '2'));
             }
             if (open === undefined && close !== undefined) {
                 open = Precise.stringSub (close, change);
@@ -4823,12 +4823,12 @@ export default class Exchange {
             if (close === undefined && average !== undefined) {
                 const openAddClose = Precise.stringMul (average, '2');
                 // openAddClose = open * (1 + (100 + percentage)/100)
-                const denominator = Precise.stringAdd ('2', Precise.stringDiv (percentage, '100'));
+                const denominator = Precise.stringAddWithZero ('2', Precise.stringDiv (percentage, '100'));
                 const calcOpen = (open !== undefined) ? open : Precise.stringDiv (openAddClose, denominator);
-                close = Precise.stringMul (calcOpen, Precise.stringAdd ('1', Precise.stringDiv (percentage, '100')));
+                close = Precise.stringMul (calcOpen, Precise.stringAddWithZero ('1', Precise.stringDiv (percentage, '100')));
             }
             if (open === undefined && close !== undefined) {
-                open = Precise.stringDiv (close, Precise.stringAdd ('1', Precise.stringDiv (percentage, '100')));
+                open = Precise.stringDiv (close, Precise.stringAddWithZero ('1', Precise.stringDiv (percentage, '100')));
             }
         }
         // change
@@ -4849,7 +4849,7 @@ export default class Exchange {
             }
             // close (using change)
             if (close === undefined && change !== undefined) {
-                close = Precise.stringAdd (open, change);
+                close = Precise.stringAddWithZero (open, change);
             }
             // close (using average)
             if (close === undefined && average !== undefined) {
@@ -4865,7 +4865,7 @@ export default class Exchange {
                         precision = this.precisionFromString (precisionPrice);
                     }
                 }
-                average = Precise.stringDiv (Precise.stringAdd (open, close), '2', precision);
+                average = Precise.stringDiv (Precise.stringAddWithZero (open, close), '2', precision);
             }
         }
         // timestamp and symbol operations don't belong in safeTicker

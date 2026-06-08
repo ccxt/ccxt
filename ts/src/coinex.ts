@@ -1743,7 +1743,7 @@ export default class coinex extends Exchange {
             baseAccount['used'] = this.safeString (used, 'base_ccy');
             const baseDebt = this.safeString (loan, 'base_ccy');
             const baseInterest = this.safeString (interest, 'base_ccy');
-            baseAccount['debt'] = Precise.stringAdd (baseDebt, baseInterest);
+            baseAccount['debt'] = Precise.stringAddWithZero (baseDebt, baseInterest);
             result[baseCurrencyCode] = baseAccount;
         }
         return this.safeBalance (result);

@@ -1121,7 +1121,7 @@ export default class bitflyer extends Exchange {
             status = this.parseWithdrawalStatus (rawStatus);
             const feeCost = this.safeString (transaction, 'fee');
             const additionalFee = this.safeString (transaction, 'additional_fee');
-            fee = { 'currency': code, 'cost': this.parseNumber (Precise.stringAdd (feeCost, additionalFee)) };
+            fee = { 'currency': code, 'cost': this.parseNumber (Precise.stringAddWithZero (feeCost, additionalFee)) };
         } else {
             type = 'deposit';
             status = this.parseDepositStatus (rawStatus);

@@ -2377,7 +2377,7 @@ export default class bitget extends bitgetRest {
                     const borrow = this.safeString (entry, 'borrow');
                     const debts = this.safeString (entry, 'debts');
                     if ((borrow !== undefined) || (debts !== undefined)) {
-                        account['debt'] = Precise.stringAdd (borrow, debts);
+                        account['debt'] = Precise.stringAddWithZero (borrow, debts);
                     }
                     account['free'] = this.safeString (entry, 'available');
                     account['used'] = this.safeString (entry, 'locked');
@@ -2391,7 +2391,7 @@ export default class bitget extends bitgetRest {
                 const borrow = this.safeString (rawBalance, 'borrow');
                 if (borrow !== undefined) {
                     const interest = this.safeString (rawBalance, 'interest');
-                    account['debt'] = Precise.stringAdd (borrow, interest);
+                    account['debt'] = Precise.stringAddWithZero (borrow, interest);
                 }
                 const freeQuery = ('maxTransferOut' in rawBalance) ? 'maxTransferOut' : 'available';
                 account['free'] = this.safeString (rawBalance, freeQuery);

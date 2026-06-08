@@ -2386,8 +2386,8 @@ export default class xt extends Exchange {
             let used = this.safeString (balance, 'frozenAmount');
             const total = this.safeString2 (balance, 'totalAmount', 'walletBalance');
             if (used === undefined) {
-                const crossedAndIsolatedMargin = Precise.stringAdd (this.safeString (balance, 'crossedMargin'), this.safeString (balance, 'isolatedMargin'));
-                used = Precise.stringAdd (this.safeString (balance, 'openOrderMarginFrozen'), crossedAndIsolatedMargin);
+                const crossedAndIsolatedMargin = Precise.stringAddWithZero (this.safeString (balance, 'crossedMargin'), this.safeString (balance, 'isolatedMargin'));
+                used = Precise.stringAddWithZero (this.safeString (balance, 'openOrderMarginFrozen'), crossedAndIsolatedMargin);
             }
             account['free'] = free;
             account['used'] = used;

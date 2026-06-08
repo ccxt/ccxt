@@ -1336,7 +1336,7 @@ export default class kraken extends Exchange {
         if (until !== undefined) {
             params = this.omit (params, [ 'until', 'till' ]);
             const untilDivided = Precise.stringDiv (until, '1000');
-            request['end'] = this.parseToInt (Precise.stringAdd (untilDivided, '1'));
+            request['end'] = this.parseToInt (Precise.stringAddWithZero (untilDivided, '1'));
         }
         const response = await this.privatePostLedgers (this.extend (request, params));
         // {  error: [],
@@ -2543,7 +2543,7 @@ export default class kraken extends Exchange {
         if (until !== undefined) {
             params = this.omit (params, [ 'until', 'till' ]);
             const untilDivided = Precise.stringDiv (until, '1000');
-            request['end'] = this.parseToInt (Precise.stringAdd (untilDivided, '1'));
+            request['end'] = this.parseToInt (Precise.stringAddWithZero (untilDivided, '1'));
         }
         const response = await this.privatePostTradesHistory (this.extend (request, params));
         //
@@ -3060,7 +3060,7 @@ export default class kraken extends Exchange {
         if (until !== undefined) {
             params = this.omit (params, [ 'until', 'till' ]);
             const untilDivided = Precise.stringDiv (until, '1000');
-            request['end'] = Precise.stringAdd (untilDivided, '1');
+            request['end'] = Precise.stringAddWithZero (untilDivided, '1');
         }
         const response = await this.privatePostDepositStatus (this.extend (request, params));
         //
@@ -3138,7 +3138,7 @@ export default class kraken extends Exchange {
         if (until !== undefined) {
             params = this.omit (params, [ 'until', 'till' ]);
             const untilDivided = Precise.stringDiv (until, '1000');
-            request['end'] = Precise.stringAdd (untilDivided, '1');
+            request['end'] = Precise.stringAddWithZero (untilDivided, '1');
         }
         const response = await this.privatePostWithdrawStatus (this.extend (request, params));
         //

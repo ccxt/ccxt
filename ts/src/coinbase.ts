@@ -2397,8 +2397,8 @@ export default class coinbase extends Exchange {
                         account['free'] = free;
                         account['total'] = total;
                     } else {
-                        account['free'] = Precise.stringAdd (account['free'], total);
-                        account['total'] = Precise.stringAdd (account['total'], total);
+                        account['free'] = Precise.stringAddWithZero (account['free'], total);
+                        account['total'] = Precise.stringAddWithZero (account['total'], total);
                     }
                     result[code] = account;
                 }
@@ -2410,7 +2410,7 @@ export default class coinbase extends Exchange {
                     const code = this.safeCurrencyCode (currencyId);
                     const used = this.safeString (hold, 'value');
                     const free = this.safeString (available, 'value');
-                    const total = Precise.stringAdd (used, free);
+                    const total = Precise.stringAddWithZero (used, free);
                     let account = this.safeDict (result, code);
                     if (account === undefined) {
                         account = this.account ();
@@ -2418,9 +2418,9 @@ export default class coinbase extends Exchange {
                         account['used'] = used;
                         account['total'] = total;
                     } else {
-                        account['free'] = Precise.stringAdd (account['free'], free);
-                        account['used'] = Precise.stringAdd (account['used'], used);
-                        account['total'] = Precise.stringAdd (account['total'], total);
+                        account['free'] = Precise.stringAddWithZero (account['free'], free);
+                        account['used'] = Precise.stringAddWithZero (account['used'], used);
+                        account['total'] = Precise.stringAddWithZero (account['total'], total);
                     }
                     result[code] = account;
                 }
@@ -3841,7 +3841,7 @@ export default class coinbase extends Exchange {
             request['end'] = this.numberToString (this.parseToInt (until / 1000));
         } else {
             // 300 candles max
-            request['end'] = Precise.stringAdd (sinceString, requestedDuration.toString ());
+            request['end'] = Precise.stringAddWithZero (sinceString, requestedDuration.toString ());
         }
         let response = undefined;
         let usePrivate = false;

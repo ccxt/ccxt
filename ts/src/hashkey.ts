@@ -1857,7 +1857,7 @@ export default class hashkey extends Exchange {
         account['total'] = this.safeString (balance, 'balance');
         const positionMargin = this.safeString (balance, 'positionMargin');
         const orderMargin = this.safeString (balance, 'orderMargin');
-        account['used'] = Precise.stringAdd (positionMargin, orderMargin);
+        account['used'] = Precise.stringAddWithZero (positionMargin, orderMargin);
         const result: Dict = {
             'info': balance,
         };

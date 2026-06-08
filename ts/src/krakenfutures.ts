@@ -672,7 +672,7 @@ export default class krakenfutures extends Exchange {
         const last = this.safeString (ticker, 'last');
         const change = Precise.stringSub (last, open);
         const percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
-        const average = Precise.stringDiv (Precise.stringAdd (open, last), '2');
+        const average = Precise.stringDiv (Precise.stringAddWithZero (open, last), '2');
         const volume = this.safeString (ticker, 'vol24h');
         let baseVolume = undefined;
         let quoteVolume = undefined;
@@ -2158,8 +2158,8 @@ export default class krakenfutures extends Exchange {
                 const trade = trades[i];
                 const tradeAmount = this.safeString (trade, 'amount');
                 const tradePrice = this.safeString (trade, 'price');
-                filled2 = Precise.stringAdd (filled2, tradeAmount);
-                vwapSum = Precise.stringAdd (vwapSum, Precise.stringMul (tradeAmount, tradePrice));
+                filled2 = Precise.stringAddWithZero (filled2, tradeAmount);
+                vwapSum = Precise.stringAddWithZero (vwapSum, Precise.stringMul (tradeAmount, tradePrice));
             }
             average = Precise.stringDiv (vwapSum, filled2);
             if ((amount !== undefined) && (!isClosed) && isPrior && Precise.stringGe (filled2, amount)) {
@@ -2167,7 +2167,7 @@ export default class krakenfutures extends Exchange {
                 isClosed = true;
             }
             if (isPrior) {
-                filled = Precise.stringAdd (filled, filled2);
+                filled = Precise.stringAddWithZero (filled, filled2);
             } else {
                 filled = Precise.stringMax (filled, filled2);
             }
@@ -2184,7 +2184,7 @@ export default class krakenfutures extends Exchange {
         }
         // if fetchOpenOrders are parsed
         if ((amount === undefined) && (!isPrior) && (remaining !== undefined)) {
-            amount = Precise.stringAdd (filled, remaining);
+            amount = Precise.stringAddWithZero (filled, remaining);
         }
         let cost = undefined;
         if ((filled !== undefined) && (market !== undefined)) {

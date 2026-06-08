@@ -7843,7 +7843,7 @@ export default class kucoin extends Exchange {
         account['total'] = this.safeString2 (entry, 'totalBalance', 'total');
         const debt = this.safeString (entry, 'liability');
         const interest = this.safeString (entry, 'interest', '0');
-        account['debt'] = Precise.stringAdd (debt, interest);
+        account['debt'] = Precise.stringAddWithZero (debt, interest);
         return account;
     }
 

@@ -757,8 +757,8 @@ export default class krakenfutures extends krakenfuturesRest {
                 const trades = previousOrder['trades'];
                 for (let i = 0; i < trades.length; i++) {
                     const currentTrade = trades[i];
-                    totalCost = Precise.stringAdd (totalCost, this.numberToString (currentTrade['cost']));
-                    totalAmount = Precise.stringAdd (totalAmount, this.numberToString (currentTrade['amount']));
+                    totalCost = Precise.stringAddWithZero (totalCost, this.numberToString (currentTrade['cost']));
+                    totalAmount = Precise.stringAddWithZero (totalAmount, this.numberToString (currentTrade['amount']));
                 }
                 if (Precise.stringGt (totalAmount, '0')) {
                     previousOrder['average'] = Precise.stringDiv (totalCost, totalAmount);
@@ -766,7 +766,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 previousOrder['cost'] = totalCost;
                 const filledString = this.numberToString (trade['amount']);
                 const stringOrderFilled = this.safeString (previousOrder, 'filled', '0');
-                const totalFilled = Precise.stringAdd (stringOrderFilled, filledString);
+                const totalFilled = Precise.stringAddWithZero (stringOrderFilled, filledString);
                 previousOrder['filled'] = totalFilled;
                 const prevAmountString = this.safeString (previousOrder, 'amount');
                 const remaining = Precise.stringSub (prevAmountString, totalFilled);
@@ -781,7 +781,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
                     const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
                     const stringTradeCost = this.numberToString (trade['fee']['cost']);
-                    previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
+                    previousOrder['fee']['cost'] = Precise.stringAddWithZero (stringOrderCost, stringTradeCost);
                 }
                 // update the newUpdates count
                 orders.append (this.safeOrder (previousOrder));

@@ -1282,7 +1282,7 @@ export default class ndax extends Exchange {
         let before = undefined;
         const after = this.safeString (item, 'Balance');
         if (direction === 'out') {
-            before = Precise.stringAdd (after, amount);
+            before = Precise.stringAddWithZero (after, amount);
         } else if (direction === 'in') {
             before = Precise.stringMax ('0', Precise.stringSub (after, amount));
         }

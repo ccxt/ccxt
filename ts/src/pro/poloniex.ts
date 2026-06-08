@@ -855,8 +855,8 @@ export default class poloniex extends poloniexRest {
                         const previousOrderTrade = previousOrderTrades[j];
                         const cost = this.numberToString (previousOrderTrade['cost']);
                         const amount = this.numberToString (previousOrderTrade['amount']);
-                        totalCost = Precise.stringAdd (totalCost, cost);
-                        totalAmount = Precise.stringAdd (totalAmount, amount);
+                        totalCost = Precise.stringAddWithZero (totalCost, cost);
+                        totalAmount = Precise.stringAddWithZero (totalAmount, amount);
                     }
                     if (Precise.stringGt (totalAmount, '0')) {
                         previousOrder['average'] = this.parseNumber (Precise.stringDiv (totalCost, totalAmount));
@@ -865,7 +865,7 @@ export default class poloniex extends poloniexRest {
                     if (previousOrder['filled'] !== undefined) {
                         const tradeAmount = this.numberToString (trade['amount']);
                         let previousOrderFilled = this.numberToString (previousOrder['filled']);
-                        previousOrderFilled = Precise.stringAdd (previousOrderFilled, tradeAmount);
+                        previousOrderFilled = Precise.stringAddWithZero (previousOrderFilled, tradeAmount);
                         previousOrder['filled'] = previousOrderFilled;
                         if (previousOrder['amount'] !== undefined) {
                             const previousOrderAmount = this.numberToString (previousOrder['amount']);
@@ -882,7 +882,7 @@ export default class poloniex extends poloniexRest {
                     if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
                         const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
                         const stringTradeCost = this.numberToString (trade['fee']['cost']);
-                        previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
+                        previousOrder['fee']['cost'] = Precise.stringAddWithZero (stringOrderCost, stringTradeCost);
                     }
                     const rawState = this.safeString (order, 'state');
                     const state = this.parseStatus (rawState);

@@ -1376,7 +1376,7 @@ export default class backpack extends Exchange {
             const account = this.account ();
             const locked = this.safeString (balance, 'locked');
             const staked = this.safeString (balance, 'staked');
-            const used = Precise.stringAdd (locked, staked);
+            const used = Precise.stringAddWithZero (locked, staked);
             account['free'] = this.safeString (balance, 'available');
             account['used'] = used;
             result[code] = account;

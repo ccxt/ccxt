@@ -3483,7 +3483,7 @@ export default class bybit extends Exchange {
                         const loan = this.safeString (coinEntry, 'borrowAmount');
                         const interest = this.safeString (coinEntry, 'accruedInterest');
                         if ((loan !== undefined) && (interest !== undefined)) {
-                            account['debt'] = Precise.stringAdd (loan, interest);
+                            account['debt'] = Precise.stringAddWithZero (loan, interest);
                         }
                         account['total'] = this.safeString (coinEntry, 'walletBalance');
                         const free = this.safeString2 (coinEntry, 'availableToWithdraw', 'free');
@@ -3493,8 +3493,8 @@ export default class bybit extends Exchange {
                             const locked = this.safeString (coinEntry, 'locked', '0');
                             const totalPositionIm = this.safeString (coinEntry, 'totalPositionIM', '0');
                             const totalOrderIm = this.safeString (coinEntry, 'totalOrderIM', '0');
-                            let totalUsed = Precise.stringAdd (locked, totalPositionIm);
-                            totalUsed = Precise.stringAdd (totalUsed, totalOrderIm);
+                            let totalUsed = Precise.stringAddWithZero (locked, totalPositionIm);
+                            totalUsed = Precise.stringAddWithZero (totalUsed, totalOrderIm);
                             account['used'] = totalUsed;
                         }
                         // account['used'] = this.safeString (coinEntry, 'locked');
@@ -3507,7 +3507,7 @@ export default class bybit extends Exchange {
                     const loan = this.safeString (entry, 'loan');
                     const interest = this.safeString (entry, 'interest');
                     if ((loan !== undefined) && (interest !== undefined)) {
-                        account['debt'] = Precise.stringAdd (loan, interest);
+                        account['debt'] = Precise.stringAddWithZero (loan, interest);
                     }
                     account['total'] = this.safeString2 (entry, 'total', 'walletBalance');
                     account['free'] = this.safeStringN (entry, [ 'free', 'availableBalanceWithoutConvert', 'availableBalance', 'transferBalance' ]);
@@ -6319,7 +6319,7 @@ export default class bybit extends Exchange {
         let amount = undefined;
         if (afterString !== undefined && amountString !== undefined) {
             const difference = (direction === 'out') ? amountString : Precise.stringNeg (amountString);
-            before = this.parseToNumeric (Precise.stringAdd (afterString, difference));
+            before = this.parseToNumeric (Precise.stringAddWithZero (afterString, difference));
             after = this.parseToNumeric (afterString);
             amount = this.parseToNumeric (Precise.stringAbs (amountString));
         }
@@ -6799,7 +6799,7 @@ export default class bybit extends Exchange {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
                 const price = this.safeBool (this.options, 'useMarkPriceForPositionCollateral', false) ? markPrice : entryPrice;
                 const difference = Precise.stringAbs (Precise.stringSub (price, liquidationPrice));
-                collateralString = Precise.stringAdd (Precise.stringAdd (Precise.stringMul (difference, size), maintenanceMarginString), unrealisedPnl);
+                collateralString = Precise.stringAddWithZero (Precise.stringAddWithZero (Precise.stringMul (difference, size), maintenanceMarginString), unrealisedPnl);
             } else {
                 const bustPrice = this.safeString (position, 'bustPrice');
                 if (market['linear']) {

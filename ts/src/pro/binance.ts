@@ -3108,7 +3108,7 @@ export default class binance extends binanceRest {
                 if (typeof previousValue !== 'string') {
                     previousValue = this.numberToString (previousValue);
                 }
-                account['free'] = Precise.stringAdd (previousValue, delta);
+                account['free'] = Precise.stringAddWithZero (previousValue, delta);
             } else {
                 account['free'] = delta;
             }

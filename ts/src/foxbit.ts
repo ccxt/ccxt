@@ -1780,7 +1780,7 @@ export default class foxbit extends Exchange {
         // TODO: validate logic of amount here, should this be calculated?
         let amount = undefined;
         if (remaining !== undefined && filled !== undefined) {
-            amount = Precise.stringAdd (remaining, filled);
+            amount = Precise.stringAddWithZero (remaining, filled);
         }
         let cost = this.safeString (order, 'funds_received');
         if (!cost) {

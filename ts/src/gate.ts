@@ -1606,7 +1606,7 @@ export default class gate extends Exchange {
         const priceDeviate = this.safeString (market, 'order_price_deviate');
         const markPrice = this.safeString (market, 'mark_price');
         const minMultiplier = Precise.stringSub ('1', priceDeviate);
-        const maxMultiplier = Precise.stringAdd ('1', priceDeviate);
+        const maxMultiplier = Precise.stringAddWithZero ('1', priceDeviate);
         const minPrice = Precise.stringMul (minMultiplier, markPrice);
         const maxPrice = Precise.stringMul (maxMultiplier, markPrice);
         const isLinear = quote === settle;
@@ -1732,7 +1732,7 @@ export default class gate extends Exchange {
                 const priceDeviate = this.safeString (market, 'order_price_deviate');
                 const markPrice = this.safeString (market, 'mark_price');
                 const minMultiplier = Precise.stringSub ('1', priceDeviate);
-                const maxMultiplier = Precise.stringAdd ('1', priceDeviate);
+                const maxMultiplier = Precise.stringAddWithZero ('1', priceDeviate);
                 const minPrice = Precise.stringMul (minMultiplier, markPrice);
                 const maxPrice = Precise.stringMul (maxMultiplier, markPrice);
                 let createdTs = this.safeTimestamp (market, 'create_time');
@@ -6165,7 +6165,7 @@ export default class gate extends Exchange {
         if (feePaid === undefined) {
             const takerFee = '0.00075';
             feePaid = Precise.stringMul (takerFee, notional);
-            initialMarginString = Precise.stringAdd (Precise.stringDiv (notional, leverage), feePaid);
+            initialMarginString = Precise.stringAddWithZero (Precise.stringDiv (notional, leverage), feePaid);
         }
         let timestamp = this.safeTimestamp2 (position, 'open_time', 'first_open_time');
         if (timestamp === 0) {
@@ -6568,7 +6568,7 @@ export default class gate extends Exchange {
         let floor = '0';
         const tiers = [];
         while (Precise.stringLt (floor, riskLimitMax)) {
-            const cap = Precise.stringAdd (floor, riskLimitStep);
+            const cap = Precise.stringAddWithZero (floor, riskLimitStep);
             tiers.push ({
                 'tier': this.parseNumber (Precise.stringDiv (cap, riskLimitStep)),
                 'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
@@ -6579,8 +6579,8 @@ export default class gate extends Exchange {
                 'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRatio)),
                 'info': info,
             });
-            maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, maintenanceMarginUnit);
-            initialMarginRatio = Precise.stringAdd (initialMarginRatio, initialMarginUnit);
+            maintenanceMarginRate = Precise.stringAddWithZero (maintenanceMarginRate, maintenanceMarginUnit);
+            initialMarginRatio = Precise.stringAddWithZero (initialMarginRatio, initialMarginUnit);
             floor = cap;
         }
         return tiers as LeverageTier[];
