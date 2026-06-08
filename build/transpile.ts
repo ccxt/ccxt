@@ -456,6 +456,7 @@ class Transpiler {
             [ /undefined/g, 'null' ],
             [ /\} else if/g, '} elseif' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
+            [ /this\.zero_if_null/g, '$this->zero_if_undefined' ],
             [ /this\.string_to_base64/g, 'base64_encode' ],
             [ /this\.binary_to_base16/g, 'bin2hex' ],
             [ /this\.base64_to_binary/g, 'base64_decode' ],
