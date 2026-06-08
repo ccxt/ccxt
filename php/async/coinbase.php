@@ -1199,13 +1199,14 @@ class coinbase extends Exchange {
         $toObject = $this->safe_dict($transaction, 'to');
         $addressTo = $this->safe_string($toObject, 'address');
         $networkId = $this->safe_string($network, 'network_name');
+        $code = $this->safe_currency_code($currencyId, $currency);
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $this->safe_string($network, 'hash', $id),
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $addressTo,
             'addressTo' => $addressTo,
             'addressFrom' => null,
@@ -1214,7 +1215,7 @@ class coinbase extends Exchange {
             'tagFrom' => null,
             'type' => $type,
             'amount' => $this->parse_number($amountStringAbs),
-            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'currency' => $code,
             'status' => $status,
             'updated' => $this->parse8601($this->safe_string($transaction, 'updated_at')),
             'fee' => array(

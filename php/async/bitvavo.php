@@ -638,7 +638,7 @@ class bitvavo extends Exchange {
         // btw, absolutely all of them have 1 network atm
         for ($j = 0; $j < count($networksArray); $j++) {
             $networkId = $networksArray[$j];
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'info' => $rawCurrency,
                 'id' => $networkId,

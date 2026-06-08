@@ -1613,7 +1613,7 @@ class bitopro extends Exchange {
             'txid' => $this->safe_string($transaction, 'txid'),
             'type' => null,
             'currency' => $code,
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'amount' => $this->safe_number($transaction, 'total'),
             'status' => $this->parse_transaction_status($status),
             'timestamp' => $timestamp,
