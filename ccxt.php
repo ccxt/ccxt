@@ -54,8 +54,6 @@ spl_autoload_register(function ($class) {
     $class_name = str_replace('phpseclib\\Math\\BigInteger', 'phpseclib/Math/BigInteger', $class_name);
     $class_name = str_replace('Sop\\', 'Sop/', $class_name);
     $class_name = str_replace('Elliptic\\', 'elliptic-php/lib/', $class_name);
-    $class_name = str_replace('Ratchet\\Client', 'ratchet\\pawl\\src', $class_name);
-    $class_name = str_replace('Ratchet\\RFC6455', 'ratchet\\rfc6455\\src', $class_name);
     $class_name = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
     $file = $PATH . $class_name . '.php';
     if (file_exists($file)) {
@@ -119,12 +117,12 @@ if (file_exists($autoloadFile)) {
 
 spl_autoload_register(function ($class_name) {
     $sections = explode("\\", $class_name);
-    if (in_array("ccxt\\pro",$sections)) {
+    if (in_array("ccxt\\pro", $sections)) {
         $class_name = str_replace("ccxt\\pro\\", "", $class_name);
         $sections = explode("\\", $class_name);
-        $class_name = str_replace ("ccxt\\pro\\", "", $class_name);
+        $class_name = str_replace("ccxt\\pro\\", "", $class_name);
         $file = PATH_TO_WS_CCXT . $class_name . '.php';
-        if (file_exists ($file)) {
+        if (file_exists($file)) {
             require_once $file;
         }
         return;
@@ -143,6 +141,7 @@ spl_autoload_register(function ($class_name) {
 
 
 namespace ccxt\pro;
+
 require_once PATH_TO_WS_CCXT . 'Future.php';
 require_once PATH_TO_WS_CCXT . 'Client.php';
 require_once PATH_TO_WS_CCXT . 'OrderBook.php';
