@@ -179,6 +179,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         exmoItf := NewExmoCore()
         exmoItf.Init(exchangeArgs)
         return exmoItf, true
+    case "extended":
+        extendedItf := NewExtendedCore()
+        extendedItf.Init(exchangeArgs)
+        return extendedItf, true
     case "gate":
         gateItf := NewGateCore()
         gateItf.Init(exchangeArgs)

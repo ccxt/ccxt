@@ -145,6 +145,9 @@ func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
     case "exmo":
         itf := NewExmo(options)
         return itf
+    case "extended":
+        itf := NewExtended(options)
+        return itf
     case "gate":
         itf := NewGate(options)
         return itf
