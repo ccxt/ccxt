@@ -325,6 +325,7 @@ export default class extended extends Exchange {
                 },
             },
             'options': {
+                'builderFee': true,
                 'builderId': '257624',
             },
         });
