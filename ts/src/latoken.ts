@@ -161,6 +161,7 @@ export default class latoken extends Exchange {
                         'auth/account': 1,
                         'auth/account/currency/{currency}/{type}': 1,
                         'auth/order': 1,
+                        'auth/order/active': 1,
                         'auth/order/getOrder/{id}': 1,
                         'auth/order/pair/{currency}/{quote}': 1,
                         'auth/order/pair/{currency}/{quote}/active': 1,
@@ -1181,23 +1182,23 @@ export default class latoken extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
         await this.loadMarkets ();
         let response = undefined;
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, 'stop');
-        // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
-        const market = this.market (symbol);
-        const request: Dict = {
-            'currency': market['baseId'],
-            'quote': market['quoteId'],
-        };
+        const request: Dict = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['currency'] = market['baseId'];
+            request['quote'] = market['quoteId'];
+        }
         if (isTrigger) {
             response = await this.privateGetAuthStopOrderPairCurrencyQuoteActive (this.extend (request, params));
-        } else {
+        } else if (symbol !== undefined) {
             response = await this.privateGetAuthOrderPairCurrencyQuoteActive (this.extend (request, params));
+        } else {
+            response = await this.privateGetAuthOrderActive (this.extend (request, params));
         }
         //
         //     [
