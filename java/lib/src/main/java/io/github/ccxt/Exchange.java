@@ -20,6 +20,10 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.util.concurrent.ExecutionException;
 import java.security.SecureRandom;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 import io.github.ccxt.base.Crypto;
 import io.github.ccxt.base.Encode;
@@ -2843,6 +2847,382 @@ public class Exchange {
         return ""; // to do later
     }
 
+    public Object extendedStarknetSign(Object msgHash, Object privateKey)
+    {
+        BigInteger hash = extendedParseStarknetBigInteger(msgHash);
+        BigInteger key = extendedParseStarknetBigInteger(privateKey);
+        BigInteger[] signature = extendedStarknetSignBigInteger(hash, key);
+        return this.json(new ArrayList<Object>(Arrays.asList(signature[0].toString(), signature[1].toString())));
+    }
+
+    public Object extendedStarknetGetSelectorFromName(Object name)
+    {
+        String functionName = name.toString();
+        if (functionName.equals("__default__") || functionName.equals("__l1_default__")) {
+            return "0";
+        }
+        byte[] digest = keccak256(functionName.getBytes(StandardCharsets.US_ASCII));
+        return extendedField(extendedBigIntegerFromUnsignedBytes(digest), EXTENDED_STARKNET_SELECTOR_MASK).toString();
+    }
+
+    public Object extendedStarknetComputePoseidonHashOnElements(Object data)
+    {
+        if (!(data instanceof Iterable<?>)) {
+            throw new RuntimeException("extendedStarknetComputePoseidonHashOnElements() requires an array");
+        }
+        ArrayList<BigInteger> padded = new ArrayList<>();
+        for (Object value : (Iterable<?>) data) {
+            padded.add(extendedParseStarknetBigInteger(value));
+        }
+        padded.add(BigInteger.ONE);
+        while ((padded.size() % EXTENDED_STARKNET_POSEIDON_RATE) != 0) {
+            padded.add(BigInteger.ZERO);
+        }
+        BigInteger[] state = new BigInteger[] { BigInteger.ZERO, BigInteger.ZERO, BigInteger.ZERO };
+        for (int i = 0; i < padded.size(); i += EXTENDED_STARKNET_POSEIDON_RATE) {
+            for (int j = 0; j < EXTENDED_STARKNET_POSEIDON_RATE; j++) {
+                state[j] = state[j].add(padded.get(i + j));
+            }
+            state = extendedPoseidonHash(state);
+        }
+        return state[0].toString();
+    }
+
+    private static final BigInteger EXTENDED_STARKNET_FIELD_PRIME = new BigInteger("3618502788666131213697322783095070105623107215331596699973092056135872020481");
+    private static final BigInteger EXTENDED_STARKNET_ALPHA = BigInteger.ONE;
+    private static final BigInteger EXTENDED_STARKNET_BETA = new BigInteger("3141592653589793238462643383279502884197169399375105820974944592307816406665");
+    private static final BigInteger EXTENDED_STARKNET_EC_ORDER = new BigInteger("3618502788666131213697322783095070105526743751716087489154079457884512865583");
+    private static final BigInteger EXTENDED_STARKNET_EC_GEN_X = new BigInteger("874739451078007766457464989774322083649278607533249481151382481072868806602");
+    private static final BigInteger EXTENDED_STARKNET_EC_GEN_Y = new BigInteger("152666792071518830868575557812948353041420400780739481342941381225525861407");
+    private static final BigInteger EXTENDED_STARKNET_SELECTOR_MASK = BigInteger.ONE.shiftLeft(250);
+    private static final int EXTENDED_STARKNET_ELEMENT_BITS_ECDSA = 251;
+    private static final int EXTENDED_STARKNET_POSEIDON_RATE = 2;
+    private static final int EXTENDED_STARKNET_POSEIDON_CAPACITY = 1;
+    private static final int EXTENDED_STARKNET_POSEIDON_ROUNDS_FULL = 8;
+    private static final int EXTENDED_STARKNET_POSEIDON_ROUNDS_PARTIAL = 83;
+    private static final BigInteger[][] EXTENDED_STARKNET_POSEIDON_ROUND_CONSTANTS = extendedBuildPoseidonRoundConstants();
+    private static final BigInteger[][] EXTENDED_STARKNET_POSEIDON_MDS = new BigInteger[][] {
+        new BigInteger[] { BigInteger.valueOf(3), BigInteger.ONE, BigInteger.ONE },
+        new BigInteger[] { BigInteger.ONE, BigInteger.valueOf(-1), BigInteger.ONE },
+        new BigInteger[] { BigInteger.ONE, BigInteger.ONE, BigInteger.valueOf(-2) },
+    };
+
+    private static BigInteger extendedParseStarknetBigInteger(Object value)
+    {
+        if (value == null) {
+            throw new RuntimeException("invalid starknet integer");
+        }
+        if (value instanceof BigInteger) {
+            return (BigInteger) value;
+        }
+        if (value instanceof Number) {
+            return BigInteger.valueOf(((Number) value).longValue());
+        }
+        String text = value.toString().trim();
+        if (text.startsWith("0x") || text.startsWith("0X")) {
+            return new BigInteger(text.substring(2), 16);
+        }
+        return new BigInteger(text, 10);
+    }
+
+    private static BigInteger extendedField(BigInteger value)
+    {
+        return extendedField(value, EXTENDED_STARKNET_FIELD_PRIME);
+    }
+
+    private static BigInteger extendedField(BigInteger value, BigInteger modulus)
+    {
+        BigInteger result = value.mod(modulus);
+        return (result.signum() < 0) ? result.add(modulus) : result;
+    }
+
+    private static BigInteger extendedBigIntegerFromUnsignedBytes(byte[] bytes)
+    {
+        return new BigInteger(1, bytes);
+    }
+
+    private static byte[] extendedUnsignedBytes(BigInteger value)
+    {
+        byte[] bytes = value.toByteArray();
+        if ((bytes.length > 1) && (bytes[0] == 0)) {
+            return Arrays.copyOfRange(bytes, 1, bytes.length);
+        }
+        return bytes;
+    }
+
+    private static byte[] extendedPrepareMessageHash(BigInteger msgHash)
+    {
+        if ((msgHash.bitLength() % 8 >= 1) && (msgHash.bitLength() % 8 <= 4) && (msgHash.bitLength() >= 248)) {
+            msgHash = msgHash.shiftLeft(4);
+        }
+        return extendedUnsignedBytes(msgHash);
+    }
+
+    private static BigInteger[] extendedStarknetSignBigInteger(BigInteger msgHash, BigInteger privateKey)
+    {
+        if ((msgHash.signum() < 0) || (msgHash.compareTo(BigInteger.ONE.shiftLeft(EXTENDED_STARKNET_ELEMENT_BITS_ECDSA)) >= 0)) {
+            throw new RuntimeException("Message not signable.");
+        }
+        BigInteger seed = BigInteger.valueOf(32);
+        while (true) {
+            BigInteger k = extendedGenerateKRFC6979(msgHash, privateKey, seed);
+            seed = seed.add(BigInteger.ONE);
+            BigInteger r = extendedEcMult(k, new ExtendedStarknetPoint(EXTENDED_STARKNET_EC_GEN_X, EXTENDED_STARKNET_EC_GEN_Y)).x;
+            if (extendedIsInvalidSignatureValue(r)) {
+                continue;
+            }
+            BigInteger temp = msgHash.add(r.multiply(privateKey)).mod(EXTENDED_STARKNET_EC_ORDER);
+            if (temp.equals(BigInteger.ZERO)) {
+                continue;
+            }
+            BigInteger w = extendedDivMod(k, temp, EXTENDED_STARKNET_EC_ORDER);
+            BigInteger s = extendedDivMod(BigInteger.ONE, w, EXTENDED_STARKNET_EC_ORDER);
+            if (extendedIsInvalidSignatureValue(s)) {
+                continue;
+            }
+            return new BigInteger[] { r, s };
+        }
+    }
+
+    private static BigInteger extendedGenerateKRFC6979(BigInteger msgHash, BigInteger privateKey, BigInteger seed)
+    {
+        return extendedGenerateKRFC6979(EXTENDED_STARKNET_EC_ORDER, privateKey, extendedPrepareMessageHash(msgHash), extendedUnsignedBytes(seed));
+    }
+
+    private static BigInteger extendedGenerateKRFC6979(BigInteger order, BigInteger secretExponent, byte[] data, byte[] extraEntropy)
+    {
+        int qlen = order.bitLength();
+        int holen = 32;
+        int rolen = (qlen + 7) / 8;
+        byte[] bx = extendedBytesConcat(extendedNumberToString(secretExponent, order), extendedBits2Octets(data, order), extraEntropy);
+        byte[] v = new byte[holen];
+        Arrays.fill(v, (byte) 1);
+        byte[] k = new byte[holen];
+        k = extendedHmacSha256(k, extendedBytesConcat(v, new byte[] { 0 }, bx));
+        v = extendedHmacSha256(k, v);
+        k = extendedHmacSha256(k, extendedBytesConcat(v, new byte[] { 1 }, bx));
+        v = extendedHmacSha256(k, v);
+        while (true) {
+            java.io.ByteArrayOutputStream t = new java.io.ByteArrayOutputStream();
+            while (t.size() < rolen) {
+                v = extendedHmacSha256(k, v);
+                try {
+                    t.write(v);
+                } catch (java.io.IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            BigInteger secret = extendedBits2Int(t.toByteArray(), qlen);
+            if ((secret.compareTo(BigInteger.ONE) >= 0) && (secret.compareTo(order) < 0)) {
+                return secret;
+            }
+            k = extendedHmacSha256(k, extendedBytesConcat(v, new byte[] { 0 }));
+            v = extendedHmacSha256(k, v);
+        }
+    }
+
+    private static byte[] extendedHmacSha256(byte[] key, byte[] data)
+    {
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(key, "HmacSHA256"));
+            return mac.doFinal(data);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static byte[] extendedBytesConcat(byte[]... arrays)
+    {
+        int length = 0;
+        for (byte[] array : arrays) {
+            length += array.length;
+        }
+        byte[] result = new byte[length];
+        int offset = 0;
+        for (byte[] array : arrays) {
+            System.arraycopy(array, 0, result, offset, array.length);
+            offset += array.length;
+        }
+        return result;
+    }
+
+    private static int extendedOrderLength(BigInteger order)
+    {
+        return (1 + order.toString(16).length()) / 2;
+    }
+
+    private static byte[] extendedNumberToString(BigInteger value, BigInteger order)
+    {
+        int length = extendedOrderLength(order);
+        byte[] bytes = extendedUnsignedBytes(value);
+        if (bytes.length == length) {
+            return bytes;
+        }
+        byte[] result = new byte[length];
+        if (bytes.length > length) {
+            System.arraycopy(bytes, bytes.length - length, result, 0, length);
+        } else {
+            System.arraycopy(bytes, 0, result, length - bytes.length, bytes.length);
+        }
+        return result;
+    }
+
+    private static byte[] extendedNumberToStringCrop(BigInteger value, BigInteger order)
+    {
+        byte[] bytes = extendedNumberToString(value, order);
+        int length = extendedOrderLength(order);
+        return (bytes.length == length) ? bytes : Arrays.copyOf(bytes, length);
+    }
+
+    private static BigInteger extendedBits2Int(byte[] data, int qlen)
+    {
+        BigInteger x = extendedBigIntegerFromUnsignedBytes(data);
+        int bitLength = data.length * 8;
+        if (bitLength > qlen) {
+            return x.shiftRight(bitLength - qlen);
+        }
+        return x;
+    }
+
+    private static byte[] extendedBits2Octets(byte[] data, BigInteger order)
+    {
+        BigInteger z1 = extendedBits2Int(data, order.bitLength());
+        BigInteger z2 = z1.subtract(order);
+        if (z2.signum() < 0) {
+            z2 = z1;
+        }
+        return extendedNumberToStringCrop(z2, order);
+    }
+
+    private static boolean extendedIsInvalidSignatureValue(BigInteger value)
+    {
+        return (value.signum() <= 0) || (value.compareTo(BigInteger.ONE.shiftLeft(EXTENDED_STARKNET_ELEMENT_BITS_ECDSA)) >= 0);
+    }
+
+    private static BigInteger extendedDivMod(BigInteger n, BigInteger m, BigInteger p)
+    {
+        return extendedField(n.multiply(m.modInverse(p)), p);
+    }
+
+    private static ExtendedStarknetPoint extendedEcAdd(ExtendedStarknetPoint point1, ExtendedStarknetPoint point2)
+    {
+        if (point1.x.subtract(point2.x).mod(EXTENDED_STARKNET_FIELD_PRIME).equals(BigInteger.ZERO)) {
+            throw new RuntimeException("Points must have different x coordinates.");
+        }
+        BigInteger slope = extendedDivMod(point1.y.subtract(point2.y), point1.x.subtract(point2.x), EXTENDED_STARKNET_FIELD_PRIME);
+        BigInteger x = extendedField(slope.multiply(slope).subtract(point1.x).subtract(point2.x));
+        BigInteger y = extendedField(slope.multiply(point1.x.subtract(x)).subtract(point1.y));
+        return new ExtendedStarknetPoint(x, y);
+    }
+
+    private static ExtendedStarknetPoint extendedEcDouble(ExtendedStarknetPoint point)
+    {
+        if (point.y.mod(EXTENDED_STARKNET_FIELD_PRIME).equals(BigInteger.ZERO)) {
+            throw new RuntimeException("Point y coordinate cannot be zero.");
+        }
+        BigInteger slope = extendedDivMod(BigInteger.valueOf(3).multiply(point.x).multiply(point.x).add(EXTENDED_STARKNET_ALPHA), BigInteger.valueOf(2).multiply(point.y), EXTENDED_STARKNET_FIELD_PRIME);
+        BigInteger x = extendedField(slope.multiply(slope).subtract(BigInteger.valueOf(2).multiply(point.x)));
+        BigInteger y = extendedField(slope.multiply(point.x.subtract(x)).subtract(point.y));
+        return new ExtendedStarknetPoint(x, y);
+    }
+
+    private static ExtendedStarknetPoint extendedEcMult(BigInteger scalar, ExtendedStarknetPoint point)
+    {
+        if (scalar.equals(BigInteger.ONE)) {
+            return point;
+        }
+        if (scalar.mod(BigInteger.valueOf(2)).equals(BigInteger.ZERO)) {
+            return extendedEcMult(scalar.divide(BigInteger.valueOf(2)), extendedEcDouble(point));
+        }
+        return extendedEcAdd(extendedEcMult(scalar.subtract(BigInteger.ONE), point), point);
+    }
+
+    private static class ExtendedStarknetPoint {
+        BigInteger x;
+        BigInteger y;
+        ExtendedStarknetPoint(BigInteger x, BigInteger y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    private static BigInteger[][] extendedBuildPoseidonRoundConstants()
+    {
+        int rounds = EXTENDED_STARKNET_POSEIDON_ROUNDS_FULL + EXTENDED_STARKNET_POSEIDON_ROUNDS_PARTIAL;
+        int width = EXTENDED_STARKNET_POSEIDON_RATE + EXTENDED_STARKNET_POSEIDON_CAPACITY;
+        BigInteger[][] constants = new BigInteger[rounds][width];
+        for (int i = 0; i < rounds; i++) {
+            for (int j = 0; j < width; j++) {
+                constants[i][j] = extendedPoseidonRoundConstant("Hades", width * i + j);
+            }
+        }
+        return constants;
+    }
+
+    private static BigInteger extendedPoseidonRoundConstant(String name, int index)
+    {
+        try {
+            java.security.MessageDigest sha256 = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] digest = sha256.digest((name + Integer.toString(index)).getBytes(StandardCharsets.UTF_8));
+            return extendedField(extendedBigIntegerFromUnsignedBytes(digest));
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static BigInteger extendedPoseidonSbox(BigInteger value)
+    {
+        return value.modPow(BigInteger.valueOf(3), EXTENDED_STARKNET_FIELD_PRIME);
+    }
+
+    private static BigInteger[] extendedPoseidonRound(BigInteger[] values, boolean isFull, int index)
+    {
+        BigInteger[] current = new BigInteger[values.length];
+        for (int i = 0; i < values.length; i++) {
+            current[i] = extendedField(values[i].add(EXTENDED_STARKNET_POSEIDON_ROUND_CONSTANTS[index][i]));
+        }
+        if (isFull) {
+            for (int i = 0; i < current.length; i++) {
+                current[i] = extendedPoseidonSbox(current[i]);
+            }
+        } else {
+            current[current.length - 1] = extendedPoseidonSbox(current[current.length - 1]);
+        }
+        BigInteger[] result = new BigInteger[EXTENDED_STARKNET_POSEIDON_MDS.length];
+        for (int row = 0; row < EXTENDED_STARKNET_POSEIDON_MDS.length; row++) {
+            BigInteger acc = BigInteger.ZERO;
+            for (int i = 0; i < current.length; i++) {
+                acc = acc.add(EXTENDED_STARKNET_POSEIDON_MDS[row][i].multiply(current[i]));
+            }
+            result[row] = extendedField(acc);
+        }
+        return result;
+    }
+
+    private static BigInteger[] extendedPoseidonHash(BigInteger[] values)
+    {
+        if (values.length != (EXTENDED_STARKNET_POSEIDON_RATE + EXTENDED_STARKNET_POSEIDON_CAPACITY)) {
+            throw new RuntimeException("Poseidon: wrong values length");
+        }
+        BigInteger[] current = new BigInteger[values.length];
+        for (int i = 0; i < values.length; i++) {
+            current[i] = extendedField(values[i]);
+        }
+        int roundIndex = 0;
+        int halfRoundsFull = EXTENDED_STARKNET_POSEIDON_ROUNDS_FULL / 2;
+        for (int i = 0; i < halfRoundsFull; i++) {
+            current = extendedPoseidonRound(current, true, roundIndex++);
+        }
+        for (int i = 0; i < EXTENDED_STARKNET_POSEIDON_ROUNDS_PARTIAL; i++) {
+            current = extendedPoseidonRound(current, false, roundIndex++);
+        }
+        for (int i = 0; i < halfRoundsFull; i++) {
+            current = extendedPoseidonRound(current, true, roundIndex++);
+        }
+        return current;
+    }
+
     // public Object starknetEncodeStructuredData(Object domain2, Object messageTypes2, Object messageData2, Object address)
     // {
     //     throw new RuntimeException("Not implemented");
@@ -3720,12 +4100,12 @@ public Object describe()
         */
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
         Object value = this.safeValue(dictionaryOrList, key1);
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue(((value instanceof java.util.Map)))) && !Helpers.isTrue(Helpers.isArray(value))))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue(((value instanceof java.util.Map)))) && !Helpers.isTrue(Helpers.isArrayJs(value))))
         {
             return value;
         }
         Object value2 = this.safeValue(dictionaryOrList, key2);
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value2, null))) && Helpers.isTrue(((value2 instanceof java.util.Map)))) && !Helpers.isTrue(Helpers.isArray(value2))))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value2, null))) && Helpers.isTrue(((value2 instanceof java.util.Map)))) && !Helpers.isTrue(Helpers.isArrayJs(value2))))
         {
             return value2;
         }
@@ -3746,7 +4126,7 @@ public Object describe()
         {
             return defaultValue;
         }
-        if (Helpers.isTrue(Helpers.isArray(value)))
+        if (Helpers.isTrue(Helpers.isArrayJs(value)))
         {
             return value;
         }
@@ -3755,7 +4135,7 @@ public Object describe()
 
     public Object isDictionary(Object value)
     {
-        return Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue(((value instanceof java.util.Map)))) && !Helpers.isTrue(Helpers.isArray(value));
+        return Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue(((value instanceof java.util.Map)))) && !Helpers.isTrue(Helpers.isArrayJs(value));
     }
 
     public Object safeList2(Object dictionaryOrList, Object key1, Object key2, Object... optionalArgs)
@@ -3768,12 +4148,12 @@ public Object describe()
         */
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
         Object value = this.safeValue(dictionaryOrList, key1);
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue(Helpers.isArray(value))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue(Helpers.isArrayJs(value))))
         {
             return value;
         }
         Object value2 = this.safeValue(dictionaryOrList, key2);
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value2, null))) && Helpers.isTrue(Helpers.isArray(value2))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value2, null))) && Helpers.isTrue(Helpers.isArrayJs(value2))))
         {
             return value2;
         }
@@ -3794,7 +4174,7 @@ public Object describe()
         {
             return defaultValue;
         }
-        if (Helpers.isTrue(Helpers.isArray(value)))
+        if (Helpers.isTrue(Helpers.isArrayJs(value)))
         {
             return value;
         }
@@ -3849,7 +4229,7 @@ public Object describe()
         {
             timeframes = this.timeframes;
         }
-        Object keys = Helpers.objectKeys(timeframes);
+        Object keys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)timeframes).keySet());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -4051,7 +4431,7 @@ public Object describe()
     public Object findMessageHashes(Client client, Object element)
     {
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object messageHashes = Helpers.objectKeys(client.futures);
+        Object messageHashes = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)client.futures).keySet());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
@@ -5364,7 +5744,7 @@ public Object describe()
             }
         }
         // other methods
-        Object keys = Helpers.objectKeys(featuresObj);
+        Object keys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)featuresObj).keySet());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -5610,7 +5990,7 @@ public Object describe()
     {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         Object networks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
-        Object keys = Helpers.objectKeys(networks);
+        Object keys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)networks).keySet());
         Object length = Helpers.getArrayLength(keys);
         if (Helpers.isTrue(!Helpers.isEqual(length, 0)))
         {
@@ -5857,12 +6237,12 @@ public Object describe()
         this.markets = this.mapToSafeMap(((Object)this.indexBy(values, "symbol")));
         Object marketsSortedBySymbol = this.keysort(this.markets);
         Object marketsSortedById = this.keysort(this.markets_by_id);
-        this.symbols = Helpers.objectKeys(marketsSortedBySymbol);
-        this.ids = Helpers.objectKeys(marketsSortedById);
+        this.symbols = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)marketsSortedBySymbol).keySet());
+        this.ids = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)marketsSortedById).keySet());
         Object numCurrencies = 0;
         if (Helpers.isTrue(!Helpers.isEqual(currencies, null)))
         {
-            Object keys = Helpers.objectKeys(currencies);
+            Object keys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)currencies).keySet());
             numCurrencies = Helpers.getArrayLength(keys);
         }
         if (Helpers.isTrue(Helpers.isGreaterThan(numCurrencies, 0)))
@@ -5905,7 +6285,7 @@ public Object describe()
             this.quoteCurrencies = this.mapToSafeMap(this.indexBy(quoteCurrencies, "code"));
             Object allCurrencies = this.arrayConcat(baseCurrencies, quoteCurrencies);
             Object groupedCurrencies = this.groupBy(allCurrencies, "code");
-            Object codes = Helpers.objectKeys(groupedCurrencies);
+            Object codes = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)groupedCurrencies).keySet());
             Object resultingCurrencies = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
             {
@@ -5930,7 +6310,7 @@ public Object describe()
         }
         this.currencies_by_id = this.indexBySafe(this.currencies, "id");
         Object currenciesSortedByCode = this.keysort(this.currencies);
-        this.codes = Helpers.objectKeys(currenciesSortedByCode);
+        this.codes = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)currenciesSortedByCode).keySet());
         return this.markets;
     }
 
@@ -5979,7 +6359,7 @@ public Object describe()
     public Object safeBalance(Object balance)
     {
         Object balances = this.omit(balance, new java.util.ArrayList<Object>(java.util.Arrays.asList("info", "timestamp", "datetime", "free", "used", "total")));
-        Object codes = Helpers.objectKeys(balances);
+        Object codes = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)balances).keySet());
         Helpers.addElementToObject(balance, "free", new java.util.HashMap<String, Object>() {{}});
         Helpers.addElementToObject(balance, "used", new java.util.HashMap<String, Object>() {{}});
         Helpers.addElementToObject(balance, "total", new java.util.HashMap<String, Object>() {{}});
@@ -6015,7 +6395,7 @@ public Object describe()
                 Helpers.addElementToObject(debtBalance, code, Helpers.GetValue(Helpers.GetValue(balance, code), "debt"));
             }
         }
-        Object debtBalanceArray = Helpers.objectKeys(debtBalance);
+        Object debtBalanceArray = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)debtBalance).keySet());
         Object length = Helpers.getArrayLength(debtBalanceArray);
         if (Helpers.isTrue(length))
         {
@@ -6070,7 +6450,7 @@ public Object describe()
             }
             // this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
             Object tradesLength = 0;
-            Object isArray = Helpers.isArray(trades);
+            Object isArray = Helpers.isArrayJs(trades);
             if (Helpers.isTrue(isArray))
             {
                 tradesLength = Helpers.getArrayLength(trades);
@@ -6393,7 +6773,7 @@ public Object describe()
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
         Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        if (Helpers.isTrue(Helpers.isArray(orders)))
+        if (Helpers.isTrue(Helpers.isArrayJs(orders)))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
@@ -6403,7 +6783,7 @@ public Object describe()
             }
         } else
         {
-            Object ids = Helpers.objectKeys(orders);
+            Object ids = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)orders).keySet());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
@@ -6684,7 +7064,7 @@ public Object describe()
     public Object invertFlatStringDictionary(Object dict)
     {
         Object reversed = new java.util.HashMap<String, Object>() {{}};
-        Object keys = Helpers.objectKeys(dict);
+        Object keys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)dict).keySet());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -6787,10 +7167,10 @@ public Object describe()
             }
         }
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object feeValues = Helpers.objectValues(reduced);
+        Object feeValues = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)reduced).values());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(feeValues)); i++)
         {
-            Object reducedFeeValues = Helpers.objectValues(Helpers.GetValue(feeValues, i));
+            Object reducedFeeValues = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)Helpers.GetValue(feeValues, i)).values());
             result = this.arrayConcat(result, reducedFeeValues);
         }
         return result;
@@ -7384,7 +7764,7 @@ public Object describe()
     public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        if (Helpers.isTrue(Helpers.isArray(ohlcv)))
+        if (Helpers.isTrue(Helpers.isArrayJs(ohlcv)))
         {
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
         }
@@ -7452,7 +7832,7 @@ public Object describe()
             return null;
         }
         Object replacements = this.safeDict(this.options, "defaultNetworkCodeReplacements", new java.util.HashMap<String, Object>() {{}});
-        Object keys = Helpers.objectKeys(replacements);
+        Object keys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)replacements).keySet());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object baseCoin = Helpers.GetValue(keys, i);
@@ -7513,7 +7893,7 @@ public Object describe()
         Object currenciesToCheck = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isEqual(currencyCode, null)))
         {
-            currenciesToCheck = Helpers.objectKeys(this.currencies);
+            currenciesToCheck = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)this.currencies).keySet());
         } else
         {
             currenciesToCheck = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeDict(this.currencies, currencyCode)));
@@ -7610,7 +7990,7 @@ public Object describe()
         // this method is used against raw & unparse network entries, which are just indexed by network id
         Object isIndexedByUnifiedNetworkCode = Helpers.getArg(optionalArgs, 0, false);
         Object chosenNetworkId = null;
-        Object availableNetworkIds = Helpers.objectKeys(indexedNetworkEntries);
+        Object availableNetworkIds = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)indexedNetworkEntries).keySet());
         Object responseNetworksLength = Helpers.getArrayLength(availableNetworkIds);
         if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
         {
@@ -7705,7 +8085,7 @@ public Object describe()
             symbolsLength = Helpers.getArrayLength(symbols);
         }
         Object noSymbols = Helpers.isTrue((Helpers.isEqual(symbols, null))) || Helpers.isTrue((Helpers.isEqual(symbolsLength, 0)));
-        if (Helpers.isTrue(Helpers.isArray(response)))
+        if (Helpers.isTrue(Helpers.isArrayJs(response)))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
@@ -7721,7 +8101,7 @@ public Object describe()
             }
         } else
         {
-            Object keys = Helpers.objectKeys(response);
+            Object keys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)response).keySet());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object marketId = Helpers.GetValue(keys, i);
@@ -7935,7 +8315,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(arrayData)); i++)
         {
             Object itemOrItems = this.parseLedgerEntry(Helpers.GetValue(arrayData, i), currency);
-            if (Helpers.isTrue(Helpers.isArray(itemOrItems)))
+            if (Helpers.isTrue(Helpers.isArrayJs(itemOrItems)))
             {
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(itemOrItems)); j++)
                 {
@@ -8091,7 +8471,7 @@ public Object describe()
     public Object getListFromObjectValues(Object objects, Object key)
     {
         Object newArray = objects;
-        if (!Helpers.isTrue(Helpers.isArray(objects)))
+        if (!Helpers.isTrue(Helpers.isArrayJs(objects)))
         {
             newArray = this.toArray(objects);
         }
@@ -8726,10 +9106,10 @@ public Object describe()
         {
             return market;
         }
-        final Object finalMarketId_2 = marketId;
+        final Object finalMarketId = marketId;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
-            put( "symbol", finalMarketId_2 );
-            put( "marketId", finalMarketId_2 );
+            put( "symbol", finalMarketId );
+            put( "marketId", finalMarketId );
         }});
     }
 
@@ -8752,7 +9132,7 @@ public Object describe()
         * @returns {boolean} true if all required credentials have been set, otherwise false or an error is thrown is param error=true
         */
         Object error = Helpers.getArg(optionalArgs, 0, true);
-        Object keys = Helpers.objectKeys(this.requiredCredentials);
+        Object keys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)this.requiredCredentials).keySet());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -9174,7 +9554,7 @@ public Object describe()
     public Object findBroadlyMatchedKey(Object broad, Object str)
     {
         // a helper for matching error strings exactly vs broadly
-        Object keys = Helpers.objectKeys(broad);
+        Object keys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)broad).keySet());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -10968,7 +11348,7 @@ public Object describe()
                     return this.safeDict(addressStructures, network);
                 } else
                 {
-                    Object keys = Helpers.objectKeys(addressStructures);
+                    Object keys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)addressStructures).keySet());
                     Object key = this.safeString(keys, 0);
                     return this.safeDict(addressStructures, key);
                 }
@@ -11011,7 +11391,7 @@ public Object describe()
 
     public Object currency(Object code)
     {
-        Object keys = Helpers.objectKeys(this.currencies);
+        Object keys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)this.currencies).keySet());
         Object numCurrencies = Helpers.getArrayLength(keys);
         if (Helpers.isTrue(Helpers.isEqual(numCurrencies, 0)))
         {
@@ -11729,7 +12109,7 @@ public Object describe()
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        if (Helpers.isTrue(Helpers.isArray(pricesData)))
+        if (Helpers.isTrue(Helpers.isArrayJs(pricesData)))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(pricesData)); i++)
             {
@@ -11738,7 +12118,7 @@ public Object describe()
             }
         } else
         {
-            Object marketIds = Helpers.objectKeys(pricesData);
+            Object marketIds = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)pricesData).keySet());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -11778,7 +12158,7 @@ public Object describe()
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        if (Helpers.isTrue(Helpers.isArray(tickers)))
+        if (Helpers.isTrue(Helpers.isArrayJs(tickers)))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
@@ -11788,7 +12168,7 @@ public Object describe()
             }
         } else
         {
-            Object marketIds = Helpers.objectKeys(tickers);
+            Object marketIds = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)tickers).keySet());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -12460,11 +12840,11 @@ public Object describe()
         Object codes = Helpers.getArg(optionalArgs, 0, null);
         Object currencyIdKey = Helpers.getArg(optionalArgs, 1, null);
         Object depositWithdrawFees = new java.util.HashMap<String, Object>() {{}};
-        Object isArray = Helpers.isArray(response);
+        Object isArray = Helpers.isArrayJs(response);
         Object responseKeys = response;
         if (!Helpers.isTrue(isArray))
         {
-            responseKeys = Helpers.objectKeys(response);
+            responseKeys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)response).keySet());
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(responseKeys)); i++)
         {
@@ -12514,7 +12894,7 @@ public Object describe()
         * @returns {object} A deposit withdraw fee structure
         */
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object networkKeys = Helpers.objectKeys(Helpers.GetValue(fee, "networks"));
+        Object networkKeys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)Helpers.GetValue(fee, "networks")).keySet());
         Object numNetworks = Helpers.getArrayLength(networkKeys);
         if (Helpers.isTrue(Helpers.isEqual(numNetworks, 1)))
         {
@@ -13157,13 +13537,13 @@ public Object describe()
                 Helpers.addElementToObject(uniqueResult, id, entry);
             }
         }
-        Object values = Helpers.objectValues(uniqueResult);
+        Object values = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)uniqueResult).values());
         return values;
     }
 
     public Object removeKeysFromDict(Object dict, Object removeKeys)
     {
-        Object keys = Helpers.objectKeys(dict);
+        Object keys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)dict).keySet());
         Object newDict = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
@@ -13256,7 +13636,7 @@ public Object describe()
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        if (Helpers.isTrue(Helpers.isArray(greeks)))
+        if (Helpers.isTrue(Helpers.isArrayJs(greeks)))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(greeks)); i++)
             {
@@ -13266,7 +13646,7 @@ public Object describe()
             }
         } else
         {
-            Object marketIds = Helpers.objectKeys(greeks);
+            Object marketIds = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)greeks).keySet());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -13724,7 +14104,7 @@ public Object describe()
             }
         } else
         {
-            Object clientSubscriptions = Helpers.objectKeys(client.subscriptions);
+            Object clientSubscriptions = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)client.subscriptions).keySet());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clientSubscriptions)); i++)
             {
                 Object sub = Helpers.GetValue(clientSubscriptions, i);
@@ -13733,7 +14113,7 @@ public Object describe()
                     ((java.util.Map<String,Object>)client.subscriptions).remove((String)sub);
                 }
             }
-            Object clientFutures = Helpers.objectKeys(client.futures);
+            Object clientFutures = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)client.futures).keySet());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clientFutures)); i++)
             {
                 Object future = Helpers.GetValue(clientFutures, i);
@@ -13810,7 +14190,7 @@ public Object describe()
             } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(topic, "positions")) && Helpers.isTrue((!Helpers.isEqual(this.positions, null)))))
             {
                 this.positions = null;
-                Object clients = Helpers.objectValues(this.clients);
+                Object clients = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)this.clients).values());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clients)); i++)
                 {
                     Client client = (Client)Helpers.GetValue(clients, i);
@@ -13822,7 +14202,7 @@ public Object describe()
                 }
             } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(topic, "ticker")) || Helpers.isTrue(Helpers.isEqual(topic, "markPrice")))) && Helpers.isTrue((!Helpers.isEqual(this.tickers, null)))))
             {
-                Object tickerSymbols = Helpers.objectKeys(this.tickers);
+                Object tickerSymbols = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)this.tickers).keySet());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickerSymbols)); i++)
                 {
                     Object tickerSymbol = Helpers.GetValue(tickerSymbols, i);
@@ -13833,7 +14213,7 @@ public Object describe()
                 }
             } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(topic, "bidsasks")) && Helpers.isTrue((!Helpers.isEqual(this.bidsasks, null)))))
             {
-                Object bidsaskSymbols = Helpers.objectKeys(this.bidsasks);
+                Object bidsaskSymbols = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)this.bidsasks).keySet());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidsaskSymbols)); i++)
                 {
                     Object bidsaskSymbol = Helpers.GetValue(bidsaskSymbols, i);
