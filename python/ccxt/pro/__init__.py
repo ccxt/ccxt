@@ -100,6 +100,7 @@ from ccxt.pro.deribit import deribit                                      # noqa
 from ccxt.pro.derive import derive                                        # noqa: F401
 from ccxt.pro.dydx import dydx                                            # noqa: F401
 from ccxt.pro.exmo import exmo                                            # noqa: F401
+from ccxt.pro.extended import extended                                    # noqa: F401
 from ccxt.pro.gate import gate                                            # noqa: F401
 from ccxt.pro.gemini import gemini                                        # noqa: F401
 from ccxt.pro.grvt import grvt                                            # noqa: F401
@@ -181,6 +182,7 @@ exchanges = [
     'derive',
     'dydx',
     'exmo',
+    'extended',
     'gate',
     'gemini',
     'grvt',

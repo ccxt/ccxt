@@ -407,3 +407,27 @@ CCXT is also a builder on GRVT meaning that by default users will pay 1bps (0.01
 exchange.options['builderFee'] = False
 ```
 
+### How to use the Extended Exchange in CCXT?
+
+Extended works similarly to any other CCXT DEX and only requires the StarkKey private key and the API Key, both can be retrieved using the website.
+
+- Go to this page: https://app.extended.exchange/api-management
+- Click Generate API Key
+- Copy the API Key and Stark Key Private
+
+![ApiKey](https://github-production-user-asset-6210df.s3.amazonaws.com/43336371/604986514-ed87d5e9-5a68-4db6-8463-fcb205293eec.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20260609%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260609T092018Z&X-Amz-Expires=300&X-Amz-Signature=b14cae7910f5118835e140e4e41477124ce6a8236294c331442108c07f273164&X-Amz-SignedHeaders=host&response-content-type=image%2Fpng)
+
+An example on how to instantiate the extended exchange:
+
+```
+exchange = ccxt.extended({
+  'apiKey: 'AAAA', // apiKey
+	'privateKey': 'XXXXXXX', // the star key private key
+})
+```
+
+CCXT is also a builder on Extended meaning that by default users will pay 1bps (0.01%) extra for using it through CCXT, however this fee is totally optional and can be disabled by providing the option `builderFee: False` in options. Howerer, your contribution is much appreciated.
+
+```
+exchange.options['builderFee'] = False
+```

@@ -389,6 +389,7 @@ class Exchange {
         'digifinex',
         'dydx',
         'exmo',
+        'extended',
         'fmfwio',
         'foxbit',
         'gate',
@@ -1479,6 +1480,24 @@ class Exchange {
         # // TODO: unify to ecdsa
         $signature = Curve::sign ('0x' . $pri, $msg_hash);
         return $this->json($signature);
+    }
+
+    public function extended_starknet_sign($msg_hash, $pri) {
+        $messageHash = $this->remove0x_prefix($msg_hash);
+        $privateKey = '0x' . $this->remove0x_prefix($pri);
+        $signature = Curve::sign ($privateKey, $messageHash);
+        return $this->json(array(
+            (new BN($signature[0], 16))->toString(10),
+            (new BN($signature[1], 16))->toString(10),
+        ));
+    }
+
+    public function extended_starknet_get_selector_from_name($name) {
+        return '0x' . Hash::getSelectorFromName($name);
+    }
+
+    public function extended_starknet_compute_poseidon_hash_on_elements($data) {
+        return Hash::computePoseidonHashOnElements($data);
     }
 
     public function is_lighter_library_path_required() {

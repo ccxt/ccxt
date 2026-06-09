@@ -5890,6 +5890,25 @@ func WithFetchTransactionsHelperParams(params map[string]any) FetchTransactionsH
 	}
 }
 
+type CreateExtendedOrderRequestOptionsStruct struct {
+	Price  *float64
+	Params *map[string]any
+}
+
+type CreateExtendedOrderRequestOptions func(opts *CreateExtendedOrderRequestOptionsStruct)
+
+func WithCreateExtendedOrderRequestPrice(price float64) CreateExtendedOrderRequestOptions {
+	return func(opts *CreateExtendedOrderRequestOptionsStruct) {
+		opts.Price = &price
+	}
+}
+
+func WithCreateExtendedOrderRequestParams(params map[string]any) CreateExtendedOrderRequestOptions {
+	return func(opts *CreateExtendedOrderRequestOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type FetchNetworkDepositAddressOptionsStruct struct {
 	Params *map[string]any
 }

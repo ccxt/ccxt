@@ -400,6 +400,9 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "exmo":
 		itf := NewExmo(options)
 		return itf
+	case "extended":
+		itf := NewExtended(options)
+		return itf
 	case "fmfwio":
 		itf := NewFmfwio(options)
 		return itf

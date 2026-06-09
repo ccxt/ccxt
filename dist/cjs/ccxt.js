@@ -68,6 +68,7 @@ var derive = require('./src/derive.js');
 var digifinex = require('./src/digifinex.js');
 var dydx = require('./src/dydx.js');
 var exmo = require('./src/exmo.js');
+var extended = require('./src/extended.js');
 var fmfwio = require('./src/fmfwio.js');
 var foxbit = require('./src/foxbit.js');
 var gate = require('./src/gate.js');
@@ -160,6 +161,7 @@ var deribit$1 = require('./src/pro/deribit.js');
 var derive$1 = require('./src/pro/derive.js');
 var dydx$1 = require('./src/pro/dydx.js');
 var exmo$1 = require('./src/pro/exmo.js');
+var extended$1 = require('./src/pro/extended.js');
 var gate$1 = require('./src/pro/gate.js');
 var gemini$1 = require('./src/pro/gemini.js');
 var grvt$1 = require('./src/pro/grvt.js');
@@ -262,6 +264,7 @@ const exchanges = {
     'digifinex': digifinex["default"],
     'dydx': dydx["default"],
     'exmo': exmo["default"],
+    'extended': extended["default"],
     'fmfwio': fmfwio["default"],
     'foxbit': foxbit["default"],
     'gate': gate["default"],
@@ -356,6 +359,7 @@ const pro = {
     'derive': derive$1["default"],
     'dydx': dydx$1["default"],
     'exmo': exmo$1["default"],
+    'extended': extended$1["default"],
     'gate': gate$1["default"],
     'gemini': gemini$1["default"],
     'grvt': grvt$1["default"],
@@ -504,6 +508,7 @@ exports.derive = derive["default"];
 exports.digifinex = digifinex["default"];
 exports.dydx = dydx["default"];
 exports.exmo = exmo["default"];
+exports.extended = extended["default"];
 exports.fmfwio = fmfwio["default"];
 exports.foxbit = foxbit["default"];
 exports.gate = gate["default"];

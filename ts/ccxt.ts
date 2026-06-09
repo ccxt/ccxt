@@ -106,6 +106,7 @@ import derive from  './src/derive.js'
 import digifinex from  './src/digifinex.js'
 import dydx from  './src/dydx.js'
 import exmo from  './src/exmo.js'
+import extended from  './src/extended.js'
 import fmfwio from  './src/fmfwio.js'
 import foxbit from  './src/foxbit.js'
 import gate from  './src/gate.js'
@@ -201,6 +202,7 @@ import deribitPro from  './src/pro/deribit.js'
 import derivePro from  './src/pro/derive.js'
 import dydxPro from  './src/pro/dydx.js'
 import exmoPro from  './src/pro/exmo.js'
+import extendedPro from  './src/pro/extended.js'
 import gatePro from  './src/pro/gate.js'
 import geminiPro from  './src/pro/gemini.js'
 import grvtPro from  './src/pro/grvt.js'
@@ -299,6 +301,7 @@ const exchanges = {
     'digifinex':              digifinex,
     'dydx':                   dydx,
     'exmo':                   exmo,
+    'extended':               extended,
     'fmfwio':                 fmfwio,
     'foxbit':                 foxbit,
     'gate':                   gate,
@@ -394,6 +397,7 @@ const pro = {
     'derive':                 derivePro,
     'dydx':                   dydxPro,
     'exmo':                   exmoPro,
+    'extended':               extendedPro,
     'gate':                   gatePro,
     'gemini':                 geminiPro,
     'grvt':                   grvtPro,
@@ -635,6 +639,7 @@ export {
     digifinex,
     dydx,
     exmo,
+    extended,
     fmfwio,
     foxbit,
     gate,
