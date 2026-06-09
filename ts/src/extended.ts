@@ -24,6 +24,7 @@ export default class extended extends Exchange {
             'precisionMode': TICK_SIZE,
             'certified': false,
             'pro': true,
+            'dex': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
