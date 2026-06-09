@@ -993,7 +993,7 @@
                             "fundingFee": "0",
                             "fundingRate": "0",
                             "paidTime": 1778133601792,
-                            "cursor": 3920
+                            "cursor": "3920"
                         },
                         "symbol": "BTC/USDC:USDC",
                         "code": "USDC",
@@ -1685,7 +1685,7 @@
                             "m": "BTC-USD",
                             "f": "0.000008",
                             "T": 1777507201028,
-                            "cursor": 1784963886257016800
+                            "cursor": "1784963886257016800"
                         },
                         "symbol": "BTC/USDC:USDC",
                         "fundingRate": 0.000008,
