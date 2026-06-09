@@ -57,7 +57,11 @@ compiled language **install-only** — useful on a small host where compiling
 ccxt-go (~5 GB) would OOM. Pass `--build-arg NEXT_BASE_PATH=/playground` to serve
 under a sub-path. `docker-compose.yml` enforces the host protections:
 
-- **no bind mounts** → nothing on the host filesystem is reachable from a run;
+- **minimal bind mounts** → the only host paths mounted are the two append-only
+  log dirs (`/var/log/ccxt-playground/{app,proxy}`); nothing else on the host
+  filesystem is reachable. (A run shares the app container's fs, so it could write
+  to the app log dir — bounded by logrotate below — but cannot escape it; the proxy
+  log lives in the separate proxy container, out of a run's reach.)
 - **`mem_limit` / `cpus` / `pids_limit` + `--init`** → a user can't exhaust host RAM/CPU, fork-bomb it, or orphan processes;
 - **non-root + `no-new-privileges` + `cap_drop: ALL`** → minimal blast radius;
 - **egress allowlist** → the app runs on an internet-less `internal` network; all
@@ -70,8 +74,13 @@ under a sub-path. `docker-compose.yml` enforces the host protections:
   scrubbed env (the AI feature's egress to OpenRouter is the one non-exchange host
   on the allowlist);
 - **submission logging** → every `/api/run` and `/api/ai` request is logged as
-  JSONL (`lib/log.ts`) for abuse inspection (stdout / `docker logs`; set
-  `PLAYGROUND_LOG_FILE` to also append to a file);
+  JSONL (`lib/log.ts`) for abuse inspection. In production the deploy points
+  `PLAYGROUND_LOG_FILE` at a host-mounted file (`/var/log/ccxt-playground/app/`)
+  and bind-mounts the squid access log (`/var/log/ccxt-playground/proxy/`), so both
+  the submitted code and every outbound exchange request survive container swaps and
+  the nightly clean. A logrotate config (`/etc/ccxt-playground/logrotate.conf`,
+  hourly cron) hard-caps each at `size 25M × rotate 4` (compressed) so logs can't
+  fill the disk; each container's Docker stdout json log is capped via `--log-opt`;
 - **daily clean** → the deploy installs a cron that restarts the container nightly
   to wipe any in-container state (runs are already killed at their timeout).
 
