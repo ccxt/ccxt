@@ -220,7 +220,7 @@ export default class extended extends Exchange {
                             'portfolio/charts/pnl',
                             'vault/public/performance',
                             'vault/public/summary',
-                            'info/builder/trades',
+                            'builder/trades',
                         ],
                         'post': [
                             'user/order',
