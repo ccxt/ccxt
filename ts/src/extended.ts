@@ -162,7 +162,7 @@ export default class extended extends Exchange {
             },
             'hostname': 'extended.exchange',
             'urls': {
-                'logo': '',
+                'logo': 'https://github.com/user-attachments/assets/309d44db-2a50-4529-a27f-8f4492aec299',
                 'api': {
                     'rest': 'https://api.starknet.{hostname}',
                 },
