@@ -395,6 +395,9 @@ export default class Exchange {
     };
     starknetEncodeStructuredData(domain: any, messageTypes: any, messageData: any, address: any): string;
     starknetSign(msgHash: any, pri: any): string;
+    extendedStarknetSign(msgHash: any, pri: any): string;
+    extendedStarknetGetSelectorFromName(name: any): string;
+    extendedStarknetComputePoseidonHashOnElements(data: any): string;
     getZKContractSignatureObj(seed: any, params?: {}): Promise<any>;
     getZKTransferSignatureObj(seed: any, params?: {}): Promise<any>;
     loadDydxProtos(): Promise<void>;
