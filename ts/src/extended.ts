@@ -4,7 +4,7 @@
 import Exchange from './abstract/extended.js';
 import { Precise } from './base/Precise.js';
 import type { Account, Balances, Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
-import { ArgumentsRequired, BadRequest, InsufficientFunds, InvalidOrder, ExchangeError } from './base/errors.js';
+import { ArgumentsRequired, BadRequest, InsufficientFunds, InvalidOrder, ExchangeError, AuthenticationError } from './base/errors.js';
 import { DECIMAL_PLACES, NO_PADDING, TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
@@ -3546,7 +3546,10 @@ export default class extended extends Exchange {
         const queryPost = (path === 'user/deadmanswitch');
         let url = this.implodeHostname (this.urls['api']['rest']);
         if (accessibility === 'private') {
-            this.checkRequiredCredentials ();
+            // this.checkRequiredCredentials ();
+            if (this.apiKey === undefined) {
+                throw new AuthenticationError (this.id + ' sign() requires an apiKey for private endpoints');
+            }
             headers = {
                 'X-Api-Key': this.apiKey,
             };
