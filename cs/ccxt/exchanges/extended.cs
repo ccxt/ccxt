@@ -16,6 +16,7 @@ public partial class extended : Exchange
             { "precisionMode", TICK_SIZE },
             { "certified", false },
             { "pro", true },
+            { "dex", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", false },
