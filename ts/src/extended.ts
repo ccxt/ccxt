@@ -252,7 +252,7 @@ export default class extended extends Exchange {
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': false,
-                'privateKey': false,
+                'privateKey': true,
             },
             'exceptions': {
                 'exact': {
@@ -1797,6 +1797,7 @@ export default class extended extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const currency = this.currency (code);
         const chainId = this.safeStringUpper2 (params, 'chainId', 'network', 'STRK');
@@ -1911,6 +1912,7 @@ export default class extended extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const currency = this.currency (code);
         const account = await this.fetchExtendedAccount ();
@@ -2816,6 +2818,7 @@ export default class extended extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        this.checkRequiredCredentials ();
         const extendedOrderRequest = await this.createExtendedOrderRequest (symbol, type, side, amount, price, params);
         const request = this.safeDict (extendedOrderRequest, 'request', {});
         const response = await this.v1PrivatePostUserOrder (request);
