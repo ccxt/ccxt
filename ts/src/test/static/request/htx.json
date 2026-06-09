@@ -440,14 +440,13 @@
                 ]
             },
             {
-                "description": "fetch Order - swap linear",
+                "description": "Linear swap fetchOrder",
                 "method": "fetchOrder",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_order_info",
+                "url": "https://api.hbdm.vn/v5/trade/order?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-06-09T00%3A56%3A12&contract_code=BTC-USDT&margin_mode=cross&order_id=1513828877079584768&Signature=Je%2Fu0oz8E%2FW9pLF06oEo37SeLzfZ7XlgFWiwj5aDGZc%3D",
                 "input": [
-                    "357632718898331",
-                    "LTC/USDT:USDT"
-                ],
-                "output": "{\"contract_code\":\"LTC-USDT\",\"order_id\":\"357632718898331\"}"
+                    "1513828877079584768",
+                    "BTC/USDT:USDT"
+                ]
             },
             {
                 "description": "fetch Order - swap inverse",
@@ -468,6 +467,18 @@
                     "BTC/USD:BTC-231124"
                 ],
                 "output": "{\"contract_code\":\"BTC231124\",\"symbol\":\"btc\",\"order_id\":\"357632718898331\"}"
+            },
+            {
+                "description": "Linear swap takeProfit fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://api.hbdm.vn/v5/algo/order?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-06-09T01%3A10%3A06&algo_id=1513832307038027776&type=tp&Signature=0iKD9cOKKlgYcT93Glx4hAo4Y%2B7i56oBoh0yNukBU%2Fw%3D",
+                "input": [
+                    "1513832307038027776",
+                    "BTC/USDT:USDT",
+                    {
+                        "takeProfit": true
+                    }
+                ]
             }
         ],
         "fetchMyTrades": [

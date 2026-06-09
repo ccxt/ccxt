@@ -650,6 +650,7 @@ export default class htx extends Exchange {
                             'v5/market/assets_deduction_currency': 1,
                             'v5/market/multi_assets_margin': 1,
                             'v5/algo/order/opens': 1,
+                            'v5/algo/order': 1,
                         },
                         'post': {
                             // Future Account Interface
@@ -813,8 +814,6 @@ export default class htx extends Exchange {
                             'linear-swap-api/v1/swap_cross_cancelall': 1,
                             'linear-swap-api/v1/swap_switch_lever_rate': 30,
                             'linear-swap-api/v1/swap_cross_switch_lever_rate': 30,
-                            'linear-swap-api/v1/swap_order_info': 1,
-                            'linear-swap-api/v1/swap_cross_order_info': 1,
                             'linear-swap-api/v1/swap_order_detail': 1,
                             'linear-swap-api/v1/swap_cross_order_detail': 1,
                             'linear-swap-api/v1/swap_openorders': 1,
@@ -3931,13 +3930,17 @@ export default class htx extends Exchange {
      * @description fetches information on an order made by the user
      * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order-based-on-client-order-id
      * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-information-of-an-order
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-information-of-order
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-196a8401f83
      * @see https://huobiapi.github.io/docs/dm/v1/en/#get-information-of-an-order
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-information-of-an-order
      * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.trigger] *linear only* set to true if you want to fetch a trigger order
+     * @param {bool} [params.stopLossTakeProfit] *linear only* set to true if you want to fetch a stop-loss take-profit order
+     * @param {bool} [params.stopLoss] *linear only* set to true if you want to fetch a stop-loss order
+     * @param {bool} [params.takeProfit] *linear only* set to true if you want to fetch a take-profit order
+     * @param {bool} [params.trailing] *linear only* set to true if you want to fetch a trailing order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -3974,31 +3977,59 @@ export default class htx extends Exchange {
                 response = await this.spotPrivateGetV1OrderOrdersOrderId (this.extend (request, params));
             }
         } else {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-            }
-            const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
+            const trigger = this.safeBool2 (params, 'stop', 'trigger');
+            const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
+            const stopLoss = this.safeBool (params, 'stopLoss');
+            const takeProfit = this.safeBool (params, 'takeProfit');
+            const trailing = this.safeBool (params, 'trailing');
+            const isAlgo = (trigger || stopLoss || takeProfit || stopLossTakeProfit || trailing);
+            params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit' ]);
+            const clientOrderId = this.safeStringN (params, [ 'client_order_id', 'clientOrderId', 'algo_client_order_id' ]);
             if (clientOrderId === undefined) {
-                request['order_id'] = id;
+                if (isAlgo) {
+                    request['algo_id'] = id;
+                } else {
+                    request['order_id'] = id;
+                }
             } else {
-                request['client_order_id'] = clientOrderId;
-                params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
+                if (isAlgo) {
+                    request['algo_client_order_id'] = clientOrderId;
+                } else {
+                    request['client_order_id'] = clientOrderId;
+                }
+                params = this.omit (params, [ 'client_order_id', 'clientOrderId', 'algo_client_order_id' ]);
             }
-            request['contract_code'] = market['id'];
             if (market['linear']) {
-                let marginMode = undefined;
-                [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
-                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-                if (marginMode === 'isolated') {
-                    response = await this.contractPrivatePostLinearSwapApiV1SwapOrderInfo (this.extend (request, params));
-                } else if (marginMode === 'cross') {
-                    response = await this.contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo (this.extend (request, params));
+                if (isAlgo) {
+                    if (trigger) {
+                        request['type'] = 'trigger';
+                    } else if (trailing) {
+                        request['type'] = 'trailing_stop';
+                    } else if (stopLossTakeProfit) {
+                        request['type'] = 'tpsl';
+                    } else if (stopLoss) {
+                        request['type'] = 'sl';
+                    } else if (takeProfit) {
+                        request['type'] = 'tp';
+                    }
+                    response = await this.contractPrivateGetV5AlgoOrder (this.extend (request, params));
+                } else {
+                    if (symbol === undefined) {
+                        throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+                    }
+                    request['contract_code'] = market['id'];
+                    let marginMode = undefined;
+                    [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
+                    marginMode = (marginMode === undefined) ? 'cross' : marginMode;
+                    request['margin_mode'] = marginMode;
+                    response = await this.contractPrivateGetV5TradeOrder (this.extend (request, params));
                 }
             } else if (market['inverse']) {
                 if (marketType === 'future') {
                     request['symbol'] = market['settleId'];
                     response = await this.contractPrivatePostApiV1ContractOrderInfo (this.extend (request, params));
                 } else if (marketType === 'swap') {
+                    request['contract_code'] = market['id'];
                     response = await this.contractPrivatePostSwapApiV1SwapOrderInfo (this.extend (request, params));
                 } else {
                     throw new NotSupported (this.id + ' fetchOrder() does not support ' + marketType + ' markets');
@@ -4029,107 +4060,81 @@ export default class htx extends Exchange {
         //         }
         //     }
         //
-        // linear swap cross margin
+        // linear swap
         //
         //     {
-        //         "status":"ok",
-        //         "data":[
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": {
+        //             "id": "1513828877079584768",
+        //             "side": "buy",
+        //             "type": "limit",
+        //             "price": "50000",
+        //             "volume": "1",
+        //             "state": "new",
+        //             "profit": null,
+        //             "contract_code": "BTC-USDT",
+        //             "position_side": "long",
+        //             "price_match": null,
+        //             "order_id": "1513828877079584768",
+        //             "client_order_id": "1513828877079584768",
+        //             "margin_mode": "cross",
+        //             "lever_rate": 20,
+        //             "order_source": "api",
+        //             "reduce_only": false,
+        //             "time_in_force": "gtc",
+        //             "tp_trigger_price": "",
+        //             "tp_order_price": "",
+        //             "tp_type": "0",
+        //             "tp_trigger_price_type": "",
+        //             "sl_trigger_price": "",
+        //             "sl_order_price": "",
+        //             "sl_type": "0",
+        //             "sl_trigger_price_type": "",
+        //             "trade_avg_price": "0",
+        //             "trade_volume": "0",
+        //             "trade_turnover": "0",
+        //             "fee_currency": "",
+        //             "fee": "0",
+        //             "price_protect": false,
+        //             "real_profit": null,
+        //             "contract_type": "swap",
+        //             "created_time": "1780966529876",
+        //             "updated_time": "1780966572409",
+        //             "cancel_reason": null,
+        //             "self_match_prevent": "cancel_taker"
+        //         },
+        //         "ts": 1780966573200
+        //     }
+        //
+        // linear swap algo
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
         //             {
-        //                 "business_type":"swap",
-        //                 "contract_type":"swap",
-        //                 "pair":"BTC-USDT",
-        //                 "symbol":"BTC",
-        //                 "contract_code":"BTC-USDT",
-        //                 "volume":1,
-        //                 "price":3000,
-        //                 "order_price_type":"limit",
-        //                 "order_type":1,
-        //                 "direction":"buy",
-        //                 "offset":"open",
-        //                 "lever_rate":1,
-        //                 "order_id":924912513206878210,
-        //                 "client_order_id":null,
-        //                 "created_at":1640557927189,
-        //                 "trade_volume":0,
-        //                 "trade_turnover":0,
-        //                 "fee":0,
-        //                 "trade_avg_price":null,
-        //                 "margin_frozen":3.000000000000000000,
-        //                 "profit":0,
-        //                 "status":3,
-        //                 "order_source":"api",
-        //                 "order_id_str":"924912513206878210",
-        //                 "fee_asset":"USDT",
-        //                 "liquidation_type":"0",
-        //                 "canceled_at":0,
-        //                 "margin_asset":"USDT",
-        //                 "margin_account":"USDT",
-        //                 "margin_mode":"cross",
-        //                 "is_tpsl":0,
-        //                 "real_profit":0
+        //                 "id": "162320614",
+        //                 "volume": "2",
+        //                 "type": "tp",
+        //                 "state": "active",
+        //                 "side": "sell",
+        //                 "algo_id": "1513832307038027776",
+        //                 "contract_code": "BTC-USDT",
+        //                 "position_side": "long",
+        //                 "margin_mode": "cross",
+        //                 "created_time": "1780967347642",
+        //                 "updated_time": "1780967347848",
+        //                 "order_source": "api",
+        //                 "tp_trigger_price": "101000",
+        //                 "tp_order_price": "0",
+        //                 "tp_type": "market",
+        //                 "tp_trigger_price_type": "last"
         //             }
         //         ],
-        //         "ts":1640557982556
+        //         "ts": 1780967407144
         //     }
         //
-        // linear swap isolated margin detail
-        //
-        //     {
-        //         "status": "ok",
-        //         "data": {
-        //             "symbol": "BTC",
-        //             "contract_code": "BTC-USDT",
-        //             "instrument_price": 0,
-        //             "final_interest": 0,
-        //             "adjust_value": 0,
-        //             "lever_rate": 10,
-        //             "direction": "sell",
-        //             "offset": "open",
-        //             "volume": 1.000000000000000000,
-        //             "price": 13059.800000000000000000,
-        //             "created_at": 1603703614712,
-        //             "canceled_at": 0,
-        //             "order_source": "api",
-        //             "order_price_type": "opponent",
-        //             "margin_frozen": 0,
-        //             "profit": 0,
-        //             "trades": [
-        //                 {
-        //                     "trade_id": 131560927,
-        //                     "trade_price": 13059.800000000000000000,
-        //                     "trade_volume": 1.000000000000000000,
-        //                     "trade_turnover": 13.059800000000000000,
-        //                     "trade_fee": -0.005223920000000000,
-        //                     "created_at": 1603703614715,
-        //                     "role": "taker",
-        //                     "fee_asset": "USDT",
-        //                     "profit": 0,
-        //                     "real_profit": 0,
-        //                     "id": "131560927-770334322963152896-1"
-        //                 }
-        //             ],
-        //             "total_page": 1,
-        //             "current_page": 1,
-        //             "total_size": 1,
-        //             "liquidation_type": "0",
-        //             "fee_asset": "USDT",
-        //             "fee": -0.005223920000000000,
-        //             "order_id": 770334322963152896,
-        //             "order_id_str": "770334322963152896",
-        //             "client_order_id": 57012021045,
-        //             "order_type": "1",
-        //             "status": 6,
-        //             "trade_avg_price": 13059.800000000000000000,
-        //             "trade_turnover": 13.059800000000000000,
-        //             "trade_volume": 1.000000000000000000,
-        //             "margin_asset": "USDT",
-        //             "margin_mode": "isolated",
-        //             "margin_account": "BTC-USDT",
-        //             "real_profit": 0,
-        //             "is_tpsl": 0
-        //         },
-        //         "ts": 1603703678477
-        //     }
         let order = this.safeValue (response, 'data');
         if (Array.isArray (order)) {
             order = this.safeValue (order, 0);
@@ -5329,7 +5334,7 @@ export default class htx extends Exchange {
         //         }
         //     ]
         //
-        // linear swap fetchOpenOrders
+        // linear swap fetchOpenOrders, fetchOrder
         //
         //     {
         //         "id": "1512509978516443136",
@@ -5363,6 +5368,7 @@ export default class htx extends Exchange {
         //         "fee_currency": "",
         //         "fee": "0",
         //         "price_protect": false,
+        //         "real_profit": null,
         //         "contract_type": "swap",
         //         "created_time": "1780652079954",
         //         "updated_time": "1780652079954",
@@ -5370,7 +5376,7 @@ export default class htx extends Exchange {
         //         "self_match_prevent": "cancel_taker"
         //     }
         //
-        // linear swap algo fetchOpenOrders
+        // linear swap algo fetchOpenOrders, fetchOrder
         //
         //     {
         //         "id": "162173672",
@@ -5422,7 +5428,7 @@ export default class htx extends Exchange {
         const id = this.safeStringN (order, [ 'algo_id', 'id', 'order_id_str', 'order-id', 'order_id' ]);
         let side = this.safeString2 (order, 'direction', 'side');
         const contractCode = this.safeString (order, 'contract_code');
-        const isLinearOrder = (contractCode !== undefined) && (market !== undefined) && market['linear'];
+        const isLinearOrder = (contractCode !== undefined) && (market !== undefined) && market['linear'] && !market['spot'];
         let type = undefined;
         if (isLinearOrder) {
             type = this.safeString (order, 'type');
@@ -6169,9 +6175,11 @@ export default class htx extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] *contract only* if the order is a trigger trigger order or not
-     * @param {boolean} [params.stopLossTakeProfit] *contract only* if the order is a stop-loss or take-profit order
-     * @param {boolean} [params.trailing] *contract only* set to true if you want to cancel a trailing order
+     * @param {bool} [params.trigger] *contract only* if the order is a trigger trigger order or not
+     * @param {bool} [params.stopLossTakeProfit] *contract only* if the order is a stop-loss or take-profit order
+     * @param {bool} [params.stopLoss] *contract only* if the order is a stop-loss order
+     * @param {bool} [params.takeProfit] *contract only* if the order is a take-profit order
+     * @param {bool} [params.trailing] *contract only* set to true if you want to cancel a trailing order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -6198,9 +6206,9 @@ export default class htx extends Exchange {
             // 'contract_type': 'this_week', // swap, this_week, next_week, quarter, next_ quarter
         };
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
+        const stopLossTakeProfit = this.safeBoolN (params, [ 'stopLossTakeProfit', 'stopLoss', 'takeProfit' ]);
         const trailing = this.safeBool (params, 'trailing', false);
-        params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
+        params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit' ]);
         let response = undefined;
         if (marketType === 'spot') {
             const clientOrderId = this.safeString2 (params, 'client-order-id', 'clientOrderId');
