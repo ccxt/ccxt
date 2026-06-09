@@ -11,6 +11,24 @@
                 "input": []
             }
         ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://archive.test.nado.xyz/v2/tickers",
+                "input": [
+                    "BTC/USDT0:USDT0"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://archive.test.nado.xyz/v2/tickers",
+                "input": []
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",

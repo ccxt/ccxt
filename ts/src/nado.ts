@@ -3,7 +3,7 @@
 import Exchange from './abstract/nado.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Currency, Dict, Market, Num, Str } from './base/types.js';
+import type { Currencies, Currency, Dict, Market, Strings, Ticker, Tickers } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -43,8 +43,8 @@ export default class nado extends Exchange {
                 'fetchOrders': false,
                 'fetchPositions': false,
                 'fetchStatus': true,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': false,
                 'withdraw': false,
@@ -291,16 +291,99 @@ export default class nado extends Exchange {
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.gatewayV2PublicGetAssets (params);
-        return this.parseCurrencies (response);
+        const currencies = [];
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const marketType = this.safeString (currency, 'market_type');
+            const canDeposit = this.safeBool (currency, 'can_deposit', false);
+            const canWithdraw = this.safeBool (currency, 'can_withdraw', false);
+            if ((marketType === 'perp') && !canDeposit && !canWithdraw) {
+                continue;
+            }
+            currencies.push (currency);
+        }
+        return this.parseCurrencies (currencies);
+    }
+
+    /**
+     * @method
+     * @name nado#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://docs.nado.xyz/developer-resources/api/v2/tickers
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.archiveV2PublicGetTickers (params);
+        //
+        //     {
+        //         "BTC-PERP_USDT0": {
+        //             "product_id": 2,
+        //             "ticker_id": "BTC-PERP_USDT0",
+        //             "base_currency": "BTC",
+        //             "quote_currency": "USDT0",
+        //             "last_price": 25728.0,
+        //             "base_volume": 552.048,
+        //             "quote_volume": 14238632.207250029,
+        //             "price_change_percent_24h": -0.6348599635253989
+        //         }
+        //     }
+        //
+        const tickers = this.toArray (response);
+        return this.parseTickers (tickers, symbols);
+    }
+
+    /**
+     * @method
+     * @name nado#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.nado.xyz/developer-resources/api/v2/tickers
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const tickers = await this.fetchTickers ([ symbol ], params);
+        return this.safeTicker (this.safeDict (tickers, symbol), market);
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        const marketId = this.safeString (ticker, 'product_id');
+        market = this.safeMarket (marketId, market);
+        const timestamp = undefined;
+        const last = this.safeString (ticker, 'last_price');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': this.safeString (ticker, 'price_change_percent_24h'),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'base_volume'),
+            'quoteVolume': this.safeString (ticker, 'quote_volume'),
+            'info': ticker,
+        }, market);
     }
 
     parseCurrency (rawCurrency: Dict): Currency {
-        const marketType = this.safeString (rawCurrency, 'market_type');
         const canDeposit = this.safeBool (rawCurrency, 'can_deposit', false);
         const canWithdraw = this.safeBool (rawCurrency, 'can_withdraw', false);
-        if ((marketType === 'perp') && !canDeposit && !canWithdraw) {
-            return undefined;
-        }
         const id = this.safeString (rawCurrency, 'product_id');
         const currencyId = this.safeString (rawCurrency, 'symbol');
         const code = this.safeCurrencyCode (this.removeMarketSuffix (currencyId));
@@ -329,14 +412,14 @@ export default class nado extends Exchange {
         });
     }
 
-    parseX18 (value: Str): Num {
+    parseX18 (value) {
         if (value === undefined) {
             return undefined;
         }
         return this.parseNumber (Precise.stringDiv (value, '1000000000000000000'));
     }
 
-    removeMarketSuffix (marketId: Str): Str {
+    removeMarketSuffix (marketId) {
         if (marketId === undefined) {
             return undefined;
         }
@@ -347,7 +430,7 @@ export default class nado extends Exchange {
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const endpoint = Array.isArray (api) ? api[0] : api;
+        const endpoint = api[0];
         let url = this.urls['api'][endpoint];
         if (path !== '') {
             url += '/' + this.implodeParams (path, params);
@@ -358,7 +441,7 @@ export default class nado extends Exchange {
             headers['Accept-Encoding'] = 'gzip, br, deflate';
         }
         if (method === 'GET') {
-            if (Object.keys (query).length > 0) {
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         } else {

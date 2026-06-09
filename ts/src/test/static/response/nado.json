@@ -25,6 +25,114 @@
                 }
             }
         ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT0:USDT0"
+                ],
+                "httpResponse": {
+                    "BTC-PERP_USDT0": {
+                        "product_id": "2",
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "base_currency": "BTC",
+                        "quote_currency": "USDT0",
+                        "last_price": "25728.0",
+                        "base_volume": "552.048",
+                        "quote_volume": "14238632.207250029",
+                        "price_change_percent_24h": "-0.6348599635253989"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT0:USDT0",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 25792.380748141517,
+                    "open": 25892.38035648705,
+                    "close": 25728,
+                    "last": 25728,
+                    "previousClose": null,
+                    "change": -164.38035648705124,
+                    "percentage": -0.6348599635253989,
+                    "average": 25810,
+                    "baseVolume": 552.048,
+                    "quoteVolume": 14238632.207250029,
+                    "info": {
+                        "product_id": "2",
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "base_currency": "BTC",
+                        "quote_currency": "USDT0",
+                        "last_price": "25728.0",
+                        "base_volume": "552.048",
+                        "quote_volume": "14238632.207250029",
+                        "price_change_percent_24h": "-0.6348599635253989"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": {
+                    "BTC-PERP_USDT0": {
+                        "product_id": "2",
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "base_currency": "BTC",
+                        "quote_currency": "USDT0",
+                        "last_price": "25728.0",
+                        "base_volume": "552.048",
+                        "quote_volume": "14238632.207250029",
+                        "price_change_percent_24h": "-0.6348599635253989"
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDT0:USDT0": {
+                        "symbol": "BTC/USDT0:USDT0",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 25792.380748141517,
+                        "open": 25892.38035648705,
+                        "close": 25728,
+                        "last": 25728,
+                        "previousClose": null,
+                        "change": -164.38035648705124,
+                        "percentage": -0.6348599635253989,
+                        "average": 25810,
+                        "baseVolume": 552.048,
+                        "quoteVolume": 14238632.207250029,
+                        "info": {
+                            "product_id": "2",
+                            "ticker_id": "BTC-PERP_USDT0",
+                            "base_currency": "BTC",
+                            "quote_currency": "USDT0",
+                            "last_price": "25728.0",
+                            "base_volume": "552.048",
+                            "quote_volume": "14238632.207250029",
+                            "price_change_percent_24h": "-0.6348599635253989"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
