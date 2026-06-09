@@ -1010,7 +1010,7 @@ export default class extended extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
-        const cursor = this.safeValue (pagination, 'cursor');
+        const cursor = this.safeInteger (pagination, 'cursor');
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
@@ -1081,7 +1081,7 @@ export default class extended extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
-        const cursor = this.safeValue (pagination, 'cursor');
+        const cursor = this.safeInteger (pagination, 'cursor');
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
@@ -1342,7 +1342,7 @@ export default class extended extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
-        const cursor = this.safeValue (pagination, 'cursor');
+        const cursor = this.safeInteger (pagination, 'cursor');
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
@@ -1622,7 +1622,7 @@ export default class extended extends Exchange {
         const response = await this.v1PrivateGetUserAssetOperations (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
-        const cursor = this.safeValue (pagination, 'cursor');
+        const cursor = this.safeInteger (pagination, 'cursor');
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
@@ -1737,7 +1737,7 @@ export default class extended extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
-        const cursor = this.safeValue (pagination, 'cursor');
+        const cursor = this.safeInteger (pagination, 'cursor');
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
@@ -1882,7 +1882,7 @@ export default class extended extends Exchange {
         const response = await this.v1PrivateGetUserAssetOperations (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
-        const cursor = this.safeValue (pagination, 'cursor');
+        const cursor = this.safeInteger (pagination, 'cursor');
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
@@ -2386,7 +2386,7 @@ export default class extended extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
-        const cursor = this.safeValue (pagination, 'cursor');
+        const cursor = this.safeInteger (pagination, 'cursor');
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
@@ -2494,8 +2494,8 @@ export default class extended extends Exchange {
         const collateralPosition = this.safeString (params, 'collateralPosition');
         const syntheticId = this.safeString (params, 'syntheticId');
         const collateralId = this.safeString (params, 'collateralId');
-        const syntheticResolution = this.safeValue (params, 'syntheticResolution');
-        const collateralResolution = this.safeValue (params, 'collateralResolution');
+        const syntheticResolution = this.safeInteger (params, 'syntheticResolution');
+        const collateralResolution = this.safeInteger (params, 'collateralResolution');
         const quoteAmount = Precise.stringMul (amountString, priceString);
         const baseRoundUp = isBuy;
         const quoteRoundUp = isBuy;
@@ -2536,7 +2536,7 @@ export default class extended extends Exchange {
         const recipient = this.safeString (params, 'recipient', address);
         const currencyInfo = this.safeDict (currency, 'info', {});
         const collateralId = this.safeString (params, 'collateralId', this.safeString2 (currencyInfo, 'starkexId', 'l1Id'));
-        const resolution = this.safeValue (params, 'resolution', this.safeValue2 (currencyInfo, 'starkexResolution', 'l1Resolution'));
+        const resolution = this.safeInteger (params, 'resolution', this.safeValue2 (currencyInfo, 'starkexResolution', 'l1Resolution'));
         const starkKey = this.safeString (account, 'l2Key');
         if ((positionId === undefined) || (collateralId === undefined) || (resolution === undefined) || (starkKey === undefined)) {
             throw new BadRequest (this.id + ' withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key');
@@ -2569,7 +2569,7 @@ export default class extended extends Exchange {
         const fromL2Key = this.safeString2 (params, 'fromL2Key', 'senderPublicKey', this.safeString (account, 'l2Key'));
         const currencyInfo = this.safeDict (currency, 'info', {});
         const collateralId = this.safeString2 (params, 'assetId', 'collateralId', this.safeString2 (currencyInfo, 'starkexId', 'l1Id'));
-        const resolution = this.safeValue (params, 'resolution', this.safeValue2 (currencyInfo, 'starkexResolution', 'l1Resolution'));
+        const resolution = this.safeInteger (params, 'resolution', this.safeValue2 (currencyInfo, 'starkexResolution', 'l1Resolution'));
         if ((fromVault === undefined) || (fromL2Key === undefined) || (collateralId === undefined) || (resolution === undefined)) {
             throw new BadRequest (this.id + ' transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key');
         }
@@ -2641,8 +2641,8 @@ export default class extended extends Exchange {
         const l2Config = this.safeDict (info, 'l2Config', {});
         const syntheticId = this.safeString (l2Config, 'syntheticId');
         const collateralId = this.safeString (l2Config, 'collateralId');
-        const syntheticResolution = this.safeValue (l2Config, 'syntheticResolution');
-        const collateralResolution = this.safeValue (l2Config, 'collateralResolution');
+        const syntheticResolution = this.safeInteger (l2Config, 'syntheticResolution');
+        const collateralResolution = this.safeInteger (l2Config, 'collateralResolution');
         if ((syntheticId === undefined) || (collateralId === undefined) || (syntheticResolution === undefined) || (collateralResolution === undefined)) {
             throw new BadRequest (this.id + ' createOrder() requires l2Config in market info');
         }
@@ -2691,12 +2691,12 @@ export default class extended extends Exchange {
             'collateralPosition': collateralPosition,
         };
         let triggerPriceStr = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeValue (params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeValue (params, 'takeProfitPrice');
+        const stopLossTriggerPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeString (params, 'takeProfitPrice');
         const isStopLossOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitOrder = takeProfitTriggerPrice !== undefined;
-        const stopLoss = this.safeValue (params, 'stopLoss');
-        const takeProfit = this.safeValue (params, 'takeProfit');
+        const stopLoss = this.safeDict (params, 'stopLoss');
+        const takeProfit = this.safeDict (params, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         if (hasStopLoss || hasTakeProfit) {
@@ -3217,7 +3217,7 @@ export default class extended extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
-        const cursor = this.safeValue (pagination, 'cursor');
+        const cursor = this.safeInteger (pagination, 'cursor');
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
