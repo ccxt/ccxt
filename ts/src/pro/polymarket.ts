@@ -1,4 +1,5 @@
-import polymarket from '../polymarket.js';
+import polymarketRest from '../polymarket.js';
+import { Precise } from '../base/Precise.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type {
     Int, Str, Dict,
@@ -12,11 +13,11 @@ const WS_URL = 'wss://ws-subscriptions-clob.polymarket.com/ws/market';
 // ---------------------------------------------------------------------------
 
 /**
- * @class polymarketPro
- * @augments polymarket
+ * @class polymarket
+ * @augments polymarketRest
  */
-export default class polymarketPro extends polymarket {
-    describe () {
+export default class polymarket extends polymarketRest {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'pro': true,
             'has': {
@@ -27,23 +28,14 @@ export default class polymarketPro extends polymarket {
         });
     }
 
-    // -----------------------------------------------------------------------
-    // onConnected — fires once when the WS connection opens.
-    // The Polymarket CLOB WS requires an initial "market" handshake before
-    // any subscribe operations are accepted.
-    // -----------------------------------------------------------------------
-
-    // -----------------------------------------------------------------------
-    // handleMessage — entry point for every incoming WS frame
-    // -----------------------------------------------------------------------
-
     handleMessage (client: any, message: any) {
         // Polymarket sends "PONG" text frames as keepalive responses; skip them.
         if (typeof message === 'string') {
             return;
         }
-        const events: any[] = Array.isArray (message) ? message : [ message ];
-        for (const event of events) {
+        const events = Array.isArray (message) ? message : [ message ];
+        for (let i = 0; i < events.length; i++) {
+            const event = events[i];
             if (!event || typeof event !== 'object') {
                 continue;
             }
@@ -59,10 +51,6 @@ export default class polymarketPro extends polymarket {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // Order-book snapshot — replaces the full book
-    // -----------------------------------------------------------------------
-
     handleOrderBookSnapshot (client: any, event: any) {
         const tokenId = this.safeString (event, 'asset_id');
         const symbol = this.tokenIdToSymbol (tokenId);
@@ -72,58 +60,62 @@ export default class polymarketPro extends polymarket {
         if (this.orderbooks[symbol] === undefined) {
             this.orderbooks[symbol] = this.orderBook ([]);
         }
-        const ob = this.orderbooks[symbol];
+        const orderbook = this.orderbooks[symbol];
         const timestamp = this.parsePolyTimestamp (this.safeString (event, 'timestamp'));
         const rawBids = this.safeList (event, 'bids', []) as any[];
         const rawAsks = this.safeList (event, 'asks', []) as any[];
-        const bids = rawBids.map ((b: any) => [ this.safeNumber (b, 'price'), this.safeNumber (b, 'size') ]);
-        const asks = rawAsks.map ((a: any) => [ this.safeNumber (a, 'price'), this.safeNumber (a, 'size') ]);
-        ob.reset ({
+        const bids = [];
+        for (let i = 0; i < rawBids.length; i++) {
+            const b = rawBids[i];
+            bids.push ([ this.safeNumber (b, 'price'), this.safeNumber (b, 'size') ]);
+        }
+        const asks = [];
+        for (let j = 0; j < rawAsks.length; j++) {
+            const a = rawAsks[j];
+            asks.push ([ this.safeNumber (a, 'price'), this.safeNumber (a, 'size') ]);
+        }
+        orderbook.reset ({
             'bids': bids,
             'asks': asks,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
         });
-        client.resolve (ob, 'orderbook::' + symbol);
-        client.resolve (ob, 'ticker::' + symbol);
+        client.resolve (orderbook, 'orderbook::' + symbol);
+        client.resolve (orderbook, 'ticker::' + symbol);
     }
-
-    // -----------------------------------------------------------------------
-    // Order-book delta — applies incremental price-level changes
-    // -----------------------------------------------------------------------
 
     handleOrderBookDelta (client: any, event: any) {
         const timestamp = this.parsePolyTimestamp (this.safeString (event, 'timestamp'));
-        const changes: any[] = this.safeList (event, 'price_changes', []) as any[];
-        const updated: Set<string> = new Set ();
-        for (const change of changes) {
+        const changes = this.safeList (event, 'price_changes', []) as any[];
+        const updated = {};
+        for (let i = 0; i < changes.length; i++) {
+            const change = changes[i];
             const tokenId = this.safeString (change, 'asset_id');
             const symbol = this.tokenIdToSymbol (tokenId);
             if (symbol === undefined || this.orderbooks[symbol] === undefined) {
                 continue; // no snapshot yet — discard delta
             }
-            const ob = this.orderbooks[symbol];
+            const orderbook = this.orderbooks[symbol];
             const price = this.safeNumber (change, 'price') as number;
             const size = this.safeNumber (change, 'size') as number;
-            const isBuy = (this.safeStringUpper (change, 'side') || '') === 'BUY';
-            const side = isBuy ? ob.bids : ob.asks;
+            const isBuy = this.safeStringUpper (change, 'side', '') === 'BUY';
+            const side = isBuy ? orderbook['bids'] : orderbook['asks'];
             // storeArray([price, size]) inserts/updates or removes (size=0) the level
-            (side as any).storeArray ([ price, size ]);
-            ob.timestamp = timestamp;
-            ob.datetime = this.iso8601 (timestamp);
-            updated.add (symbol);
+            const sideRef = side as any;
+            sideRef.storeArray ([ price, size ]);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
+            updated[symbol] = true;
         }
-        for (const symbol of updated) {
-            const ob = this.orderbooks[symbol];
-            client.resolve (ob, 'orderbook::' + symbol);
-            client.resolve (ob, 'ticker::' + symbol);
+        const updatedSymbols = Object.keys (updated);
+        for (let k = 0; k < updatedSymbols.length; k++) {
+            const symbol = updatedSymbols[k];
+            const orderbook = this.orderbooks[symbol];
+            client.resolve (orderbook, 'orderbook::' + symbol);
+            client.resolve (orderbook, 'ticker::' + symbol);
         }
     }
-
-    // -----------------------------------------------------------------------
-    // Trade — builds a unified Trade and appends it to the trades cache
-    // -----------------------------------------------------------------------
 
     handleTrade (client: any, event: any) {
         const tokenId = this.safeString (event, 'asset_id');
@@ -161,10 +153,6 @@ export default class polymarketPro extends polymarket {
         client.resolve (this.trades[symbol], 'trades::' + symbol);
     }
 
-    // -----------------------------------------------------------------------
-    // watchOrderBook
-    // -----------------------------------------------------------------------
-
     /**
      * Streams live order-book updates for a single Polymarket outcome token.
      * Resolves on every snapshot or delta received from the WS feed.
@@ -172,21 +160,18 @@ export default class polymarketPro extends polymarket {
      * @param limit    Optional depth limit applied after resolving
      * @param params   Extra params (passed through but currently unused)
      */
-    async watchOrderBook (outcome: Str, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+    async watchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        const outcome = symbol;
         await this.loadMarkets ();
         const outcomeObj = this.outcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'id');
-        const symbol = this.safeString (outcomeObj, 'symbol');
+        symbol = this.safeString (outcomeObj, 'symbol');
         const messageHash = 'orderbook::' + symbol;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'operation': 'subscribe', 'assets_ids': [ tokenId ] };
         const orderbook = await this.watch (WS_URL, messageHash, subscribeMsg, subscribeHash);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
-
-    // -----------------------------------------------------------------------
-    // watchTrades
-    // -----------------------------------------------------------------------
 
     /**
      * Streams live fills for a single Polymarket outcome token.
@@ -196,11 +181,12 @@ export default class polymarketPro extends polymarket {
      * @param limit    Optional max number of trades to return
      * @param params   Extra params (unused)
      */
-    async watchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+    async watchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        const outcome = symbol;
         await this.loadMarkets ();
         const outcomeObj = this.outcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'id');
-        const symbol = this.safeString (outcomeObj, 'symbol');
+        symbol = this.safeString (outcomeObj, 'symbol');
         const messageHash = 'trades::' + symbol;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'operation': 'subscribe', 'assets_ids': [ tokenId ] };
@@ -208,46 +194,67 @@ export default class polymarketPro extends polymarket {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    // -----------------------------------------------------------------------
-    // watchTicker — derived from the live order-book feed
-    // -----------------------------------------------------------------------
-
     /**
      * Streams a synthetic Ticker derived from order-book snapshots and deltas.
      * mid-price = (best bid + best ask) / 2.
      * @param outcome  CCXT outcome symbol
      * @param params   Extra params (unused)
      */
-    async watchTicker (outcome: Str, params: Dict = {}): Promise<Ticker> {
+    async watchTicker (symbol: Str, params = {}): Promise<Ticker> {
+        const outcome = symbol;
         await this.loadMarkets ();
         const outcomeObj = this.outcome (outcome);
         const tokenId = this.safeString (outcomeObj, 'id');
-        const symbol = this.safeString (outcomeObj, 'symbol');
+        symbol = this.safeString (outcomeObj, 'symbol');
         const messageHash = 'ticker::' + symbol;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'operation': 'subscribe', 'assets_ids': [ tokenId ] };
         if (this.orderbooks[symbol] === undefined) {
             this.orderbooks[symbol] = this.orderBook ([]);
         }
-        const ob = await this.watch (WS_URL, messageHash, subscribeMsg, subscribeHash);
-        const bids = ob.bids as any;
-        const asks = ob.asks as any;
-        const bestBid = bids && bids.length ? bids[0][0] : undefined;
-        const bestAsk = asks && asks.length ? asks[0][0] : undefined;
-        const mid = (bestBid !== undefined && bestAsk !== undefined)
-            ? (bestBid + bestAsk) / 2
-            : (bestBid ?? bestAsk);
+        const orderbook = await this.watch (WS_URL, messageHash, subscribeMsg, subscribeHash);
+        const bids = orderbook['bids'] as any;
+        const asks = orderbook['asks'] as any;
+        let bestBid = undefined;
+        let bestBidVolume = undefined;
+        let bidsLength = 0;
+        if (bids !== undefined) {
+            bidsLength = bids.length;
+        }
+        if ((bids !== undefined) && (bidsLength > 0)) {
+            bestBid = bids[0][0];
+            bestBidVolume = bids[0][1];
+        }
+        let bestAsk = undefined;
+        let bestAskVolume = undefined;
+        let asksLength = 0;
+        if (asks !== undefined) {
+            asksLength = asks.length;
+        }
+        if ((asks !== undefined) && (asksLength > 0)) {
+            bestAsk = asks[0][0];
+            bestAskVolume = asks[0][1];
+        }
+        let mid = undefined;
+        if ((bestBid !== undefined) && (bestAsk !== undefined)) {
+            const sum = Precise.stringAdd (this.numberToString (bestBid), this.numberToString (bestAsk));
+            mid = this.parseNumber (Precise.stringDiv (sum, '2'));
+        } else if (bestBid !== undefined) {
+            mid = bestBid;
+        } else {
+            mid = bestAsk;
+        }
         const market = this.safeMarket (symbol);
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': ob.timestamp,
-            'datetime': ob.datetime,
+            'timestamp': orderbook['timestamp'],
+            'datetime': orderbook['datetime'],
             'high': undefined,
             'low': undefined,
             'bid': bestBid,
-            'bidVolume': bids && bids.length ? bids[0][1] : undefined,
+            'bidVolume': bestBidVolume,
             'ask': bestAsk,
-            'askVolume': asks && asks.length ? asks[0][1] : undefined,
+            'askVolume': bestAskVolume,
             'vwap': undefined,
             'open': undefined,
             'close': mid,
@@ -258,34 +265,34 @@ export default class polymarketPro extends polymarket {
             'average': mid,
             'baseVolume': undefined,
             'quoteVolume': undefined,
-            'info': ob,
+            'info': orderbook,
         }, market);
     }
-
-    // -----------------------------------------------------------------------
-    // Helpers
-    // -----------------------------------------------------------------------
 
     /**
      * Resolves a CLOB token ID to a unified CCXT outcome symbol.
      * Uses this.marketsById populated by loadMarkets() — market.id = clobTokenId.
      */
-    tokenIdToSymbol (tokenId: string): string | undefined {
+    tokenIdToSymbol (tokenId: string): Str {
         if (!tokenId) {
             return undefined;
         }
-        const market = (this.markets_by_id as any)?.[tokenId];
+        const marketsById = this.markets_by_id as any;
+        const market = (marketsById !== undefined) ? marketsById[tokenId] : undefined;
         return market ? (market['symbol'] as string) : undefined;
     }
 
     /**
      * Parses a Polymarket timestamp (Unix milliseconds as a string) to a number.
      */
-    parsePolyTimestamp (raw: string | undefined): number {
+    parsePolyTimestamp (raw: Str): number {
         if (raw === undefined) {
             return this.milliseconds ();
         }
-        const n = parseInt (raw, 10);
-        return isNaN (n) ? this.milliseconds () : n;
+        const n = this.parseToInt (raw);
+        if (n === undefined) {
+            return this.milliseconds ();
+        }
+        return n;
     }
 }

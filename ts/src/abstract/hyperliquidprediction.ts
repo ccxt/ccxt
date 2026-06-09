@@ -6,12 +6,12 @@
 // -------------------------------------------------------------------------------
 
 import { implicitReturnType } from '../base/types.js';
-import { Exchange as _PredictionExchange } from '../base/PredictionExchange.js';
+import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface PredictionExchange {
+interface Exchange {
     publicPostInfo (params?: {}): Promise<implicitReturnType>;
     privatePostExchange (params?: {}): Promise<implicitReturnType>;
 }
-abstract class PredictionExchange extends _PredictionExchange {}
+abstract class Exchange extends _Exchange {}
 
-export default PredictionExchange
+export default Exchange

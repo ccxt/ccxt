@@ -14,11 +14,12 @@
 //
 // ---------------------------------------------------------------------------
 
-import PredictionExchange from './abstract/limitless.js';
+import Exchange from './abstract/limitless.js';
 import type {
     Int, Str, Num, Dict,
+    Strings,
     Market, Ticker, OrderBook, OHLCV,
-    Order, Position, PredictionEvent,
+    Order, Position,
     Bool,
     Trade,
     Account,
@@ -34,10 +35,10 @@ import { ecdsa } from './base/functions.js';
 
 /**
  * @class limitless
- * @augments PredictionExchange
+ * @augments Exchange
  */
-export default class Limitless extends PredictionExchange {
-    describe () {
+export default class limitless extends Exchange {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'limitless',
             'name': 'Limitless',
@@ -52,8 +53,13 @@ export default class Limitless extends PredictionExchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'prediction': true,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
+                'cancelOrders': true,
+                'createOrder': true,
+                'fetchBalance': false,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': false,
                 'fetchEvents': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -63,15 +69,10 @@ export default class Limitless extends PredictionExchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrdersByIds': true,
+                'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTrades': false,   // no public trades endpoint
-                'fetchBalance': false,
-                'fetchPositions': true,
-                'createOrder': true,
-                'cancelOrder': true,
-                'cancelOrders': true,
-                'cancelAllOrders': true,
-                'fetchCurrencies': false,
+                'prediction': true,
             },
             'timeframes': {
                 '1h': '1h',
@@ -184,30 +185,29 @@ export default class Limitless extends PredictionExchange {
         });
     }
 
-    // -----------------------------------------------------------------------
-    // Markets — one CCXT market per child market, outcomes list inside
-    // -----------------------------------------------------------------------
-
     /**
      * Fetches all active Limitless markets paginated and returns one CCXT market per child market,
      * each containing a list of outcome objects (YES/NO).
      * @param params
      * @see https://docs.limitless.exchange/api-reference/markets/get-active-markets
      */
-    async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        const queries = this.safeList (params, 'queries', []) as string[];
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        const queries = this.safeList (params, 'queries', []) as any[];
         const rest = this.omit (params, [ 'queries' ]);
         let allRaw: any[] = [];
-        if (queries && queries.length > 0) {
+        const queriesLength = queries.length;
+        if (queries && queriesLength > 0) {
             const limit = this.safeInteger (rest, 'limit', 50);
             const searchRest = this.omit (rest, [ 'limit' ]);
             const seen: Dict = {};
-            for (const q of queries) {
+            for (let i = 0; i < queries.length; i++) {
+                const q = queries[i];
                 const response = await this.limitlessPublicGetMarketsSearch (this.extend ({ 'query': q, 'limit': limit }, searchRest));
                 const found = this.safeList (response, 'markets', []) as any[];
-                for (const raw of found) {
+                for (let j = 0; j < found.length; j++) {
+                    const raw = found[j];
                     const slug = this.safeString (raw, 'slug');
-                    if (slug && !seen[slug]) {
+                    if (slug && !(slug in seen)) {
                         seen[slug] = true;
                         allRaw.push (raw);
                     }
@@ -223,7 +223,7 @@ export default class Limitless extends PredictionExchange {
             const firstPageResponse = await this.limitlessPublicGetMarketsActive (this.extend (request, rest));
             const totalMarketsCount = this.safeInteger (firstPageResponse, 'totalMarketsCount');
             const firstData = this.safeList (firstPageResponse, 'data', []);
-            allRaw = this.flatten (firstData, allRaw);
+            allRaw = this.arrayConcat (allRaw, firstData);
             const promises = [];
             const totalPages = Math.ceil (totalMarketsCount / pageSize);
             for (let i = 2; i <= totalPages; i++) {
@@ -236,45 +236,52 @@ export default class Limitless extends PredictionExchange {
             for (let j = 0; j < length; j++) {
                 const response = this.safeDict (responses, j);
                 const data = this.safeList (response, 'data', []);
-                allRaw = this.flatten (data, allRaw);
+                allRaw = this.arrayConcat (allRaw, data);
             }
             const lastPageResponse = this.safeDict (responses, length - 1);
             const lastPageData = this.safeList (lastPageResponse, 'data', []);
             const lastPageLength = lastPageData.length;
-            let hasMore = true;
-            if (lastPageLength < pageSize) {
-                hasMore = false;
-            }
-            while (hasMore) {
-                page++;
-                request['page'] = page;
-                const response = await this.limitlessPublicGetMarketsActive (this.extend (request, rest));
-                const page_markets = (this.safeList (response, 'data', response as any) || []) as any[];
-                if (!page_markets || page_markets.length === 0) {
-                    break;
+            if (lastPageLength >= pageSize) {
+                while (true) {
+                    page = this.sum (page, 1);
+                    request['page'] = page;
+                    const response = await this.limitlessPublicGetMarketsActive (this.extend (request, rest));
+                    const rawPageMarkets = this.safeList (response, 'data', response as any);
+                    const page_markets = (rawPageMarkets !== undefined) ? rawPageMarkets : [];
+                    const pageMarketsLength = page_markets.length;
+                    if (!page_markets || pageMarketsLength === 0) {
+                        break;
+                    }
+                    for (let i = 0; i < page_markets.length; i++) {
+                        const raw = page_markets[i];
+                        allRaw.push (raw);
+                    }
+                    if (pageMarketsLength < pageSize) {
+                        break;
+                    }
                 }
-                for (const raw of page_markets) {
-                    allRaw.push (raw);
-                }
-                hasMore = page_markets.length >= pageSize;
             }
         }
         const markets: Market[] = [];
         const eventGroups: Dict = {};
-        for (const raw of allRaw) {
+        for (let i = 0; i < allRaw.length; i++) {
+            const raw = allRaw[i];
             const groupId = this.safeString (raw, 'groupId', this.safeString (raw, 'slug'));
             const eventKey = groupId ? this.shortenSlug (groupId) : undefined;
             const m = this.parseMarket (raw);
             markets.push (m);
             if (eventKey) {
-                if (!eventGroups[eventKey]) {
+                if (!(eventKey in eventGroups)) {
                     eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString (raw, 'title', groupId), 'raw': raw, 'markets': [] };
                 }
-                (eventGroups[eventKey] as Dict)['markets'].push (m);
+                const eventGroup = eventGroups[eventKey] as Dict;
+                eventGroup['markets'].push (m);
             }
         }
         const eventsDict: Dict = {};
-        for (const eventKey of Object.keys (eventGroups)) {
+        const eventKeys = Object.keys (eventGroups);
+        for (let i = 0; i < eventKeys.length; i++) {
+            const eventKey = eventKeys[i];
             const g = eventGroups[eventKey] as Dict;
             eventsDict[eventKey] = this.parseEvent (g);
         }
@@ -369,7 +376,8 @@ export default class Limitless extends PredictionExchange {
         const marketSymbol = this.slugToMarketSymbol (groupId, slug);
         const outcomes: any[] = [];
         const tokenEntries = Object.keys (tokens);
-        for (const outcomeLabel of tokenEntries) {
+        for (let i = 0; i < tokenEntries.length; i++) {
+            const outcomeLabel = tokenEntries[i];
             const tokenData = tokens[outcomeLabel];
             const tokenId = tokenData;
             outcomes.push ({
@@ -437,7 +445,7 @@ export default class Limitless extends PredictionExchange {
         };
     }
 
-    parseEvent (event: Dict): PredictionEvent {
+    parseEvent (event: Dict): any {
         // {
         //    "groupId":"trump-out-as-president-before-2027-1768933068297",
         //    "title":"💎 Trump out as President before 2027?",
@@ -697,12 +705,8 @@ export default class Limitless extends PredictionExchange {
             'lastUpdatedAt': this.parse8601 (this.safeString (event, 'updatedAt')),
             'resolutionSource': this.safeString (event, 'resolutionSource'),
             'info': event,
-        }) as unknown as PredictionEvent;
+        }) as any;
     }
-
-    // -----------------------------------------------------------------------
-    // Ticker
-    // -----------------------------------------------------------------------
 
     /**
      * Fetches the current price for a single Limitless outcome token from the market endpoint.
@@ -710,7 +714,8 @@ export default class Limitless extends PredictionExchange {
      * @param params
      * @see https://docs.limitless.exchange/api-reference/markets/get-market
      */
-    async fetchTicker (outcome: Str, params: Dict = {}): Promise<Ticker> {
+    async fetchTicker (symbol: Str, params = {}): Promise<Ticker> {
+        const outcome = symbol;
         await this.loadMarkets ();
         await this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
@@ -854,9 +859,9 @@ export default class Limitless extends PredictionExchange {
         //         "logo": "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png"
         //     }
         //
-        const rawLabel = market ? (this.safeString (market, 'label') || this.safeString (market['info'], 'outcomeLabel') || 'yes') : 'yes';
+        const rawLabel = market ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'yes')) : 'yes';
         const isYes = rawLabel.toLowerCase () !== 'no';
-        const prices = this.safeList (raw, 'prices', []) as number[];
+        const prices = this.safeList (raw, 'prices', []) as any[];
         const price = isYes ? (prices[0] as number) : (prices[1] as number);
         const tradePrices = this.safeValue (raw, 'tradePrices', {});
         const buySide  = this.safeValue (tradePrices, 'buy',  {});
@@ -865,11 +870,20 @@ export default class Limitless extends PredictionExchange {
         const sellMarket = this.safeList (sellSide, 'market', []) as any[];
         // tradePrices.buy.market entries: [price, size] — best ask is first buy entry
         // tradePrices.sell.market entries: [price, size] — best bid is first sell entry
-        const ask  = (buyMarket.length > 0) ? this.safeNumber (buyMarket[0], 0) : undefined;
-        const bid  = (sellMarket.length > 0) ? this.safeNumber (sellMarket[0], 0) : undefined;
+        const buyMarketLength = buyMarket.length;
+        const sellMarketLength = sellMarket.length;
+        const ask  = (buyMarketLength > 0) ? this.safeNumber (buyMarket[0], 0) : undefined;
+        const bid  = (sellMarketLength > 0) ? this.safeNumber (sellMarket[0], 0) : undefined;
         // Volume: 'volume' field is in USDC micro-units (6 decimals)
         const rawVolume = this.safeNumber (raw, 'volume');
-        const volume = (rawVolume !== undefined) ? rawVolume / 1e6 : undefined;
+        let volume = undefined;
+        if (rawVolume !== undefined) {
+            volume = rawVolume / 1e6;
+        }
+        let average = price;
+        if ((bid !== undefined) && (ask !== undefined)) {
+            average = (bid + ask) / 2;
+        }
         const now = this.milliseconds ();
         return this.safeTicker ({
             'symbol': this.safeSymbol (undefined, market),
@@ -888,16 +902,12 @@ export default class Limitless extends PredictionExchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': (bid !== undefined && ask !== undefined) ? (bid + ask) / 2 : price,
+            'average': average,
             'baseVolume': undefined,
             'quoteVolume': volume,
             'info': raw,
         }, market);
     }
-
-    // -----------------------------------------------------------------------
-    // Order book (sizes in 6-decimal USDC micro-units → ÷ 1_000_000)
-    // -----------------------------------------------------------------------
 
     /**
      * Fetches the order book for a single Limitless outcome token, converting 6-decimal USDC sizes to whole units.
@@ -906,7 +916,8 @@ export default class Limitless extends PredictionExchange {
      * @param params
      * @see https://docs.limitless.exchange/api-reference/trading/orderbook
      */
-    async fetchOrderBook (outcome: Str, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+    async fetchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        const outcome = symbol;
         await this.loadMarkets ();
         await this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
@@ -938,7 +949,7 @@ export default class Limitless extends PredictionExchange {
         const timestamp = this.milliseconds ();
         const decimals = this.safeInteger (this.options, 'usdcDecimals', 6);
         // scale = 10^decimals; USDC uses 6 decimals → 1_000_000
-        const scale = 10 ** decimals;
+        const scale = Math.pow (10, decimals);
         const rawBids = this.safeList (response, 'bids', []) as any[];
         const rawAsks = this.safeList (response, 'asks', []) as any[];
         const bids: any[] = [];
@@ -946,12 +957,20 @@ export default class Limitless extends PredictionExchange {
         for (let bi = 0; bi < rawBids.length; bi++) {
             const price = this.safeNumber (rawBids[bi], 'price');
             const sizeMicro = this.safeNumber (rawBids[bi], 'size');
-            bids.push ([ price, sizeMicro !== undefined ? sizeMicro / scale : undefined ]);
+            let size = undefined;
+            if (sizeMicro !== undefined) {
+                size = sizeMicro / scale;
+            }
+            bids.push ([ price, size ]);
         }
         for (let ai = 0; ai < rawAsks.length; ai++) {
             const price = this.safeNumber (rawAsks[ai], 'price');
             const sizeMicro = this.safeNumber (rawAsks[ai], 'size');
-            asks.push ([ price, sizeMicro !== undefined ? sizeMicro / scale : undefined ]);
+            let size = undefined;
+            if (sizeMicro !== undefined) {
+                size = sizeMicro / scale;
+            }
+            asks.push ([ price, size ]);
         }
         return {
             'symbol': this.safeString (outcomeObj, 'symbol', outcome),
@@ -963,10 +982,6 @@ export default class Limitless extends PredictionExchange {
         } as unknown as OrderBook;
     }
 
-    // -----------------------------------------------------------------------
-    // OHLCV (single price point per tick — no true OHLCV)
-    // -----------------------------------------------------------------------
-
     /**
      * Fetches historical prices for a single Limitless market outcome and maps them to OHLCV format.
      * Uses the `interval` query parameter and selects the YES/NO series that matches the requested outcome.
@@ -977,7 +992,7 @@ export default class Limitless extends PredictionExchange {
      * @param params
      * @see https://docs.limitless.exchange/api-reference/trading/historical-price
      */
-    async fetchOHLCV (symbol: Str, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: Str, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         await this.checkEventsAndMarkets (symbol);
         const outcomeObj = this.outcome (symbol);
@@ -1020,9 +1035,11 @@ export default class Limitless extends PredictionExchange {
         //         }
         //     ]
         //
-        const rawHistory = (this.safeList (response, 'data', this.safeList (response, 'prices', response as any)) || []) as any[];
+        const rawHistoryList = this.safeList (response, 'data', this.safeList (response, 'prices', response as any));
+        const rawHistory = (rawHistoryList !== undefined) ? rawHistoryList : [];
         let history: any[] = rawHistory;
-        if (rawHistory.length > 0) {
+        const rawHistoryLength = rawHistory.length;
+        if (rawHistoryLength > 0) {
             const first = this.safeDict (rawHistory, 0, {});
             const firstPrices = this.safeList (first, 'prices');
             if (firstPrices !== undefined) {
@@ -1038,7 +1055,16 @@ export default class Limitless extends PredictionExchange {
                 history = this.safeList (selectedSeries, 'prices', []);
             }
         }
-        return this.parseOHLCVs (history, outcomeObj, timeframe, since, limit);
+        const usableHistory = [];
+        for (let i = 0; i < history.length; i++) {
+            const point = history[i];
+            const pointPrice = this.safeNumber (point, 'price');
+            const pointTs = this.safeString (point, 'timestamp');
+            if ((pointPrice !== undefined) && (pointTs !== undefined)) {
+                usableHistory.push (point);
+            }
+        }
+        return this.parseOHLCVs (usableHistory, outcomeObj, timeframe, since, limit);
     }
 
     /**
@@ -1046,7 +1072,7 @@ export default class Limitless extends PredictionExchange {
      * @param ohlcv
      * @param market
      */
-    parseOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "timestamp": 1705318200000,
@@ -1064,20 +1090,16 @@ export default class Limitless extends PredictionExchange {
             ts = tsString ? this.parse8601 (tsString) : undefined;
         } else if (ts < 1000000000000) {
             // old responses may return unix seconds
-            ts *= 1000;
+            ts = ts * 1000;
         }
         const price = this.safeNumber (ohlcv, 'price');
-        const volume = this.safeNumber (ohlcv, 'volume');
+        const volume = this.safeNumber (ohlcv, 'volume', 0);   // history endpoint has no volume → 0
         return [
             ts,
             price, price, price, price,   // synthetic OHLC from single tick
             volume,
         ];
     }
-
-    // -----------------------------------------------------------------------
-    // Orders
-    // -----------------------------------------------------------------------
 
     /**
      * @method
@@ -1090,7 +1112,8 @@ export default class Limitless extends PredictionExchange {
      * @param [params] extra parameters specific to the exchange API endpoint
      * @returns a list of [order structures]
      */
-    async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const outcome = symbol;
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires an outcome argument');
         }
@@ -1139,7 +1162,8 @@ export default class Limitless extends PredictionExchange {
      * @param [params] extra parameters specific to the exchange API endpoint
      * @returns a list of [order structures]
      */
-    async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const outcome = symbol;
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires an outcome argument');
         }
@@ -1161,7 +1185,8 @@ export default class Limitless extends PredictionExchange {
      * @param [limit] the maximum number of order structures to retrieve
      * @param [params] extra parameters specific to the exchange API endpoint
      */
-    async fetchClosedOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const outcome = symbol;
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires an outcome argument');
         }
@@ -1182,7 +1207,8 @@ export default class Limitless extends PredictionExchange {
      * @param [outcome] market outcome symbol, e.g. "TRUMP_OUT:YES"
      * @param [params] extra parameters specific to the exchange API endpoint
      */
-    async fetchOrdersByIds (ids, outcome: Str = undefined, params = {}) {
+    async fetchOrdersByIds (ids, symbol: Str = undefined, params = {}) {
+        const outcome = symbol;
         await this.loadMarkets ();
         await this.checkEventsAndMarkets (outcome);
         const length = ids.length;
@@ -1315,7 +1341,8 @@ export default class Limitless extends PredictionExchange {
      * @param params extra parameters specific to the exchange API endpoint
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, outcome: Str = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        const outcome = symbol;
         await this.loadMarkets ();
         await this.checkEventsAndMarkets (outcome);
         const orders = await this.fetchOrdersByIds ([ id ], outcome, params);
@@ -1548,7 +1575,7 @@ export default class Limitless extends PredictionExchange {
 
     applyScale (amount: Str, multiply: Bool = false): Str {
         const decimals = this.safeInteger (this.options, 'usdcDecimals', 6);
-        const scale = this.numberToString (10 ** decimals);
+        const scale = this.numberToString (Math.pow (10, decimals));
         if (multiply) {
             return Precise.stringMul (amount, scale);
         } else {
@@ -1591,7 +1618,8 @@ export default class Limitless extends PredictionExchange {
      * @param params
      * @see https://docs.limitless.exchange/api-reference/orders/create-order
      */
-    async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Promise<Order> {
+    async createOrder (symbol: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
+        const outcome = symbol;
         await this.loadMarkets ();
         const accounts = await this.loadAccounts ();
         await this.checkEventsAndMarkets (outcome);
@@ -1760,7 +1788,8 @@ export default class Limitless extends PredictionExchange {
      * @param params
      * @see https://docs.limitless.exchange/api-reference/orders/cancel-order
      */
-    async cancelOrder (id: Str, outcome: Str = undefined, params: Dict = {}): Promise<Order> {
+    async cancelOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
+        const outcome = symbol;
         await this.loadMarkets ();
         await this.checkEventsAndMarkets (outcome);
         const request: Dict = {
@@ -1779,7 +1808,8 @@ export default class Limitless extends PredictionExchange {
      * @param outcome unified market symbol, default is undefined
      * @param params extra parameters specific to the exchange API endpoint
      */
-    async cancelOrders (ids: string[], outcome: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+        const outcome = symbol;
         await this.loadMarkets ();
         await this.checkEventsAndMarkets (outcome);
         const request: Dict = {
@@ -1804,7 +1834,8 @@ export default class Limitless extends PredictionExchange {
      * @param params.slug
      * @see https://docs.limitless.exchange/api-reference/orders/cancel-all-orders
      */
-    async cancelAllOrders (outcome: Str = undefined, params: Dict = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+        const outcome = symbol;
         await this.loadMarkets ();
         await this.checkEventsAndMarkets (outcome);
         if (outcome !== undefined) {
@@ -1828,7 +1859,7 @@ export default class Limitless extends PredictionExchange {
         //         "message": "Orders canceled successfully"
         //     }
         //
-        return response;
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     /**
@@ -1841,7 +1872,8 @@ export default class Limitless extends PredictionExchange {
      * @param limit the maximum number of trades structures to retrieve
      * @param params extra parameters specific to the exchange API endpoint
      */
-    async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        const outcome = symbol;
         await this.loadMarkets ();
         await this.checkEventsAndMarkets (outcome);
         let paginate = false;
@@ -1925,7 +1957,7 @@ export default class Limitless extends PredictionExchange {
         const data = this.safeList (response, 'data', []);
         // response contains both trade, settlement, split and merge history
         // we filter out the settlements here and only return the trades
-        const trades: any [] = [];
+        const trades: any[] = [];
         for (let i = 0; i < data.length; i++) {
             const item = this.safeDict (data, i);
             const strategy = this.safeStringLower (item, 'strategy');
@@ -2027,11 +2059,8 @@ export default class Limitless extends PredictionExchange {
                 return outcome;
             }
         }
+        return undefined;
     }
-
-    // -----------------------------------------------------------------------
-    // Positions
-    // -----------------------------------------------------------------------
 
     /**
      * Fetches open positions for the authenticated Limitless user from the portfolio endpoint.
@@ -2039,8 +2068,12 @@ export default class Limitless extends PredictionExchange {
      * @param params
      * @see https://docs.limitless.exchange/api-reference/portfolio/get-positions
      */
-    async fetchPositions (symbols?: Str[], params: Dict = {}): Promise<Position[]> {
-        if (symbols && symbols.length > 0) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+        }
+        if (symbolsLength > 0) {
             for (let i = 0; i < symbols.length; i++) {
                 await this.checkEventsAndMarkets (symbols[i]);
             }
@@ -2221,10 +2254,6 @@ export default class Limitless extends PredictionExchange {
         } as Position;
     }
 
-    // -----------------------------------------------------------------------
-    // Events (group markets act as events; child markets as CCXT markets)
-    // -----------------------------------------------------------------------
-
     /**
      * Fetches Limitless markets matching the given search terms and merges them into this.events and this.markets.
      * With no queries, fetches all active markets via loadMarkets() and returns this.events.
@@ -2232,25 +2261,29 @@ export default class Limitless extends PredictionExchange {
      * @param params
      * @see https://docs.limitless.exchange/api-reference/markets/search-markets
      */
-    async fetchEvents (queries: string[] = [], params: Dict = {}): Promise<PredictionEvent[]> {
-        let result: PredictionEvent[] = [];
-        if (!queries || queries.length === 0) {
+    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any> {
+        queries = (queries === undefined) ? [] : queries;
+        let result = [];
+        const queriesLength = queries.length;
+        if (!queries || queriesLength === 0) {
             await this.loadMarkets ();
-            result = Object.values (this.events as Dict) as PredictionEvent[];
+            result = Object.values (this.events as Dict) as any[];
         } else {
             const limit = this.safeInteger (params, 'limit', 50);
             const rest = this.omit (params, [ 'limit' ]);
             const seen: Dict = {};
             const rawMarkets: any[] = [];
-            for (const q of queries) {
+            for (let i = 0; i < queries.length; i++) {
+                const q = queries[i];
                 const response = await this.limitlessPublicGetMarketsSearch (this.extend ({
                     'query': q,
                     'limit': limit,
                 }, rest));
                 const found = this.safeList (response, 'markets', []) as any[];
-                for (const raw of found) {
+                for (let j = 0; j < found.length; j++) {
+                    const raw = found[j];
                     const rawSlug = this.safeString (raw, 'slug');
-                    if (rawSlug && !seen[rawSlug]) {
+                    if (rawSlug && !(rawSlug in seen)) {
                         seen[rawSlug] = true;
                         rawMarkets.push (raw);
                     }
@@ -2260,32 +2293,37 @@ export default class Limitless extends PredictionExchange {
                 this.events = {};
             }
             if (!this.markets) {
-                this.markets = {};
+                this.markets = this.createSafeDictionary ();
             }
             const eventGroups: Dict = {};
-            for (const raw of rawMarkets) {
+            for (let i = 0; i < rawMarkets.length; i++) {
+                const raw = rawMarkets[i];
                 const groupId = this.safeString (raw, 'groupId', this.safeString (raw, 'slug'));
                 const eventKey = groupId ? this.shortenSlug (groupId) : undefined;
                 const m = this.parseMarket (raw);
                 this.markets[m['symbol'] as string] = m;
                 if (eventKey) {
-                    if (!eventGroups[eventKey]) {
+                    if (!(eventKey in eventGroups)) {
                         eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString (raw, 'title', groupId), 'raw': raw, 'markets': [] };
                     }
-                    (eventGroups[eventKey] as Dict)['markets'].push (m);
+                    const eventGroup = eventGroups[eventKey] as Dict;
+                    eventGroup['markets'].push (m);
                 }
             }
             result = [];
-            for (const eventKey of Object.keys (eventGroups)) {
+            const eventKeys = Object.keys (eventGroups);
+            for (let i = 0; i < eventKeys.length; i++) {
+                const eventKey = eventKeys[i];
                 const g = eventGroups[eventKey] as Dict;
                 const ev = this.parseEvent (g);
-                (this.events as Dict)[eventKey] = ev;
+                this.events[eventKey] = ev;
                 result.push (ev);
             }
         }
         this.outcomes = {};
         this.outcomes_by_id = {};
-        const marketKeys = Object.keys (this.markets || {});
+        const marketsMap = (this.markets !== undefined) ? this.markets : {};
+        const marketKeys = Object.keys (marketsMap);
         for (let i = 0; i < marketKeys.length; i++) {
             const market = this.markets[marketKeys[i]] as Dict;
             const outcomesList = this.safeList (market, 'outcomes', []) as any[];
@@ -2301,12 +2339,8 @@ export default class Limitless extends PredictionExchange {
                 }
             }
         }
-        return result;
+        return this.events;
     }
-
-    // -----------------------------------------------------------------------
-    // Signing (API key header; EIP-712 signing handled externally for orders)
-    // -----------------------------------------------------------------------
 
     /**
      * Builds the request URL and attaches the x-api-key header for private endpoints.
@@ -2317,13 +2351,13 @@ export default class Limitless extends PredictionExchange {
      * @param headers
      * @param body
      */
-    sign (path: Str, api: any = 'limitless', method = 'GET', params: Dict = {}, headers: Dict = undefined, body: any = undefined) {
+    sign (path: any, api: any = 'limitless', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const access: string = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['limitless'] as string);
-        let url = '/' + this.implodeParams (path as string, params);
-        const query = this.omit (params, this.extractParams (path as string));
+        let url = '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
         const querystring = this.urlencodeWithArrayRepeat (query);
         if (method === 'GET' && querystring) {
             url += '?' + querystring;
@@ -2333,10 +2367,11 @@ export default class Limitless extends PredictionExchange {
             if (method === 'POST' && querystring) {
                 bodyString = this.json (query);
                 body = bodyString;
+                const headerDefaults = (headers !== undefined) ? headers : {};
                 headers = this.extend ({
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
-                }, headers || {});
+                }, headerDefaults);
             }
             this.checkRequiredCredentials ();
             const timestamp = this.iso8601 (this.milliseconds ());

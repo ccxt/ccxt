@@ -1,13 +1,12 @@
-import PredictionExchange from './abstract/hyperliquid-prediction.js';
+import Exchange from './abstract/hyperliquidprediction.js';
 import { Precise } from './base/Precise.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
 import type {
-    Int, Str, Num, Dict,
+    Int, int, Str, Num, Dict,
     Market, Ticker, Tickers, OrderBook, Trade, OHLCV,
     Order, Balances, Position,
-    PredictionEvent,
     Strings,
 } from './base/types.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, RateLimitExceeded } from '../ccxt.js';
@@ -15,13 +14,13 @@ import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, Insuffic
 // ---------------------------------------------------------------------------
 
 /**
- * @class hyperliquidPrediction
- * @augments PredictionExchange
+ * @class hyperliquidprediction
+ * @augments Exchange
  */
-export default class hyperliquidPrediction extends PredictionExchange {
+export default class hyperliquidprediction extends Exchange {
     describe (): any {
         return this.deepExtend (super.describe (), {
-            'id': 'hyperliquid-prediction',
+            'id': 'hyperliquidprediction',
             'name': 'Hyperliquid',
             'countries': [],
             'rateLimit': 50,
@@ -35,7 +34,6 @@ export default class hyperliquidPrediction extends PredictionExchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'prediction': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
@@ -53,6 +51,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': false,
+                'prediction': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -192,13 +191,13 @@ export default class hyperliquidPrediction extends PredictionExchange {
             return {};
         }
         const parts = description.split ('|');
-        const result: Dict = {};
+        const result = {};
         for (let i = 0; i < parts.length; i++) {
             const part = parts[i];
             const colonIndex = part.indexOf (':');
             if (colonIndex > -1) {
-                const key = part.substring (0, colonIndex);
-                const value = part.substring (colonIndex + 1);
+                const key = part.slice (0, colonIndex);
+                const value = part.slice (colonIndex + 1);
                 result[key] = value;
             }
         }
@@ -232,6 +231,29 @@ export default class hyperliquidPrediction extends PredictionExchange {
      * e.g. BTC-ABOVE-78213-20260503 for priceBinary outcomes
      * or OUTCOME-9345 for non-priceBinary outcomes using the name field
      */
+    slugifyUpper (name: string): string {
+        const upper = (name === undefined) ? '' : name.toUpperCase ();
+        const allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const chars = this.stringToCharsArray (upper);
+        let s = '';
+        for (let i = 0; i < chars.length; i++) {
+            const ch = chars[i];
+            if (allowed.indexOf (ch) >= 0) {
+                s = s + ch;
+            } else {
+                s = s + '-';
+            }
+        }
+        const rawParts = s.split ('-');
+        const parts = [];
+        for (let i = 0; i < rawParts.length; i++) {
+            if (rawParts[i].length > 0) {
+                parts.push (rawParts[i]);
+            }
+        }
+        return parts.join ('-');
+    }
+
     buildOutcomeParentSymbol (desc: Dict, outcomeId: number, name = '', question: Dict = {}): string {
         const underlying = this.safeString (desc, 'underlying');
         if (underlying) {
@@ -260,14 +282,23 @@ export default class hyperliquidPrediction extends PredictionExchange {
                 const rawDescription = this.safeStringLower (desc, 'description', '');
                 const nameLower = name.toLowerCase ();
                 if (questionUnderlying && thresholdsRaw && indexStr !== undefined) {
-                    const thresholds = thresholdsRaw.split (',').map ((x) => x.trim ()).filter ((x) => x.length > 0);
-                    const index = parseInt (indexStr, 10);
-                    if (thresholds.length > 0 && Number.isFinite (index)) {
+                    const thresholdParts = thresholdsRaw.split (',');
+                    const thresholds = [];
+                    for (let i = 0; i < thresholdParts.length; i++) {
+                        const trimmed = thresholdParts[i].trim ();
+                        if (trimmed.length > 0) {
+                            thresholds.push (trimmed);
+                        }
+                    }
+                    const thresholdsLength = thresholds.length;
+                    const index = this.parseToInt (indexStr);
+                    if (thresholdsLength > 0 && index !== undefined) {
                         let bucketLabel: string;
                         if (index <= 0) {
                             bucketLabel = 'BELOW-' + thresholds[0];
-                        } else if (index >= thresholds.length) {
-                            bucketLabel = 'ABOVE-' + thresholds[thresholds.length - 1];
+                        } else if (index >= thresholdsLength) {
+                            const lastIdx = thresholdsLength - 1;
+                            bucketLabel = 'ABOVE-' + thresholds[lastIdx];
                         } else {
                             bucketLabel = 'BETWEEN-' + thresholds[index - 1] + '-' + thresholds[index];
                         }
@@ -290,11 +321,10 @@ export default class hyperliquidPrediction extends PredictionExchange {
         }
         const questionName = this.safeString (question, 'name');
         if (questionName) {
-            const questionSlug = questionName.toUpperCase ().replace (/[^A-Z0-9]+/g, '-').replace (/(^-|-$)/g, '');
+            const questionSlug = this.slugifyUpper (questionName);
             if (questionSlug) {
-                const rawOutcomeName = name.toUpperCase ().trim ();
-                let outcomeSlug = rawOutcomeName.replace (/[^A-Z0-9]+/g, '-').replace (/(^-|-$)/g, '');
-                const genericOutcomeNames: Dict = {
+                let outcomeSlug = this.slugifyUpper (name);
+                const genericOutcomeNames = {
                     'RECURRING': true,
                     'RECURRING-FALLBACK': true,
                     'RECURRING-NAMED-OUTCOME': true,
@@ -314,14 +344,14 @@ export default class hyperliquidPrediction extends PredictionExchange {
         }
         // Fallback: use name slugified, or OUTCOME-<id>
         if (name) {
-            return name.toUpperCase ().replace (/[^A-Z0-9]+/g, '-').replace (/(^-|-$)/g, '') + '-' + outcomeId.toString ();
+            return this.slugifyUpper (name) + '-' + outcomeId.toString ();
         }
         return 'OUTCOME-' + outcomeId.toString ();
     }
 
     /**
      * @method
-     * @name hyperliquid#fetchMarkets
+     * @name hyperliquidprediction#fetchMarkets
      * @description Retrieves all Hyperliquid outcome markets from outcomeMeta.
      * Each binary outcome becomes one CCXT prediction market with two outcomes: YES and NO.
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/asset-ids#outcomes
@@ -361,22 +391,24 @@ export default class hyperliquidPrediction extends PredictionExchange {
         const response = await this.publicPostInfo (this.extend ({ 'type': 'outcomeMeta' }, params));
         const outcomesList = this.safeList (response, 'outcomes', []);
         const questionsList = this.safeList (response, 'questions', []);
-        const outcomesToQuestions: Dict = {};
+        const outcomesToQuestions = {};
         for (let qi = 0; qi < questionsList.length; qi++) {
             const question = this.safeDict (questionsList, qi, {});
             const fallbackOutcome = this.safeInteger (question, 'fallbackOutcome');
             if (fallbackOutcome !== undefined) {
-                outcomesToQuestions[fallbackOutcome.toString ()] = question;
+                const fallbackKey = fallbackOutcome.toString ();
+                outcomesToQuestions[fallbackKey] = question;
             }
             const namedOutcomes = this.safeList (question, 'namedOutcomes', []);
             for (let ni = 0; ni < namedOutcomes.length; ni++) {
                 const namedOutcomeId = this.safeInteger (namedOutcomes, ni);
                 if (namedOutcomeId !== undefined) {
-                    outcomesToQuestions[namedOutcomeId.toString ()] = question;
+                    const namedKey = namedOutcomeId.toString ();
+                    outcomesToQuestions[namedKey] = question;
                 }
             }
         }
-        const markets: Market[] = [];
+        const markets = [];
         if (this.outcomes === undefined) {
             this.outcomes = {};
         }
@@ -423,26 +455,27 @@ export default class hyperliquidPrediction extends PredictionExchange {
         const noOutcomeSymbol = parentSymbol + ':NO';
         // Parse expiry from description
         const expiry = this.safeString (desc, 'expiry');
-        let expiryMs: Int = undefined;
-        let expiryDatetime: Str = undefined;
+        let expiryMs = undefined;
+        let expiryDatetime = undefined;
         if (expiry) {
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             const expParts = expiry.split ('-');
-            if (expParts.length >= 1 && expParts[0].length === 8) {
+            const expPartsLength = expParts.length;
+            if (expPartsLength >= 1 && expParts[0].length === 8) {
                 const ymd = expParts[0];
-                const hm = (expParts.length >= 2) ? expParts[1] : '0000';
-                const isoStr = ymd.substring (0, 4) + '-' + ymd.substring (4, 6) + '-' + ymd.substring (6, 8) + 'T' + hm.substring (0, 2) + ':' + hm.substring (2, 4) + ':00Z';
+                const hm = (expPartsLength >= 2) ? expParts[1] : '0000';
+                const isoStr = ymd.slice (0, 4) + '-' + ymd.slice (4, 6) + '-' + ymd.slice (6, 8) + 'T' + hm.slice (0, 2) + ':' + hm.slice (2, 4) + ':00Z';
                 expiryMs = this.parse8601 (isoStr);
                 expiryDatetime = isoStr;
             }
         }
         // Side labels from sideSpecs (e.g. "Yes"/"No", but use YES/NO normalised)
-        const yesLabel = (this.safeString (this.safeDict (sideSpecs, 0, {}), 'name', 'YES')).toUpperCase ();
-        const noLabel = (this.safeString (this.safeDict (sideSpecs, 1, {}), 'name', 'NO')).toUpperCase ();
+        const yesLabel = this.safeStringUpper (this.safeDict (sideSpecs, 0, {}), 'name', 'YES');
+        const noLabel = this.safeStringUpper (this.safeDict (sideSpecs, 1, {}), 'name', 'NO');
         const quoteCurrency = this.safeString (this.options, 'outcomeQuoteCurrency', 'USDH');
         const szDecimals = 4;  // outcomes use 4 decimal places
         const active = true;
-        const outcomes: any[] = [
+        const outcomes = [
             {
                 'id': this.outcomeCoin (yesEncoding),
                 'symbol': yesOutcomeSymbol,
@@ -544,26 +577,32 @@ export default class hyperliquidPrediction extends PredictionExchange {
         const significantDigits = Math.max (5, intPart.length);
         const maxDecimals = 8 - szDecimals;
         const pricePrecisionDecimals = Math.max (1, Math.min (maxDecimals, significantDigits - intPart.length));
-        return parseFloat ('0.' + '0'.repeat (pricePrecisionDecimals - 1) + '1');
+        let zeros = '';
+        const zeroCount = pricePrecisionDecimals - 1;
+        for (let zi = 0; zi < zeroCount; zi++) {
+            zeros = zeros + '0';
+        }
+        return this.parseToNumeric ('0.' + zeros + '1');
     }
 
     /**
      * @method
-     * @name hyperliquid#fetchTicker
+     * @name hyperliquidprediction#fetchTicker
      * @description Fetches a ticker for a single outcome market using the L2 order book snapshot.
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
      * @param {string} outcome unified outcome symbol (e.g. 'BTC-ABOVE-78213-20260503:YES')
      * @param {object} [params] extra parameters
      * @returns {Ticker} a ticker structure
      */
-    async fetchTicker (outcome: string, params = {}): Promise<Ticker> {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        const outcome = symbol;
         await this.loadMarkets ();
         await this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const market = this.market (this.safeString (outcomeObj, 'marketSymbol'));
         const info = this.safeDict (outcomeObj, 'info', {});
         const coin = this.safeString (info, 'coinName');
-        const request: Dict = {
+        const request = {
             'type': 'l2Book',
             'coin': coin,
         };
@@ -578,23 +617,26 @@ export default class hyperliquidPrediction extends PredictionExchange {
         //         "time": 1704290104840
         //     }
         //
-        const ticker = this.parseTicker (response, market);
+        // l2Book returns null for coins without an order book; coerce to an empty dict
+        const tickerData = this.safeDict ({ 'book': response }, 'book', {});
+        const ticker = this.parseTicker (tickerData, market);
         ticker['symbol'] = this.safeString (outcomeObj, 'symbol', outcome);
         return ticker;
     }
 
     /**
      * @method
-     * @name hyperliquid#fetchTickers
+     * @name hyperliquidprediction#fetchTickers
      * @description Fetches all outcome market tickers using allMids then optionally enriches with l2Book.
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-all-mids-for-all-actively-traded-coins
      * @param {string[]} [outcomes] filter by outcome ids or symbols
      * @param {object} [params] extra parameters
      * @returns {Tickers} dict of ticker structures
      */
-    async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        const outcomes = symbols;
         await this.loadMarkets ();
-        const requestedOutcomeSymbols: Dict = {};
+        const requestedOutcomeSymbols = {};
         if (outcomes !== undefined) {
             for (let i = 0; i < outcomes.length; i++) {
                 const requested = outcomes[i];
@@ -609,8 +651,8 @@ export default class hyperliquidPrediction extends PredictionExchange {
         // { "mids": { "#10": "0.45", "#11": "0.55", ... } }
         //
         const mids = this.safeDict (response, 'mids', response);
-        const tickers: Tickers = {};
-        const outcomesMap = this.outcomes || {};
+        const tickers = {};
+        const outcomesMap = (this.outcomes !== undefined) ? this.outcomes : {};
         const outcomeSymbols = Object.keys (outcomesMap);
         for (let i = 0; i < outcomeSymbols.length; i++) {
             const outcomeSymbol = outcomeSymbols[i];
@@ -696,7 +738,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
 
     /**
      * @method
-     * @name hyperliquid#fetchOrderBook
+     * @name hyperliquidprediction#fetchOrderBook
      * @description Fetches L2 order book for an outcome market.
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
      * @param {string} outcome unified outcome symbol
@@ -704,12 +746,13 @@ export default class hyperliquidPrediction extends PredictionExchange {
      * @param {object} [params] extra parameters
      * @returns {OrderBook} order book structure
      */
-    async fetchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        const outcome = symbol;
         await this.loadMarkets ();
         await this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
-        const request: Dict = {
+        const request = {
             'type': 'l2Book',
             'coin': this.safeString (info, 'coinName'),
         };
@@ -728,8 +771,8 @@ export default class hyperliquidPrediction extends PredictionExchange {
         const levels = this.safeList (response, 'levels', []);
         const rawBids = this.safeList (levels, 0, []);
         const rawAsks = this.safeList (levels, 1, []);
-        const bids: any[] = [];
-        const asks: any[] = [];
+        const bids = [];
+        const asks = [];
         for (let i = 0; i < rawBids.length; i++) {
             const entry = rawBids[i];
             bids.push ([ this.safeNumber (entry, 'px'), this.safeNumber (entry, 'sz') ]);
@@ -743,7 +786,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
 
     /**
      * @method
-     * @name hyperliquid#fetchOHLCV
+     * @name hyperliquidprediction#fetchOHLCV
      * @description Fetches candlestick OHLCV data for an outcome market.
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#candle-snapshot
      * @param {string} outcome unified outcome symbol
@@ -754,7 +797,8 @@ export default class hyperliquidPrediction extends PredictionExchange {
      * @param {Int} [params.until] end timestamp in ms
      * @returns {OHLCV[]} list of OHLCV arrays
      */
-    async fetchOHLCV (outcome: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        const outcome = symbol;
         await this.loadMarkets ();
         await this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
@@ -770,7 +814,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
                 startTime = 0;
             }
         }
-        const request: Dict = {
+        const request = {
             'type': 'candleSnapshot',
             'req': {
                 'coin': this.safeString (info, 'coinName'),
@@ -803,7 +847,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
     /**
      * Parses a single Hyperliquid candle object into a CCXT OHLCV tuple.
      */
-    parseOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "T": 1704287699999,   // close time
@@ -830,7 +874,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
 
     /**
      * @method
-     * @name hyperliquid#fetchBalance
+     * @name hyperliquidprediction#fetchBalance
      * @description Fetches spot balance (outcomes use spot-like balance).
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances
      * @param {object} [params] extra parameters
@@ -840,7 +884,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
     async fetchBalance (params = {}): Promise<Balances> {
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchBalance', params);
-        const request: Dict = {
+        const request = {
             'type': 'spotClearinghouseState',
             'user': userAddress,
         };
@@ -854,7 +898,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
         //         ]
         //     }
         //
-        const result: Dict = {
+        const result = {
             'info': response,
         };
         const balances = this.safeList (response, 'balances', []);
@@ -873,16 +917,17 @@ export default class hyperliquidPrediction extends PredictionExchange {
 
     /**
      * @method
-     * @name hyperliquid#fetchPositions
+     * @name hyperliquidprediction#fetchPositions
      * @description Fetches outcome token positions from spot clearinghouse state. Outcome tokens appear as spot token balances starting with '+'.
      * @param {string[]} [outcomes] filter by outcome ids or symbols
      * @param {object} [params] extra parameters
      * @param {string} [params.user] wallet address
      * @returns {Position[]} array of position structures
      */
-    async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<Position[]> {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        const outcomes = symbols;
         await this.loadMarkets ();
-        const requestedOutcomeSymbols: Dict = {};
+        const requestedOutcomeSymbols = {};
         if (outcomes !== undefined) {
             for (let i = 0; i < outcomes.length; i++) {
                 const requested = outcomes[i];
@@ -894,13 +939,13 @@ export default class hyperliquidPrediction extends PredictionExchange {
         }
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchPositions', params);
-        const request: Dict = {
+        const request = {
             'type': 'spotClearinghouseState',
             'user': userAddress,
         };
         const response = await this.publicPostInfo (this.extend (request, params));
         const balances = this.safeList (response, 'balances', []);
-        const positions: Position[] = [];
+        const positions = [];
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const coin = this.safeString (balance, 'coin');
@@ -936,7 +981,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
         const hold = this.parseNumber (holdStr);
         const entryNtlStr = this.safeString (position, 'entryNtl');
         const entryNotional = this.parseNumber (entryNtlStr);
-        let entryPrice: Num = undefined;
+        let entryPrice = undefined;
         if (entryNotional !== undefined && total !== undefined && total > 0) {
             entryPrice = entryNotional / total;
         }
@@ -970,10 +1015,6 @@ export default class hyperliquidPrediction extends PredictionExchange {
         } as unknown as Position;
     }
 
-    // -----------------------------------------------------------------------
-    // Orders — create / cancel
-    // -----------------------------------------------------------------------
-
     findOutcomeInMarket (market: Market, sideHint: Str = undefined): Dict {
         const outcomesList = this.safeList (market as any, 'outcomes', []);
         const normalizedHint = sideHint ? sideHint.toUpperCase () : undefined;
@@ -1001,7 +1042,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
         if (!outcomeInput) {
             return undefined;
         }
-        const colonIndex = outcomeInput.lastIndexOf (':');
+        const colonIndex = outcomeInput.indexOf (':');
         if (colonIndex > -1 && colonIndex < outcomeInput.length - 1) {
             const side = outcomeInput.slice (colonIndex + 1).toUpperCase ();
             if (side === 'YES' || side === 'NO') {
@@ -1026,14 +1067,24 @@ export default class hyperliquidPrediction extends PredictionExchange {
             throw new ExchangeError (this.id + ' outcomes not loaded');
         }
         const sideHint = this.parseOutcomeInputSideHint (outcomeInput);
-        const candidates: string[] = [ outcomeInput ];
+        const candidates = [ outcomeInput ];
         if (outcomeInput.startsWith ('+')) {
             candidates.push ('#' + outcomeInput.slice (1));
         }
-        if (/^\d+$/.test (outcomeInput)) {
+        const digitChars = '0123456789';
+        const inputChars = this.stringToCharsArray (outcomeInput);
+        const inputCharsLength = inputChars.length;
+        let isNumericInput = inputCharsLength > 0;
+        for (let di = 0; di < inputChars.length; di++) {
+            if (digitChars.indexOf (inputChars[di]) < 0) {
+                isNumericInput = false;
+                break;
+            }
+        }
+        if (isNumericInput) {
             candidates.push ('#' + outcomeInput); // encoding id without #
-            const numeric = parseInt (outcomeInput, 10);
-            if (Number.isFinite (numeric)) {
+            const numeric = this.parseToInt (outcomeInput);
+            if (numeric !== undefined) {
                 candidates.push (this.outcomeCoin (this.outcomeEncoding (numeric, 0))); // raw outcome id -> YES encoding
                 candidates.push (this.outcomeCoin (this.outcomeEncoding (numeric, 1))); // raw outcome id -> NO encoding
             }
@@ -1049,7 +1100,8 @@ export default class hyperliquidPrediction extends PredictionExchange {
         }
         if ((outcomeInput in this.markets) || (outcomeInput in this.markets_by_id)) {
             const market = this.safeMarket (outcomeInput);
-            const found = this.findOutcomeInMarket (market, sideHint || 'YES');
+            const sideHintOrDefault = (sideHint !== undefined) ? sideHint : 'YES';
+            const found = this.findOutcomeInMarket (market, sideHintOrDefault);
             if (Object.keys (found).length > 0) {
                 return found;
             }
@@ -1059,7 +1111,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
 
     /**
      * @method
-     * @name hyperliquid#createOrder
+     * @name hyperliquidprediction#createOrder
      * @description Creates a limit or market order for an outcome market.
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
      * @param {string} outcome unified outcome symbol
@@ -1076,7 +1128,8 @@ export default class hyperliquidPrediction extends PredictionExchange {
      * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
      * @returns {Order}
      */
-    async createOrder (outcome: string, type: string, side: string, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    async createOrder (symbol: string, type: string, side: string, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        const outcome = symbol;
         await this.loadMarkets ();
         await this.initializeClient ();
         await this.checkEventsAndMarkets (outcome);
@@ -1112,10 +1165,10 @@ export default class hyperliquidPrediction extends PredictionExchange {
             px = this.priceToPrecision (this.safeString (outcomeObj, 'marketSymbol'), price);
         }
         const sz = this.amountToPrecision (this.safeString (outcomeObj, 'marketSymbol'), amount);
-        const orderType: Dict = {
+        const orderType = {
             'limit': { 'tif': tif },
         };
-        const orderObj: Dict = {
+        const orderObj = {
             'a': assetId,
             'b': isBuy,
             'p': px,
@@ -1126,16 +1179,16 @@ export default class hyperliquidPrediction extends PredictionExchange {
         if (clientOrderId !== undefined) {
             orderObj['c'] = clientOrderId;
         }
-        let vaultAddress: Str = undefined;
+        let vaultAddress = undefined;
         [ vaultAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
-        const orderAction: Dict = {
+        const orderAction = {
             'type': 'order',
             'orders': [ orderObj ],
             'grouping': 'na',
         };
         const signature = this.signL1Action (orderAction, nonce, vaultAddress);
-        const request: Dict = {
+        const request = {
             'action': orderAction,
             'nonce': nonce,
             'signature': signature,
@@ -1160,13 +1213,18 @@ export default class hyperliquidPrediction extends PredictionExchange {
         const resting = this.safeDict (firstStatus, 'resting', {});
         const filled = this.safeDict (firstStatus, 'filled', {});
         const oid = this.safeString (resting, 'oid', this.safeString (filled, 'oid'));
+        const restingOid = this.safeString (resting, 'oid');
+        let orderStatus = 'closed';
+        if (restingOid !== undefined) {
+            orderStatus = 'open';
+        }
         return this.safeOrder ({
             'id': oid,
             'clientOrderId': clientOrderId,
             'info': response,
             'timestamp': nonce,
             'datetime': this.iso8601 (nonce),
-            'status': resting['oid'] !== undefined ? 'open' : 'closed',
+            'status': orderStatus,
             'symbol': this.safeString (outcomeObj, 'symbol', outcome),
             'type': type,
             'side': side,
@@ -1182,7 +1240,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
 
     /**
      * @method
-     * @name hyperliquid#cancelOrder
+     * @name hyperliquidprediction#cancelOrder
      * @description Cancels a single open order.
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
      * @param {string} id order id
@@ -1192,14 +1250,15 @@ export default class hyperliquidPrediction extends PredictionExchange {
      * @param {string} [params.vaultAddress] optional subaccount/vault address to cancel on behalf of
      * @returns {Order}
      */
-    async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<Order> {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        const outcome = symbol;
         const orders = await this.cancelOrders ([ id ], outcome, params);
         return this.safeDict (orders, 0) as Order;
     }
 
     /**
      * @method
-     * @name hyperliquid#cancelOrders
+     * @name hyperliquidprediction#cancelOrders
      * @description Cancels multiple open orders.
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
      * @param {string[]} ids order ids
@@ -1207,7 +1266,8 @@ export default class hyperliquidPrediction extends PredictionExchange {
      * @param {object} [params] extra parameters
      * @returns {Order[]}
      */
-    async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<Order[]> {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
+        const outcome = symbol;
         this.checkRequiredCredentials ();
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires an outcome argument');
@@ -1221,8 +1281,8 @@ export default class hyperliquidPrediction extends PredictionExchange {
         const nonce = this.milliseconds ();
         const clientOrderId = this.safeValue2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
-        const cancelReq: any[] = [];
-        const cancelAction: Dict = { 'type': 'cancel', 'cancels': [] };
+        const cancelReq = [];
+        const cancelAction = { 'type': 'cancel', 'cancels': [] };
         if (clientOrderId !== undefined) {
             const cloids = Array.isArray (clientOrderId) ? clientOrderId : [ clientOrderId ];
             cancelAction['type'] = 'cancelByCloid';
@@ -1236,11 +1296,11 @@ export default class hyperliquidPrediction extends PredictionExchange {
             }
         }
         cancelAction['cancels'] = cancelReq;
-        let vaultAddress: Str = undefined;
+        let vaultAddress = undefined;
         [ vaultAddress, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
-        const request: Dict = {
+        const request = {
             'action': cancelAction,
             'nonce': nonce,
             'signature': signature,
@@ -1253,8 +1313,15 @@ export default class hyperliquidPrediction extends PredictionExchange {
         const data = this.safeDict (innerResponse, 'data');
         const statuses = this.safeList (data, 'statuses', []);
         const outcomeSymbol = this.safeString (outcomeObj, 'symbol', outcome);
-        const requestIds = (clientOrderId !== undefined) ? (Array.isArray (clientOrderId) ? clientOrderId : [ clientOrderId ]) : ids;
-        const orders: Order[] = [];
+        let requestIds = ids;
+        if (clientOrderId !== undefined) {
+            if (Array.isArray (clientOrderId)) {
+                requestIds = clientOrderId;
+            } else {
+                requestIds = [ clientOrderId ];
+            }
+        }
+        const orders = [];
         for (let i = 0; i < statuses.length; i++) {
             const status = statuses[i];
             const error = this.safeString (status, 'error');
@@ -1266,7 +1333,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
                 throw new ExchangeError (this.id + ' cancelOrders() received an unexpected status: ' + this.json (status));
             }
             const requestId = this.safeString (requestIds, i, this.safeString (requestIds, 0));
-            const order: Dict = {
+            const order = {
                 'id': requestId,
                 'clientOrderId': clientOrderId !== undefined ? requestId : undefined,
                 'info': status,
@@ -1284,7 +1351,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
 
     /**
      * @method
-     * @name hyperliquid#fetchOpenOrders
+     * @name hyperliquidprediction#fetchOpenOrders
      * @description Fetches currently open orders for the user.
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-open-orders
      * @param {string} [outcome] filter by outcome symbol
@@ -1295,21 +1362,22 @@ export default class hyperliquidPrediction extends PredictionExchange {
      * @param {string} [params.method] 'openOrders' | 'frontendOpenOrders' (default)
      * @returns {Order[]}
      */
-    async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const outcome = symbol;
         await this.loadMarkets ();
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOpenOrders', params);
         let method: Str;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
-        const request: Dict = { 'type': method, 'user': userAddress };
+        const request = { 'type': method, 'user': userAddress };
         const response = await this.publicPostInfo (this.extend (request, params));
-        const ordersWithStatus: any[] = [];
+        const ordersWithStatus = [];
         for (let i = 0; i < response.length; i++) {
             const order = response[i];
             ordersWithStatus.push (this.extend (order, { 'ccxtStatus': 'open' }));
         }
         const parsed = this.parseOrders (ordersWithStatus, undefined, since, undefined);
-        let symbol: Str = undefined;
+        symbol = undefined;
         if (outcome !== undefined) {
             await this.checkEventsAndMarkets (outcome);
             const outcomeObj = this.outcome (outcome);
@@ -1320,7 +1388,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
 
     /**
      * @method
-     * @name hyperliquid#fetchOrders
+     * @name hyperliquidprediction#fetchOrders
      * @description Fetches all historical orders for the user.
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-historical-orders
      * @param {string} [outcome] filter by outcome symbol
@@ -1330,14 +1398,15 @@ export default class hyperliquidPrediction extends PredictionExchange {
      * @param {string} [params.user] wallet address
      * @returns {Order[]}
      */
-    async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const outcome = symbol;
         await this.loadMarkets ();
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOrders', params);
-        const request: Dict = { 'type': 'historicalOrders', 'user': userAddress };
+        const request = { 'type': 'historicalOrders', 'user': userAddress };
         const response = await this.publicPostInfo (this.extend (request, params));
         // Deduplicate by oid keeping most recent statusTimestamp
-        const deduped: Dict = {};
+        const deduped = {};
         for (let i = 0; i < response.length; i++) {
             const raw = response[i];
             let entry = this.safeDict (raw, 'order');
@@ -1357,8 +1426,9 @@ export default class hyperliquidPrediction extends PredictionExchange {
                 }
             }
         }
-        const parsed = this.parseOrders (Object.values (deduped), undefined, since, undefined);
-        let symbol: Str = undefined;
+        const dedupedValues = Object.values (deduped);
+        const parsed = this.parseOrders (dedupedValues, undefined, since, undefined);
+        symbol = undefined;
         if (outcome !== undefined) {
             await this.checkEventsAndMarkets (outcome);
             const outcomeObj = this.outcome (outcome);
@@ -1369,7 +1439,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
 
     /**
      * @method
-     * @name hyperliquid#fetchOrder
+     * @name hyperliquidprediction#fetchOrder
      * @description Fetches a single order by id.
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-order-status-by-oid-or-cloid
      * @param {string} id order id
@@ -1379,12 +1449,13 @@ export default class hyperliquidPrediction extends PredictionExchange {
      * @param {string} [params.clientOrderId] fetch by client order id instead
      * @returns {Order}
      */
-    async fetchOrder (id: string, outcome: Str = undefined, params = {}): Promise<Order> {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        const outcome = symbol;
         await this.loadMarkets ();
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOrder', params);
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        const request: Dict = { 'type': 'orderStatus', 'user': userAddress };
+        const request = { 'type': 'orderStatus', 'user': userAddress };
         if (clientOrderId !== undefined) {
             params = this.omit (params, 'clientOrderId');
             request['oid'] = clientOrderId;
@@ -1470,7 +1541,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
     }
 
     parseOrderStatus (status: Str): Str {
-        const statuses: Dict = {
+        const statuses = {
             'triggered': 'open',
             'filled': 'closed',
             'open': 'open',
@@ -1491,7 +1562,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
     }
 
     parseOrderType (status: Str): Str {
-        const statuses: Dict = {
+        const statuses = {
             'stop limit': 'limit',
             'stop market': 'market',
         };
@@ -1500,7 +1571,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
     }
 
     parseTimeInForce (timeInForce: Str): Str {
-        const statuses: Dict = {
+        const statuses = {
             'gtc': 'GTC',
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -1512,7 +1583,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
 
     /**
      * @method
-     * @name hyperliquid#fetchMyTrades
+     * @name hyperliquidprediction#fetchMyTrades
      * @description Fetches the authenticated user's fill history.
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
      * @param {string} [outcome] filter by outcome symbol
@@ -1523,11 +1594,12 @@ export default class hyperliquidPrediction extends PredictionExchange {
      * @param {Int} [params.until] end timestamp in ms
      * @returns {Trade[]}
      */
-    async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        const outcome = symbol;
         await this.loadMarkets ();
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchMyTrades', params);
-        const request: Dict = { 'user': userAddress };
+        const request = { 'user': userAddress };
         if (since !== undefined) {
             request['type'] = 'userFillsByTime';
             request['startTime'] = since;
@@ -1541,13 +1613,13 @@ export default class hyperliquidPrediction extends PredictionExchange {
         }
         const response = await this.publicPostInfo (this.extend (request, params));
         const parsed = this.parseTrades (response, undefined, since, undefined);
-        let symbol: Str = undefined;
+        symbol = undefined;
         if (outcome !== undefined) {
             await this.checkEventsAndMarkets (outcome);
             const outcomeObj = this.outcome (outcome);
             symbol = this.safeString (outcomeObj, 'symbol');
         }
-        return this.filterBySymbolSinceLimit (parsed, symbol, since, limit) as Trade[];
+        return this.filterBySymbolSinceLimit (parsed, symbol, since, limit) as any[];
     }
 
     /**
@@ -1585,6 +1657,10 @@ export default class hyperliquidPrediction extends PredictionExchange {
         const fee = this.safeNumber (trade, 'fee');
         const feeCurrency = this.safeString (trade, 'feeToken', 'USDC');
         const outcomeSymbol = this.safeString (outcomeObj, 'symbol');
+        let feeObject = undefined;
+        if (fee !== undefined) {
+            feeObject = { 'cost': fee, 'currency': feeCurrency };
+        }
         return this.safeTrade ({
             'id': this.safeString (trade, 'tid'),
             'info': trade,
@@ -1600,28 +1676,30 @@ export default class hyperliquidPrediction extends PredictionExchange {
             'price': this.parseNumber (price),
             'amount': this.parseNumber (amount),
             'cost': price !== undefined && amount !== undefined ? this.parseNumber (Precise.stringMul (price, amount)) : undefined,
-            'fee': fee !== undefined ? { 'cost': fee, 'currency': feeCurrency } : undefined,
+            'fee': feeObject,
         }, resolvedMarket);
     }
 
-    // -----------------------------------------------------------------------
-    // Events  (group outcome markets by underlying)
-    // -----------------------------------------------------------------------
-
     /**
      * @method
-     * @name hyperliquid#fetchEvents
+     * @name hyperliquidprediction#fetchEvents
      * @description Groups outcome markets by their underlying (e.g. BTC-ABOVE-78213) into event structures. Each event contains both the YES and NO markets.
      * @param {string[]} [queries] filter by query strings (matches description/symbol)
      * @param {object} [params] extra parameters
      * @returns {PredictionEvent[]} array of event structures
      */
-    async fetchEvents (queries: string[] = [], params = {}): Promise<any[]> {
+    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any> {
+        queries = (queries === undefined) ? [] : queries;
         await this.loadMarkets ();
         const marketValues = Object.values (this.markets);
         // Group markets by parentSymbol
-        const groupMap: Dict = {};
-        const lowerQueries = queries.map (q => q.toLowerCase ());
+        const groupMap = {};
+        const lowerQueries = [];
+        for (let i = 0; i < queries.length; i++) {
+            const queryString = queries[i] as string;
+            lowerQueries.push (queryString.toLowerCase ());
+        }
+        const lowerQueriesLength = lowerQueries.length;
         for (let i = 0; i < marketValues.length; i++) {
             const mkt = marketValues[i] as Market;
             if (!this.safeBool (mkt as any, 'prediction', false)) {
@@ -1630,9 +1708,10 @@ export default class hyperliquidPrediction extends PredictionExchange {
             const info = this.safeDict (mkt as any, 'info', {});
             const parentSymbol = this.safeString (info, 'parentSymbol', this.safeString (mkt, 'symbol'));
             // Apply query filter
-            if (lowerQueries.length > 0) {
-                const description = (this.safeString (info, 'description') || '').toLowerCase ();
-                const symLower = (parentSymbol || '').toLowerCase ();
+            if (lowerQueriesLength > 0) {
+                const description = this.safeString (info, 'description', '').toLowerCase ();
+                const parentSymbolOrEmpty = (parentSymbol !== undefined) ? parentSymbol : '';
+                const symLower = parentSymbolOrEmpty.toLowerCase ();
                 let matches = false;
                 for (let qi = 0; qi < lowerQueries.length; qi++) {
                     if (description.indexOf (lowerQueries[qi]) !== -1 || symLower.indexOf (lowerQueries[qi]) !== -1) {
@@ -1644,16 +1723,16 @@ export default class hyperliquidPrediction extends PredictionExchange {
                     continue;
                 }
             }
-            if (!groupMap[parentSymbol]) {
+            if (!(parentSymbol in groupMap)) {
                 groupMap[parentSymbol] = [];
             }
-            (groupMap[parentSymbol] as Market[]).push (mkt);
+            (groupMap[parentSymbol] as any[]).push (mkt);
         }
-        const events: any[] = [];
+        const events = [];
         const groupKeys = Object.keys (groupMap);
         for (let gi = 0; gi < groupKeys.length; gi++) {
             const key = groupKeys[gi];
-            const groupMarkets = groupMap[key] as Market[];
+            const groupMarkets = groupMap[key] as any[];
             const event = this.parseEvent ({ 'parentSymbol': key, 'markets': groupMarkets });
             events.push (event);
         }
@@ -1664,40 +1743,54 @@ export default class hyperliquidPrediction extends PredictionExchange {
             const ev = events[i];
             this.events[ev['symbol']] = ev;
         }
-        return events;
+        return this.events;
     }
 
     /**
      * Parses a grouped set of outcome markets into a unified PredictionEvent.
      */
-    parseEvent (raw: Dict): PredictionEvent {
+    parseEvent (raw: Dict): any {
         const parentSymbol = this.safeString (raw, 'parentSymbol');
-        const markets = this.safeList (raw, 'markets', []) as Market[];
+        const markets = this.safeList (raw, 'markets', []) as any[];
         // Extract info from first market
-        const firstMarket = (markets.length > 0) ? markets[0] : {};
+        const marketsLength = markets.length;
+        const firstMarket = (marketsLength > 0) ? markets[0] : {};
         const firstInfo = this.safeDict (firstMarket as any, 'info', {});
         const desc = this.safeDict (firstInfo, 'parsedDescription', {});
         const underlying = this.safeString (desc, 'underlying');
         const targetPrice = this.safeString (desc, 'targetPrice');
         const expiryRaw = this.safeString (desc, 'expiry');
-        let expiryMs: Int = undefined;
-        let expiryDatetime: Str = undefined;
+        let expiryMs = undefined;
+        let expiryDatetime = undefined;
         if (expiryRaw) {
             const parts = expiryRaw.split ('-');
-            if (parts.length >= 1 && parts[0].length === 8) {
+            const partsLength = parts.length;
+            if (partsLength >= 1 && parts[0].length === 8) {
                 const ymd = parts[0];
-                const hm = (parts.length >= 2) ? parts[1] : '0000';
-                const isoStr = ymd.substring (0, 4) + '-' + ymd.substring (4, 6) + '-' + ymd.substring (6, 8) + 'T' + hm.substring (0, 2) + ':' + hm.substring (2, 4) + ':00Z';
+                const hm = (partsLength >= 2) ? parts[1] : '0000';
+                const isoStr = ymd.slice (0, 4) + '-' + ymd.slice (4, 6) + '-' + ymd.slice (6, 8) + 'T' + hm.slice (0, 2) + ':' + hm.slice (2, 4) + ':00Z';
                 expiryMs = this.parse8601 (isoStr);
                 expiryDatetime = isoStr;
             }
         }
         const firstExpiry = this.safeInteger (firstMarket as any, 'expiry');
+        let title = parentSymbol;
+        if (underlying !== undefined) {
+            let titleSuffix = '';
+            if (targetPrice) {
+                titleSuffix = titleSuffix + ' ABOVE ' + targetPrice;
+            }
+            if (expiryRaw) {
+                titleSuffix = titleSuffix + ' @ ' + expiryRaw;
+            }
+            title = underlying + titleSuffix;
+        }
+        const endValue = (expiryMs !== undefined) ? expiryMs : firstExpiry;
         return this.extend ({
             'id': parentSymbol,
             'slug': parentSymbol,
             'symbol': parentSymbol,
-            'title': underlying !== undefined ? (underlying + (targetPrice ? ' ABOVE ' + targetPrice : '') + (expiryRaw ? ' @ ' + expiryRaw : '')) : parentSymbol,
+            'title': title,
             'markets': markets,
             'underlying': underlying,
             'targetPrice': targetPrice,
@@ -1707,7 +1800,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
             'image': undefined,
             'created': undefined,
             'createdDatetime': undefined,
-            'end': expiryMs || firstExpiry,
+            'end': endValue,
             'endDatetime': expiryDatetime,
             'category': 'crypto',
             'lastUpdatedAt': undefined,
@@ -1717,28 +1810,26 @@ export default class hyperliquidPrediction extends PredictionExchange {
         });
     }
 
-    // -----------------------------------------------------------------------
-    // Precision helpers
-    // -----------------------------------------------------------------------
-
     amountToPrecision (outcome: string, amount: any): string {
         const market = this.market (outcome);
         const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'amount', 0.0001);
         // Convert precision to decimal places
-        const decimals = prec > 0 ? Math.round (-Math.log10 (prec)) : 4;
-        return this.decimalToPrecision (amount, 1 /* ROUND */, decimals, 2 /* DECIMAL_PLACES */, this.paddingMode);
+        let decimals = 4;
+        if (prec > 0) {
+            decimals = this.precisionFromString (this.numberToString (prec));
+        }
+        return this.decimalToPrecision (amount, 1, decimals, 2, this.paddingMode);
     }
 
     priceToPrecision (outcome: string, price: any): string {
         const market = this.market (outcome);
         const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'price', 0.0001);
-        const decimals = prec > 0 ? Math.round (-Math.log10 (prec)) : 4;
-        return this.decimalToPrecision (price, 1 /* ROUND */, decimals, 2 /* DECIMAL_PLACES */, this.paddingMode);
+        let decimals = 4;
+        if (prec > 0) {
+            decimals = this.precisionFromString (this.numberToString (prec));
+        }
+        return this.decimalToPrecision (price, 1, decimals, 2, this.paddingMode);
     }
-
-    // -----------------------------------------------------------------------
-    // EIP-712 / L1 action signing (same as upstream Hyperliquid)
-    // -----------------------------------------------------------------------
 
     hashMessage (message: any): string {
         return '0x' + this.hash (message, keccak, 'hex');
@@ -1787,13 +1878,13 @@ export default class hyperliquidPrediction extends PredictionExchange {
         const isTestnet = this.safeBool (this.options, 'sandboxMode', true);
         const phantomAgent = this.constructPhantomAgent (hash, isTestnet);
         const zeroAddress = this.safeString (this.options, 'zeroAddress');
-        const domain: Dict = {
+        const domain = {
             'chainId': 1337,
             'name': 'Exchange',
             'verifyingContract': zeroAddress,
             'version': '1',
         };
-        const messageTypes: Dict = {
+        const messageTypes = {
             'Agent': [
                 { 'name': 'source', 'type': 'string' },
                 { 'name': 'connectionId', 'type': 'bytes32' },
@@ -1803,10 +1894,6 @@ export default class hyperliquidPrediction extends PredictionExchange {
         return this.signMessage (msg, this.privateKey);
     }
 
-    // -----------------------------------------------------------------------
-    // Client initialisation (approve builder fee if enabled)
-    // -----------------------------------------------------------------------
-
     async initializeClient () {
         const buildFee = this.safeBool (this.options, 'builderFee', false);
         if (!buildFee) {
@@ -1815,12 +1902,8 @@ export default class hyperliquidPrediction extends PredictionExchange {
         // builder fee approval would go here if needed
     }
 
-    // -----------------------------------------------------------------------
-    // Address helpers
-    // -----------------------------------------------------------------------
-
-    handlePublicAddress (methodName: string, params: Dict): [ string, Dict ] {
-        let userAux: Str = undefined;
+    handlePublicAddress (methodName: string, params: Dict): any {
+        let userAux = undefined;
         [ userAux, params ] = this.handleOptionAndParams2 (params, methodName, 'user', 'subAccountAddress');
         let user = userAux;
         [ user, params ] = this.handleOptionAndParams (params, methodName, 'address', userAux);
@@ -1844,12 +1927,8 @@ export default class hyperliquidPrediction extends PredictionExchange {
         return normalized.toLowerCase ();
     }
 
-    // -----------------------------------------------------------------------
-    // HTTP request signing
-    // -----------------------------------------------------------------------
-
-    sign (path: any, api: any = 'public', method = 'POST', params: Dict = {}, headers: Dict = undefined, body: any = undefined) {
-        const apiGroup: string = Array.isArray (api) ? api[0] : api;
+    sign (path: any, api: any = 'public', method = 'POST', params = {}, headers: any = undefined, body: any = undefined) {
+        const apiGroup = Array.isArray (api) ? api[0] : api;
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', true);
         let baseUrl: string;
         if (sandboxMode) {
@@ -1867,11 +1946,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    // -----------------------------------------------------------------------
-    // Error handling
-    // -----------------------------------------------------------------------
-
-    handleErrors (code: number, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (!response) {
             return undefined;
         }
@@ -1899,7 +1974,7 @@ export default class hyperliquidPrediction extends PredictionExchange {
         return undefined;
     }
 
-    calculateRateLimiterCost (api: any, method: string, path: string, params: Dict, config: Dict = {}) {
+    calculateRateLimiterCost (api, method, path, params, config = {}) {
         if (('byType' in config) && ('type' in params)) {
             const type = params['type'];
             const byType = config['byType'] as Dict;

@@ -1,4 +1,4 @@
-import PredictionExchange from './abstract/polymarket.js';
+import Exchange from './abstract/polymarket.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type {
     Int, Str, Num, Dict,
@@ -12,10 +12,10 @@ import { ArgumentsRequired, BadRequest } from '../ccxt.js';
 
 /**
  * @class polymarket
- * @augments PredictionExchange
+ * @augments Exchange
  */
-export default class polymarket extends PredictionExchange {
-    describe () {
+export default class polymarket extends Exchange {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'polymarket',
             'name': 'Polymarket',
@@ -143,13 +143,14 @@ export default class polymarket extends PredictionExchange {
         });
     }
 
-    async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        const queries = this.safeList (params, 'queries', []) as string[];
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        const queries = this.safeList (params, 'queries', []) as any[];
         const rest0 = this.omit (params, [ 'queries' ]);
         let pageSize = 0;
         const flatMarkets: Market[] = [];
         const eventsDict: Dict = {};
-        if (queries && queries.length > 0) {
+        const queriesLength = queries.length;
+        if (queries && queriesLength > 0) {
             pageSize = this.safeInteger (rest0, 'limit', 50);
             const searchRest = this.omit (rest0, [ 'limit' ]);
             const seen: Dict = {};
@@ -158,11 +159,12 @@ export default class polymarket extends PredictionExchange {
                 const q = queries[qi];
                 const baseRequest1: Dict = { 'q': q, 'limit_per_type': pageSize, 'events_status': 'active' };
                 let firstRequest: Dict = { 'page': 1 };
-                firstRequest = this.extend (firstRequest, baseRequest1, searchRest);
+                firstRequest = this.extend (this.extend (firstRequest, baseRequest1), searchRest);
                 const first = await this.gammaPublicGetPublicSearch (firstRequest);
                 const firstEvents = this.safeList (first, 'events', []) as any[];
+                const firstEventsLength = firstEvents.length;
                 const pagination = this.safeValue (first, 'pagination', {});
-                const totalResults = this.safeInteger (pagination, 'totalResults', firstEvents.length);
+                const totalResults = this.safeInteger (pagination, 'totalResults', firstEventsLength);
                 const totalPages = Math.ceil (totalResults / pageSize);
                 const remaining: number[] = [];
                 for (let p = 2; p <= totalPages; p++) {
@@ -171,7 +173,7 @@ export default class polymarket extends PredictionExchange {
                 const restPromises: any[] = [];
                 for (let pi = 0; pi < remaining.length; pi++) {
                     let pageRequest: Dict = { 'page': remaining[pi] };
-                    pageRequest = this.extend (pageRequest, baseRequest1, searchRest);
+                    pageRequest = this.extend (this.extend (pageRequest, baseRequest1), searchRest);
                     restPromises.push (this.gammaPublicGetPublicSearch (pageRequest));
                 }
                 const restResponses = await Promise.all (restPromises);
@@ -188,7 +190,7 @@ export default class polymarket extends PredictionExchange {
                 for (let ei = 0; ei < allEvents.length; ei++) {
                     const rawEvent = allEvents[ei];
                     const eventId = this.safeString (rawEvent, 'id');
-                    if (eventId && !seen[eventId]) {
+                    if (eventId && !(eventId in seen)) {
                         seen[eventId] = true;
                         rawEvents.push (rawEvent);
                     }
@@ -203,7 +205,7 @@ export default class polymarket extends PredictionExchange {
                 const parsedEvent = this.parseEvent (rawEvent);
                 const eventSlug = this.safeString (rawEvent, 'slug');
                 if (eventSlug) {
-                    const eventKey = this.shortenSlug (eventSlug as string);
+                    const eventKey = this.shortenSlug (eventSlug);
                     eventsDict[eventKey] = parsedEvent;
                 }
             }
@@ -225,12 +227,13 @@ export default class polymarket extends PredictionExchange {
         let firstPageRequest: Dict = { 'offset': 0 };
         firstPageRequest = this.extend (firstPageRequest, baseRequest);
         const firstPageResponse = await this.gammaPublicGetEvents (firstPageRequest);
-        const firstPage = (firstPageResponse || []) as any[];
+        const firstPage = (firstPageResponse !== undefined) ? firstPageResponse : [];
+        const firstPageLength = firstPage.length;
         const allRawEvents: any[] = [];
         for (let fi = 0; fi < firstPage.length; fi++) {
             allRawEvents.push (firstPage[fi]);
         }
-        if (firstPage.length >= pageSize) {
+        if (firstPageLength >= pageSize) {
             const offsets: number[] = [];
             for (let p = 1; p < maxPages; p++) {
                 offsets.push (p * pageSize);
@@ -243,7 +246,7 @@ export default class polymarket extends PredictionExchange {
             }
             const restPages = await Promise.all (restPromises2);
             for (let ri2 = 0; ri2 < restPages.length; ri2++) {
-                const page = (restPages[ri2] || []) as any[];
+                const page = (restPages[ri2] !== undefined) ? restPages[ri2] : [];
                 for (let pi2 = 0; pi2 < page.length; pi2++) {
                     allRawEvents.push (page[pi2]);
                 }
@@ -258,7 +261,7 @@ export default class polymarket extends PredictionExchange {
             const parsedEvent = this.parseEvent (rawEvent);
             const eventSlug = this.safeString (rawEvent, 'slug');
             if (eventSlug) {
-                const eventKey = this.shortenSlug (eventSlug as string);
+                const eventKey = this.shortenSlug (eventSlug);
                 eventsDict[eventKey] = parsedEvent;
             }
         }
@@ -366,22 +369,36 @@ export default class polymarket extends PredictionExchange {
             const tickSize = this.safeNumber (market, 'minimumTickSize', 0.01);
             const endDate = this.safeString (market, 'endDate', this.safeString (market, 'end_date_iso'));
             // Gamma API returns these arrays as JSON-encoded strings
-            let outcomeLabels: string[] = [];
-            let clobTokenIds: string[] = [];
-            let outcomePrices: string[] = [];
+            let outcomeLabels: any[] = [];
+            let clobTokenIds: any[] = [];
+            let outcomePrices: any[] = [];
             const parsedOutcomes = this.parseJson (this.safeString (market, 'outcomes', '[]'));
             const parsedTokenIds = this.parseJson (this.safeString (market, 'clobTokenIds', '[]'));
             const parsedPrices = this.parseJson (this.safeString (market, 'outcomePrices', '[]'));
-            if (parsedOutcomes && (parsedOutcomes as any[]).length !== undefined) {
-                outcomeLabels = parsedOutcomes as string[];
+            let parsedOutcomesLength = undefined;
+            if (parsedOutcomes !== undefined) {
+                parsedOutcomesLength = (parsedOutcomes as any[]).length;
             }
-            if (parsedTokenIds && (parsedTokenIds as any[]).length !== undefined) {
-                clobTokenIds = parsedTokenIds as string[];
+            let parsedTokenIdsLength = undefined;
+            if (parsedTokenIds !== undefined) {
+                parsedTokenIdsLength = (parsedTokenIds as any[]).length;
             }
-            if (parsedPrices && (parsedPrices as any[]).length !== undefined) {
-                outcomePrices = parsedPrices as string[];
+            let parsedPricesLength = undefined;
+            if (parsedPrices !== undefined) {
+                parsedPricesLength = (parsedPrices as any[]).length;
             }
-            if (outcomeLabels.length === 0 || clobTokenIds.length === 0) {
+            if (parsedOutcomes && (parsedOutcomesLength !== undefined)) {
+                outcomeLabels = parsedOutcomes as any[];
+            }
+            if (parsedTokenIds && (parsedTokenIdsLength !== undefined)) {
+                clobTokenIds = parsedTokenIds as any[];
+            }
+            if (parsedPrices && (parsedPricesLength !== undefined)) {
+                outcomePrices = parsedPrices as any[];
+            }
+            const outcomeLabelsLength = outcomeLabels.length;
+            const clobTokenIdsLength = clobTokenIds.length;
+            if (outcomeLabelsLength === 0 || clobTokenIdsLength === 0) {
                 continue;
             }
             // Market symbol (no outcome suffix)
@@ -405,13 +422,14 @@ export default class polymarket extends PredictionExchange {
                     'info': market,
                 });
             }
+            const baseId = (conditionId !== undefined) ? conditionId : marketId;
             result.push ({
                 'id': conditionId,
                 'symbol': marketSymbol,
                 'base': 'USDC',
                 'quote': 'USDC',
                 'settle': undefined,
-                'baseId': conditionId || marketId,
+                'baseId': baseId,
                 'quoteId': 'USDC',
                 'settleId': undefined,
                 'type': 'prediction',
@@ -460,7 +478,8 @@ export default class polymarket extends PredictionExchange {
      * @see https://docs.polymarket.com/api-reference/data/get-midpoint-price
      * @see https://docs.polymarket.com/api-reference/market-data/get-order-book
      */
-    async fetchTicker (outcome: string, params: Dict = {}): Promise<Ticker> {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        const outcome = symbol;
         await this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['id'];
@@ -511,17 +530,34 @@ export default class polymarket extends PredictionExchange {
      * @param params
      * @see https://docs.polymarket.com/api-reference/data/get-midpoint-price
      */
-    async fetchTickers (outcomes?: Str[], params: Dict = {}): Promise<Tickers> {
-        if (outcomes && outcomes.length > 0) {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        const outcomes = symbols;
+        let outcomesLength = 0;
+        if (outcomes !== undefined) {
+            outcomesLength = outcomes.length;
+        }
+        if (outcomesLength > 0) {
             for (let i = 0; i < outcomes.length; i++) {
                 await this.checkEventsAndMarkets (outcomes[i]);
             }
         } else {
             await this.checkEventsAndMarkets ();
         }
-        const targets: string[] = outcomes ? (outcomes as string[]) : Object.keys (this.outcomes || {});
+        const outcomesMap = (this.outcomes !== undefined) ? this.outcomes : {};
+        const targets: any[] = [];
+        if (outcomes !== undefined) {
+            for (let oi = 0; oi < outcomes.length; oi++) {
+                targets.push (outcomes[oi]);
+            }
+        } else {
+            const allOutcomeKeys = Object.keys (outcomesMap);
+            for (let ki = 0; ki < allOutcomeKeys.length; ki++) {
+                targets.push (allOutcomeKeys[ki]);
+            }
+        }
         const result: Tickers = {};
-        for (const outcomeSymbol of targets) {
+        for (let i = 0; i < targets.length; i++) {
+            const outcomeSymbol = targets[i];
             const ticker = await this.fetchTicker (outcomeSymbol, params);
             result[outcomeSymbol] = ticker;
         }
@@ -568,8 +604,10 @@ export default class polymarket extends PredictionExchange {
         const mid = this.safeNumber (midpointData, 'mid');
         const bids = this.safeList (bookData, 'bids', []) as any[];
         const asks = this.safeList (bookData, 'asks', []) as any[];
-        const bestBid = bids.length ? this.safeNumber (bids[0], 'price') : undefined;
-        const bestAsk = asks.length ? this.safeNumber (asks[0], 'price') : undefined;
+        const bidsLength = bids.length;
+        const asksLength = asks.length;
+        const bestBid = bidsLength ? this.safeNumber (bids[0], 'price') : undefined;
+        const bestAsk = asksLength ? this.safeNumber (asks[0], 'price') : undefined;
         const symbol = this.safeSymbol (undefined, market);
         const now = this.milliseconds ();
         return this.safeTicker ({
@@ -579,9 +617,9 @@ export default class polymarket extends PredictionExchange {
             'high': undefined,
             'low': undefined,
             'bid': bestBid,
-            'bidVolume': bids.length ? this.safeNumber (bids[0], 'size') : undefined,
+            'bidVolume': bidsLength ? this.safeNumber (bids[0], 'size') : undefined,
             'ask': bestAsk,
-            'askVolume': asks.length ? this.safeNumber (asks[0], 'size') : undefined,
+            'askVolume': asksLength ? this.safeNumber (asks[0], 'size') : undefined,
             'vwap': undefined,
             'open': undefined,
             'close': mid,
@@ -603,7 +641,8 @@ export default class polymarket extends PredictionExchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @see https://docs.polymarket.com/api-reference/market-data/get-order-book
      */
-    async fetchOrderBook (outcome: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        const outcome = symbol;
         await this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['id'] as string;
@@ -646,7 +685,8 @@ export default class polymarket extends PredictionExchange {
      * @param params
      * @see https://docs.polymarket.com/api-reference/markets/get-prices-history
      */
-    async fetchOHLCV (outcome: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        const outcome = symbol;
         await this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['id'] as string;
@@ -661,8 +701,8 @@ export default class polymarket extends PredictionExchange {
                 endS = endBound < nowS ? endBound : nowS;
             }
         } else {
-            const count = (limit !== undefined) ? limit : 100;
-            startS = nowS - (count * fidelityMin * 60);
+            const barCount = (limit !== undefined) ? limit : 100;
+            startS = nowS - (barCount * fidelityMin * 60);
         }
         const request: Dict = {
             'market': tokenId,
@@ -682,28 +722,48 @@ export default class polymarket extends PredictionExchange {
         // Client-side bucket aggregation: snap each tick to its candle boundary and
         // build open/high/low/close/volume. Assumes history is sorted ascending by time.
         const resolutionMs = fidelityMin * 60 * 1000;
-        const buckets = new Map<number, OHLCV> ();
+        const buckets = {};
         for (let i = 0; i < history.length; i++) {
             const item = history[i];
-            const rawMs = this.safeInteger (item, 't') as number * 1000;
+            const t = this.safeInteger (item, 't');
+            const price = this.safeNumber (item, 'p');
+            if ((t === undefined) || (price === undefined)) {
+                continue;
+            }
+            const rawMs = t * 1000;
             const snappedMs = Math.floor (rawMs / resolutionMs) * resolutionMs;
-            const price = this.safeNumber (item, 'p') as number;
-            const vol = (this.safeNumber (item, 's') ?? this.safeNumber (item, 'v') ?? 0) as number;
-            if (!buckets.has (snappedMs)) {
-                buckets.set (snappedMs, [ snappedMs, price, price, price, price, vol ]);
+            let vol = this.safeNumber (item, 's');
+            if (vol === undefined) {
+                vol = this.safeNumber (item, 'v');
+            }
+            if (vol === undefined) {
+                vol = 0;
+            }
+            const bucketKey = snappedMs.toString ();
+            if (!(bucketKey in buckets)) {
+                buckets[bucketKey] = [ snappedMs, price, price, price, price, vol ];
             } else {
-                const candle = buckets.get (snappedMs) as OHLCV;
+                const candle = buckets[bucketKey] as OHLCV;
                 candle[2] = Math.max (candle[2] as number, price); // high
                 candle[3] = Math.min (candle[3] as number, price); // low
                 candle[4] = price;                                  // close (last tick wins)
-                candle[5] = ((candle[5] as number) || 0) + vol;    // volume
+                candle[5] = (candle[5] as number) + vol;           // volume
             }
         }
-        const candles = Array.from (buckets.values ()).sort ((a, b) => (a[0] as number) - (b[0] as number));
-        return (limit !== undefined && candles.length > limit) ? candles.slice (-limit) : candles;
+        const bucketKeys = Object.keys (buckets);
+        const unsortedCandles = [];
+        for (let i = 0; i < bucketKeys.length; i++) {
+            unsortedCandles.push (buckets[bucketKeys[i]] as OHLCV);
+        }
+        const candles = this.sortBy (unsortedCandles, 0);
+        const candlesLength = candles.length;
+        if ((limit !== undefined) && (candlesLength > limit)) {
+            return this.arraySlice (candles, -limit);
+        }
+        return candles;
     }
 
-    parseOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         // Unused: fetchOHLCV performs client-side bucket aggregation directly.
         //
         //     {
@@ -711,9 +771,8 @@ export default class polymarket extends PredictionExchange {
         //         "p": "0.265"
         //     }
         //
-        const ts = this.safeInteger (ohlcv, 't');
         const price = this.safeNumber (ohlcv, 'p');
-        return [ ts !== undefined ? ts * 1000 : undefined, price, price, price, price, undefined ];
+        return [ this.safeTimestamp (ohlcv, 't'), price, price, price, price, 0 ];
     }
 
     /**
@@ -724,7 +783,8 @@ export default class polymarket extends PredictionExchange {
      * @param params
      * @see https://docs.polymarket.com/api-reference/core/get-trades-for-a-user-or-markets
      */
-    async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        const outcome = symbol;
         await this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['id'] as string;
@@ -738,7 +798,7 @@ export default class polymarket extends PredictionExchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).dataPublicGetTrades (this.extend (request, params));
+        const response = await this.dataPublicGetTrades (this.extend (request, params));
         const rawTrades = Array.isArray (response) ? response : this.safeList (response, 'data', []);
         const filteredTrades: any[] = [];
         for (let i = 0; i < rawTrades.length; i++) {
@@ -769,6 +829,7 @@ export default class polymarket extends PredictionExchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
             'outcome': symbol,
             'outcomeId': this.safeString (trade, 'asset'),
             'order': this.safeString (trade, 'orderId'),
@@ -787,7 +848,7 @@ export default class polymarket extends PredictionExchange {
      * @param params
      * @see https://docs.polymarket.com/api-reference/core/get-total-value-of-a-users-positions
      */
-    async fetchBalance (params: Dict = {}): Promise<Balances> {
+    async fetchBalance (params = {}): Promise<Balances> {
         await this.checkEventsAndMarkets ();
         const request: Dict = {
             'user': this.walletAddress,
@@ -800,7 +861,7 @@ export default class polymarket extends PredictionExchange {
      * Parses a portfolio value response into a CCXT Balances object with a USDC entry.
      * @param response
      */
-    parseBalance (response: Dict): Balances {
+    parseBalance (response): Balances {
         const result: Dict = { 'info': response };
         const total = this.safeNumber (response, 'value', this.safeNumber (response, 'total'));
         result['USDC'] = {
@@ -817,8 +878,13 @@ export default class polymarket extends PredictionExchange {
      * @param params
      * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
      */
-    async fetchPositions (outcomes: Strings = undefined, params: Dict = {}): Promise<Position[]> {
-        if (outcomes && outcomes.length > 0) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        const outcomes = symbols;
+        let outcomesLength = 0;
+        if (outcomes !== undefined) {
+            outcomesLength = outcomes.length;
+        }
+        if (outcomesLength > 0) {
             for (let i = 0; i < outcomes.length; i++) {
                 await this.checkEventsAndMarkets (outcomes[i]);
             }
@@ -850,6 +916,10 @@ export default class polymarket extends PredictionExchange {
         // const unrealizedPnl = (size !== undefined && entryPrice !== undefined && curPrice !== undefined)
         //     ? size * (curPrice - entryPrice)
         //     : undefined;
+        let notional = undefined;
+        if ((size !== undefined) && (curPrice !== undefined)) {
+            notional = size * curPrice;
+        }
         return {
             'id': this.safeString (position, 'id'),
             'symbol': marketData['symbol'],
@@ -858,7 +928,7 @@ export default class polymarket extends PredictionExchange {
             'contracts': size,
             'contractSize': 1,
             'side': 'long',
-            'notional': (size !== undefined && curPrice !== undefined) ? size * curPrice : undefined,
+            'notional': notional,
             'leverage': 1,
             'unrealizedPnl': undefined,
             'realizedPnl': this.safeNumber (position, 'realizedPnl'),
@@ -887,7 +957,8 @@ export default class polymarket extends PredictionExchange {
      * @param params
      * @see https://docs.polymarket.com/api-reference/trade/get-user-orders
      */
-    async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const outcome = symbol;
         if (outcome !== undefined) {
             await this.checkEventsAndMarkets (outcome);
         } else {
@@ -911,7 +982,8 @@ export default class polymarket extends PredictionExchange {
      * @param params
      * @see https://docs.polymarket.com/api-reference/trade/get-single-order-by-id
      */
-    async fetchOrder (id: Str, outcome: Str = undefined, params: Dict = {}): Promise<Order> {
+    async fetchOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
+        const outcome = symbol;
         if (outcome !== undefined) {
             await this.checkEventsAndMarkets (outcome);
         } else {
@@ -987,12 +1059,15 @@ export default class polymarket extends PredictionExchange {
      * @param params
      * @see https://docs.polymarket.com/api-reference/trade/post-a-new-order
      */
-    async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Promise<Order> {
+    async createOrder (symbol: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
+        const outcome = symbol;
         await this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['id'] as string;
-        const sideStr = (side as string).toUpperCase ();
-        const typeStr = (type as string).toUpperCase ();
+        const sideRaw = side as string;
+        const typeRaw = type as string;
+        const sideStr = sideRaw.toUpperCase ();
+        const typeStr = typeRaw.toUpperCase ();
         const request: Dict = {
             'token_id': tokenId,
             'price': price,
@@ -1011,7 +1086,8 @@ export default class polymarket extends PredictionExchange {
      * @param params
      * @see https://docs.polymarket.com/api-reference/trade/cancel-single-order
      */
-    async cancelOrder (id: Str, outcome: Str = undefined, params: Dict = {}): Promise<Order> {
+    async cancelOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
+        const outcome = symbol;
         await this.checkEventsAndMarkets (outcome);
         const request: Dict = { 'order_id': id };
         const response = await this.clobPrivateDeleteOrder (this.extend (request, params));
@@ -1024,7 +1100,8 @@ export default class polymarket extends PredictionExchange {
      * @param params
      * @see https://docs.polymarket.com/api-reference/trade/cancel-all-orders
      */
-    async cancelAllOrders (outcome: Str = undefined, params: Dict = {}): Promise<Order[]> {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+        const outcome = symbol;
         await this.checkEventsAndMarkets (outcome);
         const request: Dict = {};
         if (outcome !== undefined) {
@@ -1043,19 +1120,22 @@ export default class polymarket extends PredictionExchange {
      * @param params
      * @see https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles
      */
-    async fetchEvents (queries: string[] = [], params: Dict = {}): Promise<any> {
+    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any> {
+        queries = (queries === undefined) ? [] : queries;
         const pageSize = this.safeInteger (params, 'limit', 50);
         const rest = this.omit (params, [ 'limit' ]);
         // For each query: fetch page 1, then all remaining pages in parallel
         const seen: Dict = {};
         const rawEvents: any[] = [];
-        for (const q of queries) {
+        for (let qi = 0; qi < queries.length; qi++) {
+            const q = queries[qi];
             const baseRequest: Dict = { 'q': q, 'limit_per_type': pageSize, 'events_status': 'active' };
             const firstRequest: Dict = { 'page': 1 };
-            const first = await this.gammaPublicGetPublicSearch (this.extend (firstRequest, baseRequest, rest));
+            const first = await this.gammaPublicGetPublicSearch (this.extend (this.extend (firstRequest, baseRequest), rest));
             const firstEvents = this.safeList (first, 'events', []) as any[];
+            const firstEventsLength = firstEvents.length;
             const pagination = this.safeValue (first, 'pagination', {});
-            const totalResults = this.safeInteger (pagination, 'totalResults', firstEvents.length);
+            const totalResults = this.safeInteger (pagination, 'totalResults', firstEventsLength);
             const totalPages = Math.ceil (totalResults / pageSize);
             const remainingPages: number[] = [];
             for (let p = 2; p <= totalPages; p++) {
@@ -1064,19 +1144,20 @@ export default class polymarket extends PredictionExchange {
             const restPromises3: any[] = [];
             for (let pi3 = 0; pi3 < remainingPages.length; pi3++) {
                 const pageRequest: Dict = { 'page': remainingPages[pi3] };
-                restPromises3.push (this.gammaPublicGetPublicSearch (this.extend (pageRequest, baseRequest, rest)));
+                restPromises3.push (this.gammaPublicGetPublicSearch (this.extend (this.extend (pageRequest, baseRequest), rest)));
             }
             const restResponses = await Promise.all (restPromises3);
-            const allEvents: any[] = (firstEvents as any[]).slice ();
+            const allEvents = this.arrayConcat ([], firstEvents);
             for (let ri3 = 0; ri3 < restResponses.length; ri3++) {
                 const pageEvents3 = this.safeList (restResponses[ri3], 'events', []) as any[];
                 for (let ei3 = 0; ei3 < pageEvents3.length; ei3++) {
                     allEvents.push (pageEvents3[ei3]);
                 }
             }
-            for (const rawEvent of allEvents) {
+            for (let aei = 0; aei < allEvents.length; aei++) {
+                const rawEvent = allEvents[aei];
                 const eventId = this.safeString (rawEvent, 'id');
-                if (eventId && !seen[eventId]) {
+                if (eventId && !(eventId in seen)) {
                     seen[eventId] = true;
                     rawEvents.push (rawEvent);
                 }
@@ -1087,32 +1168,35 @@ export default class polymarket extends PredictionExchange {
             this.events = {};
         }
         if (!this.markets) {
-            this.markets = {};
+            this.markets = this.createSafeDictionary ();
         }
-        for (const rawEvent of rawEvents) {
+        for (let rei = 0; rei < rawEvents.length; rei++) {
+            const rawEvent = rawEvents[rei];
             let eventForParsing = rawEvent;
             let ccxtMarkets = this.parseEventToMarkets (eventForParsing);
-            if (ccxtMarkets.length === 0) {
+            const ccxtMarketsLength = ccxtMarkets.length;
+            if (ccxtMarketsLength === 0) {
                 const eventId = this.safeString (rawEvent, 'id');
-                const eventSlug = this.safeString (rawEvent, 'slug');
+                const rawEventSlug = this.safeString (rawEvent, 'slug');
                 let detailedEvent = undefined;
                 if (eventId !== undefined) {
                     detailedEvent = await this.gammaPublicGetEventsId ({ 'id': eventId });
-                } else if (eventSlug !== undefined) {
-                    detailedEvent = await this.gammaPublicGetEventsSlugSlug ({ 'slug': eventSlug });
+                } else if (rawEventSlug !== undefined) {
+                    detailedEvent = await this.gammaPublicGetEventsSlugSlug ({ 'slug': rawEventSlug });
                 }
                 if (detailedEvent !== undefined) {
                     eventForParsing = this.safeValue (detailedEvent, 'event', detailedEvent) as Dict;
                     ccxtMarkets = this.parseEventToMarkets (eventForParsing);
                 }
             }
-            for (const m of ccxtMarkets) {
+            for (let mi = 0; mi < ccxtMarkets.length; mi++) {
+                const m = ccxtMarkets[mi];
                 this.markets[m['symbol'] as string] = m;
             }
             const parsedEvent = this.parseEvent (eventForParsing);
             const eventSlug = this.safeString (eventForParsing, 'slug', this.safeString (rawEvent, 'slug'));
             if (eventSlug) {
-                const eventKey = this.shortenSlug (eventSlug as string);
+                const eventKey = this.shortenSlug (eventSlug);
                 this.events[eventKey] = parsedEvent;
             }
         }
@@ -1134,7 +1218,7 @@ export default class polymarket extends PredictionExchange {
                 }
             }
         }
-        return Object.values (this.events);
+        return this.events;
     }
 
     parseEvent (rawEvent: Dict): Dict {
@@ -1226,7 +1310,8 @@ export default class polymarket extends PredictionExchange {
      */
     parseEvents (rawEvents: any[]): any[] {
         const result: any[] = [];
-        for (const rawEvent of rawEvents) {
+        for (let i = 0; i < rawEvents.length; i++) {
+            const rawEvent = rawEvents[i];
             result.push (this.parseEvent (rawEvent));
         }
         return result;
@@ -1241,22 +1326,23 @@ export default class polymarket extends PredictionExchange {
      * @param headers
      * @param body
      */
-    sign (path: Str, api: any = 'gamma', method = 'GET', params: Dict = {}, headers: Dict = undefined, body: Dict = undefined) {
+    sign (path: any, api: any = 'gamma', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         // api is either a string ('gamma') or array (['gamma', 'public'])
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const access: string = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['gamma'] as string);
-        let url = baseUrl + '/' + this.implodeParams (path as string, params);
-        const query = this.omit (params, this.extractParams (path as string));
+        let url = baseUrl + '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
         const querystring = this.urlencode (query);
         if (method === 'GET' && querystring) {
             url += '?' + querystring;
         }
+        const headerDefaults = (headers !== undefined) ? headers : {};
         headers = this.extend ({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-        }, headers || {});
+        }, headerDefaults);
         if (access === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.seconds ().toString ();

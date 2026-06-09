@@ -74,6 +74,12 @@ type Exchange struct {
 	QuoteCurrencies        *sync.Map
 	ReloadingMarkets       bool
 	MarketsLoading         bool
+	Outcomes               any
+	Outcomes_by_id         any
+	Events                 any
+	Events_by_slug         any
+	ReloadingEvents        bool
+	EventsLoading          any
 	Symbols                []string
 	Codes                  []string
 	Ids                    []string
