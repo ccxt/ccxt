@@ -2,6 +2,29 @@
     "exchange": "nado",
     "skipKeys": [],
     "methods": {
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "input": [],
+                "httpResponse": {
+                    "status": "success",
+                    "data": "active",
+                    "request_type": "query_status"
+                },
+                "parsedResponse": {
+                    "status": "ok",
+                    "updated": null,
+                    "eta": null,
+                    "url": null,
+                    "info": {
+                        "status": "success",
+                        "data": "active",
+                        "request_type": "query_status"
+                    }
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",

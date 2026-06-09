@@ -42,7 +42,7 @@ export default class nado extends Exchange {
                 'fetchOrderBook': false,
                 'fetchOrders': false,
                 'fetchPositions': false,
-                'fetchStatus': false,
+                'fetchStatus': true,
                 'fetchTicker': false,
                 'fetchTickers': false,
                 'fetchTime': false,
@@ -140,6 +140,36 @@ export default class nado extends Exchange {
                 'broad': {},
             },
         });
+    }
+
+    /**
+     * @method
+     * @name nado#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/queries/status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+     */
+    async fetchStatus (params = {}) {
+        const request: Dict = {
+            'type': 'status',
+        };
+        const response = await this.gatewayPublicGetQuery (this.extend (request, params));
+        //
+        //     {
+        //         "status": "success",
+        //         "data": "active",
+        //         "request_type": "query_status"
+        //     }
+        //
+        const status = this.safeString (response, 'data');
+        return {
+            'status': (status === 'active') ? 'ok' : 'error',
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
     }
 
     /**

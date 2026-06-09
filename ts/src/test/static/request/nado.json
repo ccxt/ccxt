@@ -3,11 +3,19 @@
     "skipKeys": [],
     "outputType": "json",
     "methods": {
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "url": "https://gateway.test.nado.xyz/v1/query?type=status",
+                "input": []
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
-                "url": "https://gateway.prod.nado.xyz/v2/assets",
+                "url": "https://gateway.test.nado.xyz/v2/assets",
                 "input": []
             }
         ]
