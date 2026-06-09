@@ -326,6 +326,7 @@ export default class extended extends Exchange {
             },
             'options': {
                 'builderFee': true,
+                'builderFeeRate': '0.0001',
                 'builderId': '257624',
             },
         });
@@ -2619,19 +2620,19 @@ export default class extended extends Exchange {
             timeInForce = (uppercaseType === 'MARKET') ? 'IOC' : 'GTT';
         }
         const fee = this.safeString (params, 'fee', '0.0005');
-        let builderFee = undefined;
+        let builderFeeRate = undefined;
         let builderId = undefined;
         if (this.isSandboxModeEnabled) {
-            builderFee = this.safeString2 (params, 'builderFee', 'defaultBuilderFee');
+            builderFeeRate = this.safeString2 (params, 'builderFeeRate', 'defaultBuilderFeeRate');
             builderId = this.safeString2 (params, 'builderId', 'defaultBuilderId');
-            params = this.omit (params, [ 'builderFee', 'defaultBuilderFee', 'builderId', 'defaultBuilderId' ]);
+            params = this.omit (params, [ 'builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId' ]);
         } else {
-            [ builderFee, params ] = this.handleOptionAndParams (params, 'createOrder', 'builderFee', '0.00025');
+            [ builderFeeRate, params ] = this.handleOptionAndParams (params, 'createOrder', 'builderFeeRate', '0.0001');
             [ builderId, params ] = this.handleOptionAndParams (params, 'createOrder', 'builderId');
         }
         let totalFee = fee;
-        if (builderFee !== undefined) {
-            totalFee = Precise.stringAdd (fee, builderFee);
+        if (builderFeeRate !== undefined) {
+            totalFee = Precise.stringAdd (fee, builderFeeRate);
         }
         const now = this.milliseconds ();
         const expiryEpochMillis = this.safeInteger (params, 'expiryEpochMillis', now + 3600000);
@@ -2677,8 +2678,8 @@ export default class extended extends Exchange {
             'reduceOnly': reduceOnly,
             'selfTradeProtectionLevel': 'ACCOUNT',
         };
-        if (builderFee !== undefined) {
-            request['builderFee'] = builderFee;
+        if (builderFeeRate !== undefined) {
+            request['builderFee'] = builderFeeRate;
         }
         if (builderId !== undefined) {
             request['builderId'] = builderId;
