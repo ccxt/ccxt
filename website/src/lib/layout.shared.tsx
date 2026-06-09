@@ -2,7 +2,7 @@ import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
 import { appName, gitConfig } from './shared';
 import { i18n } from './i18n';
 import { CcxtMark } from '@/components/ccxt-mark';
-import { SiDiscord } from 'react-icons/si';
+import { SiDiscord, SiTelegram } from 'react-icons/si';
 
 // Top-nav section labels per locale (the Fumadocs UI chrome is translated separately
 // in lib/i18n-ui.ts). Falls back to English.
@@ -47,6 +47,15 @@ export function baseOptions(locale: string = i18n.defaultLanguage): BaseLayoutPr
         label: 'Join the CCXT Discord',
         icon: <SiDiscord className="size-5" />,
         url: 'https://discord.gg/dhzSKYU',
+        external: true,
+      },
+      // Telegram chat, next to Discord — currentColor matches the other nav marks.
+      {
+        type: 'icon',
+        text: 'Telegram',
+        label: 'Join the CCXT Telegram chat',
+        icon: <SiTelegram className="size-5" />,
+        url: 'https://t.me/ccxt_chat',
         external: true,
       },
     ],
