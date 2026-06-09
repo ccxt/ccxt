@@ -1011,7 +1011,7 @@ export default class extended extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
-        const cursor = this.safeInteger (pagination, 'cursor');
+        const cursor = this.safeString (pagination, 'cursor');
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
@@ -1082,7 +1082,7 @@ export default class extended extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
-        const cursor = this.safeInteger (pagination, 'cursor');
+        const cursor = this.safeString (pagination, 'cursor');
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
@@ -1343,7 +1343,7 @@ export default class extended extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
-        const cursor = this.safeInteger (pagination, 'cursor');
+        const cursor = this.safeString (pagination, 'cursor');
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
@@ -1623,7 +1623,7 @@ export default class extended extends Exchange {
         const response = await this.v1PrivateGetUserAssetOperations (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
-        const cursor = this.safeInteger (pagination, 'cursor');
+        const cursor = this.safeString (pagination, 'cursor');
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
@@ -1738,7 +1738,7 @@ export default class extended extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
-        const cursor = this.safeInteger (pagination, 'cursor');
+        const cursor = this.safeString (pagination, 'cursor');
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
@@ -1884,7 +1884,7 @@ export default class extended extends Exchange {
         const response = await this.v1PrivateGetUserAssetOperations (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
-        const cursor = this.safeInteger (pagination, 'cursor');
+        const cursor = this.safeString (pagination, 'cursor');
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
@@ -2389,7 +2389,7 @@ export default class extended extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
-        const cursor = this.safeInteger (pagination, 'cursor');
+        const cursor = this.safeString (pagination, 'cursor');
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
@@ -3221,7 +3221,7 @@ export default class extended extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
-        const cursor = this.safeInteger (pagination, 'cursor');
+        const cursor = this.safeString (pagination, 'cursor');
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
