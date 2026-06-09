@@ -75,8 +75,8 @@ export default class byteexchange extends Exchange {
             'urls': {
                 'logo': 'https://bexc.io/favicon-512.png',
                 'api': {
-                    'public': 'https://engine-v3.bexc.io',
-                    'private': 'https://engine-v3.bexc.io',
+                    'public': 'https://bexc.io',
+                    'private': 'https://bexc.io',
                 },
                 'www': 'https://bexc.io',
                 'doc': [
