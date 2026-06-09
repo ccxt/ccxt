@@ -20,7 +20,11 @@ from ccxt.base.errors import NotSupported
 class bybit(ccxt.async_support.bybit):
 
     def describe(self) -> Any:
-        return self.deep_extend(super(bybit, self).describe(), {
+        superDescribe = super(bybit, self).describe()
+        return self.deep_extend(superDescribe, self.describe_data())
+
+    def describe_data(self) -> Any:
+        return {
             'has': {
                 'ws': True,
                 'createOrderWs': True,
@@ -173,7 +177,7 @@ class bybit(ccxt.async_support.bybit):
                 'ping': self.ping,
                 'keepAlive': 18000,
             },
-        })
+        }
 
     def request_id(self):
         self.lock_id()
@@ -991,7 +995,7 @@ class bybit(ccxt.async_support.bybit):
             client.resolve(newBidsAsks, 'bidask:' + symbol)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta, 0, 1)
+        bidAsk = self.parse_order_book_bid_ask(delta, 0, 1)
         bookside.storeArray(bidAsk)
 
     def handle_deltas(self, bookside, deltas):

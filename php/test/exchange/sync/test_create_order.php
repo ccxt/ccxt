@@ -16,7 +16,8 @@ function tco_debug($exchange, $symbol, $message) {
     $debug_create_order = true;
     if ($debug_create_order) {
         // for c# fix, extra step to convert them to string
-        var_dump(' >>>>> testCreateOrder [', ((string) ($exchange['id'])), ' : ', $symbol, '] ', $message);
+        $msg = ' >>>>> testCreateOrder [' . ((string) ($exchange['id'])) . ' : ' . $symbol . '] ' . $message;
+        var_dump($msg);
     }
     return true;
 }
@@ -40,19 +41,19 @@ function test_create_order($exchange, $skipped_properties, $symbol) {
     // **************** [Scenario 1 - START] **************** //
     tco_debug($exchange, $symbol, '### SCENARIO 1 ###');
     // create a "limit order" which IS GUARANTEED not to have a fill (i.e. being far from the real price)
-    tco_create_unfillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'buy', null);
+    tco_create_unfillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'buy');
     if ($is_swap_future) {
         // for swap markets, we test sell orders too
-        tco_create_unfillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'sell', null);
+        tco_create_unfillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'sell');
     }
     tco_debug($exchange, $symbol, '### SCENARIO 1 PASSED ###');
     // **************** [Scenario 2 - START] **************** //
     tco_debug($exchange, $symbol, '### SCENARIO 2 ###');
     // create an order which IS GUARANTEED to have a fill (full or partial)
-    tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'buy', null);
+    tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'buy');
     if ($is_swap_future) {
         // for swap markets, we test sell orders too
-        tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'sell', null);
+        tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_properties, $best_bid, $best_ask, $limit_price_safety_multiplier_from_median, 'sell');
     }
     tco_debug($exchange, $symbol, '### SCENARIO 2 PASSED ###');
     // **************** [Scenario 3 - START] **************** //

@@ -479,7 +479,7 @@ public partial class arkham : Exchange
             {
                 object chain = getValue(chains, j);
                 object networkId = this.safeString(chain, "symbol");
-                object network = this.networkIdToCode(networkId);
+                object network = this.networkIdToCode(networkId, code);
                 ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
                     { "info", chain },
                     { "id", networkId },
@@ -1280,7 +1280,7 @@ public partial class arkham : Exchange
         //
         // []  returns an empty array, even when successfully cancels orders
         //
-        return this.parseOrders(response, null);
+        return this.parseOrders(response);
     }
 
     /**
@@ -1845,7 +1845,7 @@ public partial class arkham : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchDepositAddressesByNetwork() requires a \"network\" param")) ;
         }
         object request = new Dictionary<string, object>() {
-            { "chain", this.networkCodeToId(networkCode) },
+            { "chain", this.networkCodeToId(networkCode, code) },
         };
         object response = await this.v1PrivateGetAccountDepositAddresses(this.extend(request, parameters));
         //
@@ -1856,8 +1856,9 @@ public partial class arkham : Exchange
         //    }
         //
         object data = this.safeList(response, "addresses");
+        object networkCodeUnified = networkCode; // java req
         object parsed = this.parseDepositAddresses(data, null, false, new Dictionary<string, object>() {
-            { "network", networkCode },
+            { "network", networkCodeUnified },
         });
         return this.indexBy(parsed, "network");
     }
@@ -1977,7 +1978,7 @@ public partial class arkham : Exchange
             { "txid", this.safeString(transaction, "transactionHash") },
             { "type", null },
             { "currency", code },
-            { "network", this.networkIdToCode(this.safeString(transaction, "chain")) },
+            { "network", this.networkIdToCode(this.safeString(transaction, "chain"), code) },
             { "amount", this.safeNumber(transaction, "amount") },
             { "status", status },
             { "timestamp", timestamp },
@@ -2481,11 +2482,13 @@ public partial class arkham : Exchange
             object marketId = this.safeString(info, "market");
             market = this.safeMarket(marketId, market, null, "swap");
             object maxNotional = this.safeNumber(tier, "positionLimit");
+            object curr = ((bool) isTrue(getValue(market, "linear"))) ? getValue(market, "base") : getValue(market, "quote");
+            object notional = minNotional;
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
                 { "symbol", this.safeSymbol(marketId, market, null, "swap") },
-                { "currency", ((bool) isTrue(getValue(market, "linear"))) ? getValue(market, "base") : getValue(market, "quote") },
-                { "minNotional", minNotional },
+                { "currency", curr },
+                { "minNotional", notional },
                 { "maxNotional", maxNotional },
                 { "maintenanceMarginRate", this.safeNumber(tier, "marginRate") },
                 { "maxLeverage", this.safeInteger(tier, "leverageRate") },

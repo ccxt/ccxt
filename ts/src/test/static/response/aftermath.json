@@ -7,69 +7,97 @@
     "methods": {
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "description": "default",
                 "method": "fetchCurrencies",
                 "input": [],
                 "httpResponse": {
-                    "USDC": {
-                        "id": "0x46364086d69bc6e9091198e3c84755fc22dd62622d407d51eeceaa6109a65948::usdc::USDC",
-                        "code": "USDC",
+                    "USD": {
+                        "id": "USD",
+                        "code": "USD",
                         "precision": "1e-9",
+                        "name": "USD",
+                        "active": true,
+                        "deposit": false,
+                        "withdraw": false
+                    },
+                    "USDC": {
+                        "id": "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+                        "code": "USDC",
+                        "precision": "1e-6",
                         "name": "USDC",
                         "active": true,
                         "deposit": true,
                         "withdraw": true,
-                        "limits": {
-                            "amount": {},
-                            "withdraw": {
-                                "min": null,
-                                "max": null
-                            },
-                            "deposit": {
-                                "min": null,
-                                "max": null
-                            }
-                        },
                         "networks": {
-                            "string": [
-                                "Sui"
-                            ]
-                        },
-                        "fee": null
+                            "SUI": {
+                                "id": "35834a8a",
+                                "network": "SUI",
+                                "name": "Sui",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true
+                            }
+                        }
                     }
                 },
                 "parsedResponse": {
+                    "USD": {
+                        "info": {
+                            "id": "USD",
+                            "code": "USD",
+                            "precision": "1e-9",
+                            "name": "USD",
+                            "active": true,
+                            "deposit": false,
+                            "withdraw": false
+                        },
+                        "id": "USD",
+                        "numericId": null,
+                        "code": "USD",
+                        "precision": 1e-9,
+                        "type": "crypto",
+                        "name": "USD",
+                        "active": true,
+                        "deposit": false,
+                        "withdraw": false,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
                     "USDC": {
                         "info": {
-                            "id": "0x46364086d69bc6e9091198e3c84755fc22dd62622d407d51eeceaa6109a65948::usdc::USDC",
+                            "id": "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
                             "code": "USDC",
-                            "precision": "1e-9",
+                            "precision": "1e-6",
                             "name": "USDC",
                             "active": true,
                             "deposit": true,
                             "withdraw": true,
-                            "limits": {
-                                "amount": {},
-                                "withdraw": {
-                                    "min": null,
-                                    "max": null
-                                },
-                                "deposit": {
-                                    "min": null,
-                                    "max": null
-                                }
-                            },
                             "networks": {
-                                "string": [
-                                    "Sui"
-                                ]
-                            },
-                            "fee": null
+                                "SUI": {
+                                    "id": "35834a8a",
+                                    "network": "SUI",
+                                    "name": "Sui",
+                                    "active": true,
+                                    "deposit": true,
+                                    "withdraw": true
+                                }
+                            }
                         },
-                        "id": "0x46364086d69bc6e9091198e3c84755fc22dd62622d407d51eeceaa6109a65948::usdc::USDC",
+                        "id": "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
                         "numericId": null,
                         "code": "USDC",
-                        "precision": 1e-9,
+                        "precision": 0.000001,
                         "type": "crypto",
                         "name": "USDC",
                         "active": true,

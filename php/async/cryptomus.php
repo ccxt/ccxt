@@ -80,7 +80,7 @@ class cryptomus extends Exchange {
                 'fetchConvertTradeHistory' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
-                'fetchCurrencies' => false, // temporarily, until they fix the endpoint
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => false,
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => false,
@@ -413,47 +413,52 @@ class cryptomus extends Exchange {
             //
             $coins = $this->safe_list($response, 'result');
             $groupedById = $this->group_by($coins, 'currency_code');
-            $keys = is_array($groupedById) ? array_keys($groupedById) : array();
-            $result = array();
-            for ($i = 0; $i < count($keys); $i++) {
-                $id = $keys[$i];
-                $code = $this->safe_currency_code($id);
-                $networks = array();
-                $networkEntries = $groupedById[$id];
-                for ($j = 0; $j < count($networkEntries); $j++) {
-                    $networkEntry = $networkEntries[$j];
-                    $networkId = $this->safe_string($networkEntry, 'network_code');
-                    $networkCode = $this->network_id_to_code($networkId);
-                    $networks[$networkCode] = array(
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($networkEntry, 'min_withdraw'),
-                                'max' => $this->safe_number($networkEntry, 'max_withdraw'),
-                            ),
-                            'deposit' => array(
-                                'min' => $this->safe_number($networkEntry, 'min_deposit'),
-                                'max' => $this->safe_number($networkEntry, 'max_deposit'),
-                            ),
-                        ),
-                        'active' => null,
-                        'deposit' => $this->safe_bool($networkEntry, 'can_withdraw'),
-                        'withdraw' => $this->safe_bool($networkEntry, 'can_deposit'),
-                        'fee' => null,
-                        'precision' => null,
-                        'info' => $networkEntry,
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'code' => $code,
-                    'networks' => $networks,
-                    'info' => $networkEntries,
-                ));
-            }
-            return $result;
+            $groupedArray = is_array($groupedById) ? array_values($groupedById) : array();
+            return $this->parse_currencies($groupedArray);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        // currency here is array of $networks
+        $id = null; // all entried have same $id, were grouped by
+        $code = null;
+        $networks = array();
+        for ($i = 0; $i < count($rawCurrency); $i++) {
+            $networkEntry = $rawCurrency[$i];
+            // set ID on first loop
+            if ($id === null) {
+                $id = $this->safe_string($networkEntry, 'currency_code');
+                $code = $this->safe_currency_code($id);
+            }
+            $networkId = $this->safe_string($networkEntry, 'network_code');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($networkEntry, 'min_withdraw'),
+                        'max' => $this->safe_number($networkEntry, 'max_withdraw'),
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($networkEntry, 'min_deposit'),
+                        'max' => $this->safe_number($networkEntry, 'max_deposit'),
+                    ),
+                ),
+                'active' => null,
+                'deposit' => $this->safe_bool($networkEntry, 'can_deposit'),
+                'withdraw' => $this->safe_bool($networkEntry, 'can_withdraw'),
+                'fee' => null,
+                'precision' => null,
+                'info' => $networkEntry,
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'networks' => $networks,
+            'info' => $rawCurrency,
+        ));
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {

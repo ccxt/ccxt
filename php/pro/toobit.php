@@ -56,7 +56,7 @@ class toobit extends \ccxt\async\toobit {
                         '1w' => '1w',
                         '1M' => '1M',
                     ),
-                    'watchOrderBook' => array(
+                    'watchOrderBookForSymbols' => array(
                         'channel' => 'depth', // depth, diffDepth
                     ),
                     'listenKeyRefreshRate' => 1200000, // 20 mins
@@ -549,7 +549,7 @@ class toobit extends \ccxt\async\toobit {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false);
             $channel = null;
-            list($channel, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'channel', 'depth');
+            list($channel, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'channel', 'depth');
             $messageHashes = array();
             $subParams = array();
             for ($i = 0; $i < count($symbols); $i++) {
@@ -622,7 +622,7 @@ class toobit extends \ccxt\async\toobit {
     }
 
     public function handle_delta($bookside, $delta) {
-        $bidAsk = $this->parse_bid_ask($delta);
+        $bidAsk = $this->parse_order_book_bid_ask($delta);
         $bookside->storeArray ($bidAsk);
     }
 

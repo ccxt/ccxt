@@ -251,7 +251,7 @@ class bithumb(ccxt.async_support.bithumb):
         #
         sideId = self.safe_string(delta, 'orderType')
         side = 'bids' if (sideId == 'bid') else 'asks'
-        bidAsk = self.parse_bid_ask(delta, 'price', 'quantity')
+        bidAsk = self.parse_order_book_bid_ask(delta, 'price', 'quantity')
         orderbookSide = orderbook[side]
         orderbookSide.storeArray(bidAsk)
 

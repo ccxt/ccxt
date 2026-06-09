@@ -378,7 +378,6 @@ class bittrade extends bittrade$1["default"] {
                     'HECO': 'hrc20',
                     'HT': 'hrc20',
                     'ALGO': 'algo',
-                    'OMNI': '',
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'private_get_order_orders',
@@ -1116,51 +1115,49 @@ class bittrade extends bittrade$1["default"] {
         //     }
         //
         const currencies = this.safeValue(response, 'data', []);
-        const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = this.safeValue(currency, 'name');
-            const code = this.safeCurrencyCode(id);
-            const depositEnabled = this.safeValue(currency, 'deposit-enabled');
-            const withdrawEnabled = this.safeValue(currency, 'withdraw-enabled');
-            const countryDisabled = this.safeValue(currency, 'country-disabled');
-            const visible = this.safeBool(currency, 'visible', false);
-            const state = this.safeString(currency, 'state');
-            const active = visible && depositEnabled && withdrawEnabled && (state === 'online') && !countryDisabled;
-            const name = this.safeString(currency, 'display-name');
-            const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'withdraw-precision')));
-            result[code] = {
-                'id': id,
-                'code': code,
-                'type': 'crypto',
-                // 'payin': currency['deposit-enabled'],
-                // 'payout': currency['withdraw-enabled'],
-                // 'transfer': undefined,
-                'name': name,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': undefined,
-                'precision': precision,
-                'networks': undefined,
-                'limits': {
-                    'amount': {
-                        'min': precision,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': this.safeNumber(currency, 'deposit-min-amount'),
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': this.safeNumber(currency, 'withdraw-min-amount'),
-                        'max': undefined,
-                    },
+        return this.parseCurrencies(currencies);
+    }
+    parseCurrency(currency) {
+        const id = this.safeValue(currency, 'name');
+        const code = this.safeCurrencyCode(id);
+        const depositEnabled = this.safeValue(currency, 'deposit-enabled');
+        const withdrawEnabled = this.safeValue(currency, 'withdraw-enabled');
+        const countryDisabled = this.safeValue(currency, 'country-disabled');
+        const visible = this.safeBool(currency, 'visible', false);
+        const state = this.safeString(currency, 'state');
+        const active = visible && depositEnabled && withdrawEnabled && (state === 'online') && !countryDisabled;
+        const name = this.safeString(currency, 'display-name');
+        const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'withdraw-precision')));
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'type': 'crypto',
+            // 'payin': currency['deposit-enabled'],
+            // 'payout': currency['withdraw-enabled'],
+            // 'transfer': undefined,
+            'name': name,
+            'active': active,
+            'deposit': depositEnabled,
+            'withdraw': withdrawEnabled,
+            'fee': undefined,
+            'precision': precision,
+            'networks': undefined,
+            'limits': {
+                'amount': {
+                    'min': precision,
+                    'max': undefined,
                 },
-                'info': currency,
-            };
-        }
-        return result;
+                'deposit': {
+                    'min': this.safeNumber(currency, 'deposit-min-amount'),
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber(currency, 'withdraw-min-amount'),
+                    'max': undefined,
+                },
+            },
+            'info': currency,
+        });
     }
     parseBalance(response) {
         const balances = this.safeValue(response['data'], 'list', []);
@@ -1998,8 +1995,9 @@ class bittrade extends bittrade$1["default"] {
             const requestSorted = this.keysort(request);
             let auth = this.urlencode(requestSorted);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
+            const content = [method, this.hostname, url, auth];
             // eslint-disable-next-line quotes
-            const payload = [method, this.hostname, url, auth].join("\n");
+            const payload = content.join("\n");
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
             auth += '&' + this.urlencode({ 'Signature': signature });
             url += '?' + auth;

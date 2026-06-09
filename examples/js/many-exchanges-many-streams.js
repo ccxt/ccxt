@@ -22,9 +22,9 @@ async function main() {
         'hitbtc': 'BTC/USDT',
         'upbit': 'BTC/USDT',
         'coinbasepro': 'BTC/USD',
-        'ftx': 'BTC/USDT',
+        'okx': 'BTC/USDT',
         'okex': 'BTC/USDT',
-        'gateio': 'BTC/USDT',
+        'gate': 'BTC/USDT',
     };
     await Promise.all(Object.keys(streams).map((exchangeId) => eachRun(exchangeId, streams[exchangeId])));
 }

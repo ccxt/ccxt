@@ -1064,18 +1064,19 @@ class bitso extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             // the don't support fetching trades starting from a date yet
-            // use the `marker` extra param for that
+            // use the `$marker` extra param for that
             // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
             $markerInParams = (is_array($params) && array_key_exists('marker', $params));
             // warn the user with an exception if the user wants to filter
             // starting from $since timestamp, but does not set the trade id with an extra 'marker' param
             if (($since !== null) && !$markerInParams) {
-                throw new ExchangeError($this->id . ' fetchMyTrades() does not support fetching trades starting from a timestamp with the `$since` argument, use the `marker` extra param to filter starting from an integer trade id');
+                throw new ExchangeError($this->id . ' fetchMyTrades() does not support fetching trades starting from a timestamp with the `$since` argument, use the `$marker` extra param to filter starting from an integer trade id');
             }
             // convert it to an integer unconditionally
             if ($markerInParams) {
+                $marker = intval($params['marker']);
                 $params = $this->extend($params, array(
-                    'marker' => intval($params['marker']),
+                    'marker' => $marker,
                 ));
             }
             $request = array(
@@ -1300,18 +1301,19 @@ class bitso extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             // the don't support fetching trades starting from a date yet
-            // use the `marker` extra param for that
+            // use the `$marker` extra param for that
             // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
             $markerInParams = (is_array($params) && array_key_exists('marker', $params));
             // warn the user with an exception if the user wants to filter
             // starting from $since timestamp, but does not set the trade id with an extra 'marker' param
             if (($since !== null) && !$markerInParams) {
-                throw new ExchangeError($this->id . ' fetchOpenOrders() does not support fetching $orders starting from a timestamp with the `$since` argument, use the `marker` extra param to filter starting from an integer trade id');
+                throw new ExchangeError($this->id . ' fetchOpenOrders() does not support fetching $orders starting from a timestamp with the `$since` argument, use the `$marker` extra param to filter starting from an integer trade id');
             }
             // convert it to an integer unconditionally
             if ($markerInParams) {
+                $marker = intval($params['marker']);
                 $params = $this->extend($params, array(
-                    'marker' => intval($params['marker']),
+                    'marker' => $marker,
                 ));
             }
             $request = array(
@@ -1844,7 +1846,7 @@ class bitso extends Exchange {
         $networkId = $this->safe_string_2($transaction, 'network', 'method');
         $status = $this->safe_string($transaction, 'status');
         $withdrawId = $this->safe_string($transaction, 'wid');
-        $networkCode = $this->network_id_to_code($networkId);
+        $networkCode = $this->network_id_to_code($networkId, $currency['code']);
         $networkCodeUpper = ($networkCode !== null) ? strtoupper($networkCode) : null;
         return array(
             'id' => $this->safe_string_2($transaction, 'wid', 'fid'),
@@ -1897,7 +1899,8 @@ class bitso extends Exchange {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             $endpoint = '/api' . $endpoint;
-            $request = implode('', array($nonce, $method, $endpoint));
+            $content = array( $nonce, $method, $endpoint );
+            $request = implode('', $content);
             if ($method !== 'GET' && $method !== 'DELETE') {
                 if ($query) {
                     $body = $this->json($query);

@@ -321,6 +321,7 @@ export default class weex extends weexRest {
      */
     unWatchPositions(symbols?: Strings, params?: {}): Promise<any>;
     handlePositions(client: any, message: any): void;
+    parseWsPosition(position: any, market?: any): Position;
     getMarketFromClientAndMessage(client: Client, message: any): import("../base/types.js").MarketInterface;
     pong(client: Client, message: any): Promise<void>;
     handlePing(client: Client, message: any): void;

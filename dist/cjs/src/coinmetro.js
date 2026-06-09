@@ -374,59 +374,56 @@ class coinmetro extends coinmetro$1["default"] {
         //         ...
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString(currency, 'symbol');
-            const code = this.safeCurrencyCode(id);
-            const typeRaw = this.safeString(currency, 'type');
-            let type = undefined;
-            if (typeRaw === 'coin' || typeRaw === 'token' || typeRaw === 'erc20' || typeRaw === 'crypto') {
-                type = 'crypto';
-            }
-            else if (typeRaw === 'fiat') {
-                type = 'fiat';
-            }
-            let precisionDigits = this.safeString2(currency, 'digits', 'notabeneDecimals');
-            if (code === 'RENDER') {
-                // RENDER is an exception (with broken info)
-                precisionDigits = '4';
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'name': code,
-                'type': type,
-                'info': currency,
-                'active': this.safeBool(currency, 'canTrade'),
-                'deposit': this.safeBool(currency, 'canDeposit'),
-                'withdraw': this.safeBool(currency, 'canWithdraw'),
-                'fee': undefined,
-                'precision': this.parseNumber(this.parsePrecision(precisionDigits)),
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber(currency, 'minQty'),
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': {},
-            });
+        const result = this.parseCurrencies(response);
+        const currenciesById = this.indexBy(result, 'id');
+        this.options['currenciesByIdForParseMarket'] = currenciesById;
+        const currentCurrencyIdsList = this.safeList(this.options, 'currencyIdsListForParseMarket', []);
+        const currencyIdsList = Object.keys(currenciesById);
+        for (let i = 0; i < currencyIdsList.length; i++) {
+            currentCurrencyIdsList.push(currencyIdsList[i]);
         }
-        if (this.safeValue(this.options, 'currenciesByIdForParseMarket') === undefined) {
-            const currenciesById = this.indexBy(result, 'id');
-            this.options['currenciesByIdForParseMarket'] = currenciesById;
-            const currentCurrencyIdsList = this.safeList(this.options, 'currencyIdsListForParseMarket', []);
-            const currencyIdsList = Object.keys(currenciesById);
-            for (let i = 0; i < currencyIdsList.length; i++) {
-                currentCurrencyIdsList.push(currencyIdsList[i]);
-            }
-            this.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList;
-        }
+        this.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList;
         return result;
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode(id);
+        const typeRaw = this.safeString(rawCurrency, 'type');
+        let type = undefined;
+        if (typeRaw === 'coin' || typeRaw === 'token' || typeRaw === 'erc20' || typeRaw === 'crypto') {
+            type = 'crypto';
+        }
+        else if (typeRaw === 'fiat') {
+            type = 'fiat';
+        }
+        let precisionDigits = this.safeString2(rawCurrency, 'digits', 'notabeneDecimals');
+        if (code === 'RENDER') {
+            // RENDER is an exception (with broken info)
+            precisionDigits = '4';
+        }
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'name': code,
+            'type': type,
+            'info': rawCurrency,
+            'active': this.safeBool(rawCurrency, 'canTrade'),
+            'deposit': this.safeBool(rawCurrency, 'canDeposit'),
+            'withdraw': this.safeBool(rawCurrency, 'canWithdraw'),
+            'fee': undefined,
+            'precision': this.parseNumber(this.parsePrecision(precisionDigits)),
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber(rawCurrency, 'minQty'),
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': {},
+        });
     }
     /**
      * @method
@@ -439,9 +436,6 @@ class coinmetro extends coinmetro$1["default"] {
     async fetchMarkets(params = {}) {
         const promises = [];
         promises.push(this.publicGetMarkets(params));
-        if (this.safeValue(this.options, 'currenciesByIdForParseMarket') === undefined) {
-            promises.push(this.fetchCurrencies());
-        }
         const responses = await Promise.all(promises);
         const response = responses[0];
         //
@@ -897,7 +891,7 @@ class coinmetro extends coinmetro$1["default"] {
         orderbook['nonce'] = this.safeInteger(book, 'seqNumber');
         return orderbook;
     }
-    parseBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+    parseOrderBookBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const prices = Object.keys(bidasks);
         const result = [];
         for (let i = 0; i < prices.length; i++) {

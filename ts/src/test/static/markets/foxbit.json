@@ -1,11 +1,14 @@
 {
     "BTC/BRL": {
         "id": "btcbrl",
+        "lowercaseId": null,
         "symbol": "BTC/BRL",
         "base": "BTC",
         "quote": "BRL",
+        "settle": null,
         "baseId": "btc",
         "quoteId": "brl",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -15,24 +18,44 @@
         "index": false,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.005,
         "maker": 0.0025,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "price": 2,
             "amount": 8,
             "cost": 2
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 0.00000165
+                "min": 0.00000119,
+                "max": null
             },
             "price": {
-                "min": 0.0001
+                "min": 0.0001,
+                "max": null
             },
-            "cost": {}
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base": {
                 "name": "Bitcoin",
@@ -47,7 +70,7 @@
                 "type": "FIAT"
             },
             "symbol": "btcbrl",
-            "quantity_min": "0.00000165",
+            "quantity_min": "0.00000119",
             "quantity_increment": "0.00000001",
             "quantity_precision": "8",
             "price_min": "0.0001",
@@ -71,11 +94,14 @@
     },
     "ETH/BRL": {
         "id": "ethbrl",
+        "lowercaseId": null,
         "symbol": "ETH/BRL",
         "base": "ETH",
         "quote": "BRL",
+        "settle": null,
         "baseId": "eth",
         "quoteId": "brl",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -85,24 +111,44 @@
         "index": false,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.005,
         "maker": 0.0025,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "price": 2,
             "amount": 8,
             "cost": 2
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 0.00008311
+                "min": 0.00004481,
+                "max": null
             },
             "price": {
-                "min": 0.0001
+                "min": 0.0001,
+                "max": null
             },
-            "cost": {}
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base": {
                 "name": "Ethereum",
@@ -117,12 +163,12 @@
                 "type": "FIAT"
             },
             "symbol": "ethbrl",
-            "quantity_min": "0.00008311",
+            "quantity_min": "0.00004481",
             "quantity_increment": "0.00000001",
             "quantity_precision": "8",
             "price_min": "0.0001",
-            "price_increment": "1.0",
-            "price_precision": "0",
+            "price_increment": "0.1",
+            "price_precision": "1",
             "default_fees": {
                 "maker": "0.0025",
                 "taker": "0.005"
@@ -141,11 +187,14 @@
     },
     "USDT/BRL": {
         "id": "usdtbrl",
+        "lowercaseId": null,
         "symbol": "USDT/BRL",
         "base": "USDT",
         "quote": "BRL",
+        "settle": null,
         "baseId": "usdt",
         "quoteId": "brl",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -155,24 +204,44 @@
         "index": false,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.005,
         "maker": 0.0025,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "price": 2,
             "amount": 8,
             "cost": 2
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 0.13547611
+                "min": 0.09158814,
+                "max": null
             },
             "price": {
-                "min": 0.0001
+                "min": 0.0001,
+                "max": null
             },
-            "cost": {}
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base": {
                 "name": "Tether",
@@ -187,9 +256,9 @@
                 "type": "FIAT"
             },
             "symbol": "usdtbrl",
-            "quantity_min": "0.13547611",
-            "quantity_increment": "0.00000001",
-            "quantity_precision": "8",
+            "quantity_min": "0.09158814",
+            "quantity_increment": "0.00001",
+            "quantity_precision": "5",
             "price_min": "0.0001",
             "price_increment": "0.0001",
             "price_precision": "4",
@@ -211,11 +280,14 @@
     },
     "BTC/USDT": {
         "id": "btcusdt",
+        "lowercaseId": null,
         "symbol": "BTC/USDT",
         "base": "BTC",
         "quote": "USDT",
+        "settle": null,
         "baseId": "btc",
         "quoteId": "usdt",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -225,24 +297,44 @@
         "index": false,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.005,
         "maker": 0.0025,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "price": 8,
             "amount": 8,
             "cost": 8
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 0.00000956
+                "min": 0.00000614,
+                "max": null
             },
             "price": {
-                "min": 0.0001
+                "min": 0.0001,
+                "max": null
             },
-            "cost": {}
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base": {
                 "name": "Bitcoin",
@@ -257,12 +349,12 @@
                 "type": "CRYPTO"
             },
             "symbol": "btcusdt",
-            "quantity_min": "0.00000956",
+            "quantity_min": "0.00000614",
             "quantity_increment": "0.00000001",
             "quantity_precision": "8",
             "price_min": "0.0001",
-            "price_increment": "1.0",
-            "price_precision": "0",
+            "price_increment": "0.01",
+            "price_precision": "2",
             "default_fees": {
                 "maker": "0.0025",
                 "taker": "0.005"
@@ -271,7 +363,6 @@
                 "MARKET",
                 "LIMIT",
                 "INSTANT",
-                "STOP_MARKET",
                 "STOP_LIMIT"
             ]
         },
@@ -319,7 +410,7 @@
                 "max": null
             },
             "amount": {
-                "min": 0.02306746,
+                "min": 0.06599208,
                 "max": null
             },
             "price": {
@@ -350,7 +441,7 @@
                 "type": "FIAT"
             },
             "symbol": "xrpbrl",
-            "quantity_min": "0.02306746",
+            "quantity_min": "0.06599208",
             "quantity_increment": "0.000001",
             "quantity_precision": "6",
             "price_min": "0.001",

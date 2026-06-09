@@ -1823,6 +1823,9 @@ class okx extends Exchange {
         $maxLeverage = $this->safe_string($market, 'lever', '1');
         $maxLeverage = Precise::string_max($maxLeverage, '1');
         $maxSpotCost = $this->safe_number($market, 'maxMktSz');
+        $leverageAboveOne = Precise::string_gt($maxLeverage, '1');
+        $quoteEqualSettle = ($quoteId === $settleId);
+        $baseEqualSettle = ($baseId === $settleId);
         $status = $this->safe_string($market, 'state');
         $instIdCode = $this->safe_integer($market, 'instIdCode');
         return $this->extend($fees, array(
@@ -1837,14 +1840,14 @@ class okx extends Exchange {
             'settleId' => $settleId,
             'type' => $type,
             'spot' => $spot,
-            'margin' => $spot && (Precise::string_gt($maxLeverage, '1')),
+            'margin' => $spot && $leverageAboveOne,
             'swap' => $swap,
             'future' => $future,
             'option' => $option,
             'active' => $status === 'live',
             'contract' => $contract,
-            'linear' => $contract ? ($quoteId === $settleId) : null,
-            'inverse' => $contract ? ($baseId === $settleId) : null,
+            'linear' => $contract ? $quoteEqualSettle : null,
+            'inverse' => $contract ? $baseEqualSettle : null,
             'contractSize' => $contract ? $this->safe_number($market, 'ctVal') : null,
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
@@ -2175,9 +2178,14 @@ class okx extends Exchange {
         //          ts => '1728467346900'
         //     ),
         //
+        $instType = $this->safe_string($ticker, 'instType');
+        $marketType = null;
+        if ($instType !== null) {
+            $marketType = ($instType === 'SPOT') ? 'spot' : 'swap';
+        }
         $timestamp = $this->safe_integer($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'instId');
-        $market = $this->safe_market($marketId, $market, '-');
+        $market = $this->safe_market($marketId, $market, '-', $marketType);
         $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open24h');
@@ -9211,7 +9219,7 @@ class okx extends Exchange {
             $request['end'] = $until;
         }
         if ($timeframe !== null) {
-            $request['period'] = $timeframe;
+            $request['period'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         }
         if ($since !== null) {
             $request['begin'] = $since;

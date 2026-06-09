@@ -235,10 +235,10 @@ let [ exchangeId, methodName, ...params ] = program.args;
 //-----------------------------------------------------------------------------
 
 if (!cliOptions.raw) {
-    const pref = local ? '[local]' : '';
+    // const pref = local ? '[local]' : '';
     // log ((new Date ()).toISOString ());
     // log ('Node.js:', process.version);
-    log.bgBlue (pref + 'CCXT v' + ccxt.version);
+    log.bgBlue ('CCXT v' + ccxt.version + (local ? ' (local)' : ''));
 }
 
 if (!exchangeId && !cliOptions.history) {

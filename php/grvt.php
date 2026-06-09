@@ -1606,13 +1606,15 @@ class grvt extends Exchange {
         $networkCode = null;
         $addressFrom = $this->safe_string($transaction, 'from_account_id');
         $addressTo = $this->safe_string($transaction, 'to_account_id');
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
         if (is_array($transaction) && array_key_exists('transfer_metadata', $transaction)) {
             $metaData = $this->omit_zero($this->safe_string($transaction, 'transfer_metadata'));
             if ($metaData !== null) {
                 $parsedMeta = $this->parse_json($metaData);
                 $direction = $this->safe_string_lower($parsedMeta, 'direction');
                 $txId = $this->safe_string($parsedMeta, 'provider_tx_id');
-                $networkCode = $this->network_id_to_code($this->safe_string($parsedMeta, 'chainid'));
+                $networkCode = $this->network_id_to_code($this->safe_string($parsedMeta, 'chainid'), $code);
                 if ($direction === 'withdrawal') {
                     $addressTo = $this->safe_string($parsedMeta, 'endpoint');
                 } elseif ($direction === 'deposit') {
@@ -1621,8 +1623,6 @@ class grvt extends Exchange {
             }
         }
         $timestamp = $this->safe_integer_product_2($transaction, 'event_time', 'initiated_time', 0.000001);
-        $currencyId = $this->safe_string($transaction, 'currency');
-        $code = $this->safe_currency_code($currencyId, $currency);
         return array(
             'info' => $transaction,
             'id' => null,
@@ -1846,7 +1846,7 @@ class grvt extends Exchange {
 
     public function load_account_infos() {
         if ($this->safe_string($this->options, 'userMainAccountId') !== null) {
-            return;
+            return false;
         }
         $promises = array();
         $promises[] = $this->privateTradingPostFullV1AggregatedAccountSummary ();
@@ -1899,6 +1899,7 @@ class grvt extends Exchange {
             $subAccountId = $this->safe_string($subAccountIds, 0);
             $this->options['accountId'] = $subAccountId;
         }
+        return true;
     }
 
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
@@ -1927,7 +1928,7 @@ class grvt extends Exchange {
             'signature' => $this->default_signature(),
         );
         list($networkCode, $query) = $this->handle_network_code_and_params($params);
-        $networkId = $this->network_code_to_id($networkCode);
+        $networkId = $this->network_code_to_id($networkCode, $code);
         if ($networkId === null) {
             throw new BadRequest($this->id . ' withdraw() requires a network parameter');
         }
@@ -1990,8 +1991,10 @@ class grvt extends Exchange {
         }
         $params = $this->omit($params, array( 'clientOrderId' ));
         $isMarketOrder = ($type === 'market');
+        $subAccountId = $this->get_sub_account_id($params);
+        $isReduceOnly = $this->safe_bool($params, 'reduceOnly', false);
         $orderRequest = array(
-            'sub_account_id' => $this->get_sub_account_id($params),
+            'sub_account_id' => $subAccountId,
             'time_in_force' => null,
             'legs' => array( $orderLeg ),
             'signature' => $this->default_signature(),
@@ -2000,7 +2003,7 @@ class grvt extends Exchange {
             ),
             'is_market' => $isMarketOrder,
             'post_only' => false,
-            'reduce_only' => $this->safe_bool($params, 'reduceOnly', false),
+            'reduce_only' => $isReduceOnly,
             // 'order_id' => null,
             // 'state' => null,
         );
@@ -2638,8 +2641,9 @@ class grvt extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets_and_sign_in();
+        $subAccountId = $this->get_sub_account_id($params);
         $request = array(
-            'sub_account_id' => $this->get_sub_account_id($params),
+            'sub_account_id' => $subAccountId,
         );
         $market = null;
         if ($symbol !== null) {
@@ -2817,8 +2821,9 @@ class grvt extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets_and_sign_in();
+        $subAccountId = $this->get_sub_account_id($params);
         $request = array(
-            'sub_account_id' => $this->get_sub_account_id($params),
+            'sub_account_id' => $subAccountId,
         );
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
         if ($clientOrderId !== null) {
@@ -3085,7 +3090,7 @@ class grvt extends Exchange {
         //    }
         //
         $result = $this->safe_dict($response, 'result', array());
-        return $this->parse_orders(array( $result ), null);
+        return $this->parse_orders(array( $result ));
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -3101,8 +3106,9 @@ class grvt extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets_and_sign_in();
+        $subAccoubntId = $this->get_sub_account_id($params);
         $request = array(
-            'sub_account_id' => $this->get_sub_account_id($params),
+            'sub_account_id' => $subAccoubntId,
         );
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
         if ($clientOrderId !== null) {

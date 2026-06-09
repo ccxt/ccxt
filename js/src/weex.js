@@ -497,20 +497,17 @@ export default class weex extends Exchange {
                     'ETH': 'ERC20',
                     'POLYGON': 'POLYGON(MATIC)',
                     'MATIC': 'POLYGON(MATIC)',
-                    'ARBITRUM': 'ARBITRUM(ARB)',
-                    'ARB': 'ARBITRUM(ARB)',
-                    'SOLANA': 'SOLANA(SOL)',
+                    'ARBONE': 'ARBITRUM(ARB)',
                     'SOL': 'SOLANA(SOL)',
                     'OP': 'OPTIMISM(OP)',
                     'OPTIMISM': 'OPTIMISM(OP)',
-                    'AVALANCHEC': 'AVALANCHE_C(AVAX_C)',
                     'AVAXC': 'AVALANCHE_C(AVAX_C)',
                 },
                 'networksById': {
                     'BEP20(BSC)': 'BEP20',
                     'ERC20': 'ERC20',
                     'POLYGON(MATIC)': 'MATIC',
-                    'ARBITRUM(ARB)': 'ARB',
+                    'ARBITRUM(ARB)': 'ARBONE',
                     'SOLANA(SOL)': 'SOL',
                     'OPTIMISM(OP)': 'OP',
                     'AVALANCHE_C(AVAX_C)': 'AVAXC',
@@ -854,73 +851,71 @@ export default class weex extends Exchange {
         //         }
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = this.safeDict(response, i);
-            const currencyId = this.safeString(currency, 'coin');
-            const code = this.safeCurrencyCode(currencyId);
-            const name = this.safeString(currency, 'name');
-            const networks = {};
-            const chains = this.safeList(currency, 'networkList', []);
-            for (let j = 0; j < chains.length; j++) {
-                const chain = this.safeDict(chains, j);
-                const networkId = this.safeString(chain, 'network');
-                const networkCode = this.networkIdToCode(networkId);
-                networks[networkCode] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.safeBool(chain, 'depositEnable'),
-                    'withdraw': this.safeBool(chain, 'withdrawEnable'),
-                    'fee': this.safeNumber(chain, 'withdrawFee'),
-                    'precision': this.safeNumber(chain, 'withdrawIntegerMultiple'),
-                    'isDefault': this.safeBool(chain, 'isDefault', false),
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(chain, 'withdrawMin'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.safeNumber(chain, 'depositDust'),
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            const networkKeys = Object.keys(networks);
-            const networksLength = networkKeys.length;
-            const emptyChains = networksLength === 0; // non-functional coins
-            const valueForEmpty = emptyChains ? false : undefined;
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'type': 'crypto',
-                'name': name,
+        return this.parseCurrencies(response);
+    }
+    parseCurrency(rawCurrency) {
+        const currencyId = this.safeString(rawCurrency, 'coin');
+        const code = this.safeCurrencyCode(currencyId);
+        const name = this.safeString(rawCurrency, 'name');
+        const networks = {};
+        const chains = this.safeList(rawCurrency, 'networkList', []);
+        for (let j = 0; j < chains.length; j++) {
+            const chain = this.safeDict(chains, j);
+            const networkId = this.safeString(chain, 'network');
+            const networkCode = this.networkIdToCode(networkId, code);
+            networks[networkCode] = {
+                'info': chain,
+                'id': networkId,
+                'network': networkCode,
                 'active': undefined,
-                'deposit': valueForEmpty,
-                'withdraw': valueForEmpty,
-                'fee': undefined,
-                'precision': undefined,
+                'deposit': this.safeBool(chain, 'depositEnable'),
+                'withdraw': this.safeBool(chain, 'withdrawEnable'),
+                'fee': this.safeNumber(chain, 'withdrawFee'),
+                'precision': this.safeNumber(chain, 'withdrawIntegerMultiple'),
+                'isDefault': this.safeBool(chain, 'isDefault', false),
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.safeNumber(chain, 'withdrawMin'),
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': undefined,
+                        'min': this.safeNumber(chain, 'depositDust'),
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-            });
+            };
         }
-        return result;
+        const networkKeys = Object.keys(networks);
+        const networksLength = networkKeys.length;
+        const emptyChains = networksLength === 0; // non-functional coins
+        const valueForEmpty = emptyChains ? false : undefined;
+        return this.safeCurrencyStructure({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'type': 'crypto',
+            'name': name,
+            'active': undefined,
+            'deposit': valueForEmpty,
+            'withdraw': valueForEmpty,
+            'fee': undefined,
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -1487,7 +1482,7 @@ export default class weex extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         let response = undefined;
         if (market['spot']) {
@@ -3310,7 +3305,7 @@ export default class weex extends Exchange {
         if (errorMessage !== undefined) {
             this.handleOrderOrPositionError(errorCode, errorMessage, position);
         }
-        const marketId = this.safeString(position, 'symbol');
+        const marketId = this.safeString2(position, 'symbol', 'coinId'); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         market = this.safeMarket(marketId, market, undefined, 'contract');
         const timestamp = this.safeInteger(position, 'createdTime');
         const marginType = this.safeString2(position, 'marginType', 'marginMode');
@@ -3326,20 +3321,23 @@ export default class weex extends Exchange {
         else if (separatedMode === 'SEPARATED') {
             hedged = true;
         }
+        const notional = this.safeString(position, 'openValue');
+        const size = this.safeString(position, 'size');
+        const entryPrice = Precise.stringDiv(notional, size);
         return this.safePosition({
             'symbol': market['symbol'],
             'id': this.safeString2(position, 'id', 'positionId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'contracts': this.safeNumber(position, 'size'),
+            'contracts': this.parseNumber(size),
             'contractSize': undefined,
             'side': this.safeStringLower(position, 'side'),
-            'notional': this.safeNumber(position, 'openValue'),
+            'notional': this.parseNumber(notional),
             'leverage': this.safeNumber(position, 'leverage'),
             'unrealizedPnl': this.safeNumber(position, 'unrealizePnl'),
             'realizedPnl': undefined,
             'collateral': undefined,
-            'entryPrice': undefined,
+            'entryPrice': this.parseNumber(entryPrice),
             'markPrice': undefined,
             'liquidationPrice': this.safeNumber(position, 'liquidatePrice'),
             'marginMode': marginMode,
@@ -3354,7 +3352,7 @@ export default class weex extends Exchange {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
             'percentage': undefined,
-            'info': undefined,
+            'info': position,
         });
     }
     /**

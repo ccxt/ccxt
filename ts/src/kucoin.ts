@@ -3624,7 +3624,7 @@ export default class kucoin extends Exchange {
             let networkCode = undefined;
             [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
             if (networkCode !== undefined) {
-                request['chain'] = this.networkCodeToId (networkCode).toLowerCase ();
+                request['chain'] = this.networkCodeToId (networkCode, code).toLowerCase ();
             }
             //
             //     {
@@ -4275,6 +4275,7 @@ export default class kucoin extends Exchange {
      */
     async createUtaOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = this.createUtaOrderRequest (symbol, type, side, amount, price, params);
         const response = await this.utaPrivatePostAccountModeOrderPlace (request);
         //
@@ -4289,7 +4290,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseOrder (data);
+        return this.parseOrder (data, market);
     }
 
     createUtaOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {

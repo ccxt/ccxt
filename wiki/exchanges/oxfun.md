@@ -1000,15 +1000,15 @@ watch all open positions
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
-| since |  | Yes |  |
-| limit |  | Yes |  |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| since | <code>int</code> | No | timestamp in ms of the earliest position to fetch |
+| limit | <code>int</code> | No | the maximum number of positions to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.tag | <code>int</code>, <code>string</code> | No | If given it will be echoed in the reply and the max size of tag is 32 |
 
 
 ```javascript
-oxfun.watchPositions (symbols, since, limit, params[])
+oxfun.watchPositions ([symbols, since, limit, params])
 ```
 
 

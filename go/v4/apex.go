@@ -542,83 +542,85 @@ func (this *ApexCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		// }
 		var rows any = this.SafeList(spotConfig, "assets", []any{})
 		var chains any = this.SafeList(multiChain, "chains", []any{})
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
-			var currency any = GetValue(rows, i)
-			var currencyId any = this.SafeString(currency, "token")
-			var code any = this.SafeCurrencyCode(currencyId)
-			var name any = this.SafeString(currency, "displayName")
-			var networks any = map[string]any{}
-			for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
-				var chain any = GetValue(chains, j)
-				var tokens any = this.SafeList(chain, "tokens", []any{})
-				for f := 0; IsLessThan(f, GetArrayLength(tokens)); f++ {
-					var token any = GetValue(tokens, f)
-					var tokenName any = this.SafeString(token, "token")
-					if IsTrue(IsEqual(tokenName, currencyId)) {
-						var networkId any = this.SafeString(chain, "chainId")
-						var networkCode any = this.NetworkIdToCode(networkId)
-						AddElementToObject(networks, networkCode, map[string]any{
-							"info":      chain,
-							"id":        networkId,
-							"network":   networkCode,
-							"active":    nil,
-							"deposit":   !IsTrue(this.SafeBool(chain, "depositDisable")),
-							"withdraw":  this.SafeBool(token, "withdrawEnable"),
-							"fee":       this.SafeNumber(token, "minFee"),
-							"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(token, "decimals"))),
-							"limits": map[string]any{
-								"withdraw": map[string]any{
-									"min": this.SafeNumber(token, "minWithdraw"),
-									"max": nil,
-								},
-								"deposit": map[string]any{
-									"min": this.SafeNumber(chain, "minDeposit"),
-									"max": nil,
-								},
-							},
-						})
-					}
-				}
-			}
-			var networkKeys any = ObjectKeys(networks)
-			var networksLength any = GetArrayLength(networkKeys)
-			var emptyChains any = IsEqual(networksLength, 0) // non-functional coins
-			var valueForEmpty any = Ternary(IsTrue(emptyChains), false, nil)
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"info":      currency,
-				"code":      code,
-				"id":        currencyId,
-				"type":      "crypto",
-				"name":      name,
-				"active":    nil,
-				"deposit":   valueForEmpty,
-				"withdraw":  valueForEmpty,
-				"fee":       nil,
-				"precision": nil,
-				"limits": map[string]any{
-					"amount": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"withdraw": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"deposit": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-				"networks": networks,
-			}))
-		}
+		AddElementToObject(this.Options, "_temp_currencies_chains", chains)
+		var result any = this.ParseCurrencies(rows)
+		Remove(this.Options, "_temp_currencies_chains")
 
 		ch <- result
 		return nil
 
 	}()
 	return ch
+}
+func (this *ApexCore) ParseCurrency(currency any) any {
+	var currencyId any = this.SafeString(currency, "token")
+	var code any = this.SafeCurrencyCode(currencyId)
+	var name any = this.SafeString(currency, "displayName")
+	var networks any = map[string]any{}
+	var chains any = GetValue(this.Options, "_temp_currencies_chains")
+	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
+		var chain any = GetValue(chains, j)
+		var tokens any = this.SafeList(chain, "tokens", []any{})
+		for f := 0; IsLessThan(f, GetArrayLength(tokens)); f++ {
+			var token any = GetValue(tokens, f)
+			var tokenName any = this.SafeString(token, "token")
+			if IsTrue(IsEqual(tokenName, currencyId)) {
+				var networkId any = this.SafeString(chain, "chainId")
+				var networkCode any = this.NetworkIdToCode(networkId, code)
+				AddElementToObject(networks, networkCode, map[string]any{
+					"info":      chain,
+					"id":        networkId,
+					"network":   networkCode,
+					"active":    nil,
+					"deposit":   !IsTrue(this.SafeBool(chain, "depositDisable")),
+					"withdraw":  this.SafeBool(token, "withdrawEnable"),
+					"fee":       this.SafeNumber(token, "minFee"),
+					"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(token, "decimals"))),
+					"limits": map[string]any{
+						"withdraw": map[string]any{
+							"min": this.SafeNumber(token, "minWithdraw"),
+							"max": nil,
+						},
+						"deposit": map[string]any{
+							"min": this.SafeNumber(chain, "minDeposit"),
+							"max": nil,
+						},
+					},
+				})
+			}
+		}
+	}
+	var networkKeys any = ObjectKeys(networks)
+	var networksLength any = GetArrayLength(networkKeys)
+	var emptyChains any = IsEqual(networksLength, 0) // non-functional coins
+	var valueForEmpty any = Ternary(IsTrue(emptyChains), false, nil)
+	return this.SafeCurrencyStructure(map[string]any{
+		"info":      currency,
+		"code":      code,
+		"id":        currencyId,
+		"type":      "crypto",
+		"name":      name,
+		"active":    nil,
+		"deposit":   valueForEmpty,
+		"withdraw":  valueForEmpty,
+		"fee":       nil,
+		"precision": nil,
+		"limits": map[string]any{
+			"amount": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"deposit": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"networks": networks,
+	})
 }
 
 /**
@@ -843,8 +845,8 @@ func (this *ApexCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes7768 := (<-this.LoadMarkets())
-		PanicOnError(retRes7768)
+		retRes7798 := (<-this.LoadMarkets())
+		PanicOnError(retRes7798)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id2"),
@@ -881,8 +883,8 @@ func (this *ApexCore) FetchTickers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes7978 := (<-this.LoadMarkets())
-		PanicOnError(retRes7978)
+		retRes8008 := (<-this.LoadMarkets())
+		PanicOnError(retRes8008)
 
 		response := (<-this.PublicGetV3DataAllTickerInfo(params))
 		PanicOnError(response)
@@ -922,8 +924,8 @@ func (this *ApexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes8178 := (<-this.LoadMarkets())
-		PanicOnError(retRes8178)
+		retRes8208 := (<-this.LoadMarkets())
+		PanicOnError(retRes8208)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -990,8 +992,8 @@ func (this *ApexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes8728 := (<-this.LoadMarkets())
-		PanicOnError(retRes8728)
+		retRes8758 := (<-this.LoadMarkets())
+		PanicOnError(retRes8758)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id2"),
@@ -1066,8 +1068,8 @@ func (this *ApexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes9298 := (<-this.LoadMarkets())
-		PanicOnError(retRes9298)
+		retRes9328 := (<-this.LoadMarkets())
+		PanicOnError(retRes9328)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id2"),
@@ -1165,8 +1167,8 @@ func (this *ApexCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes10128 := (<-this.LoadMarkets())
-		PanicOnError(retRes10128)
+		retRes10158 := (<-this.LoadMarkets())
+		PanicOnError(retRes10158)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id2"),
@@ -1248,8 +1250,8 @@ func (this *ApexCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
 
-		retRes10738 := (<-this.LoadMarkets())
-		PanicOnError(retRes10738)
+		retRes10768 := (<-this.LoadMarkets())
+		PanicOnError(retRes10768)
 		var request any = map[string]any{}
 		var market any = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -1416,7 +1418,7 @@ func (this *ApexCore) ParseTimeInForce(timeInForce any) any {
 		"IMMEDIATE_OR_CANCEL": "IMMEDIATE_OR_CANCEL",
 		"POST_ONLY":           "POST_ONLY",
 	}
-	return this.SafeString(timeInForces, timeInForce, nil)
+	return this.SafeString(timeInForces, timeInForce)
 }
 func (this *ApexCore) ParseOrderStatus(status any) any {
 	if IsTrue(!IsEqual(status, nil)) {
@@ -1542,8 +1544,8 @@ func (this *ApexCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes13388 := (<-this.LoadMarkets())
-		PanicOnError(retRes13388)
+		retRes13418 := (<-this.LoadMarkets())
+		PanicOnError(retRes13418)
 		var market any = this.Market(symbol)
 		var orderType any = ToUpper(typeVar)
 		var orderSide any = ToUpper(side)
@@ -1592,14 +1594,16 @@ func (this *ApexCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 		if IsTrue(IsEqual(clientOrderId, nil)) {
 			clientOrderId = this.GenerateRandomClientIdOmni(accountId)
 		}
+		var finalClientOrderId any = clientOrderId // java req
 		params = this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice"})
+		var finalOrderPrice any = orderPrice // java req
 		var orderToSign any = map[string]any{
 			"accountId":    accountId,
-			"slotId":       clientOrderId,
-			"nonce":        clientOrderId,
+			"slotId":       finalClientOrderId,
+			"nonce":        finalClientOrderId,
 			"pairId":       GetValue(market, "quoteId"),
 			"size":         orderSize,
-			"price":        orderPrice,
+			"price":        finalOrderPrice,
 			"direction":    orderSide,
 			"makerFeeRate": maker,
 			"takerFeeRate": taker,
@@ -1615,11 +1619,11 @@ func (this *ApexCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 			"side":        orderSide,
 			"type":        orderType,
 			"size":        orderSize,
-			"price":       orderPrice,
+			"price":       finalOrderPrice,
 			"limitFee":    limitFee,
 			"expiration":  MathFloor(Add(Divide(timeNow, 1000), Multiply(Multiply(Multiply(30, 24), 60), 60))),
 			"timeInForce": timeInForce,
-			"clientId":    clientOrderId,
+			"clientId":    finalClientOrderId,
 			"brokerId":    this.SafeString(this.Options, "brokerId", "6956"),
 		}
 		if IsTrue(!IsEqual(triggerPrice, nil)) {
@@ -1658,8 +1662,8 @@ func (this *ApexCore) Transfer(code any, amount any, fromAccount any, toAccount 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes14358 := (<-this.LoadMarkets())
-		PanicOnError(retRes14358)
+		retRes14408 := (<-this.LoadMarkets())
+		PanicOnError(retRes14408)
 
 		configResponse := (<-this.PublicGetV3Symbols(params))
 		PanicOnError(configResponse)
@@ -1685,6 +1689,7 @@ func (this *ApexCore) Transfer(code any, amount any, fromAccount any, toAccount 
 		if IsTrue(IsGreaterThan(GetArrayLength(subAccounts), 0)) {
 			nonce = this.SafeString(GetValue(subAccounts, 0), "nonce", "0")
 		}
+		var finalNonce any = nonce // java req
 		var ethAddress any = this.SafeString(accountData, "ethereumAddress", "")
 		var accountId any = this.SafeString(accountData, "id", "")
 		var currency any = map[string]any{}
@@ -1700,12 +1705,15 @@ func (this *ApexCore) Transfer(code any, amount any, fromAccount any, toAccount 
 			}
 		}
 		var tokenId any = this.SafeString(currency, "tokenId", "")
-		var amountNumber any = this.ParseToInt(Multiply(amount, (MathPow(10, this.SafeNumber(currency, "decimals", 0)))))
+		var decimalsNum any = this.SafeNumber(currency, "decimals", 0)
+		var mathPowResult any = (MathPow(10, decimalsNum))
+		var amountNumber any = this.ParseToInt(Multiply(amount, mathPowResult))
 		var timestampSeconds any = this.ParseToInt(Divide(this.Milliseconds(), 1000))
 		var clientOrderId any = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
 		if IsTrue(IsEqual(clientOrderId, nil)) {
 			clientOrderId = this.GenerateRandomClientIdOmni(this.SafeString(this.Options, "accountId"))
 		}
+		var finalClientOrderId any = clientOrderId // java req
 		params = this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id"})
 		if IsTrue(IsTrue(!IsEqual(fromAccount, nil)) && IsTrue(IsEqual(ToLower(fromAccount), "contract"))) {
 			var formattedUint32 any = "4294967295"
@@ -1719,7 +1727,7 @@ func (this *ApexCore) Transfer(code any, amount any, fromAccount any, toAccount 
 				"tokenId":              tokenId,
 				"amount":               ToString(amountNumber),
 				"fee":                  "0",
-				"nonce":                clientOrderId,
+				"nonce":                finalClientOrderId,
 				"timestampSeconds":     expireTime,
 				"isContract":           true,
 			}
@@ -1729,7 +1737,7 @@ func (this *ApexCore) Transfer(code any, amount any, fromAccount any, toAccount 
 			var request any = map[string]any{
 				"amount":           amount,
 				"expireTime":       expireTime,
-				"clientWithdrawId": clientOrderId,
+				"clientWithdrawId": finalClientOrderId,
 				"signature":        signature,
 				"token":            code,
 				"ethAddress":       ethAddress,
@@ -1739,11 +1747,12 @@ func (this *ApexCore) Transfer(code any, amount any, fromAccount any, toAccount 
 			PanicOnError(response)
 			var data any = this.SafeDict(response, "data", map[string]any{})
 			var currentTime any = this.Milliseconds()
+			var parsedAmount any = this.ParseNumber(amount)
 
 			ch <- this.Extend(this.ParseTransfer(data, this.Currency(code)), map[string]any{
 				"timestamp":   currentTime,
 				"datetime":    this.Iso8601(currentTime),
-				"amount":      this.ParseNumber(amount),
+				"amount":      parsedAmount,
 				"fromAccount": "contract",
 				"toAccount":   "spot",
 			})
@@ -1757,16 +1766,18 @@ func (this *ApexCore) Transfer(code any, amount any, fromAccount any, toAccount 
 				"tokenId":              tokenId,
 				"amount":               ToString(amountNumber),
 				"fee":                  "0",
-				"nonce":                nonce,
+				"nonce":                finalNonce,
 				"timestampSeconds":     timestampSeconds,
 			}
 
 			signature := (<-this.GetZKTransferSignatureObj(this.Remove0xPrefix(this.GetSeeds()), orderToSign))
 			PanicOnError(signature)
+			var amountStr any = ToString(amount)
+			var ts any = timestampSeconds // java req
 			var request any = map[string]any{
-				"amount":               ToString(amount),
-				"timestamp":            timestampSeconds,
-				"clientTransferId":     clientOrderId,
+				"amount":               amountStr,
+				"timestamp":            ts,
+				"clientTransferId":     finalClientOrderId,
 				"signature":            signature,
 				"zkAccountId":          zkAccountId,
 				"subAccountId":         subAccountId,
@@ -1777,7 +1788,7 @@ func (this *ApexCore) Transfer(code any, amount any, fromAccount any, toAccount 
 				"receiverZkAccountId":  receiverZkAccountId,
 				"receiverSubAccountId": receiverSubAccountId,
 				"receiverAddress":      receiverAddress,
-				"nonce":                nonce,
+				"nonce":                finalNonce,
 			}
 
 			response := (<-this.PrivatePostV3TransferOut(this.Extend(request, params)))
@@ -1837,8 +1848,8 @@ func (this *ApexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes15848 := (<-this.LoadMarkets())
-		PanicOnError(retRes15848)
+		retRes15968 := (<-this.LoadMarkets())
+		PanicOnError(retRes15968)
 		var market any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1863,7 +1874,7 @@ func (this *ApexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
  * @description cancels an open order
  * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
  * @param {string} id order id
- * @param symbol
+ * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1922,8 +1933,8 @@ func (this *ApexCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes16358 := (<-this.LoadMarkets())
-		PanicOnError(retRes16358)
+		retRes16478 := (<-this.LoadMarkets())
+		PanicOnError(retRes16478)
 		var request any = map[string]any{}
 		var clientOrderId any = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
 		var response any = nil
@@ -1973,8 +1984,8 @@ func (this *ApexCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes16638 := (<-this.LoadMarkets())
-		PanicOnError(retRes16638)
+		retRes16758 := (<-this.LoadMarkets())
+		PanicOnError(retRes16758)
 
 		response := (<-this.PrivateGetV3OpenOrders(params))
 		PanicOnError(response)
@@ -2018,8 +2029,8 @@ func (this *ApexCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes16878 := (<-this.LoadMarkets())
-		PanicOnError(retRes16878)
+		retRes16998 := (<-this.LoadMarkets())
+		PanicOnError(retRes16998)
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2076,8 +2087,8 @@ func (this *ApexCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes17248 := (<-this.LoadMarkets())
-		PanicOnError(retRes17248)
+		retRes17368 := (<-this.LoadMarkets())
+		PanicOnError(retRes17368)
 		var request any = map[string]any{}
 		var clientOrderId any = this.SafeString2(params, "clientOrderId", "clientId")
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
@@ -2128,8 +2139,8 @@ func (this *ApexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes17558 := (<-this.LoadMarkets())
-		PanicOnError(retRes17558)
+		retRes17678 := (<-this.LoadMarkets())
+		PanicOnError(retRes17678)
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2188,8 +2199,8 @@ func (this *ApexCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes17948 := (<-this.LoadMarkets())
-		PanicOnError(retRes17948)
+		retRes18068 := (<-this.LoadMarkets())
+		PanicOnError(retRes18068)
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2275,8 +2286,8 @@ func (this *ApexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any 
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes18638 := (<-this.LoadMarkets())
-		PanicOnError(retRes18638)
+		retRes18758 := (<-this.LoadMarkets())
+		PanicOnError(retRes18758)
 		var market any = this.Market(symbol)
 		var leverageString any = this.NumberToString(leverage)
 		var initialMarginRate any = Precise.StringDiv("1", leverageString, 4)
@@ -2315,8 +2326,8 @@ func (this *ApexCore) FetchPositions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes18868 := (<-this.LoadMarkets())
-		PanicOnError(retRes18868)
+		retRes18988 := (<-this.LoadMarkets())
+		PanicOnError(retRes18988)
 
 		response := (<-this.PrivateGetV3Account(params))
 		PanicOnError(response)

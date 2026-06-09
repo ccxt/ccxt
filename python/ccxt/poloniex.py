@@ -924,6 +924,7 @@ class poloniex(Exchange, ImplicitAPI):
         type = 'swap'
         if alias is not None:
             type = 'future'
+        marketType = 'future' if (type == 'future') else 'swap'
         return {
             'id': id,
             'symbol': symbol,
@@ -933,7 +934,7 @@ class poloniex(Exchange, ImplicitAPI):
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': 'future' if (type == 'future') else 'swap',
+            'type': marketType,
             'spot': False,
             'margin': False,
             'swap': type == 'swap',
@@ -1150,140 +1151,67 @@ class poloniex(Exchange, ImplicitAPI):
         """
         fetches all available currencies on an exchange
 
-        https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information
+        https://api-docs.poloniex.com/spot/api/public/reference-data#currencyv2-information
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = self.publicGetCurrencies(self.extend(params, {'includeMultiChainCurrencies': True}))
+        response = self.publicGetV2Currencies(params)
         #
-        #     [
-        #      {
-        #        "USDT": {
-        #           "id": 214,
-        #           "name": "Tether USD",
-        #           "description": "Sweep to Main Account",
-        #           "type": "address",
-        #           "withdrawalFee": "0.00000000",
-        #           "minConf": 2,
-        #           "depositAddress": null,
-        #           "blockchain": "OMNI",
-        #           "delisted": False,
-        #           "tradingState": "NORMAL",
-        #           "walletState": "DISABLED",
-        #           "walletDepositState": "DISABLED",
-        #           "walletWithdrawalState": "DISABLED",
-        #           "supportCollateral": True,
-        #           "supportBorrow": True,
-        #           "parentChain": null,
-        #           "isMultiChain": True,
-        #           "isChildChain": False,
-        #           "childChains": [
-        #             "USDTBSC",
-        #             "USDTETH",
-        #             "USDTSOL",
-        #             "USDTTRON"
-        #           ]
-        #        }
-        #      },
-        #      ...
-        #      {
-        #        "USDTBSC": {
-        #              "id": 582,
-        #              "name": "Binance-Peg BSC-USD",
-        #              "description": "Sweep to Main Account",
-        #              "type": "address",
-        #              "withdrawalFee": "0.00000000",
-        #              "minConf": 15,
-        #              "depositAddress": null,
-        #              "blockchain": "BSC",
-        #              "delisted": False,
-        #              "tradingState": "OFFLINE",
-        #              "walletState": "ENABLED",
-        #              "walletDepositState": "ENABLED",
-        #              "walletWithdrawalState": "DISABLED",
-        #              "supportCollateral": False,
-        #              "supportBorrow": False,
-        #              "parentChain": "USDT",
-        #              "isMultiChain": True,
-        #              "isChildChain": True,
-        #              "childChains": []
-        #        }
-        #      },
-        #      ...
-        #     ]
+        #    [
+        #        {
+        #            "id": 668,
+        #            "coin": "ADA",
+        #            "delisted": False,
+        #            "tradeEnable": True,
+        #            "name": "Cardano",
+        #            "networkList": [
+        #                {
+        #                    "id": 668,
+        #                    "coin": "ADA",
+        #                    "name": "Cardano",
+        #                    "currencyType": "address",
+        #                    "blockchain": "ADA",
+        #                    "withdrawalEnable": True,
+        #                    "depositEnable": True,
+        #                    "depositAddress": null,
+        #                    "withdrawMin": "5.00000000",
+        #                    "decimals": 6,
+        #                    "withdrawFee": "3.00000000",
+        #                    "minConfirm": 30,
+        #                    "contractAddress": null
+        #                }
+        #            ],
+        #            "supportCollateral": False,
+        #            "supportBorrow": False
+        #        },
         #
-        result: dict = {}
-        # poloniex has a complicated structure of currencies, so we handle them differently
-        # at first, turn the response into a normal dictionary
-        currenciesDict = {}
-        for i in range(0, len(response)):
-            item = self.safe_dict(response, i)
-            ids = list(item.keys())
-            id = self.safe_string(ids, 0)
-            currenciesDict[id] = item[id]
-        keys = list(currenciesDict.keys())
-        for i in range(0, len(keys)):
-            id = keys[i]
-            entry = currenciesDict[id]
-            code = self.safe_currency_code(id)
-            # skip childChains, are collected in parentChain loop
-            if self.safe_bool(entry, 'isChildChain'):
-                continue
-            allChainEntries = []
-            childChains = self.safe_list(entry, 'childChains', [])
-            if childChains is not None:
-                for j in range(0, len(childChains)):
-                    childChainId = childChains[j]
-                    childNetworkEntry = self.safe_dict(currenciesDict, childChainId)
-                    allChainEntries.append(childNetworkEntry)
-            allChainEntries.append(entry)
-            networks: dict = {}
-            for j in range(0, len(allChainEntries)):
-                chainEntry = allChainEntries[j]
-                networkName = self.safe_string(chainEntry, 'blockchain')
-                networkCode = self.network_id_to_code(networkName, code)
-                specialNetworkId = self.safe_string(childChains, j, id)  # in case it's primary chain, defeault to ID
-                networks[networkCode] = {
-                    'info': chainEntry,
-                    'id': specialNetworkId,  # we need self for deposit/withdrawal, instead of friendly name
-                    'numericId': self.safe_integer(chainEntry, 'id'),
-                    'network': networkCode,
-                    'active': self.safe_bool(chainEntry, 'walletState'),
-                    'deposit': self.safe_string(chainEntry, 'walletDepositState') == 'ENABLED',
-                    'withdraw': self.safe_string(chainEntry, 'walletWithdrawalState') == 'ENABLED',
-                    'fee': self.safe_number(chainEntry, 'withdrawalFee'),
-                    'precision': None,
-                    'limits': {
-                        'withdraw': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'info': entry,
-                'code': code,
-                'id': id,
-                'numericId': self.safe_integer(entry, 'id'),
-                'type': 'crypto',
-                'name': self.safe_string(entry, 'name'),
+        return self.parse_currencies(response)
+
+    def parse_currency(self, currency: dict) -> Currency:
+        entry = currency
+        id = self.safe_string(entry, 'coin')
+        code = self.safe_currency_code(id)
+        networks: dict = {}
+        chains = self.safe_list(entry, 'networkList', [])
+        chainsLength = len(chains)
+        for j in range(0, chainsLength):
+            chain = chains[j]
+            chainId = self.safe_string(chain, 'blockchain')
+            networkCode = self.network_id_to_code(chainId, code)
+            networks[networkCode] = {
+                'info': chain,
+                'id': chainId,
+                'name': None,
+                'code': networkCode,
                 'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': None,
+                'fee': self.safe_number(chain, 'withdrawFee'),
+                'deposit': self.safe_bool(chain, 'depositEnable'),
+                'withdraw': self.safe_bool(chain, 'withdrawalEnable'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'decimals'))),
                 'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
-                        'min': None,
+                        'min': self.safe_number(chain, 'withdrawMin'),
                         'max': None,
                     },
                     'deposit': {
@@ -1291,9 +1219,22 @@ class poloniex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-                'networks': networks,
-            })
-        return result
+            }
+        return self.safe_currency_structure({
+            'id': id,
+            'name': self.safe_string(entry, 'name'),
+            'code': code,
+            'type': None,
+            'precision': None,
+            'info': entry,
+            'networks': networks,
+            'deposit': None,
+            'withdraw': None,
+            'active': None,
+            'fee': None,
+            'limits': None,
+            'margin': self.safe_bool(entry, 'supportBorrow'),
+        })
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
@@ -2750,13 +2691,21 @@ class poloniex(Exchange, ImplicitAPI):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        request, extraParams, currency, networkEntry = self.prepare_request_for_deposit_address(code, params)
-        params = extraParams
-        request['amount'] = self.currency_to_precision(code, amount)
-        request['address'] = address
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'address': address,
+        }
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is None:
+            # we need to know the network to find out the currency-junction
+            raise ArgumentsRequired(self.id + ' withdraw requires a network parameter for ' + code + '.')
+        request['network'] = self.network_code_to_id(networkCode, code)
         if tag is not None:
             request['paymentId'] = tag
-        response = self.privatePostWalletsWithdraw(self.extend(request, params))
+        response = self.privatePostV2WalletsWithdraw(self.extend(request, params))
         #
         #     {
         #         "response": "Withdrew 1.00000000 USDT.",
@@ -2764,11 +2713,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         "withdrawalNumber": 13449869
         #     }
         #
-        withdrawResponse = {
-            'response': response,
-            'withdrawNetworkEntry': networkEntry,
-        }
-        return self.parse_transaction(withdrawResponse, currency)
+        return self.parse_transaction(response, currency)
 
     def fetch_transactions_helper(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
@@ -2978,7 +2923,7 @@ class poloniex(Exchange, ImplicitAPI):
                     for j in range(0, len(childChains)):
                         networkId = childChains[j]
                         networkId = networkId.replace(code, '')
-                        networkCode = self.network_id_to_code(networkId)
+                        networkCode = self.network_id_to_code(networkId, currency['code'])
                         networkInfo = self.safe_value(response, networkId)
                         networkObject: dict = {}
                         withdrawFee = self.safe_number(networkInfo, 'withdrawalFee')
@@ -3010,7 +2955,7 @@ class poloniex(Exchange, ImplicitAPI):
         }
         depositWithdrawFee['withdraw'] = withdrawResult
         depositWithdrawFee['deposit'] = depositResult
-        networkCode = self.network_id_to_code(networkId)
+        networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
         depositWithdrawFee['networks'][networkCode] = {
             'withdraw': withdrawResult,
             'deposit': depositResult,

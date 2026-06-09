@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.53';
+$version = '4.5.56';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.53';
+    const VERSION = '4.5.56';
 
     public $browser;
     public $marketsLoading = null;
@@ -66,6 +66,8 @@ class Exchange extends \ccxt\Exchange {
         'maxPingPongMisses' => 2.0,
     );
 
+    public $response_buffer_max_size = 24 * 1024 * 1024; // React default is 16 MiB
+
     public $proxy_files_dir = __DIR__ . '/../static_dependencies/proxies/';
 
     use ClientTrait;
@@ -77,7 +79,9 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function set_request_browser($connector) {
-        $this->browser = (new React\Http\Browser($connector, Loop::get()))->withRejectErrorResponse(false);
+        $this->browser = (new React\Http\Browser($connector, Loop::get()))
+            ->withRejectErrorResponse(false)
+            ->withResponseBuffer($this->response_buffer_max_size);
     }
 
     public function create_connector ($connector_options = array()){
@@ -768,22 +772,30 @@ class Exchange extends \ccxt\Exchange {
         return $defaultValue;
     }
 
-    public function safe_bool_2($dictionary, int|string $key1, int|string $key2, ?bool $defaultValue = null) {
+    public function safe_bool_2($dictionaryOrList, int|string $key1, int|string $key2, ?bool $defaultValue = null) {
         /**
          * @ignore
-         * safely extract boolean value from $dictionary or list
+         * safely extract boolean $value from dictionary or list
          * @return array(bool | null)
          */
-        return $this->safe_bool_n($dictionary, array( $key1, $key2 ), $defaultValue);
+        $value = $this->safe_value($dictionaryOrList, $key1);
+        if (is_bool($value)) {
+            return $value;
+        }
+        $value2 = $this->safe_value($dictionaryOrList, $key2);
+        if (is_bool($value2)) {
+            return $value2;
+        }
+        return $defaultValue;
     }
 
-    public function safe_bool($dictionary, int|string $key, ?bool $defaultValue = null) {
+    public function safe_bool($dictionaryOrList, int|string $key, ?bool $defaultValue = null) {
         /**
          * @ignore
-         * safely extract boolean $value from $dictionary or list
+         * safely extract boolean $value from dictionary or list
          * @return array(bool | null)
          */
-        $value = $this->safe_value($dictionary, $key, $defaultValue);
+        $value = $this->safe_value($dictionaryOrList, $key, $defaultValue);
         if (is_bool($value)) {
             return $value;
         }
@@ -806,13 +818,13 @@ class Exchange extends \ccxt\Exchange {
         return $defaultValue;
     }
 
-    public function safe_dict($dictionary, int|string $key, ?array $defaultValue = null) {
+    public function safe_dict($dictionaryOrList, int|string $key, ?array $defaultValue = null) {
         /**
          * @ignore
-         * safely extract a $dictionary from $dictionary or list
+         * safely extract a dictionary from dictionary or list
          * @return array(object | null)
          */
-        $value = $this->safe_value($dictionary, $key, $defaultValue);
+        $value = $this->safe_value($dictionaryOrList, $key, $defaultValue);
         if ($value === null) {
             return $defaultValue;
         }
@@ -822,13 +834,21 @@ class Exchange extends \ccxt\Exchange {
         return $defaultValue;
     }
 
-    public function safe_dict_2($dictionary, int|string $key1, string $key2, ?array $defaultValue = null) {
+    public function safe_dict_2($dictionaryOrList, int|string $key1, string $key2, ?array $defaultValue = null) {
         /**
          * @ignore
-         * safely extract a $dictionary from $dictionary or list
+         * safely extract a dictionary from dictionary or list
          * @return array(object | null)
          */
-        return $this->safe_dict_n($dictionary, array( $key1, $key2 ), $defaultValue);
+        $value = $this->safe_value($dictionaryOrList, $key1);
+        if (($value !== null) && (gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
+            return $value;
+        }
+        $value2 = $this->safe_value($dictionaryOrList, $key2);
+        if (($value2 !== null) && (gettype($value2) === 'array') && (gettype($value2) !== 'array' || array_keys($value2) !== array_keys(array_keys($value2)))) {
+            return $value2;
+        }
+        return $defaultValue;
     }
 
     public function safe_list_n($dictionaryOrList, array $keys, ?array $defaultValue = null) {
@@ -857,7 +877,15 @@ class Exchange extends \ccxt\Exchange {
          * safely extract an Array from dictionary or list
          * @return array(Array | null)
          */
-        return $this->safe_list_n($dictionaryOrList, array( $key1, $key2 ), $defaultValue);
+        $value = $this->safe_value($dictionaryOrList, $key1);
+        if (($value !== null) && (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
+            return $value;
+        }
+        $value2 = $this->safe_value($dictionaryOrList, $key2);
+        if (($value2 !== null) && (gettype($value2) === 'array' && array_keys($value2) === array_keys(array_keys($value2)))) {
+            return $value2;
+        }
+        return $defaultValue;
     }
 
     public function safe_list($dictionaryOrList, int|string $key, ?array $defaultValue = null) {
@@ -888,7 +916,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function handle_deltas_with_keys(mixed $bookSide, $deltas, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $bidAsk = $this->parse_bid_ask($deltas[$i], $priceKey, $amountKey, $countOrIdKey);
+            $bidAsk = $this->parse_order_book_bid_ask($deltas[$i], $priceKey, $amountKey, $countOrIdKey);
             $bookSide->storeArray ($bidAsk);
         }
     }
@@ -1386,6 +1414,9 @@ class Exchange extends \ccxt\Exchange {
         $arr = $this->to_array($rawCurrencies);
         for ($i = 0; $i < count($arr); $i++) {
             $parsed = $this->parse_currency($arr[$i]);
+            if ($parsed === null) {
+                continue;
+            }
             $code = $parsed['code'];
             $result[$code] = $parsed;
         }
@@ -1730,7 +1761,7 @@ class Exchange extends \ccxt\Exchange {
                 $this->features[$marketType] = null;
             } else {
                 if ($marketType === 'spot') {
-                    $this->features[$marketType] = $this->features_mapper($initialFeatures, $marketType, null);
+                    $this->features[$marketType] = $this->features_mapper($initialFeatures, $marketType);
                 } else {
                     $this->features[$marketType] = array();
                     for ($j = 0; $j < count($subTypes); $j++) {
@@ -1894,10 +1925,10 @@ class Exchange extends \ccxt\Exchange {
     public function get_default_options() {
         return array(
             'defaultNetworkCodeReplacements' => array(
-                'ETH' => array( 'ERC20' => 'ETH' ),
-                'TRX' => array( 'TRC20' => 'TRX' ),
-                'CRO' => array( 'CRC20' => 'CRONOS' ),
-                'BRC20' => array( 'BRC20' => 'BTC' ),
+                'ETH' => array( 'primary' => 'ETH', 'secondary' => 'ERC20', 'default' => 'secondary' ),
+                'CRO' => array( 'primary' => 'CRONOS', 'secondary' => 'CRC20', 'default' => 'secondary' ),
+                'TRX' => array( 'primary' => 'TRX', 'secondary' => 'TRC20', 'default' => 'secondary' ),
+                'BTC' => array( 'primary' => 'BTC', 'secondary' => 'BRC20', 'default' => 'primary' ),
             ),
         );
     }
@@ -1951,7 +1982,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function safe_currency_structure(array $currency) {
-        // derive data from $networks => $deposit, $withdraw, $active, $fee, $limits, $precision
+        // derive data from $networks => $deposit, $withdraw, active, $fee, $limits, $precision
         $networks = $this->safe_dict($currency, 'networks', array());
         $keys = is_array($networks) ? array_keys($networks) : array();
         $length = count($keys);
@@ -1968,20 +1999,6 @@ class Exchange extends \ccxt\Exchange {
                 $currencyWithdraw = $this->safe_bool($currency, 'withdraw');
                 if ($currencyWithdraw === null || $withdraw) {
                     $currency['withdraw'] = $withdraw;
-                }
-                // set $network 'active' to false if D or W is disabled
-                $active = $this->safe_bool($network, 'active');
-                if ($active === null) {
-                    if ($deposit && $withdraw) {
-                        $currency['networks'][$key]['active'] = true;
-                    } elseif ($deposit !== null && $withdraw !== null) {
-                        $currency['networks'][$key]['active'] = false;
-                    }
-                }
-                $active = $this->safe_bool($currency['networks'][$key], 'active'); // dict might have been updated on above lines, so access directly instead of `$network` variable
-                $currencyActive = $this->safe_bool($currency, 'active');
-                if ($currencyActive === null || $active) {
-                    $currency['active'] = $active;
                 }
                 // find lowest $fee (which is more desired)
                 $fee = $this->safe_string($network, 'fee');
@@ -2827,6 +2844,22 @@ class Exchange extends \ccxt\Exchange {
         return $arr[$length - 1];
     }
 
+    public function add_key_in_array_items($obj, $keyName) {
+        $result = array();
+        $keys = is_array($obj) ? array_keys($obj) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $item = $obj[$key];
+            if ($item === null) {
+                continue;
+            }
+            $itemWithKey = $this->extend(array(), $item);
+            $itemWithKey[$keyName] = $key;
+            $result[] = $itemWithKey;
+        }
+        return $result;
+    }
+
     public function invert_flat_string_dictionary($dict) {
         $reversed = array();
         $keys = is_array($dict) ? array_keys($dict) : array();
@@ -3270,11 +3303,11 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function parse_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+    public function parse_order_book_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $bidasks = $this->to_array($bidasks);
         $result = array();
         for ($i = 0; $i < count($bidasks); $i++) {
-            $result[] = $this->parse_bid_ask($bidasks[$i], $priceKey, $amountKey, $countOrIdKey);
+            $result[] = $this->parse_order_book_bid_ask($bidasks[$i], $priceKey, $amountKey, $countOrIdKey);
         }
         return $result;
     }
@@ -3317,62 +3350,115 @@ class Exchange extends \ccxt\Exchange {
         return $ohlcv;
     }
 
-    public function network_code_to_id(string $networkCode, ?string $currencyCode = null) {
+    public function safe_network($network) {
+        $withdrawEnabled = $this->safe_bool($network, 'withdraw');
+        $depositEnabled = $this->safe_bool($network, 'deposit');
+        $limits = $this->safe_dict($network, 'limits');
+        $withdraw = $this->safe_dict($limits, 'withdraw');
+        $deposit = $this->safe_dict($limits, 'deposit');
+        $isEnabled = ($withdrawEnabled && $depositEnabled);
+        return array(
+            'info' => $network['info'],
+            'id' => $this->safe_string($network, 'id'),
+            'name' => $this->safe_string($network, 'name'),
+            'network' => $this->safe_string($network, 'network'),
+            'active' => $this->safe_bool($network, 'active', $isEnabled),
+            'deposit' => $depositEnabled,
+            'withdraw' => $withdrawEnabled,
+            'fee' => $this->safe_number($network, 'fee'),
+            'precision' => $this->safe_number($network, 'precision'),
+            'limits' => array(
+                'withdraw' => array(
+                    'min' => $this->safe_number($withdraw, 'min'),
+                    'max' => $this->safe_number($withdraw, 'max'),
+                ),
+                'deposit' => array(
+                    'min' => $this->safe_number($deposit, 'min'),
+                    'max' => $this->safe_number($deposit, 'max'),
+                ),
+            ),
+        );
+    }
+
+    public function prioritized_network_aliases(?string $networkCode = null, ?string $currencyCode = null, $allowDefault = false) {
         /**
-         * @ignore
-         * tries to convert the provided $networkCode (which is expected to be an unified $network code) to a $network id. In order to achieve this, derived class needs to have 'options->networks' defined.
-         * @param {string} $networkCode unified $network code
-         * @param {string} $currencyCode unified $currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
-         * @return {string|null} exchange-specific $network id
+         * returns the chain pair [preferred, alternative] for the given $networkCode & currency, e.g:
+         *   ---------------------------------
+         *   | input          | output       |
+         *   --------------------------------|
+         *   | ETH & USDC     | ERC20, ETH   |
+         *   | ERC20 & USDC   | ERC20, ETH   |
+         *   | ETH & ETH      | ETH, ERC20   |
+         *   | ERC20 & ETH    | ETH, ERC20   |
+         *   | ERC20          | ERC20, ETH   |
+         *   | ETH            | ERC20, ETH   |
+         *   ---------------------------------
+         * @param {string} $networkCode unified network-code
+         * @param {string} $currencyCode unified currency-code
+         * @param {boolean} $allowDefault when $currencyCode is null, order by replacement's "default" instead of by user input
+         * @return {string[]} [preferredChain, alternativeChain]
          */
         if ($networkCode === null) {
             return null;
         }
-        $networkIdsByCodes = $this->safe_value($this->options, 'networks', array());
-        $networkId = $this->safe_string($networkIdsByCodes, $networkCode);
-        // for example, if 'ETH' is passed for $networkCode, but 'ETH' $key not defined in `options->networks` object
-        if ($networkId === null) {
-            if ($currencyCode === null) {
-                $currencies = is_array($this->currencies) ? array_values($this->currencies) : array();
-                for ($i = 0; $i < count($currencies); $i++) {
-                    $currency = $currencies[$i];
-                    $networks = $this->safe_dict($currency, 'networks');
-                    $network = $this->safe_dict($networks, $networkCode);
-                    $networkId = $this->safe_string($network, 'id');
-                    if ($networkId !== null) {
-                        break;
-                    }
-                }
-            } else {
-                // if $currencyCode was provided, then we try to find if that $currencyCode has a replacement ($i->e. ERC20 for ETH) or is in the $currency
-                $defaultNetworkCodeReplacements = $this->safe_value($this->options, 'defaultNetworkCodeReplacements', array());
-                if (is_array($defaultNetworkCodeReplacements) && array_key_exists($currencyCode, $defaultNetworkCodeReplacements)) {
-                    // if there is a replacement for the passed $networkCode, then we use it to find $network-id in `options->networks` object
-                    $replacementObject = $defaultNetworkCodeReplacements[$currencyCode]; // $i->e. array( 'ERC20' => 'ETH' )
-                    $keys = is_array($replacementObject) ? array_keys($replacementObject) : array();
-                    for ($i = 0; $i < count($keys); $i++) {
-                        $key = $keys[$i];
-                        $value = $replacementObject[$key];
-                        // if $value matches to provided unified $networkCode, then we use it's $key to find $network-id in `options->networks` object
-                        if ($value === $networkCode) {
-                            $networkId = $this->safe_string($networkIdsByCodes, $key);
-                            break;
-                        }
-                    }
-                } else {
-                    // serach for $network inside $currency
-                    $currency = $this->safe_dict($this->currencies, $currencyCode);
-                    $networks = $this->safe_dict($currency, 'networks');
-                    $network = $this->safe_dict($networks, $networkCode);
-                    $networkId = $this->safe_string($network, 'id');
-                }
+        $replacements = $this->safe_dict($this->options, 'defaultNetworkCodeReplacements', array());
+        $keys = is_array($replacements) ? array_keys($replacements) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $baseCoin = $keys[$i];
+            $entry = $replacements[$baseCoin];
+            $primary = $entry['primary'];
+            $secondary = $entry['secondary'];
+            if ($networkCode !== $primary && $networkCode !== $secondary) {
+                continue;
             }
-            // if it wasn't found, we just set the provided $value to $network-id
-            if ($networkId === null) {
-                $networkId = $networkCode;
+            // pick which form goes first in the returned pair
+            $preferPrimary = false;
+            if ($currencyCode === $baseCoin) {
+                $preferPrimary = true; // mainnet currency uses $primary chain
+            } elseif ($currencyCode !== null) {
+                $preferPrimary = false; // any other (token) currency uses $secondary chain
+            } elseif ($allowDefault) {
+                $preferPrimary = ($entry['default'] === 'primary');
+            } else {
+                $preferPrimary = ($networkCode === $primary); // keep user input first
+            }
+            return ($preferPrimary) ? array( $primary, $secondary ) : array( $secondary, $primary );
+        }
+        return array( $networkCode, $networkCode );
+    }
+
+    public function network_code_to_id(string $networkCode, ?string $currencyCode = null) {
+        /**
+         * @ignore
+         * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {string} $networkCode unified network code
+         * @param {string} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
+         * @return {string|null} exchange-specific network id
+         */
+        if ($networkCode === null) {
+            return null;
+        }
+        $networkIdsByCodes = $this->safe_dict($this->options, 'networks', array());
+        // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
+        list($preferredChain, $alternativeChain) = $this->prioritized_network_aliases($networkCode, $currencyCode, false);
+        $networkId = $this->safe_string_2($networkIdsByCodes, $preferredChain, $alternativeChain);
+        if ($networkId !== null) {
+            return $networkId;
+        }
+        // fall back to scanning loaded currencies
+        $currenciesToCheck = array();
+        if ($currencyCode === null) {
+            $currenciesToCheck = is_array($this->currencies) ? array_keys($this->currencies) : array();
+        } else {
+            $currenciesToCheck = array( $this->safe_dict($this->currencies, $currencyCode) );
+        }
+        for ($i = 0; $i < count($currenciesToCheck); $i++) {
+            $networks = $this->safe_dict($currenciesToCheck[$i], 'networks', array());
+            if (is_array($networks) && array_key_exists($networkCode, $networks)) {
+                return $this->safe_string($networks[$networkCode], 'id');
             }
         }
-        return $networkId;
+        return $networkCode;
     }
 
     public function network_id_to_code(?string $networkId = null, ?string $currencyCode = null) {
@@ -3388,15 +3474,16 @@ class Exchange extends \ccxt\Exchange {
         }
         $networkCodesByIds = $this->safe_dict($this->options, 'networksById', array());
         $networkCode = $this->safe_string($networkCodesByIds, $networkId, $networkId);
-        // replace mainnet network-codes (i.e. ERC20->ETH)
-        if ($currencyCode !== null) {
-            $defaultNetworkCodeReplacements = $this->safe_dict($this->options, 'defaultNetworkCodeReplacements', array());
-            if (is_array($defaultNetworkCodeReplacements) && array_key_exists($currencyCode, $defaultNetworkCodeReplacements)) {
-                $replacementObject = $this->safe_dict($defaultNetworkCodeReplacements, $currencyCode, array());
-                $networkCode = $this->safe_string($replacementObject, $networkCode, $networkCode);
+        list($preferredChain, $alternativeChain) = $this->prioritized_network_aliases($networkCode, $currencyCode, true);
+        // when the exchange explicitly defines both forms in options.networks (e.g. BTC . BRC20),
+        // it disambiguates them — trust the direct id→code inversion instead of guessing
+        if ($currencyCode === null) {
+            $networkIdsByCodes = $this->safe_dict($this->options, 'networks', array());
+            if ((is_array($networkIdsByCodes) && array_key_exists($preferredChain, $networkIdsByCodes)) && (is_array($networkIdsByCodes) && array_key_exists($alternativeChain, $networkIdsByCodes))) {
+                return $networkCode;
             }
         }
-        return $networkCode;
+        return $preferredChain;
     }
 
     public function handle_network_code_and_params($params) {
@@ -3471,8 +3558,8 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function parse_order_book(array $orderbook, string $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
-        $bids = $this->parse_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countOrIdKey);
-        $asks = $this->parse_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $countOrIdKey);
+        $bids = $this->parse_order_book_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countOrIdKey);
+        $asks = $this->parse_order_book_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $countOrIdKey);
         return array(
             'symbol' => $symbol,
             'bids' => $this->sort_by($bids, 0, true),
@@ -3553,7 +3640,7 @@ class Exchange extends \ccxt\Exchange {
         //
         $percentage = $this->safe_value($position, 'percentage');
         if (($percentage === null) && ($unrealizedPnlString !== null) && ($initialMarginString !== null)) {
-            // was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+            // was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
             $percentageString = Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMarginString, 4), '100');
             $position['percentage'] = $this->parse_number($percentageString);
         }
@@ -3576,7 +3663,7 @@ class Exchange extends \ccxt\Exchange {
         $positions = $this->to_array($positions);
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
-            $position = $this->extend($this->parse_position($positions[$i], null), $params);
+            $position = $this->extend($this->parse_position($positions[$i]), $params);
             $result[] = $position;
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
@@ -3591,7 +3678,7 @@ class Exchange extends \ccxt\Exchange {
         $ranks = $this->to_array($ranks);
         $result = array();
         for ($i = 0; $i < count($ranks); $i++) {
-            $rank = $this->extend($this->parse_adl_rank($ranks[$i], null), $params);
+            $rank = $this->extend($this->parse_adl_rank($ranks[$i]), $params);
             $result[] = $rank;
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
@@ -4093,7 +4180,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchLedgerEntry() is not supported yet');
     }
 
-    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+    public function parse_order_book_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $price = $this->safe_float($bidask, $priceKey);
         $amount = $this->safe_float($bidask, $amountKey);
         $countOrId = $this->safe_integer($bidask, $countOrIdKey);

@@ -511,32 +511,31 @@ class bullish extends Exchange {
         //         ), ...
         //     )
         //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $currency = $response[$i];
-            $id = $this->safe_string($currency, 'symbol');
-            $code = $this->safe_currency_code($id);
-            $name = $this->safe_string($currency, 'name');
-            $precision = $this->safe_string($currency, 'precision');
-            $result[$code] = array(
-                'id' => $id,
-                'code' => $code,
-                'name' => $name,
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => $this->safe_number($currency, 'minFee'),
-                'precision' => $this->parse_number($this->parse_precision($precision)),
-                'limits' => array(
-                    'amount' => array( 'min' => null, 'max' => null ),
-                    'withdraw' => array( 'min' => null, 'max' => null ),
-                ),
-                'networks' => array(),
-                'type' => 'crypto',
-                'info' => $currency,
-            );
-        }
-        return $result;
+        return $this->parse_currencies($response);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'symbol');
+        $code = $this->safe_currency_code($id);
+        $name = $this->safe_string($rawCurrency, 'name');
+        $precision = $this->safe_string($rawCurrency, 'precision');
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'name' => $name,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => $this->safe_number($rawCurrency, 'minFee'),
+            'precision' => $this->parse_number($this->parse_precision($precision)),
+            'limits' => array(
+                'amount' => array( 'min' => null, 'max' => null ),
+                'withdraw' => array( 'min' => null, 'max' => null ),
+            ),
+            'networks' => array(),
+            'type' => 'crypto',
+            'info' => $rawCurrency,
+        ));
     }
 
     public function fetch_markets($params = array ()): array {
@@ -2116,7 +2115,7 @@ class bullish extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['network'] = $this->network_code_to_id($networkCode);
+            $request['network'] = $this->network_code_to_id($networkCode, $code);
         } else {
             throw new ArgumentsRequired($this->id . ' withdraw() requires a network parameter');
         }
@@ -2190,7 +2189,7 @@ class bullish extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->network_id_to_code($network),
+            'network' => $this->network_id_to_code($network, $code),
             'addressFrom' => $sourceAddress,
             'address' => $address,
             'addressTo' => $address,
@@ -2393,7 +2392,7 @@ class bullish extends Exchange {
                 for ($i = 0; $i < count($safeResponse); $i++) {
                     $entry = $this->safe_dict($safeResponse, $i, array());
                     $networkId = $this->safe_string($entry, 'network');
-                    $networkCode = $this->network_id_to_code($networkId);
+                    $networkCode = $this->network_id_to_code($networkId, $code);
                     if ($network === $networkCode) {
                         $data = $entry;
                         break;
@@ -2410,10 +2409,11 @@ class bullish extends Exchange {
     public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         $id = $this->safe_string($depositAddress, 'symbol');
         $network = $this->safe_string($depositAddress, 'network');
+        $code = $this->safe_currency_code($id, $currency);
         return array(
             'info' => $depositAddress,
-            'currency' => $this->safe_currency_code($id, $currency),
-            'network' => $this->network_id_to_code($network),
+            'currency' => $code,
+            'network' => $this->network_id_to_code($network, $code),
             'address' => $this->safe_string($depositAddress, 'address'),
             'tag' => null,
         );

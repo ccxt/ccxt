@@ -526,81 +526,80 @@ class bigone(Exchange, ImplicitAPI):
         # }
         #
         currenciesData = self.safe_list(data, 'data', [])
-        result: dict = {}
-        for i in range(0, len(currenciesData)):
-            currency = currenciesData[i]
-            id = self.safe_string(currency, 'symbol')
-            code = self.safe_currency_code(id)
-            name = self.safe_string(currency, 'name')
-            networks: dict = {}
-            chains = self.safe_list(currency, 'binding_gateways', [])
-            currencyMaxPrecision = self.parse_precision(self.safe_string_2(currency, 'withdrawal_scale', 'scale'))
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                networkId = self.safe_string(chain, 'gateway_name')
-                networkCode = self.network_id_to_code(networkId)
-                deposit = self.safe_bool(chain, 'is_deposit_enabled')
-                withdraw = self.safe_bool(chain, 'is_withdrawal_enabled')
-                minDepositAmount = self.safe_string(chain, 'min_deposit_amount')
-                minWithdrawalAmount = self.safe_string(chain, 'min_withdrawal_amount')
-                withdrawalFee = self.safe_string(chain, 'withdrawal_fee')
-                precision = self.parse_precision(self.safe_string_2(chain, 'withdrawal_scale', 'scale'))
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'margin': None,
-                    'deposit': deposit,
-                    'withdraw': withdraw,
-                    'active': None,
-                    'fee': self.parse_number(withdrawalFee),
-                    'precision': self.parse_number(precision),
-                    'limits': {
-                        'deposit': {
-                            'min': minDepositAmount,
-                            'max': None,
-                        },
-                        'withdraw': {
-                            'min': minWithdrawalAmount,
-                            'max': None,
-                        },
-                    },
-                    'info': chain,
-                }
-            chainLength = len(chains)
-            type: Str = None
-            if self.safe_bool(currency, 'is_fiat'):
-                type = 'fiat'
-            elif chainLength == 0:
-                if self.is_leveraged_currency(id):
-                    type = 'leveraged'
-                else:
-                    type = 'other'
-            else:
-                type = 'crypto'
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': name,
-                'type': type,
+        return self.parse_currencies(currenciesData)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'symbol')
+        code = self.safe_currency_code(id)
+        name = self.safe_string(rawCurrency, 'name')
+        networks: dict = {}
+        chains = self.safe_list(rawCurrency, 'binding_gateways', [])
+        currencyMaxPrecision = self.parse_precision(self.safe_string_2(rawCurrency, 'withdrawal_scale', 'scale'))
+        for j in range(0, len(chains)):
+            chain = chains[j]
+            networkId = self.safe_string(chain, 'gateway_name')
+            networkCode = self.network_id_to_code(networkId, code)
+            deposit = self.safe_bool(chain, 'is_deposit_enabled')
+            withdraw = self.safe_bool(chain, 'is_withdrawal_enabled')
+            minDepositAmount = self.safe_string(chain, 'min_deposit_amount')
+            minWithdrawalAmount = self.safe_string(chain, 'min_withdrawal_amount')
+            withdrawalFee = self.safe_string(chain, 'withdrawal_fee')
+            precision = self.parse_precision(self.safe_string_2(chain, 'withdrawal_scale', 'scale'))
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'margin': None,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': self.parse_number(currencyMaxPrecision),
+                'fee': self.parse_number(withdrawalFee),
+                'precision': self.parse_number(precision),
                 'limits': {
-                    'amount': {
-                        'min': None,
+                    'deposit': {
+                        'min': minDepositAmount,
                         'max': None,
                     },
                     'withdraw': {
-                        'min': None,
+                        'min': minWithdrawalAmount,
                         'max': None,
                     },
                 },
-                'networks': networks,
-            })
-        return result
+                'info': chain,
+            }
+        chainLength = len(chains)
+        type: Str = None
+        if self.safe_bool(rawCurrency, 'is_fiat'):
+            type = 'fiat'
+        elif chainLength == 0:
+            if self.is_leveraged_currency(id):
+                type = 'leveraged'
+            else:
+                type = 'other'
+        else:
+            type = 'crypto'
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'name': name,
+            'type': type,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': self.parse_number(currencyMaxPrecision),
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -1215,15 +1214,18 @@ class bigone(Exchange, ImplicitAPI):
         makerFeeCost = self.safe_string(trade, 'maker_fee')
         takerFeeCost = self.safe_string(trade, 'taker_fee')
         if makerFeeCost is not None:
+            makerCode = makerCurrencyCode
             if takerFeeCost is not None:
+                takerCode = takerCurrencyCode
                 result['fees'] = [
-                    {'cost': makerFeeCost, 'currency': makerCurrencyCode},
-                    {'cost': takerFeeCost, 'currency': takerCurrencyCode},
+                    {'cost': makerFeeCost, 'currency': makerCode},
+                    {'cost': takerFeeCost, 'currency': takerCode},
                 ]
             else:
-                result['fee'] = {'cost': makerFeeCost, 'currency': makerCurrencyCode}
+                result['fee'] = {'cost': makerFeeCost, 'currency': makerCode}
         elif takerFeeCost is not None:
-            result['fee'] = {'cost': takerFeeCost, 'currency': takerCurrencyCode}
+            takerCode2 = takerCurrencyCode
+            result['fee'] = {'cost': takerFeeCost, 'currency': takerCode2}
         else:
             result['fee'] = None
         return self.safe_trade(result, market)
@@ -1925,7 +1927,7 @@ class bigone(Exchange, ImplicitAPI):
         return {
             'info': response,
             'currency': code,
-            'network': self.network_id_to_code(selectedNetworkId),
+            'network': self.network_id_to_code(selectedNetworkId, code),
             'address': address,
             'tag': tag,
         }
@@ -2225,7 +2227,7 @@ class bigone(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['gateway_name'] = self.network_code_to_id(networkCode)
+            request['gateway_name'] = self.network_code_to_id(networkCode, currency['code'])
         # requires write permission on the wallet
         response = self.privatePostWithdrawals(self.extend(request, params))
         #

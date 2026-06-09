@@ -618,56 +618,54 @@ export default class coinsph extends Exchange {
         //        }
         //    ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const id = this.safeString(entry, 'coin');
-            const code = this.safeCurrencyCode(id);
-            const isFiat = this.safeBool(entry, 'isLegalMoney');
-            const networkList = this.safeList(entry, 'networkList', []);
-            const networks = {};
-            for (let j = 0; j < networkList.length; j++) {
-                const networkItem = networkList[j];
-                const network = this.safeString(networkItem, 'network');
-                const networkCode = this.networkIdToCode(network);
-                networks[networkCode] = {
-                    'info': networkItem,
-                    'id': network,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.safeBool(networkItem, 'depositEnable'),
-                    'withdraw': this.safeBool(networkItem, 'withdrawEnable'),
-                    'fee': this.safeNumber(networkItem, 'withdrawFee'),
-                    'precision': this.safeNumber(networkItem, 'withdrawIntegerMultiple'),
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(networkItem, 'withdrawMin'),
-                            'max': this.safeNumber(networkItem, 'withdrawMax'),
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'name': this.safeString(entry, 'name'),
-                'code': code,
-                'type': isFiat ? 'fiat' : 'crypto',
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(entry, 'transferPrecision'))),
-                'info': entry,
+        return this.parseCurrencies(response);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'coin');
+        const code = this.safeCurrencyCode(id);
+        const isFiat = this.safeBool(rawCurrency, 'isLegalMoney');
+        const networkList = this.safeList(rawCurrency, 'networkList', []);
+        const networks = {};
+        for (let j = 0; j < networkList.length; j++) {
+            const networkItem = networkList[j];
+            const network = this.safeString(networkItem, 'network');
+            const networkCode = this.networkIdToCode(network, code);
+            networks[networkCode] = {
+                'info': networkItem,
+                'id': network,
+                'network': networkCode,
                 'active': undefined,
-                'deposit': this.safeBool(entry, 'depositAllEnable'),
-                'withdraw': this.safeBool(entry, 'withdrawAllEnable'),
-                'networks': networks,
-                'fee': undefined,
-                'fees': undefined,
-                'limits': {},
-            });
+                'deposit': this.safeBool(networkItem, 'depositEnable'),
+                'withdraw': this.safeBool(networkItem, 'withdrawEnable'),
+                'fee': this.safeNumber(networkItem, 'withdrawFee'),
+                'precision': this.safeNumber(networkItem, 'withdrawIntegerMultiple'),
+                'limits': {
+                    'withdraw': {
+                        'min': this.safeNumber(networkItem, 'withdrawMin'),
+                        'max': this.safeNumber(networkItem, 'withdrawMax'),
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'name': this.safeString(rawCurrency, 'name'),
+            'code': code,
+            'type': isFiat ? 'fiat' : 'crypto',
+            'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'transferPrecision'))),
+            'info': rawCurrency,
+            'active': undefined,
+            'deposit': this.safeBool(rawCurrency, 'depositAllEnable'),
+            'withdraw': this.safeBool(rawCurrency, 'withdrawAllEnable'),
+            'networks': networks,
+            'fee': undefined,
+            'fees': undefined,
+            'limits': {},
+        });
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
@@ -1280,12 +1278,12 @@ export default class coinsph extends Exchange {
                 'currency': this.safeCurrencyCode(feeCurrencyId),
             };
         }
-        const isBuyer = this.safeBool2(trade, 'isBuyer', 'isBuyerMaker', undefined);
+        const isBuyer = this.safeBool2(trade, 'isBuyer', 'isBuyerMaker');
         let side = undefined;
         if (isBuyer !== undefined) {
             side = (isBuyer === true) ? 'buy' : 'sell';
         }
-        const isMaker = this.safeString2(trade, 'isMaker', undefined);
+        const isMaker = this.safeString(trade, 'isMaker');
         let takerOrMaker = undefined;
         if (isMaker !== undefined) {
             takerOrMaker = (isMaker === 'true') ? 'maker' : 'taker';
@@ -1680,7 +1678,7 @@ export default class coinsph extends Exchange {
         const marketId = this.safeString(order, 'symbol');
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger2(order, 'time', 'transactTime');
-        const trades = this.safeValue(order, 'fills', undefined);
+        const trades = this.safeValue(order, 'fills');
         let triggerPrice = this.safeString(order, 'stopPrice');
         if (Precise.stringEq(triggerPrice, '0')) {
             triggerPrice = undefined;
@@ -2221,7 +2219,7 @@ export default class coinsph extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        const responseCode = this.safeString(response, 'code', undefined);
+        const responseCode = this.safeString(response, 'code');
         if ((responseCode !== undefined) && (responseCode !== '200') && (responseCode !== '0')) {
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);

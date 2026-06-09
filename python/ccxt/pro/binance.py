@@ -235,8 +235,13 @@ class binance(ccxt.async_support.binance):
         baseUrl = self.urls['api']['ws'][type]
         if type == 'future':
             # skip URL manipulation for proxied/bridge URLs(contain an embedded protocol)
-            firstProtocol = baseUrl.find('://')
-            if firstProtocol != -1 and baseUrl.find('://', firstProtocol + 3) != -1:
+            # firstProtocol = baseUrl.find('://')
+            # if firstProtocol != -1 and baseUrl.find('://', firstProtocol + 3) != -1:
+            #     return baseUrl
+            # }
+            baseUrlSplit = baseUrl.split('://')
+            baseUrlSplitLength = len(baseUrlSplit)
+            if baseUrlSplitLength > 2:
                 return baseUrl
             # only rewrite when the URL ends with exactly "/ws"
             # self avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
@@ -1417,7 +1422,7 @@ class binance(ccxt.async_support.binance):
             type = 'future' if firstMarket['linear'] else 'delivery'
         isSpot = (type == 'spot')
         timezone = None
-        timezone, params = self.handle_param_string(params, 'timezone', None)
+        timezone, params = self.handle_param_string(params, 'timezone')
         isUtc8 = (timezone is not None) and ((timezone == '+08:00') or Precise.string_eq(timezone, '8'))
         rawHashes = []
         messageHashes = []
@@ -1478,7 +1483,7 @@ class binance(ccxt.async_support.binance):
             type = 'future' if firstMarket['linear'] else 'delivery'
         isSpot = (type == 'spot')
         timezone = None
-        timezone, params = self.handle_param_string(params, 'timezone', None)
+        timezone, params = self.handle_param_string(params, 'timezone')
         isUtc8 = (timezone is not None) and ((timezone == '+08:00') or Precise.string_eq(timezone, '8'))
         rawHashes = []
         subMessageHashes = []
@@ -2110,7 +2115,7 @@ class binance(ccxt.async_support.binance):
         #        "status":200,
         #        "result":{
         #            "symbol":"BTCUSDT",
-        #            "price":"73178.50",
+        #            "price":"73178.60",
         #            "time":1712527052374
         #        }
         #    }
@@ -2256,7 +2261,7 @@ class binance(ccxt.async_support.binance):
     async def ensure_user_data_stream_ws_subscribe_signature(self, marketType: str = 'spot'):
         """
         watches best bid & ask for symbols
- @param marketType {string} only support on 'spot'
+        :param str [marketType]: only supports 'spot'
 
         {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
 
@@ -3431,8 +3436,8 @@ class binance(ccxt.async_support.binance):
         await self.load_markets()
         market = self.market(symbol)
         type = self.get_market_type('fetchOpenOrdersWs', market, params)
-        if type != 'spot' and type != 'future':
-            raise BadRequest(self.id + ' fetchOpenOrdersWs only supports spot or swap markets')
+        if type != 'spot':
+            raise BadRequest(self.id + ' fetchOpenOrdersWs only supports spot markets')
         url = self.urls['api']['ws']['ws-api'][type]
         requestId = self.request_id(url)
         messageHash = str(requestId)

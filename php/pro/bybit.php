@@ -18,7 +18,12 @@ use \React\Promise\PromiseInterface;
 class bybit extends \ccxt\async\bybit {
 
     public function describe(): mixed {
-        return $this->deep_extend(parent::describe(), array(
+        $superDescribe = parent::describe();
+        return $this->deep_extend($superDescribe, $this->describe_data());
+    }
+
+    public function describe_data(): mixed {
+        return array(
             'has' => array(
                 'ws' => true,
                 'createOrderWs' => true,
@@ -171,7 +176,7 @@ class bybit extends \ccxt\async\bybit {
                 'ping' => array($this, 'ping'),
                 'keepAlive' => 18000,
             ),
-        ));
+        );
     }
 
     public function request_id() {
@@ -1077,7 +1082,7 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function handle_delta($bookside, $delta) {
-        $bidAsk = $this->parse_bid_ask($delta, 0, 1);
+        $bidAsk = $this->parse_order_book_bid_ask($delta, 0, 1);
         $bookside->storeArray ($bidAsk);
     }
 

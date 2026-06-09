@@ -527,6 +527,10 @@ func (this *MexcCore) ContractPrivateGetOrderListOpenOrdersSymbol(args ...any) <
 	return this.callEndpointAsync("contractPrivateGetOrderListOpenOrdersSymbol", args...)
 }
 
+func (this *MexcCore) ContractPrivateGetOrderListOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivateGetOrderListOpenOrders", args...)
+}
+
 func (this *MexcCore) ContractPrivateGetOrderListHistoryOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetOrderListHistoryOrders", args...)
 }

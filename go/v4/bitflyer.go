@@ -1520,7 +1520,8 @@ func (this *BitflyerCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
 		var nonce any = ToString(this.Nonce())
-		var auth any = Join([]any{nonce, method, request}, "")
+		var content any = []any{nonce, method, request}
+		var auth any = Join(content, "")
 		if IsTrue(GetArrayLength(ObjectKeys(params))) {
 			if IsTrue(!IsEqual(method, "GET")) {
 				body = this.Json(params)

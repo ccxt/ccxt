@@ -1039,7 +1039,9 @@ class cryptocom extends cryptocom$1["default"] {
         }
         client.resolve(this.balance, messageHash);
         const messageHashRequest = this.safeString(message, 'id');
-        client.resolve(this.balance, messageHashRequest);
+        if (messageHashRequest !== undefined) {
+            client.resolve(this.balance, messageHashRequest);
+        }
     }
     /**
      * @method

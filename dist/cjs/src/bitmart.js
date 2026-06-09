@@ -1261,7 +1261,7 @@ class bitmart extends bitmart$1["default"] {
                     'type': isNtf ? 'other' : 'crypto',
                 };
             }
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, currencyCode);
             const withdraw = this.safeBool(currency, 'withdraw_enabled');
             const deposit = this.safeBool(currency, 'deposit_enabled');
             entry['networks'][networkCode] = {
@@ -2979,8 +2979,10 @@ class bitmart extends bitmart$1["default"] {
         }
         const request = {
             'symbol': market['id'],
-            'size': parseInt(this.amountToPrecision(symbol, amount)),
         };
+        if (amount !== undefined) {
+            request['size'] = parseInt(this.amountToPrecision(symbol, amount));
+        }
         const timeInForce = this.safeString(params, 'timeInForce');
         const mode = this.safeInteger(params, 'mode'); // only for swap
         const isMarketOrder = type === 'market';
@@ -3044,7 +3046,11 @@ class bitmart extends bitmart$1["default"] {
         if (isStopLoss || isTakeProfit) {
             reduceOnly = true;
             request['price_type'] = this.safeInteger(params, 'price_type', 1);
-            request['executive_price'] = this.priceToPrecision(symbol, price);
+            if (price !== undefined) {
+                request['executive_price'] = this.priceToPrecision(symbol, price);
+            }
+            const marketOrLimitStr = isLimitOrder ? 'limit' : 'market';
+            request['category'] = this.safeString(params, 'category', marketOrLimitStr);
             if (isStopLoss) {
                 request['trigger_price'] = this.priceToPrecision(symbol, stopLossPrice);
             }
@@ -3301,9 +3307,9 @@ class bitmart extends bitmart$1["default"] {
         }
         const succeeded = this.safeValue(data, 'succeed');
         if (succeeded !== undefined) {
-            id = this.safeString(succeeded, 0);
-            if (id === undefined) {
-                throw new errors.InvalidOrder(this.id + ' cancelOrder() failed to cancel ' + symbol + ' order id ' + id);
+            const id2 = this.safeString(succeeded, 0);
+            if (id2 === undefined) {
+                throw new errors.InvalidOrder(this.id + ' cancelOrder() failed to cancel ' + symbol + ' order id ' + id2);
             }
         }
         else {
@@ -3926,11 +3932,12 @@ class bitmart extends bitmart$1["default"] {
         }
         const address = this.safeString(depositAddress, 'address');
         currency = this.safeCurrency(currencyId, currency);
+        const code = this.safeString(currency, 'code');
         this.checkAddress(address);
         return {
             'info': depositAddress,
-            'currency': this.safeString(currency, 'code'),
-            'network': this.networkIdToCode(network),
+            'currency': code,
+            'network': this.networkIdToCode(network, code),
             'address': address,
             'tag': this.safeString2(depositAddress, 'address_memo', 'memo'),
         };
@@ -4222,7 +4229,7 @@ class bitmart extends bitmart$1["default"] {
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'addressFrom': undefined,
             'addressTo': undefined,
@@ -4641,8 +4648,9 @@ class bitmart extends bitmart$1["default"] {
         if (limit === undefined) {
             limit = 10;
         }
+        const pageNumber = this.safeInteger(params, 'page', 1);
         const request = {
-            'page': this.safeInteger(params, 'page', 1),
+            'page': pageNumber,
             'limit': limit, // default is 10, max is 100
         };
         let currency = undefined;

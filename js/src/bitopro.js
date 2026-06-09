@@ -350,7 +350,6 @@ export default class bitopro extends Exchange {
      */
     async fetchCurrencies(params = {}) {
         const response = await this.publicGetProvisioningCurrencies(params);
-        const currencies = this.safeList(response, 'data', []);
         //
         //     {
         //         "data":[
@@ -367,44 +366,39 @@ export default class bitopro extends Exchange {
         //         ]
         //     }
         //
-        const result = {};
+        const currencies = this.safeList(response, 'data', []);
+        return this.parseCurrencies(currencies);
+    }
+    parseCurrency(rawCurrency) {
         const fiatCurrencies = this.safeList(this.options, 'fiatCurrencies', []);
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const currencyId = this.safeString(currency, 'currency');
-            const code = this.safeCurrencyCode(currencyId);
-            const deposit = this.safeBool(currency, 'deposit');
-            const withdraw = this.safeBool(currency, 'withdraw');
-            const fee = this.safeNumber(currency, 'withdrawFee');
-            const withdrawMin = this.safeNumber(currency, 'minWithdraw');
-            const withdrawMax = this.safeNumber(currency, 'maxWithdraw');
-            const limits = {
+        const currencyId = this.safeString(rawCurrency, 'currency');
+        const code = this.safeCurrencyCode(currencyId);
+        const deposit = this.safeBool(rawCurrency, 'deposit');
+        const withdraw = this.safeBool(rawCurrency, 'withdraw');
+        const isFiat = this.inArray(code, fiatCurrencies);
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'code': code,
+            'info': rawCurrency,
+            'type': isFiat ? 'fiat' : 'crypto',
+            'name': undefined,
+            'active': deposit && withdraw,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': this.safeNumber(rawCurrency, 'withdrawFee'),
+            'precision': undefined,
+            'limits': {
                 'withdraw': {
-                    'min': withdrawMin,
-                    'max': withdrawMax,
+                    'min': this.safeNumber(rawCurrency, 'minWithdraw'),
+                    'max': this.safeNumber(rawCurrency, 'maxWithdraw'),
                 },
                 'amount': {
                     'min': undefined,
                     'max': undefined,
                 },
-            };
-            const isFiat = this.inArray(code, fiatCurrencies);
-            result[code] = {
-                'id': currencyId,
-                'code': code,
-                'info': currency,
-                'type': isFiat ? 'fiat' : 'crypto',
-                'name': undefined,
-                'active': deposit && withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': fee,
-                'precision': undefined,
-                'limits': limits,
-                'networks': undefined,
-            };
-        }
-        return result;
+            },
+            'networks': undefined,
+        });
     }
     /**
      * @method
@@ -1027,7 +1021,7 @@ export default class bitopro extends Exchange {
             '4': 'canceled',
             '6': 'canceled',
         };
-        return this.safeString(statuses, status, undefined);
+        return this.safeString(statuses, status);
     }
     parseOrder(order, market = undefined) {
         //
@@ -1564,7 +1558,7 @@ export default class bitopro extends Exchange {
             'txid': this.safeString(transaction, 'txid'),
             'type': undefined,
             'currency': code,
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'amount': this.safeNumber(transaction, 'total'),
             'status': this.parseTransactionStatus(status),
             'timestamp': timestamp,

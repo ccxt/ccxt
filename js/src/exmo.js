@@ -391,9 +391,7 @@ export default class exmo extends Exchange {
         if (method === 'fetchPrivateTradingFees') {
             return await this.fetchPrivateTradingFees(params);
         }
-        else {
-            return await this.fetchPublicTradingFees(params);
-        }
+        return await this.fetchPublicTradingFees(params);
     }
     async fetchPrivateTradingFees(params = {}) {
         await this.loadMarkets();
@@ -634,7 +632,10 @@ export default class exmo extends Exchange {
             const provider = fee[i];
             const type = this.safeString(provider, 'type');
             const networkId = this.safeString(provider, 'name');
-            const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
+            const currencyId = this.safeString(provider, 'currency_name');
+            currency = this.safeCurrency(currencyId, currency);
+            const code = this.safeString(currency, 'code');
+            const networkCode = this.networkIdToCode(networkId, code);
             const commissionDesc = this.safeString(provider, 'commission_desc');
             let splitCommissionDesc = [];
             let percentage = undefined;
@@ -712,97 +713,103 @@ export default class exmo extends Exchange {
         const responses = await Promise.all(promises);
         const currencyList = responses[0];
         const cryptoList = responses[1];
-        const result = {};
+        const newArray = [];
         for (let i = 0; i < currencyList.length; i++) {
             const currency = currencyList[i];
             const currencyId = this.safeString(currency, 'name');
-            const code = this.safeCurrencyCode(currencyId);
-            let type = 'crypto';
-            const networks = {};
             const providers = this.safeList(cryptoList, currencyId);
-            if (providers === undefined) {
-                type = 'fiat';
-            }
-            else {
-                for (let j = 0; j < providers.length; j++) {
-                    const provider = providers[j];
-                    const name = this.safeString(provider, 'name');
-                    // get network-id by removing extra things
-                    let networkId = name.replace(currencyId + ' ', '');
-                    networkId = networkId.replace('(', '');
-                    const replaceChar = ')'; // transpiler trick
-                    networkId = networkId.replace(replaceChar, '');
-                    const networkCode = this.networkIdToCode(networkId);
-                    if (!(networkCode in networks)) {
-                        networks[networkCode] = {
-                            'id': networkId,
-                            'network': networkCode,
-                            'active': undefined,
-                            'deposit': undefined,
-                            'withdraw': undefined,
-                            'fee': undefined,
-                            'limits': {
-                                'withdraw': {
-                                    'min': undefined,
-                                    'max': undefined,
-                                },
-                                'deposit': {
-                                    'min': undefined,
-                                    'max': undefined,
-                                },
-                            },
-                            'info': [], // set as array, because of multiple network sub-entries
-                        };
-                    }
-                    const typeInner = this.safeString(provider, 'type');
-                    const minValue = this.safeString(provider, 'min');
-                    const maxValue = this.safeString(provider, 'max');
-                    const activeProvider = this.safeBool(provider, 'enabled');
-                    const networkEntry = networks[networkCode];
-                    if (typeInner === 'deposit') {
-                        networkEntry['deposit'] = activeProvider;
-                        networkEntry['limits']['deposit']['min'] = minValue;
-                        networkEntry['limits']['deposit']['max'] = maxValue;
-                    }
-                    else if (typeInner === 'withdraw') {
-                        networkEntry['withdraw'] = activeProvider;
-                        networkEntry['limits']['withdraw']['min'] = minValue;
-                        networkEntry['limits']['withdraw']['max'] = maxValue;
-                    }
-                    const info = this.safeList(networkEntry, 'info');
-                    info.push(provider);
-                    networkEntry['info'] = info;
-                    networks[networkCode] = networkEntry;
-                }
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': currencyId,
-                'code': code,
-                'name': this.safeString(currency, 'description'),
-                'type': type,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': this.parseNumber('1e-8'),
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': {
-                    'currency': currency,
-                    'providers': providers,
-                },
-                'networks': networks,
-            });
+            newArray.push({ 'currency': currency, 'providers': providers });
         }
-        return result;
+        return this.parseCurrencies(newArray);
+    }
+    parseCurrency(rawCurrency) {
+        const currency = this.safeDict(rawCurrency, 'currency', {});
+        const providers = this.safeList(rawCurrency, 'providers', []);
+        const currencyId = this.safeString(currency, 'name');
+        const code = this.safeCurrencyCode(currencyId);
+        let type = 'crypto';
+        const networks = {};
+        if (providers === undefined) {
+            type = 'fiat';
+        }
+        else {
+            for (let j = 0; j < providers.length; j++) {
+                const provider = providers[j];
+                const name = this.safeString(provider, 'name');
+                // get network-id by removing extra things
+                let networkId = name.replace(currencyId + ' ', '');
+                networkId = networkId.replace('(', '');
+                const replaceChar = ')'; // transpiler trick
+                networkId = networkId.replace(replaceChar, '');
+                const networkCode = this.networkIdToCode(networkId, code);
+                if (!(networkCode in networks)) {
+                    networks[networkCode] = {
+                        'id': networkId,
+                        'network': networkCode,
+                        'active': undefined,
+                        'deposit': undefined,
+                        'withdraw': undefined,
+                        'fee': undefined,
+                        'limits': {
+                            'withdraw': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'deposit': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                        },
+                        'info': [], // set as array, because of multiple network sub-entries
+                    };
+                }
+                const typeInner = this.safeString(provider, 'type');
+                const minValue = this.safeString(provider, 'min');
+                const maxValue = this.safeString(provider, 'max');
+                const activeProvider = this.safeBool(provider, 'enabled');
+                const networkEntry = networks[networkCode];
+                if (typeInner === 'deposit') {
+                    networkEntry['deposit'] = activeProvider;
+                    networkEntry['limits']['deposit']['min'] = minValue;
+                    networkEntry['limits']['deposit']['max'] = maxValue;
+                }
+                else if (typeInner === 'withdraw') {
+                    networkEntry['withdraw'] = activeProvider;
+                    networkEntry['limits']['withdraw']['min'] = minValue;
+                    networkEntry['limits']['withdraw']['max'] = maxValue;
+                }
+                const info = this.safeList(networkEntry, 'info');
+                info.push(provider);
+                networkEntry['info'] = info;
+                networks[networkCode] = networkEntry;
+            }
+        }
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'code': code,
+            'name': this.safeString(currency, 'description'),
+            'type': type,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': this.parseNumber('1e-8'),
+            'limits': {
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': {
+                'currency': currency,
+                'providers': providers,
+            },
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -1146,7 +1153,8 @@ export default class exmo extends Exchange {
         await this.loadMarkets();
         let ids = undefined;
         if (symbols === undefined) {
-            ids = this.ids.join(',');
+            const allIds = this.ids;
+            ids = allIds.join(',');
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > 2048) {
                 const numIds = this.ids.length;
@@ -2169,43 +2177,17 @@ export default class exmo extends Exchange {
             });
             return this.parseOrders(response, market, since, limit, params);
         }
-        else {
-            const responseSwap = await this.privatePostMarginUserOrderHistory(this.extend(request, params));
-            //
-            //    {
-            //        "items": [
-            //            {
-            //                "event_id": "692862104574106858",
-            //                "event_time": "1694116400173489405",
-            //                "event_type": "OrderCancelStarted",
-            //                "order_id": "692862104561289319",
-            //                "order_type": "stop_limit_sell",
-            //                "order_status": "cancel_started",
-            //                "trade_id": "0",
-            //                "trade_type":"",
-            //                "trade_quantity": "0",
-            //                "trade_price": "0",
-            //                "pair": "ADA_USDT",
-            //                "quantity": "12",
-            //                "price": "0.23",
-            //                "stop_price": "0.22",
-            //                "distance": "0"
-            //            }
-            //            ...
-            //        ]
-            //    }
-            //
-            const items = this.safeValue(responseSwap, 'items');
-            const orders = this.parseOrders(items, market, since, limit, params);
-            const result = [];
-            for (let i = 0; i < orders.length; i++) {
-                const order = orders[i];
-                if (order['status'] === 'canceled') {
-                    result.push(order);
-                }
+        const responseSwap = await this.privatePostMarginUserOrderHistory(this.extend(request, params));
+        const items = this.safeValue(responseSwap, 'items');
+        const orders = this.parseOrders(items, market, since, limit, params);
+        const result = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            if (order['status'] === 'canceled') {
+                result.push(order);
             }
-            return result;
         }
+        return result;
     }
     /**
      * @method

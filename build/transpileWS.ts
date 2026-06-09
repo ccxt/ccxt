@@ -324,7 +324,9 @@ if (isMainEntry(import.meta.url)) { // called directly like `node module`
         transpiler.transpileWsTests ()
     }
     else if (multiprocess) {
-        parallelizeTranspiling (exchanges.ws, undefined, force, pythonOnly, phpOnly)
+        (async () => {
+            await parallelizeTranspiling (exchanges.ws, undefined, force, pythonOnly, phpOnly)
+        })()
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)

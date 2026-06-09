@@ -1017,63 +1017,74 @@ class woo(Exchange, ImplicitAPI):
         tokensById = self.group_by(tokenRows, 'balance_token')
         currencyIds = list(tokensById.keys())
         for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
-            code = self.safe_currency_code(currencyId)
-            tokensByNetworkId = self.index_by(tokensById[currencyId], 'network')
-            chainsByNetworkId = self.index_by(networksById[currencyId], 'network')
-            keys = list(chainsByNetworkId.keys())
-            resultingNetworks: dict = {}
-            for j in range(0, len(keys)):
-                networkId = keys[j]
-                tokenEntry = self.safe_dict(tokensByNetworkId, networkId, {})
-                networkEntry = self.safe_dict(chainsByNetworkId, networkId, {})
-                networkCode = self.network_id_to_code(networkId, code)
-                specialNetworkId = self.safe_string(tokenEntry, 'token')
-                resultingNetworks[networkCode] = {
-                    'id': networkId,
-                    'currencyNetworkId': specialNetworkId,  # exchange uses special crrency-ids(coin + network junction)
-                    'network': networkCode,
-                    'active': None,
-                    'deposit': self.safe_string(networkEntry, 'allow_deposit') == '1',
-                    'withdraw': self.safe_string(networkEntry, 'allow_withdraw') == '1',
-                    'fee': self.safe_number(networkEntry, 'withdrawal_fee'),
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(tokenEntry, 'decimals'))),
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(networkEntry, 'minimum_withdrawal'),
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                    'info': [networkEntry, tokenEntry],
-                }
-            result[code] = self.safe_currency_structure({
-                'id': currencyId,
-                'name': None,
-                'code': code,
-                'precision': None,
+            id = currencyIds[i]
+            customCurrency = {
+                '_coin_id': id,
+                '_tokens_by_id': tokensById[id],
+                '_networks_by_id': networksById[id],
+            }
+            parsed = self.parse_currency(customCurrency)
+            code = parsed['code']
+            result[code] = parsed
+        return result
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        currencyId = self.safe_string(rawCurrency, '_coin_id')
+        code = self.safe_currency_code(currencyId)
+        tokensByNetworkId = self.index_by(rawCurrency['_tokens_by_id'], 'network')
+        chainsByNetworkId = self.index_by(rawCurrency['_networks_by_id'], 'network')
+        keys = list(chainsByNetworkId.keys())
+        resultingNetworks: dict = {}
+        for j in range(0, len(keys)):
+            networkId = keys[j]
+            tokenEntry = self.safe_dict(tokensByNetworkId, networkId, {})
+            networkEntry = self.safe_dict(chainsByNetworkId, networkId, {})
+            networkCode = self.network_id_to_code(networkId, code)
+            specialNetworkId = self.safe_string(tokenEntry, 'token')
+            resultingNetworks[networkCode] = {
+                'id': networkId,
+                'currencyNetworkId': specialNetworkId,  # exchange uses special crrency-ids(coin + network junction)
+                'network': networkCode,
                 'active': None,
-                'fee': None,
-                'networks': resultingNetworks,
-                'deposit': None,
-                'withdraw': None,
-                'type': 'crypto',
+                'deposit': self.safe_string(networkEntry, 'allow_deposit') == '1',
+                'withdraw': self.safe_string(networkEntry, 'allow_withdraw') == '1',
+                'fee': self.safe_number(networkEntry, 'withdrawal_fee'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(tokenEntry, 'decimals'))),
                 'limits': {
+                    'withdraw': {
+                        'min': self.safe_number(networkEntry, 'minimum_withdrawal'),
+                        'max': None,
+                    },
                     'deposit': {
                         'min': None,
                         'max': None,
                     },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
                 },
-                'info': [tokensByNetworkId, chainsByNetworkId],
-            })
-        return result
+                'info': {'network': networkEntry, 'token': tokenEntry},
+            }
+        return self.safe_currency_structure({
+            'id': currencyId,
+            'name': None,
+            'code': code,
+            'precision': None,
+            'active': None,
+            'fee': None,
+            'networks': resultingNetworks,
+            'deposit': None,
+            'withdraw': None,
+            'type': 'crypto',
+            'limits': {
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'info': rawCurrency,
+        })
 
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -1831,7 +1842,7 @@ class woo(Exchange, ImplicitAPI):
             'fok': 'FOK',
             'post_only': 'PO',
         }
-        return self.safe_string(timeInForces, timeInForce, None)
+        return self.safe_string(timeInForces, timeInForce)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
@@ -2449,7 +2460,7 @@ class woo(Exchange, ImplicitAPI):
         #                 {
         #                     "createdTime": "1734964440.523",
         #                     "updatedTime": "1734964614.081",
-        #                     "id": "24122314340000585",
+        #                     "id": "24122314340000586",
         #                     "externalId": "241223143600621",
         #                     "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
         #                     "token": "ARB_USDCNATIVE",

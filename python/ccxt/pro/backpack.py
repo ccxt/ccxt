@@ -680,9 +680,15 @@ class backpack(ccxt.async_support.backpack):
         id = self.safe_string(trade, 't')
         marketId = self.safe_string(trade, 's')
         market = self.safe_market(marketId, market)
-        isMaker = self.safe_bool(trade, 'm')
-        side = 'sell' if isMaker else 'buy'
-        takerOrMaker = 'maker' if isMaker else 'taker'
+        isBuyerMaker = self.safe_bool(trade, 'm')
+        side: Str = None
+        takerOrMaker: Str = None
+        if isBuyerMaker is not None:
+            takerOrMaker = 'taker'
+            if isBuyerMaker:
+                side = 'sell'
+            else:
+                side = 'buy'
         price = self.safe_string(trade, 'p')
         amount = self.safe_string(trade, 'q')
         orderId = None
@@ -834,7 +840,7 @@ class backpack(ccxt.async_support.backpack):
 
     def handle_bid_asks(self, bookSide, bidAsks):
         for i in range(0, len(bidAsks)):
-            bidAsk = self.parse_bid_ask(bidAsks[i])
+            bidAsk = self.parse_order_book_bid_ask(bidAsks[i])
             bookSide.storeArray(bidAsk)
 
     def get_cache_index(self, orderbook, cache):

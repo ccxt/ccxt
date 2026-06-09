@@ -447,7 +447,6 @@ export default class bitrue extends Exchange {
                     'XML': 'Stellar Lumens',
                     'XYM': 'Symbol',
                     'XTZ': 'Tezos',
-                    'theta': 'theta',
                     'THETA': 'THETA',
                     'VECHAIN': 'VeChain',
                     'WANCHAIN': 'Wanchain',
@@ -598,6 +597,7 @@ export default class bitrue extends Exchange {
                     "You don't have permission.": PermissionDenied, // {"msg":"You don't have permission.","success":false}
                     'Market is closed.': ExchangeNotAvailable, // {"code":-1013,"msg":"Market is closed."}
                     'Too many requests. Please try again later.': DDoSProtection, // {"msg":"Too many requests. Please try again later.","success":false}
+                    'quantity less then minQty': InvalidOrder, // {"code":-1111,"msg":"quantity less then minQty.","data":null}
                     '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable, // 'Internal error; unable to process your request. Please try again.'
                     '-1002': AuthenticationError, // 'You are not authorized to execute this request.'
@@ -767,58 +767,57 @@ export default class bitrue extends Exchange {
         //         ],
         //     }
         //
-        const result: Dict = {};
         const coins = this.safeList (response, 'coins', []);
-        for (let i = 0; i < coins.length; i++) {
-            const currency = coins[i];
-            const id = this.safeString (currency, 'coin');
-            const name = this.safeString (currency, 'coinFulName');
-            const code = this.safeCurrencyCode (id);
-            const networkDetails = this.safeList (currency, 'chainDetail', []);
-            const networks: Dict = {};
-            for (let j = 0; j < networkDetails.length; j++) {
-                const entry = networkDetails[j];
-                const networkId = this.safeString (entry, 'chain');
-                const network = this.networkIdToCode (networkId, code);
-                networks[network] = {
-                    'info': entry,
-                    'id': networkId,
-                    'network': network,
-                    'deposit': this.safeBool (entry, 'enableDeposit'),
-                    'withdraw': this.safeBool (entry, 'enableWithdraw'),
-                    'active': undefined,
-                    'fee': this.safeNumber (entry, 'withdrawFee'),
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber (entry, 'minWithdraw'),
-                            'max': this.safeNumber (entry, 'maxWithdraw'),
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'name': name,
-                'code': code,
-                'precision': undefined,
-                'info': currency,
+        return this.parseCurrencies (coins);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const id = this.safeString (rawCurrency, 'coin');
+        const name = this.safeString (rawCurrency, 'coinFulName');
+        const code = this.safeCurrencyCode (id);
+        const networkDetails = this.safeList (rawCurrency, 'chainDetail', []);
+        const networks: Dict = {};
+        for (let j = 0; j < networkDetails.length; j++) {
+            const entry = networkDetails[j];
+            const networkId = this.safeString (entry, 'chain');
+            const network = this.networkIdToCode (networkId, code);
+            networks[network] = {
+                'info': entry,
+                'id': networkId,
+                'network': network,
+                'deposit': this.safeBool (entry, 'enableDeposit'),
+                'withdraw': this.safeBool (entry, 'enableWithdraw'),
                 'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'networks': networks,
-                'fee': undefined,
-                'fees': undefined,
-                'type': 'crypto',
+                'fee': this.safeNumber (entry, 'withdrawFee'),
+                'precision': undefined,
                 'limits': {
                     'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber (entry, 'minWithdraw'),
+                        'max': this.safeNumber (entry, 'maxWithdraw'),
                     },
                 },
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'name': name,
+            'code': code,
+            'precision': undefined,
+            'info': rawCurrency,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'networks': networks,
+            'fee': undefined,
+            'fees': undefined,
+            'type': 'crypto',
+            'limits': {
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+        });
     }
 
     /**
@@ -985,6 +984,7 @@ export default class bitrue extends Exchange {
         if (minCost === undefined) {
             minCost = this.safeNumber (market, 'minOrderMoney');
         }
+        const isSpot = (type === 'spot');
         return {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -996,7 +996,7 @@ export default class bitrue extends Exchange {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': (type === 'spot'),
+            'spot': isSpot,
             'margin': false,
             'swap': isContract,
             'future': false,
@@ -2887,7 +2887,7 @@ export default class bitrue extends Exchange {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chainName'] = this.networkCodeToId (networkCode);
+            request['chainName'] = this.networkCodeToId (networkCode, currency['code']);
         }
         if (tag !== undefined) {
             request['tag'] = tag;

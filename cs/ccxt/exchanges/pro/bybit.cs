@@ -9,7 +9,13 @@ public partial class bybit : ccxt.bybit
 {
     public override object describe()
     {
-        return this.deepExtend(base.describe(), new Dictionary<string, object>() {
+        object superDescribe = base.describe();
+        return this.deepExtend(superDescribe, this.describeData());
+    }
+
+    public virtual object describeData()
+    {
+        return new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
                 { "createOrderWs", true },
@@ -159,7 +165,7 @@ public partial class bybit : ccxt.bybit
                 { "ping", this.ping },
                 { "keepAlive", 18000 },
             } },
-        });
+        };
     }
 
     public virtual object requestId()
@@ -1108,7 +1114,7 @@ public partial class bybit : ccxt.bybit
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseBidAsk(delta, 0, 1);
+        object bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 

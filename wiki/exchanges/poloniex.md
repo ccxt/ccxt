@@ -146,7 +146,7 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
 
-**See**: https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information  
+**See**: https://api-docs.poloniex.com/spot/api/public/reference-data#currencyv2-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

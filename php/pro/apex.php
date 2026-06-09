@@ -96,8 +96,7 @@ class apex extends \ccxt\async\apex {
             if ($symbolsLength === 0) {
                 throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
             }
-            $timeStamp = (string) $this->milliseconds();
-            $url = $this->urls['api']['ws']['public'] . '&timestamp=' . $timeStamp;
+            $url = $this->get_ws_public_url();
             $topics = array();
             $messageHashes = array();
             for ($i = 0; $i < count($symbols); $i++) {
@@ -235,8 +234,7 @@ class apex extends \ccxt\async\apex {
                 throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
             }
             $symbols = $this->market_symbols($symbols);
-            $timeStamp = (string) $this->milliseconds();
-            $url = $this->urls['api']['ws']['public'] . '&timestamp=' . $timeStamp;
+            $url = $this->get_ws_public_url();
             $topics = array();
             $messageHashes = array();
             for ($i = 0; $i < count($symbols); $i++) {
@@ -257,13 +255,54 @@ class apex extends \ccxt\async\apex {
 
     public function watch_topics($url, $messageHashes, $topics, $params = array ()) {
         return Async\async(function () use ($url, $messageHashes, $topics, $params) {
-            $request = array(
-                'op' => 'subscribe',
-                'args' => $topics,
-            );
-            $message = $this->extend($request, $params);
+            // apex's server rejects a subscribe whose args include any
+            // already-subscribed topic ("topic:already subscribed ..."). Since the
+            // connection is now reused across watch* calls, filter to only the
+            // $topics whose messageHash isn't yet tracked on this $client; if all
+            // are already subscribed, skip the subscribe entirely.
+            $client = $this->client($url);
+            $newTopics = array();
+            $newTopicsCount = 0;
+            for ($i = 0; $i < count($topics); $i++) {
+                if (!(is_array($client->subscriptions) && array_key_exists($messageHashes[$i], $client->subscriptions))) {
+                    $newTopics[] = $topics[$i];
+                    $newTopicsCount = $newTopicsCount + 1;
+                }
+            }
+            $message = null;
+            if ($newTopicsCount > 0) {
+                $request = array(
+                    'op' => 'subscribe',
+                    'args' => $newTopics,
+                );
+                $message = $this->extend($request, $params);
+            }
             return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
         }) ();
+    }
+
+    public function get_ws_public_url() {
+        // apex appends a millisecond timestamp to the WS URL for connection-time
+        // signing. CCXT's client manager keys clients by URL, so recomputing the
+        // timestamp on every watch* call would open a new connection each time.
+        // Cache it per exchange instance.
+        $url = $this->safe_string($this->options, 'wsPublicUrl');
+        if ($url === null) {
+            $timeStamp = (string) $this->milliseconds();
+            $url = $this->urls['api']['ws']['public'] . '&timestamp=' . $timeStamp;
+            $this->options['wsPublicUrl'] = $url;
+        }
+        return $url;
+    }
+
+    public function get_ws_private_url() {
+        $url = $this->safe_string($this->options, 'wsPrivateUrl');
+        if ($url === null) {
+            $timeStamp = (string) $this->milliseconds();
+            $url = $this->urls['api']['ws']['private'] . '&timestamp=' . $timeStamp;
+            $this->options['wsPrivateUrl'] = $url;
+        }
+        return $url;
     }
 
     public function handle_order_book(Client $client, $message) {
@@ -328,7 +367,7 @@ class apex extends \ccxt\async\apex {
     }
 
     public function handle_delta($bookside, $delta) {
-        $bidAsk = $this->parse_bid_ask($delta, 0, 1);
+        $bidAsk = $this->parse_order_book_bid_ask($delta, 0, 1);
         $bookside->storeArray ($bidAsk);
     }
 
@@ -352,8 +391,7 @@ class apex extends \ccxt\async\apex {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $timeStamp = (string) $this->milliseconds();
-            $url = $this->urls['api']['ws']['public'] . '&timestamp=' . $timeStamp;
+            $url = $this->get_ws_public_url();
             $messageHash = 'ticker:' . $symbol;
             $topic = 'instrumentInfo' . '.H.' . $market['id2'];
             $topics = array( $topic );
@@ -375,8 +413,7 @@ class apex extends \ccxt\async\apex {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false);
             $messageHashes = array();
-            $timeStamp = (string) $this->milliseconds();
-            $url = $this->urls['api']['ws']['public'] . '&timestamp=' . $timeStamp;
+            $url = $this->get_ws_public_url();
             $topics = [ ];
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
@@ -479,8 +516,7 @@ class apex extends \ccxt\async\apex {
              * @return {array} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
-            $timeStamp = (string) $this->milliseconds();
-            $url = $this->urls['api']['ws']['public'] . '&timestamp=' . $timeStamp;
+            $url = $this->get_ws_public_url();
             $rawHashes = array();
             $messageHashes = array();
             for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
@@ -599,8 +635,7 @@ class apex extends \ccxt\async\apex {
                 $symbol = $this->symbol($symbol);
                 $messageHash .= ':' . $symbol;
             }
-            $timeStamp = (string) $this->milliseconds();
-            $url = $this->urls['api']['ws']['private'] . '&timestamp=' . $timeStamp;
+            $url = $this->get_ws_private_url();
             Async\await($this->authenticate($url));
             $trades = Async\await($this->watch_topics($url, array( $messageHash ), array( 'myTrades' ), $params));
             if ($this->newUpdates) {
@@ -629,8 +664,7 @@ class apex extends \ccxt\async\apex {
                 $symbols = $this->market_symbols($symbols);
                 $messageHash = '::' . implode(',', $symbols);
             }
-            $timeStamp = (string) $this->milliseconds();
-            $url = $this->urls['api']['ws']['private'] . '&timestamp=' . $timeStamp;
+            $url = $this->get_ws_private_url();
             $messageHash = 'positions' . $messageHash;
             $client = $this->client($url);
             Async\await($this->authenticate($url));
@@ -668,8 +702,7 @@ class apex extends \ccxt\async\apex {
                 $symbol = $this->symbol($symbol);
                 $messageHash .= ':' . $symbol;
             }
-            $timeStamp = (string) $this->milliseconds();
-            $url = $this->urls['api']['ws']['private'] . '&timestamp=' . $timeStamp;
+            $url = $this->get_ws_private_url();
             Async\await($this->authenticate($url));
             $topics = array( 'orders' );
             $orders = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
@@ -789,7 +822,7 @@ class apex extends \ccxt\async\apex {
         return Async\async(function () use ($client, $messageHash) {
             // one ws channel gives $positions for all types, for snapshot must load all $positions
             $fetchFunctions = array(
-                $this->fetch_positions(null),
+                $this->fetch_positions(),
             );
             $promises = Async\await(Promise\all($fetchFunctions));
             $this->positions = new ArrayCacheBySymbolBySide ();
@@ -964,6 +997,15 @@ class apex extends \ccxt\async\apex {
                 $ret_msg = $this->safe_string($message, 'ret_msg');
                 $request = $this->safe_value($message, 'request', array());
                 $op = $this->safe_string($request, 'op');
+                // Benign re-subscribe notice (same shape 90008 /
+                // krakenfutures "Already subscribed") => the original subscription
+                // is still active and delivering data on this socket. Without
+                // this short-circuit the catch-clause's `$client->reject($error,
+                // $messageHash)` rejects every in-flight future on the connection
+                // because apex doesn't echo a `reqId` on these warnings.
+                if ($ret_msg !== null && mb_strpos($ret_msg, 'already subscribed') !== false) {
+                    return false;
+                }
                 if ($op === 'auth') {
                     throw new AuthenticationError('Authentication failed => ' . $ret_msg);
                 } else {

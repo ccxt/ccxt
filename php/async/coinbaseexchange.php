@@ -517,64 +517,63 @@ class coinbaseexchange extends Exchange {
             //     "display_name" => "USDT"
             //   }
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $currency = $response[$i];
-                $id = $this->safe_string($currency, 'id');
-                $name = $this->safe_string($currency, 'name');
-                $code = $this->safe_currency_code($id);
-                $details = $this->safe_dict($currency, 'details', array());
-                $networks = array();
-                $supportedNetworks = $this->safe_list($currency, 'supported_networks', array());
-                for ($j = 0; $j < count($supportedNetworks); $j++) {
-                    $network = $supportedNetworks[$j];
-                    $networkId = $this->safe_string($network, 'id');
-                    $networkCode = $this->network_id_to_code($networkId);
-                    $networks[$networkCode] = array(
-                        'id' => $networkId,
-                        'name' => $this->safe_string($network, 'name'),
-                        'network' => $networkCode,
-                        'active' => $this->safe_string($network, 'status') === 'online',
-                        'withdraw' => null,
-                        'deposit' => null,
-                        'fee' => null,
-                        'precision' => null,
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($network, 'min_withdrawal_amount'),
-                                'max' => $this->safe_number($network, 'max_withdrawal_amount'),
-                            ),
-                        ),
-                        'contract' => $this->safe_string($network, 'contract_address'),
-                        'info' => $network,
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'code' => $code,
-                    'info' => $currency,
-                    'type' => $this->safe_string($details, 'type'),
-                    'name' => $name,
-                    'active' => $this->safe_string($currency, 'status') === 'online',
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
-                    'precision' => $this->safe_number($currency, 'max_precision'),
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => $this->safe_number($details, 'min_size'),
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => $this->safe_number($details, 'min_withdrawal_amount'),
-                            'max' => $this->safe_number($details, 'max_withdrawal_amount'),
-                        ),
-                    ),
-                    'networks' => $networks,
-                ));
-            }
-            return $result;
+            return $this->parse_currencies($response);
         }) ();
+    }
+
+    public function parse_currency($rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'id');
+        $name = $this->safe_string($rawCurrency, 'name');
+        $code = $this->safe_currency_code($id);
+        $details = $this->safe_dict($rawCurrency, 'details', array());
+        $networks = array();
+        $supportedNetworks = $this->safe_list($rawCurrency, 'supported_networks', array());
+        for ($j = 0; $j < count($supportedNetworks); $j++) {
+            $network = $supportedNetworks[$j];
+            $networkId = $this->safe_string($network, 'id');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'name' => $this->safe_string($network, 'name'),
+                'network' => $networkCode,
+                'active' => $this->safe_string($network, 'status') === 'online',
+                'withdraw' => null,
+                'deposit' => null,
+                'fee' => null,
+                'precision' => null,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($network, 'min_withdrawal_amount'),
+                        'max' => $this->safe_number($network, 'max_withdrawal_amount'),
+                    ),
+                ),
+                'contract' => $this->safe_string($network, 'contract_address'),
+                'info' => $network,
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => $rawCurrency,
+            'type' => $this->safe_string($details, 'type'),
+            'name' => $name,
+            'active' => $this->safe_string($rawCurrency, 'status') === 'online',
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => $this->safe_number($rawCurrency, 'max_precision'),
+            'limits' => array(
+                'amount' => array(
+                    'min' => $this->safe_number($details, 'min_size'),
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $this->safe_number($details, 'min_withdrawal_amount'),
+                    'max' => $this->safe_number($details, 'max_withdrawal_amount'),
+                ),
+            ),
+            'networks' => $networks,
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
@@ -1062,13 +1061,14 @@ class coinbaseexchange extends Exchange {
         }
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'size');
+        $symbol = $market['symbol'];
         return $this->safe_trade(array(
             'id' => $id,
             'order' => $orderId,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
@@ -2093,7 +2093,7 @@ class coinbaseexchange extends Exchange {
             'txid' => $this->safe_string($details, 'crypto_transaction_hash'),
             'type' => $type,
             'currency' => $code,
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'amount' => $amount,
             'status' => $this->parse_transaction_status($transaction),
             'timestamp' => $timestamp,

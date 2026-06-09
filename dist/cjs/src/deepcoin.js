@@ -513,6 +513,8 @@ class deepcoin extends deepcoin$1["default"] {
         const maxLimitSize = this.safeString(market, 'maxLmtSz');
         const maxAmount = this.parseNumber(Precise["default"].stringMax(maxMarketSize, maxLimitSize));
         const state = this.safeString(market, 'state');
+        const isMargin = spot && (Precise["default"].stringGt(maxLeverage, '1'));
+        const isInverse = swap ? (!isLinear) : undefined;
         return this.extend(fees, {
             'id': id,
             'symbol': symbol,
@@ -524,14 +526,14 @@ class deepcoin extends deepcoin$1["default"] {
             'settleId': settleId,
             'type': type,
             'spot': spot,
-            'margin': spot && (Precise["default"].stringGt(maxLeverage, '1')),
+            'margin': isMargin,
             'swap': swap,
             'future': false,
             'option': false,
             'active': state === 'live',
             'contract': swap,
             'linear': isLinear,
-            'inverse': swap ? (!isLinear) : undefined,
+            'inverse': isInverse,
             'contractSize': swap ? this.safeNumber(market, 'ctVal') : undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -814,7 +816,7 @@ class deepcoin extends deepcoin$1["default"] {
             'instId': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 500
+            request['limit'] = Math.min(limit, 2000);
         }
         const productGroup = this.getProductGroupFromMarket(market);
         request['productGroup'] = productGroup;
@@ -1064,7 +1066,7 @@ class deepcoin extends deepcoin$1["default"] {
         const amount = this.safeNumber(transaction, 'amount');
         const timestamp = this.safeTimestamp(transaction, 'createTime');
         const networkId = this.safeString(transaction, 'chainName');
-        const network = this.networkIdToCode(networkId);
+        const network = this.networkIdToCode(networkId, code);
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
         return {
             'info': transaction,
@@ -1211,10 +1213,11 @@ class deepcoin extends deepcoin$1["default"] {
         const chain = this.safeString(response, 'chain');
         const address = this.safeString(response, 'address');
         this.checkAddress(address);
+        const code = this.safeString(currency, 'code');
         return {
             'info': response,
             'currency': undefined,
-            'network': this.networkIdToCode(chain),
+            'network': this.networkIdToCode(chain, code),
             'address': address,
             'tag': this.safeString(response, 'memo'),
         };
@@ -2192,11 +2195,12 @@ class deepcoin extends deepcoin$1["default"] {
         }
         let merged = true;
         [merged, params] = this.handleOptionAndParams(params, 'cancelAllOrders', 'merged', merged);
+        const isMergedMode = merged ? 1 : 0;
         const request = {
             'InstrumentID': market['id'],
             'ProductGroup': productGroup,
             'IsCrossMargin': encodedMarginMode,
-            'IsMergeMode': merged ? 1 : 0,
+            'IsMergeMode': isMergedMode,
         };
         const response = await this.privatePostDeepcoinTradeSwapCancelAll(this.extend(request, params));
         const data = this.safeList(response, 'data', []);

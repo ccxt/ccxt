@@ -378,59 +378,57 @@ class coinmetro extends Exchange {
             //         ...
             //     )
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $currency = $response[$i];
-                $id = $this->safe_string($currency, 'symbol');
-                $code = $this->safe_currency_code($id);
-                $typeRaw = $this->safe_string($currency, 'type');
-                $type = null;
-                if ($typeRaw === 'coin' || $typeRaw === 'token' || $typeRaw === 'erc20' || $typeRaw === 'crypto') {
-                    $type = 'crypto';
-                } elseif ($typeRaw === 'fiat') {
-                    $type = 'fiat';
-                }
-                $precisionDigits = $this->safe_string_2($currency, 'digits', 'notabeneDecimals');
-                if ($code === 'RENDER') {
-                    // RENDER is an exception (with broken info)
-                    $precisionDigits = '4';
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'code' => $code,
-                    'name' => $code,
-                    'type' => $type,
-                    'info' => $currency,
-                    'active' => $this->safe_bool($currency, 'canTrade'),
-                    'deposit' => $this->safe_bool($currency, 'canDeposit'),
-                    'withdraw' => $this->safe_bool($currency, 'canWithdraw'),
-                    'fee' => null,
-                    'precision' => $this->parse_number($this->parse_precision($precisionDigits)),
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => $this->safe_number($currency, 'minQty'),
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => array(),
-                ));
+            $result = $this->parse_currencies($response);
+            $currenciesById = $this->index_by($result, 'id');
+            $this->options['currenciesByIdForParseMarket'] = $currenciesById;
+            $currentCurrencyIdsList = $this->safe_list($this->options, 'currencyIdsListForParseMarket', array());
+            $currencyIdsList = is_array($currenciesById) ? array_keys($currenciesById) : array();
+            for ($i = 0; $i < count($currencyIdsList); $i++) {
+                $currentCurrencyIdsList[] = $currencyIdsList[$i];
             }
-            if ($this->safe_value($this->options, 'currenciesByIdForParseMarket') === null) {
-                $currenciesById = $this->index_by($result, 'id');
-                $this->options['currenciesByIdForParseMarket'] = $currenciesById;
-                $currentCurrencyIdsList = $this->safe_list($this->options, 'currencyIdsListForParseMarket', array());
-                $currencyIdsList = is_array($currenciesById) ? array_keys($currenciesById) : array();
-                for ($i = 0; $i < count($currencyIdsList); $i++) {
-                    $currentCurrencyIdsList[] = $currencyIdsList[$i];
-                }
-                $this->options['currencyIdsListForParseMarket'] = $currentCurrencyIdsList;
-            }
+            $this->options['currencyIdsListForParseMarket'] = $currentCurrencyIdsList;
             return $result;
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'symbol');
+        $code = $this->safe_currency_code($id);
+        $typeRaw = $this->safe_string($rawCurrency, 'type');
+        $type = null;
+        if ($typeRaw === 'coin' || $typeRaw === 'token' || $typeRaw === 'erc20' || $typeRaw === 'crypto') {
+            $type = 'crypto';
+        } elseif ($typeRaw === 'fiat') {
+            $type = 'fiat';
+        }
+        $precisionDigits = $this->safe_string_2($rawCurrency, 'digits', 'notabeneDecimals');
+        if ($code === 'RENDER') {
+            // RENDER is an exception (with broken info)
+            $precisionDigits = '4';
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'name' => $code,
+            'type' => $type,
+            'info' => $rawCurrency,
+            'active' => $this->safe_bool($rawCurrency, 'canTrade'),
+            'deposit' => $this->safe_bool($rawCurrency, 'canDeposit'),
+            'withdraw' => $this->safe_bool($rawCurrency, 'canWithdraw'),
+            'fee' => null,
+            'precision' => $this->parse_number($this->parse_precision($precisionDigits)),
+            'limits' => array(
+                'amount' => array(
+                    'min' => $this->safe_number($rawCurrency, 'minQty'),
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => array(),
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
@@ -445,9 +443,6 @@ class coinmetro extends Exchange {
              */
             $promises = array();
             $promises[] = $this->publicGetMarkets ($params);
-            if ($this->safe_value($this->options, 'currenciesByIdForParseMarket') === null) {
-                $promises[] = $this->fetch_currencies();
-            }
             $responses = Async\await(Promise\all($promises));
             $response = $responses[0];
             //
@@ -917,7 +912,7 @@ class coinmetro extends Exchange {
         }) ();
     }
 
-    public function parse_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+    public function parse_order_book_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $prices = is_array($bidasks) ? array_keys($bidasks) : array();
         $result = array();
         for ($i = 0; $i < count($prices); $i++) {

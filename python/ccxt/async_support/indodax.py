@@ -1352,13 +1352,14 @@ class indodax(Exchange, ImplicitAPI):
                         network = []
                         networkIds = networkId.split(',')
                         for j in range(0, len(networkIds)):
-                            network.append(self.network_id_to_code(networkIds[j]).upper())
+                            network.append(self.network_id_to_code(networkIds[j], code).upper())
                     else:
-                        network = self.network_id_to_code(networkId).upper()
+                        network = self.network_id_to_code(networkId, code).upper()
+                finalNetwork = network  # java req
                 result[code] = {
                     'info': {},
                     'currency': code,
-                    'network': network,
+                    'network': finalNetwork,
                     'address': address,
                     'tag': None,
                 }

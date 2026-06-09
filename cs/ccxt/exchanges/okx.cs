@@ -1779,6 +1779,9 @@ public partial class okx : Exchange
         object maxLeverage = this.safeString(market, "lever", "1");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         object maxSpotCost = this.safeNumber(market, "maxMktSz");
+        object leverageAboveOne = Precise.stringGt(maxLeverage, "1");
+        object quoteEqualSettle = (isEqual(quoteId, settleId));
+        object baseEqualSettle = (isEqual(baseId, settleId));
         object status = this.safeString(market, "state");
         object instIdCode = this.safeInteger(market, "instIdCode");
         return this.extend(fees, new Dictionary<string, object>() {
@@ -1793,14 +1796,14 @@ public partial class okx : Exchange
             { "settleId", settleId },
             { "type", type },
             { "spot", spot },
-            { "margin", isTrue(spot) && isTrue((Precise.stringGt(maxLeverage, "1"))) },
+            { "margin", isTrue(spot) && isTrue(leverageAboveOne) },
             { "swap", swap },
             { "future", future },
             { "option", option },
             { "active", isEqual(status, "live") },
             { "contract", contract },
-            { "linear", ((bool) isTrue(contract)) ? (isEqual(quoteId, settleId)) : null },
-            { "inverse", ((bool) isTrue(contract)) ? (isEqual(baseId, settleId)) : null },
+            { "linear", ((bool) isTrue(contract)) ? quoteEqualSettle : null },
+            { "inverse", ((bool) isTrue(contract)) ? baseEqualSettle : null },
             { "contractSize", ((bool) isTrue(contract)) ? this.safeNumber(market, "ctVal") : null },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
@@ -2154,9 +2157,15 @@ public partial class okx : Exchange
         //          ts: '1728467346900'
         //     },
         //
+        object instType = this.safeString(ticker, "instType");
+        object marketType = null;
+        if (isTrue(!isEqual(instType, null)))
+        {
+            marketType = ((bool) isTrue((isEqual(instType, "SPOT")))) ? "spot" : "swap";
+        }
         object timestamp = this.safeInteger(ticker, "ts");
         object marketId = this.safeString(ticker, "instId");
-        market = this.safeMarket(marketId, market, "-");
+        market = this.safeMarket(marketId, market, "-", marketType);
         object symbol = getValue(market, "symbol");
         object last = this.safeString(ticker, "last");
         object open = this.safeString(ticker, "open24h");
@@ -9724,7 +9733,7 @@ public partial class okx : Exchange
         }
         if (isTrue(!isEqual(timeframe, null)))
         {
-            ((IDictionary<string,object>)request)["period"] = timeframe;
+            ((IDictionary<string,object>)request)["period"] = this.safeString(this.timeframes, timeframe, timeframe);
         }
         if (isTrue(!isEqual(since, null)))
         {

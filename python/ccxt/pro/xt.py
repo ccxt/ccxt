@@ -572,7 +572,7 @@ class xt(ccxt.async_support.xt):
                 self.spawn(self.load_positions_snapshot, client, messageHash)
 
     async def load_positions_snapshot(self, client, messageHash):
-        positions = await self.fetch_positions(None)
+        positions = await self.fetch_positions()
         self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
         for i in range(0, len(positions)):

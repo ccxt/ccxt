@@ -507,79 +507,82 @@ class apex extends Exchange {
             // }
             $rows = $this->safe_list($spotConfig, 'assets', array());
             $chains = $this->safe_list($multiChain, 'chains', array());
-            $result = array();
-            for ($i = 0; $i < count($rows); $i++) {
-                $currency = $rows[$i];
-                $currencyId = $this->safe_string($currency, 'token');
-                $code = $this->safe_currency_code($currencyId);
-                $name = $this->safe_string($currency, 'displayName');
-                $networks = array();
-                for ($j = 0; $j < count($chains); $j++) {
-                    $chain = $chains[$j];
-                    $tokens = $this->safe_list($chain, 'tokens', array());
-                    for ($f = 0; $f < count($tokens); $f++) {
-                        $token = $tokens[$f];
-                        $tokenName = $this->safe_string($token, 'token');
-                        if ($tokenName === $currencyId) {
-                            $networkId = $this->safe_string($chain, 'chainId');
-                            $networkCode = $this->network_id_to_code($networkId);
-                            $networks[$networkCode] = array(
-                                'info' => $chain,
-                                'id' => $networkId,
-                                'network' => $networkCode,
-                                'active' => null,
-                                'deposit' => !$this->safe_bool($chain, 'depositDisable'),
-                                'withdraw' => $this->safe_bool($token, 'withdrawEnable'),
-                                'fee' => $this->safe_number($token, 'minFee'),
-                                'precision' => $this->parse_number($this->parse_precision($this->safe_string($token, 'decimals'))),
-                                'limits' => array(
-                                    'withdraw' => array(
-                                        'min' => $this->safe_number($token, 'minWithdraw'),
-                                        'max' => null,
-                                    ),
-                                    'deposit' => array(
-                                        'min' => $this->safe_number($chain, 'minDeposit'),
-                                        'max' => null,
-                                    ),
-                                ),
-                            );
-                        }
-                    }
-                }
-                $networkKeys = is_array($networks) ? array_keys($networks) : array();
-                $networksLength = count($networkKeys);
-                $emptyChains = $networksLength === 0; // non-functional coins
-                $valueForEmpty = $emptyChains ? false : null;
-                $result[$code] = $this->safe_currency_structure(array(
-                    'info' => $currency,
-                    'code' => $code,
-                    'id' => $currencyId,
-                    'type' => 'crypto',
-                    'name' => $name,
-                    'active' => null,
-                    'deposit' => $valueForEmpty,
-                    'withdraw' => $valueForEmpty,
-                    'fee' => null,
-                    'precision' => null,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => $networks,
-                ));
-            }
+            $this->options['_temp_currencies_chains'] = $chains;
+            $result = $this->parse_currencies($rows);
+            unset($this->options['_temp_currencies_chains']);
             return $result;
         }) ();
+    }
+
+    public function parse_currency(array $currency): array {
+        $currencyId = $this->safe_string($currency, 'token');
+        $code = $this->safe_currency_code($currencyId);
+        $name = $this->safe_string($currency, 'displayName');
+        $networks = array();
+        $chains = $this->options['_temp_currencies_chains'];
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $chains[$j];
+            $tokens = $this->safe_list($chain, 'tokens', array());
+            for ($f = 0; $f < count($tokens); $f++) {
+                $token = $tokens[$f];
+                $tokenName = $this->safe_string($token, 'token');
+                if ($tokenName === $currencyId) {
+                    $networkId = $this->safe_string($chain, 'chainId');
+                    $networkCode = $this->network_id_to_code($networkId, $code);
+                    $networks[$networkCode] = array(
+                        'info' => $chain,
+                        'id' => $networkId,
+                        'network' => $networkCode,
+                        'active' => null,
+                        'deposit' => !$this->safe_bool($chain, 'depositDisable'),
+                        'withdraw' => $this->safe_bool($token, 'withdrawEnable'),
+                        'fee' => $this->safe_number($token, 'minFee'),
+                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($token, 'decimals'))),
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => $this->safe_number($token, 'minWithdraw'),
+                                'max' => null,
+                            ),
+                            'deposit' => array(
+                                'min' => $this->safe_number($chain, 'minDeposit'),
+                                'max' => null,
+                            ),
+                        ),
+                    );
+                }
+            }
+        }
+        $networkKeys = is_array($networks) ? array_keys($networks) : array();
+        $networksLength = count($networkKeys);
+        $emptyChains = $networksLength === 0; // non-functional coins
+        $valueForEmpty = $emptyChains ? false : null;
+        return $this->safe_currency_structure(array(
+            'info' => $currency,
+            'code' => $code,
+            'id' => $currencyId,
+            'type' => 'crypto',
+            'name' => $name,
+            'active' => null,
+            'deposit' => $valueForEmpty,
+            'withdraw' => $valueForEmpty,
+            'fee' => null,
+            'precision' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
@@ -1257,7 +1260,7 @@ class apex extends Exchange {
             'IMMEDIATE_OR_CANCEL' => 'IMMEDIATE_OR_CANCEL',
             'POST_ONLY' => 'POST_ONLY',
         );
-        return $this->safe_string($timeInForces, $timeInForce, null);
+        return $this->safe_string($timeInForces, $timeInForce);
     }
 
     public function parse_order_status(?string $status) {
@@ -1412,14 +1415,16 @@ class apex extends Exchange {
             if ($clientOrderId === null) {
                 $clientOrderId = $this->generate_random_client_id_omni($accountId);
             }
+            $finalClientOrderId = $clientOrderId; // java req
             $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ));
+            $finalOrderPrice = $orderPrice; // java req
             $orderToSign = array(
                 'accountId' => $accountId,
-                'slotId' => $clientOrderId,
-                'nonce' => $clientOrderId,
+                'slotId' => $finalClientOrderId,
+                'nonce' => $finalClientOrderId,
                 'pairId' => $market['quoteId'],
                 'size' => $orderSize,
-                'price' => $orderPrice,
+                'price' => $finalOrderPrice,
                 'direction' => $orderSide,
                 'makerFeeRate' => $maker,
                 'takerFeeRate' => $taker,
@@ -1433,11 +1438,11 @@ class apex extends Exchange {
                 'side' => $orderSide,
                 'type' => $orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
                 'size' => $orderSize,
-                'price' => $orderPrice,
+                'price' => $finalOrderPrice,
                 'limitFee' => $limitFee,
                 'expiration' => (int) floor($timeNow / 1000 + 30 * 24 * 60 * 60),
                 'timeInForce' => $timeInForce,
-                'clientId' => $clientOrderId,
+                'clientId' => $finalClientOrderId,
                 'brokerId' => $this->safe_string($this->options, 'brokerId', '6956'),
             );
             if ($triggerPrice !== null) {
@@ -1484,6 +1489,7 @@ class apex extends Exchange {
             if (strlen($subAccounts) > 0) {
                 $nonce = $this->safe_string($subAccounts[0], 'nonce', '0');
             }
+            $finalNonce = $nonce; // java req
             $ethAddress = $this->safe_string($accountData, 'ethereumAddress', '');
             $accountId = $this->safe_string($accountData, 'id', '');
             $currency = array();
@@ -1499,12 +1505,15 @@ class apex extends Exchange {
                 }
             }
             $tokenId = $this->safe_string($currency, 'tokenId', '');
-            $amountNumber = $this->parse_to_int($amount * (pow(10, $this->safe_number($currency, 'decimals', 0))));
+            $decimalsNum = $this->safe_number($currency, 'decimals', 0);
+            $mathPowResult = (pow(10, $decimalsNum));
+            $amountNumber = $this->parse_to_int($amount * $mathPowResult);
             $timestampSeconds = $this->parse_to_int($this->milliseconds() / 1000);
             $clientOrderId = $this->safe_string_n($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
             if ($clientOrderId === null) {
                 $clientOrderId = $this->generate_random_client_id_omni($this->safe_string($this->options, 'accountId'));
             }
+            $finalClientOrderId = $clientOrderId; // java req
             $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
             if ($fromAccount !== null && strtolower($fromAccount) === 'contract') {
                 $formattedUint32 = '4294967295';
@@ -1518,7 +1527,7 @@ class apex extends Exchange {
                     'tokenId' => $tokenId,
                     'amount' => (string) $amountNumber,
                     'fee' => '0',
-                    'nonce' => $clientOrderId,
+                    'nonce' => $finalClientOrderId,
                     'timestampSeconds' => $expireTime,
                     'isContract' => true,
                 );
@@ -1526,7 +1535,7 @@ class apex extends Exchange {
                 $request = array(
                     'amount' => $amount,
                     'expireTime' => $expireTime,
-                    'clientWithdrawId' => $clientOrderId,
+                    'clientWithdrawId' => $finalClientOrderId,
                     'signature' => $signature,
                     'token' => $code,
                     'ethAddress' => $ethAddress,
@@ -1534,10 +1543,11 @@ class apex extends Exchange {
                 $response = Async\await($this->privatePostV3ContractTransferOut ($this->extend($request, $params)));
                 $data = $this->safe_dict($response, 'data', array());
                 $currentTime = $this->milliseconds();
+                $parsedAmount = $this->parse_number($amount);
                 return $this->extend($this->parse_transfer($data, $this->currency($code)), array(
                     'timestamp' => $currentTime,
                     'datetime' => $this->iso8601($currentTime),
-                    'amount' => $this->parse_number($amount),
+                    'amount' => $parsedAmount,
                     'fromAccount' => 'contract',
                     'toAccount' => 'spot',
                 ));
@@ -1550,14 +1560,16 @@ class apex extends Exchange {
                     'tokenId' => $tokenId,
                     'amount' => (string) $amountNumber,
                     'fee' => '0',
-                    'nonce' => $nonce,
+                    'nonce' => $finalNonce,
                     'timestampSeconds' => $timestampSeconds,
                 );
                 $signature = Async\await($this->get_zk_transfer_signature_obj($this->remove0x_prefix($this->get_seeds()), $orderToSign));
+                $amountStr = (string) $amount;
+                $ts = $timestampSeconds; // java req
                 $request = array(
-                    'amount' => (string) $amount,
-                    'timestamp' => $timestampSeconds,
-                    'clientTransferId' => $clientOrderId,
+                    'amount' => $amountStr,
+                    'timestamp' => $ts,
+                    'clientTransferId' => $finalClientOrderId,
                     'signature' => $signature,
                     'zkAccountId' => $zkAccountId,
                     'subAccountId' => $subAccountId,
@@ -1568,7 +1580,7 @@ class apex extends Exchange {
                     'receiverZkAccountId' => $receiverZkAccountId,
                     'receiverSubAccountId' => $receiverSubAccountId,
                     'receiverAddress' => $receiverAddress,
-                    'nonce' => $nonce,
+                    'nonce' => $finalNonce,
                 );
                 $response = Async\await($this->privatePostV3TransferOut ($this->extend($request, $params)));
                 $data = $this->safe_dict($response, 'data', array());
@@ -1634,7 +1646,7 @@ class apex extends Exchange {
              * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
              *
              * @param {string} $id order $id
-             * @param $symbol
+             * @param {string} [$symbol] unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */

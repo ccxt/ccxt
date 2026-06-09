@@ -645,7 +645,7 @@ func (this *ToobitCore) ParseCurrency(rawCurrency any) any {
 	for j := 0; IsLessThan(j, GetArrayLength(rawNetworks)); j++ {
 		var rawNetwork any = GetValue(rawNetworks, j)
 		var networkId any = this.SafeString(rawNetwork, "chainType")
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		AddElementToObject(networks, networkCode, map[string]any{
 			"id":        networkId,
 			"network":   networkCode,
@@ -2844,11 +2844,13 @@ func (this *ToobitCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 	}()
 	return ch
 }
-func (this *ToobitCore) FetchDepositsOrWithdrawalsHelper(typeVar any, code any, since any, limit any, params any) <-chan any {
+func (this *ToobitCore) FetchDepositsOrWithdrawalsHelper(typeVar any, code any, since any, limit any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
 	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
 
 		retRes25448 := (<-this.LoadMarkets())
 		PanicOnError(retRes25448)
@@ -3007,7 +3009,7 @@ func (this *ToobitCore) FetchDepositAddress(code any, optionalArgs ...any) <-cha
 		if IsTrue(IsEqual(networkCode, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchDepositAddress() : param[\"network\"] is required")))
 		}
-		AddElementToObject(request, "chainType", this.NetworkCodeToId(networkCode))
+		AddElementToObject(request, "chainType", this.NetworkCodeToId(networkCode, code))
 
 		response := (<-this.PrivateGetApiV1AccountDepositAddress(this.Extend(request, paramsOmitted)))
 		PanicOnError(response)

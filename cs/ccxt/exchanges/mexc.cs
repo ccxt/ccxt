@@ -309,6 +309,7 @@ public partial class mexc : Exchange
                             { "position/funding_records", 2 },
                             { "position/position_mode", 2 },
                             { "order/list/open_orders/{symbol}", 2 },
+                            { "order/list/open_orders", 2 },
                             { "order/list/history_orders", 2 },
                             { "order/list/order_deals/v3", 2 },
                             { "order/external/{symbol}/{external_oid}", 2 },
@@ -971,58 +972,57 @@ public partial class mexc : Exchange
         //     ]
         //   }
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        return this.parseCurrencies(response);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, "coin");
+        object code = this.safeCurrencyCode(id);
+        object networks = new Dictionary<string, object>() {};
+        object chains = this.safeValue(rawCurrency, "networkList", new List<object>() {});
+        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
-            object currency = getValue(response, i);
-            object id = this.safeString(currency, "coin");
-            object code = this.safeCurrencyCode(id);
-            object networks = new Dictionary<string, object>() {};
-            object chains = this.safeValue(currency, "networkList", new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
-            {
-                object chain = getValue(chains, j);
-                object networkId = this.safeString2(chain, "netWork", "network");
-                object network = this.networkIdToCode(networkId);
-                ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
-                    { "info", chain },
-                    { "id", networkId },
-                    { "network", network },
-                    { "active", null },
-                    { "deposit", this.safeBool(chain, "depositEnable", false) },
-                    { "withdraw", this.safeBool(chain, "withdrawEnable", false) },
-                    { "fee", this.safeNumber(chain, "withdrawFee") },
-                    { "precision", null },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeString(chain, "withdrawMin") },
-                            { "max", this.safeString(chain, "withdrawMax") },
-                        } },
-                    } },
-                    { "contract", this.safeString(chain, "contract") },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", currency },
-                { "id", id },
-                { "code", code },
-                { "name", this.safeString(currency, "name") },
+            object chain = getValue(chains, j);
+            object networkId = this.safeString2(chain, "netWork", "network");
+            object network = this.networkIdToCode(networkId, code);
+            ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
+                { "info", chain },
+                { "id", networkId },
+                { "network", network },
                 { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
+                { "deposit", this.safeBool(chain, "depositEnable", false) },
+                { "withdraw", this.safeBool(chain, "withdrawEnable", false) },
+                { "fee", this.safeNumber(chain, "withdrawFee") },
                 { "precision", null },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", this.safeString(chain, "withdrawMin") },
+                        { "max", this.safeString(chain, "withdrawMax") },
                     } },
                 } },
-                { "type", "crypto" },
-                { "networks", networks },
-            });
+                { "contract", this.safeString(chain, "contract") },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", rawCurrency },
+            { "id", id },
+            { "code", code },
+            { "name", this.safeString(rawCurrency, "name") },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "type", "crypto" },
+            { "networks", networks },
+        });
     }
 
     /**
@@ -1381,7 +1381,7 @@ public partial class mexc : Exchange
         return orderbook;
     }
 
-    public override object parseBidAsk(object bidask, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    public override object parseOrderBookBidAsk(object bidask, object priceKey = null, object amountKey = null, object countOrIdKey = null)
     {
         priceKey ??= 0;
         amountKey ??= 1;
@@ -2449,9 +2449,12 @@ public partial class mexc : Exchange
         // Trigger
         //     {"success":true,"code":0,"data":259208506303929856}
         //
-        object data = this.safeString(response, "data");
+        // {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
+        //
+        object data = this.safeDict(response, "data");
         return this.safeOrder(new Dictionary<string, object>() {
-            { "id", data },
+            { "id", this.safeString(data, "orderId") },
+            { "timestamp", this.safeInteger(data, "ts") },
         }, market);
     }
 
@@ -2999,8 +3002,13 @@ public partial class mexc : Exchange
             return this.parseOrders(response, market, since, limit);
         } else
         {
-            // TO_DO: another possible way is through: open_orders/{symbol}, but as they have same ratelimits, and less granularity, i think historical orders are more convenient, as it supports more params (however, theoretically, open-orders endpoint might be sligthly fast)
-            return await this.fetchOrdersByState(2, symbol, since, limit, parameters);
+            if (isTrue(isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["page_size"] = 100; // max
+            }
+            object swapResponse = await this.contractPrivateGetOrderListOpenOrders(this.extend(request, parameters));
+            object data = this.safeList(swapResponse, "data", new List<object>() {});
+            return this.parseOrders(data, market, since, limit, parameters);
         }
     }
 
@@ -3804,7 +3812,7 @@ public partial class mexc : Exchange
             {
                 object entry = getValue(wallet, i);
                 object marketId = this.safeString(entry, "symbol");
-                object symbol = this.safeSymbol(marketId, null);
+                object symbol = this.safeSymbol(marketId);
                 object bs = this.safeValue(entry, "baseAsset", new Dictionary<string, object>() {});
                 object quote = this.safeValue(entry, "quoteAsset", new Dictionary<string, object>() {});
                 object baseCode = this.safeCurrencyCode(this.safeString(bs, "asset"));
@@ -4639,14 +4647,17 @@ public partial class mexc : Exchange
         while (Precise.stringLt(floor, maxVol))
         {
             object cap = Precise.stringAdd(floor, riskIncrVol);
+            object minNotional = this.parseNumber(floor);
+            object mainMarginRate = this.parseNumber(maintenanceMarginRate);
+            object maxLev = this.parseNumber(Precise.stringDiv("1", initialMarginRate));
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.parseNumber(Precise.stringDiv(cap, riskIncrVol)) },
                 { "symbol", this.safeSymbol(marketId, market, null, "contract") },
                 { "currency", this.safeCurrencyCode(quoteId) },
-                { "minNotional", this.parseNumber(floor) },
+                { "minNotional", minNotional },
                 { "maxNotional", this.parseNumber(cap) },
-                { "maintenanceMarginRate", this.parseNumber(maintenanceMarginRate) },
-                { "maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMarginRate)) },
+                { "maintenanceMarginRate", mainMarginRate },
+                { "maxLeverage", maxLev },
                 { "info", info },
             });
             initialMarginRate = Precise.stringAdd(initialMarginRate, riskIncrImr);
@@ -4668,11 +4679,12 @@ public partial class mexc : Exchange
         //
         object address = this.safeString(depositAddress, "address");
         object currencyId = this.safeString(depositAddress, "coin");
+        object code = this.safeCurrencyCode(currencyId, currency);
         object networkId = this.safeString(depositAddress, "netWork");
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", this.safeCurrencyCode(currencyId, currency) },
-            { "network", this.networkIdToCode(networkId, currencyId) },
+            { "currency", code },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "tag", this.safeString(depositAddress, "memo") },
         };
@@ -5015,13 +5027,13 @@ public partial class mexc : Exchange
         {
             currencyId = getValue(((string)currencyWithNetwork).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>(), 0);
         }
+        object code = this.safeCurrencyCode(currencyId, currency);
         object network = null;
         object rawNetwork = this.safeString(transaction, "network");
         if (isTrue(!isEqual(rawNetwork, null)))
         {
-            network = this.networkIdToCode(rawNetwork);
+            network = this.networkIdToCode(rawNetwork, code);
         }
-        object code = this.safeCurrencyCode(currencyId, currency);
         object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         object amountString = this.safeString(transaction, "amount");
         object address = this.safeString(transaction, "address");
@@ -5318,8 +5330,8 @@ public partial class mexc : Exchange
      * @description fetch a history of internal transfers made on an account
      * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
-     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history     * @param {string} code unified currency code of the currency transferred
-     * @param code
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history
+     * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6117,8 +6129,8 @@ public partial class mexc : Exchange
         {
             throw new BadSymbol ((string)add(this.id, " setMarginMode() supports contract markets only")) ;
         }
-        marginMode = ((string)marginMode).ToLower();
-        if (isTrue(isTrue(!isEqual(marginMode, "isolated")) && isTrue(!isEqual(marginMode, "cross"))))
+        object marginModeLower = ((string)marginMode).ToLower();
+        if (isTrue(isTrue(!isEqual(marginModeLower, "isolated")) && isTrue(!isEqual(marginModeLower, "cross"))))
         {
             throw new BadRequest ((string)add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
@@ -6130,7 +6142,7 @@ public partial class mexc : Exchange
         object direction = this.safeStringLower2(parameters, "direction", "positionId");
         object request = new Dictionary<string, object>() {
             { "leverage", leverage },
-            { "openType", ((bool) isTrue((isEqual(marginMode, "isolated")))) ? 1 : 2 },
+            { "openType", ((bool) isTrue((isEqual(marginModeLower, "isolated")))) ? 1 : 2 },
         };
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -6277,7 +6289,7 @@ public partial class mexc : Exchange
         {
             return null;
         }
-        object responseCode = this.safeString(response, "code", null);
+        object responseCode = this.safeString(response, "code");
         if (isTrue(isTrue(isTrue((!isEqual(responseCode, null))) && isTrue((!isEqual(responseCode, "200")))) && isTrue((!isEqual(responseCode, "0")))))
         {
             object feedback = add(add(this.id, " "), body);

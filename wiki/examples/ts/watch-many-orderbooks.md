@@ -24,7 +24,7 @@ async function watchOrderBook (exchangeId, symbol) {
 async function main () {
     const streams = {
         'binance': 'BTC/USDT',
-        'ftx': 'BTC/USDT',
+        'okx': 'BTC/USDT',
     };
 
     await Promise.all (Object.entries (streams).map (([ exchangeId, symbol ]) => watchOrderBook (exchangeId, symbol)));

@@ -612,7 +612,7 @@ class toobit extends toobit$1["default"] {
         for (let j = 0; j < rawNetworks.length; j++) {
             const rawNetwork = rawNetworks[j];
             const networkId = this.safeString(rawNetwork, 'chainType');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
@@ -2518,7 +2518,7 @@ class toobit extends toobit$1["default"] {
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchDepositsOrWithdrawalsHelper('withdrawals', code, since, limit, params);
     }
-    async fetchDepositsOrWithdrawalsHelper(type, code, since, limit, params) {
+    async fetchDepositsOrWithdrawalsHelper(type, code, since, limit, params = {}) {
         await this.loadMarkets();
         let currency = undefined;
         let request = {};
@@ -2700,7 +2700,7 @@ class toobit extends toobit$1["default"] {
         if (networkCode === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddress() : param["network"] is required');
         }
-        request['chainType'] = this.networkCodeToId(networkCode);
+        request['chainType'] = this.networkCodeToId(networkCode, code);
         const response = await this.privateGetApiV1AccountDepositAddress(this.extend(request, paramsOmitted));
         //
         //     {

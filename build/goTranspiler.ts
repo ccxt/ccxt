@@ -127,7 +127,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "fetchWithdrawals": true,
     "parseAccount": false,
     "parseBalance": false,
-    "parseBidsAsks": false,
+    "parseOrderBookBidsAsks": false,
     "parseBorrowInterest": false,
     "parseBorrowRate": false,
     "parseCurrency": false,
@@ -2732,7 +2732,7 @@ if (isMainEntry(import.meta.url)) {
     } else if (test) {
         transpiler.transpileTests ();
     } else if (multiprocess) {
-        parallelizeTranspiling (exchangeIds);
+        await parallelizeTranspiling (exchangeIds);
     } else {
         await transpiler.transpileEverything (force, child, baseOnly, examples);
     }

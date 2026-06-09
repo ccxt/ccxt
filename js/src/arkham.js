@@ -494,7 +494,7 @@ export default class arkham extends Exchange {
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'symbol');
-                const network = this.networkIdToCode(networkId);
+                const network = this.networkIdToCode(networkId, code);
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -1295,7 +1295,7 @@ export default class arkham extends Exchange {
         //
         // []  returns an empty array, even when successfully cancels orders
         //
-        return this.parseOrders(response, undefined);
+        return this.parseOrders(response);
     }
     /**
      * @method
@@ -1823,7 +1823,7 @@ export default class arkham extends Exchange {
             throw new ArgumentsRequired(this.id + ' fetchDepositAddressesByNetwork() requires a "network" param');
         }
         const request = {
-            'chain': this.networkCodeToId(networkCode),
+            'chain': this.networkCodeToId(networkCode, code),
         };
         const response = await this.v1PrivateGetAccountDepositAddresses(this.extend(request, params));
         //
@@ -1834,7 +1834,8 @@ export default class arkham extends Exchange {
         //    }
         //
         const data = this.safeList(response, 'addresses');
-        const parsed = this.parseDepositAddresses(data, undefined, false, { 'network': networkCode });
+        const networkCodeUnified = networkCode; // java req
+        const parsed = this.parseDepositAddresses(data, undefined, false, { 'network': networkCodeUnified });
         return this.indexBy(parsed, 'network');
     }
     parseDepositAddress(entry, currency = undefined) {
@@ -1939,7 +1940,7 @@ export default class arkham extends Exchange {
             'txid': this.safeString(transaction, 'transactionHash'),
             'type': undefined,
             'currency': code,
-            'network': this.networkIdToCode(this.safeString(transaction, 'chain')),
+            'network': this.networkIdToCode(this.safeString(transaction, 'chain'), code),
             'amount': this.safeNumber(transaction, 'amount'),
             'status': status,
             'timestamp': timestamp,
@@ -2392,11 +2393,13 @@ export default class arkham extends Exchange {
             const marketId = this.safeString(info, 'market');
             market = this.safeMarket(marketId, market, undefined, 'swap');
             const maxNotional = this.safeNumber(tier, 'positionLimit');
+            const curr = market['linear'] ? market['base'] : market['quote'];
+            const notional = minNotional;
             tiers.push({
                 'tier': this.sum(i, 1),
                 'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
-                'currency': market['linear'] ? market['base'] : market['quote'],
-                'minNotional': minNotional,
+                'currency': curr,
+                'minNotional': notional,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': this.safeNumber(tier, 'marginRate'),
                 'maxLeverage': this.safeInteger(tier, 'leverageRate'),

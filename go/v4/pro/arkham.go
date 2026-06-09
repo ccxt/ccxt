@@ -368,7 +368,7 @@ func  (this *ArkhamCore) HandleOrderBook(client any, message any)  {
     client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Orderbooks, symbol), messageHash)
 }
 func  (this *ArkhamCore) HandleDelta(bookside any, delta any)  {
-    var bidAsk any = this.ParseBidAsk(delta, "price", "size")
+    var bidAsk any = this.ParseOrderBookBidAsk(delta, "price", "size")
     bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 /**

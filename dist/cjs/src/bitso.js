@@ -1051,8 +1051,9 @@ class bitso extends bitso$1["default"] {
         }
         // convert it to an integer unconditionally
         if (markerInParams) {
+            const marker = parseInt(params['marker']);
             params = this.extend(params, {
-                'marker': parseInt(params['marker']),
+                'marker': marker,
             });
         }
         const request = {
@@ -1271,8 +1272,9 @@ class bitso extends bitso$1["default"] {
         }
         // convert it to an integer unconditionally
         if (markerInParams) {
+            const marker = parseInt(params['marker']);
             params = this.extend(params, {
-                'marker': parseInt(params['marker']),
+                'marker': marker,
             });
         }
         const request = {
@@ -1782,7 +1784,7 @@ class bitso extends bitso$1["default"] {
         const networkId = this.safeString2(transaction, 'network', 'method');
         const status = this.safeString(transaction, 'status');
         const withdrawId = this.safeString(transaction, 'wid');
-        const networkCode = this.networkIdToCode(networkId);
+        const networkCode = this.networkIdToCode(networkId, currency['code']);
         const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
         return {
             'id': this.safeString2(transaction, 'wid', 'fid'),
@@ -1832,7 +1834,8 @@ class bitso extends bitso$1["default"] {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             endpoint = '/api' + endpoint;
-            let request = [nonce, method, endpoint].join('');
+            const content = [nonce, method, endpoint];
+            let request = content.join('');
             if (method !== 'GET' && method !== 'DELETE') {
                 if (Object.keys(query).length) {
                     body = this.json(query);

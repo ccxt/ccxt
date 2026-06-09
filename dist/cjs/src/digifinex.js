@@ -414,7 +414,7 @@ class digifinex extends digifinex$1["default"] {
                     'OTC': '3',
                 },
                 'networks': {
-                    'ARBITRUM': 'Arbitrum',
+                    'ARBONE': 'Arbitrum',
                     'AVALANCEC': 'AVAX-CCHAIN',
                     'AVALANCEX': 'AVAX-XCHAIN',
                     'BEP20': 'BEP20',
@@ -431,20 +431,19 @@ class digifinex extends digifinex$1["default"] {
                     'ETHW': 'ETHW',
                     'IOTA': 'MIOTA',
                     'KLAYTN': 'KLAY',
-                    'MATIC': 'Polygon',
                     'METIS': 'MetisDAO',
                     'MOONBEAM': 'GLMR',
                     'MOONRIVER': 'Moonriver',
                     'OPTIMISM': 'OPETH',
                     'POLYGON': 'Polygon',
+                    'MATIC': 'Polygon',
                     'RIPPLE': 'XRP',
-                    'SOLANA': 'SOL',
-                    'STELLAR': 'Stella',
+                    'SOL': 'SOL',
+                    'XLM': 'Stella',
                     'TERRACLASSIC': 'TerraClassic',
                     'TERRA': 'Terra',
                     'TON': 'Ton',
                     'TRC20': 'TRC20',
-                    'TRON': 'TRC20',
                     'TRX': 'TRC20',
                     'VECHAIN': 'Vechain', // VET
                 },
@@ -519,46 +518,46 @@ class digifinex extends digifinex$1["default"] {
         //
         const data = this.safeList(response, 'data', []);
         const groupedById = this.groupBy(data, 'currency');
-        const keys = Object.keys(groupedById);
-        const result = {};
-        for (let i = 0; i < keys.length; i++) {
-            const id = keys[i];
-            const networkEntries = groupedById[id];
-            const code = this.safeCurrencyCode(id);
-            const networks = {};
-            for (let j = 0; j < networkEntries.length; j++) {
-                const networkEntry = networkEntries[j];
-                const networkId = this.safeString2(networkEntry, 'chain', 'currency');
-                const networkCode = this.networkIdToCode(networkId);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.safeInteger(networkEntry, 'deposit_status') === 1,
-                    'withdraw': this.safeInteger(networkEntry, 'withdraw_status') === 1,
-                    'fee': this.safeNumber(networkEntry, 'min_withdraw_fee'),
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(networkEntry, 'min_withdraw_amount'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.safeNumber(networkEntry, 'min_deposit_amount'),
-                            'max': undefined,
-                        },
+        const values = Object.values(groupedById);
+        return this.parseCurrencies(values);
+    }
+    parseCurrency(rawCurrency) {
+        const networkEntries = rawCurrency;
+        const firstEntry = this.safeDict(networkEntries, 0, {}); // it must have at least one entry
+        const id = this.safeString(firstEntry, 'currency');
+        const code = this.safeCurrencyCode(id);
+        const networks = {};
+        for (let j = 0; j < networkEntries.length; j++) {
+            const networkEntry = networkEntries[j];
+            const networkId = this.safeString2(networkEntry, 'chain', 'currency');
+            const networkCode = this.networkIdToCode(networkId, code);
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'active': undefined,
+                'deposit': this.safeInteger(networkEntry, 'deposit_status') === 1,
+                'withdraw': this.safeInteger(networkEntry, 'withdraw_status') === 1,
+                'fee': this.safeNumber(networkEntry, 'min_withdraw_fee'),
+                'precision': undefined,
+                'limits': {
+                    'withdraw': {
+                        'min': this.safeNumber(networkEntry, 'min_withdraw_amount'),
+                        'max': undefined,
                     },
-                    'info': networkEntry,
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'info': networkEntries,
-                'networks': networks,
-            });
+                    'deposit': {
+                        'min': this.safeNumber(networkEntry, 'min_deposit_amount'),
+                        'max': undefined,
+                    },
+                },
+                'info': networkEntry,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'info': networkEntries,
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -682,6 +681,7 @@ class digifinex extends digifinex$1["default"] {
                     isAllowed = 1;
                 }
             }
+            const isActive = isAllowed ? true : false;
             result.push({
                 'id': id,
                 'symbol': symbol,
@@ -697,7 +697,7 @@ class digifinex extends digifinex$1["default"] {
                 'swap': swap,
                 'future': false,
                 'option': false,
-                'active': isAllowed ? true : false,
+                'active': isActive,
                 'contract': swap,
                 'linear': isLinear,
                 'inverse': isInverse,
@@ -4175,7 +4175,7 @@ class digifinex extends digifinex$1["default"] {
                     'percentage': undefined,
                 };
                 if (networkId !== undefined) {
-                    const networkCode = this.networkIdToCode(networkId);
+                    const networkCode = this.networkIdToCode(networkId, code);
                     depositWithdrawFees[code]['networks'][networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult,

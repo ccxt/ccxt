@@ -1593,13 +1593,15 @@ class grvt extends grvt$1["default"] {
         let networkCode = undefined;
         let addressFrom = this.safeString(transaction, 'from_account_id');
         let addressTo = this.safeString(transaction, 'to_account_id');
+        const currencyId = this.safeString(transaction, 'currency');
+        const code = this.safeCurrencyCode(currencyId, currency);
         if ('transfer_metadata' in transaction) {
             const metaData = this.omitZero(this.safeString(transaction, 'transfer_metadata'));
             if (metaData !== undefined) {
                 const parsedMeta = this.parseJson(metaData);
                 direction = this.safeStringLower(parsedMeta, 'direction');
                 txId = this.safeString(parsedMeta, 'provider_tx_id');
-                networkCode = this.networkIdToCode(this.safeString(parsedMeta, 'chainid'));
+                networkCode = this.networkIdToCode(this.safeString(parsedMeta, 'chainid'), code);
                 if (direction === 'withdrawal') {
                     addressTo = this.safeString(parsedMeta, 'endpoint');
                 }
@@ -1609,8 +1611,6 @@ class grvt extends grvt$1["default"] {
             }
         }
         const timestamp = this.safeIntegerProduct2(transaction, 'event_time', 'initiated_time', 0.000001);
-        const currencyId = this.safeString(transaction, 'currency');
-        const code = this.safeCurrencyCode(currencyId, currency);
         return {
             'info': transaction,
             'id': undefined,
@@ -1831,7 +1831,7 @@ class grvt extends grvt$1["default"] {
     }
     async loadAccountInfos() {
         if (this.safeString(this.options, 'userMainAccountId') !== undefined) {
-            return;
+            return false;
         }
         const promises = [];
         promises.push(this.privateTradingPostFullV1AggregatedAccountSummary());
@@ -1884,6 +1884,7 @@ class grvt extends grvt$1["default"] {
             const subAccountId = this.safeString(subAccountIds, 0);
             this.options['accountId'] = subAccountId;
         }
+        return true;
     }
     /**
      * @method
@@ -1911,7 +1912,7 @@ class grvt extends grvt$1["default"] {
             'signature': this.defaultSignature(),
         };
         const [networkCode, query] = this.handleNetworkCodeAndParams(params);
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, code);
         if (networkId === undefined) {
             throw new errors.BadRequest(this.id + ' withdraw() requires a network parameter');
         }
@@ -1976,8 +1977,10 @@ class grvt extends grvt$1["default"] {
         }
         params = this.omit(params, ['clientOrderId']);
         const isMarketOrder = (type === 'market');
+        const subAccountId = this.getSubAccountId(params);
+        const isReduceOnly = this.safeBool(params, 'reduceOnly', false);
         const orderRequest = {
-            'sub_account_id': this.getSubAccountId(params),
+            'sub_account_id': subAccountId,
             'time_in_force': undefined,
             'legs': [orderLeg],
             'signature': this.defaultSignature(),
@@ -1986,7 +1989,7 @@ class grvt extends grvt$1["default"] {
             },
             'is_market': isMarketOrder,
             'post_only': false,
-            'reduce_only': this.safeBool(params, 'reduceOnly', false),
+            'reduce_only': isReduceOnly,
             // 'order_id': null,
             // 'state': null,
         };
@@ -2619,8 +2622,9 @@ class grvt extends grvt$1["default"] {
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarketsAndSignIn();
+        const subAccountId = this.getSubAccountId(params);
         let request = {
-            'sub_account_id': this.getSubAccountId(params),
+            'sub_account_id': subAccountId,
         };
         let market = undefined;
         if (symbol !== undefined) {
@@ -2796,8 +2800,9 @@ class grvt extends grvt$1["default"] {
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarketsAndSignIn();
+        const subAccountId = this.getSubAccountId(params);
         const request = {
-            'sub_account_id': this.getSubAccountId(params),
+            'sub_account_id': subAccountId,
         };
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
@@ -3060,7 +3065,7 @@ class grvt extends grvt$1["default"] {
         //    }
         //
         const result = this.safeDict(response, 'result', {});
-        return this.parseOrders([result], undefined);
+        return this.parseOrders([result]);
     }
     /**
      * @method
@@ -3075,8 +3080,9 @@ class grvt extends grvt$1["default"] {
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         await this.loadMarketsAndSignIn();
+        const subAccoubntId = this.getSubAccountId(params);
         const request = {
-            'sub_account_id': this.getSubAccountId(params),
+            'sub_account_id': subAccoubntId,
         };
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {

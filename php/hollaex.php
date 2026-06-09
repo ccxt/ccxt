@@ -446,7 +446,7 @@ class hollaex extends Exchange {
         //                    "decimal_points" => "6"
         //                ),
         //                "estimated_price" => "1",
-        //                "description" => "<p>Tether (USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital $currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
+        //                "description" => "<p>Tether (USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
         //                "type" => "blockchain",
         //                "network" => "eth,trx,bnb,matic",
         //                "standard" => "",
@@ -488,66 +488,64 @@ class hollaex extends Exchange {
         //     }
         //
         $coins = $this->safe_dict($response, 'coins', array());
-        $keys = is_array($coins) ? array_keys($coins) : array();
-        $result = array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            $currency = $coins[$key];
-            $id = $this->safe_string($currency, 'symbol');
-            $code = $this->safe_currency_code($id);
-            $withdrawalLimits = $this->safe_list($currency, 'withdrawal_limits', array());
-            $rawType = $this->safe_string($currency, 'type');
-            $type = ($rawType === 'blockchain') ? 'crypto' : 'other';
-            $rawNetworks = $this->safe_dict($currency, 'withdrawal_fees', array());
-            $networks = array();
-            $networkIds = is_array($rawNetworks) ? array_keys($rawNetworks) : array();
-            for ($j = 0; $j < count($networkIds); $j++) {
-                $networkId = $networkIds[$j];
-                $networkEntry = $this->safe_dict($rawNetworks, $networkId);
-                $networkCode = $this->network_id_to_code($networkId);
-                $networks[$networkCode] = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'active' => $this->safe_bool($networkEntry, 'active'),
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => $this->safe_number($networkEntry, 'value'),
-                    'precision' => null,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'info' => $networkEntry,
-                );
-            }
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $id,
-                'numericId' => $this->safe_integer($currency, 'id'),
-                'code' => $code,
-                'info' => $currency,
-                'name' => $this->safe_string($currency, 'fullname'),
-                'active' => $this->safe_bool($currency, 'active'),
-                'deposit' => $this->safe_bool($currency, 'allow_deposit'),
-                'withdraw' => $this->safe_bool($currency, 'allow_withdrawal'),
-                'fee' => $this->safe_number($currency, 'withdrawal_fee'),
-                'precision' => $this->safe_number($currency, 'increment_unit'),
+        $values = is_array($coins) ? array_values($coins) : array();
+        return $this->parse_currencies($values);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'symbol');
+        $code = $this->safe_currency_code($id);
+        $withdrawalLimits = $this->safe_list($rawCurrency, 'withdrawal_limits', array());
+        $rawType = $this->safe_string($rawCurrency, 'type');
+        $type = ($rawType === 'blockchain') ? 'crypto' : 'other';
+        $rawNetworks = $this->safe_dict($rawCurrency, 'withdrawal_fees', array());
+        $networks = array();
+        $networkIds = is_array($rawNetworks) ? array_keys($rawNetworks) : array();
+        for ($j = 0; $j < count($networkIds); $j++) {
+            $networkId = $networkIds[$j];
+            $networkEntry = $this->safe_dict($rawNetworks, $networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'active' => $this->safe_bool($networkEntry, 'active'),
+                'deposit' => null,
+                'withdraw' => null,
+                'fee' => $this->safe_number($networkEntry, 'value'),
+                'precision' => null,
                 'limits' => array(
-                    'amount' => array(
-                        'min' => $this->safe_number($currency, 'min'),
-                        'max' => $this->safe_number($currency, 'max'),
-                    ),
                     'withdraw' => array(
                         'min' => null,
-                        'max' => $this->safe_value($withdrawalLimits, 0),
+                        'max' => null,
                     ),
                 ),
-                'networks' => $networks,
-                'type' => $type,
-            ));
+                'info' => $networkEntry,
+            );
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'numericId' => $this->safe_integer($rawCurrency, 'id'),
+            'code' => $code,
+            'info' => $rawCurrency,
+            'name' => $this->safe_string($rawCurrency, 'fullname'),
+            'active' => $this->safe_bool($rawCurrency, 'active'),
+            'deposit' => $this->safe_bool($rawCurrency, 'allow_deposit'),
+            'withdraw' => $this->safe_bool($rawCurrency, 'allow_withdrawal'),
+            'fee' => $this->safe_number($rawCurrency, 'withdrawal_fee'),
+            'precision' => $this->safe_number($rawCurrency, 'increment_unit'),
+            'limits' => array(
+                'amount' => array(
+                    'min' => $this->safe_number($rawCurrency, 'min'),
+                    'max' => $this->safe_number($rawCurrency, 'max'),
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => $this->safe_value($withdrawalLimits, 0),
+                ),
+            ),
+            'networks' => $networks,
+            'type' => $type,
+        ));
     }
 
     public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()): OrderBooks {
@@ -931,12 +929,10 @@ class hollaex extends Exchange {
         $timeDelta = $this->parse_timeframe($timeframe) * $maxLimit * 1000;
         $start = $since;
         $now = $this->milliseconds();
-        if ($until === null && $start === null) {
-            $until = $now;
-            $start = $until - $timeDelta;
-        } elseif ($until === null) {
+        if ($until === null) {
             $until = $now; // the exchange has not a lot of trades, so if we count $until by $limit and $limit is small, it may return empty result
-        } elseif ($start === null) {
+        }
+        if ($start === null) {
             $start = $until - $timeDelta;
         }
         $request['from'] = $this->parse_to_int($start / 1000); // convert to seconds

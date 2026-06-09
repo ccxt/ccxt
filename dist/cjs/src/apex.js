@@ -494,78 +494,80 @@ class apex extends apex$1["default"] {
         // }
         const rows = this.safeList(spotConfig, 'assets', []);
         const chains = this.safeList(multiChain, 'chains', []);
-        const result = {};
-        for (let i = 0; i < rows.length; i++) {
-            const currency = rows[i];
-            const currencyId = this.safeString(currency, 'token');
-            const code = this.safeCurrencyCode(currencyId);
-            const name = this.safeString(currency, 'displayName');
-            const networks = {};
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const tokens = this.safeList(chain, 'tokens', []);
-                for (let f = 0; f < tokens.length; f++) {
-                    const token = tokens[f];
-                    const tokenName = this.safeString(token, 'token');
-                    if (tokenName === currencyId) {
-                        const networkId = this.safeString(chain, 'chainId');
-                        const networkCode = this.networkIdToCode(networkId);
-                        networks[networkCode] = {
-                            'info': chain,
-                            'id': networkId,
-                            'network': networkCode,
-                            'active': undefined,
-                            'deposit': !this.safeBool(chain, 'depositDisable'),
-                            'withdraw': this.safeBool(token, 'withdrawEnable'),
-                            'fee': this.safeNumber(token, 'minFee'),
-                            'precision': this.parseNumber(this.parsePrecision(this.safeString(token, 'decimals'))),
-                            'limits': {
-                                'withdraw': {
-                                    'min': this.safeNumber(token, 'minWithdraw'),
-                                    'max': undefined,
-                                },
-                                'deposit': {
-                                    'min': this.safeNumber(chain, 'minDeposit'),
-                                    'max': undefined,
-                                },
+        this.options['_temp_currencies_chains'] = chains;
+        const result = this.parseCurrencies(rows);
+        delete this.options['_temp_currencies_chains'];
+        return result;
+    }
+    parseCurrency(currency) {
+        const currencyId = this.safeString(currency, 'token');
+        const code = this.safeCurrencyCode(currencyId);
+        const name = this.safeString(currency, 'displayName');
+        const networks = {};
+        const chains = this.options['_temp_currencies_chains'];
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const tokens = this.safeList(chain, 'tokens', []);
+            for (let f = 0; f < tokens.length; f++) {
+                const token = tokens[f];
+                const tokenName = this.safeString(token, 'token');
+                if (tokenName === currencyId) {
+                    const networkId = this.safeString(chain, 'chainId');
+                    const networkCode = this.networkIdToCode(networkId, code);
+                    networks[networkCode] = {
+                        'info': chain,
+                        'id': networkId,
+                        'network': networkCode,
+                        'active': undefined,
+                        'deposit': !this.safeBool(chain, 'depositDisable'),
+                        'withdraw': this.safeBool(token, 'withdrawEnable'),
+                        'fee': this.safeNumber(token, 'minFee'),
+                        'precision': this.parseNumber(this.parsePrecision(this.safeString(token, 'decimals'))),
+                        'limits': {
+                            'withdraw': {
+                                'min': this.safeNumber(token, 'minWithdraw'),
+                                'max': undefined,
                             },
-                        };
-                    }
+                            'deposit': {
+                                'min': this.safeNumber(chain, 'minDeposit'),
+                                'max': undefined,
+                            },
+                        },
+                    };
                 }
             }
-            const networkKeys = Object.keys(networks);
-            const networksLength = networkKeys.length;
-            const emptyChains = networksLength === 0; // non-functional coins
-            const valueForEmpty = emptyChains ? false : undefined;
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'type': 'crypto',
-                'name': name,
-                'active': undefined,
-                'deposit': valueForEmpty,
-                'withdraw': valueForEmpty,
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': networks,
-            });
         }
-        return result;
+        const networkKeys = Object.keys(networks);
+        const networksLength = networkKeys.length;
+        const emptyChains = networksLength === 0; // non-functional coins
+        const valueForEmpty = emptyChains ? false : undefined;
+        return this.safeCurrencyStructure({
+            'info': currency,
+            'code': code,
+            'id': currencyId,
+            'type': 'crypto',
+            'name': name,
+            'active': undefined,
+            'deposit': valueForEmpty,
+            'withdraw': valueForEmpty,
+            'fee': undefined,
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -1211,7 +1213,7 @@ class apex extends apex$1["default"] {
             'IMMEDIATE_OR_CANCEL': 'IMMEDIATE_OR_CANCEL',
             'POST_ONLY': 'POST_ONLY',
         };
-        return this.safeString(timeInForces, timeInForce, undefined);
+        return this.safeString(timeInForces, timeInForce);
     }
     parseOrderStatus(status) {
         if (status !== undefined) {
@@ -1359,14 +1361,16 @@ class apex extends apex$1["default"] {
         if (clientOrderId === undefined) {
             clientOrderId = this.generateRandomClientIdOmni(accountId);
         }
+        const finalClientOrderId = clientOrderId; // java req
         params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice']);
+        const finalOrderPrice = orderPrice; // java req
         const orderToSign = {
             'accountId': accountId,
-            'slotId': clientOrderId,
-            'nonce': clientOrderId,
+            'slotId': finalClientOrderId,
+            'nonce': finalClientOrderId,
             'pairId': market['quoteId'],
             'size': orderSize,
-            'price': orderPrice,
+            'price': finalOrderPrice,
             'direction': orderSide,
             'makerFeeRate': maker,
             'takerFeeRate': taker,
@@ -1380,11 +1384,11 @@ class apex extends apex$1["default"] {
             'side': orderSide,
             'type': orderType,
             'size': orderSize,
-            'price': orderPrice,
+            'price': finalOrderPrice,
             'limitFee': limitFee,
             'expiration': Math.floor(timeNow / 1000 + 30 * 24 * 60 * 60),
             'timeInForce': timeInForce,
-            'clientId': clientOrderId,
+            'clientId': finalClientOrderId,
             'brokerId': this.safeString(this.options, 'brokerId', '6956'),
         };
         if (triggerPrice !== undefined) {
@@ -1430,6 +1434,7 @@ class apex extends apex$1["default"] {
         if (subAccounts.length > 0) {
             nonce = this.safeString(subAccounts[0], 'nonce', '0');
         }
+        const finalNonce = nonce; // java req
         const ethAddress = this.safeString(accountData, 'ethereumAddress', '');
         const accountId = this.safeString(accountData, 'id', '');
         let currency = {};
@@ -1446,12 +1451,15 @@ class apex extends apex$1["default"] {
             }
         }
         const tokenId = this.safeString(currency, 'tokenId', '');
-        const amountNumber = this.parseToInt(amount * (Math.pow(10, this.safeNumber(currency, 'decimals', 0))));
+        const decimalsNum = this.safeNumber(currency, 'decimals', 0);
+        const mathPowResult = (Math.pow(10, decimalsNum));
+        const amountNumber = this.parseToInt(amount * mathPowResult);
         const timestampSeconds = this.parseToInt(this.milliseconds() / 1000);
         let clientOrderId = this.safeStringN(params, ['clientId', 'clientOrderId', 'client_order_id']);
         if (clientOrderId === undefined) {
             clientOrderId = this.generateRandomClientIdOmni(this.safeString(this.options, 'accountId'));
         }
+        const finalClientOrderId = clientOrderId; // java req
         params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id']);
         if (fromAccount !== undefined && fromAccount.toLowerCase() === 'contract') {
             const formattedUint32 = '4294967295';
@@ -1465,7 +1473,7 @@ class apex extends apex$1["default"] {
                 'tokenId': tokenId,
                 'amount': amountNumber.toString(),
                 'fee': '0',
-                'nonce': clientOrderId,
+                'nonce': finalClientOrderId,
                 'timestampSeconds': expireTime,
                 'isContract': true,
             };
@@ -1473,7 +1481,7 @@ class apex extends apex$1["default"] {
             const request = {
                 'amount': amount,
                 'expireTime': expireTime,
-                'clientWithdrawId': clientOrderId,
+                'clientWithdrawId': finalClientOrderId,
                 'signature': signature,
                 'token': code,
                 'ethAddress': ethAddress,
@@ -1481,10 +1489,11 @@ class apex extends apex$1["default"] {
             const response = await this.privatePostV3ContractTransferOut(this.extend(request, params));
             const data = this.safeDict(response, 'data', {});
             const currentTime = this.milliseconds();
+            const parsedAmount = this.parseNumber(amount);
             return this.extend(this.parseTransfer(data, this.currency(code)), {
                 'timestamp': currentTime,
                 'datetime': this.iso8601(currentTime),
-                'amount': this.parseNumber(amount),
+                'amount': parsedAmount,
                 'fromAccount': 'contract',
                 'toAccount': 'spot',
             });
@@ -1498,14 +1507,16 @@ class apex extends apex$1["default"] {
                 'tokenId': tokenId,
                 'amount': amountNumber.toString(),
                 'fee': '0',
-                'nonce': nonce,
+                'nonce': finalNonce,
                 'timestampSeconds': timestampSeconds,
             };
             const signature = await this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign);
+            const amountStr = amount.toString();
+            const ts = timestampSeconds; // java req
             const request = {
-                'amount': amount.toString(),
-                'timestamp': timestampSeconds,
-                'clientTransferId': clientOrderId,
+                'amount': amountStr,
+                'timestamp': ts,
+                'clientTransferId': finalClientOrderId,
                 'signature': signature,
                 'zkAccountId': zkAccountId,
                 'subAccountId': subAccountId,
@@ -1516,7 +1527,7 @@ class apex extends apex$1["default"] {
                 'receiverZkAccountId': receiverZkAccountId,
                 'receiverSubAccountId': receiverSubAccountId,
                 'receiverAddress': receiverAddress,
-                'nonce': nonce,
+                'nonce': finalNonce,
             };
             const response = await this.privatePostV3TransferOut(this.extend(request, params));
             const data = this.safeDict(response, 'data', {});
@@ -1574,7 +1585,7 @@ class apex extends apex$1["default"] {
      * @description cancels an open order
      * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
      * @param {string} id order id
-     * @param symbol
+     * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */

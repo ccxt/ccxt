@@ -7,6 +7,38 @@
 
 package ccxt
 
+func (this *BitvavoCore) PublicGetMarketBook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketBook", args...)
+}
+
+func (this *BitvavoCore) PublicGetReportMarketBook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetReportMarketBook", args...)
+}
+
+func (this *BitvavoCore) PublicGetMarketTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketTrades", args...)
+}
+
+func (this *BitvavoCore) PublicGetReportMarketTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetReportMarketTrades", args...)
+}
+
+func (this *BitvavoCore) PublicGetTickerPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTickerPrice", args...)
+}
+
+func (this *BitvavoCore) PublicGetTickerBook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTickerBook", args...)
+}
+
+func (this *BitvavoCore) PublicGetMarketCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketCandles", args...)
+}
+
+func (this *BitvavoCore) PublicGetTicker24h(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTicker24h", args...)
+}
+
 func (this *BitvavoCore) PublicGetTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTime", args...)
 }
@@ -19,40 +51,8 @@ func (this *BitvavoCore) PublicGetAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAssets", args...)
 }
 
-func (this *BitvavoCore) PublicGetMarketBook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketBook", args...)
-}
-
-func (this *BitvavoCore) PublicGetMarketTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketTrades", args...)
-}
-
-func (this *BitvavoCore) PublicGetMarketCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketCandles", args...)
-}
-
-func (this *BitvavoCore) PublicGetTickerPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTickerPrice", args...)
-}
-
-func (this *BitvavoCore) PublicGetTickerBook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTickerBook", args...)
-}
-
-func (this *BitvavoCore) PublicGetTicker24h(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTicker24h", args...)
-}
-
-func (this *BitvavoCore) PrivateGetAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccount", args...)
-}
-
 func (this *BitvavoCore) PrivateGetOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrder", args...)
-}
-
-func (this *BitvavoCore) PrivateGetOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
 func (this *BitvavoCore) PrivateGetOrdersOpen(args ...any) <-chan any {
@@ -63,8 +63,8 @@ func (this *BitvavoCore) PrivateGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTrades", args...)
 }
 
-func (this *BitvavoCore) PrivateGetBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBalance", args...)
+func (this *BitvavoCore) PrivateGetOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
 func (this *BitvavoCore) PrivateGetDeposit(args ...any) <-chan any {
@@ -77,6 +77,26 @@ func (this *BitvavoCore) PrivateGetDepositHistory(args ...any) <-chan any {
 
 func (this *BitvavoCore) PrivateGetWithdrawalHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWithdrawalHistory", args...)
+}
+
+func (this *BitvavoCore) PrivateGetAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccount", args...)
+}
+
+func (this *BitvavoCore) PrivateGetBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetBalance", args...)
+}
+
+func (this *BitvavoCore) PrivateGetStakingBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetStakingBalance", args...)
+}
+
+func (this *BitvavoCore) PrivateGetAccountFees(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountFees", args...)
+}
+
+func (this *BitvavoCore) PrivateGetAccountHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountHistory", args...)
 }
 
 func (this *BitvavoCore) PrivateGetSubaccounts(args ...any) <-chan any {
@@ -107,8 +127,16 @@ func (this *BitvavoCore) PrivatePostOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrder", args...)
 }
 
+func (this *BitvavoCore) PrivatePostCancelOrdersAfter(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelOrdersAfter", args...)
+}
+
 func (this *BitvavoCore) PrivatePostWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawal", args...)
+}
+
+func (this *BitvavoCore) PrivatePostCryptoWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCryptoWithdrawal", args...)
 }
 
 func (this *BitvavoCore) PrivatePostSubaccounts(args ...any) <-chan any {
@@ -129,6 +157,10 @@ func (this *BitvavoCore) PrivateDeleteOrder(args ...any) <-chan any {
 
 func (this *BitvavoCore) PrivateDeleteOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrders", args...)
+}
+
+func (this *BitvavoCore) PrivateDeleteAtomicOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteAtomicOrders", args...)
 }
 
 func (this *BitvavoCore) PrivateDeleteInstitutionalSubaccountsOrder(args ...any) <-chan any {

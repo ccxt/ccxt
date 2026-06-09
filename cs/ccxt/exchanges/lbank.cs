@@ -424,69 +424,69 @@ public partial class lbank : Exchange
         //
         object currenciesData = this.safeList(response, "data", new List<object>() {});
         object grouped = this.groupBy(currenciesData, "assetCode");
-        object groupedKeys = new List<object>(((IDictionary<string,object>)grouped).Keys);
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(groupedKeys)); postFixIncrement(ref i))
+        object values = new List<object>(((IDictionary<string,object>)grouped).Values);
+        return this.parseCurrencies(values);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(getValue(rawCurrency, 0), "assetCode"); // first member is guaranteed
+        object code = this.safeCurrencyCode(id);
+        object networksRaw = rawCurrency;
+        object networks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(networksRaw)); postFixIncrement(ref j))
         {
-            object id = ((object)(getValue(groupedKeys, i))).ToString(); // some currencies are numeric
-            object code = this.safeCurrencyCode(id);
-            object networksRaw = getValue(grouped, id);
-            object networks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(networksRaw)); postFixIncrement(ref j))
+            object networkEntry = getValue(networksRaw, j);
+            object networkId = this.safeString(networkEntry, "chain");
+            if (isTrue(isEqual(networkId, null)))
             {
-                object networkEntry = getValue(networksRaw, j);
-                object networkId = this.safeString(networkEntry, "chain");
-                if (isTrue(isEqual(networkId, null)))
-                {
-                    networkId = this.safeString(networkEntry, "assetCode"); // use type as fallback if networkId is not present
-                }
-                object networkCode = this.networkIdToCode(networkId);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(networkEntry, "min") },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(networkEntry, "minTransfer") },
-                            { "max", null },
-                        } },
-                    } },
-                    { "active", null },
-                    { "deposit", null },
-                    { "withdraw", this.safeBool(networkEntry, "canWithDraw") },
-                    { "fee", this.safeNumber(networkEntry, "fee") },
-                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "transferAmtScale"))) },
-                    { "info", networkEntry },
-                };
+                networkId = this.safeString(networkEntry, "assetCode"); // use type as fallback if networkId is not present
             }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "precision", null },
-                { "type", null },
-                { "name", null },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
+            object networkCode = this.networkIdToCode(networkId, code);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
                 { "limits", new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.safeNumber(networkEntry, "min") },
                         { "max", null },
                     } },
                     { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.safeNumber(networkEntry, "minTransfer") },
                         { "max", null },
                     } },
                 } },
-                { "networks", networks },
-                { "info", networksRaw },
-            });
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", this.safeBool(networkEntry, "canWithDraw") },
+                { "fee", this.safeNumber(networkEntry, "fee") },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "transferAmtScale"))) },
+                { "info", networkEntry },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "precision", null },
+            { "type", null },
+            { "name", null },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "limits", new Dictionary<string, object>() {
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", networks },
+            { "info", networksRaw },
+        });
     }
 
     /**
@@ -1075,9 +1075,10 @@ public partial class lbank : Exchange
         object feeCost = this.safeString(trade, "tradeFee");
         if (isTrue(!isEqual(feeCost, null)))
         {
+            object feeCurr = ((bool) isTrue((isEqual(side, "buy")))) ? getValue(market, "base") : getValue(market, "quote");
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", ((bool) isTrue((isEqual(side, "buy")))) ? getValue(market, "base") : getValue(market, "quote") },
+                { "currency", feeCurr },
                 { "rate", this.safeString(trade, "tradeFeeRate") },
             };
         }
@@ -1207,11 +1208,13 @@ public partial class lbank : Exchange
             object duration = this.parseTimeframe(timeframe);
             since = subtract(this.milliseconds(), (multiply(multiply(duration, 1000), limit)));
         }
+        object parsedSince = this.parseToInt(divide(since, 1000));
+        object parsedLimit = mathMin(add(limit, 1), 2000); // max 2000;
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "type", this.safeString(this.timeframes, timeframe, timeframe) },
-            { "time", this.parseToInt(divide(since, 1000)) },
-            { "size", mathMin(add(limit, 1), 2000) },
+            { "time", parsedSince },
+            { "size", parsedLimit },
         };
         object response = await this.spotPublicGetKline(this.extend(request, parameters));
         object ohlcvs = this.safeList(response, "data", new List<object>() {});
@@ -2388,7 +2391,7 @@ public partial class lbank : Exchange
         return new Dictionary<string, object>() {
             { "info", response },
             { "currency", code },
-            { "network", this.networkIdToCode(this.safeString(result, "netWork")) },
+            { "network", this.networkIdToCode(this.safeString(result, "netWork"), code) },
             { "address", address },
             { "tag", tag },
         };
@@ -2589,7 +2592,7 @@ public partial class lbank : Exchange
             { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", this.networkIdToCode(this.safeString(transaction, "networkName")) },
+            { "network", this.networkIdToCode(this.safeString(transaction, "networkName"), code) },
             { "address", address },
             { "addressTo", addressTo },
             { "addressFrom", addressFrom },
@@ -2808,7 +2811,7 @@ public partial class lbank : Exchange
                 object fee = this.safeNumber(networkEntry, "withdrawFee");
                 if (isTrue(!isEqual(fee, null)))
                 {
-                    object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"));
+                    object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
                     ((IDictionary<string,object>)getValue(withdrawFees, code))[(string)networkCode] = fee;
                 }
             }
@@ -2866,7 +2869,7 @@ public partial class lbank : Exchange
             {
                 object currencyId = this.safeString(item, "assetCode");
                 object codeInner = this.safeCurrencyCode(currencyId);
-                object network = this.networkIdToCode(this.safeString(item, "chain"));
+                object network = this.networkIdToCode(this.safeString(item, "chain"), codeInner);
                 if (isTrue(isEqual(network, null)))
                 {
                     network = codeInner;
@@ -3037,7 +3040,7 @@ public partial class lbank : Exchange
                             object resultCodeInfo = getValue(getValue(result, code), "info");
                             ((IList<object>)resultCodeInfo).Add(fee);
                         }
-                        object networkCode = this.networkIdToCode(this.safeString(fee, "chain"));
+                        object networkCode = this.networkIdToCode(this.safeString(fee, "chain"), code);
                         if (isTrue(!isEqual(networkCode, null)))
                         {
                             ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
@@ -3093,11 +3096,12 @@ public partial class lbank : Exchange
         //    }
         //
         object result = this.depositWithdrawFee(fee);
+        object code = this.safeString(currency, "code");
         object networkList = this.safeValue(fee, "networkList", new List<object>() {});
         for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
         {
             object networkEntry = getValue(networkList, j);
-            object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"));
+            object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
             object withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
             object isDefault = this.safeValue(networkEntry, "isDefault");
             if (isTrue(!isEqual(withdrawFee, null)))
@@ -3161,9 +3165,10 @@ public partial class lbank : Exchange
             {
                 signatureMethod = "HmacSHA256";
             }
+            object finalSig = signatureMethod; // java req
             object auth = this.rawencode(this.keysort(this.extend(new Dictionary<string, object>() {
                 { "echostr", echostr },
-                { "signature_method", signatureMethod },
+                { "signature_method", finalSig },
                 { "timestamp", timestamp },
             }, query)));
             object encoded = this.encode(auth);

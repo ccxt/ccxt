@@ -293,7 +293,7 @@ class arkham(ccxt.async_support.arkham):
         client.resolve(self.orderbooks[symbol], messageHash)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta, 'price', 'size')
+        bidAsk = self.parse_order_book_bid_ask(delta, 'price', 'size')
         bookside.storeArray(bidAsk)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:

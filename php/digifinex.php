@@ -410,7 +410,7 @@ class digifinex extends Exchange {
                     'OTC' => '3',
                 ),
                 'networks' => array(
-                    'ARBITRUM' => 'Arbitrum',
+                    'ARBONE' => 'Arbitrum',
                     'AVALANCEC' => 'AVAX-CCHAIN',
                     'AVALANCEX' => 'AVAX-XCHAIN',
                     'BEP20' => 'BEP20',
@@ -427,20 +427,19 @@ class digifinex extends Exchange {
                     'ETHW' => 'ETHW',
                     'IOTA' => 'MIOTA',
                     'KLAYTN' => 'KLAY',
-                    'MATIC' => 'Polygon',
                     'METIS' => 'MetisDAO',
                     'MOONBEAM' => 'GLMR',
                     'MOONRIVER' => 'Moonriver',
                     'OPTIMISM' => 'OPETH',
                     'POLYGON' => 'Polygon',
+                    'MATIC' => 'Polygon',
                     'RIPPLE' => 'XRP',
-                    'SOLANA' => 'SOL', // SOL & SPL
-                    'STELLAR' => 'Stella', // XLM
+                    'SOL' => 'SOL', // SOL & SPL
+                    'XLM' => 'Stella', // STELLAR
                     'TERRACLASSIC' => 'TerraClassic',
                     'TERRA' => 'Terra',
                     'TON' => 'Ton',
                     'TRC20' => 'TRC20',
-                    'TRON' => 'TRC20',
                     'TRX' => 'TRC20',
                     'VECHAIN' => 'Vechain', // VET
                 ),
@@ -514,46 +513,47 @@ class digifinex extends Exchange {
         //
         $data = $this->safe_list($response, 'data', array());
         $groupedById = $this->group_by($data, 'currency');
-        $keys = is_array($groupedById) ? array_keys($groupedById) : array();
-        $result = array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $id = $keys[$i];
-            $networkEntries = $groupedById[$id];
-            $code = $this->safe_currency_code($id);
-            $networks = array();
-            for ($j = 0; $j < count($networkEntries); $j++) {
-                $networkEntry = $networkEntries[$j];
-                $networkId = $this->safe_string_2($networkEntry, 'chain', 'currency');
-                $networkCode = $this->network_id_to_code($networkId);
-                $networks[$networkCode] = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'active' => null,
-                    'deposit' => $this->safe_integer($networkEntry, 'deposit_status') === 1,
-                    'withdraw' => $this->safe_integer($networkEntry, 'withdraw_status') === 1,
-                    'fee' => $this->safe_number($networkEntry, 'min_withdraw_fee'),
-                    'precision' => null,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($networkEntry, 'min_withdraw_amount'),
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => $this->safe_number($networkEntry, 'min_deposit_amount'),
-                            'max' => null,
-                        ),
+        $values = is_array($groupedById) ? array_values($groupedById) : array();
+        return $this->parse_currencies($values);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $networkEntries = $rawCurrency;
+        $firstEntry = $this->safe_dict($networkEntries, 0, array()); // it must have at least one entry
+        $id = $this->safe_string($firstEntry, 'currency');
+        $code = $this->safe_currency_code($id);
+        $networks = array();
+        for ($j = 0; $j < count($networkEntries); $j++) {
+            $networkEntry = $networkEntries[$j];
+            $networkId = $this->safe_string_2($networkEntry, 'chain', 'currency');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'active' => null,
+                'deposit' => $this->safe_integer($networkEntry, 'deposit_status') === 1,
+                'withdraw' => $this->safe_integer($networkEntry, 'withdraw_status') === 1,
+                'fee' => $this->safe_number($networkEntry, 'min_withdraw_fee'),
+                'precision' => null,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($networkEntry, 'min_withdraw_amount'),
+                        'max' => null,
                     ),
-                    'info' => $networkEntry,
-                );
-            }
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $id,
-                'code' => $code,
-                'info' => $networkEntries,
-                'networks' => $networks,
-            ));
+                    'deposit' => array(
+                        'min' => $this->safe_number($networkEntry, 'min_deposit_amount'),
+                        'max' => null,
+                    ),
+                ),
+                'info' => $networkEntry,
+            );
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => $networkEntries,
+            'networks' => $networks,
+        ));
     }
 
     public function fetch_markets($params = array ()): array {
@@ -676,6 +676,7 @@ class digifinex extends Exchange {
                     $isAllowed = 1;
                 }
             }
+            $isActive = $isAllowed ? true : false;
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -691,7 +692,7 @@ class digifinex extends Exchange {
                 'swap' => $swap,
                 'future' => false,
                 'option' => false,
-                'active' => $isAllowed ? true : false,
+                'active' => $isActive,
                 'contract' => $swap,
                 'linear' => $isLinear,
                 'inverse' => $isInverse,
@@ -4130,7 +4131,7 @@ class digifinex extends Exchange {
                     'percentage' => null,
                 );
                 if ($networkId !== null) {
-                    $networkCode = $this->network_id_to_code($networkId);
+                    $networkCode = $this->network_id_to_code($networkId, $code);
                     $depositWithdrawFees[$code]['networks'][$networkCode] = array(
                         'withdraw' => $withdrawResult,
                         'deposit' => $depositResult,

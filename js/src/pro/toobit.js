@@ -52,7 +52,7 @@ export default class toobit extends toobitRest {
                         '1w': '1w',
                         '1M': '1M',
                     },
-                    'watchOrderBook': {
+                    'watchOrderBookForSymbols': {
                         'channel': 'depth', // depth, diffDepth
                     },
                     'listenKeyRefreshRate': 1200000, // 20 mins
@@ -514,7 +514,7 @@ export default class toobit extends toobitRest {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, false);
         let channel = undefined;
-        [channel, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'channel', 'depth');
+        [channel, params] = this.handleOptionAndParams(params, 'watchOrderBookForSymbols', 'channel', 'depth');
         const messageHashes = [];
         const subParams = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -584,7 +584,7 @@ export default class toobit extends toobitRest {
         }
     }
     handleDelta(bookside, delta) {
-        const bidAsk = this.parseBidAsk(delta);
+        const bidAsk = this.parseOrderBookBidAsk(delta);
         bookside.storeArray(bidAsk);
     }
     handleOrderBookPartialSnapshot(client, message) {

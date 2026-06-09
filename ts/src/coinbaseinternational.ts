@@ -353,7 +353,7 @@ export default class coinbaseinternational extends Exchange {
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a portfolio parameter or set the default portfolio with this.options["portfolio"]');
     }
 
-    async handleNetworkIdAndParams (currencyCode: string, methodName: string, params) {
+    async handleNetworkIdAndParams (currencyCode: string, methodName: string, params = {}) {
         let networkId = undefined;
         [ networkId, params ] = this.handleOptionAndParams (params, methodName, 'network_arn_id');
         if (networkId === undefined) {
@@ -532,9 +532,10 @@ export default class coinbaseinternational extends Exchange {
         }
         const market = this.market (symbol);
         const page = this.safeInteger (params, pageKey, 1) - 1;
+        const offSet = this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest);
         const request: Dict = {
             'instrument': market['id'],
-            'result_offset': this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest),
+            'result_offset': offSet,
         };
         if (limit !== undefined) {
             request['result_limit'] = limit;
@@ -966,8 +967,9 @@ export default class coinbaseinternational extends Exchange {
             return await this.fetchPaginatedCallIncremental ('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest) as Transaction[];
         }
         const page = this.safeInteger (params, pageKey, 1) - 1;
+        const offSet = this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest);
         const request: Dict = {
-            'result_offset': this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest),
+            'result_offset': offSet,
         };
         if (since !== undefined) {
             request['time_from'] = this.iso8601 (since);
@@ -1211,13 +1213,14 @@ export default class coinbaseinternational extends Exchange {
         const addressFrom = this.safeStringN (transaction, [ 'from_address', 'from_cb_account', this.safeStringN (fromPorfolio, [ 'id', 'uuid', 'name' ]), 'from_counterparty_id' ]);
         const toPorfolio = this.safeDict (transaction, 'from_portfolio', {});
         const addressTo = this.safeStringN (transaction, [ 'to_address', 'to_cb_account', this.safeStringN (toPorfolio, [ 'id', 'uuid', 'name' ]), 'to_counterparty_id' ]);
+        const code = this.safeString (currency, 'code');
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'transfer_uuid'),
             'txid': this.safeString (transaction, 'transaction_uuid'),
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
-            'network': this.networkIdToCode (this.safeString (transaction, 'network_name')),
+            'network': this.networkIdToCode (this.safeString (transaction, 'network_name'), code),
             'address': undefined, // TODO check if withdraw or deposit and populate
             'addressTo': addressTo,
             'addressFrom': addressFrom,
@@ -1412,16 +1415,18 @@ export default class coinbaseinternational extends Exchange {
             settleId = quoteId;
             symbol += ':' + quoteId;
         }
+        const isLinear = isSpot ? undefined : (settleId === quoteId);
+        const isInverse = isSpot ? undefined : (settleId !== quoteId);
         return {
             'id': marketId,
             'lowercaseId': marketId.toLowerCase (),
             'symbol': symbol,
             'base': baseId,
             'quote': quoteId,
-            'settle': settleId ? settleId : undefined,
+            'settle': settleId,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': settleId ? settleId : undefined,
+            'settleId': settleId,
             'type': isSpot ? 'spot' : 'swap',
             'spot': isSpot,
             'margin': false,
@@ -1430,8 +1435,8 @@ export default class coinbaseinternational extends Exchange {
             'option': false,
             'active': this.safeString (market, 'trading_state') === 'TRADING',
             'contract': !isSpot,
-            'linear': isSpot ? undefined : (settleId === quoteId),
-            'inverse': isSpot ? undefined : (settleId !== quoteId),
+            'linear': isLinear,
+            'inverse': isInverse,
             'taker': fees['trading']['taker'],
             'maker': fees['trading']['maker'],
             'contractSize': isSpot ? undefined : 1,
@@ -2095,9 +2100,10 @@ export default class coinbaseinternational extends Exchange {
             return await this.fetchPaginatedCallIncremental ('fetchOpenOrders', symbol, since, limit, params, pageKey, maxEntriesPerRequest) as Order[];
         }
         const page = this.safeInteger (params, pageKey, 1) - 1;
+        const offSet = this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest);
         const request: Dict = {
             'portfolio': portfolio,
-            'result_offset': this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest),
+            'result_offset': offSet,
         };
         let market = undefined;
         if (symbol) {
@@ -2180,8 +2186,9 @@ export default class coinbaseinternational extends Exchange {
             market = this.market (symbol);
         }
         const page = this.safeInteger (params, pageKey, 1) - 1;
+        const offSet = this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest);
         const request: Dict = {
-            'result_offset': this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest),
+            'result_offset': offSet,
         };
         if (limit !== undefined) {
             if (limit > 100) {
@@ -2286,45 +2293,6 @@ export default class coinbaseinternational extends Exchange {
         //    }
         //
         return this.parseTransaction (response, currency);
-    }
-
-    safeNetwork (network) {  // TODO: Move to exchange.ts
-        let withdrawEnabled = this.safeBool (network, 'withdraw');
-        let depositEnabled = this.safeBool (network, 'deposit');
-        const limits = this.safeDict (network, 'limits');
-        const withdraw = this.safeDict (limits, 'withdraw');
-        const withdrawMax = this.safeNumber (withdraw, 'max');
-        const deposit = this.safeDict (limits, 'deposit');
-        const depositMax = this.safeNumber (deposit, 'max');
-        if (withdrawEnabled === undefined && withdrawMax !== undefined) {
-            withdrawEnabled = (withdrawMax > 0);
-        }
-        if (depositEnabled === undefined && depositMax !== undefined) {
-            depositEnabled = (depositMax > 0);
-        }
-        const networkId = this.safeString (network, 'id');
-        const isEnabled = (withdrawEnabled && depositEnabled);
-        return {
-            'info': network['info'],
-            'id': networkId,
-            'name': this.safeString (network, 'name'),
-            'network': this.safeString (network, 'network'),
-            'active': this.safeBool (network, 'active', isEnabled),
-            'deposit': depositEnabled,
-            'withdraw': withdrawEnabled,
-            'fee': this.safeNumber (network, 'fee'),
-            'precision': this.safeNumber (network, 'precision'),
-            'limits': {
-                'withdraw': {
-                    'min': this.safeNumber (withdraw, 'min'),
-                    'max': withdrawMax,
-                },
-                'deposit': {
-                    'min': this.safeNumber (deposit, 'min'),
-                    'max': depositMax,
-                },
-            },
-        };
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {

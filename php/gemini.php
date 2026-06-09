@@ -433,51 +433,29 @@ class gemini extends Exchange {
         //        )
         //    }
         //
-        $result = array();
         $this->options['tradingPairs'] = $this->safe_list($data, 'tradingPairs');
         $currenciesArray = $this->safe_value($data, 'currencies', array());
-        for ($i = 0; $i < count($currenciesArray); $i++) {
-            $currency = $currenciesArray[$i];
-            $id = $this->safe_string($currency, 0);
-            $code = $this->safe_currency_code($id);
-            $type = $this->safe_string($currency, 7) ? 'fiat' : 'crypto';
-            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 5)));
-            $networks = array();
-            $networkId = $this->safe_string($currency, 9);
-            $networkCode = null;
-            if ($networkId !== null) {
-                $networkCode = $this->network_id_to_code($networkId);
-                $networks[$networkCode] = array(
-                    'info' => $currency,
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
-                    'precision' => $precision,
-                    'limits' => array(
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                );
-            }
-            $result[$code] = $this->safe_currency_structure(array(
-                'info' => $currency,
-                'id' => $id,
-                'code' => $code,
-                'name' => $this->safe_string($currency, 1),
+        return $this->parse_currencies($currenciesArray);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 0);
+        $code = $this->safe_currency_code($id);
+        $type = $this->safe_string($rawCurrency, 7) ? 'fiat' : 'crypto';
+        $precision = $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 5)));
+        $networks = array();
+        $networkId = $this->safe_string($rawCurrency, 9);
+        $networkCode = null;
+        if ($networkId !== null) {
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networks[$networkCode] = array(
+                'info' => $rawCurrency,
+                'id' => $networkId,
+                'network' => $networkCode,
                 'active' => null,
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => null,
-                'type' => $type,
                 'precision' => $precision,
                 'limits' => array(
                     'deposit' => array(
@@ -489,10 +467,31 @@ class gemini extends Exchange {
                         'max' => null,
                     ),
                 ),
-                'networks' => $networks,
-            ));
+            );
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'id' => $id,
+            'code' => $code,
+            'name' => $this->safe_string($rawCurrency, 1),
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'type' => $type,
+            'precision' => $precision,
+            'limits' => array(
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+        ));
     }
 
     public function fetch_markets($params = array ()): array {
@@ -819,6 +818,7 @@ class gemini extends Exchange {
             $inverse = false;
         }
         $type = $swap ? 'swap' : 'spot';
+        $isSpot = !$swap;
         return array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -829,7 +829,7 @@ class gemini extends Exchange {
             'quoteId' => $quoteId,
             'settleId' => $settleId,
             'type' => $type,
-            'spot' => !$swap,
+            'spot' => $isSpot,
             'margin' => false,
             'swap' => $swap,
             'future' => false,
@@ -1923,7 +1923,7 @@ class gemini extends Exchange {
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddresses() requires a network parameter');
         }
-        $networkId = $this->network_code_to_id($networkCode);
+        $networkId = $this->network_code_to_id($networkCode, $currency['code']);
         $request = array(
             'network' => $networkId,
         );
@@ -1942,8 +1942,9 @@ class gemini extends Exchange {
                 throw new AuthenticationError($this->id . ' sign() requires an account-key, master-keys are not-supported');
             }
             $nonce = (string) $this->nonce();
+            $finalUrl = $url;
             $request = $this->extend(array(
-                'request' => $url,
+                'request' => $finalUrl,
                 'nonce' => $nonce,
             ), $query);
             $payload = $this->json($request);

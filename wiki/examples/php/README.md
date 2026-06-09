@@ -10,6 +10,8 @@ To run PHP examples from any folder type in console:
 php -f path/to/example.php # substitute for actual filename here
 ```
 
+- [Apex Watch](./examples/php/apex-watch.md)
+
 - [Arbitrage Pairs](./examples/php/arbitrage-pairs.md)
 
 - [Async Await Fetch Multiple](./examples/php/async-await-fetch-multiple.md)
@@ -23,6 +25,10 @@ php -f path/to/example.php # substitute for actual filename here
 - [Binance Create Order Stop Loss Take Profit](./examples/php/binance-create-order-stop-loss-take-profit.md)
 
 - [Binance Fetch All Trades For All Traded Symbols](./examples/php/binance-fetch-all-trades-for-all-traded-symbols.md)
+
+- [Binance Fetch Balance Snapshot Watch Balance Updates](./examples/php/binance-fetch-balance-snapshot-watch-balance-updates.md)
+
+- [Binance Https Proxy](./examples/php/binance-https-proxy.md)
 
 - [Binance Oco Order](./examples/php/binance-oco-order.md)
 
@@ -94,6 +100,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Gateio Swaps](./examples/php/gateio-swaps.md)
 
+- [Gateio Watch Balance](./examples/php/gateio-watch-balance.md)
+
 - [Huobi Fetch Balance](./examples/php/huobi-fetch-balance.md)
 
 - [Huobi Futures](./examples/php/huobi-futures.md)
@@ -118,11 +126,17 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Load All At Once](./examples/php/load-all-at-once.md)
 
+- [Many Exchanges Many Accounts](./examples/php/many-exchanges-many-accounts.md)
+
+- [Many Exchanges Synchronously](./examples/php/many-exchanges-synchronously.md)
+
 - [Margin Loan Borrow Buy Sell Repay](./examples/php/margin-loan-borrow-buy-sell-repay.md)
 
 - [Method Overload Override](./examples/php/method-overload-override.md)
 
 - [Nonce Override](./examples/php/nonce-override.md)
+
+- [One Exchange Many Streams](./examples/php/one-exchange-many-streams.md)
 
 - [Order Book Level Depth Extra Param](./examples/php/order-book-level-depth-extra-param.md)
 
@@ -147,6 +161,8 @@ php -f path/to/example.php # substitute for actual filename here
 - [Watch Orderbook For Symbols](./examples/php/watch-OrderBook-For-Symbols.md)
 
 - [Watch Trades For Symbols](./examples/php/watch-Trades-For-Symbols.md)
+
+- [Watch Multiple Methods Multiple Exchanges](./examples/php/watch-multiple-methods-multiple-exchanges.md)
 
 - [Watch Tickers](./examples/php/watch-tickers.md)
 

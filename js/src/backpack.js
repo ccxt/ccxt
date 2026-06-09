@@ -532,72 +532,70 @@ export default class backpack extends Exchange {
         //         ...
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currecy = response[i];
-            const currencyId = this.safeString(currecy, 'symbol');
-            const code = this.safeCurrencyCode(currencyId);
-            const networks = this.safeList(currecy, 'tokens', []);
-            const parsedNetworks = {};
-            for (let j = 0; j < networks.length; j++) {
-                const network = networks[j];
-                const networkId = this.safeString(network, 'blockchain');
-                const networkIdLowerCase = this.safeStringLower(network, 'blockchain');
-                const networkCode = this.networkIdToCode(networkIdLowerCase);
-                parsedNetworks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(network, 'minimumWithdrawal'),
-                            'max': this.parseNumber(this.omitZero(this.safeString(network, 'maximumWithdrawal'))),
-                        },
-                        'deposit': {
-                            'min': this.safeNumber(network, 'minimumDeposit'),
-                            'max': undefined,
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': this.safeBool(network, 'depositEnabled'),
-                    'withdraw': this.safeBool(network, 'withdrawEnabled'),
-                    'fee': this.safeNumber(network, 'withdrawalFee'),
-                    'precision': undefined,
-                    'info': network,
-                };
-            }
-            let active = undefined;
-            let deposit = undefined;
-            let withdraw = undefined;
-            if (this.isEmpty(parsedNetworks)) { // if networks are not provided
-                active = false;
-                deposit = false;
-                withdraw = false;
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': currencyId,
-                'code': code,
-                'precision': undefined,
-                'type': 'crypto',
-                'name': this.safeString(currecy, 'displayName'),
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': undefined,
+        return this.parseCurrencies(response);
+    }
+    parseCurrency(rawCurrency) {
+        const currencyId = this.safeString(rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode(currencyId);
+        const networks = this.safeList(rawCurrency, 'tokens', []);
+        const parsedNetworks = {};
+        for (let j = 0; j < networks.length; j++) {
+            const network = networks[j];
+            const networkId = this.safeString(network, 'blockchain');
+            const networkIdLowerCase = this.safeStringLower(network, 'blockchain');
+            const networkCode = this.networkIdToCode(networkIdLowerCase, code);
+            parsedNetworks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.safeNumber(network, 'minimumWithdrawal'),
+                        'max': this.parseNumber(this.omitZero(this.safeString(network, 'maximumWithdrawal'))),
+                    },
+                    'deposit': {
+                        'min': this.safeNumber(network, 'minimumDeposit'),
                         'max': undefined,
                     },
                 },
-                'networks': parsedNetworks,
-                'info': currecy,
-            });
+                'active': undefined,
+                'deposit': this.safeBool(network, 'depositEnabled'),
+                'withdraw': this.safeBool(network, 'withdrawEnabled'),
+                'fee': this.safeNumber(network, 'withdrawalFee'),
+                'precision': undefined,
+                'info': network,
+            };
         }
-        return result;
+        let active = undefined;
+        let deposit = undefined;
+        let withdraw = undefined;
+        if (this.isEmpty(parsedNetworks)) { // if networks are not provided
+            active = false;
+            deposit = false;
+            withdraw = false;
+        }
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'code': code,
+            'precision': undefined,
+            'type': 'crypto',
+            'name': this.safeString(rawCurrency, 'displayName'),
+            'active': active,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': undefined,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': parsedNetworks,
+            'info': rawCurrency,
+        });
     }
     /**
      * @method
@@ -1457,7 +1455,7 @@ export default class backpack extends Exchange {
             request['clientId'] = tag; // memo or tag
         }
         const [networkCode, query] = this.handleNetworkCodeAndParams(params);
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, currency['code']);
         if (networkId === undefined) {
             throw new BadRequest(this.id + ' withdraw() requires a network parameter');
         }
@@ -1546,7 +1544,7 @@ export default class backpack extends Exchange {
         const timestamp = this.parse8601(this.safeString(transaction, 'createdAt'));
         const amount = this.safeNumber(transaction, 'quantity');
         const networkId = this.safeStringLower2(transaction, 'source', 'blockchain');
-        const network = this.networkIdToCode(networkId);
+        const network = this.networkIdToCode(networkId, code);
         const addressTo = this.safeString(transaction, 'toAddress');
         const addressFrom = this.safeString(transaction, 'fromAddress');
         const tag = this.safeString(transaction, 'platformMemo');
@@ -1614,7 +1612,7 @@ export default class backpack extends Exchange {
         }
         const currency = this.currency(code);
         const request = {
-            'blockchain': this.networkCodeToId(networkCode),
+            'blockchain': this.networkCodeToId(networkCode, currency['code']),
         };
         const response = await this.privateGetWapiV1CapitalDepositAddress(this.extend(request, params));
         return this.parseDepositAddress(response, currency);

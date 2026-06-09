@@ -1147,7 +1147,7 @@ class alpaca extends alpaca$1["default"] {
         await this.loadMarkets();
         const response = await this.traderPrivateDeleteV2Orders(params);
         if (Array.isArray(response)) {
-            return this.parseOrders(response, undefined);
+            return this.parseOrders(response);
         }
         else {
             return [
@@ -1896,7 +1896,7 @@ class alpaca extends alpaca$1["default"] {
         if (code !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         }
-        const message = this.safeValue(response, 'message', undefined);
+        const message = this.safeValue(response, 'message');
         if (message !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);

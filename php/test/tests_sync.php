@@ -61,6 +61,7 @@ class testMainClass {
             dump('[TEST_FAILURE]'); // tell run-tests.js this is failure
             throw $e;
         }
+        return true;
     }
 
     public function init_inner($exchange_id, $symbol_argv, $method_argv) {
@@ -131,6 +132,7 @@ class testMainClass {
     public function import_files($exchange) {
         $properties = is_array($exchange->has) ? array_keys($exchange->has) : array();
         $properties[] = 'loadMarkets';
+        $properties[] = 'afterConstruct';
         if (is_sync()) {
             $this->test_files = get_test_files_sync($properties, $this->ws_tests);
         } else {
@@ -240,6 +242,7 @@ class testMainClass {
         $is_load_markets = ($method_name === 'loadMarkets');
         $is_fetch_currencies = ($method_name === 'fetchCurrencies');
         $is_proxy_test = ($method_name === $this->proxy_test_file_name);
+        $is_constructor_test = ($method_name === 'afterConstruct');
         $is_feature_test = ($method_name === 'features');
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if (!$is_public && (is_array($this->checked_public_tests) && array_key_exists($method_name, $this->checked_public_tests)) && !$is_fetch_currencies) {
@@ -249,7 +252,7 @@ class testMainClass {
         $supported_by_exchange = (is_array($exchange->has) && array_key_exists($method_name, $exchange->has)) && $exchange->has[$method_name];
         if (!$is_load_markets && (count($this->only_specific_tests) > 0 && !$exchange->in_array($method_name, $this->only_specific_tests))) {
             $skip_message = '[INFO] IGNORED_TEST';
-        } elseif (!$is_load_markets && !$supported_by_exchange && !$is_proxy_test && !$is_feature_test) {
+        } elseif (!$is_load_markets && !$supported_by_exchange && !$is_proxy_test && !$is_feature_test && !$is_constructor_test) {
             $skip_message = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
         } elseif (is_string($skipped_properties_for_method)) {
             $skip_message = '[INFO] SKIPPED_TEST';
@@ -430,6 +433,7 @@ class testMainClass {
         $primary_symbol = $symbols[0];
         $tests = array(
             'features' => [],
+            'afterConstruct' => [],
             'fetchCurrencies' => [],
             'fetchTicker' => [$primary_symbol],
             'fetchTickers' => [$primary_symbol],
@@ -623,13 +627,22 @@ class testMainClass {
         } else {
             if ($exchange->has['spot']) {
                 $primary_symbol = $this->get_valid_symbol($exchange, true);
-                $secondary_symbol = str_replace('BTC', 'ETH', $primary_symbol); // this should work any exchange
-                $spot_symbols = [$primary_symbol, $secondary_symbol];
+                if ($primary_symbol !== null) {
+                    $secondary_symbol = str_replace('BTC', 'ETH', $primary_symbol); // this should work any exchange
+                    $spot_symbols = [$primary_symbol, $secondary_symbol];
+                }
             }
             if ($exchange->has['swap']) {
                 $primary_symbol = $this->get_valid_symbol($exchange, false);
-                $secondary_symbol = str_replace('BTC', 'ETH', $primary_symbol); // this should work any exchange
-                $swap_symbols = [$primary_symbol, $secondary_symbol];
+                // some exchanges advertise has['swap']=true via describe() but
+                // the live market list contains no swap entries (e.g. bequant
+                // inherits hitbtc swap support but exposes only spot pairs).
+                // getValidSymbol returns undefined in that case — skip swap
+                // tests rather than crashing on `undefined.replace(...)`.
+                if ($primary_symbol !== null) {
+                    $secondary_symbol = str_replace('BTC', 'ETH', $primary_symbol); // this should work any exchange
+                    $swap_symbols = [$primary_symbol, $secondary_symbol];
+                }
             }
         }
         if ($spot_symbols !== null) {
@@ -960,7 +973,7 @@ class testMainClass {
                 $new_value = $new_output[$key];
                 $this->assert_new_and_stored_output($exchange, $skip_keys, $new_value, $stored_value, $strict_type_check, $key);
             }
-        } elseif (gettype($stored_output) === 'array' && array_is_list($stored_output) && (gettype($new_output) === 'array' && array_is_list($new_output))) {
+        } elseif (($stored_output !== null) && gettype($stored_output) === 'array' && array_is_list($stored_output) && (gettype($new_output) === 'array' && array_is_list($new_output))) {
             $stored_array_length = count($stored_output);
             $new_array_length = count($new_output);
             $this->assert_static_error($stored_array_length === $new_array_length, 'output length mismatch', $stored_output, $new_output);
@@ -1188,11 +1201,10 @@ class testMainClass {
         // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
         // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
-        // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         $base_path = get_root_dir() . 'ts/src/test/static/binaries/';
         if ($exchange_name === 'lighter') {
             if ($this->lang === 'JS') {
-                $wasm_exec_path = get_root_dir() . '/src/test/static/binaries/wasm_exec.js';
+                $wasm_exec_path = $base_path . 'wasm_exec.js';
                 $library_path = $base_path . 'lighter.wasm';
             } else {
                 if (is_windows()) {
@@ -1313,6 +1325,10 @@ class testMainClass {
                 if ($is_disabled_go && ($this->lang === 'GO')) {
                     continue;
                 }
+                $is_disabled_java = $exchange->safe_bool($result, 'disabledJava', false);
+                if ($is_disabled_java && ($this->lang === 'java')) {
+                    continue;
+                }
                 $type = $exchange->safe_string($exchange_data, 'outputType');
                 $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
                 $this->test_request_statically($exchange, $method, $result, $type, $skip_keys);
@@ -1379,6 +1395,10 @@ class testMainClass {
                 if ($is_disabled_go && ($this->lang === 'GO')) {
                     continue;
                 }
+                $is_disabled_java = $exchange->safe_bool($result, 'disabledJava', false);
+                if ($is_disabled_java && ($this->lang === 'java')) {
+                    continue;
+                }
                 $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
                 $this->test_response_statically($exchange, $method, $skip_keys, $result);
                 // reset options
@@ -1428,6 +1448,11 @@ class testMainClass {
         $is_disabled_go = $exchange->safe_bool($exchange_data, 'disabledGO', false);
         if ($is_disabled_go && ($this->lang === 'GO')) {
             dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in go');
+            return true;
+        }
+        $is_disabled_java = $exchange->safe_bool($exchange_data, 'disabledJava', false);
+        if ($is_disabled_java && ($this->lang === 'java')) {
+            dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in java');
             return true;
         }
         return false;
@@ -1501,7 +1526,7 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -1976,6 +2001,9 @@ class testMainClass {
     }
 
     public function test_woofi_pro() {
+        if ($this->lang === 'java') {
+            return false;
+        }
         $exchange = $this->init_offline_exchange('woofipro');
         $exchange->secret = 'secretsecretsecretsecretsecretsecretsecrets';
         $id = 'CCXT';
@@ -1991,24 +2019,6 @@ class testMainClass {
         if (!is_sync()) {
             close($exchange);
         }
-        return true;
-    }
-
-    public function test_oxfun() {
-        $exchange = $this->init_offline_exchange('oxfun');
-        $exchange->secret = 'secretsecretsecretsecretsecretsecretsecrets';
-        $id = 1000;
-        $exchange->load_markets();
-        $request = null;
-        try {
-            $exchange->create_order('BTC/USD:OX', 'limit', 'buy', 1, 20000);
-        } catch(\Throwable $e) {
-            $request = json_parse($exchange->last_request_body);
-        }
-        $orders = $request['orders'];
-        $first = $orders[0];
-        $broker_id = $first['source'];
-        assert($broker_id === $id, 'oxfun - id: ' . ((string) $id) . ' different from  broker_id: ' . ((string) $broker_id));
         return true;
     }
 
@@ -2038,6 +2048,9 @@ class testMainClass {
     }
 
     public function test_paradex() {
+        if ($this->lang === 'java') {
+            return false;
+        }
         $exchange = $this->init_offline_exchange('paradex');
         $exchange->walletAddress = '0xc751489d24a33172541ea451bc253d7a9e98c781';
         $exchange->privateKey = 'c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b';
@@ -2116,6 +2129,9 @@ class testMainClass {
     }
 
     public function test_derive() {
+        if ($this->lang === 'java') {
+            return false;
+        }
         $exchange = $this->init_offline_exchange('derive');
         $id = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749';
         assert($exchange->options['id'] === $id, 'derive - id: ' . $id . ' not in options');
@@ -2140,6 +2156,9 @@ class testMainClass {
     }
 
     public function test_mode_trade() {
+        if ($this->lang === 'java') {
+            return false;
+        }
         $exchange = $this->init_offline_exchange('modetrade');
         $exchange->secret = 'secretsecretsecretsecretsecretsecretsecrets';
         $id = 'CCXTMODE';

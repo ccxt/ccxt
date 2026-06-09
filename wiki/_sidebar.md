@@ -92,7 +92,6 @@
 	- [novadax](exchanges/novadax.md)
 	- [okx](exchanges/okx.md)
 	- [onetrading](exchanges/onetrading.md)
-	- [oxfun](exchanges/oxfun.md)
 	- [p2b](exchanges/p2b.md)
 	- [pacifica](exchanges/pacifica.md)
 	- [paradex](exchanges/paradex.md)
@@ -111,4 +110,3 @@
 	- [yobit](exchanges/yobit.md)
 	- [zaif](exchanges/zaif.md)
 	- [fetchStatus](exchanges/fetchStatus.md)
-	- [zonda](exchanges/zonda.md)

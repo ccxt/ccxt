@@ -1595,7 +1595,7 @@ class bitmex extends bitmex$1["default"] {
                 if (!(marketId in numUpdatesByMarketId)) {
                     numUpdatesByMarketId[marketId] = 0;
                 }
-                numUpdatesByMarketId[marketId] = this.sum(numUpdatesByMarketId, 1);
+                numUpdatesByMarketId[marketId] = this.sum(numUpdatesByMarketId[marketId], 1);
                 const market = this.safeMarket(marketId);
                 const symbol = market['symbol'];
                 const orderbook = this.orderbooks[symbol];

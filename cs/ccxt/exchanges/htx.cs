@@ -172,7 +172,7 @@ public partial class htx : Exchange
                 } },
                 { "www", "https://www.huobi.com" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://www.htx.com.vc/invite/en-us/1h?invite_code=6rmm2223" },
+                    { "url", "https://www.htx.com/invite/en-us/1h?invite_code=6rmm2223" },
                     { "discount", 0.15 },
                 } },
                 { "doc", new List<object>() {"https://huobiapi.github.io/docs/spot/v1/en/", "https://huobiapi.github.io/docs/dm/v1/en/", "https://huobiapi.github.io/docs/coin_margined_swap/v1/en/", "https://huobiapi.github.io/docs/usdt_swap/v1/en/", "https://www.huobi.com/en-us/opend/newApiPages/"} },
@@ -1102,6 +1102,9 @@ public partial class htx : Exchange
                     { "WEMIX", "WEMIX" },
                     { "XDC", "XDC" },
                     { "XPLA", "XPLA" },
+                } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "MATIC", "MATIC" },
                 } },
                 { "fetchOrdersByStatesMethod", "spot_private_get_v1_order_orders" },
                 { "createMarketBuyOrderRequiresPrice", true },
@@ -3414,7 +3417,7 @@ public partial class htx : Exchange
         {
             object account = getValue(accounts, i);
             object info = this.safeValue(account, "info");
-            object subtype = this.safeString(info, "subtype", null);
+            object subtype = this.safeString(info, "subtype");
             object typeFromAccount = this.safeString(account, "type");
             if (isTrue(isEqual(type, "margin")))
             {
@@ -3480,77 +3483,84 @@ public partial class htx : Exchange
         //    }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
-        ((IDictionary<string,object>)this.options)["networkChainIdsByNames"] = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)this.options)["networkNamesByChainIds"] = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        ((IDictionary<string,object>)this.options)["networkChainIdsByNames"] = new Dictionary<string, object>() {};
+        return this.parseCurrencies(data);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        if (!isTrue((inOp(this.options, "networkNamesByChainIds"))))
         {
-            object entry = getValue(data, i);
-            object currencyId = this.safeString(entry, "currency");
-            object code = this.safeCurrencyCode(currencyId);
-            object assetType = this.safeString(entry, "assetType");
-            object type = ((bool) isTrue(isEqual(assetType, "1"))) ? "crypto" : "fiat";
-            ((IDictionary<string,object>)getValue(this.options, "networkChainIdsByNames"))[(string)code] = new Dictionary<string, object>() {};
-            object chains = this.safeList(entry, "chains", new List<object>() {});
-            object networks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
-            {
-                object chainEntry = getValue(chains, j);
-                object uniqueChainId = this.safeString(chainEntry, "chain"); // i.e. usdterc20, trc20usdt ...
-                object title = this.safeString2(chainEntry, "baseChain", "displayName"); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
-                ((IDictionary<string,object>)getValue(getValue(this.options, "networkChainIdsByNames"), code))[(string)title] = uniqueChainId;
-                ((IDictionary<string,object>)getValue(this.options, "networkNamesByChainIds"))[(string)uniqueChainId] = title;
-                object networkCode = this.networkIdToCode(uniqueChainId);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "info", chainEntry },
-                    { "id", uniqueChainId },
-                    { "network", networkCode },
-                    { "limits", new Dictionary<string, object>() {
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(chainEntry, "minDepositAmt") },
-                            { "max", null },
-                        } },
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(chainEntry, "minWithdrawAmt") },
-                            { "max", this.safeNumber(chainEntry, "maxWithdrawAmt") },
-                        } },
-                    } },
-                    { "active", null },
-                    { "deposit", isEqual(this.safeString(chainEntry, "depositStatus"), "allowed") },
-                    { "withdraw", isEqual(this.safeString(chainEntry, "withdrawStatus"), "allowed") },
-                    { "fee", this.safeNumber(chainEntry, "transactFeeWithdraw") },
-                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(chainEntry, "withdrawPrecision"))) },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", entry },
-                { "code", code },
-                { "id", currencyId },
-                { "active", isEqual(this.safeString(entry, "instStatus"), "normal") },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "name", null },
-                { "type", type },
+            ((IDictionary<string,object>)this.options)["networkNamesByChainIds"] = new Dictionary<string, object>() {};
+        }
+        if (!isTrue((inOp(this.options, "networkChainIdsByNames"))))
+        {
+            ((IDictionary<string,object>)this.options)["networkChainIdsByNames"] = new Dictionary<string, object>() {};
+        }
+        object currencyId = this.safeString(rawCurrency, "currency");
+        object code = this.safeCurrencyCode(currencyId);
+        object assetType = this.safeString(rawCurrency, "assetType");
+        object type = ((bool) isTrue((isEqual(assetType, "1")))) ? "crypto" : "fiat";
+        ((IDictionary<string,object>)getValue(this.options, "networkChainIdsByNames"))[(string)code] = new Dictionary<string, object>() {};
+        object chains = this.safeList(rawCurrency, "chains", new List<object>() {});
+        object networks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+        {
+            object chainEntry = getValue(chains, j);
+            object uniqueChainId = this.safeString(chainEntry, "chain"); // i.e. usdterc20, trc20usdt ...
+            object title = this.safeString2(chainEntry, "baseChain", "displayName"); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
+            ((IDictionary<string,object>)getValue(getValue(this.options, "networkChainIdsByNames"), code))[(string)title] = uniqueChainId;
+            ((IDictionary<string,object>)getValue(this.options, "networkNamesByChainIds"))[(string)uniqueChainId] = title;
+            object networkCode = this.networkIdToCode(uniqueChainId, code);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "info", chainEntry },
+                { "id", uniqueChainId },
+                { "network", networkCode },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(chainEntry, "minDepositAmt") },
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+                        { "min", this.safeNumber(chainEntry, "minWithdrawAmt") },
+                        { "max", this.safeNumber(chainEntry, "maxWithdrawAmt") },
                     } },
                 } },
-                { "precision", null },
-                { "networks", networks },
-            });
+                { "active", null },
+                { "deposit", isEqual(this.safeString(chainEntry, "depositStatus"), "allowed") },
+                { "withdraw", isEqual(this.safeString(chainEntry, "withdrawStatus"), "allowed") },
+                { "fee", this.safeNumber(chainEntry, "transactFeeWithdraw") },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(chainEntry, "withdrawPrecision"))) },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", rawCurrency },
+            { "code", code },
+            { "id", currencyId },
+            { "active", isEqual(this.safeString(rawCurrency, "instStatus"), "normal") },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "name", null },
+            { "type", type },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "precision", null },
+            { "networks", networks },
+        });
     }
 
     public override object networkIdToCode(object networkId = null, object currencyCode = null)
@@ -3563,7 +3573,7 @@ public partial class htx : Exchange
             throw new ExchangeError ((string)add(this.id, " networkIdToCode() - markets need to be loaded at first")) ;
         }
         object networkTitle = this.safeValue(getValue(this.options, "networkNamesByChainIds"), networkId, networkId);
-        return base.networkIdToCode(networkTitle);
+        return base.networkIdToCode(networkTitle, currencyCode);
     }
 
     public override object networkCodeToId(object networkCode, object currencyCode = null)
@@ -3584,7 +3594,7 @@ public partial class htx : Exchange
             return getValue(uniqueNetworkIds, networkCode);
         } else
         {
-            object networkTitle = base.networkCodeToId(networkCode);
+            object networkTitle = base.networkCodeToId(networkCode, currencyCode);
             return this.safeValue(uniqueNetworkIds, networkTitle, networkTitle);
         }
     }
@@ -3880,8 +3890,9 @@ public partial class htx : Exchange
         //         "ts": 1770293281344
         //     }
         //
+        object finalResponse = response;
         object result = ((object)new Dictionary<string, object>() {
-            { "info", response },
+            { "info", finalResponse },
         });
         object data = this.safeValue(response, "data");
         if (isTrue(isMultiAssetMode))
@@ -6829,7 +6840,7 @@ public partial class htx : Exchange
             { "currency", code },
             { "address", address },
             { "tag", tag },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "note", note },
             { "info", depositAddress },
         };
@@ -7142,7 +7153,7 @@ public partial class htx : Exchange
             { "txid", txHash },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", this.safeString(transaction, "address") },
             { "addressTo", null },
             { "addressFrom", null },
@@ -7924,7 +7935,8 @@ public partial class htx : Exchange
                 object sortedRequest = this.keysort(request);
                 object auth = this.urlencode(sortedRequest, true); // true is a go only requirment
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
-                object payload = String.Join("\n", ((IList<object>)new List<object>() {method, this.hostname, url, auth}).ToArray()); // eslint-disable-line quotes
+                object content = new List<object>() {method, this.hostname, url, auth};
+                object payload = String.Join("\n", ((IList<object>)content).ToArray()); // eslint-disable-line quotes
                 object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
                 auth = add(auth, add("&", this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },
@@ -8019,7 +8031,8 @@ public partial class htx : Exchange
                 }
                 object auth = ((string)this.urlencode(request, true)).Replace((string)"%2c", (string)"%2C"); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
-                object payload = String.Join("\n", ((IList<object>)new List<object>() {method, hostname, url, auth}).ToArray()); // eslint-disable-line quotes
+                object content2 = new List<object>() {method, hostname, url, auth};
+                object payload = String.Join("\n", ((IList<object>)content2).ToArray()); // eslint-disable-line quotes
                 object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
                 auth = add(auth, add("&", this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },
@@ -8042,8 +8055,9 @@ public partial class htx : Exchange
                     };
                 }
             }
+            object finalHostname = hostname; // java req
             url = add(this.implodeParams(getValue(getValue(this.urls, "api"), type), new Dictionary<string, object>() {
-    { "hostname", hostname },
+    { "hostname", finalHostname },
 }), url);
         }
         return new Dictionary<string, object>() {
@@ -9558,13 +9572,14 @@ public partial class htx : Exchange
         //          }
         //
         object chains = this.safeValue(fee, "chains", new List<object>() {});
+        object code = this.safeString(currency, "code");
         object result = this.depositWithdrawFee(fee);
         for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chainEntry = getValue(chains, j);
             object networkId = this.safeString(chainEntry, "chain");
             object withdrawFeeType = this.safeString(chainEntry, "withdrawFeeType");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             object withdrawFee = null;
             object withdrawResult = null;
             if (isTrue(isEqual(withdrawFeeType, "fixed")))

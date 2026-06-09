@@ -54,6 +54,13 @@ dotnet add package ccxt
 go get github.com/ccxt/ccxt/go/v4
 ```
 
+### Java
+```
+dependencies {
+    implementation("io.github.ccxt:ccxt:4.5.52")
+}
+```
+
 Both REST and WebSocket APIs are included in the same package for all languages.
 
 ---
@@ -174,12 +181,16 @@ $exchange->load_markets()->then(function() use ($exchange) {
 ```php
 require_once 'vendor/autoload.php';
 
+use React\Async;
+
 $exchange = new \ccxt\pro\binance();
-while (true) {
-    $ticker = $exchange->watch_ticker('BTC/USDT');
-    echo $ticker['last'] . "\n";
-}
-$exchange->close();
+
+Async\async(function () use ($exchange) {
+    while (true) {
+        $ticker = Async\await($exchange->watch_ticker('BTC/USDT'));
+        echo $ticker['last'] . "\n";
+    }
+})();
 ```
 
 ### C# (REST)
@@ -246,6 +257,19 @@ func main() {
     }
     exchange.Close()
 }
+```
+
+### Java (REST)
+
+```Java
+import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.Ticker;
+
+Binance exchange = new Binance();
+exchange.loadMarkets(false);
+
+Ticker ticker = exchange.fetchTicker("BTC/USDT");
+System.out.println(ticker.symbol + " " + ticker.last);
 ```
 
 ---

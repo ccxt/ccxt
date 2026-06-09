@@ -529,31 +529,30 @@ class bullish(Exchange, ImplicitAPI):
         #         }, ...
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currency = response[i]
-            id = self.safe_string(currency, 'symbol')
-            code = self.safe_currency_code(id)
-            name = self.safe_string(currency, 'name')
-            precision = self.safe_string(currency, 'precision')
-            result[code] = {
-                'id': id,
-                'code': code,
-                'name': name,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': self.safe_number(currency, 'minFee'),
-                'precision': self.parse_number(self.parse_precision(precision)),
-                'limits': {
-                    'amount': {'min': None, 'max': None},
-                    'withdraw': {'min': None, 'max': None},
-                },
-                'networks': {},
-                'type': 'crypto',
-                'info': currency,
-            }
-        return result
+        return self.parse_currencies(response)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'symbol')
+        code = self.safe_currency_code(id)
+        name = self.safe_string(rawCurrency, 'name')
+        precision = self.safe_string(rawCurrency, 'precision')
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'name': name,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': self.safe_number(rawCurrency, 'minFee'),
+            'precision': self.parse_number(self.parse_precision(precision)),
+            'limits': {
+                'amount': {'min': None, 'max': None},
+                'withdraw': {'min': None, 'max': None},
+            },
+            'networks': {},
+            'type': 'crypto',
+            'info': rawCurrency,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -2047,7 +2046,7 @@ class bullish(Exchange, ImplicitAPI):
         networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['network'] = self.network_code_to_id(networkCode)
+            request['network'] = self.network_code_to_id(networkCode, code)
         else:
             raise ArgumentsRequired(self.id + ' withdraw() requires a network parameter')
         response = self.privatePostV1WalletsWithdrawal(self.extend(request, params))
@@ -2118,7 +2117,7 @@ class bullish(Exchange, ImplicitAPI):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.network_id_to_code(network),
+            'network': self.network_id_to_code(network, code),
             'addressFrom': sourceAddress,
             'address': address,
             'addressTo': address,
@@ -2310,7 +2309,7 @@ class bullish(Exchange, ImplicitAPI):
                 for i in range(0, len(safeResponse)):
                     entry = self.safe_dict(safeResponse, i, {})
                     networkId = self.safe_string(entry, 'network')
-                    networkCode = self.network_id_to_code(networkId)
+                    networkCode = self.network_id_to_code(networkId, code)
                     if network == networkCode:
                         data = entry
                         break
@@ -2321,10 +2320,11 @@ class bullish(Exchange, ImplicitAPI):
     def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         id = self.safe_string(depositAddress, 'symbol')
         network = self.safe_string(depositAddress, 'network')
+        code = self.safe_currency_code(id, currency)
         return {
             'info': depositAddress,
-            'currency': self.safe_currency_code(id, currency),
-            'network': self.network_id_to_code(network),
+            'currency': code,
+            'network': self.network_id_to_code(network, code),
             'address': self.safe_string(depositAddress, 'address'),
             'tag': None,
         }
