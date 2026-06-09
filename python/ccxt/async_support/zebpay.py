@@ -389,7 +389,7 @@ class zebpay(Exchange, ImplicitAPI):
         for j in range(0, len(chains)):
             chain = chains[j]
             networkId = self.safe_string(chain, 'chainId')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             depositAllowed = self.safe_bool(chain, 'isDepositEnabled') is True
             deposit = depositAllowed if (depositAllowed) else deposit
             withdrawAllowed = self.safe_bool(chain, 'isWithdrawEnabled') is True
