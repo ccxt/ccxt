@@ -27,6 +27,7 @@ class extended extends Exchange {
             'precisionMode' => TICK_SIZE,
             'certified' => false,
             'pro' => true,
+            'dex' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => false,
