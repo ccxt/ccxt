@@ -28,6 +28,7 @@ public class ExtendedCore extends ExtendedApi
             put( "precisionMode", TICK_SIZE );
             put( "certified", false );
             put( "pro", true );
+            put( "dex", true );
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "CORS", null );
                 put( "spot", false );
