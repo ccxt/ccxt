@@ -3,7 +3,8 @@
     "privateKey": "0x12345",
     "skipKeys": [
         "timestamp",
-        "datetime"
+        "datetime",
+        "cursor"
     ],
     "methods": {
         "fetchCurrencies": [

@@ -327,6 +327,7 @@ export default class extended extends Exchange {
             'options': {
                 'builderFee': true,
                 'builderId': '257624',
+                'feeRate': '0.00025',
             },
         });
     }
@@ -2622,11 +2623,11 @@ export default class extended extends Exchange {
         let builderFee = undefined;
         let builderId = undefined;
         if (this.isSandboxModeEnabled) {
-            builderFee = this.safeString2 (params, 'builderFee', 'defaultBuilderFee');
+            builderFee = this.safeString2 (params, 'feeRate', 'defaultBuilderFee');
             builderId = this.safeString2 (params, 'builderId', 'defaultBuilderId');
-            params = this.omit (params, [ 'builderFee', 'defaultBuilderFee', 'builderId', 'defaultBuilderId' ]);
+            params = this.omit (params, [ 'feeRate', 'defaultBuilderFee', 'builderId', 'defaultBuilderId' ]);
         } else {
-            [ builderFee, params ] = this.handleOptionAndParams (params, 'createOrder', 'builderFee', '0.00025');
+            [ builderFee, params ] = this.handleOptionAndParams (params, 'createOrder', 'feeRate', '0.00025');
             [ builderId, params ] = this.handleOptionAndParams (params, 'createOrder', 'builderId');
         }
         let totalFee = fee;
