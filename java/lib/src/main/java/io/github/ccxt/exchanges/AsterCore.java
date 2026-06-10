@@ -4756,7 +4756,8 @@ public class AsterCore extends AsterApi
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             Object zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
             Object v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);
-            Object signerAddress = this.safeString(this.options, "signerAddress");
+            Object walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+            Object signerAddress = this.safeString(this.options, "signerAddress", walletAddress); // default to user's wallet
             if (Helpers.isTrue(Helpers.isEqual(signerAddress, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " requires signerAddress in options when use v3 api")) ;
@@ -4778,7 +4779,7 @@ public class AsterCore extends AsterApi
             final Object finalSignerAddress = signerAddress;
             Object finalParams = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "nonce", String.valueOf(nonce) );
-                put( "user", AsterCore.this.walletAddress );
+                put( "user", walletAddress );
                 put( "signer", finalSignerAddress );
             }}, parameters);
             Object paramString = null;
