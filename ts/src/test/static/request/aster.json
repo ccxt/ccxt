@@ -45,6 +45,57 @@
         ],
         "createOrder": [
             {
+                "description": "spot market sell",
+                "method": "createOrder",
+                "url": "https://sapi.asterdex.com/api/v3/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "sell",
+                    0.005,
+                    null
+                ],
+                "output": "nonce=1781083094315000&user=0x35a5b33be664b09f78b5089eb6185f71c8a7f88f&signer=0x35a5b33be664b09f78b5089eb6185f71c8a7f88f&symbol=ETHUSDT&side=SELL&type=MARKET&quantity=0.005&signature=0xbb7a663b83cbf2e0c1add7be51ba5a7ec59f5add0e8366c9dac95c5ded34de354b6e54c4bfbaf2a17fd3255faea6d64d23bfba406a7be592440f19c8871e82cd1b"
+            },
+            {
+                "description": "spot limit sell",
+                "method": "createOrder",
+                "url": "https://sapi.asterdex.com/api/v3/order",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "sell",
+                    0.005,
+                    2000
+                ],
+                "output": "nonce=1781083041727000&user=0x35a5b33be664b09f78b5089eb6185f71c8a7f88f&signer=0x35a5b33be664b09f78b5089eb6185f71c8a7f88f&symbol=ETHUSDT&side=SELL&type=LIMIT&quantity=0.005&price=2000&timeInForce=GTC&signature=0x0c4906cd15f0a44702930263aced8e7ab70873f25bd37be90fd421958b0f51fc4441ae2aa7eee846dd5e4ea473e328e74fd0364a2dddf468d2d76962c6490ae81c"
+            },
+            {
+                "description": "spot market buy",
+                "method": "createOrder",
+                "url": "https://sapi.asterdex.com/api/v3/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "buy",
+                    0.005
+                ],
+                "output": "nonce=1781082948856000&user=0x35a5b33be664b09f78b5089eb6185f71c8a7f88f&signer=0x35a5b33be664b09f78b5089eb6185f71c8a7f88f&symbol=ETHUSDT&side=BUY&type=MARKET&quantity=0.005&signature=0x30a4fc89faddcbd61f54c4f6914372fe97ce416993e7ffe150d3dfb41a796878310cfbea27ea324a60e31a5c60ea9427ee9e4c5e6fcc352ba58cf2a03736ae821b"
+            },
+            {
+                "description": "spot limit buy",
+                "method": "createOrder",
+                "url": "https://sapi.asterdex.com/api/v3/order",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.005,
+                    1000
+                ],
+                "output": "nonce=1781082639267000&user=0x35a5b33be664b09f78b5089eb6185f71c8a7f88f&signer=0x35a5b33be664b09f78b5089eb6185f71c8a7f88f&symbol=ETHUSDT&side=BUY&type=LIMIT&quantity=0.005&price=1000&timeInForce=GTC&signature=0x84eae6a3314207f65f9e4fccba14ea052a352dd4e5acb131a142df64072616f36d204c5cdae5490729fc800ea2be60619e9880cc9f548463ad2cde539a7784861c"
+            },
+            {
                 "description": "spot market buy & trigger",
                 "method": "createOrder",
                 "url": "https://sapi.asterdex.com/api/v3/order",
