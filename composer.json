@@ -244,24 +244,26 @@
         "ext-json": "*",
         "ext-openssl": "*",
         "ext-gmp": "*",
-        "symfony/polyfill-mbstring": "^1.7",
+        "symfony/polyfill-mbstring": "1.38.2",
         "pear/console_table": "1.3.1",
-        "react/http": ">=1.11.0",
-        "react/async": "^4.3.0",
-        "ratchet/pawl": "^0.4.3",
-        "ratchet/rfc6455": "^0.4.0",
-        "react/promise": "^3.3.0",
-        "react/promise-timer": "^1.11",
-        "evenement/evenement": "^3.0",
-        "guzzlehttp/psr7": "^2.0"
+        "react/http": "1.11.0",
+        "react/async": "4.3.0",
+        "ratchet/pawl": "0.4.3",
+        "ratchet/rfc6455": "0.4.1",
+        "react/promise": "3.3.0",
+        "react/promise-timer": "1.11.0",
+        "evenement/evenement": "3.0.2",
+        "guzzlehttp/psr7": "2.11.0",
+        "clue/http-proxy-react": "1.9.0",
+        "phpseclib/phpseclib": "2.0.54",
+        "kornrunner/keccak": "1.1.0"
     },
     "suggest": {
         "recoil/recoil": "Required for asynchronous API calls to exchanges with PHP",
         "recoil/react": "Required for asynchronous API calls to exchanges with PHP",
         "react/http": "Required for asynchronous API calls to exchanges with PHP",
         "clue/buzz-react": "Required for asynchronous API calls to exchanges with PHP",
-        "react/event-loop": "Required for asynchronous API calls to exchanges with PHP",
-        "clue/http-proxy-react": "Required for using a proxy when doing asynchronous API calls to exchanges with PHP"
+        "react/event-loop": "Required for asynchronous API calls to exchanges with PHP"
     },
     "archive": {
         "exclude": [

@@ -47,11 +47,9 @@ spl_autoload_register(function ($class) {
             throw new \RuntimeException($class . " requires php7 or greater, your version: " . $version);
         }
     }
-    $class_name = str_replace('kornrunner\\Keccak', 'kornrunner/keccak/src/Keccak', $class);
-    $class_name = str_replace('Web3\\', 'web3.php/src/', $class_name);
+    $class_name = str_replace('Web3\\', 'web3.php/src/', $class);
     $class_name = str_replace('Lighter\\', 'lighter/', $class_name);
     $class_name = str_replace('StarkNet\\', 'starknet.php/src/', $class_name);
-    $class_name = str_replace('phpseclib\\Math\\BigInteger', 'phpseclib/Math/BigInteger', $class_name);
     $class_name = str_replace('Sop\\', 'Sop/', $class_name);
     $class_name = str_replace('Elliptic\\', 'elliptic-php/lib/', $class_name);
     $class_name = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
