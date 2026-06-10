@@ -2127,8 +2127,10 @@ class aster extends Exchange {
         //        }
         //
         $info = $order;
+        $positionSide = $this->safe_string($order, 'positionSide');
+        $defaultType = ($positionSide !== null) ? 'swap' : 'spot';
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, $defaultType);
         $side = $this->safe_string_lower($order, 'side');
         $timestamp = $this->safe_integer($order, 'time');
         $statusId = $this->safe_string_upper($order, 'status');
@@ -3056,7 +3058,7 @@ class aster extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($marginMode, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, 'swap');
         return array(
             'info' => $marginMode,
             'symbol' => $market['symbol'],
