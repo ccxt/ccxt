@@ -2173,8 +2173,10 @@ public partial class aster : Exchange
         //        }
         //
         object info = order;
+        object positionSide = this.safeString(order, "positionSide");
+        object defaultType = ((bool) isTrue((!isEqual(positionSide, null)))) ? "swap" : "spot";
         object marketId = this.safeString(order, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, null, defaultType);
         object side = this.safeStringLower(order, "side");
         object timestamp = this.safeInteger(order, "time");
         object statusId = this.safeStringUpper(order, "status");
@@ -3182,7 +3184,7 @@ public partial class aster : Exchange
         //     }
         //
         object marketId = this.safeString(marginMode, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, null, "swap");
         return new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", getValue(market, "symbol") },
