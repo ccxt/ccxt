@@ -1724,6 +1724,93 @@
                         ]
                     }
                 ]
+            },
+            {
+                "description": "Linear swap fetch my trades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "Success",
+                    "data": [
+                        {
+                            "id": "1513834754679549965",
+                            "contract_code": "BTC-USDT",
+                            "order_id": "1513834754585190400",
+                            "trade_id": "152022944",
+                            "side": "sell",
+                            "position_side": "long",
+                            "order_type": "1",
+                            "margin_mode": "cross",
+                            "type": "market",
+                            "role": "TAKER",
+                            "trade_price": "62688.2",
+                            "trade_volume": "2",
+                            "trade_turnover": "125.3764",
+                            "created_time": "1780967931197",
+                            "updated_time": "1780967931197",
+                            "order_source": "api",
+                            "fee_currency": "USDT",
+                            "trade_fee": "0.07522584",
+                            "deduction_price": "",
+                            "profit": "-0.3656",
+                            "contract_type": "swap"
+                        }
+                    ],
+                    "ts": "1781067525549"
+                },
+                "parsedResponse": [
+                    {
+                        "id": "152022944",
+                        "info": {
+                            "id": "1513834754679549965",
+                            "contract_code": "BTC-USDT",
+                            "order_id": "1513834754585190400",
+                            "trade_id": "152022944",
+                            "side": "sell",
+                            "position_side": "long",
+                            "order_type": "1",
+                            "margin_mode": "cross",
+                            "type": "market",
+                            "role": "TAKER",
+                            "trade_price": "62688.2",
+                            "trade_volume": "2",
+                            "trade_turnover": "125.3764",
+                            "created_time": "1780967931197",
+                            "updated_time": "1780967931197",
+                            "order_source": "api",
+                            "fee_currency": "USDT",
+                            "trade_fee": "0.07522584",
+                            "deduction_price": "",
+                            "profit": "-0.3656",
+                            "contract_type": "swap"
+                        },
+                        "order": "1513834754585190400",
+                        "timestamp": 1780967931197,
+                        "datetime": "2026-06-09T01:18:51.197Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "market",
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 62688.2,
+                        "amount": 2,
+                        "cost": 125.3764,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": -0.07522584
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": -0.07522584
+                            }
+                        ]
+                    }
+                ]
             }
         ],
         "fetchPositions": [

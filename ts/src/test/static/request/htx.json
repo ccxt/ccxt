@@ -493,15 +493,14 @@
                 ]
             },
             {
-                "description": "Swap private trades",
+                "description": "Linear swap fetchMyTrades",
                 "method": "fetchMyTrades",
-                "url": "https://api.hbdm.com/linear-swap-api/v3/swap_cross_matchresults_exact?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A55&Signature=THy%2Fx4ML07wI9FRSDtd3CRj8QZ75hs6XFZBK5okBbYI%3D",
+                "url": "https://api.hbdm.vn/v5/trade/order/details?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-06-10T04%3A58%3A44&contract_code=BTC-USDT&limit=1&Signature=mItqj24DHsZoG%2FMQnCpvfwVPoo41u%2FEM17bXPpGDBJ8%3D",
                 "input": [
-                    "LTC/USDT:USDT",
-                    1699457638000,
-                    5
-                ],
-                "output": "{\"contract\":\"LTC-USDT\",\"trade_type\":0,\"start_time\":1699457638000,\"page_size\":5}"
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ]
             },
             {
                 "description": "fetch My Trades - swap inverse",

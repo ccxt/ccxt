@@ -819,16 +819,12 @@ export default class htx extends Exchange {
                             'linear-swap-api/v1/swap_cross_order_detail': 1,
                             'linear-swap-api/v1/swap_openorders': 1,
                             'linear-swap-api/v1/swap_cross_openorders': 1,
-                            'linear-swap-api/v1/swap_matchresults': 1,
                             'linear-swap-api/v1/swap_cross_matchresults': 1,
-                            'linear-swap-api/v1/swap_matchresults_exact': 1,
                             'linear-swap-api/v1/swap_cross_matchresults_exact': 1,
                             'linear-swap-api/v1/linear-cancel-after': 1,
                             'linear-swap-api/v1/swap_switch_position_mode': 1,
                             'linear-swap-api/v1/swap_cross_switch_position_mode': 1,
-                            'linear-swap-api/v3/swap_matchresults': 1,
                             'linear-swap-api/v3/swap_cross_matchresults': 1,
-                            'linear-swap-api/v3/swap_matchresults_exact': 1,
                             'linear-swap-api/v3/swap_cross_matchresults_exact': 1,
                             'linear-swap-api/v3/fix_position_margin_change': 1,
                             'linear-swap-api/v3/swap_switch_account_type': 1,
@@ -1347,21 +1343,21 @@ export default class htx extends Exchange {
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
-                        'trigger': false,
-                        'trailing': false,
+                        'trigger': true,
+                        'trailing': true,
                         'limit': 50,
                     },
                     'fetchOrders': {
                         'marginMode': true,
-                        'trigger': false,
-                        'trailing': false,
+                        'trigger': true,
+                        'trailing': true,
                         'limit': 50,
                         'daysBack': 90,
                     },
                     'fetchClosedOrders': {
                         'marginMode': true,
-                        'trigger': false,
-                        'trailing': false,
+                        'trigger': true,
+                        'trailing': true,
                         'untilDays': 2,
                         'limit': 50,
                         'daysBack': 90,
@@ -2757,15 +2753,40 @@ export default class htx extends Exchange {
         //         "trade_partition":"USDT"
         //     }
         //
+        // linear swap fetchMyTrades
+        //
+        //     {
+        //         "id": "1513834754679549965",
+        //         "contract_code": "BTC-USDT",
+        //         "order_id": "1513834754585190400",
+        //         "trade_id": "152022944",
+        //         "side": "sell",
+        //         "position_side": "long",
+        //         "order_type": "1",
+        //         "margin_mode": "cross",
+        //         "type": "market",
+        //         "role": "TAKER",
+        //         "trade_price": "62688.2",
+        //         "trade_volume": "2",
+        //         "trade_turnover": "125.3764",
+        //         "created_time": "1780967931197",
+        //         "updated_time": "1780967931197",
+        //         "order_source": "api",
+        //         "fee_currency": "USDT",
+        //         "trade_fee": "0.07522584",
+        //         "deduction_price": "",
+        //         "profit": "-0.3656",
+        //         "contract_type": "swap"
+        //     }
+        //
         const marketId = this.safeString2 (trade, 'contract_code', 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        let timestamp = this.safeInteger2 (trade, 'ts', 'created-at');
-        timestamp = this.safeInteger2 (trade, 'created_at', 'create_date', timestamp);
+        const timestamp = this.safeIntegerN (trade, [ 'ts', 'created-at', 'created_at', 'create_date', 'created_time' ]);
         const order = this.safeString2 (trade, 'order-id', 'order_id');
-        let side = this.safeString (trade, 'direction');
+        let side = this.safeString2 (trade, 'direction', 'side');
         let type = this.safeString (trade, 'type');
-        if (type !== undefined) {
+        if ((type !== undefined) && (type.indexOf ('-') >= 0)) {
             const typeParts = type.split ('-');
             side = typeParts[0];
             type = typeParts[1];
@@ -2780,7 +2801,7 @@ export default class htx extends Exchange {
         if (feeCost === undefined) {
             feeCost = Precise.stringNeg (this.safeString (trade, 'trade_fee'));
         }
-        const feeCurrencyId = this.safeString2 (trade, 'fee-currency', 'fee_asset');
+        const feeCurrencyId = this.safeStringN (trade, [ 'fee-currency', 'fee_asset', 'fee_currency' ]);
         let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
         const filledPoints = this.safeString (trade, 'filled-points');
         if (filledPoints !== undefined) {
@@ -2875,16 +2896,15 @@ export default class htx extends Exchange {
     /**
      * @method
      * @name htx#fetchMyTrades
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-match-results-via-multiple-fields-new
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-match-results-via-multiple-fields-new
-     * @see https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
      * @description fetch all trades made by the user
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195898804f0
+     * @see https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2938,26 +2958,22 @@ export default class htx extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
             }
-            request['contract'] = market['id'];
-            request['trade_type'] = 0; // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
             if (since !== undefined) {
-                request['start_time'] = since; // a date within 120 days from today
-                // request['end_time'] = this.sum (request['start_time'], 172800000); // 48 hours window
+                request['start_time'] = since;
             }
             [ request, params ] = this.handleUntilOption ('end_time', request, params);
-            if (limit !== undefined) {
-                request['page_size'] = limit; // default 100, max 500
-            }
             if (market['linear']) {
-                let marginMode = undefined;
-                [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
-                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-                if (marginMode === 'isolated') {
-                    response = await this.contractPrivatePostLinearSwapApiV3SwapMatchresultsExact (this.extend (request, params));
-                } else if (marginMode === 'cross') {
-                    response = await this.contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact (this.extend (request, params));
+                request['contract_code'] = market['id'];
+                if (limit !== undefined) {
+                    request['limit'] = limit; // default 100, max 500
                 }
+                response = await this.contractPrivateGetV5TradeOrderDetails (this.extend (request, params));
             } else if (market['inverse']) {
+                if (limit !== undefined) {
+                    request['page_size'] = limit; // default 100, max 500
+                }
+                request['contract'] = market['id'];
+                request['trade_type'] = 0; // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
                 if (marketType === 'future') {
                     request['symbol'] = market['settleId'];
                     response = await this.contractPrivatePostApiV3ContractMatchresultsExact (this.extend (request, params));
@@ -3032,6 +3048,39 @@ export default class htx extends Exchange {
         //             "next_id": 2424413094
         //         },
         //         "ts": 1604372202243
+        //     }
+        //
+        // linear swap
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "id": "1513834754679549965",
+        //                 "contract_code": "BTC-USDT",
+        //                 "order_id": "1513834754585190400",
+        //                 "trade_id": "152022944",
+        //                 "side": "sell",
+        //                 "position_side": "long",
+        //                 "order_type": "1",
+        //                 "margin_mode": "cross",
+        //                 "type": "market",
+        //                 "role": "TAKER",
+        //                 "trade_price": "62688.2",
+        //                 "trade_volume": "2",
+        //                 "trade_turnover": "125.3764",
+        //                 "created_time": "1780967931197",
+        //                 "updated_time": "1780967931197",
+        //                 "order_source": "api",
+        //                 "fee_currency": "USDT",
+        //                 "trade_fee": "0.07522584",
+        //                 "deduction_price": "",
+        //                 "profit": "-0.3656",
+        //                 "contract_type": "swap"
+        //             }
+        //         ],
+        //         "ts": 1781066959396
         //     }
         //
         let trades = this.safeValue (response, 'data');
