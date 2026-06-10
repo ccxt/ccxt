@@ -1943,6 +1943,10 @@ export default class okx extends Exchange {
         const marketsWithoutTest = [];
         for (let i = 0; i < dataResponse.length; i++) {
             const data = dataResponse[i];
+            const instId = this.safeString (data, 'instId', '');
+            if (instId === '') {
+                continue; // skip broken "preopen" placeholder instruments that have no instId
+            }
             if (this.isSandboxModeEnabled) {
                 const instFamily = this.safeString (data, 'instFamily', '');
                 if (instFamily.startsWith ('TEST')) {
