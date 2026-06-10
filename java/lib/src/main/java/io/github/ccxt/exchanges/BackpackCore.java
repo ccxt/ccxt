@@ -553,7 +553,7 @@ public class BackpackCore extends BackpackApi
             Object network = Helpers.GetValue(networks, j);
             Object networkId = this.safeString(network, "blockchain");
             Object networkIdLowerCase = this.safeStringLower(network, "blockchain");
-            Object networkCode = this.networkIdToCode(networkIdLowerCase);
+            Object networkCode = this.networkIdToCode(networkIdLowerCase, code);
             Helpers.addElementToObject(parsedNetworks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", networkCode );
@@ -1675,7 +1675,7 @@ public class BackpackCore extends BackpackApi
             var networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
             var networkCode = ((java.util.List<Object>) networkCodequeryVariable).get(0);
             var query = ((java.util.List<Object>) networkCodequeryVariable).get(1);
-            Object networkId = this.networkCodeToId(networkCode);
+            Object networkId = this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"));
             if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " withdraw() requires a network parameter")) ;
@@ -1770,7 +1770,7 @@ public class BackpackCore extends BackpackApi
         Object timestamp = this.parse8601(this.safeString(transaction, "createdAt"));
         Object amount = this.safeNumber(transaction, "quantity");
         Object networkId = this.safeStringLower2(transaction, "source", "blockchain");
-        Object network = this.networkIdToCode(networkId);
+        Object network = this.networkIdToCode(networkId, code);
         Object addressTo = this.safeString(transaction, "toAddress");
         Object addressFrom = this.safeString(transaction, "fromAddress");
         Object tag = this.safeString(transaction, "platformMemo");
@@ -1853,7 +1853,7 @@ public class BackpackCore extends BackpackApi
             Object currency = this.currency(code);
             final Object finalNetworkCode = networkCode;
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "blockchain", BackpackCore.this.networkCodeToId(finalNetworkCode) );
+                put( "blockchain", BackpackCore.this.networkCodeToId(finalNetworkCode, Helpers.GetValue(currency, "code")) );
             }};
             Object response = (this.privateGetWapiV1CapitalDepositAddress(this.extend(request, parameters))).join();
             return this.parseDepositAddress(response, currency);

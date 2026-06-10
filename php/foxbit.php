@@ -1553,7 +1553,7 @@ class foxbit extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['network_code'] = $this->network_code_to_id($networkCode);
+            $request['network_code'] = $this->network_code_to_id($networkCode, $code);
         }
         $response = $this->v3PrivatePostWithdrawals ($this->extend($request, $params));
         // {

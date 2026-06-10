@@ -8,7 +8,6 @@ var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
 /**
  * @class coinsph
  * @augments Exchange
@@ -629,7 +628,7 @@ class coinsph extends coinsph$1["default"] {
         for (let j = 0; j < networkList.length; j++) {
             const networkItem = networkList[j];
             const network = this.safeString(networkItem, 'network');
-            const networkCode = this.networkIdToCode(network);
+            const networkCode = this.networkIdToCode(network, code);
             networks[networkCode] = {
                 'info': networkItem,
                 'id': network,

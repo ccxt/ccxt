@@ -6,7 +6,7 @@ var alpaca$1 = require('../alpaca.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class alpaca extends alpaca$1["default"] {
     describe() {
@@ -267,7 +267,7 @@ class alpaca extends alpaca$1["default"] {
         client.resolve(orderbook, messageHash);
     }
     handleDelta(bookside, delta) {
-        const bidAsk = this.parseBidAsk(delta, 'p', 's');
+        const bidAsk = this.parseOrderBookBidAsk(delta, 'p', 's');
         bookside.storeArray(bidAsk);
     }
     handleDeltas(bookside, deltas) {

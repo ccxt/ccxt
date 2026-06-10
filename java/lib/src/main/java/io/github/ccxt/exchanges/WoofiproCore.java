@@ -724,64 +724,78 @@ public class WoofiproCore extends WoofiproApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tokenRows)); i++)
             {
                 Object token = Helpers.GetValue(tokenRows, i);
-                Object currencyId = this.safeString(token, "token");
-                Object networks = this.safeList(token, "chain_details");
-                Object code = this.safeCurrencyCode(currencyId);
-                Object resultingNetworks = new java.util.HashMap<String, Object>() {{}};
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
-                {
-                    Object networkEntry = Helpers.GetValue(networks, j);
-                    Object networkId = this.safeString(networkEntry, "chain_id");
-                    Object networkRow = this.safeDict(indexedChains, networkId);
-                    Object networkName = this.safeString(networkRow, "name");
-                    Object networkCode = this.networkIdToCode(networkName, code);
-                    Helpers.addElementToObject(resultingNetworks, networkCode, new java.util.HashMap<String, Object>() {{
-        put( "id", networkId );
-        put( "network", networkCode );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "active", null );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "fee", WoofiproCore.this.safeNumber(networkEntry, "withdrawal_fee") );
-        put( "precision", WoofiproCore.this.parseNumber(WoofiproCore.this.parsePrecision(WoofiproCore.this.safeString(networkEntry, "decimals"))) );
-        put( "info", new java.util.ArrayList<Object>(java.util.Arrays.asList(networkEntry, networkRow)) );
-    }});
-                }
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", currencyId );
-        put( "name", null );
-        put( "code", code );
-        put( "precision", null );
-        put( "active", null );
-        put( "fee", null );
-        put( "networks", resultingNetworks );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", WoofiproCore.this.safeNumber(token, "minimum_withdraw_amount") );
-                put( "max", null );
-            }} );
-        }} );
-        put( "info", token );
-    }}));
+                Object parsed = this.parseCurrency(new java.util.HashMap<String, Object>() {{
+                    put( "_token", token );
+                    put( "_indexedChains", indexedChains );
+                }});
+                Helpers.addElementToObject(result, Helpers.GetValue(parsed, "code"), parsed);
             }
             return result;
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object token = this.safeDict(rawCurrency, "_token", new java.util.HashMap<String, Object>() {{}});
+        Object currencyId = this.safeString(token, "token");
+        Object networks = this.safeList(token, "chain_details");
+        Object code = this.safeCurrencyCode(currencyId);
+        Object indexedChains = this.safeDict(rawCurrency, "_indexedChains", new java.util.HashMap<String, Object>() {{}});
+        Object resultingNetworks = new java.util.HashMap<String, Object>() {{}};
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
+        {
+            Object networkEntry = Helpers.GetValue(networks, j);
+            Object networkId = this.safeString(networkEntry, "chain_id");
+            Object networkRow = this.safeDict(indexedChains, networkId);
+            Object networkName = this.safeString(networkRow, "name");
+            Object networkCode = this.networkIdToCode(networkName, code);
+            Helpers.addElementToObject(resultingNetworks, networkCode, new java.util.HashMap<String, Object>() {{
+    put( "id", networkId );
+    put( "network", networkCode );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", null );
+        }} );
+        put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", null );
+        }} );
+    }} );
+    put( "active", null );
+    put( "deposit", null );
+    put( "withdraw", null );
+    put( "fee", WoofiproCore.this.safeNumber(networkEntry, "withdrawal_fee") );
+    put( "precision", WoofiproCore.this.parseNumber(WoofiproCore.this.parsePrecision(WoofiproCore.this.safeString(networkEntry, "decimals"))) );
+    put( "info", new java.util.HashMap<String, Object>() {{
+        put( "network", networkEntry );
+        put( "networkRow", networkRow );
+    }} );
+}});
+        }
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", currencyId );
+            put( "name", null );
+            put( "code", code );
+            put( "precision", null );
+            put( "active", null );
+            put( "fee", null );
+            put( "networks", resultingNetworks );
+            put( "deposit", null );
+            put( "withdraw", null );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "deposit", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", WoofiproCore.this.safeNumber(token, "minimum_withdraw_amount") );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "info", token );
+        }});
     }
 
     public Object parseTokenAndFeeTemp(Object item, Object feeTokenKey, Object feeAmountKey)

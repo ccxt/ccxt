@@ -14,7 +14,7 @@ var throttle = require('./functions/throttle.js');
 var misc = require('./functions/misc.js');
 var io = require('./functions/io.js');
 
-// ----------------------------------------------------------------------------
+/*  ------------------------------------------------------------------------ */
 /*  ------------------------------------------------------------------------ */
 
 exports.isBrowser = platform.isBrowser;
@@ -161,6 +161,7 @@ exports.roundTimeframe = misc.roundTimeframe;
 exports.selfIsDefined = misc.selfIsDefined;
 exports.vwap = misc.vwap;
 exports.existsFile = io.existsFile;
+exports.filePathToFileUrlForWindows = io.filePathToFileUrlForWindows;
 exports.getTempDir = io.getTempDir;
 exports.initFileSystem = io.initFileSystem;
 exports.readFile = io.readFile;

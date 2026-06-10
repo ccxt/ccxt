@@ -479,7 +479,7 @@ public partial class arkham : Exchange
             {
                 object chain = getValue(chains, j);
                 object networkId = this.safeString(chain, "symbol");
-                object network = this.networkIdToCode(networkId);
+                object network = this.networkIdToCode(networkId, code);
                 ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
                     { "info", chain },
                     { "id", networkId },
@@ -1845,7 +1845,7 @@ public partial class arkham : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchDepositAddressesByNetwork() requires a \"network\" param")) ;
         }
         object request = new Dictionary<string, object>() {
-            { "chain", this.networkCodeToId(networkCode) },
+            { "chain", this.networkCodeToId(networkCode, code) },
         };
         object response = await this.v1PrivateGetAccountDepositAddresses(this.extend(request, parameters));
         //
@@ -1978,7 +1978,7 @@ public partial class arkham : Exchange
             { "txid", this.safeString(transaction, "transactionHash") },
             { "type", null },
             { "currency", code },
-            { "network", this.networkIdToCode(this.safeString(transaction, "chain")) },
+            { "network", this.networkIdToCode(this.safeString(transaction, "chain"), code) },
             { "amount", this.safeNumber(transaction, "amount") },
             { "status", status },
             { "timestamp", timestamp },

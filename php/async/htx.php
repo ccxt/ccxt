@@ -195,7 +195,7 @@ class htx extends Exchange {
                 ),
                 'www' => 'https://www.huobi.com',
                 'referral' => array(
-                    'url' => 'https://www.htx.com.vc/invite/en-us/1h?invite_code=6rmm2223',
+                    'url' => 'https://www.htx.com/invite/en-us/1h?invite_code=6rmm2223',
                     'discount' => 0.15,
                 ),
                 'doc' => array(
@@ -3512,7 +3512,7 @@ class htx extends Exchange {
             $title = $this->safe_string_2($chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             $this->options['networkChainIdsByNames'][$code][$title] = $uniqueChainId;
             $this->options['networkNamesByChainIds'][$uniqueChainId] = $title;
-            $networkCode = $this->network_id_to_code($uniqueChainId);
+            $networkCode = $this->network_id_to_code($uniqueChainId, $code);
             $networks[$networkCode] = array(
                 'info' => $chainEntry,
                 'id' => $uniqueChainId,
@@ -3571,7 +3571,7 @@ class htx extends Exchange {
             throw new ExchangeError($this->id . ' networkIdToCode() - markets need to be loaded at first');
         }
         $networkTitle = $this->safe_value($this->options['networkNamesByChainIds'], $networkId, $networkId);
-        return parent::network_id_to_code($networkTitle);
+        return parent::network_id_to_code($networkTitle, $currencyCode);
     }
 
     public function network_code_to_id(string $networkCode, ?string $currencyCode = null) {
@@ -3587,7 +3587,7 @@ class htx extends Exchange {
         if (is_array($uniqueNetworkIds) && array_key_exists($networkCode, $uniqueNetworkIds)) {
             return $uniqueNetworkIds[$networkCode];
         } else {
-            $networkTitle = parent::network_code_to_id($networkCode);
+            $networkTitle = parent::network_code_to_id($networkCode, $currencyCode);
             return $this->safe_value($uniqueNetworkIds, $networkTitle, $networkTitle);
         }
     }
@@ -6504,7 +6504,7 @@ class htx extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'note' => $note,
             'info' => $depositAddress,
         );
@@ -6801,7 +6801,7 @@ class htx extends Exchange {
             'txid' => $txHash,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $this->safe_string($transaction, 'address'),
             'addressTo' => null,
             'addressFrom' => null,
@@ -9362,12 +9362,13 @@ class htx extends Exchange {
         //          }
         //
         $chains = $this->safe_value($fee, 'chains', array());
+        $code = $this->safe_string($currency, 'code');
         $result = $this->deposit_withdraw_fee($fee);
         for ($j = 0; $j < count($chains); $j++) {
             $chainEntry = $chains[$j];
             $networkId = $this->safe_string($chainEntry, 'chain');
             $withdrawFeeType = $this->safe_string($chainEntry, 'withdrawFeeType');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $withdrawFee = null;
             $withdrawResult = null;
             if ($withdrawFeeType === 'fixed') {

@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class hashkey
@@ -1180,7 +1180,7 @@ class hashkey extends hashkey$1["default"] {
         for (let j = 0; j < networks.length; j++) {
             const network = networks[j];
             const networkId = this.safeString(network, 'chainType');
-            const networkCode = this.networkCodeToId(networkId);
+            const networkCode = this.networkCodeToId(networkId, code);
             parsedNetworks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
@@ -2052,7 +2052,7 @@ class hashkey extends hashkey$1["default"] {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['chainType'] = this.networkCodeToId(networkCode);
+            request['chainType'] = this.networkCodeToId(networkCode, currency['code']);
         }
         const response = await this.privatePostApiV1AccountWithdraw(this.extend(request, params));
         //

@@ -892,7 +892,7 @@ class bingx(Exchange, ImplicitAPI):
         for j in range(0, len(networkList)):
             rawNetwork = networkList[j]
             network = self.safe_string(rawNetwork, 'network')
-            networkCode = self.network_id_to_code(network)
+            networkCode = self.network_id_to_code(network, code)
             limits: dict = {
                 'withdraw': {
                     'min': self.safe_number(rawNetwork, 'withdrawMin'),
@@ -5258,7 +5258,7 @@ class bingx(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'txId'),
             'type': type,
             'currency': code,
-            'network': self.network_id_to_code(network),
+            'network': self.network_id_to_code(network, code),
             'amount': self.safe_number(transaction, 'amount'),
             'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
             'timestamp': timestamp,
@@ -5780,7 +5780,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         network = self.safe_string_upper(params, 'network')
         if network is not None:
-            request['network'] = self.network_code_to_id(network)
+            request['network'] = self.network_code_to_id(network, currency['code'])
         if tag is not None:
             request['addressTag'] = tag
         params = self.omit(params, ['walletType', 'network'])

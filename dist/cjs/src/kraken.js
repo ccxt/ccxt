@@ -9,7 +9,7 @@ var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class kraken
@@ -898,21 +898,6 @@ class kraken extends kraken$1["default"] {
             'networks': {},
         });
     }
-    addKeyInArrayItems(obj, keyName) {
-        const result = [];
-        const keys = Object.keys(obj);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const item = obj[key];
-            if (item === undefined) {
-                continue;
-            }
-            const itemWithKey = this.extend({}, item);
-            itemWithKey[keyName] = key;
-            result.push(itemWithKey);
-        }
-        return result;
-    }
     safeCurrencyCode(currencyId, currency = undefined) {
         if (currencyId === undefined) {
             return currencyId;
@@ -989,7 +974,7 @@ class kraken extends kraken$1["default"] {
             'tierBased': true,
         };
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+    parseOrderBookBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeNumber(bidask, priceKey);
         const amount = this.safeNumber(bidask, amountKey);
         const timestamp = this.safeInteger(bidask, 2);

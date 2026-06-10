@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class poloniex
@@ -3015,7 +3015,7 @@ class poloniex extends poloniex$1["default"] {
                     for (let j = 0; j < childChains.length; j++) {
                         let networkId = childChains[j];
                         networkId = networkId.replace(code, '');
-                        const networkCode = this.networkIdToCode(networkId);
+                        const networkCode = this.networkIdToCode(networkId, currency['code']);
                         const networkInfo = this.safeValue(response, networkId);
                         const networkObject = {};
                         const withdrawFee = this.safeNumber(networkInfo, 'withdrawalFee');
@@ -3051,7 +3051,7 @@ class poloniex extends poloniex$1["default"] {
         };
         depositWithdrawFee['withdraw'] = withdrawResult;
         depositWithdrawFee['deposit'] = depositResult;
-        const networkCode = this.networkIdToCode(networkId);
+        const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
         depositWithdrawFee['networks'][networkCode] = {
             'withdraw': withdrawResult,
             'deposit': depositResult,

@@ -1646,13 +1646,15 @@ class grvt extends Exchange {
         $networkCode = null;
         $addressFrom = $this->safe_string($transaction, 'from_account_id');
         $addressTo = $this->safe_string($transaction, 'to_account_id');
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
         if (is_array($transaction) && array_key_exists('transfer_metadata', $transaction)) {
             $metaData = $this->omit_zero($this->safe_string($transaction, 'transfer_metadata'));
             if ($metaData !== null) {
                 $parsedMeta = $this->parse_json($metaData);
                 $direction = $this->safe_string_lower($parsedMeta, 'direction');
                 $txId = $this->safe_string($parsedMeta, 'provider_tx_id');
-                $networkCode = $this->network_id_to_code($this->safe_string($parsedMeta, 'chainid'));
+                $networkCode = $this->network_id_to_code($this->safe_string($parsedMeta, 'chainid'), $code);
                 if ($direction === 'withdrawal') {
                     $addressTo = $this->safe_string($parsedMeta, 'endpoint');
                 } elseif ($direction === 'deposit') {
@@ -1661,8 +1663,6 @@ class grvt extends Exchange {
             }
         }
         $timestamp = $this->safe_integer_product_2($transaction, 'event_time', 'initiated_time', 0.000001);
-        $currencyId = $this->safe_string($transaction, 'currency');
-        $code = $this->safe_currency_code($currencyId, $currency);
         return array(
             'info' => $transaction,
             'id' => null,
@@ -1975,7 +1975,7 @@ class grvt extends Exchange {
                 'signature' => $this->default_signature(),
             );
             list($networkCode, $query) = $this->handle_network_code_and_params($params);
-            $networkId = $this->network_code_to_id($networkCode);
+            $networkId = $this->network_code_to_id($networkCode, $code);
             if ($networkId === null) {
                 throw new BadRequest($this->id . ' withdraw() requires a network parameter');
             }

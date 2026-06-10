@@ -7,46 +7,46 @@
 
 package ccxt
 
-func (this *BtcboxCore) PublicGetDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDepth", args...)
+func (this *BtcboxCore) PublicGetDepth (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetDepth", args...)
 }
 
-func (this *BtcboxCore) PublicGetOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrders", args...)
+func (this *BtcboxCore) PublicGetOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetOrders", args...)
 }
 
-func (this *BtcboxCore) PublicGetTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTicker", args...)
+func (this *BtcboxCore) PublicGetTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *BtcboxCore) PublicGetTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTickers", args...)
+func (this *BtcboxCore) PublicGetTickers (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *BtcboxCore) PrivatePostBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBalance", args...)
+func (this *BtcboxCore) PrivatePostBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostBalance", args...)
 }
 
-func (this *BtcboxCore) PrivatePostTradeAdd(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeAdd", args...)
+func (this *BtcboxCore) PrivatePostTradeAdd (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeAdd", args...)
 }
 
-func (this *BtcboxCore) PrivatePostTradeCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeCancel", args...)
+func (this *BtcboxCore) PrivatePostTradeCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeCancel", args...)
 }
 
-func (this *BtcboxCore) PrivatePostTradeList(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeList", args...)
+func (this *BtcboxCore) PrivatePostTradeList (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeList", args...)
 }
 
-func (this *BtcboxCore) PrivatePostTradeView(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeView", args...)
+func (this *BtcboxCore) PrivatePostTradeView (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeView", args...)
 }
 
-func (this *BtcboxCore) PrivatePostWallet(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWallet", args...)
+func (this *BtcboxCore) PrivatePostWallet (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostWallet", args...)
 }
 
-func (this *BtcboxCore) WebApiGetAjaxCoinCoinInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("webApiGetAjaxCoinCoinInfo", args...)
+func (this *BtcboxCore) WebApiGetAjaxCoinCoinInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("webApiGetAjaxCoinCoinInfo", args...)
 }

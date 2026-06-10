@@ -494,48 +494,47 @@ public class NdaxCore extends NdaxApi
             //        },
             //        ...
             //
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
-            {
-                Object currency = Helpers.GetValue(response, i);
-                Object id = this.safeString(currency, "ProductId");
-                Object code = this.safeCurrencyCode(this.safeString(currency, "Product"));
-                Object ProductType = this.safeString(currency, "ProductType");
-                Object type = ((Helpers.isTrue((Helpers.isEqual(ProductType, "NationalCurrency"))))) ? "fiat" : "crypto";
-                if (Helpers.isTrue(Helpers.isEqual(ProductType, "Unknown")))
-                {
-                    // such currency is just a blanket entry
-                    type = "other";
-                }
-                final Object finalType = type;
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", id );
-        put( "name", NdaxCore.this.safeString(currency, "ProductFullName") );
-        put( "code", code );
-        put( "type", finalType );
-        put( "precision", NdaxCore.this.safeNumber(currency, "TickSize") );
-        put( "info", currency );
-        put( "active", !Helpers.isTrue(NdaxCore.this.safeBool(currency, "IsDisabled")) );
-        put( "deposit", NdaxCore.this.safeBool(currency, "DepositEnabled") );
-        put( "withdraw", NdaxCore.this.safeBool(currency, "WithdrawEnabled") );
-        put( "fee", null );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "networks", new java.util.HashMap<String, Object>() {{}} );
-        put( "margin", NdaxCore.this.safeBool(currency, "MarginEnabled") );
-    }}));
-            }
-            return result;
+            return this.parseCurrencies(response);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object id = this.safeString(rawCurrency, "ProductId");
+        Object code = this.safeCurrencyCode(this.safeString(rawCurrency, "Product"));
+        Object ProductType = this.safeString(rawCurrency, "ProductType");
+        Object type = ((Helpers.isTrue((Helpers.isEqual(ProductType, "NationalCurrency"))))) ? "fiat" : "crypto";
+        if (Helpers.isTrue(Helpers.isEqual(ProductType, "Unknown")))
+        {
+            // such currency is just a blanket entry
+            type = "other";
+        }
+        final Object finalType = type;
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", id );
+            put( "name", NdaxCore.this.safeString(rawCurrency, "ProductFullName") );
+            put( "code", code );
+            put( "type", finalType );
+            put( "precision", NdaxCore.this.safeNumber(rawCurrency, "TickSize") );
+            put( "info", rawCurrency );
+            put( "active", !Helpers.isTrue(NdaxCore.this.safeBool(rawCurrency, "IsDisabled")) );
+            put( "deposit", NdaxCore.this.safeBool(rawCurrency, "DepositEnabled") );
+            put( "withdraw", NdaxCore.this.safeBool(rawCurrency, "WithdrawEnabled") );
+            put( "fee", null );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "amount", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "networks", new java.util.HashMap<String, Object>() {{}} );
+            put( "margin", NdaxCore.this.safeBool(rawCurrency, "MarginEnabled") );
+        }});
     }
 
     /**
@@ -708,7 +707,7 @@ public class NdaxCore extends NdaxApi
                 Object newNonce = this.safeInteger(level, 0);
                 nonce = Helpers.mathMax(nonce, newNonce);
             }
-            Object bidask = this.parseBidAsk(level, priceKey, amountKey);
+            Object bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             Object levelSide = this.safeInteger(level, 9);
             Object side = ((Helpers.isTrue(levelSide))) ? asksKey : bidsKey;
             Object resultSide = Helpers.GetValue(result, side);

@@ -8,7 +8,7 @@ var errors = require('../base/errors.js');
 var Precise = require('../base/Precise.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class cex extends cex$1["default"] {
     describe() {
@@ -1034,7 +1034,7 @@ class cex extends cex$1["default"] {
         client.resolve(storedOrderBook, messageHash);
     }
     handleDelta(bookside, delta) {
-        const bidAsk = this.parseBidAsk(delta, 0, 1);
+        const bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         bookside.storeArray(bidAsk);
     }
     handleDeltas(bookside, deltas) {

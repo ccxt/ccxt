@@ -6,7 +6,7 @@ var dydx$1 = require('../dydx.js');
 var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class dydx extends dydx$1["default"] {
     describe() {
@@ -245,7 +245,7 @@ class dydx extends dydx$1["default"] {
             bookside.store(price, amount);
         }
         else {
-            const bidAsk = this.parseBidAsk(delta, 'price', 'size');
+            const bidAsk = this.parseOrderBookBidAsk(delta, 'price', 'size');
             bookside.storeArray(bidAsk);
         }
     }

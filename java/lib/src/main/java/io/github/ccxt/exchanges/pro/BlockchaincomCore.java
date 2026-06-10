@@ -827,7 +827,7 @@ final Object finalTradeId = tradeId;
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bookArray = this.parseBidAsk(delta, "px", "qty", "num");
+        Object bookArray = this.parseOrderBookBidAsk(delta, "px", "qty", "num");
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bookArray});
     }
 

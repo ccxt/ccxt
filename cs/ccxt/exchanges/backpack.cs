@@ -536,7 +536,7 @@ public partial class backpack : Exchange
             object network = getValue(networks, j);
             object networkId = this.safeString(network, "blockchain");
             object networkIdLowerCase = this.safeStringLower(network, "blockchain");
-            object networkCode = this.networkIdToCode(networkIdLowerCase);
+            object networkCode = this.networkIdToCode(networkIdLowerCase, code);
             ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "id", networkId },
                 { "network", networkCode },
@@ -1540,7 +1540,7 @@ public partial class backpack : Exchange
         var networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
         var networkCode = ((IList<object>) networkCodequeryVariable)[0];
         var query = ((IList<object>) networkCodequeryVariable)[1];
-        object networkId = this.networkCodeToId(networkCode);
+        object networkId = this.networkCodeToId(networkCode, getValue(currency, "code"));
         if (isTrue(isEqual(networkId, null)))
         {
             throw new BadRequest ((string)add(this.id, " withdraw() requires a network parameter")) ;
@@ -1632,7 +1632,7 @@ public partial class backpack : Exchange
         object timestamp = this.parse8601(this.safeString(transaction, "createdAt"));
         object amount = this.safeNumber(transaction, "quantity");
         object networkId = this.safeStringLower2(transaction, "source", "blockchain");
-        object network = this.networkIdToCode(networkId);
+        object network = this.networkIdToCode(networkId, code);
         object addressTo = this.safeString(transaction, "toAddress");
         object addressFrom = this.safeString(transaction, "fromAddress");
         object tag = this.safeString(transaction, "platformMemo");
@@ -1709,7 +1709,7 @@ public partial class backpack : Exchange
         }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
-            { "blockchain", this.networkCodeToId(networkCode) },
+            { "blockchain", this.networkCodeToId(networkCode, getValue(currency, "code")) },
         };
         object response = await this.privateGetWapiV1CapitalDepositAddress(this.extend(request, parameters));
         return this.parseDepositAddress(response, currency);

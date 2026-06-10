@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class kucoin
@@ -3614,7 +3614,7 @@ class kucoin extends kucoin$1["default"] {
             let networkCode = undefined;
             [networkCode, params] = this.handleNetworkCodeAndParams(params);
             if (networkCode !== undefined) {
-                request['chain'] = this.networkCodeToId(networkCode).toLowerCase();
+                request['chain'] = this.networkCodeToId(networkCode, code).toLowerCase();
             }
             //
             //     {

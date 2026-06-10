@@ -491,20 +491,17 @@ class weex extends Exchange {
                     'ETH' => 'ERC20',
                     'POLYGON' => 'POLYGON(MATIC)',
                     'MATIC' => 'POLYGON(MATIC)',
-                    'ARBITRUM' => 'ARBITRUM(ARB)',
-                    'ARB' => 'ARBITRUM(ARB)',
-                    'SOLANA' => 'SOLANA(SOL)',
+                    'ARBONE' => 'ARBITRUM(ARB)',
                     'SOL' => 'SOLANA(SOL)',
                     'OP' => 'OPTIMISM(OP)',
                     'OPTIMISM' => 'OPTIMISM(OP)',
-                    'AVALANCHEC' => 'AVALANCHE_C(AVAX_C)',
                     'AVAXC' => 'AVALANCHE_C(AVAX_C)',
                 ),
                 'networksById' => array(
                     'BEP20(BSC)' => 'BEP20',
                     'ERC20' => 'ERC20',
                     'POLYGON(MATIC)' => 'MATIC',
-                    'ARBITRUM(ARB)' => 'ARB',
+                    'ARBITRUM(ARB)' => 'ARBONE',
                     'SOLANA(SOL)' => 'SOL',
                     'OPTIMISM(OP)' => 'OP',
                     'AVALANCHE_C(AVAX_C)' => 'AVAXC',
@@ -851,73 +848,72 @@ class weex extends Exchange {
         //         }
         //     )
         //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $currency = $this->safe_dict($response, $i);
-            $currencyId = $this->safe_string($currency, 'coin');
-            $code = $this->safe_currency_code($currencyId);
-            $name = $this->safe_string($currency, 'name');
-            $networks = array();
-            $chains = $this->safe_list($currency, 'networkList', array());
-            for ($j = 0; $j < count($chains); $j++) {
-                $chain = $this->safe_dict($chains, $j);
-                $networkId = $this->safe_string($chain, 'network');
-                $networkCode = $this->network_id_to_code($networkId);
-                $networks[$networkCode] = array(
-                    'info' => $chain,
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'active' => null,
-                    'deposit' => $this->safe_bool($chain, 'depositEnable'),
-                    'withdraw' => $this->safe_bool($chain, 'withdrawEnable'),
-                    'fee' => $this->safe_number($chain, 'withdrawFee'),
-                    'precision' => $this->safe_number($chain, 'withdrawIntegerMultiple'),
-                    'isDefault' => $this->safe_bool($chain, 'isDefault', false),
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($chain, 'withdrawMin'),
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => $this->safe_number($chain, 'depositDust'),
-                            'max' => null,
-                        ),
-                    ),
-                );
-            }
-            $networkKeys = is_array($networks) ? array_keys($networks) : array();
-            $networksLength = count($networkKeys);
-            $emptyChains = $networksLength === 0; // non-functional coins
-            $valueForEmpty = $emptyChains ? false : null;
-            $result[$code] = $this->safe_currency_structure(array(
-                'info' => $currency,
-                'code' => $code,
-                'id' => $currencyId,
-                'type' => 'crypto',
-                'name' => $name,
+        return $this->parse_currencies($response);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'coin');
+        $code = $this->safe_currency_code($currencyId);
+        $name = $this->safe_string($rawCurrency, 'name');
+        $networks = array();
+        $chains = $this->safe_list($rawCurrency, 'networkList', array());
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $this->safe_dict($chains, $j);
+            $networkId = $this->safe_string($chain, 'network');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networks[$networkCode] = array(
+                'info' => $chain,
+                'id' => $networkId,
+                'network' => $networkCode,
                 'active' => null,
-                'deposit' => $valueForEmpty,
-                'withdraw' => $valueForEmpty,
-                'fee' => null,
-                'precision' => null,
+                'deposit' => $this->safe_bool($chain, 'depositEnable'),
+                'withdraw' => $this->safe_bool($chain, 'withdrawEnable'),
+                'fee' => $this->safe_number($chain, 'withdrawFee'),
+                'precision' => $this->safe_number($chain, 'withdrawIntegerMultiple'),
+                'isDefault' => $this->safe_bool($chain, 'isDefault', false),
                 'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($chain, 'withdrawMin'),
                         'max' => null,
                     ),
                     'deposit' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($chain, 'depositDust'),
                         'max' => null,
                     ),
                 ),
-                'networks' => $networks,
-            ));
+            );
         }
-        return $result;
+        $networkKeys = is_array($networks) ? array_keys($networks) : array();
+        $networksLength = count($networkKeys);
+        $emptyChains = $networksLength === 0; // non-functional coins
+        $valueForEmpty = $emptyChains ? false : null;
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'code' => $code,
+            'id' => $currencyId,
+            'type' => 'crypto',
+            'name' => $name,
+            'active' => null,
+            'deposit' => $valueForEmpty,
+            'withdraw' => $valueForEmpty,
+            'fee' => null,
+            'precision' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+        ));
     }
 
     public function fetch_markets($params = array ()): array {

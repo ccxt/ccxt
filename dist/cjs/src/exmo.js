@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class exmo
@@ -631,7 +631,10 @@ class exmo extends exmo$1["default"] {
             const provider = fee[i];
             const type = this.safeString(provider, 'type');
             const networkId = this.safeString(provider, 'name');
-            const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
+            const currencyId = this.safeString(provider, 'currency_name');
+            currency = this.safeCurrency(currencyId, currency);
+            const code = this.safeString(currency, 'code');
+            const networkCode = this.networkIdToCode(networkId, code);
             const commissionDesc = this.safeString(provider, 'commission_desc');
             let splitCommissionDesc = [];
             let percentage = undefined;
@@ -709,97 +712,103 @@ class exmo extends exmo$1["default"] {
         const responses = await Promise.all(promises);
         const currencyList = responses[0];
         const cryptoList = responses[1];
-        const result = {};
+        const newArray = [];
         for (let i = 0; i < currencyList.length; i++) {
             const currency = currencyList[i];
             const currencyId = this.safeString(currency, 'name');
-            const code = this.safeCurrencyCode(currencyId);
-            let type = 'crypto';
-            const networks = {};
             const providers = this.safeList(cryptoList, currencyId);
-            if (providers === undefined) {
-                type = 'fiat';
-            }
-            else {
-                for (let j = 0; j < providers.length; j++) {
-                    const provider = providers[j];
-                    const name = this.safeString(provider, 'name');
-                    // get network-id by removing extra things
-                    let networkId = name.replace(currencyId + ' ', '');
-                    networkId = networkId.replace('(', '');
-                    const replaceChar = ')'; // transpiler trick
-                    networkId = networkId.replace(replaceChar, '');
-                    const networkCode = this.networkIdToCode(networkId);
-                    if (!(networkCode in networks)) {
-                        networks[networkCode] = {
-                            'id': networkId,
-                            'network': networkCode,
-                            'active': undefined,
-                            'deposit': undefined,
-                            'withdraw': undefined,
-                            'fee': undefined,
-                            'limits': {
-                                'withdraw': {
-                                    'min': undefined,
-                                    'max': undefined,
-                                },
-                                'deposit': {
-                                    'min': undefined,
-                                    'max': undefined,
-                                },
-                            },
-                            'info': [], // set as array, because of multiple network sub-entries
-                        };
-                    }
-                    const typeInner = this.safeString(provider, 'type');
-                    const minValue = this.safeString(provider, 'min');
-                    const maxValue = this.safeString(provider, 'max');
-                    const activeProvider = this.safeBool(provider, 'enabled');
-                    const networkEntry = networks[networkCode];
-                    if (typeInner === 'deposit') {
-                        networkEntry['deposit'] = activeProvider;
-                        networkEntry['limits']['deposit']['min'] = minValue;
-                        networkEntry['limits']['deposit']['max'] = maxValue;
-                    }
-                    else if (typeInner === 'withdraw') {
-                        networkEntry['withdraw'] = activeProvider;
-                        networkEntry['limits']['withdraw']['min'] = minValue;
-                        networkEntry['limits']['withdraw']['max'] = maxValue;
-                    }
-                    const info = this.safeList(networkEntry, 'info');
-                    info.push(provider);
-                    networkEntry['info'] = info;
-                    networks[networkCode] = networkEntry;
-                }
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': currencyId,
-                'code': code,
-                'name': this.safeString(currency, 'description'),
-                'type': type,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': this.parseNumber('1e-8'),
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': {
-                    'currency': currency,
-                    'providers': providers,
-                },
-                'networks': networks,
-            });
+            newArray.push({ 'currency': currency, 'providers': providers });
         }
-        return result;
+        return this.parseCurrencies(newArray);
+    }
+    parseCurrency(rawCurrency) {
+        const currency = this.safeDict(rawCurrency, 'currency', {});
+        const providers = this.safeList(rawCurrency, 'providers', []);
+        const currencyId = this.safeString(currency, 'name');
+        const code = this.safeCurrencyCode(currencyId);
+        let type = 'crypto';
+        const networks = {};
+        if (providers === undefined) {
+            type = 'fiat';
+        }
+        else {
+            for (let j = 0; j < providers.length; j++) {
+                const provider = providers[j];
+                const name = this.safeString(provider, 'name');
+                // get network-id by removing extra things
+                let networkId = name.replace(currencyId + ' ', '');
+                networkId = networkId.replace('(', '');
+                const replaceChar = ')'; // transpiler trick
+                networkId = networkId.replace(replaceChar, '');
+                const networkCode = this.networkIdToCode(networkId, code);
+                if (!(networkCode in networks)) {
+                    networks[networkCode] = {
+                        'id': networkId,
+                        'network': networkCode,
+                        'active': undefined,
+                        'deposit': undefined,
+                        'withdraw': undefined,
+                        'fee': undefined,
+                        'limits': {
+                            'withdraw': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'deposit': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                        },
+                        'info': [], // set as array, because of multiple network sub-entries
+                    };
+                }
+                const typeInner = this.safeString(provider, 'type');
+                const minValue = this.safeString(provider, 'min');
+                const maxValue = this.safeString(provider, 'max');
+                const activeProvider = this.safeBool(provider, 'enabled');
+                const networkEntry = networks[networkCode];
+                if (typeInner === 'deposit') {
+                    networkEntry['deposit'] = activeProvider;
+                    networkEntry['limits']['deposit']['min'] = minValue;
+                    networkEntry['limits']['deposit']['max'] = maxValue;
+                }
+                else if (typeInner === 'withdraw') {
+                    networkEntry['withdraw'] = activeProvider;
+                    networkEntry['limits']['withdraw']['min'] = minValue;
+                    networkEntry['limits']['withdraw']['max'] = maxValue;
+                }
+                const info = this.safeList(networkEntry, 'info');
+                info.push(provider);
+                networkEntry['info'] = info;
+                networks[networkCode] = networkEntry;
+            }
+        }
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'code': code,
+            'name': this.safeString(currency, 'description'),
+            'type': type,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': this.parseNumber('1e-8'),
+            'limits': {
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': {
+                'currency': currency,
+                'providers': providers,
+            },
+            'networks': networks,
+        });
     }
     /**
      * @method

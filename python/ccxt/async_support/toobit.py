@@ -620,7 +620,7 @@ class toobit(Exchange, ImplicitAPI):
         for j in range(0, len(rawNetworks)):
             rawNetwork = rawNetworks[j]
             networkId = self.safe_string(rawNetwork, 'chainType')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
@@ -2593,7 +2593,7 @@ class toobit(Exchange, ImplicitAPI):
         networkCode, paramsOmitted = self.handle_network_code_and_params(self.extend(request, params))
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress() : param["network"] is required')
-        request['chainType'] = self.network_code_to_id(networkCode)
+        request['chainType'] = self.network_code_to_id(networkCode, code)
         response = await self.privateGetApiV1AccountDepositAddress(self.extend(request, paramsOmitted))
         #
         #     {

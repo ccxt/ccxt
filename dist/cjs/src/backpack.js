@@ -9,7 +9,7 @@ var Precise = require('./base/Precise.js');
 var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 var crypto = require('./base/functions/crypto.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class backpack
@@ -542,7 +542,7 @@ class backpack extends backpack$1["default"] {
             const network = networks[j];
             const networkId = this.safeString(network, 'blockchain');
             const networkIdLowerCase = this.safeStringLower(network, 'blockchain');
-            const networkCode = this.networkIdToCode(networkIdLowerCase);
+            const networkCode = this.networkIdToCode(networkIdLowerCase, code);
             parsedNetworks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
@@ -1454,7 +1454,7 @@ class backpack extends backpack$1["default"] {
             request['clientId'] = tag; // memo or tag
         }
         const [networkCode, query] = this.handleNetworkCodeAndParams(params);
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, currency['code']);
         if (networkId === undefined) {
             throw new errors.BadRequest(this.id + ' withdraw() requires a network parameter');
         }
@@ -1543,7 +1543,7 @@ class backpack extends backpack$1["default"] {
         const timestamp = this.parse8601(this.safeString(transaction, 'createdAt'));
         const amount = this.safeNumber(transaction, 'quantity');
         const networkId = this.safeStringLower2(transaction, 'source', 'blockchain');
-        const network = this.networkIdToCode(networkId);
+        const network = this.networkIdToCode(networkId, code);
         const addressTo = this.safeString(transaction, 'toAddress');
         const addressFrom = this.safeString(transaction, 'fromAddress');
         const tag = this.safeString(transaction, 'platformMemo');
@@ -1611,7 +1611,7 @@ class backpack extends backpack$1["default"] {
         }
         const currency = this.currency(code);
         const request = {
-            'blockchain': this.networkCodeToId(networkCode),
+            'blockchain': this.networkCodeToId(networkCode, currency['code']),
         };
         const response = await this.privateGetWapiV1CapitalDepositAddress(this.extend(request, params));
         return this.parseDepositAddress(response, currency);

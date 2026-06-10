@@ -491,7 +491,7 @@ class bitmex(Exchange, ImplicitAPI):
         for j in range(0, len(chains)):
             chain = chains[j]
             networkId = self.safe_string(chain, 'asset')
-            network = self.network_id_to_code(networkId)
+            network = self.network_id_to_code(networkId, code)
             withdrawalFeeRaw = self.safe_string(chain, 'withdrawalFee')
             withdrawalFee = self.parse_number(Precise.string_mul(withdrawalFeeRaw, precisionString))
             isDepositEnabled = self.safe_bool(chain, 'depositEnabled', False)

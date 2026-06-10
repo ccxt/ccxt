@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.56'
+__version__ = '4.5.57'
 
 # ----------------------------------------------------------------------------
 
@@ -100,8 +100,8 @@ from ccxt.pro.deribit import deribit                                      # noqa
 from ccxt.pro.derive import derive                                        # noqa: F401
 from ccxt.pro.dydx import dydx                                            # noqa: F401
 from ccxt.pro.exmo import exmo                                            # noqa: F401
+from ccxt.pro.extended import extended                                    # noqa: F401
 from ccxt.pro.gate import gate                                            # noqa: F401
-from ccxt.pro.gateio import gateio                                        # noqa: F401
 from ccxt.pro.gemini import gemini                                        # noqa: F401
 from ccxt.pro.grvt import grvt                                            # noqa: F401
 from ccxt.pro.hashkey import hashkey                                      # noqa: F401
@@ -125,7 +125,6 @@ from ccxt.pro.ndax import ndax                                            # noqa
 from ccxt.pro.okx import okx                                              # noqa: F401
 from ccxt.pro.okxus import okxus                                          # noqa: F401
 from ccxt.pro.onetrading import onetrading                                # noqa: F401
-from ccxt.pro.oxfun import oxfun                                          # noqa: F401
 from ccxt.pro.p2b import p2b                                              # noqa: F401
 from ccxt.pro.pacifica import pacifica                                    # noqa: F401
 from ccxt.pro.paradex import paradex                                      # noqa: F401
@@ -183,8 +182,8 @@ exchanges = [
     'derive',
     'dydx',
     'exmo',
+    'extended',
     'gate',
-    'gateio',
     'gemini',
     'grvt',
     'hashkey',
@@ -208,7 +207,6 @@ exchanges = [
     'okx',
     'okxus',
     'onetrading',
-    'oxfun',
     'p2b',
     'pacifica',
     'paradex',

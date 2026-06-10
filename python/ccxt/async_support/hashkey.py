@@ -1195,7 +1195,7 @@ class hashkey(Exchange, ImplicitAPI):
         for j in range(0, len(networks)):
             network = networks[j]
             networkId = self.safe_string(network, 'chainType')
-            networkCode = self.network_code_to_id(networkId)
+            networkCode = self.network_code_to_id(networkId, code)
             parsedNetworks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
@@ -2027,7 +2027,7 @@ class hashkey(Exchange, ImplicitAPI):
         networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chainType'] = self.network_code_to_id(networkCode)
+            request['chainType'] = self.network_code_to_id(networkCode, currency['code'])
         response = await self.privatePostApiV1AccountWithdraw(self.extend(request, params))
         #
         #     {

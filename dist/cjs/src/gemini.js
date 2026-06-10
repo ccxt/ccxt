@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class gemini
@@ -453,7 +453,7 @@ class gemini extends gemini$1["default"] {
         const networkId = this.safeString(rawCurrency, 9);
         let networkCode = undefined;
         if (networkId !== undefined) {
-            networkCode = this.networkIdToCode(networkId);
+            networkCode = this.networkIdToCode(networkId, code);
             networks[networkCode] = {
                 'info': rawCurrency,
                 'id': networkId,
@@ -1910,7 +1910,7 @@ class gemini extends gemini$1["default"] {
         if (networkCode === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddresses() requires a network parameter');
         }
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, currency['code']);
         const request = {
             'network': networkId,
         };

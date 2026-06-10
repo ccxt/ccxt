@@ -458,7 +458,7 @@ public class GeminiCore extends GeminiApi
         Object networkCode = null;
         if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
         {
-            networkCode = this.networkIdToCode(networkId);
+            networkCode = this.networkIdToCode(networkId, code);
             final Object finalNetworkId = networkId;
             final Object finalNetworkCode = networkCode;
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
@@ -2213,7 +2213,7 @@ public class GeminiCore extends GeminiApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddresses() requires a network parameter")) ;
             }
-            Object networkId = this.networkCodeToId(networkCode);
+            Object networkId = this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "network", networkId );
             }};

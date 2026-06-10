@@ -7,7 +7,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class arkham extends arkham$1["default"] {
     describe() {
@@ -297,7 +297,7 @@ class arkham extends arkham$1["default"] {
         client.resolve(this.orderbooks[symbol], messageHash);
     }
     handleDelta(bookside, delta) {
-        const bidAsk = this.parseBidAsk(delta, 'price', 'size');
+        const bidAsk = this.parseOrderBookBidAsk(delta, 'price', 'size');
         bookside.storeArray(bidAsk);
     }
     /**

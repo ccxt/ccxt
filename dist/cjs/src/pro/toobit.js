@@ -6,7 +6,7 @@ var toobit$1 = require('../toobit.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class toobit extends toobit$1["default"] {
     describe() {
@@ -577,7 +577,7 @@ class toobit extends toobit$1["default"] {
         }
     }
     handleDelta(bookside, delta) {
-        const bidAsk = this.parseBidAsk(delta);
+        const bidAsk = this.parseOrderBookBidAsk(delta);
         bookside.storeArray(bidAsk);
     }
     handleOrderBookPartialSnapshot(client, message) {

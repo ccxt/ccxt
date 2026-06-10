@@ -2418,13 +2418,13 @@ class bitfinex(Exchange, ImplicitAPI):
             tag = self.safe_string(data, 3)
             type = 'withdrawal'
             networkId = self.safe_string(data, 2)
-            network = self.network_id_to_code(networkId.upper())  # withdraw returns in lowercase
+            network = self.network_id_to_code(networkId.upper(), code)  # withdraw returns in lowercase
         elif transactionLength == 22:
             id = self.safe_string(transaction, 0)
             currencyId = self.safe_string(transaction, 1)
             code = self.safe_currency_code(currencyId, currency)
             networkId = self.safe_string(transaction, 2)
-            network = self.network_id_to_code(networkId)
+            network = self.network_id_to_code(networkId, code)
             timestamp = self.safe_integer(transaction, 5)
             updated = self.safe_integer(transaction, 6)
             status = self.parse_transaction_status(self.safe_string(transaction, 9))

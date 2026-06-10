@@ -7,7 +7,7 @@ var errors = require('../base/errors.js');
 var Precise = require('../base/Precise.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class kucoin extends kucoin$1["default"] {
     describe() {
@@ -1753,7 +1753,7 @@ class kucoin extends kucoin$1["default"] {
     }
     handleBidAsks(bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
-            const bidAsk = this.parseBidAsk(bidAsks[i]);
+            const bidAsk = this.parseOrderBookBidAsk(bidAsks[i]);
             bookSide.storeArray(bidAsk);
         }
     }

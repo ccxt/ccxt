@@ -44,7 +44,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.56';
+$version = '4.5.57';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -63,7 +63,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.56';
+    const VERSION = '4.5.57';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -389,10 +389,10 @@ class Exchange {
         'digifinex',
         'dydx',
         'exmo',
+        'extended',
         'fmfwio',
         'foxbit',
         'gate',
-        'gateio',
         'gemini',
         'grvt',
         'hashkey',
@@ -421,7 +421,6 @@ class Exchange {
         'okx',
         'okxus',
         'onetrading',
-        'oxfun',
         'p2b',
         'pacifica',
         'paradex',
@@ -1481,6 +1480,24 @@ class Exchange {
         # // TODO: unify to ecdsa
         $signature = Curve::sign ('0x' . $pri, $msg_hash);
         return $this->json($signature);
+    }
+
+    public function extended_starknet_sign($msg_hash, $pri) {
+        $messageHash = $this->remove0x_prefix($msg_hash);
+        $privateKey = '0x' . $this->remove0x_prefix($pri);
+        $signature = Curve::sign ($privateKey, $messageHash);
+        return $this->json(array(
+            (new BN($signature[0], 16))->toString(10),
+            (new BN($signature[1], 16))->toString(10),
+        ));
+    }
+
+    public function extended_starknet_get_selector_from_name($name) {
+        return '0x' . Hash::getSelectorFromName($name);
+    }
+
+    public function extended_starknet_compute_poseidon_hash_on_elements($data) {
+        return Hash::computePoseidonHashOnElements($data);
     }
 
     public function is_lighter_library_path_required() {
@@ -3272,7 +3289,7 @@ class Exchange {
 
     public function handle_deltas_with_keys(mixed $bookSide, $deltas, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $bidAsk = $this->parse_bid_ask($deltas[$i], $priceKey, $amountKey, $countOrIdKey);
+            $bidAsk = $this->parse_order_book_bid_ask($deltas[$i], $priceKey, $amountKey, $countOrIdKey);
             $bookSide->storeArray ($bidAsk);
         }
     }
@@ -5188,6 +5205,22 @@ class Exchange {
         return $arr[$length - 1];
     }
 
+    public function add_key_in_array_items($obj, $keyName) {
+        $result = array();
+        $keys = is_array($obj) ? array_keys($obj) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $item = $obj[$key];
+            if ($item === null) {
+                continue;
+            }
+            $itemWithKey = $this->extend(array(), $item);
+            $itemWithKey[$keyName] = $key;
+            $result[] = $itemWithKey;
+        }
+        return $result;
+    }
+
     public function invert_flat_string_dictionary($dict) {
         $reversed = array();
         $keys = is_array($dict) ? array_keys($dict) : array();
@@ -5629,11 +5662,11 @@ class Exchange {
         return $result;
     }
 
-    public function parse_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+    public function parse_order_book_bids_asks($bidasks, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $bidasks = $this->to_array($bidasks);
         $result = array();
         for ($i = 0; $i < count($bidasks); $i++) {
-            $result[] = $this->parse_bid_ask($bidasks[$i], $priceKey, $amountKey, $countOrIdKey);
+            $result[] = $this->parse_order_book_bid_ask($bidasks[$i], $priceKey, $amountKey, $countOrIdKey);
         }
         return $result;
     }
@@ -5882,8 +5915,8 @@ class Exchange {
     }
 
     public function parse_order_book(array $orderbook, string $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
-        $bids = $this->parse_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countOrIdKey);
-        $asks = $this->parse_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $countOrIdKey);
+        $bids = $this->parse_order_book_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countOrIdKey);
+        $asks = $this->parse_order_book_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $countOrIdKey);
         return array(
             'symbol' => $symbol,
             'bids' => $this->sort_by($bids, 0, true),
@@ -6482,7 +6515,7 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchLedgerEntry() is not supported yet');
     }
 
-    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+    public function parse_order_book_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $price = $this->safe_float($bidask, $priceKey);
         $amount = $this->safe_float($bidask, $amountKey);
         $countOrId = $this->safe_integer($bidask, $countOrIdKey);

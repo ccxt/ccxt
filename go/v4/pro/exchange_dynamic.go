@@ -179,14 +179,14 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         exmoItf := NewExmoCore()
         exmoItf.Init(exchangeArgs)
         return exmoItf, true
+    case "extended":
+        extendedItf := NewExtendedCore()
+        extendedItf.Init(exchangeArgs)
+        return extendedItf, true
     case "gate":
         gateItf := NewGateCore()
         gateItf.Init(exchangeArgs)
         return gateItf, true
-    case "gateio":
-        gateioItf := NewGateioCore()
-        gateioItf.Init(exchangeArgs)
-        return gateioItf, true
     case "gemini":
         geminiItf := NewGeminiCore()
         geminiItf.Init(exchangeArgs)
@@ -279,10 +279,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         onetradingItf := NewOnetradingCore()
         onetradingItf.Init(exchangeArgs)
         return onetradingItf, true
-    case "oxfun":
-        oxfunItf := NewOxfunCore()
-        oxfunItf.Init(exchangeArgs)
-        return oxfunItf, true
     case "p2b":
         p2bItf := NewP2bCore()
         p2bItf.Init(exchangeArgs)

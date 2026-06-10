@@ -1213,13 +1213,14 @@ export default class coinbaseinternational extends Exchange {
         const addressFrom = this.safeStringN (transaction, [ 'from_address', 'from_cb_account', this.safeStringN (fromPorfolio, [ 'id', 'uuid', 'name' ]), 'from_counterparty_id' ]);
         const toPorfolio = this.safeDict (transaction, 'from_portfolio', {});
         const addressTo = this.safeStringN (transaction, [ 'to_address', 'to_cb_account', this.safeStringN (toPorfolio, [ 'id', 'uuid', 'name' ]), 'to_counterparty_id' ]);
+        const code = this.safeString (currency, 'code');
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'transfer_uuid'),
             'txid': this.safeString (transaction, 'transaction_uuid'),
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
-            'network': this.networkIdToCode (this.safeString (transaction, 'network_name')),
+            'network': this.networkIdToCode (this.safeString (transaction, 'network_name'), code),
             'address': undefined, // TODO check if withdraw or deposit and populate
             'addressTo': addressTo,
             'addressFrom': addressFrom,

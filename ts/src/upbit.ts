@@ -684,8 +684,8 @@ export default class upbit extends Exchange {
             const timestamp = this.safeInteger (orderbook, 'timestamp');
             result[symbol] = {
                 'symbol': symbol,
-                'bids': this.sortBy (this.parseBidsAsks (orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, true),
-                'asks': this.sortBy (this.parseBidsAsks (orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
+                'bids': this.sortBy (this.parseOrderBookBidsAsks (orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, true),
+                'asks': this.sortBy (this.parseOrderBookBidsAsks (orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'nonce': undefined,
@@ -2185,7 +2185,7 @@ export default class upbit extends Exchange {
         return {
             'info': depositAddress,
             'currency': code,
-            'network': this.networkIdToCode (networkId),
+            'network': this.networkIdToCode (networkId, code),
             'address': address,
             'tag': tag,
         } as DepositAddress;

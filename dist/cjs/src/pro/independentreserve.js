@@ -6,7 +6,7 @@ var independentreserve$1 = require('../independentreserve.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class independentreserve extends independentreserve$1["default"] {
     describe() {
@@ -241,7 +241,7 @@ class independentreserve extends independentreserve$1["default"] {
         return result;
     }
     handleDelta(bookside, delta) {
-        const bidAsk = this.parseBidAsk(delta, 'Price', 'Volume');
+        const bidAsk = this.parseOrderBookBidAsk(delta, 'Price', 'Volume');
         bookside.storeArray(bidAsk);
     }
     handleDeltas(bookside, deltas) {

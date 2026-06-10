@@ -6,7 +6,7 @@ var blockchaincom$1 = require('../blockchaincom.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class blockchaincom extends blockchaincom$1["default"] {
     describe() {
@@ -711,7 +711,7 @@ class blockchaincom extends blockchaincom$1["default"] {
         client.resolve(orderbook, messageHash);
     }
     handleDelta(bookside, delta) {
-        const bookArray = this.parseBidAsk(delta, 'px', 'qty', 'num');
+        const bookArray = this.parseOrderBookBidAsk(delta, 'px', 'qty', 'num');
         bookside.storeArray(bookArray);
     }
     handleDeltas(bookside, deltas) {

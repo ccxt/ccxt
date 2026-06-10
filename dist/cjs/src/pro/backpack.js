@@ -8,7 +8,7 @@ var Cache = require('../base/ws/Cache.js');
 var crypto = require('../base/functions/crypto.js');
 var ed25519 = require('../static_dependencies/noble-curves/ed25519.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class backpack extends backpack$1["default"] {
     describe() {
@@ -894,7 +894,7 @@ class backpack extends backpack$1["default"] {
     }
     handleBidAsks(bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
-            const bidAsk = this.parseBidAsk(bidAsks[i]);
+            const bidAsk = this.parseOrderBookBidAsk(bidAsks[i]);
             bookSide.storeArray(bidAsk);
         }
     }

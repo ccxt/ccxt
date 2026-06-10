@@ -7,186 +7,186 @@
 
 package ccxt
 
-func (this *LighterCore) RootGet(args ...any) <-chan any {
-	return this.callEndpointAsync("rootGet", args...)
+func (this *LighterCore) RootGet (args ...any) <-chan any {
+   return this.callEndpointAsync("rootGet", args...)
 }
 
-func (this *LighterCore) RootGetInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("rootGetInfo", args...)
+func (this *LighterCore) RootGetInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("rootGetInfo", args...)
 }
 
-func (this *LighterCore) PublicGetAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAccount", args...)
+func (this *LighterCore) PublicGetAccount (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetAccount", args...)
 }
 
-func (this *LighterCore) PublicGetAccountsByL1Address(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAccountsByL1Address", args...)
+func (this *LighterCore) PublicGetAccountsByL1Address (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetAccountsByL1Address", args...)
 }
 
-func (this *LighterCore) PublicGetApikeys(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApikeys", args...)
+func (this *LighterCore) PublicGetApikeys (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetApikeys", args...)
 }
 
-func (this *LighterCore) PublicGetExchangeStats(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetExchangeStats", args...)
+func (this *LighterCore) PublicGetExchangeStats (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetExchangeStats", args...)
 }
 
-func (this *LighterCore) PublicGetAssetDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAssetDetails", args...)
+func (this *LighterCore) PublicGetAssetDetails (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetAssetDetails", args...)
 }
 
-func (this *LighterCore) PublicGetOrderBookDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrderBookDetails", args...)
+func (this *LighterCore) PublicGetOrderBookDetails (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetOrderBookDetails", args...)
 }
 
-func (this *LighterCore) PublicGetOrderBookOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrderBookOrders", args...)
+func (this *LighterCore) PublicGetOrderBookOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetOrderBookOrders", args...)
 }
 
-func (this *LighterCore) PublicGetOrderBooks(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrderBooks", args...)
+func (this *LighterCore) PublicGetOrderBooks (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetOrderBooks", args...)
 }
 
-func (this *LighterCore) PublicGetRecentTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRecentTrades", args...)
+func (this *LighterCore) PublicGetRecentTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetRecentTrades", args...)
 }
 
-func (this *LighterCore) PublicGetBlockTxs(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetBlockTxs", args...)
+func (this *LighterCore) PublicGetBlockTxs (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetBlockTxs", args...)
 }
 
-func (this *LighterCore) PublicGetNextNonce(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetNextNonce", args...)
+func (this *LighterCore) PublicGetNextNonce (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetNextNonce", args...)
 }
 
-func (this *LighterCore) PublicGetTx(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTx", args...)
+func (this *LighterCore) PublicGetTx (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetTx", args...)
 }
 
-func (this *LighterCore) PublicGetTxFromL1TxHash(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTxFromL1TxHash", args...)
+func (this *LighterCore) PublicGetTxFromL1TxHash (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetTxFromL1TxHash", args...)
 }
 
-func (this *LighterCore) PublicGetTxs(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTxs", args...)
+func (this *LighterCore) PublicGetTxs (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetTxs", args...)
 }
 
-func (this *LighterCore) PublicGetAnnouncement(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAnnouncement", args...)
+func (this *LighterCore) PublicGetAnnouncement (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetAnnouncement", args...)
 }
 
-func (this *LighterCore) PublicGetBlock(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetBlock", args...)
+func (this *LighterCore) PublicGetBlock (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetBlock", args...)
 }
 
-func (this *LighterCore) PublicGetBlocks(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetBlocks", args...)
+func (this *LighterCore) PublicGetBlocks (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetBlocks", args...)
 }
 
-func (this *LighterCore) PublicGetCurrentHeight(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCurrentHeight", args...)
+func (this *LighterCore) PublicGetCurrentHeight (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetCurrentHeight", args...)
 }
 
-func (this *LighterCore) PublicGetCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCandles", args...)
+func (this *LighterCore) PublicGetCandles (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetCandles", args...)
 }
 
-func (this *LighterCore) PublicGetFundings(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFundings", args...)
+func (this *LighterCore) PublicGetFundings (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetFundings", args...)
 }
 
-func (this *LighterCore) PublicGetFastbridgeInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFastbridgeInfo", args...)
+func (this *LighterCore) PublicGetFastbridgeInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetFastbridgeInfo", args...)
 }
 
-func (this *LighterCore) PublicGetFundingRates(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFundingRates", args...)
+func (this *LighterCore) PublicGetFundingRates (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetFundingRates", args...)
 }
 
-func (this *LighterCore) PublicGetWithdrawalDelay(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetWithdrawalDelay", args...)
+func (this *LighterCore) PublicGetWithdrawalDelay (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetWithdrawalDelay", args...)
 }
 
-func (this *LighterCore) PublicPostSendTx(args ...any) <-chan any {
-	return this.callEndpointAsync("publicPostSendTx", args...)
+func (this *LighterCore) PublicPostSendTx (args ...any) <-chan any {
+   return this.callEndpointAsync("publicPostSendTx", args...)
 }
 
-func (this *LighterCore) PublicPostSendTxBatch(args ...any) <-chan any {
-	return this.callEndpointAsync("publicPostSendTxBatch", args...)
+func (this *LighterCore) PublicPostSendTxBatch (args ...any) <-chan any {
+   return this.callEndpointAsync("publicPostSendTxBatch", args...)
 }
 
-func (this *LighterCore) PrivateGetAccountLimits(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountLimits", args...)
+func (this *LighterCore) PrivateGetAccountLimits (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountLimits", args...)
 }
 
-func (this *LighterCore) PrivateGetAccountMetadata(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountMetadata", args...)
+func (this *LighterCore) PrivateGetAccountMetadata (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountMetadata", args...)
 }
 
-func (this *LighterCore) PrivateGetPnl(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetPnl", args...)
+func (this *LighterCore) PrivateGetPnl (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetPnl", args...)
 }
 
-func (this *LighterCore) PrivateGetL1Metadata(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetL1Metadata", args...)
+func (this *LighterCore) PrivateGetL1Metadata (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetL1Metadata", args...)
 }
 
-func (this *LighterCore) PrivateGetLiquidations(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetLiquidations", args...)
+func (this *LighterCore) PrivateGetLiquidations (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetLiquidations", args...)
 }
 
-func (this *LighterCore) PrivateGetPositionFunding(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetPositionFunding", args...)
+func (this *LighterCore) PrivateGetPositionFunding (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetPositionFunding", args...)
 }
 
-func (this *LighterCore) PrivateGetPublicPoolsMetadata(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetPublicPoolsMetadata", args...)
+func (this *LighterCore) PrivateGetPublicPoolsMetadata (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetPublicPoolsMetadata", args...)
 }
 
-func (this *LighterCore) PrivateGetAccountActiveOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountActiveOrders", args...)
+func (this *LighterCore) PrivateGetAccountActiveOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountActiveOrders", args...)
 }
 
-func (this *LighterCore) PrivateGetAccountInactiveOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountInactiveOrders", args...)
+func (this *LighterCore) PrivateGetAccountInactiveOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountInactiveOrders", args...)
 }
 
-func (this *LighterCore) PrivateGetExport(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetExport", args...)
+func (this *LighterCore) PrivateGetExport (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetExport", args...)
 }
 
-func (this *LighterCore) PrivateGetTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTrades", args...)
+func (this *LighterCore) PrivateGetTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTrades", args...)
 }
 
-func (this *LighterCore) PrivateGetAccountTxs(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountTxs", args...)
+func (this *LighterCore) PrivateGetAccountTxs (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountTxs", args...)
 }
 
-func (this *LighterCore) PrivateGetDepositHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDepositHistory", args...)
+func (this *LighterCore) PrivateGetDepositHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDepositHistory", args...)
 }
 
-func (this *LighterCore) PrivateGetTransferHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTransferHistory", args...)
+func (this *LighterCore) PrivateGetTransferHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTransferHistory", args...)
 }
 
-func (this *LighterCore) PrivateGetWithdrawHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWithdrawHistory", args...)
+func (this *LighterCore) PrivateGetWithdrawHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetWithdrawHistory", args...)
 }
 
-func (this *LighterCore) PrivateGetReferralPoints(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetReferralPoints", args...)
+func (this *LighterCore) PrivateGetReferralPoints (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetReferralPoints", args...)
 }
 
-func (this *LighterCore) PrivateGetTransferFeeInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTransferFeeInfo", args...)
+func (this *LighterCore) PrivateGetTransferFeeInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTransferFeeInfo", args...)
 }
 
-func (this *LighterCore) PrivatePostChangeAccountTier(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostChangeAccountTier", args...)
+func (this *LighterCore) PrivatePostChangeAccountTier (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostChangeAccountTier", args...)
 }
 
-func (this *LighterCore) PrivatePostNotificationAck(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostNotificationAck", args...)
+func (this *LighterCore) PrivatePostNotificationAck (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostNotificationAck", args...)
 }

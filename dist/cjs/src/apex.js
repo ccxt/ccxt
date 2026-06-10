@@ -8,7 +8,7 @@ var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var errors = require('./base/errors.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class apex
@@ -513,7 +513,7 @@ class apex extends apex$1["default"] {
                 const tokenName = this.safeString(token, 'token');
                 if (tokenName === currencyId) {
                     const networkId = this.safeString(chain, 'chainId');
-                    const networkCode = this.networkIdToCode(networkId);
+                    const networkCode = this.networkIdToCode(networkId, code);
                     networks[networkCode] = {
                         'info': chain,
                         'id': networkId,

@@ -8,7 +8,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 /**
  * @class arkham
  * @augments Exchange
@@ -493,7 +493,7 @@ class arkham extends arkham$1["default"] {
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'symbol');
-                const network = this.networkIdToCode(networkId);
+                const network = this.networkIdToCode(networkId, code);
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -1822,7 +1822,7 @@ class arkham extends arkham$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddressesByNetwork() requires a "network" param');
         }
         const request = {
-            'chain': this.networkCodeToId(networkCode),
+            'chain': this.networkCodeToId(networkCode, code),
         };
         const response = await this.v1PrivateGetAccountDepositAddresses(this.extend(request, params));
         //
@@ -1939,7 +1939,7 @@ class arkham extends arkham$1["default"] {
             'txid': this.safeString(transaction, 'transactionHash'),
             'type': undefined,
             'currency': code,
-            'network': this.networkIdToCode(this.safeString(transaction, 'chain')),
+            'network': this.networkIdToCode(this.safeString(transaction, 'chain'), code),
             'amount': this.safeNumber(transaction, 'amount'),
             'status': status,
             'timestamp': timestamp,

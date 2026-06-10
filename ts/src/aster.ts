@@ -2132,8 +2132,10 @@ export default class aster extends Exchange {
         //        }
         //
         const info = order;
+        const positionSide = this.safeString (order, 'positionSide');
+        const defaultType = (positionSide !== undefined) ? 'swap' : 'spot';
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, defaultType);
         const side = this.safeStringLower (order, 'side');
         const timestamp = this.safeInteger (order, 'time');
         const statusId = this.safeStringUpper (order, 'status');
@@ -3063,7 +3065,7 @@ export default class aster extends Exchange {
         //     }
         //
         const marketId = this.safeString (marginMode, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'swap');
         return {
             'info': marginMode,
             'symbol': market['symbol'],
@@ -4129,7 +4131,8 @@ export default class aster extends Exchange {
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             const zeroAddress = this.safeString (this.options, 'zeroAddress', '0x0000000000000000000000000000000000000000');
             const v3ChainId = this.safeInteger (this.options, 'v3ChainId', 1666);
-            const signerAddress = this.safeString (this.options, 'signerAddress');
+            const walletAddress = this.ethGetAddressFromPrivateKey (this.privateKey);
+            const signerAddress = this.safeString (this.options, 'signerAddress', walletAddress); // default to user's wallet
             if (signerAddress === undefined) {
                 throw new ArgumentsRequired (this.id + ' requires signerAddress in options when use v3 api');
             }
@@ -4148,7 +4151,7 @@ export default class aster extends Exchange {
             // Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
             const finalParams = this.extend ({
                 'nonce': nonce.toString (),
-                'user': this.walletAddress,
+                'user': walletAddress,
                 'signer': signerAddress,
             }, params);
             let paramString: Str = undefined;

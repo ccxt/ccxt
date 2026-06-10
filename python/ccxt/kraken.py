@@ -904,19 +904,6 @@ class kraken(Exchange, ImplicitAPI):
             'networks': {},
         })
 
-    def add_key_in_array_items(self, obj, keyName):
-        result = []
-        keys = list(obj.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            item = obj[key]
-            if item is None:
-                continue
-            itemWithKey = self.extend({}, item)
-            itemWithKey[keyName] = key
-            result.append(itemWithKey)
-        return result
-
     def safe_currency_code(self, currencyId: Str, currency: Currency = None) -> Str:
         if currencyId is None:
             return currencyId
@@ -991,7 +978,7 @@ class kraken(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def parse_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+    def parse_order_book_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         price = self.safe_number(bidask, priceKey)
         amount = self.safe_number(bidask, amountKey)
         timestamp = self.safe_integer(bidask, 2)

@@ -9,7 +9,7 @@ var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var totp = require('./base/functions/totp.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitmex
@@ -482,7 +482,7 @@ class bitmex extends bitmex$1["default"] {
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'asset');
-            const network = this.networkIdToCode(networkId);
+            const network = this.networkIdToCode(networkId, code);
             const withdrawalFeeRaw = this.safeString(chain, 'withdrawalFee');
             const withdrawalFee = this.parseNumber(Precise["default"].stringMul(withdrawalFeeRaw, precisionString));
             const isDepositEnabled = this.safeBool(chain, 'depositEnabled', false);

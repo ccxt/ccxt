@@ -196,7 +196,7 @@ public partial class Exchange
 
     public string binaryToBase16(object buff2)
     {
-        var buff = (byte[])buff2;
+        var buff = buff2 is string ? Encoding.UTF8.GetBytes((string)buff2) : (byte[])buff2;
         return binaryToHex(buff);
     }
 
@@ -229,8 +229,6 @@ public partial class Exchange
         var buff = (byte[])buff2;
         return Convert.ToBase64String(buff);
     }
-
-
 
     public byte[] stringToBinary(string buff) => StringToBinary(buff);
 
