@@ -7,750 +7,750 @@
 
 package ccxt
 
-func (this *BingxCore) FundV1PrivateGetAccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("fundV1PrivateGetAccountBalance", args...)
+func (this *BingxCore) FundV1PrivateGetAccountBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("fundV1PrivateGetAccountBalance", args...)
 }
 
-func (this *BingxCore) SpotV1PublicGetServerTime(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PublicGetServerTime", args...)
+func (this *BingxCore) SpotV1PublicGetServerTime (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PublicGetServerTime", args...)
 }
 
-func (this *BingxCore) SpotV1PublicGetCommonSymbols(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PublicGetCommonSymbols", args...)
+func (this *BingxCore) SpotV1PublicGetCommonSymbols (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PublicGetCommonSymbols", args...)
 }
 
-func (this *BingxCore) SpotV1PublicGetMarketTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PublicGetMarketTrades", args...)
+func (this *BingxCore) SpotV1PublicGetMarketTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PublicGetMarketTrades", args...)
 }
 
-func (this *BingxCore) SpotV1PublicGetMarketDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PublicGetMarketDepth", args...)
+func (this *BingxCore) SpotV1PublicGetMarketDepth (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PublicGetMarketDepth", args...)
 }
 
-func (this *BingxCore) SpotV1PublicGetMarketKline(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PublicGetMarketKline", args...)
+func (this *BingxCore) SpotV1PublicGetMarketKline (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PublicGetMarketKline", args...)
 }
 
-func (this *BingxCore) SpotV1PublicGetTicker24hr(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PublicGetTicker24hr", args...)
+func (this *BingxCore) SpotV1PublicGetTicker24hr (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PublicGetTicker24hr", args...)
 }
 
-func (this *BingxCore) SpotV1PublicGetTickerPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PublicGetTickerPrice", args...)
+func (this *BingxCore) SpotV1PublicGetTickerPrice (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PublicGetTickerPrice", args...)
 }
 
-func (this *BingxCore) SpotV1PublicGetTickerBookTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PublicGetTickerBookTicker", args...)
+func (this *BingxCore) SpotV1PublicGetTickerBookTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PublicGetTickerBookTicker", args...)
 }
 
-func (this *BingxCore) SpotV1PrivateGetTradeQuery(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivateGetTradeQuery", args...)
+func (this *BingxCore) SpotV1PrivateGetTradeQuery (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PrivateGetTradeQuery", args...)
 }
 
-func (this *BingxCore) SpotV1PrivateGetTradeOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivateGetTradeOpenOrders", args...)
+func (this *BingxCore) SpotV1PrivateGetTradeOpenOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PrivateGetTradeOpenOrders", args...)
 }
 
-func (this *BingxCore) SpotV1PrivateGetTradeHistoryOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivateGetTradeHistoryOrders", args...)
+func (this *BingxCore) SpotV1PrivateGetTradeHistoryOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PrivateGetTradeHistoryOrders", args...)
 }
 
-func (this *BingxCore) SpotV1PrivateGetTradeMyTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivateGetTradeMyTrades", args...)
+func (this *BingxCore) SpotV1PrivateGetTradeMyTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PrivateGetTradeMyTrades", args...)
 }
 
-func (this *BingxCore) SpotV1PrivateGetUserCommissionRate(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivateGetUserCommissionRate", args...)
+func (this *BingxCore) SpotV1PrivateGetUserCommissionRate (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PrivateGetUserCommissionRate", args...)
 }
 
-func (this *BingxCore) SpotV1PrivateGetAccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivateGetAccountBalance", args...)
+func (this *BingxCore) SpotV1PrivateGetAccountBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PrivateGetAccountBalance", args...)
 }
 
-func (this *BingxCore) SpotV1PrivateGetOcoOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivateGetOcoOrderList", args...)
+func (this *BingxCore) SpotV1PrivateGetOcoOrderList (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PrivateGetOcoOrderList", args...)
 }
 
-func (this *BingxCore) SpotV1PrivateGetOcoOpenOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivateGetOcoOpenOrderList", args...)
+func (this *BingxCore) SpotV1PrivateGetOcoOpenOrderList (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PrivateGetOcoOpenOrderList", args...)
 }
 
-func (this *BingxCore) SpotV1PrivateGetOcoHistoryOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivateGetOcoHistoryOrderList", args...)
+func (this *BingxCore) SpotV1PrivateGetOcoHistoryOrderList (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PrivateGetOcoHistoryOrderList", args...)
 }
 
-func (this *BingxCore) SpotV1PrivatePostTradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivatePostTradeOrder", args...)
+func (this *BingxCore) SpotV1PrivatePostTradeOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PrivatePostTradeOrder", args...)
 }
 
-func (this *BingxCore) SpotV1PrivatePostTradeCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivatePostTradeCancel", args...)
+func (this *BingxCore) SpotV1PrivatePostTradeCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PrivatePostTradeCancel", args...)
 }
 
-func (this *BingxCore) SpotV1PrivatePostTradeBatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivatePostTradeBatchOrders", args...)
+func (this *BingxCore) SpotV1PrivatePostTradeBatchOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PrivatePostTradeBatchOrders", args...)
 }
 
-func (this *BingxCore) SpotV1PrivatePostTradeOrderCancelReplace(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivatePostTradeOrderCancelReplace", args...)
+func (this *BingxCore) SpotV1PrivatePostTradeOrderCancelReplace (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PrivatePostTradeOrderCancelReplace", args...)
 }
 
-func (this *BingxCore) SpotV1PrivatePostTradeCancelOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivatePostTradeCancelOrders", args...)
+func (this *BingxCore) SpotV1PrivatePostTradeCancelOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PrivatePostTradeCancelOrders", args...)
 }
 
-func (this *BingxCore) SpotV1PrivatePostTradeCancelOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivatePostTradeCancelOpenOrders", args...)
+func (this *BingxCore) SpotV1PrivatePostTradeCancelOpenOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PrivatePostTradeCancelOpenOrders", args...)
 }
 
-func (this *BingxCore) SpotV1PrivatePostTradeCancelAllAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivatePostTradeCancelAllAfter", args...)
+func (this *BingxCore) SpotV1PrivatePostTradeCancelAllAfter (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PrivatePostTradeCancelAllAfter", args...)
 }
 
-func (this *BingxCore) SpotV1PrivatePostOcoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivatePostOcoOrder", args...)
+func (this *BingxCore) SpotV1PrivatePostOcoOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PrivatePostOcoOrder", args...)
 }
 
-func (this *BingxCore) SpotV1PrivatePostOcoCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV1PrivatePostOcoCancel", args...)
+func (this *BingxCore) SpotV1PrivatePostOcoCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV1PrivatePostOcoCancel", args...)
 }
 
-func (this *BingxCore) SpotV2PublicGetMarketDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV2PublicGetMarketDepth", args...)
+func (this *BingxCore) SpotV2PublicGetMarketDepth (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV2PublicGetMarketDepth", args...)
 }
 
-func (this *BingxCore) SpotV2PublicGetMarketKline(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV2PublicGetMarketKline", args...)
+func (this *BingxCore) SpotV2PublicGetMarketKline (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV2PublicGetMarketKline", args...)
 }
 
-func (this *BingxCore) SpotV2PublicGetTickerPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV2PublicGetTickerPrice", args...)
+func (this *BingxCore) SpotV2PublicGetTickerPrice (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV2PublicGetTickerPrice", args...)
 }
 
-func (this *BingxCore) SpotV3PrivateGetGetAssetTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV3PrivateGetGetAssetTransfer", args...)
+func (this *BingxCore) SpotV3PrivateGetGetAssetTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV3PrivateGetGetAssetTransfer", args...)
 }
 
-func (this *BingxCore) SpotV3PrivateGetAssetTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV3PrivateGetAssetTransfer", args...)
+func (this *BingxCore) SpotV3PrivateGetAssetTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV3PrivateGetAssetTransfer", args...)
 }
 
-func (this *BingxCore) SpotV3PrivateGetCapitalDepositHisrec(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV3PrivateGetCapitalDepositHisrec", args...)
+func (this *BingxCore) SpotV3PrivateGetCapitalDepositHisrec (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV3PrivateGetCapitalDepositHisrec", args...)
 }
 
-func (this *BingxCore) SpotV3PrivateGetCapitalWithdrawHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV3PrivateGetCapitalWithdrawHistory", args...)
+func (this *BingxCore) SpotV3PrivateGetCapitalWithdrawHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV3PrivateGetCapitalWithdrawHistory", args...)
 }
 
-func (this *BingxCore) SpotV3PrivatePostPostAssetTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("spotV3PrivatePostPostAssetTransfer", args...)
+func (this *BingxCore) SpotV3PrivatePostPostAssetTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("spotV3PrivatePostPostAssetTransfer", args...)
 }
 
-func (this *BingxCore) SwapV1PublicGetTickerPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PublicGetTickerPrice", args...)
+func (this *BingxCore) SwapV1PublicGetTickerPrice (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PublicGetTickerPrice", args...)
 }
 
-func (this *BingxCore) SwapV1PublicGetMarketHistoricalTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PublicGetMarketHistoricalTrades", args...)
+func (this *BingxCore) SwapV1PublicGetMarketHistoricalTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PublicGetMarketHistoricalTrades", args...)
 }
 
-func (this *BingxCore) SwapV1PublicGetMarketMarkPriceKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PublicGetMarketMarkPriceKlines", args...)
+func (this *BingxCore) SwapV1PublicGetMarketMarkPriceKlines (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PublicGetMarketMarkPriceKlines", args...)
 }
 
-func (this *BingxCore) SwapV1PublicGetTradeMultiAssetsRules(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PublicGetTradeMultiAssetsRules", args...)
+func (this *BingxCore) SwapV1PublicGetTradeMultiAssetsRules (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PublicGetTradeMultiAssetsRules", args...)
 }
 
-func (this *BingxCore) SwapV1PublicGetTradingRules(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PublicGetTradingRules", args...)
+func (this *BingxCore) SwapV1PublicGetTradingRules (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PublicGetTradingRules", args...)
 }
 
-func (this *BingxCore) SwapV1PrivateGetPositionSideDual(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetPositionSideDual", args...)
+func (this *BingxCore) SwapV1PrivateGetPositionSideDual (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivateGetPositionSideDual", args...)
 }
 
-func (this *BingxCore) SwapV1PrivateGetTradeBatchCancelReplace(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetTradeBatchCancelReplace", args...)
+func (this *BingxCore) SwapV1PrivateGetTradeBatchCancelReplace (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivateGetTradeBatchCancelReplace", args...)
 }
 
-func (this *BingxCore) SwapV1PrivateGetTradeFullOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetTradeFullOrder", args...)
+func (this *BingxCore) SwapV1PrivateGetTradeFullOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivateGetTradeFullOrder", args...)
 }
 
-func (this *BingxCore) SwapV1PrivateGetMaintMarginRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetMaintMarginRatio", args...)
+func (this *BingxCore) SwapV1PrivateGetMaintMarginRatio (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivateGetMaintMarginRatio", args...)
 }
 
-func (this *BingxCore) SwapV1PrivateGetTradePositionHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetTradePositionHistory", args...)
+func (this *BingxCore) SwapV1PrivateGetTradePositionHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivateGetTradePositionHistory", args...)
 }
 
-func (this *BingxCore) SwapV1PrivateGetPositionMarginHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetPositionMarginHistory", args...)
+func (this *BingxCore) SwapV1PrivateGetPositionMarginHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivateGetPositionMarginHistory", args...)
 }
 
-func (this *BingxCore) SwapV1PrivateGetTwapOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetTwapOpenOrders", args...)
+func (this *BingxCore) SwapV1PrivateGetTwapOpenOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivateGetTwapOpenOrders", args...)
 }
 
-func (this *BingxCore) SwapV1PrivateGetTwapHistoryOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetTwapHistoryOrders", args...)
+func (this *BingxCore) SwapV1PrivateGetTwapHistoryOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivateGetTwapHistoryOrders", args...)
 }
 
-func (this *BingxCore) SwapV1PrivateGetTwapOrderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetTwapOrderDetail", args...)
+func (this *BingxCore) SwapV1PrivateGetTwapOrderDetail (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivateGetTwapOrderDetail", args...)
 }
 
-func (this *BingxCore) SwapV1PrivateGetTradeAssetMode(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetTradeAssetMode", args...)
+func (this *BingxCore) SwapV1PrivateGetTradeAssetMode (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivateGetTradeAssetMode", args...)
 }
 
-func (this *BingxCore) SwapV1PrivateGetUserMarginAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivateGetUserMarginAssets", args...)
+func (this *BingxCore) SwapV1PrivateGetUserMarginAssets (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivateGetUserMarginAssets", args...)
 }
 
-func (this *BingxCore) SwapV1PrivatePostTradeAmend(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTradeAmend", args...)
+func (this *BingxCore) SwapV1PrivatePostTradeAmend (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivatePostTradeAmend", args...)
 }
 
-func (this *BingxCore) SwapV1PrivatePostTradeCancelReplace(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTradeCancelReplace", args...)
+func (this *BingxCore) SwapV1PrivatePostTradeCancelReplace (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivatePostTradeCancelReplace", args...)
 }
 
-func (this *BingxCore) SwapV1PrivatePostPositionSideDual(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostPositionSideDual", args...)
+func (this *BingxCore) SwapV1PrivatePostPositionSideDual (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivatePostPositionSideDual", args...)
 }
 
-func (this *BingxCore) SwapV1PrivatePostTradeBatchCancelReplace(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTradeBatchCancelReplace", args...)
+func (this *BingxCore) SwapV1PrivatePostTradeBatchCancelReplace (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivatePostTradeBatchCancelReplace", args...)
 }
 
-func (this *BingxCore) SwapV1PrivatePostTradeClosePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTradeClosePosition", args...)
+func (this *BingxCore) SwapV1PrivatePostTradeClosePosition (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivatePostTradeClosePosition", args...)
 }
 
-func (this *BingxCore) SwapV1PrivatePostTradeGetVst(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTradeGetVst", args...)
+func (this *BingxCore) SwapV1PrivatePostTradeGetVst (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivatePostTradeGetVst", args...)
 }
 
-func (this *BingxCore) SwapV1PrivatePostTwapOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTwapOrder", args...)
+func (this *BingxCore) SwapV1PrivatePostTwapOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivatePostTwapOrder", args...)
 }
 
-func (this *BingxCore) SwapV1PrivatePostTwapCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTwapCancelOrder", args...)
+func (this *BingxCore) SwapV1PrivatePostTwapCancelOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivatePostTwapCancelOrder", args...)
 }
 
-func (this *BingxCore) SwapV1PrivatePostTradeAssetMode(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTradeAssetMode", args...)
+func (this *BingxCore) SwapV1PrivatePostTradeAssetMode (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivatePostTradeAssetMode", args...)
 }
 
-func (this *BingxCore) SwapV1PrivatePostTradeReverse(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTradeReverse", args...)
+func (this *BingxCore) SwapV1PrivatePostTradeReverse (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivatePostTradeReverse", args...)
 }
 
-func (this *BingxCore) SwapV1PrivatePostTradeAutoAddMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV1PrivatePostTradeAutoAddMargin", args...)
+func (this *BingxCore) SwapV1PrivatePostTradeAutoAddMargin (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV1PrivatePostTradeAutoAddMargin", args...)
 }
 
-func (this *BingxCore) SwapV2PublicGetServerTime(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetServerTime", args...)
+func (this *BingxCore) SwapV2PublicGetServerTime (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PublicGetServerTime", args...)
 }
 
-func (this *BingxCore) SwapV2PublicGetQuoteContracts(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuoteContracts", args...)
+func (this *BingxCore) SwapV2PublicGetQuoteContracts (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PublicGetQuoteContracts", args...)
 }
 
-func (this *BingxCore) SwapV2PublicGetQuotePrice(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuotePrice", args...)
+func (this *BingxCore) SwapV2PublicGetQuotePrice (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PublicGetQuotePrice", args...)
 }
 
-func (this *BingxCore) SwapV2PublicGetQuoteDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuoteDepth", args...)
+func (this *BingxCore) SwapV2PublicGetQuoteDepth (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PublicGetQuoteDepth", args...)
 }
 
-func (this *BingxCore) SwapV2PublicGetQuoteTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuoteTrades", args...)
+func (this *BingxCore) SwapV2PublicGetQuoteTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PublicGetQuoteTrades", args...)
 }
 
-func (this *BingxCore) SwapV2PublicGetQuotePremiumIndex(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuotePremiumIndex", args...)
+func (this *BingxCore) SwapV2PublicGetQuotePremiumIndex (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PublicGetQuotePremiumIndex", args...)
 }
 
-func (this *BingxCore) SwapV2PublicGetQuoteFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuoteFundingRate", args...)
+func (this *BingxCore) SwapV2PublicGetQuoteFundingRate (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PublicGetQuoteFundingRate", args...)
 }
 
-func (this *BingxCore) SwapV2PublicGetQuoteKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuoteKlines", args...)
+func (this *BingxCore) SwapV2PublicGetQuoteKlines (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PublicGetQuoteKlines", args...)
 }
 
-func (this *BingxCore) SwapV2PublicGetQuoteOpenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuoteOpenInterest", args...)
+func (this *BingxCore) SwapV2PublicGetQuoteOpenInterest (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PublicGetQuoteOpenInterest", args...)
 }
 
-func (this *BingxCore) SwapV2PublicGetQuoteTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuoteTicker", args...)
+func (this *BingxCore) SwapV2PublicGetQuoteTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PublicGetQuoteTicker", args...)
 }
 
-func (this *BingxCore) SwapV2PublicGetQuoteBookTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PublicGetQuoteBookTicker", args...)
+func (this *BingxCore) SwapV2PublicGetQuoteBookTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PublicGetQuoteBookTicker", args...)
 }
 
-func (this *BingxCore) SwapV2PrivateGetUserBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetUserBalance", args...)
+func (this *BingxCore) SwapV2PrivateGetUserBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivateGetUserBalance", args...)
 }
 
-func (this *BingxCore) SwapV2PrivateGetUserPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetUserPositions", args...)
+func (this *BingxCore) SwapV2PrivateGetUserPositions (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivateGetUserPositions", args...)
 }
 
-func (this *BingxCore) SwapV2PrivateGetUserIncome(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetUserIncome", args...)
+func (this *BingxCore) SwapV2PrivateGetUserIncome (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivateGetUserIncome", args...)
 }
 
-func (this *BingxCore) SwapV2PrivateGetTradeOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetTradeOpenOrders", args...)
+func (this *BingxCore) SwapV2PrivateGetTradeOpenOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivateGetTradeOpenOrders", args...)
 }
 
-func (this *BingxCore) SwapV2PrivateGetTradeOpenOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetTradeOpenOrder", args...)
+func (this *BingxCore) SwapV2PrivateGetTradeOpenOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivateGetTradeOpenOrder", args...)
 }
 
-func (this *BingxCore) SwapV2PrivateGetTradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetTradeOrder", args...)
+func (this *BingxCore) SwapV2PrivateGetTradeOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivateGetTradeOrder", args...)
 }
 
-func (this *BingxCore) SwapV2PrivateGetTradeMarginType(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetTradeMarginType", args...)
+func (this *BingxCore) SwapV2PrivateGetTradeMarginType (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivateGetTradeMarginType", args...)
 }
 
-func (this *BingxCore) SwapV2PrivateGetTradeLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetTradeLeverage", args...)
+func (this *BingxCore) SwapV2PrivateGetTradeLeverage (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivateGetTradeLeverage", args...)
 }
 
-func (this *BingxCore) SwapV2PrivateGetTradeForceOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetTradeForceOrders", args...)
+func (this *BingxCore) SwapV2PrivateGetTradeForceOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivateGetTradeForceOrders", args...)
 }
 
-func (this *BingxCore) SwapV2PrivateGetTradeAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetTradeAllOrders", args...)
+func (this *BingxCore) SwapV2PrivateGetTradeAllOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivateGetTradeAllOrders", args...)
 }
 
-func (this *BingxCore) SwapV2PrivateGetTradeAllFillOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetTradeAllFillOrders", args...)
+func (this *BingxCore) SwapV2PrivateGetTradeAllFillOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivateGetTradeAllFillOrders", args...)
 }
 
-func (this *BingxCore) SwapV2PrivateGetTradeFillHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetTradeFillHistory", args...)
+func (this *BingxCore) SwapV2PrivateGetTradeFillHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivateGetTradeFillHistory", args...)
 }
 
-func (this *BingxCore) SwapV2PrivateGetUserIncomeExport(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetUserIncomeExport", args...)
+func (this *BingxCore) SwapV2PrivateGetUserIncomeExport (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivateGetUserIncomeExport", args...)
 }
 
-func (this *BingxCore) SwapV2PrivateGetUserCommissionRate(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetUserCommissionRate", args...)
+func (this *BingxCore) SwapV2PrivateGetUserCommissionRate (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivateGetUserCommissionRate", args...)
 }
 
-func (this *BingxCore) SwapV2PrivateGetQuoteBookTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateGetQuoteBookTicker", args...)
+func (this *BingxCore) SwapV2PrivateGetQuoteBookTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivateGetQuoteBookTicker", args...)
 }
 
-func (this *BingxCore) SwapV2PrivatePostTradeGetVst(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivatePostTradeGetVst", args...)
+func (this *BingxCore) SwapV2PrivatePostTradeGetVst (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivatePostTradeGetVst", args...)
 }
 
-func (this *BingxCore) SwapV2PrivatePostTradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivatePostTradeOrder", args...)
+func (this *BingxCore) SwapV2PrivatePostTradeOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivatePostTradeOrder", args...)
 }
 
-func (this *BingxCore) SwapV2PrivatePostTradeBatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivatePostTradeBatchOrders", args...)
+func (this *BingxCore) SwapV2PrivatePostTradeBatchOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivatePostTradeBatchOrders", args...)
 }
 
-func (this *BingxCore) SwapV2PrivatePostTradeCloseAllPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivatePostTradeCloseAllPositions", args...)
+func (this *BingxCore) SwapV2PrivatePostTradeCloseAllPositions (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivatePostTradeCloseAllPositions", args...)
 }
 
-func (this *BingxCore) SwapV2PrivatePostTradeCancelAllAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivatePostTradeCancelAllAfter", args...)
+func (this *BingxCore) SwapV2PrivatePostTradeCancelAllAfter (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivatePostTradeCancelAllAfter", args...)
 }
 
-func (this *BingxCore) SwapV2PrivatePostTradeMarginType(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivatePostTradeMarginType", args...)
+func (this *BingxCore) SwapV2PrivatePostTradeMarginType (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivatePostTradeMarginType", args...)
 }
 
-func (this *BingxCore) SwapV2PrivatePostTradeLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivatePostTradeLeverage", args...)
+func (this *BingxCore) SwapV2PrivatePostTradeLeverage (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivatePostTradeLeverage", args...)
 }
 
-func (this *BingxCore) SwapV2PrivatePostTradePositionMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivatePostTradePositionMargin", args...)
+func (this *BingxCore) SwapV2PrivatePostTradePositionMargin (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivatePostTradePositionMargin", args...)
 }
 
-func (this *BingxCore) SwapV2PrivatePostTradeOrderTest(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivatePostTradeOrderTest", args...)
+func (this *BingxCore) SwapV2PrivatePostTradeOrderTest (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivatePostTradeOrderTest", args...)
 }
 
-func (this *BingxCore) SwapV2PrivateDeleteTradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateDeleteTradeOrder", args...)
+func (this *BingxCore) SwapV2PrivateDeleteTradeOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivateDeleteTradeOrder", args...)
 }
 
-func (this *BingxCore) SwapV2PrivateDeleteTradeBatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateDeleteTradeBatchOrders", args...)
+func (this *BingxCore) SwapV2PrivateDeleteTradeBatchOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivateDeleteTradeBatchOrders", args...)
 }
 
-func (this *BingxCore) SwapV2PrivateDeleteTradeAllOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV2PrivateDeleteTradeAllOpenOrders", args...)
+func (this *BingxCore) SwapV2PrivateDeleteTradeAllOpenOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV2PrivateDeleteTradeAllOpenOrders", args...)
 }
 
-func (this *BingxCore) SwapV3PublicGetQuoteKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV3PublicGetQuoteKlines", args...)
+func (this *BingxCore) SwapV3PublicGetQuoteKlines (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV3PublicGetQuoteKlines", args...)
 }
 
-func (this *BingxCore) SwapV3PrivateGetUserBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("swapV3PrivateGetUserBalance", args...)
+func (this *BingxCore) SwapV3PrivateGetUserBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("swapV3PrivateGetUserBalance", args...)
 }
 
-func (this *BingxCore) CswapV1PublicGetMarketContracts(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PublicGetMarketContracts", args...)
+func (this *BingxCore) CswapV1PublicGetMarketContracts (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PublicGetMarketContracts", args...)
 }
 
-func (this *BingxCore) CswapV1PublicGetMarketPremiumIndex(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PublicGetMarketPremiumIndex", args...)
+func (this *BingxCore) CswapV1PublicGetMarketPremiumIndex (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PublicGetMarketPremiumIndex", args...)
 }
 
-func (this *BingxCore) CswapV1PublicGetMarketOpenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PublicGetMarketOpenInterest", args...)
+func (this *BingxCore) CswapV1PublicGetMarketOpenInterest (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PublicGetMarketOpenInterest", args...)
 }
 
-func (this *BingxCore) CswapV1PublicGetMarketKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PublicGetMarketKlines", args...)
+func (this *BingxCore) CswapV1PublicGetMarketKlines (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PublicGetMarketKlines", args...)
 }
 
-func (this *BingxCore) CswapV1PublicGetMarketDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PublicGetMarketDepth", args...)
+func (this *BingxCore) CswapV1PublicGetMarketDepth (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PublicGetMarketDepth", args...)
 }
 
-func (this *BingxCore) CswapV1PublicGetMarketTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PublicGetMarketTicker", args...)
+func (this *BingxCore) CswapV1PublicGetMarketTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PublicGetMarketTicker", args...)
 }
 
-func (this *BingxCore) CswapV1PrivateGetTradeLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetTradeLeverage", args...)
+func (this *BingxCore) CswapV1PrivateGetTradeLeverage (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PrivateGetTradeLeverage", args...)
 }
 
-func (this *BingxCore) CswapV1PrivateGetTradeForceOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetTradeForceOrders", args...)
+func (this *BingxCore) CswapV1PrivateGetTradeForceOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PrivateGetTradeForceOrders", args...)
 }
 
-func (this *BingxCore) CswapV1PrivateGetTradeAllFillOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetTradeAllFillOrders", args...)
+func (this *BingxCore) CswapV1PrivateGetTradeAllFillOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PrivateGetTradeAllFillOrders", args...)
 }
 
-func (this *BingxCore) CswapV1PrivateGetTradeOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetTradeOpenOrders", args...)
+func (this *BingxCore) CswapV1PrivateGetTradeOpenOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PrivateGetTradeOpenOrders", args...)
 }
 
-func (this *BingxCore) CswapV1PrivateGetTradeOrderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetTradeOrderDetail", args...)
+func (this *BingxCore) CswapV1PrivateGetTradeOrderDetail (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PrivateGetTradeOrderDetail", args...)
 }
 
-func (this *BingxCore) CswapV1PrivateGetTradeOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetTradeOrderHistory", args...)
+func (this *BingxCore) CswapV1PrivateGetTradeOrderHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PrivateGetTradeOrderHistory", args...)
 }
 
-func (this *BingxCore) CswapV1PrivateGetTradeMarginType(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetTradeMarginType", args...)
+func (this *BingxCore) CswapV1PrivateGetTradeMarginType (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PrivateGetTradeMarginType", args...)
 }
 
-func (this *BingxCore) CswapV1PrivateGetUserCommissionRate(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetUserCommissionRate", args...)
+func (this *BingxCore) CswapV1PrivateGetUserCommissionRate (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PrivateGetUserCommissionRate", args...)
 }
 
-func (this *BingxCore) CswapV1PrivateGetUserPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetUserPositions", args...)
+func (this *BingxCore) CswapV1PrivateGetUserPositions (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PrivateGetUserPositions", args...)
 }
 
-func (this *BingxCore) CswapV1PrivateGetUserBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateGetUserBalance", args...)
+func (this *BingxCore) CswapV1PrivateGetUserBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PrivateGetUserBalance", args...)
 }
 
-func (this *BingxCore) CswapV1PrivatePostTradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivatePostTradeOrder", args...)
+func (this *BingxCore) CswapV1PrivatePostTradeOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PrivatePostTradeOrder", args...)
 }
 
-func (this *BingxCore) CswapV1PrivatePostTradeLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivatePostTradeLeverage", args...)
+func (this *BingxCore) CswapV1PrivatePostTradeLeverage (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PrivatePostTradeLeverage", args...)
 }
 
-func (this *BingxCore) CswapV1PrivatePostTradeAllOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivatePostTradeAllOpenOrders", args...)
+func (this *BingxCore) CswapV1PrivatePostTradeAllOpenOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PrivatePostTradeAllOpenOrders", args...)
 }
 
-func (this *BingxCore) CswapV1PrivatePostTradeCloseAllPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivatePostTradeCloseAllPositions", args...)
+func (this *BingxCore) CswapV1PrivatePostTradeCloseAllPositions (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PrivatePostTradeCloseAllPositions", args...)
 }
 
-func (this *BingxCore) CswapV1PrivatePostTradeMarginType(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivatePostTradeMarginType", args...)
+func (this *BingxCore) CswapV1PrivatePostTradeMarginType (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PrivatePostTradeMarginType", args...)
 }
 
-func (this *BingxCore) CswapV1PrivatePostTradePositionMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivatePostTradePositionMargin", args...)
+func (this *BingxCore) CswapV1PrivatePostTradePositionMargin (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PrivatePostTradePositionMargin", args...)
 }
 
-func (this *BingxCore) CswapV1PrivateDeleteTradeAllOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateDeleteTradeAllOpenOrders", args...)
+func (this *BingxCore) CswapV1PrivateDeleteTradeAllOpenOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PrivateDeleteTradeAllOpenOrders", args...)
 }
 
-func (this *BingxCore) CswapV1PrivateDeleteTradeCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("cswapV1PrivateDeleteTradeCancelOrder", args...)
+func (this *BingxCore) CswapV1PrivateDeleteTradeCancelOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("cswapV1PrivateDeleteTradeCancelOrder", args...)
 }
 
-func (this *BingxCore) ContractV1PrivateGetAllPosition(args ...any) <-chan any {
-	return this.callEndpointAsync("contractV1PrivateGetAllPosition", args...)
+func (this *BingxCore) ContractV1PrivateGetAllPosition (args ...any) <-chan any {
+   return this.callEndpointAsync("contractV1PrivateGetAllPosition", args...)
 }
 
-func (this *BingxCore) ContractV1PrivateGetAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractV1PrivateGetAllOrders", args...)
+func (this *BingxCore) ContractV1PrivateGetAllOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("contractV1PrivateGetAllOrders", args...)
 }
 
-func (this *BingxCore) ContractV1PrivateGetBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("contractV1PrivateGetBalance", args...)
+func (this *BingxCore) ContractV1PrivateGetBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("contractV1PrivateGetBalance", args...)
 }
 
-func (this *BingxCore) WalletsV1PrivateGetCapitalConfigGetall(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivateGetCapitalConfigGetall", args...)
+func (this *BingxCore) WalletsV1PrivateGetCapitalConfigGetall (args ...any) <-chan any {
+   return this.callEndpointAsync("walletsV1PrivateGetCapitalConfigGetall", args...)
 }
 
-func (this *BingxCore) WalletsV1PrivateGetCapitalDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivateGetCapitalDepositAddress", args...)
+func (this *BingxCore) WalletsV1PrivateGetCapitalDepositAddress (args ...any) <-chan any {
+   return this.callEndpointAsync("walletsV1PrivateGetCapitalDepositAddress", args...)
 }
 
-func (this *BingxCore) WalletsV1PrivateGetCapitalInnerTransferRecords(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivateGetCapitalInnerTransferRecords", args...)
+func (this *BingxCore) WalletsV1PrivateGetCapitalInnerTransferRecords (args ...any) <-chan any {
+   return this.callEndpointAsync("walletsV1PrivateGetCapitalInnerTransferRecords", args...)
 }
 
-func (this *BingxCore) WalletsV1PrivateGetCapitalSubAccountDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivateGetCapitalSubAccountDepositAddress", args...)
+func (this *BingxCore) WalletsV1PrivateGetCapitalSubAccountDepositAddress (args ...any) <-chan any {
+   return this.callEndpointAsync("walletsV1PrivateGetCapitalSubAccountDepositAddress", args...)
 }
 
-func (this *BingxCore) WalletsV1PrivateGetCapitalDepositSubHisrec(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivateGetCapitalDepositSubHisrec", args...)
+func (this *BingxCore) WalletsV1PrivateGetCapitalDepositSubHisrec (args ...any) <-chan any {
+   return this.callEndpointAsync("walletsV1PrivateGetCapitalDepositSubHisrec", args...)
 }
 
-func (this *BingxCore) WalletsV1PrivateGetCapitalSubAccountInnerTransferRecords(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivateGetCapitalSubAccountInnerTransferRecords", args...)
+func (this *BingxCore) WalletsV1PrivateGetCapitalSubAccountInnerTransferRecords (args ...any) <-chan any {
+   return this.callEndpointAsync("walletsV1PrivateGetCapitalSubAccountInnerTransferRecords", args...)
 }
 
-func (this *BingxCore) WalletsV1PrivateGetCapitalDepositRiskRecords(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivateGetCapitalDepositRiskRecords", args...)
+func (this *BingxCore) WalletsV1PrivateGetCapitalDepositRiskRecords (args ...any) <-chan any {
+   return this.callEndpointAsync("walletsV1PrivateGetCapitalDepositRiskRecords", args...)
 }
 
-func (this *BingxCore) WalletsV1PrivatePostCapitalWithdrawApply(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivatePostCapitalWithdrawApply", args...)
+func (this *BingxCore) WalletsV1PrivatePostCapitalWithdrawApply (args ...any) <-chan any {
+   return this.callEndpointAsync("walletsV1PrivatePostCapitalWithdrawApply", args...)
 }
 
-func (this *BingxCore) WalletsV1PrivatePostCapitalInnerTransferApply(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivatePostCapitalInnerTransferApply", args...)
+func (this *BingxCore) WalletsV1PrivatePostCapitalInnerTransferApply (args ...any) <-chan any {
+   return this.callEndpointAsync("walletsV1PrivatePostCapitalInnerTransferApply", args...)
 }
 
-func (this *BingxCore) WalletsV1PrivatePostCapitalSubAccountInnerTransferApply(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivatePostCapitalSubAccountInnerTransferApply", args...)
+func (this *BingxCore) WalletsV1PrivatePostCapitalSubAccountInnerTransferApply (args ...any) <-chan any {
+   return this.callEndpointAsync("walletsV1PrivatePostCapitalSubAccountInnerTransferApply", args...)
 }
 
-func (this *BingxCore) WalletsV1PrivatePostCapitalDepositCreateSubAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("walletsV1PrivatePostCapitalDepositCreateSubAddress", args...)
+func (this *BingxCore) WalletsV1PrivatePostCapitalDepositCreateSubAddress (args ...any) <-chan any {
+   return this.callEndpointAsync("walletsV1PrivatePostCapitalDepositCreateSubAddress", args...)
 }
 
-func (this *BingxCore) SubAccountV1PrivateGetList(args ...any) <-chan any {
-	return this.callEndpointAsync("subAccountV1PrivateGetList", args...)
+func (this *BingxCore) SubAccountV1PrivateGetList (args ...any) <-chan any {
+   return this.callEndpointAsync("subAccountV1PrivateGetList", args...)
 }
 
-func (this *BingxCore) SubAccountV1PrivateGetAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("subAccountV1PrivateGetAssets", args...)
+func (this *BingxCore) SubAccountV1PrivateGetAssets (args ...any) <-chan any {
+   return this.callEndpointAsync("subAccountV1PrivateGetAssets", args...)
 }
 
-func (this *BingxCore) SubAccountV1PrivateGetAllAccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("subAccountV1PrivateGetAllAccountBalance", args...)
+func (this *BingxCore) SubAccountV1PrivateGetAllAccountBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("subAccountV1PrivateGetAllAccountBalance", args...)
 }
 
-func (this *BingxCore) SubAccountV1PrivatePostCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("subAccountV1PrivatePostCreate", args...)
+func (this *BingxCore) SubAccountV1PrivatePostCreate (args ...any) <-chan any {
+   return this.callEndpointAsync("subAccountV1PrivatePostCreate", args...)
 }
 
-func (this *BingxCore) SubAccountV1PrivatePostApiKeyCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("subAccountV1PrivatePostApiKeyCreate", args...)
+func (this *BingxCore) SubAccountV1PrivatePostApiKeyCreate (args ...any) <-chan any {
+   return this.callEndpointAsync("subAccountV1PrivatePostApiKeyCreate", args...)
 }
 
-func (this *BingxCore) SubAccountV1PrivatePostApiKeyEdit(args ...any) <-chan any {
-	return this.callEndpointAsync("subAccountV1PrivatePostApiKeyEdit", args...)
+func (this *BingxCore) SubAccountV1PrivatePostApiKeyEdit (args ...any) <-chan any {
+   return this.callEndpointAsync("subAccountV1PrivatePostApiKeyEdit", args...)
 }
 
-func (this *BingxCore) SubAccountV1PrivatePostApiKeyDel(args ...any) <-chan any {
-	return this.callEndpointAsync("subAccountV1PrivatePostApiKeyDel", args...)
+func (this *BingxCore) SubAccountV1PrivatePostApiKeyDel (args ...any) <-chan any {
+   return this.callEndpointAsync("subAccountV1PrivatePostApiKeyDel", args...)
 }
 
-func (this *BingxCore) SubAccountV1PrivatePostUpdateStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("subAccountV1PrivatePostUpdateStatus", args...)
+func (this *BingxCore) SubAccountV1PrivatePostUpdateStatus (args ...any) <-chan any {
+   return this.callEndpointAsync("subAccountV1PrivatePostUpdateStatus", args...)
 }
 
-func (this *BingxCore) AccountV1PrivateGetUid(args ...any) <-chan any {
-	return this.callEndpointAsync("accountV1PrivateGetUid", args...)
+func (this *BingxCore) AccountV1PrivateGetUid (args ...any) <-chan any {
+   return this.callEndpointAsync("accountV1PrivateGetUid", args...)
 }
 
-func (this *BingxCore) AccountV1PrivateGetApiKeyQuery(args ...any) <-chan any {
-	return this.callEndpointAsync("accountV1PrivateGetApiKeyQuery", args...)
+func (this *BingxCore) AccountV1PrivateGetApiKeyQuery (args ...any) <-chan any {
+   return this.callEndpointAsync("accountV1PrivateGetApiKeyQuery", args...)
 }
 
-func (this *BingxCore) AccountV1PrivateGetAccountApiPermissions(args ...any) <-chan any {
-	return this.callEndpointAsync("accountV1PrivateGetAccountApiPermissions", args...)
+func (this *BingxCore) AccountV1PrivateGetAccountApiPermissions (args ...any) <-chan any {
+   return this.callEndpointAsync("accountV1PrivateGetAccountApiPermissions", args...)
 }
 
-func (this *BingxCore) AccountV1PrivateGetAllAccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("accountV1PrivateGetAllAccountBalance", args...)
+func (this *BingxCore) AccountV1PrivateGetAllAccountBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("accountV1PrivateGetAllAccountBalance", args...)
 }
 
-func (this *BingxCore) AccountV1PrivatePostInnerTransferAuthorizeSubAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("accountV1PrivatePostInnerTransferAuthorizeSubAccount", args...)
+func (this *BingxCore) AccountV1PrivatePostInnerTransferAuthorizeSubAccount (args ...any) <-chan any {
+   return this.callEndpointAsync("accountV1PrivatePostInnerTransferAuthorizeSubAccount", args...)
 }
 
-func (this *BingxCore) AccountTransferV1PrivateGetSubAccountAssetTransferHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("accountTransferV1PrivateGetSubAccountAssetTransferHistory", args...)
+func (this *BingxCore) AccountTransferV1PrivateGetSubAccountAssetTransferHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("accountTransferV1PrivateGetSubAccountAssetTransferHistory", args...)
 }
 
-func (this *BingxCore) AccountTransferV1PrivatePostSubAccountTransferAssetSupportCoins(args ...any) <-chan any {
-	return this.callEndpointAsync("accountTransferV1PrivatePostSubAccountTransferAssetSupportCoins", args...)
+func (this *BingxCore) AccountTransferV1PrivatePostSubAccountTransferAssetSupportCoins (args ...any) <-chan any {
+   return this.callEndpointAsync("accountTransferV1PrivatePostSubAccountTransferAssetSupportCoins", args...)
 }
 
-func (this *BingxCore) AccountTransferV1PrivatePostSubAccountTransferAsset(args ...any) <-chan any {
-	return this.callEndpointAsync("accountTransferV1PrivatePostSubAccountTransferAsset", args...)
+func (this *BingxCore) AccountTransferV1PrivatePostSubAccountTransferAsset (args ...any) <-chan any {
+   return this.callEndpointAsync("accountTransferV1PrivatePostSubAccountTransferAsset", args...)
 }
 
-func (this *BingxCore) UserAuthPrivatePostUserDataStream(args ...any) <-chan any {
-	return this.callEndpointAsync("userAuthPrivatePostUserDataStream", args...)
+func (this *BingxCore) UserAuthPrivatePostUserDataStream (args ...any) <-chan any {
+   return this.callEndpointAsync("userAuthPrivatePostUserDataStream", args...)
 }
 
-func (this *BingxCore) UserAuthPrivatePutUserDataStream(args ...any) <-chan any {
-	return this.callEndpointAsync("userAuthPrivatePutUserDataStream", args...)
+func (this *BingxCore) UserAuthPrivatePutUserDataStream (args ...any) <-chan any {
+   return this.callEndpointAsync("userAuthPrivatePutUserDataStream", args...)
 }
 
-func (this *BingxCore) UserAuthPrivateDeleteUserDataStream(args ...any) <-chan any {
-	return this.callEndpointAsync("userAuthPrivateDeleteUserDataStream", args...)
+func (this *BingxCore) UserAuthPrivateDeleteUserDataStream (args ...any) <-chan any {
+   return this.callEndpointAsync("userAuthPrivateDeleteUserDataStream", args...)
 }
 
-func (this *BingxCore) CopyTradingV1PrivateGetSwapTraceCurrentTrack(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivateGetSwapTraceCurrentTrack", args...)
+func (this *BingxCore) CopyTradingV1PrivateGetSwapTraceCurrentTrack (args ...any) <-chan any {
+   return this.callEndpointAsync("copyTradingV1PrivateGetSwapTraceCurrentTrack", args...)
 }
 
-func (this *BingxCore) CopyTradingV1PrivateGetPFuturesTraderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesTraderDetail", args...)
+func (this *BingxCore) CopyTradingV1PrivateGetPFuturesTraderDetail (args ...any) <-chan any {
+   return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesTraderDetail", args...)
 }
 
-func (this *BingxCore) CopyTradingV1PrivateGetPFuturesProfitHistorySummarys(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesProfitHistorySummarys", args...)
+func (this *BingxCore) CopyTradingV1PrivateGetPFuturesProfitHistorySummarys (args ...any) <-chan any {
+   return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesProfitHistorySummarys", args...)
 }
 
-func (this *BingxCore) CopyTradingV1PrivateGetPFuturesProfitDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesProfitDetail", args...)
+func (this *BingxCore) CopyTradingV1PrivateGetPFuturesProfitDetail (args ...any) <-chan any {
+   return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesProfitDetail", args...)
 }
 
-func (this *BingxCore) CopyTradingV1PrivateGetPFuturesTradingPairs(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesTradingPairs", args...)
+func (this *BingxCore) CopyTradingV1PrivateGetPFuturesTradingPairs (args ...any) <-chan any {
+   return this.callEndpointAsync("copyTradingV1PrivateGetPFuturesTradingPairs", args...)
 }
 
-func (this *BingxCore) CopyTradingV1PrivateGetSpotTraderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivateGetSpotTraderDetail", args...)
+func (this *BingxCore) CopyTradingV1PrivateGetSpotTraderDetail (args ...any) <-chan any {
+   return this.callEndpointAsync("copyTradingV1PrivateGetSpotTraderDetail", args...)
 }
 
-func (this *BingxCore) CopyTradingV1PrivateGetSpotProfitHistorySummarys(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivateGetSpotProfitHistorySummarys", args...)
+func (this *BingxCore) CopyTradingV1PrivateGetSpotProfitHistorySummarys (args ...any) <-chan any {
+   return this.callEndpointAsync("copyTradingV1PrivateGetSpotProfitHistorySummarys", args...)
 }
 
-func (this *BingxCore) CopyTradingV1PrivateGetSpotProfitDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivateGetSpotProfitDetail", args...)
+func (this *BingxCore) CopyTradingV1PrivateGetSpotProfitDetail (args ...any) <-chan any {
+   return this.callEndpointAsync("copyTradingV1PrivateGetSpotProfitDetail", args...)
 }
 
-func (this *BingxCore) CopyTradingV1PrivateGetSpotHistoryOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivateGetSpotHistoryOrder", args...)
+func (this *BingxCore) CopyTradingV1PrivateGetSpotHistoryOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("copyTradingV1PrivateGetSpotHistoryOrder", args...)
 }
 
-func (this *BingxCore) CopyTradingV1PrivatePostSwapTraceCloseTrackOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivatePostSwapTraceCloseTrackOrder", args...)
+func (this *BingxCore) CopyTradingV1PrivatePostSwapTraceCloseTrackOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("copyTradingV1PrivatePostSwapTraceCloseTrackOrder", args...)
 }
 
-func (this *BingxCore) CopyTradingV1PrivatePostSwapTraceSetTPSL(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivatePostSwapTraceSetTPSL", args...)
+func (this *BingxCore) CopyTradingV1PrivatePostSwapTraceSetTPSL (args ...any) <-chan any {
+   return this.callEndpointAsync("copyTradingV1PrivatePostSwapTraceSetTPSL", args...)
 }
 
-func (this *BingxCore) CopyTradingV1PrivatePostPFuturesSetCommission(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivatePostPFuturesSetCommission", args...)
+func (this *BingxCore) CopyTradingV1PrivatePostPFuturesSetCommission (args ...any) <-chan any {
+   return this.callEndpointAsync("copyTradingV1PrivatePostPFuturesSetCommission", args...)
 }
 
-func (this *BingxCore) CopyTradingV1PrivatePostSpotTraderSellOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("copyTradingV1PrivatePostSpotTraderSellOrder", args...)
+func (this *BingxCore) CopyTradingV1PrivatePostSpotTraderSellOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("copyTradingV1PrivatePostSpotTraderSellOrder", args...)
 }
 
-func (this *BingxCore) ApiV3PrivateGetAssetTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("apiV3PrivateGetAssetTransfer", args...)
+func (this *BingxCore) ApiV3PrivateGetAssetTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("apiV3PrivateGetAssetTransfer", args...)
 }
 
-func (this *BingxCore) ApiV3PrivateGetAssetTransferRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("apiV3PrivateGetAssetTransferRecord", args...)
+func (this *BingxCore) ApiV3PrivateGetAssetTransferRecord (args ...any) <-chan any {
+   return this.callEndpointAsync("apiV3PrivateGetAssetTransferRecord", args...)
 }
 
-func (this *BingxCore) ApiV3PrivateGetCapitalDepositHisrec(args ...any) <-chan any {
-	return this.callEndpointAsync("apiV3PrivateGetCapitalDepositHisrec", args...)
+func (this *BingxCore) ApiV3PrivateGetCapitalDepositHisrec (args ...any) <-chan any {
+   return this.callEndpointAsync("apiV3PrivateGetCapitalDepositHisrec", args...)
 }
 
-func (this *BingxCore) ApiV3PrivateGetCapitalWithdrawHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("apiV3PrivateGetCapitalWithdrawHistory", args...)
+func (this *BingxCore) ApiV3PrivateGetCapitalWithdrawHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("apiV3PrivateGetCapitalWithdrawHistory", args...)
 }
 
-func (this *BingxCore) ApiV3PrivatePostPostAssetTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("apiV3PrivatePostPostAssetTransfer", args...)
+func (this *BingxCore) ApiV3PrivatePostPostAssetTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("apiV3PrivatePostPostAssetTransfer", args...)
 }
 
-func (this *BingxCore) ApiAssetV1PrivatePostTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("apiAssetV1PrivatePostTransfer", args...)
+func (this *BingxCore) ApiAssetV1PrivatePostTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("apiAssetV1PrivatePostTransfer", args...)
 }
 
-func (this *BingxCore) ApiAssetV1PublicGetTransferSupportCoins(args ...any) <-chan any {
-	return this.callEndpointAsync("apiAssetV1PublicGetTransferSupportCoins", args...)
+func (this *BingxCore) ApiAssetV1PublicGetTransferSupportCoins (args ...any) <-chan any {
+   return this.callEndpointAsync("apiAssetV1PublicGetTransferSupportCoins", args...)
 }
 
-func (this *BingxCore) AgentV1PrivateGetAccountInviteAccountList(args ...any) <-chan any {
-	return this.callEndpointAsync("agentV1PrivateGetAccountInviteAccountList", args...)
+func (this *BingxCore) AgentV1PrivateGetAccountInviteAccountList (args ...any) <-chan any {
+   return this.callEndpointAsync("agentV1PrivateGetAccountInviteAccountList", args...)
 }
 
-func (this *BingxCore) AgentV1PrivateGetRewardCommissionDataList(args ...any) <-chan any {
-	return this.callEndpointAsync("agentV1PrivateGetRewardCommissionDataList", args...)
+func (this *BingxCore) AgentV1PrivateGetRewardCommissionDataList (args ...any) <-chan any {
+   return this.callEndpointAsync("agentV1PrivateGetRewardCommissionDataList", args...)
 }
 
-func (this *BingxCore) AgentV1PrivateGetAccountInviteRelationCheck(args ...any) <-chan any {
-	return this.callEndpointAsync("agentV1PrivateGetAccountInviteRelationCheck", args...)
+func (this *BingxCore) AgentV1PrivateGetAccountInviteRelationCheck (args ...any) <-chan any {
+   return this.callEndpointAsync("agentV1PrivateGetAccountInviteRelationCheck", args...)
 }
 
-func (this *BingxCore) AgentV1PrivateGetAssetDepositDetailList(args ...any) <-chan any {
-	return this.callEndpointAsync("agentV1PrivateGetAssetDepositDetailList", args...)
+func (this *BingxCore) AgentV1PrivateGetAssetDepositDetailList (args ...any) <-chan any {
+   return this.callEndpointAsync("agentV1PrivateGetAssetDepositDetailList", args...)
 }
 
-func (this *BingxCore) AgentV1PrivateGetRewardThirdCommissionDataList(args ...any) <-chan any {
-	return this.callEndpointAsync("agentV1PrivateGetRewardThirdCommissionDataList", args...)
+func (this *BingxCore) AgentV1PrivateGetRewardThirdCommissionDataList (args ...any) <-chan any {
+   return this.callEndpointAsync("agentV1PrivateGetRewardThirdCommissionDataList", args...)
 }
 
-func (this *BingxCore) AgentV1PrivateGetAssetPartnerData(args ...any) <-chan any {
-	return this.callEndpointAsync("agentV1PrivateGetAssetPartnerData", args...)
+func (this *BingxCore) AgentV1PrivateGetAssetPartnerData (args ...any) <-chan any {
+   return this.callEndpointAsync("agentV1PrivateGetAssetPartnerData", args...)
 }
 
-func (this *BingxCore) AgentV1PrivateGetCommissionDataListReferralCode(args ...any) <-chan any {
-	return this.callEndpointAsync("agentV1PrivateGetCommissionDataListReferralCode", args...)
+func (this *BingxCore) AgentV1PrivateGetCommissionDataListReferralCode (args ...any) <-chan any {
+   return this.callEndpointAsync("agentV1PrivateGetCommissionDataListReferralCode", args...)
 }
 
-func (this *BingxCore) AgentV1PrivateGetAccountSuperiorCheck(args ...any) <-chan any {
-	return this.callEndpointAsync("agentV1PrivateGetAccountSuperiorCheck", args...)
+func (this *BingxCore) AgentV1PrivateGetAccountSuperiorCheck (args ...any) <-chan any {
+   return this.callEndpointAsync("agentV1PrivateGetAccountSuperiorCheck", args...)
 }

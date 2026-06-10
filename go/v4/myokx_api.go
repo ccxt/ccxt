@@ -7,1734 +7,1734 @@
 
 package ccxt
 
-func (this *MyokxCore) PublicGetMarketTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketTickers", args...)
+func (this *MyokxCore) PublicGetMarketTickers (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketTickers", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketTicker", args...)
+func (this *MyokxCore) PublicGetMarketTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketTicker", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketBooks(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketBooks", args...)
+func (this *MyokxCore) PublicGetMarketBooks (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketBooks", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketBooksFull(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketBooksFull", args...)
+func (this *MyokxCore) PublicGetMarketBooksFull (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketBooksFull", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketCandles", args...)
+func (this *MyokxCore) PublicGetMarketCandles (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketCandles", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketHistoryCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketHistoryCandles", args...)
+func (this *MyokxCore) PublicGetMarketHistoryCandles (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketHistoryCandles", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketTrades", args...)
+func (this *MyokxCore) PublicGetMarketTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketTrades", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketHistoryTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketHistoryTrades", args...)
+func (this *MyokxCore) PublicGetMarketHistoryTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketHistoryTrades", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketOptionInstrumentFamilyTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketOptionInstrumentFamilyTrades", args...)
+func (this *MyokxCore) PublicGetMarketOptionInstrumentFamilyTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketOptionInstrumentFamilyTrades", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketPlatform24Volume(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketPlatform24Volume", args...)
+func (this *MyokxCore) PublicGetMarketPlatform24Volume (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketPlatform24Volume", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketCallAuctionDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketCallAuctionDetail", args...)
+func (this *MyokxCore) PublicGetMarketCallAuctionDetail (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketCallAuctionDetail", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketCallAuctionDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketCallAuctionDetails", args...)
+func (this *MyokxCore) PublicGetMarketCallAuctionDetails (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketCallAuctionDetails", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketBooksSbe(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketBooksSbe", args...)
+func (this *MyokxCore) PublicGetMarketBooksSbe (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketBooksSbe", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketBlockTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketBlockTickers", args...)
+func (this *MyokxCore) PublicGetMarketBlockTickers (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketBlockTickers", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketBlockTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketBlockTicker", args...)
+func (this *MyokxCore) PublicGetMarketBlockTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketBlockTicker", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketSprdTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketSprdTicker", args...)
+func (this *MyokxCore) PublicGetMarketSprdTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketSprdTicker", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketSprdCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketSprdCandles", args...)
+func (this *MyokxCore) PublicGetMarketSprdCandles (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketSprdCandles", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketSprdHistoryCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketSprdHistoryCandles", args...)
+func (this *MyokxCore) PublicGetMarketSprdHistoryCandles (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketSprdHistoryCandles", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketIndexTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketIndexTickers", args...)
+func (this *MyokxCore) PublicGetMarketIndexTickers (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketIndexTickers", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketIndexCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketIndexCandles", args...)
+func (this *MyokxCore) PublicGetMarketIndexCandles (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketIndexCandles", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketHistoryIndexCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketHistoryIndexCandles", args...)
+func (this *MyokxCore) PublicGetMarketHistoryIndexCandles (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketHistoryIndexCandles", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketMarkPriceCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketMarkPriceCandles", args...)
+func (this *MyokxCore) PublicGetMarketMarkPriceCandles (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketMarkPriceCandles", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketHistoryMarkPriceCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketHistoryMarkPriceCandles", args...)
+func (this *MyokxCore) PublicGetMarketHistoryMarkPriceCandles (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketHistoryMarkPriceCandles", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketExchangeRate(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketExchangeRate", args...)
+func (this *MyokxCore) PublicGetMarketExchangeRate (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketExchangeRate", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketIndexComponents(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketIndexComponents", args...)
+func (this *MyokxCore) PublicGetMarketIndexComponents (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketIndexComponents", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketOpenOracle(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketOpenOracle", args...)
+func (this *MyokxCore) PublicGetMarketOpenOracle (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketOpenOracle", args...)
 }
 
-func (this *MyokxCore) PublicGetMarketBooksLite(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketBooksLite", args...)
+func (this *MyokxCore) PublicGetMarketBooksLite (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketBooksLite", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicOptionTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicOptionTrades", args...)
+func (this *MyokxCore) PublicGetPublicOptionTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicOptionTrades", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicBlockTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicBlockTrades", args...)
+func (this *MyokxCore) PublicGetPublicBlockTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicBlockTrades", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicInstruments", args...)
+func (this *MyokxCore) PublicGetPublicInstruments (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicInstruments", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicEstimatedPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicEstimatedPrice", args...)
+func (this *MyokxCore) PublicGetPublicEstimatedPrice (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicEstimatedPrice", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicDeliveryExerciseHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicDeliveryExerciseHistory", args...)
+func (this *MyokxCore) PublicGetPublicDeliveryExerciseHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicDeliveryExerciseHistory", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicEstimatedSettlementInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicEstimatedSettlementInfo", args...)
+func (this *MyokxCore) PublicGetPublicEstimatedSettlementInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicEstimatedSettlementInfo", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicSettlementHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicSettlementHistory", args...)
+func (this *MyokxCore) PublicGetPublicSettlementHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicSettlementHistory", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicFundingRate", args...)
+func (this *MyokxCore) PublicGetPublicFundingRate (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicFundingRate", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicFundingRateHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicFundingRateHistory", args...)
+func (this *MyokxCore) PublicGetPublicFundingRateHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicFundingRateHistory", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicOpenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicOpenInterest", args...)
+func (this *MyokxCore) PublicGetPublicOpenInterest (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicOpenInterest", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicPriceLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicPriceLimit", args...)
+func (this *MyokxCore) PublicGetPublicPriceLimit (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicPriceLimit", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicOptSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicOptSummary", args...)
+func (this *MyokxCore) PublicGetPublicOptSummary (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicOptSummary", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicDiscountRateInterestFreeQuota(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicDiscountRateInterestFreeQuota", args...)
+func (this *MyokxCore) PublicGetPublicDiscountRateInterestFreeQuota (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicDiscountRateInterestFreeQuota", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicTime(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicTime", args...)
+func (this *MyokxCore) PublicGetPublicTime (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicTime", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicMarkPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicMarkPrice", args...)
+func (this *MyokxCore) PublicGetPublicMarkPrice (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicMarkPrice", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicPositionTiers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicPositionTiers", args...)
+func (this *MyokxCore) PublicGetPublicPositionTiers (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicPositionTiers", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicInterestRateLoanQuota(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicInterestRateLoanQuota", args...)
+func (this *MyokxCore) PublicGetPublicInterestRateLoanQuota (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicInterestRateLoanQuota", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicUnderlying(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicUnderlying", args...)
+func (this *MyokxCore) PublicGetPublicUnderlying (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicUnderlying", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicInsuranceFund(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicInsuranceFund", args...)
+func (this *MyokxCore) PublicGetPublicInsuranceFund (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicInsuranceFund", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicConvertContractCoin(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicConvertContractCoin", args...)
+func (this *MyokxCore) PublicGetPublicConvertContractCoin (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicConvertContractCoin", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicInstrumentTickBands(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicInstrumentTickBands", args...)
+func (this *MyokxCore) PublicGetPublicInstrumentTickBands (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicInstrumentTickBands", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicPremiumHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicPremiumHistory", args...)
+func (this *MyokxCore) PublicGetPublicPremiumHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicPremiumHistory", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicEconomicCalendar(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicEconomicCalendar", args...)
+func (this *MyokxCore) PublicGetPublicEconomicCalendar (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicEconomicCalendar", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicMarketDataHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicMarketDataHistory", args...)
+func (this *MyokxCore) PublicGetPublicMarketDataHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicMarketDataHistory", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicEventContractEvents(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicEventContractEvents", args...)
+func (this *MyokxCore) PublicGetPublicEventContractEvents (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicEventContractEvents", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicEventContractMarkets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicEventContractMarkets", args...)
+func (this *MyokxCore) PublicGetPublicEventContractMarkets (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicEventContractMarkets", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicEventContractSeries(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicEventContractSeries", args...)
+func (this *MyokxCore) PublicGetPublicEventContractSeries (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicEventContractSeries", args...)
 }
 
-func (this *MyokxCore) PublicGetPublicVipInterestRateLoanQuota(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPublicVipInterestRateLoanQuota", args...)
+func (this *MyokxCore) PublicGetPublicVipInterestRateLoanQuota (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPublicVipInterestRateLoanQuota", args...)
 }
 
-func (this *MyokxCore) PublicGetRubikStatTradingDataSupportCoin(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatTradingDataSupportCoin", args...)
+func (this *MyokxCore) PublicGetRubikStatTradingDataSupportCoin (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetRubikStatTradingDataSupportCoin", args...)
 }
 
-func (this *MyokxCore) PublicGetRubikStatContractsOpenInterestHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatContractsOpenInterestHistory", args...)
+func (this *MyokxCore) PublicGetRubikStatContractsOpenInterestHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetRubikStatContractsOpenInterestHistory", args...)
 }
 
-func (this *MyokxCore) PublicGetRubikStatTakerVolume(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatTakerVolume", args...)
+func (this *MyokxCore) PublicGetRubikStatTakerVolume (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetRubikStatTakerVolume", args...)
 }
 
-func (this *MyokxCore) PublicGetRubikStatTakerVolumeContract(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatTakerVolumeContract", args...)
+func (this *MyokxCore) PublicGetRubikStatTakerVolumeContract (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetRubikStatTakerVolumeContract", args...)
 }
 
-func (this *MyokxCore) PublicGetRubikStatMarginLoanRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatMarginLoanRatio", args...)
+func (this *MyokxCore) PublicGetRubikStatMarginLoanRatio (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetRubikStatMarginLoanRatio", args...)
 }
 
-func (this *MyokxCore) PublicGetRubikStatContractsLongShortAccountRatioContractTopTrader(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatioContractTopTrader", args...)
+func (this *MyokxCore) PublicGetRubikStatContractsLongShortAccountRatioContractTopTrader (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatioContractTopTrader", args...)
 }
 
-func (this *MyokxCore) PublicGetRubikStatContractsLongShortPositionRatioContractTopTrader(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatContractsLongShortPositionRatioContractTopTrader", args...)
+func (this *MyokxCore) PublicGetRubikStatContractsLongShortPositionRatioContractTopTrader (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetRubikStatContractsLongShortPositionRatioContractTopTrader", args...)
 }
 
-func (this *MyokxCore) PublicGetRubikStatContractsLongShortAccountRatioContract(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatioContract", args...)
+func (this *MyokxCore) PublicGetRubikStatContractsLongShortAccountRatioContract (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatioContract", args...)
 }
 
-func (this *MyokxCore) PublicGetRubikStatContractsLongShortAccountRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatio", args...)
+func (this *MyokxCore) PublicGetRubikStatContractsLongShortAccountRatio (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatio", args...)
 }
 
-func (this *MyokxCore) PublicGetRubikStatContractsOpenInterestVolume(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatContractsOpenInterestVolume", args...)
+func (this *MyokxCore) PublicGetRubikStatContractsOpenInterestVolume (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetRubikStatContractsOpenInterestVolume", args...)
 }
 
-func (this *MyokxCore) PublicGetRubikStatOptionOpenInterestVolume(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolume", args...)
+func (this *MyokxCore) PublicGetRubikStatOptionOpenInterestVolume (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolume", args...)
 }
 
-func (this *MyokxCore) PublicGetRubikStatOptionOpenInterestVolumeRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeRatio", args...)
+func (this *MyokxCore) PublicGetRubikStatOptionOpenInterestVolumeRatio (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeRatio", args...)
 }
 
-func (this *MyokxCore) PublicGetRubikStatOptionOpenInterestVolumeExpiry(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeExpiry", args...)
+func (this *MyokxCore) PublicGetRubikStatOptionOpenInterestVolumeExpiry (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeExpiry", args...)
 }
 
-func (this *MyokxCore) PublicGetRubikStatOptionOpenInterestVolumeStrike(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeStrike", args...)
+func (this *MyokxCore) PublicGetRubikStatOptionOpenInterestVolumeStrike (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeStrike", args...)
 }
 
-func (this *MyokxCore) PublicGetRubikStatOptionTakerBlockVolume(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRubikStatOptionTakerBlockVolume", args...)
+func (this *MyokxCore) PublicGetRubikStatOptionTakerBlockVolume (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetRubikStatOptionTakerBlockVolume", args...)
 }
 
-func (this *MyokxCore) PublicGetSystemStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSystemStatus", args...)
+func (this *MyokxCore) PublicGetSystemStatus (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSystemStatus", args...)
 }
 
-func (this *MyokxCore) PublicGetSprdSpreads(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSprdSpreads", args...)
+func (this *MyokxCore) PublicGetSprdSpreads (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSprdSpreads", args...)
 }
 
-func (this *MyokxCore) PublicGetSprdBooks(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSprdBooks", args...)
+func (this *MyokxCore) PublicGetSprdBooks (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSprdBooks", args...)
 }
 
-func (this *MyokxCore) PublicGetSprdPublicTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSprdPublicTrades", args...)
+func (this *MyokxCore) PublicGetSprdPublicTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSprdPublicTrades", args...)
 }
 
-func (this *MyokxCore) PublicGetSprdTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSprdTicker", args...)
+func (this *MyokxCore) PublicGetSprdTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSprdTicker", args...)
 }
 
-func (this *MyokxCore) PublicGetTradingBotGridAiParam(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradingBotGridAiParam", args...)
+func (this *MyokxCore) PublicGetTradingBotGridAiParam (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetTradingBotGridAiParam", args...)
 }
 
-func (this *MyokxCore) PublicGetTradingBotGridMinInvestment(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradingBotGridMinInvestment", args...)
+func (this *MyokxCore) PublicGetTradingBotGridMinInvestment (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetTradingBotGridMinInvestment", args...)
 }
 
-func (this *MyokxCore) PublicGetTradingBotPublicRsiBackTesting(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradingBotPublicRsiBackTesting", args...)
+func (this *MyokxCore) PublicGetTradingBotPublicRsiBackTesting (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetTradingBotPublicRsiBackTesting", args...)
 }
 
-func (this *MyokxCore) PublicGetTradingBotGridGridQuantity(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradingBotGridGridQuantity", args...)
+func (this *MyokxCore) PublicGetTradingBotGridGridQuantity (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetTradingBotGridGridQuantity", args...)
 }
 
-func (this *MyokxCore) PublicGetAssetExchangeList(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAssetExchangeList", args...)
+func (this *MyokxCore) PublicGetAssetExchangeList (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetAssetExchangeList", args...)
 }
 
-func (this *MyokxCore) PublicGetFinanceStakingDefiEthApyHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFinanceStakingDefiEthApyHistory", args...)
+func (this *MyokxCore) PublicGetFinanceStakingDefiEthApyHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetFinanceStakingDefiEthApyHistory", args...)
 }
 
-func (this *MyokxCore) PublicGetFinanceStakingDefiSolApyHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFinanceStakingDefiSolApyHistory", args...)
+func (this *MyokxCore) PublicGetFinanceStakingDefiSolApyHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetFinanceStakingDefiSolApyHistory", args...)
 }
 
-func (this *MyokxCore) PublicGetFinanceSavingsLendingRateSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFinanceSavingsLendingRateSummary", args...)
+func (this *MyokxCore) PublicGetFinanceSavingsLendingRateSummary (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetFinanceSavingsLendingRateSummary", args...)
 }
 
-func (this *MyokxCore) PublicGetFinanceSavingsLendingRateHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFinanceSavingsLendingRateHistory", args...)
+func (this *MyokxCore) PublicGetFinanceSavingsLendingRateHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetFinanceSavingsLendingRateHistory", args...)
 }
 
-func (this *MyokxCore) PublicGetFinanceFixedLoanLendingOffers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFinanceFixedLoanLendingOffers", args...)
+func (this *MyokxCore) PublicGetFinanceFixedLoanLendingOffers (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetFinanceFixedLoanLendingOffers", args...)
 }
 
-func (this *MyokxCore) PublicGetFinanceFixedLoanLendingApyHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFinanceFixedLoanLendingApyHistory", args...)
+func (this *MyokxCore) PublicGetFinanceFixedLoanLendingApyHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetFinanceFixedLoanLendingApyHistory", args...)
 }
 
-func (this *MyokxCore) PublicGetFinanceFixedLoanPendingLendingVolume(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFinanceFixedLoanPendingLendingVolume", args...)
+func (this *MyokxCore) PublicGetFinanceFixedLoanPendingLendingVolume (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetFinanceFixedLoanPendingLendingVolume", args...)
 }
 
-func (this *MyokxCore) PublicGetFinanceSfpDcdProducts(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFinanceSfpDcdProducts", args...)
+func (this *MyokxCore) PublicGetFinanceSfpDcdProducts (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetFinanceSfpDcdProducts", args...)
 }
 
-func (this *MyokxCore) PublicGetCopytradingPublicConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCopytradingPublicConfig", args...)
+func (this *MyokxCore) PublicGetCopytradingPublicConfig (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetCopytradingPublicConfig", args...)
 }
 
-func (this *MyokxCore) PublicGetCopytradingPublicLeadTraders(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCopytradingPublicLeadTraders", args...)
+func (this *MyokxCore) PublicGetCopytradingPublicLeadTraders (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetCopytradingPublicLeadTraders", args...)
 }
 
-func (this *MyokxCore) PublicGetCopytradingPublicWeeklyPnl(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCopytradingPublicWeeklyPnl", args...)
+func (this *MyokxCore) PublicGetCopytradingPublicWeeklyPnl (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetCopytradingPublicWeeklyPnl", args...)
 }
 
-func (this *MyokxCore) PublicGetCopytradingPublicPnl(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCopytradingPublicPnl", args...)
+func (this *MyokxCore) PublicGetCopytradingPublicPnl (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetCopytradingPublicPnl", args...)
 }
 
-func (this *MyokxCore) PublicGetCopytradingPublicStats(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCopytradingPublicStats", args...)
+func (this *MyokxCore) PublicGetCopytradingPublicStats (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetCopytradingPublicStats", args...)
 }
 
-func (this *MyokxCore) PublicGetCopytradingPublicPreferenceCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCopytradingPublicPreferenceCurrency", args...)
+func (this *MyokxCore) PublicGetCopytradingPublicPreferenceCurrency (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetCopytradingPublicPreferenceCurrency", args...)
 }
 
-func (this *MyokxCore) PublicGetCopytradingPublicCurrentSubpositions(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCopytradingPublicCurrentSubpositions", args...)
+func (this *MyokxCore) PublicGetCopytradingPublicCurrentSubpositions (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetCopytradingPublicCurrentSubpositions", args...)
 }
 
-func (this *MyokxCore) PublicGetCopytradingPublicSubpositionsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCopytradingPublicSubpositionsHistory", args...)
+func (this *MyokxCore) PublicGetCopytradingPublicSubpositionsHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetCopytradingPublicSubpositionsHistory", args...)
 }
 
-func (this *MyokxCore) PublicGetCopytradingPublicCopyTraders(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCopytradingPublicCopyTraders", args...)
+func (this *MyokxCore) PublicGetCopytradingPublicCopyTraders (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetCopytradingPublicCopyTraders", args...)
 }
 
-func (this *MyokxCore) PublicGetSupportAnnouncements(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSupportAnnouncements", args...)
+func (this *MyokxCore) PublicGetSupportAnnouncements (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSupportAnnouncements", args...)
 }
 
-func (this *MyokxCore) PublicGetSupportAnnouncementsTypes(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSupportAnnouncementsTypes", args...)
+func (this *MyokxCore) PublicGetSupportAnnouncementsTypes (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSupportAnnouncementsTypes", args...)
 }
 
-func (this *MyokxCore) PublicGetSupportAnnouncementTypes(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSupportAnnouncementTypes", args...)
+func (this *MyokxCore) PublicGetSupportAnnouncementTypes (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSupportAnnouncementTypes", args...)
 }
 
-func (this *MyokxCore) PublicPostTradingBotGridMinInvestment(args ...any) <-chan any {
-	return this.callEndpointAsync("publicPostTradingBotGridMinInvestment", args...)
+func (this *MyokxCore) PublicPostTradingBotGridMinInvestment (args ...any) <-chan any {
+   return this.callEndpointAsync("publicPostTradingBotGridMinInvestment", args...)
 }
 
-func (this *MyokxCore) PrivateGetRfqCounterparties(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetRfqCounterparties", args...)
+func (this *MyokxCore) PrivateGetRfqCounterparties (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetRfqCounterparties", args...)
 }
 
-func (this *MyokxCore) PrivateGetRfqMakerInstrumentSettings(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetRfqMakerInstrumentSettings", args...)
+func (this *MyokxCore) PrivateGetRfqMakerInstrumentSettings (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetRfqMakerInstrumentSettings", args...)
 }
 
-func (this *MyokxCore) PrivateGetRfqMmpConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetRfqMmpConfig", args...)
+func (this *MyokxCore) PrivateGetRfqMmpConfig (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetRfqMmpConfig", args...)
 }
 
-func (this *MyokxCore) PrivateGetRfqRfqs(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetRfqRfqs", args...)
+func (this *MyokxCore) PrivateGetRfqRfqs (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetRfqRfqs", args...)
 }
 
-func (this *MyokxCore) PrivateGetRfqQuotes(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetRfqQuotes", args...)
+func (this *MyokxCore) PrivateGetRfqQuotes (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetRfqQuotes", args...)
 }
 
-func (this *MyokxCore) PrivateGetRfqTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetRfqTrades", args...)
+func (this *MyokxCore) PrivateGetRfqTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetRfqTrades", args...)
 }
 
-func (this *MyokxCore) PrivateGetRfqPublicTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetRfqPublicTrades", args...)
+func (this *MyokxCore) PrivateGetRfqPublicTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetRfqPublicTrades", args...)
 }
 
-func (this *MyokxCore) PrivateGetSprdOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSprdOrder", args...)
+func (this *MyokxCore) PrivateGetSprdOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSprdOrder", args...)
 }
 
-func (this *MyokxCore) PrivateGetSprdOrdersPending(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSprdOrdersPending", args...)
+func (this *MyokxCore) PrivateGetSprdOrdersPending (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSprdOrdersPending", args...)
 }
 
-func (this *MyokxCore) PrivateGetSprdOrdersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSprdOrdersHistory", args...)
+func (this *MyokxCore) PrivateGetSprdOrdersHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSprdOrdersHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetSprdOrdersHistoryArchive(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSprdOrdersHistoryArchive", args...)
+func (this *MyokxCore) PrivateGetSprdOrdersHistoryArchive (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSprdOrdersHistoryArchive", args...)
 }
 
-func (this *MyokxCore) PrivateGetSprdTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSprdTrades", args...)
+func (this *MyokxCore) PrivateGetSprdTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSprdTrades", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOrder", args...)
+func (this *MyokxCore) PrivateGetTradeOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradeOrder", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradeOrdersPending(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOrdersPending", args...)
+func (this *MyokxCore) PrivateGetTradeOrdersPending (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradeOrdersPending", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradeOrdersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOrdersHistory", args...)
+func (this *MyokxCore) PrivateGetTradeOrdersHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradeOrdersHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradeOrdersHistoryArchive(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOrdersHistoryArchive", args...)
+func (this *MyokxCore) PrivateGetTradeOrdersHistoryArchive (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradeOrdersHistoryArchive", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradeFills(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeFills", args...)
+func (this *MyokxCore) PrivateGetTradeFills (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradeFills", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradeFillsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeFillsHistory", args...)
+func (this *MyokxCore) PrivateGetTradeFillsHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradeFillsHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradeFillsArchive(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeFillsArchive", args...)
+func (this *MyokxCore) PrivateGetTradeFillsArchive (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradeFillsArchive", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradeOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOrderAlgo", args...)
+func (this *MyokxCore) PrivateGetTradeOrderAlgo (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradeOrderAlgo", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradeOrdersAlgoPending(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOrdersAlgoPending", args...)
+func (this *MyokxCore) PrivateGetTradeOrdersAlgoPending (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradeOrdersAlgoPending", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradeOrdersAlgoHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOrdersAlgoHistory", args...)
+func (this *MyokxCore) PrivateGetTradeOrdersAlgoHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradeOrdersAlgoHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradeEasyConvertCurrencyList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeEasyConvertCurrencyList", args...)
+func (this *MyokxCore) PrivateGetTradeEasyConvertCurrencyList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradeEasyConvertCurrencyList", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradeEasyConvertHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeEasyConvertHistory", args...)
+func (this *MyokxCore) PrivateGetTradeEasyConvertHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradeEasyConvertHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradeOneClickRepayCurrencyList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOneClickRepayCurrencyList", args...)
+func (this *MyokxCore) PrivateGetTradeOneClickRepayCurrencyList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradeOneClickRepayCurrencyList", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradeOneClickRepayCurrencyListV2(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOneClickRepayCurrencyListV2", args...)
+func (this *MyokxCore) PrivateGetTradeOneClickRepayCurrencyListV2 (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradeOneClickRepayCurrencyListV2", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradeOneClickRepayHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOneClickRepayHistory", args...)
+func (this *MyokxCore) PrivateGetTradeOneClickRepayHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradeOneClickRepayHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradeOneClickRepayHistoryV2(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOneClickRepayHistoryV2", args...)
+func (this *MyokxCore) PrivateGetTradeOneClickRepayHistoryV2 (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradeOneClickRepayHistoryV2", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradeAccountRateLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeAccountRateLimit", args...)
+func (this *MyokxCore) PrivateGetTradeAccountRateLimit (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradeAccountRateLimit", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetCurrencies", args...)
+func (this *MyokxCore) PrivateGetAssetCurrencies (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetCurrencies", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetBalances", args...)
+func (this *MyokxCore) PrivateGetAssetBalances (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetBalances", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetNonTradableAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetNonTradableAssets", args...)
+func (this *MyokxCore) PrivateGetAssetNonTradableAssets (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetNonTradableAssets", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetAssetValuation(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetAssetValuation", args...)
+func (this *MyokxCore) PrivateGetAssetAssetValuation (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetAssetValuation", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetTransferState(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetTransferState", args...)
+func (this *MyokxCore) PrivateGetAssetTransferState (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetTransferState", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetBills(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetBills", args...)
+func (this *MyokxCore) PrivateGetAssetBills (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetBills", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetBillsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetBillsHistory", args...)
+func (this *MyokxCore) PrivateGetAssetBillsHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetBillsHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetDepositLightning(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetDepositLightning", args...)
+func (this *MyokxCore) PrivateGetAssetDepositLightning (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetDepositLightning", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetDepositAddress", args...)
+func (this *MyokxCore) PrivateGetAssetDepositAddress (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetDepositAddress", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetDepositHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetDepositHistory", args...)
+func (this *MyokxCore) PrivateGetAssetDepositHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetDepositHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetWithdrawalHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetWithdrawalHistory", args...)
+func (this *MyokxCore) PrivateGetAssetWithdrawalHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetWithdrawalHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetDepositWithdrawStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetDepositWithdrawStatus", args...)
+func (this *MyokxCore) PrivateGetAssetDepositWithdrawStatus (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetDepositWithdrawStatus", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetMonthlyStatement(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetMonthlyStatement", args...)
+func (this *MyokxCore) PrivateGetAssetMonthlyStatement (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetMonthlyStatement", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetConvertCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetConvertCurrencies", args...)
+func (this *MyokxCore) PrivateGetAssetConvertCurrencies (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetConvertCurrencies", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetConvertCurrencyPair(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetConvertCurrencyPair", args...)
+func (this *MyokxCore) PrivateGetAssetConvertCurrencyPair (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetConvertCurrencyPair", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetConvertHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetConvertHistory", args...)
+func (this *MyokxCore) PrivateGetAssetConvertHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetConvertHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountInstruments", args...)
+func (this *MyokxCore) PrivateGetAccountInstruments (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountInstruments", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountBalance", args...)
+func (this *MyokxCore) PrivateGetAccountBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountBalance", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountPositions", args...)
+func (this *MyokxCore) PrivateGetAccountPositions (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountPositions", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountPositionsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountPositionsHistory", args...)
+func (this *MyokxCore) PrivateGetAccountPositionsHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountPositionsHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountAccountPositionRisk(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountAccountPositionRisk", args...)
+func (this *MyokxCore) PrivateGetAccountAccountPositionRisk (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountAccountPositionRisk", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountBills(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountBills", args...)
+func (this *MyokxCore) PrivateGetAccountBills (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountBills", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountBillsArchive(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountBillsArchive", args...)
+func (this *MyokxCore) PrivateGetAccountBillsArchive (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountBillsArchive", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountBillsHistoryArchive(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountBillsHistoryArchive", args...)
+func (this *MyokxCore) PrivateGetAccountBillsHistoryArchive (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountBillsHistoryArchive", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountConfig", args...)
+func (this *MyokxCore) PrivateGetAccountConfig (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountConfig", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountSubtypes(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountSubtypes", args...)
+func (this *MyokxCore) PrivateGetAccountSubtypes (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountSubtypes", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountMaxSize(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountMaxSize", args...)
+func (this *MyokxCore) PrivateGetAccountMaxSize (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountMaxSize", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountMaxAvailSize(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountMaxAvailSize", args...)
+func (this *MyokxCore) PrivateGetAccountMaxAvailSize (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountMaxAvailSize", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountLeverageInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountLeverageInfo", args...)
+func (this *MyokxCore) PrivateGetAccountLeverageInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountLeverageInfo", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountAdjustLeverageInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountAdjustLeverageInfo", args...)
+func (this *MyokxCore) PrivateGetAccountAdjustLeverageInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountAdjustLeverageInfo", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountMaxLoan(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountMaxLoan", args...)
+func (this *MyokxCore) PrivateGetAccountMaxLoan (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountMaxLoan", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountTradeFee(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountTradeFee", args...)
+func (this *MyokxCore) PrivateGetAccountTradeFee (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountTradeFee", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountInterestAccrued(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountInterestAccrued", args...)
+func (this *MyokxCore) PrivateGetAccountInterestAccrued (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountInterestAccrued", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountInterestRate(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountInterestRate", args...)
+func (this *MyokxCore) PrivateGetAccountInterestRate (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountInterestRate", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountMaxWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountMaxWithdrawal", args...)
+func (this *MyokxCore) PrivateGetAccountMaxWithdrawal (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountMaxWithdrawal", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountRiskState(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountRiskState", args...)
+func (this *MyokxCore) PrivateGetAccountRiskState (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountRiskState", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountInterestLimits(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountInterestLimits", args...)
+func (this *MyokxCore) PrivateGetAccountInterestLimits (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountInterestLimits", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountSpotBorrowRepayHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountSpotBorrowRepayHistory", args...)
+func (this *MyokxCore) PrivateGetAccountSpotBorrowRepayHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountSpotBorrowRepayHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountGreeks(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountGreeks", args...)
+func (this *MyokxCore) PrivateGetAccountGreeks (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountGreeks", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountPositionTiers(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountPositionTiers", args...)
+func (this *MyokxCore) PrivateGetAccountPositionTiers (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountPositionTiers", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountSetAccountSwitchPrecheck(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountSetAccountSwitchPrecheck", args...)
+func (this *MyokxCore) PrivateGetAccountSetAccountSwitchPrecheck (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountSetAccountSwitchPrecheck", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountCollateralAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountCollateralAssets", args...)
+func (this *MyokxCore) PrivateGetAccountCollateralAssets (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountCollateralAssets", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountMmpConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountMmpConfig", args...)
+func (this *MyokxCore) PrivateGetAccountMmpConfig (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountMmpConfig", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountMovePositionsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountMovePositionsHistory", args...)
+func (this *MyokxCore) PrivateGetAccountMovePositionsHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountMovePositionsHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountPrecheckSetDeltaNeutral(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountPrecheckSetDeltaNeutral", args...)
+func (this *MyokxCore) PrivateGetAccountPrecheckSetDeltaNeutral (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountPrecheckSetDeltaNeutral", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountQuickMarginBorrowRepayHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountQuickMarginBorrowRepayHistory", args...)
+func (this *MyokxCore) PrivateGetAccountQuickMarginBorrowRepayHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountQuickMarginBorrowRepayHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountBorrowRepayHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountBorrowRepayHistory", args...)
+func (this *MyokxCore) PrivateGetAccountBorrowRepayHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountBorrowRepayHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountVipInterestAccrued(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountVipInterestAccrued", args...)
+func (this *MyokxCore) PrivateGetAccountVipInterestAccrued (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountVipInterestAccrued", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountVipInterestDeducted(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountVipInterestDeducted", args...)
+func (this *MyokxCore) PrivateGetAccountVipInterestDeducted (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountVipInterestDeducted", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountVipLoanOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountVipLoanOrderList", args...)
+func (this *MyokxCore) PrivateGetAccountVipLoanOrderList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountVipLoanOrderList", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountVipLoanOrderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountVipLoanOrderDetail", args...)
+func (this *MyokxCore) PrivateGetAccountVipLoanOrderDetail (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountVipLoanOrderDetail", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountFixedLoanBorrowingLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingLimit", args...)
+func (this *MyokxCore) PrivateGetAccountFixedLoanBorrowingLimit (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingLimit", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountFixedLoanBorrowingQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingQuote", args...)
+func (this *MyokxCore) PrivateGetAccountFixedLoanBorrowingQuote (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingQuote", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountFixedLoanBorrowingOrdersList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingOrdersList", args...)
+func (this *MyokxCore) PrivateGetAccountFixedLoanBorrowingOrdersList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingOrdersList", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountSpotManualBorrowRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountSpotManualBorrowRepay", args...)
+func (this *MyokxCore) PrivateGetAccountSpotManualBorrowRepay (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountSpotManualBorrowRepay", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountSetAutoRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountSetAutoRepay", args...)
+func (this *MyokxCore) PrivateGetAccountSetAutoRepay (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountSetAutoRepay", args...)
 }
 
-func (this *MyokxCore) PrivateGetUsersSubaccountList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUsersSubaccountList", args...)
+func (this *MyokxCore) PrivateGetUsersSubaccountList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetUsersSubaccountList", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountSubaccountBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountSubaccountBalances", args...)
+func (this *MyokxCore) PrivateGetAccountSubaccountBalances (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountSubaccountBalances", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetSubaccountBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetSubaccountBalances", args...)
+func (this *MyokxCore) PrivateGetAssetSubaccountBalances (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetSubaccountBalances", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountSubaccountMaxWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountSubaccountMaxWithdrawal", args...)
+func (this *MyokxCore) PrivateGetAccountSubaccountMaxWithdrawal (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountSubaccountMaxWithdrawal", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetSubaccountBills(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetSubaccountBills", args...)
+func (this *MyokxCore) PrivateGetAssetSubaccountBills (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetSubaccountBills", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetSubaccountManagedSubaccountBills(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetSubaccountManagedSubaccountBills", args...)
+func (this *MyokxCore) PrivateGetAssetSubaccountManagedSubaccountBills (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetSubaccountManagedSubaccountBills", args...)
 }
 
-func (this *MyokxCore) PrivateGetUsersEntrustSubaccountList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUsersEntrustSubaccountList", args...)
+func (this *MyokxCore) PrivateGetUsersEntrustSubaccountList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetUsersEntrustSubaccountList", args...)
 }
 
-func (this *MyokxCore) PrivateGetAccountSubaccountInterestLimits(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountSubaccountInterestLimits", args...)
+func (this *MyokxCore) PrivateGetAccountSubaccountInterestLimits (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountSubaccountInterestLimits", args...)
 }
 
-func (this *MyokxCore) PrivateGetUsersSubaccountApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUsersSubaccountApikey", args...)
+func (this *MyokxCore) PrivateGetUsersSubaccountApikey (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetUsersSubaccountApikey", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotGridOrdersAlgoPending(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoPending", args...)
+func (this *MyokxCore) PrivateGetTradingBotGridOrdersAlgoPending (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoPending", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotGridOrdersAlgoHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoHistory", args...)
+func (this *MyokxCore) PrivateGetTradingBotGridOrdersAlgoHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotGridOrdersAlgoDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoDetails", args...)
+func (this *MyokxCore) PrivateGetTradingBotGridOrdersAlgoDetails (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoDetails", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotGridSubOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotGridSubOrders", args...)
+func (this *MyokxCore) PrivateGetTradingBotGridSubOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotGridSubOrders", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotGridPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotGridPositions", args...)
+func (this *MyokxCore) PrivateGetTradingBotGridPositions (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotGridPositions", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotGridAiParam(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotGridAiParam", args...)
+func (this *MyokxCore) PrivateGetTradingBotGridAiParam (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotGridAiParam", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotSignalSignals(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotSignalSignals", args...)
+func (this *MyokxCore) PrivateGetTradingBotSignalSignals (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotSignalSignals", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotSignalOrdersAlgoDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotSignalOrdersAlgoDetails", args...)
+func (this *MyokxCore) PrivateGetTradingBotSignalOrdersAlgoDetails (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotSignalOrdersAlgoDetails", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotSignalOrdersAlgoPending(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotSignalOrdersAlgoPending", args...)
+func (this *MyokxCore) PrivateGetTradingBotSignalOrdersAlgoPending (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotSignalOrdersAlgoPending", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotSignalOrdersAlgoHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotSignalOrdersAlgoHistory", args...)
+func (this *MyokxCore) PrivateGetTradingBotSignalOrdersAlgoHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotSignalOrdersAlgoHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotSignalPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotSignalPositions", args...)
+func (this *MyokxCore) PrivateGetTradingBotSignalPositions (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotSignalPositions", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotSignalPositionsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotSignalPositionsHistory", args...)
+func (this *MyokxCore) PrivateGetTradingBotSignalPositionsHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotSignalPositionsHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotSignalSubOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotSignalSubOrders", args...)
+func (this *MyokxCore) PrivateGetTradingBotSignalSubOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotSignalSubOrders", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotSignalEventHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotSignalEventHistory", args...)
+func (this *MyokxCore) PrivateGetTradingBotSignalEventHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotSignalEventHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotRecurringOrdersAlgoPending(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoPending", args...)
+func (this *MyokxCore) PrivateGetTradingBotRecurringOrdersAlgoPending (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoPending", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotRecurringOrdersAlgoHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoHistory", args...)
+func (this *MyokxCore) PrivateGetTradingBotRecurringOrdersAlgoHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotRecurringOrdersAlgoDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoDetails", args...)
+func (this *MyokxCore) PrivateGetTradingBotRecurringOrdersAlgoDetails (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoDetails", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotRecurringSubOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotRecurringSubOrders", args...)
+func (this *MyokxCore) PrivateGetTradingBotRecurringSubOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotRecurringSubOrders", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotDcaOngoingList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotDcaOngoingList", args...)
+func (this *MyokxCore) PrivateGetTradingBotDcaOngoingList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotDcaOngoingList", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotDcaHistoryList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotDcaHistoryList", args...)
+func (this *MyokxCore) PrivateGetTradingBotDcaHistoryList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotDcaHistoryList", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotDcaOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotDcaOrders", args...)
+func (this *MyokxCore) PrivateGetTradingBotDcaOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotDcaOrders", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotDcaPositionDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotDcaPositionDetails", args...)
+func (this *MyokxCore) PrivateGetTradingBotDcaPositionDetails (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotDcaPositionDetails", args...)
 }
 
-func (this *MyokxCore) PrivateGetTradingBotDcaCycleList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradingBotDcaCycleList", args...)
+func (this *MyokxCore) PrivateGetTradingBotDcaCycleList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetTradingBotDcaCycleList", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceSavingsBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceSavingsBalance", args...)
+func (this *MyokxCore) PrivateGetFinanceSavingsBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceSavingsBalance", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceSavingsLendingHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceSavingsLendingHistory", args...)
+func (this *MyokxCore) PrivateGetFinanceSavingsLendingHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceSavingsLendingHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceStakingDefiOffers(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceStakingDefiOffers", args...)
+func (this *MyokxCore) PrivateGetFinanceStakingDefiOffers (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceStakingDefiOffers", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceStakingDefiOrdersActive(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceStakingDefiOrdersActive", args...)
+func (this *MyokxCore) PrivateGetFinanceStakingDefiOrdersActive (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceStakingDefiOrdersActive", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceStakingDefiOrdersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceStakingDefiOrdersHistory", args...)
+func (this *MyokxCore) PrivateGetFinanceStakingDefiOrdersHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceStakingDefiOrdersHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceStakingDefiEthProductInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceStakingDefiEthProductInfo", args...)
+func (this *MyokxCore) PrivateGetFinanceStakingDefiEthProductInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceStakingDefiEthProductInfo", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceStakingDefiEthBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceStakingDefiEthBalance", args...)
+func (this *MyokxCore) PrivateGetFinanceStakingDefiEthBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceStakingDefiEthBalance", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceStakingDefiEthPurchaseRedeemHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceStakingDefiEthPurchaseRedeemHistory", args...)
+func (this *MyokxCore) PrivateGetFinanceStakingDefiEthPurchaseRedeemHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceStakingDefiEthPurchaseRedeemHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceStakingDefiSolProductInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceStakingDefiSolProductInfo", args...)
+func (this *MyokxCore) PrivateGetFinanceStakingDefiSolProductInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceStakingDefiSolProductInfo", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceStakingDefiSolBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceStakingDefiSolBalance", args...)
+func (this *MyokxCore) PrivateGetFinanceStakingDefiSolBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceStakingDefiSolBalance", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceStakingDefiSolPurchaseRedeemHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceStakingDefiSolPurchaseRedeemHistory", args...)
+func (this *MyokxCore) PrivateGetFinanceStakingDefiSolPurchaseRedeemHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceStakingDefiSolPurchaseRedeemHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceFlexibleLoanBorrowCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceFlexibleLoanBorrowCurrencies", args...)
+func (this *MyokxCore) PrivateGetFinanceFlexibleLoanBorrowCurrencies (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceFlexibleLoanBorrowCurrencies", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceFlexibleLoanCollateralAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceFlexibleLoanCollateralAssets", args...)
+func (this *MyokxCore) PrivateGetFinanceFlexibleLoanCollateralAssets (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceFlexibleLoanCollateralAssets", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceFlexibleLoanMaxCollateralRedeemAmount(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceFlexibleLoanMaxCollateralRedeemAmount", args...)
+func (this *MyokxCore) PrivateGetFinanceFlexibleLoanMaxCollateralRedeemAmount (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceFlexibleLoanMaxCollateralRedeemAmount", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceFlexibleLoanLoanInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceFlexibleLoanLoanInfo", args...)
+func (this *MyokxCore) PrivateGetFinanceFlexibleLoanLoanInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceFlexibleLoanLoanInfo", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceFlexibleLoanLoanHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceFlexibleLoanLoanHistory", args...)
+func (this *MyokxCore) PrivateGetFinanceFlexibleLoanLoanHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceFlexibleLoanLoanHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceFlexibleLoanInterestAccrued(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceFlexibleLoanInterestAccrued", args...)
+func (this *MyokxCore) PrivateGetFinanceFlexibleLoanInterestAccrued (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceFlexibleLoanInterestAccrued", args...)
 }
 
-func (this *MyokxCore) PrivateGetCopytradingCurrentSubpositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingCurrentSubpositions", args...)
+func (this *MyokxCore) PrivateGetCopytradingCurrentSubpositions (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCopytradingCurrentSubpositions", args...)
 }
 
-func (this *MyokxCore) PrivateGetCopytradingSubpositionsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingSubpositionsHistory", args...)
+func (this *MyokxCore) PrivateGetCopytradingSubpositionsHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCopytradingSubpositionsHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetCopytradingInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingInstruments", args...)
+func (this *MyokxCore) PrivateGetCopytradingInstruments (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCopytradingInstruments", args...)
 }
 
-func (this *MyokxCore) PrivateGetCopytradingProfitSharingDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingProfitSharingDetails", args...)
+func (this *MyokxCore) PrivateGetCopytradingProfitSharingDetails (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCopytradingProfitSharingDetails", args...)
 }
 
-func (this *MyokxCore) PrivateGetCopytradingTotalProfitSharing(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingTotalProfitSharing", args...)
+func (this *MyokxCore) PrivateGetCopytradingTotalProfitSharing (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCopytradingTotalProfitSharing", args...)
 }
 
-func (this *MyokxCore) PrivateGetCopytradingUnrealizedProfitSharingDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingUnrealizedProfitSharingDetails", args...)
+func (this *MyokxCore) PrivateGetCopytradingUnrealizedProfitSharingDetails (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCopytradingUnrealizedProfitSharingDetails", args...)
 }
 
-func (this *MyokxCore) PrivateGetCopytradingTotalUnrealizedProfitSharing(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingTotalUnrealizedProfitSharing", args...)
+func (this *MyokxCore) PrivateGetCopytradingTotalUnrealizedProfitSharing (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCopytradingTotalUnrealizedProfitSharing", args...)
 }
 
-func (this *MyokxCore) PrivateGetCopytradingConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingConfig", args...)
+func (this *MyokxCore) PrivateGetCopytradingConfig (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCopytradingConfig", args...)
 }
 
-func (this *MyokxCore) PrivateGetCopytradingCopySettings(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingCopySettings", args...)
+func (this *MyokxCore) PrivateGetCopytradingCopySettings (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCopytradingCopySettings", args...)
 }
 
-func (this *MyokxCore) PrivateGetCopytradingCurrentLeadTraders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingCurrentLeadTraders", args...)
+func (this *MyokxCore) PrivateGetCopytradingCurrentLeadTraders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCopytradingCurrentLeadTraders", args...)
 }
 
-func (this *MyokxCore) PrivateGetCopytradingBatchLeverageInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingBatchLeverageInfo", args...)
+func (this *MyokxCore) PrivateGetCopytradingBatchLeverageInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCopytradingBatchLeverageInfo", args...)
 }
 
-func (this *MyokxCore) PrivateGetCopytradingLeadTradersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCopytradingLeadTradersHistory", args...)
+func (this *MyokxCore) PrivateGetCopytradingLeadTradersHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCopytradingLeadTradersHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetBrokerDmaSubaccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerDmaSubaccountInfo", args...)
+func (this *MyokxCore) PrivateGetBrokerDmaSubaccountInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetBrokerDmaSubaccountInfo", args...)
 }
 
-func (this *MyokxCore) PrivateGetBrokerDmaSubaccountTradeFee(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerDmaSubaccountTradeFee", args...)
+func (this *MyokxCore) PrivateGetBrokerDmaSubaccountTradeFee (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetBrokerDmaSubaccountTradeFee", args...)
 }
 
-func (this *MyokxCore) PrivateGetBrokerDmaSubaccountApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerDmaSubaccountApikey", args...)
+func (this *MyokxCore) PrivateGetBrokerDmaSubaccountApikey (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetBrokerDmaSubaccountApikey", args...)
 }
 
-func (this *MyokxCore) PrivateGetBrokerDmaRebatePerOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerDmaRebatePerOrders", args...)
+func (this *MyokxCore) PrivateGetBrokerDmaRebatePerOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetBrokerDmaRebatePerOrders", args...)
 }
 
-func (this *MyokxCore) PrivateGetBrokerFdRebatePerOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerFdRebatePerOrders", args...)
+func (this *MyokxCore) PrivateGetBrokerFdRebatePerOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetBrokerFdRebatePerOrders", args...)
 }
 
-func (this *MyokxCore) PrivateGetBrokerFdIfRebate(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerFdIfRebate", args...)
+func (this *MyokxCore) PrivateGetBrokerFdIfRebate (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetBrokerFdIfRebate", args...)
 }
 
-func (this *MyokxCore) PrivateGetBrokerNdInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerNdInfo", args...)
+func (this *MyokxCore) PrivateGetBrokerNdInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetBrokerNdInfo", args...)
 }
 
-func (this *MyokxCore) PrivateGetBrokerNdSubaccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerNdSubaccountInfo", args...)
+func (this *MyokxCore) PrivateGetBrokerNdSubaccountInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetBrokerNdSubaccountInfo", args...)
 }
 
-func (this *MyokxCore) PrivateGetBrokerNdSubaccountApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerNdSubaccountApikey", args...)
+func (this *MyokxCore) PrivateGetBrokerNdSubaccountApikey (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetBrokerNdSubaccountApikey", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetBrokerNdSubaccountDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountDepositAddress", args...)
+func (this *MyokxCore) PrivateGetAssetBrokerNdSubaccountDepositAddress (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountDepositAddress", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetBrokerNdSubaccountDepositHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountDepositHistory", args...)
+func (this *MyokxCore) PrivateGetAssetBrokerNdSubaccountDepositHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountDepositHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetAssetBrokerNdSubaccountWithdrawalHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountWithdrawalHistory", args...)
+func (this *MyokxCore) PrivateGetAssetBrokerNdSubaccountWithdrawalHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountWithdrawalHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetBrokerNdRebateDaily(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerNdRebateDaily", args...)
+func (this *MyokxCore) PrivateGetBrokerNdRebateDaily (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetBrokerNdRebateDaily", args...)
 }
 
-func (this *MyokxCore) PrivateGetBrokerNdRebatePerOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBrokerNdRebatePerOrders", args...)
+func (this *MyokxCore) PrivateGetBrokerNdRebatePerOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetBrokerNdRebatePerOrders", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceSfpDcdOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceSfpDcdOrder", args...)
+func (this *MyokxCore) PrivateGetFinanceSfpDcdOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceSfpDcdOrder", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceSfpDcdOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceSfpDcdOrders", args...)
+func (this *MyokxCore) PrivateGetFinanceSfpDcdOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceSfpDcdOrders", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceSfpDcdCurrencyPair(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceSfpDcdCurrencyPair", args...)
+func (this *MyokxCore) PrivateGetFinanceSfpDcdCurrencyPair (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceSfpDcdCurrencyPair", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceSfpDcdOrderStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceSfpDcdOrderStatus", args...)
+func (this *MyokxCore) PrivateGetFinanceSfpDcdOrderStatus (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceSfpDcdOrderStatus", args...)
 }
 
-func (this *MyokxCore) PrivateGetFinanceSfpDcdOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFinanceSfpDcdOrderHistory", args...)
+func (this *MyokxCore) PrivateGetFinanceSfpDcdOrderHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFinanceSfpDcdOrderHistory", args...)
 }
 
-func (this *MyokxCore) PrivateGetAffiliateInviteeDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAffiliateInviteeDetail", args...)
+func (this *MyokxCore) PrivateGetAffiliateInviteeDetail (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAffiliateInviteeDetail", args...)
 }
 
-func (this *MyokxCore) PrivateGetUsersPartnerIfRebate(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUsersPartnerIfRebate", args...)
+func (this *MyokxCore) PrivateGetUsersPartnerIfRebate (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetUsersPartnerIfRebate", args...)
 }
 
-func (this *MyokxCore) PrivateGetSupportAnnouncements(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSupportAnnouncements", args...)
+func (this *MyokxCore) PrivateGetSupportAnnouncements (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSupportAnnouncements", args...)
 }
 
-func (this *MyokxCore) PrivatePostRfqCreateRfq(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqCreateRfq", args...)
+func (this *MyokxCore) PrivatePostRfqCreateRfq (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostRfqCreateRfq", args...)
 }
 
-func (this *MyokxCore) PrivatePostRfqCancelRfq(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqCancelRfq", args...)
+func (this *MyokxCore) PrivatePostRfqCancelRfq (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostRfqCancelRfq", args...)
 }
 
-func (this *MyokxCore) PrivatePostRfqCancelBatchRfqs(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqCancelBatchRfqs", args...)
+func (this *MyokxCore) PrivatePostRfqCancelBatchRfqs (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostRfqCancelBatchRfqs", args...)
 }
 
-func (this *MyokxCore) PrivatePostRfqCancelAllRfqs(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqCancelAllRfqs", args...)
+func (this *MyokxCore) PrivatePostRfqCancelAllRfqs (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostRfqCancelAllRfqs", args...)
 }
 
-func (this *MyokxCore) PrivatePostRfqExecuteQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqExecuteQuote", args...)
+func (this *MyokxCore) PrivatePostRfqExecuteQuote (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostRfqExecuteQuote", args...)
 }
 
-func (this *MyokxCore) PrivatePostRfqMakerInstrumentSettings(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqMakerInstrumentSettings", args...)
+func (this *MyokxCore) PrivatePostRfqMakerInstrumentSettings (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostRfqMakerInstrumentSettings", args...)
 }
 
-func (this *MyokxCore) PrivatePostRfqMmpReset(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqMmpReset", args...)
+func (this *MyokxCore) PrivatePostRfqMmpReset (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostRfqMmpReset", args...)
 }
 
-func (this *MyokxCore) PrivatePostRfqMmpConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqMmpConfig", args...)
+func (this *MyokxCore) PrivatePostRfqMmpConfig (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostRfqMmpConfig", args...)
 }
 
-func (this *MyokxCore) PrivatePostRfqCreateQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqCreateQuote", args...)
+func (this *MyokxCore) PrivatePostRfqCreateQuote (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostRfqCreateQuote", args...)
 }
 
-func (this *MyokxCore) PrivatePostRfqCancelQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqCancelQuote", args...)
+func (this *MyokxCore) PrivatePostRfqCancelQuote (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostRfqCancelQuote", args...)
 }
 
-func (this *MyokxCore) PrivatePostRfqCancelBatchQuotes(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqCancelBatchQuotes", args...)
+func (this *MyokxCore) PrivatePostRfqCancelBatchQuotes (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostRfqCancelBatchQuotes", args...)
 }
 
-func (this *MyokxCore) PrivatePostRfqCancelAllQuotes(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqCancelAllQuotes", args...)
+func (this *MyokxCore) PrivatePostRfqCancelAllQuotes (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostRfqCancelAllQuotes", args...)
 }
 
-func (this *MyokxCore) PrivatePostRfqCancelAllAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRfqCancelAllAfter", args...)
+func (this *MyokxCore) PrivatePostRfqCancelAllAfter (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostRfqCancelAllAfter", args...)
 }
 
-func (this *MyokxCore) PrivatePostSprdOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSprdOrder", args...)
+func (this *MyokxCore) PrivatePostSprdOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSprdOrder", args...)
 }
 
-func (this *MyokxCore) PrivatePostSprdCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSprdCancelOrder", args...)
+func (this *MyokxCore) PrivatePostSprdCancelOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSprdCancelOrder", args...)
 }
 
-func (this *MyokxCore) PrivatePostSprdMassCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSprdMassCancel", args...)
+func (this *MyokxCore) PrivatePostSprdMassCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSprdMassCancel", args...)
 }
 
-func (this *MyokxCore) PrivatePostSprdAmendOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSprdAmendOrder", args...)
+func (this *MyokxCore) PrivatePostSprdAmendOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSprdAmendOrder", args...)
 }
 
-func (this *MyokxCore) PrivatePostSprdCancelAllAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSprdCancelAllAfter", args...)
+func (this *MyokxCore) PrivatePostSprdCancelAllAfter (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSprdCancelAllAfter", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeOrder", args...)
+func (this *MyokxCore) PrivatePostTradeOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeOrder", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradeBatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeBatchOrders", args...)
+func (this *MyokxCore) PrivatePostTradeBatchOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeBatchOrders", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradeCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeCancelOrder", args...)
+func (this *MyokxCore) PrivatePostTradeCancelOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeCancelOrder", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradeCancelBatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeCancelBatchOrders", args...)
+func (this *MyokxCore) PrivatePostTradeCancelBatchOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeCancelBatchOrders", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradeAmendOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeAmendOrder", args...)
+func (this *MyokxCore) PrivatePostTradeAmendOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeAmendOrder", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradeAmendBatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeAmendBatchOrders", args...)
+func (this *MyokxCore) PrivatePostTradeAmendBatchOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeAmendBatchOrders", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradeClosePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeClosePosition", args...)
+func (this *MyokxCore) PrivatePostTradeClosePosition (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeClosePosition", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradeFillsArchive(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeFillsArchive", args...)
+func (this *MyokxCore) PrivatePostTradeFillsArchive (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeFillsArchive", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradeCancelAdvanceAlgos(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeCancelAdvanceAlgos", args...)
+func (this *MyokxCore) PrivatePostTradeCancelAdvanceAlgos (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeCancelAdvanceAlgos", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradeEasyConvert(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeEasyConvert", args...)
+func (this *MyokxCore) PrivatePostTradeEasyConvert (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeEasyConvert", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradeOneClickRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeOneClickRepay", args...)
+func (this *MyokxCore) PrivatePostTradeOneClickRepay (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeOneClickRepay", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradeOneClickRepayV2(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeOneClickRepayV2", args...)
+func (this *MyokxCore) PrivatePostTradeOneClickRepayV2 (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeOneClickRepayV2", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradeMassCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeMassCancel", args...)
+func (this *MyokxCore) PrivatePostTradeMassCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeMassCancel", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradeCancelAllAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeCancelAllAfter", args...)
+func (this *MyokxCore) PrivatePostTradeCancelAllAfter (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeCancelAllAfter", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradeOrderPrecheck(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeOrderPrecheck", args...)
+func (this *MyokxCore) PrivatePostTradeOrderPrecheck (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeOrderPrecheck", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradeOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeOrderAlgo", args...)
+func (this *MyokxCore) PrivatePostTradeOrderAlgo (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeOrderAlgo", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradeCancelAlgos(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeCancelAlgos", args...)
+func (this *MyokxCore) PrivatePostTradeCancelAlgos (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeCancelAlgos", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradeAmendAlgos(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeAmendAlgos", args...)
+func (this *MyokxCore) PrivatePostTradeAmendAlgos (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradeAmendAlgos", args...)
 }
 
-func (this *MyokxCore) PrivatePostAssetTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAssetTransfer", args...)
+func (this *MyokxCore) PrivatePostAssetTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAssetTransfer", args...)
 }
 
-func (this *MyokxCore) PrivatePostAssetWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAssetWithdrawal", args...)
+func (this *MyokxCore) PrivatePostAssetWithdrawal (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAssetWithdrawal", args...)
 }
 
-func (this *MyokxCore) PrivatePostAssetWithdrawalLightning(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAssetWithdrawalLightning", args...)
+func (this *MyokxCore) PrivatePostAssetWithdrawalLightning (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAssetWithdrawalLightning", args...)
 }
 
-func (this *MyokxCore) PrivatePostAssetCancelWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAssetCancelWithdrawal", args...)
+func (this *MyokxCore) PrivatePostAssetCancelWithdrawal (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAssetCancelWithdrawal", args...)
 }
 
-func (this *MyokxCore) PrivatePostAssetConvertDustAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAssetConvertDustAssets", args...)
+func (this *MyokxCore) PrivatePostAssetConvertDustAssets (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAssetConvertDustAssets", args...)
 }
 
-func (this *MyokxCore) PrivatePostAssetMonthlyStatement(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAssetMonthlyStatement", args...)
+func (this *MyokxCore) PrivatePostAssetMonthlyStatement (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAssetMonthlyStatement", args...)
 }
 
-func (this *MyokxCore) PrivatePostAssetConvertEstimateQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAssetConvertEstimateQuote", args...)
+func (this *MyokxCore) PrivatePostAssetConvertEstimateQuote (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAssetConvertEstimateQuote", args...)
 }
 
-func (this *MyokxCore) PrivatePostAssetConvertTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAssetConvertTrade", args...)
+func (this *MyokxCore) PrivatePostAssetConvertTrade (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAssetConvertTrade", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountBillsHistoryArchive(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountBillsHistoryArchive", args...)
+func (this *MyokxCore) PrivatePostAccountBillsHistoryArchive (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountBillsHistoryArchive", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountSetPositionMode(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetPositionMode", args...)
+func (this *MyokxCore) PrivatePostAccountSetPositionMode (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSetPositionMode", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountSetLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetLeverage", args...)
+func (this *MyokxCore) PrivatePostAccountSetLeverage (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSetLeverage", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountPositionMarginBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountPositionMarginBalance", args...)
+func (this *MyokxCore) PrivatePostAccountPositionMarginBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountPositionMarginBalance", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountSetFeeType(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetFeeType", args...)
+func (this *MyokxCore) PrivatePostAccountSetFeeType (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSetFeeType", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountSetGreeks(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetGreeks", args...)
+func (this *MyokxCore) PrivatePostAccountSetGreeks (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSetGreeks", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountSetIsolatedMode(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetIsolatedMode", args...)
+func (this *MyokxCore) PrivatePostAccountSetIsolatedMode (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSetIsolatedMode", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountSpotManualBorrowRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSpotManualBorrowRepay", args...)
+func (this *MyokxCore) PrivatePostAccountSpotManualBorrowRepay (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSpotManualBorrowRepay", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountSetAutoRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetAutoRepay", args...)
+func (this *MyokxCore) PrivatePostAccountSetAutoRepay (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSetAutoRepay", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountQuickMarginBorrowRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountQuickMarginBorrowRepay", args...)
+func (this *MyokxCore) PrivatePostAccountQuickMarginBorrowRepay (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountQuickMarginBorrowRepay", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountBorrowRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountBorrowRepay", args...)
+func (this *MyokxCore) PrivatePostAccountBorrowRepay (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountBorrowRepay", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountSimulatedMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSimulatedMargin", args...)
+func (this *MyokxCore) PrivatePostAccountSimulatedMargin (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSimulatedMargin", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountPositionBuilder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountPositionBuilder", args...)
+func (this *MyokxCore) PrivatePostAccountPositionBuilder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountPositionBuilder", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountPositionBuilderGraph(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountPositionBuilderGraph", args...)
+func (this *MyokxCore) PrivatePostAccountPositionBuilderGraph (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountPositionBuilderGraph", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountSetRiskOffsetType(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetRiskOffsetType", args...)
+func (this *MyokxCore) PrivatePostAccountSetRiskOffsetType (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSetRiskOffsetType", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountSetRiskOffsetAmt(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetRiskOffsetAmt", args...)
+func (this *MyokxCore) PrivatePostAccountSetRiskOffsetAmt (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSetRiskOffsetAmt", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountActivateOption(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountActivateOption", args...)
+func (this *MyokxCore) PrivatePostAccountActivateOption (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountActivateOption", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountSetAutoLoan(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetAutoLoan", args...)
+func (this *MyokxCore) PrivatePostAccountSetAutoLoan (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSetAutoLoan", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountAccountLevelSwitchPreset(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountAccountLevelSwitchPreset", args...)
+func (this *MyokxCore) PrivatePostAccountAccountLevelSwitchPreset (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountAccountLevelSwitchPreset", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountSetAccountLevel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetAccountLevel", args...)
+func (this *MyokxCore) PrivatePostAccountSetAccountLevel (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSetAccountLevel", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountSetCollateralAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetCollateralAssets", args...)
+func (this *MyokxCore) PrivatePostAccountSetCollateralAssets (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSetCollateralAssets", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountMmpReset(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountMmpReset", args...)
+func (this *MyokxCore) PrivatePostAccountMmpReset (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountMmpReset", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountMmpConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountMmpConfig", args...)
+func (this *MyokxCore) PrivatePostAccountMmpConfig (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountMmpConfig", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountFixedLoanBorrowingOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountFixedLoanBorrowingOrder", args...)
+func (this *MyokxCore) PrivatePostAccountFixedLoanBorrowingOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountFixedLoanBorrowingOrder", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountFixedLoanAmendBorrowingOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountFixedLoanAmendBorrowingOrder", args...)
+func (this *MyokxCore) PrivatePostAccountFixedLoanAmendBorrowingOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountFixedLoanAmendBorrowingOrder", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountFixedLoanManualReborrow(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountFixedLoanManualReborrow", args...)
+func (this *MyokxCore) PrivatePostAccountFixedLoanManualReborrow (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountFixedLoanManualReborrow", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountFixedLoanRepayBorrowingOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountFixedLoanRepayBorrowingOrder", args...)
+func (this *MyokxCore) PrivatePostAccountFixedLoanRepayBorrowingOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountFixedLoanRepayBorrowingOrder", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountMovePositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountMovePositions", args...)
+func (this *MyokxCore) PrivatePostAccountMovePositions (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountMovePositions", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountSetAutoEarn(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetAutoEarn", args...)
+func (this *MyokxCore) PrivatePostAccountSetAutoEarn (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSetAutoEarn", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountSetSettleCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetSettleCurrency", args...)
+func (this *MyokxCore) PrivatePostAccountSetSettleCurrency (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSetSettleCurrency", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountSetTradingConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSetTradingConfig", args...)
+func (this *MyokxCore) PrivatePostAccountSetTradingConfig (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSetTradingConfig", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountDemoAdjustBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountDemoAdjustBalance", args...)
+func (this *MyokxCore) PrivatePostAccountDemoAdjustBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountDemoAdjustBalance", args...)
 }
 
-func (this *MyokxCore) PrivatePostAssetSubaccountTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAssetSubaccountTransfer", args...)
+func (this *MyokxCore) PrivatePostAssetSubaccountTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAssetSubaccountTransfer", args...)
 }
 
-func (this *MyokxCore) PrivatePostAccountSubaccountSetLoanAllocation(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSubaccountSetLoanAllocation", args...)
+func (this *MyokxCore) PrivatePostAccountSubaccountSetLoanAllocation (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSubaccountSetLoanAllocation", args...)
 }
 
-func (this *MyokxCore) PrivatePostUsersSubaccountCreateSubaccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUsersSubaccountCreateSubaccount", args...)
+func (this *MyokxCore) PrivatePostUsersSubaccountCreateSubaccount (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostUsersSubaccountCreateSubaccount", args...)
 }
 
-func (this *MyokxCore) PrivatePostUsersSubaccountApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUsersSubaccountApikey", args...)
+func (this *MyokxCore) PrivatePostUsersSubaccountApikey (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostUsersSubaccountApikey", args...)
 }
 
-func (this *MyokxCore) PrivatePostUsersSubaccountModifyApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUsersSubaccountModifyApikey", args...)
+func (this *MyokxCore) PrivatePostUsersSubaccountModifyApikey (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostUsersSubaccountModifyApikey", args...)
 }
 
-func (this *MyokxCore) PrivatePostUsersSubaccountSubaccountApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUsersSubaccountSubaccountApikey", args...)
+func (this *MyokxCore) PrivatePostUsersSubaccountSubaccountApikey (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostUsersSubaccountSubaccountApikey", args...)
 }
 
-func (this *MyokxCore) PrivatePostUsersSubaccountDeleteApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUsersSubaccountDeleteApikey", args...)
+func (this *MyokxCore) PrivatePostUsersSubaccountDeleteApikey (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostUsersSubaccountDeleteApikey", args...)
 }
 
-func (this *MyokxCore) PrivatePostUsersSubaccountSetTransferOut(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUsersSubaccountSetTransferOut", args...)
+func (this *MyokxCore) PrivatePostUsersSubaccountSetTransferOut (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostUsersSubaccountSetTransferOut", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotGridOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridOrderAlgo", args...)
+func (this *MyokxCore) PrivatePostTradingBotGridOrderAlgo (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotGridOrderAlgo", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotGridCopyOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridCopyOrderAlgo", args...)
+func (this *MyokxCore) PrivatePostTradingBotGridCopyOrderAlgo (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotGridCopyOrderAlgo", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotGridAmendAlgoBasicParam(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridAmendAlgoBasicParam", args...)
+func (this *MyokxCore) PrivatePostTradingBotGridAmendAlgoBasicParam (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotGridAmendAlgoBasicParam", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotGridAmendOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridAmendOrderAlgo", args...)
+func (this *MyokxCore) PrivatePostTradingBotGridAmendOrderAlgo (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotGridAmendOrderAlgo", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotGridStopOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridStopOrderAlgo", args...)
+func (this *MyokxCore) PrivatePostTradingBotGridStopOrderAlgo (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotGridStopOrderAlgo", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotGridClosePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridClosePosition", args...)
+func (this *MyokxCore) PrivatePostTradingBotGridClosePosition (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotGridClosePosition", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotGridCancelCloseOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridCancelCloseOrder", args...)
+func (this *MyokxCore) PrivatePostTradingBotGridCancelCloseOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotGridCancelCloseOrder", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotGridOrderInstantTrigger(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridOrderInstantTrigger", args...)
+func (this *MyokxCore) PrivatePostTradingBotGridOrderInstantTrigger (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotGridOrderInstantTrigger", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotGridWithdrawIncome(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridWithdrawIncome", args...)
+func (this *MyokxCore) PrivatePostTradingBotGridWithdrawIncome (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotGridWithdrawIncome", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotGridComputeMarginBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridComputeMarginBalance", args...)
+func (this *MyokxCore) PrivatePostTradingBotGridComputeMarginBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotGridComputeMarginBalance", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotGridMarginBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridMarginBalance", args...)
+func (this *MyokxCore) PrivatePostTradingBotGridMarginBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotGridMarginBalance", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotGridMinInvestment(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridMinInvestment", args...)
+func (this *MyokxCore) PrivatePostTradingBotGridMinInvestment (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotGridMinInvestment", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotGridAdjustInvestment(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotGridAdjustInvestment", args...)
+func (this *MyokxCore) PrivatePostTradingBotGridAdjustInvestment (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotGridAdjustInvestment", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotSignalCreateSignal(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotSignalCreateSignal", args...)
+func (this *MyokxCore) PrivatePostTradingBotSignalCreateSignal (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotSignalCreateSignal", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotSignalOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotSignalOrderAlgo", args...)
+func (this *MyokxCore) PrivatePostTradingBotSignalOrderAlgo (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotSignalOrderAlgo", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotSignalStopOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotSignalStopOrderAlgo", args...)
+func (this *MyokxCore) PrivatePostTradingBotSignalStopOrderAlgo (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotSignalStopOrderAlgo", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotSignalMarginBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotSignalMarginBalance", args...)
+func (this *MyokxCore) PrivatePostTradingBotSignalMarginBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotSignalMarginBalance", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotSignalAmendTPSL(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotSignalAmendTPSL", args...)
+func (this *MyokxCore) PrivatePostTradingBotSignalAmendTPSL (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotSignalAmendTPSL", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotSignalSetInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotSignalSetInstruments", args...)
+func (this *MyokxCore) PrivatePostTradingBotSignalSetInstruments (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotSignalSetInstruments", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotSignalClosePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotSignalClosePosition", args...)
+func (this *MyokxCore) PrivatePostTradingBotSignalClosePosition (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotSignalClosePosition", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotSignalSubOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotSignalSubOrder", args...)
+func (this *MyokxCore) PrivatePostTradingBotSignalSubOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotSignalSubOrder", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotSignalCancelSubOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotSignalCancelSubOrder", args...)
+func (this *MyokxCore) PrivatePostTradingBotSignalCancelSubOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotSignalCancelSubOrder", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotRecurringOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotRecurringOrderAlgo", args...)
+func (this *MyokxCore) PrivatePostTradingBotRecurringOrderAlgo (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotRecurringOrderAlgo", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotRecurringAmendOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotRecurringAmendOrderAlgo", args...)
+func (this *MyokxCore) PrivatePostTradingBotRecurringAmendOrderAlgo (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotRecurringAmendOrderAlgo", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotRecurringStopOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotRecurringStopOrderAlgo", args...)
+func (this *MyokxCore) PrivatePostTradingBotRecurringStopOrderAlgo (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotRecurringStopOrderAlgo", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotDcaCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotDcaCreate", args...)
+func (this *MyokxCore) PrivatePostTradingBotDcaCreate (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotDcaCreate", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotDcaAmendOrderAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotDcaAmendOrderAlgo", args...)
+func (this *MyokxCore) PrivatePostTradingBotDcaAmendOrderAlgo (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotDcaAmendOrderAlgo", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotDcaStop(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotDcaStop", args...)
+func (this *MyokxCore) PrivatePostTradingBotDcaStop (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotDcaStop", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotDcaOrdersManualBuy(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotDcaOrdersManualBuy", args...)
+func (this *MyokxCore) PrivatePostTradingBotDcaOrdersManualBuy (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotDcaOrdersManualBuy", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotDcaSettingsReinvestment(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotDcaSettingsReinvestment", args...)
+func (this *MyokxCore) PrivatePostTradingBotDcaSettingsReinvestment (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotDcaSettingsReinvestment", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotDcaSettingsTakeProfit(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotDcaSettingsTakeProfit", args...)
+func (this *MyokxCore) PrivatePostTradingBotDcaSettingsTakeProfit (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotDcaSettingsTakeProfit", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotDcaMarginAdd(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotDcaMarginAdd", args...)
+func (this *MyokxCore) PrivatePostTradingBotDcaMarginAdd (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotDcaMarginAdd", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotDcaMarginReduce(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotDcaMarginReduce", args...)
+func (this *MyokxCore) PrivatePostTradingBotDcaMarginReduce (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotDcaMarginReduce", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotRecurringAddInvestment(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotRecurringAddInvestment", args...)
+func (this *MyokxCore) PrivatePostTradingBotRecurringAddInvestment (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotRecurringAddInvestment", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotRecurringAmendPriceRange(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotRecurringAmendPriceRange", args...)
+func (this *MyokxCore) PrivatePostTradingBotRecurringAmendPriceRange (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotRecurringAmendPriceRange", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotRecurringAmendRecurringAmount(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotRecurringAmendRecurringAmount", args...)
+func (this *MyokxCore) PrivatePostTradingBotRecurringAmendRecurringAmount (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotRecurringAmendRecurringAmount", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotRecurringAmendRecurringTime(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotRecurringAmendRecurringTime", args...)
+func (this *MyokxCore) PrivatePostTradingBotRecurringAmendRecurringTime (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotRecurringAmendRecurringTime", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotRecurringPause(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotRecurringPause", args...)
+func (this *MyokxCore) PrivatePostTradingBotRecurringPause (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotRecurringPause", args...)
 }
 
-func (this *MyokxCore) PrivatePostTradingBotRecurringRestart(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradingBotRecurringRestart", args...)
+func (this *MyokxCore) PrivatePostTradingBotRecurringRestart (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostTradingBotRecurringRestart", args...)
 }
 
-func (this *MyokxCore) PrivatePostFinanceSavingsPurchaseRedempt(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceSavingsPurchaseRedempt", args...)
+func (this *MyokxCore) PrivatePostFinanceSavingsPurchaseRedempt (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostFinanceSavingsPurchaseRedempt", args...)
 }
 
-func (this *MyokxCore) PrivatePostFinanceSavingsSetLendingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceSavingsSetLendingRate", args...)
+func (this *MyokxCore) PrivatePostFinanceSavingsSetLendingRate (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostFinanceSavingsSetLendingRate", args...)
 }
 
-func (this *MyokxCore) PrivatePostFinanceStakingDefiPurchase(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceStakingDefiPurchase", args...)
+func (this *MyokxCore) PrivatePostFinanceStakingDefiPurchase (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostFinanceStakingDefiPurchase", args...)
 }
 
-func (this *MyokxCore) PrivatePostFinanceStakingDefiRedeem(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceStakingDefiRedeem", args...)
+func (this *MyokxCore) PrivatePostFinanceStakingDefiRedeem (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostFinanceStakingDefiRedeem", args...)
 }
 
-func (this *MyokxCore) PrivatePostFinanceStakingDefiCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceStakingDefiCancel", args...)
+func (this *MyokxCore) PrivatePostFinanceStakingDefiCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostFinanceStakingDefiCancel", args...)
 }
 
-func (this *MyokxCore) PrivatePostFinanceStakingDefiEthPurchase(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceStakingDefiEthPurchase", args...)
+func (this *MyokxCore) PrivatePostFinanceStakingDefiEthPurchase (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostFinanceStakingDefiEthPurchase", args...)
 }
 
-func (this *MyokxCore) PrivatePostFinanceStakingDefiEthRedeem(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceStakingDefiEthRedeem", args...)
+func (this *MyokxCore) PrivatePostFinanceStakingDefiEthRedeem (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostFinanceStakingDefiEthRedeem", args...)
 }
 
-func (this *MyokxCore) PrivatePostFinanceStakingDefiEthCancelRedeem(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceStakingDefiEthCancelRedeem", args...)
+func (this *MyokxCore) PrivatePostFinanceStakingDefiEthCancelRedeem (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostFinanceStakingDefiEthCancelRedeem", args...)
 }
 
-func (this *MyokxCore) PrivatePostFinanceStakingDefiSolPurchase(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceStakingDefiSolPurchase", args...)
+func (this *MyokxCore) PrivatePostFinanceStakingDefiSolPurchase (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostFinanceStakingDefiSolPurchase", args...)
 }
 
-func (this *MyokxCore) PrivatePostFinanceStakingDefiSolRedeem(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceStakingDefiSolRedeem", args...)
+func (this *MyokxCore) PrivatePostFinanceStakingDefiSolRedeem (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostFinanceStakingDefiSolRedeem", args...)
 }
 
-func (this *MyokxCore) PrivatePostFinanceStakingDefiSolCancelRedeem(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceStakingDefiSolCancelRedeem", args...)
+func (this *MyokxCore) PrivatePostFinanceStakingDefiSolCancelRedeem (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostFinanceStakingDefiSolCancelRedeem", args...)
 }
 
-func (this *MyokxCore) PrivatePostFinanceFlexibleLoanMaxLoan(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceFlexibleLoanMaxLoan", args...)
+func (this *MyokxCore) PrivatePostFinanceFlexibleLoanMaxLoan (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostFinanceFlexibleLoanMaxLoan", args...)
 }
 
-func (this *MyokxCore) PrivatePostFinanceFlexibleLoanAdjustCollateral(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceFlexibleLoanAdjustCollateral", args...)
+func (this *MyokxCore) PrivatePostFinanceFlexibleLoanAdjustCollateral (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostFinanceFlexibleLoanAdjustCollateral", args...)
 }
 
-func (this *MyokxCore) PrivatePostCopytradingAlgoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCopytradingAlgoOrder", args...)
+func (this *MyokxCore) PrivatePostCopytradingAlgoOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostCopytradingAlgoOrder", args...)
 }
 
-func (this *MyokxCore) PrivatePostCopytradingCloseSubposition(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCopytradingCloseSubposition", args...)
+func (this *MyokxCore) PrivatePostCopytradingCloseSubposition (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostCopytradingCloseSubposition", args...)
 }
 
-func (this *MyokxCore) PrivatePostCopytradingSetInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCopytradingSetInstruments", args...)
+func (this *MyokxCore) PrivatePostCopytradingSetInstruments (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostCopytradingSetInstruments", args...)
 }
 
-func (this *MyokxCore) PrivatePostCopytradingAmendProfitSharingRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCopytradingAmendProfitSharingRatio", args...)
+func (this *MyokxCore) PrivatePostCopytradingAmendProfitSharingRatio (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostCopytradingAmendProfitSharingRatio", args...)
 }
 
-func (this *MyokxCore) PrivatePostCopytradingFirstCopySettings(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCopytradingFirstCopySettings", args...)
+func (this *MyokxCore) PrivatePostCopytradingFirstCopySettings (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostCopytradingFirstCopySettings", args...)
 }
 
-func (this *MyokxCore) PrivatePostCopytradingAmendCopySettings(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCopytradingAmendCopySettings", args...)
+func (this *MyokxCore) PrivatePostCopytradingAmendCopySettings (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostCopytradingAmendCopySettings", args...)
 }
 
-func (this *MyokxCore) PrivatePostCopytradingStopCopyTrading(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCopytradingStopCopyTrading", args...)
+func (this *MyokxCore) PrivatePostCopytradingStopCopyTrading (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostCopytradingStopCopyTrading", args...)
 }
 
-func (this *MyokxCore) PrivatePostCopytradingBatchSetLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCopytradingBatchSetLeverage", args...)
+func (this *MyokxCore) PrivatePostCopytradingBatchSetLeverage (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostCopytradingBatchSetLeverage", args...)
 }
 
-func (this *MyokxCore) PrivatePostBrokerNdCreateSubaccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerNdCreateSubaccount", args...)
+func (this *MyokxCore) PrivatePostBrokerNdCreateSubaccount (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostBrokerNdCreateSubaccount", args...)
 }
 
-func (this *MyokxCore) PrivatePostBrokerNdDeleteSubaccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerNdDeleteSubaccount", args...)
+func (this *MyokxCore) PrivatePostBrokerNdDeleteSubaccount (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostBrokerNdDeleteSubaccount", args...)
 }
 
-func (this *MyokxCore) PrivatePostBrokerNdSubaccountApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerNdSubaccountApikey", args...)
+func (this *MyokxCore) PrivatePostBrokerNdSubaccountApikey (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostBrokerNdSubaccountApikey", args...)
 }
 
-func (this *MyokxCore) PrivatePostBrokerNdSubaccountModifyApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerNdSubaccountModifyApikey", args...)
+func (this *MyokxCore) PrivatePostBrokerNdSubaccountModifyApikey (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostBrokerNdSubaccountModifyApikey", args...)
 }
 
-func (this *MyokxCore) PrivatePostBrokerNdSubaccountDeleteApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerNdSubaccountDeleteApikey", args...)
+func (this *MyokxCore) PrivatePostBrokerNdSubaccountDeleteApikey (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostBrokerNdSubaccountDeleteApikey", args...)
 }
 
-func (this *MyokxCore) PrivatePostBrokerNdSetSubaccountLevel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerNdSetSubaccountLevel", args...)
+func (this *MyokxCore) PrivatePostBrokerNdSetSubaccountLevel (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostBrokerNdSetSubaccountLevel", args...)
 }
 
-func (this *MyokxCore) PrivatePostBrokerNdSetSubaccountFeeRate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerNdSetSubaccountFeeRate", args...)
+func (this *MyokxCore) PrivatePostBrokerNdSetSubaccountFeeRate (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostBrokerNdSetSubaccountFeeRate", args...)
 }
 
-func (this *MyokxCore) PrivatePostBrokerNdSetSubaccountAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerNdSetSubaccountAssets", args...)
+func (this *MyokxCore) PrivatePostBrokerNdSetSubaccountAssets (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostBrokerNdSetSubaccountAssets", args...)
 }
 
-func (this *MyokxCore) PrivatePostAssetBrokerNdSubaccountDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAssetBrokerNdSubaccountDepositAddress", args...)
+func (this *MyokxCore) PrivatePostAssetBrokerNdSubaccountDepositAddress (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAssetBrokerNdSubaccountDepositAddress", args...)
 }
 
-func (this *MyokxCore) PrivatePostAssetBrokerNdModifySubaccountDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAssetBrokerNdModifySubaccountDepositAddress", args...)
+func (this *MyokxCore) PrivatePostAssetBrokerNdModifySubaccountDepositAddress (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAssetBrokerNdModifySubaccountDepositAddress", args...)
 }
 
-func (this *MyokxCore) PrivatePostBrokerNdRebatePerOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerNdRebatePerOrders", args...)
+func (this *MyokxCore) PrivatePostBrokerNdRebatePerOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostBrokerNdRebatePerOrders", args...)
 }
 
-func (this *MyokxCore) PrivatePostFinanceSfpDcdQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceSfpDcdQuote", args...)
+func (this *MyokxCore) PrivatePostFinanceSfpDcdQuote (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostFinanceSfpDcdQuote", args...)
 }
 
-func (this *MyokxCore) PrivatePostFinanceSfpDcdOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceSfpDcdOrder", args...)
+func (this *MyokxCore) PrivatePostFinanceSfpDcdOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostFinanceSfpDcdOrder", args...)
 }
 
-func (this *MyokxCore) PrivatePostFinanceSfpDcdTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceSfpDcdTrade", args...)
+func (this *MyokxCore) PrivatePostFinanceSfpDcdTrade (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostFinanceSfpDcdTrade", args...)
 }
 
-func (this *MyokxCore) PrivatePostFinanceSfpDcdRedeemQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceSfpDcdRedeemQuote", args...)
+func (this *MyokxCore) PrivatePostFinanceSfpDcdRedeemQuote (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostFinanceSfpDcdRedeemQuote", args...)
 }
 
-func (this *MyokxCore) PrivatePostFinanceSfpDcdRedeem(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFinanceSfpDcdRedeem", args...)
+func (this *MyokxCore) PrivatePostFinanceSfpDcdRedeem (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostFinanceSfpDcdRedeem", args...)
 }
 
-func (this *MyokxCore) PrivatePostBrokerNdReportSubaccountIp(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerNdReportSubaccountIp", args...)
+func (this *MyokxCore) PrivatePostBrokerNdReportSubaccountIp (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostBrokerNdReportSubaccountIp", args...)
 }
 
-func (this *MyokxCore) PrivatePostBrokerDmaSubaccountApikey(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerDmaSubaccountApikey", args...)
+func (this *MyokxCore) PrivatePostBrokerDmaSubaccountApikey (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostBrokerDmaSubaccountApikey", args...)
 }
 
-func (this *MyokxCore) PrivatePostBrokerDmaTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerDmaTrades", args...)
+func (this *MyokxCore) PrivatePostBrokerDmaTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostBrokerDmaTrades", args...)
 }
 
-func (this *MyokxCore) PrivatePostBrokerFdRebatePerOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBrokerFdRebatePerOrders", args...)
+func (this *MyokxCore) PrivatePostBrokerFdRebatePerOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostBrokerFdRebatePerOrders", args...)
 }

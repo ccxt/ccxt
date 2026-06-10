@@ -47,6 +47,7 @@ interface Exchange {
     v1PrivateGetPortfolioChartsPnl (params?: {}): Promise<implicitReturnType>;
     v1PrivateGetVaultPublicPerformance (params?: {}): Promise<implicitReturnType>;
     v1PrivateGetVaultPublicSummary (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetBuilderTrades (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostUserOrder (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostUserOrderMassCancel (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostUserDeadmanswitch (params?: {}): Promise<implicitReturnType>;
