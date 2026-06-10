@@ -133,6 +133,67 @@
                 }
             }
         ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    2
+                ],
+                "httpResponse": {
+                    "product_id": 2,
+                    "ticker_id": "BTC-PERP_USDT0",
+                    "bids": [
+                        [
+                            116215,
+                            0.128
+                        ],
+                        [
+                            116214,
+                            0.172
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            116225,
+                            0.043
+                        ],
+                        [
+                            116226,
+                            0.172
+                        ]
+                    ],
+                    "timestamp": 1757913317944
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT0:USDT0",
+                    "bids": [
+                        [
+                            116215,
+                            0.128
+                        ],
+                        [
+                            116214,
+                            0.172
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            116225,
+                            0.043
+                        ],
+                        [
+                            116226,
+                            0.172
+                        ]
+                    ],
+                    "timestamp": 1757913317944,
+                    "datetime": "2025-09-15T05:15:17.944Z",
+                    "nonce": null
+                }
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetchOHLCV",

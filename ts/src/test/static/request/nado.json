@@ -29,6 +29,17 @@
                 "input": []
             }
         ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://gateway.test.nado.xyz/v2/orderbook?ticker_id=BTC-PERP_USDT0&depth=2",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    2
+                ]
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetchOHLCV",

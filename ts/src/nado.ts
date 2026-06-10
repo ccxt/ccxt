@@ -3,7 +3,7 @@
 import Exchange from './abstract/nado.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Currency, Dict, Int, Market, OHLCV, Strings, Ticker, Tickers } from './base/types.js';
+import type { Currencies, Currency, Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ export default class nado extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchPositions': false,
                 'fetchStatus': true,
@@ -361,6 +361,44 @@ export default class nado extends Exchange {
         const market = this.market (symbol);
         const tickers = await this.fetchTickers ([ symbol ], params);
         return this.safeTicker (this.safeDict (tickers, symbol), market);
+    }
+
+    /**
+     * @method
+     * @name nado#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.nado.xyz/developer-resources/api/v2/orderbook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const tickerId = this.safeString (market['info'], 'ticker_id');
+        const request: Dict = {
+            'ticker_id': tickerId,
+            'depth': (limit === undefined) ? 100 : limit,
+        };
+        const response = await this.gatewayV2PublicGetOrderbook (this.extend (request, params));
+        //
+        //     {
+        //         "product_id": 1,
+        //         "ticker_id": "BTC-PERP_USDT0",
+        //         "bids": [
+        //             [ 116215.0, 0.128 ],
+        //             [ 116214.0, 0.172 ]
+        //         ],
+        //         "asks": [
+        //             [ 116225.0, 0.043 ],
+        //             [ 116226.0, 0.172 ]
+        //         ],
+        //         "timestamp": 1757913317944
+        //     }
+        //
+        const timestamp = this.safeInteger (response, 'timestamp');
+        return this.parseOrderBook (response, market['symbol'], timestamp);
     }
 
     /**
