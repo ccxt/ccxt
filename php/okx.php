@@ -1939,6 +1939,10 @@ class okx extends Exchange {
         $marketsWithoutTest = array();
         for ($i = 0; $i < count($dataResponse); $i++) {
             $data = $dataResponse[$i];
+            $instId = $this->safe_string($data, 'instId', '');
+            if ($instId === '') {
+                continue; // skip broken "preopen" placeholder instruments that have no $instId
+            }
             if ($this->isSandboxModeEnabled) {
                 $instFamily = $this->safe_string($data, 'instFamily', '');
                 if (str_starts_with($instFamily, 'TEST')) {
