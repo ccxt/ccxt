@@ -194,6 +194,97 @@
                 }
             }
         ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    null,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "product_id": 2,
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "trade_id": 6351,
+                        "price": 112029.5896,
+                        "base_filled": -0.388,
+                        "quote_filled": 43467.4807648,
+                        "timestamp": 1757335618,
+                        "trade_type": "sell"
+                    },
+                    {
+                        "product_id": 2,
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "trade_id": 6350,
+                        "price": 112032.58899999999,
+                        "base_filled": -0.179,
+                        "quote_filled": 20053.833431,
+                        "timestamp": 1757335618,
+                        "trade_type": "sell"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "product_id": 2,
+                            "ticker_id": "BTC-PERP_USDT0",
+                            "trade_id": 6350,
+                            "price": 112032.58899999999,
+                            "base_filled": -0.179,
+                            "quote_filled": 20053.833431,
+                            "timestamp": 1757335618,
+                            "trade_type": "sell"
+                        },
+                        "timestamp": 1757335618000,
+                        "datetime": "2025-09-08T12:46:58.000Z",
+                        "symbol": "BTC/USDT0:USDT0",
+                        "id": "6350",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 112032.58899999999,
+                        "amount": 0.179,
+                        "cost": 20053.833431,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "product_id": 2,
+                            "ticker_id": "BTC-PERP_USDT0",
+                            "trade_id": 6351,
+                            "price": 112029.5896,
+                            "base_filled": -0.388,
+                            "quote_filled": 43467.4807648,
+                            "timestamp": 1757335618,
+                            "trade_type": "sell"
+                        },
+                        "timestamp": 1757335618000,
+                        "datetime": "2025-09-08T12:46:58.000Z",
+                        "symbol": "BTC/USDT0:USDT0",
+                        "id": "6351",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 112029.5896,
+                        "amount": 0.388,
+                        "cost": 43467.4807648,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetchOHLCV",

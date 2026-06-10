@@ -3,7 +3,7 @@
 import Exchange from './abstract/nado.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Currency, Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
+import type { Currencies, Currency, Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ export default class nado extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': false,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'withdraw': false,
             },
             'urls': {
@@ -403,6 +403,46 @@ export default class nado extends Exchange {
 
     /**
      * @method
+     * @name nado#fetchTrades
+     * @description get the list of the most recent trades for a particular symbol
+     * @see https://docs.nado.xyz/developer-resources/api/v2/trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.max_trade_id] max trade id to include in the result for pagination
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const tickerId = this.safeString (market['info'], 'ticker_id');
+        const request: Dict = {
+            'ticker_id': tickerId,
+        };
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 500);
+        }
+        const response = await this.archiveV2PublicGetTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "product_id": 1,
+        //             "ticker_id": "BTC-PERP_USDT0",
+        //             "trade_id": 6351,
+        //             "price": 112029.5896,
+        //             "base_filled": -0.388,
+        //             "quote_filled": 43467.4807648,
+        //             "timestamp": 1757335618,
+        //             "trade_type": "sell"
+        //         }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    /**
+     * @method
      * @name nado#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://docs.nado.xyz/developer-resources/api/archive-indexer/candlesticks
@@ -475,6 +515,41 @@ export default class nado extends Exchange {
             this.parseX18 (this.safeString (ohlcv, 'close_x18')),
             this.parseX18 (this.safeString (ohlcv, 'volume')),
         ];
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        //     {
+        //         "product_id": 1,
+        //         "ticker_id": "BTC-PERP_USDT0",
+        //         "trade_id": 6351,
+        //         "price": 112029.5896,
+        //         "base_filled": -0.388,
+        //         "quote_filled": 43467.4807648,
+        //         "timestamp": 1757335618,
+        //         "trade_type": "sell"
+        //     }
+        //
+        const marketId = this.safeString (trade, 'product_id');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeTimestamp (trade, 'timestamp');
+        const amountString = this.safeString (trade, 'base_filled');
+        const costString = this.safeString (trade, 'quote_filled');
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'id': this.safeString (trade, 'trade_id'),
+            'order': undefined,
+            'type': undefined,
+            'side': this.safeString (trade, 'trade_type'),
+            'takerOrMaker': undefined,
+            'price': this.safeString (trade, 'price'),
+            'amount': (amountString === undefined) ? undefined : Precise.stringAbs (amountString),
+            'cost': (costString === undefined) ? undefined : Precise.stringAbs (costString),
+            'fee': undefined,
+        }, market);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {

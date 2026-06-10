@@ -40,6 +40,18 @@
                 ]
             }
         ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://archive.test.nado.xyz/v2/trades?ticker_id=BTC-PERP_USDT0&limit=2",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    null,
+                    2
+                ]
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetchOHLCV",
