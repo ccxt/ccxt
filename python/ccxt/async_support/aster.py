@@ -2077,8 +2077,10 @@ class aster(Exchange, ImplicitAPI):
         #        }
         #
         info = order
+        positionSide = self.safe_string(order, 'positionSide')
+        defaultType = 'swap' if (positionSide is not None) else 'spot'
         marketId = self.safe_string(order, 'symbol')
-        market = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market, None, defaultType)
         side = self.safe_string_lower(order, 'side')
         timestamp = self.safe_integer(order, 'time')
         statusId = self.safe_string_upper(order, 'status')
@@ -2939,7 +2941,7 @@ class aster(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(marginMode, 'symbol')
-        market = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market, None, 'swap')
         return {
             'info': marginMode,
             'symbol': market['symbol'],
