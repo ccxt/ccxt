@@ -2332,8 +2332,10 @@ public class AsterCore extends AsterApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object info = order;
+        Object positionSide = this.safeString(order, "positionSide");
+        Object defaultType = ((Helpers.isTrue((!Helpers.isEqual(positionSide, null))))) ? "swap" : "spot";
         Object marketId = this.safeString(order, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, null, defaultType);
         Object side = this.safeStringLower(order, "side");
         Object timestamp = this.safeInteger(order, "time");
         Object statusId = this.safeStringUpper(order, "status");
@@ -3424,7 +3426,7 @@ public class AsterCore extends AsterApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(marginMode, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, null, "swap");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", marginMode );
