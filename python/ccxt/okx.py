@@ -1934,6 +1934,9 @@ class okx(Exchange, ImplicitAPI):
         marketsWithoutTest = []
         for i in range(0, len(dataResponse)):
             data = dataResponse[i]
+            instId = self.safe_string(data, 'instId', '')
+            if instId == '':
+                continue  # skip broken "preopen" placeholder instruments that have no instId
             if self.isSandboxModeEnabled:
                 instFamily = self.safe_string(data, 'instFamily', '')
                 if instFamily.startswith('TEST'):
