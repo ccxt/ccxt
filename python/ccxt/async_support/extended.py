@@ -34,6 +34,7 @@ class extended(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'certified': False,
             'pro': True,
+            'dex': True,
             'has': {
                 'CORS': None,
                 'spot': False,

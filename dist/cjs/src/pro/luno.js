@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var luno$1 = require('../luno.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class luno extends luno$1["default"] {
     describe() {

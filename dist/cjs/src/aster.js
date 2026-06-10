@@ -10,7 +10,7 @@ var crypto = require('./base/functions/crypto.js');
 var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------xs
 /**
  * @class aster
@@ -2117,8 +2117,10 @@ class aster extends aster$1["default"] {
         //        }
         //
         const info = order;
+        const positionSide = this.safeString(order, 'positionSide');
+        const defaultType = (positionSide !== undefined) ? 'swap' : 'spot';
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, undefined, defaultType);
         const side = this.safeStringLower(order, 'side');
         const timestamp = this.safeInteger(order, 'time');
         const statusId = this.safeStringUpper(order, 'status');
@@ -3062,7 +3064,7 @@ class aster extends aster$1["default"] {
         //     }
         //
         const marketId = this.safeString(marginMode, 'symbol');
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, undefined, 'swap');
         return {
             'info': marginMode,
             'symbol': market['symbol'],
@@ -4117,7 +4119,8 @@ class aster extends aster$1["default"] {
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             const zeroAddress = this.safeString(this.options, 'zeroAddress', '0x0000000000000000000000000000000000000000');
             const v3ChainId = this.safeInteger(this.options, 'v3ChainId', 1666);
-            const signerAddress = this.safeString(this.options, 'signerAddress');
+            const walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+            const signerAddress = this.safeString(this.options, 'signerAddress', walletAddress); // default to user's wallet
             if (signerAddress === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' requires signerAddress in options when use v3 api');
             }
@@ -4136,7 +4139,7 @@ class aster extends aster$1["default"] {
             // Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
             const finalParams = this.extend({
                 'nonce': nonce.toString(),
-                'user': this.walletAddress,
+                'user': walletAddress,
                 'signer': signerAddress,
             }, params);
             let paramString = undefined;

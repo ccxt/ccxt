@@ -7,7 +7,7 @@ var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class extended
@@ -24,6 +24,7 @@ class extended extends extended$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'certified': false,
             'pro': true,
+            'dex': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,

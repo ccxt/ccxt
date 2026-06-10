@@ -8,7 +8,7 @@
         "userNonce"
     ],
     "privateKey": "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771",
-    "0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cfAddress": "0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf",
+    "walletAddress": "0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf",
     "options": {
         "approvedBuilderFee": true,
         "zeroAddress": "0x0000000000000000000000000000000000000000",
