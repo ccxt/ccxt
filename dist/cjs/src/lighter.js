@@ -10,7 +10,7 @@ var crypto = require('./base/functions/crypto.js');
 var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class lighter
@@ -1808,10 +1808,12 @@ class lighter extends lighter$1["default"] {
             }
             else {
                 const perpBalance = this.safeDict(result, 'USDC', this.account());
-                const perpUSDCTotal = this.safeString(account, 'collateral');
-                const perpUSDCFree = this.safeString(account, 'available_balance');
-                perpBalance['total'] = Precise["default"].stringAdd(perpBalance['total'], perpUSDCTotal);
-                perpBalance['free'] = Precise["default"].stringAdd(perpBalance['free'], perpUSDCFree);
+                const perpTotal = this.safeString(perpBalance, 'total', '0');
+                const perpFree = this.safeString(perpBalance, 'free', '0');
+                const perpUSDCTotal = this.safeString(account, 'collateral', '0');
+                const perpUSDCFree = this.safeString(account, 'available_balance', '0');
+                perpBalance['total'] = Precise["default"].stringAdd(perpTotal, perpUSDCTotal);
+                perpBalance['free'] = Precise["default"].stringAdd(perpFree, perpUSDCFree);
                 result['USDC'] = perpBalance;
             }
         }
