@@ -1960,6 +1960,11 @@ public class OkxCore extends OkxApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(dataResponse)); i++)
             {
                 Object data = Helpers.GetValue(dataResponse, i);
+                Object instId = this.safeString(data, "instId", "");
+                if (Helpers.isTrue(Helpers.isEqual(instId, "")))
+                {
+                    continue;
+                }
                 if (Helpers.isTrue(this.isSandboxModeEnabled))
                 {
                     Object instFamily = this.safeString(data, "instFamily", "");
