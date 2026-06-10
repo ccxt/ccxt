@@ -133,6 +133,43 @@
                 }
             }
         ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    "1m",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "candlesticks": [
+                        {
+                            "product_id": 2,
+                            "granularity": 60,
+                            "submission_idx": "627709",
+                            "timestamp": "1680118140",
+                            "open_x18": "27235000000000000000000",
+                            "high_x18": "27298000000000000000000",
+                            "low_x18": "27235000000000000000000",
+                            "close_x18": "27298000000000000000000",
+                            "volume": "2000000000000000000"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1680118140000,
+                        27235,
+                        27298,
+                        27235,
+                        27298,
+                        2
+                    ]
+                ]
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",

@@ -3,7 +3,7 @@
 import Exchange from './abstract/nado.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Currency, Dict, Market, Strings, Ticker, Tickers } from './base/types.js';
+import type { Currencies, Currency, Dict, Int, Market, OHLCV, Strings, Ticker, Tickers } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -36,7 +36,7 @@ export default class nado extends Exchange {
                 'fetchBalance': false,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
                 'fetchOrderBook': false,
@@ -133,6 +133,17 @@ export default class nado extends Exchange {
             },
             'options': {
                 'defaultType': 'swap',
+            },
+            'timeframes': {
+                '1m': 60,
+                '5m': 300,
+                '15m': 900,
+                '1h': 3600,
+                '2h': 7200,
+                '4h': 14400,
+                '1d': 86400,
+                '1w': 604800,
+                '4w': 2419200,
             },
             'features': {},
             'exceptions': {
@@ -352,6 +363,82 @@ export default class nado extends Exchange {
         return this.safeTicker (this.safeDict (tickers, symbol), market);
     }
 
+    /**
+     * @method
+     * @name nado#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.nado.xyz/developer-resources/api/archive-indexer/candlesticks
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        const request: Dict = {
+            'candlesticks': {
+                'product_id': this.parseToInt (market['id']),
+                'granularity': this.safeInteger (this.timeframes, timeframe, this.parseTimeframe (timeframe)),
+            },
+        };
+        if (limit !== undefined) {
+            request['candlesticks']['limit'] = limit;
+        }
+        if (until !== undefined) {
+            request['candlesticks']['max_time'] = this.parseToInt (until / 1000);
+        }
+        const response = await this.archivePost (this.deepExtend (request, params));
+        //
+        //     {
+        //         "candlesticks": [
+        //             {
+        //                 "product_id": 1,
+        //                 "granularity": 60,
+        //                 "submission_idx": "627709",
+        //                 "timestamp": "1680118140",
+        //                 "open_x18": "27235000000000000000000",
+        //                 "high_x18": "27298000000000000000000",
+        //                 "low_x18": "27235000000000000000000",
+        //                 "close_x18": "27298000000000000000000",
+        //                 "volume": "1999999999999999998"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'candlesticks', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //     {
+        //         "product_id": 1,
+        //         "granularity": 60,
+        //         "submission_idx": "627709",
+        //         "timestamp": "1680118140",
+        //         "open_x18": "27235000000000000000000",
+        //         "high_x18": "27298000000000000000000",
+        //         "low_x18": "27235000000000000000000",
+        //         "close_x18": "27298000000000000000000",
+        //         "volume": "1999999999999999998"
+        //     }
+        //
+        return [
+            this.safeTimestamp (ohlcv, 'timestamp'),
+            this.parseX18 (this.safeString (ohlcv, 'open_x18')),
+            this.parseX18 (this.safeString (ohlcv, 'high_x18')),
+            this.parseX18 (this.safeString (ohlcv, 'low_x18')),
+            this.parseX18 (this.safeString (ohlcv, 'close_x18')),
+            this.parseX18 (this.safeString (ohlcv, 'volume')),
+        ];
+    }
+
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const marketId = this.safeString (ticker, 'product_id');
         market = this.safeMarket (marketId, market);
@@ -430,14 +517,17 @@ export default class nado extends Exchange {
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const endpoint = api[0];
+        let endpoint = api[0];
+        if (typeof api === 'string') {
+            endpoint = api;
+        }
         let url = this.urls['api'][endpoint];
         if (path !== '') {
             url += '/' + this.implodeParams (path, params);
         }
         const query = this.omit (params, this.extractParams (path));
         headers = {};
-        if (endpoint === 'gateway') {
+        if ((endpoint === 'gateway') || (endpoint === 'archive')) {
             headers['Accept-Encoding'] = 'gzip, br, deflate';
         }
         if (method === 'GET') {

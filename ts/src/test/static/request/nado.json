@@ -29,6 +29,20 @@
                 "input": []
             }
         ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://archive.test.nado.xyz/v1",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    "1m",
+                    null,
+                    2
+                ],
+                "output": "{\"candlesticks\":{\"product_id\":2,\"granularity\":60,\"limit\":2}}"
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
