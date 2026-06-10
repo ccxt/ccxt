@@ -2117,8 +2117,10 @@ class aster extends aster$1["default"] {
         //        }
         //
         const info = order;
+        const positionSide = this.safeString(order, 'positionSide');
+        const defaultType = (positionSide !== undefined) ? 'swap' : 'spot';
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, undefined, defaultType);
         const side = this.safeStringLower(order, 'side');
         const timestamp = this.safeInteger(order, 'time');
         const statusId = this.safeStringUpper(order, 'status');
@@ -3062,7 +3064,7 @@ class aster extends aster$1["default"] {
         //     }
         //
         const marketId = this.safeString(marginMode, 'symbol');
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, undefined, 'swap');
         return {
             'info': marginMode,
             'symbol': market['symbol'],
