@@ -1716,10 +1716,12 @@ class lighter(Exchange, ImplicitAPI):
                     result[code] = balance
             else:
                 perpBalance = self.safe_dict(result, 'USDC', self.account())
-                perpUSDCTotal = self.safe_string(account, 'collateral')
-                perpUSDCFree = self.safe_string(account, 'available_balance')
-                perpBalance['total'] = Precise.string_add(perpBalance['total'], perpUSDCTotal)
-                perpBalance['free'] = Precise.string_add(perpBalance['free'], perpUSDCFree)
+                perpTotal = self.safe_string(perpBalance, 'total', '0')
+                perpFree = self.safe_string(perpBalance, 'free', '0')
+                perpUSDCTotal = self.safe_string(account, 'collateral', '0')
+                perpUSDCFree = self.safe_string(account, 'available_balance', '0')
+                perpBalance['total'] = Precise.string_add(perpTotal, perpUSDCTotal)
+                perpBalance['free'] = Precise.string_add(perpFree, perpUSDCFree)
                 result['USDC'] = perpBalance
         return self.safe_balance(result)
 
