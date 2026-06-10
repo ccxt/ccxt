@@ -1901,6 +1901,11 @@ public partial class okx : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(dataResponse)); postFixIncrement(ref i))
         {
             object data = getValue(dataResponse, i);
+            object instId = this.safeString(data, "instId", "");
+            if (isTrue(isEqual(instId, "")))
+            {
+                continue;
+            }
             if (isTrue(this.isSandboxModeEnabled))
             {
                 object instFamily = this.safeString(data, "instFamily", "");
