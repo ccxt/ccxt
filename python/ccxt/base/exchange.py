@@ -1062,7 +1062,8 @@ class Exchange(object):
 
     @staticmethod
     def keysort(dictionary):
-        return dict(sorted(dictionary.items()))
+        filtered = {k: v for k, v in dictionary.items() if k is not None}
+        return dict(sorted(filtered.items()))
 
     @staticmethod
     def sort(array):
