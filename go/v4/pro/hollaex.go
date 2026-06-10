@@ -613,7 +613,7 @@ func  (this *HollaexCore) HandleErrorMessage(client any, message any) any  {
     	    }(this)
         
             }
-    return message
+    return true
 }
 func  (this *HollaexCore) HandleMessage(client any, message any)  {
     //
