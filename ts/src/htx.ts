@@ -4450,7 +4450,7 @@ export default class htx extends Exchange {
             if (isAlgo) {
                 request['states'] = 'effective';
             } else {
-                request['state'] = 'filled';
+                request['states'] = 'filled';
             }
         } else {
             request['status'] = '6';
@@ -4475,7 +4475,7 @@ export default class htx extends Exchange {
             if (isAlgo) {
                 request['states'] = 'canceled';
             } else {
-                request['state'] = 'partially_canceled,canceled';
+                request['states'] = 'partially_canceled,canceled';
             }
         } else {
             request['status'] = '5,7'; // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
@@ -5300,8 +5300,8 @@ export default class htx extends Exchange {
             'side': side,
             'price': price,
             'triggerPrice': this.safeString2 (order, 'stop-price', 'trigger_price'),
-            'stopLossPrice': this.safeString (order, 'sl_trigger_price'),
-            'takeProfitPrice': this.safeString (order, 'tp_trigger_price'),
+            'stopLossPrice': this.safeString2 (order, 'sl_trigger_price', 'sl_order_price'),
+            'takeProfitPrice': this.safeString2 (order, 'tp_trigger_price', 'tp_order_price'),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -5493,6 +5493,14 @@ export default class htx extends Exchange {
          * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
          * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
          * @param {float} [params.trailingTriggerPrice] *contract only* the price to trigger a trailing order, default uses the price argument
+         * @param {object} [params.takeProfit] *takeProfit object in params, linear swap only* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {float} [params.takeProfit.price] take profit order price take profit orders
+         * @param {string} [params.takeProfit.type] market is the default, limit, optimal_5, optimal_10, optimal_20
+         * @param {object} [params.stopLoss] *stopLoss object in params, linear swap only* containing the triggerPrice at which the attached stop loss order will be triggered
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {float} [params.stopLoss.price] stop loss order price for stop loss orders
+         * @param {string} [params.stopLoss.type] market is the default, limit, optimal_5, optimal_10, optimal_20
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market (symbol);
@@ -5518,6 +5526,39 @@ export default class htx extends Exchange {
             request['side'] = side;
             if (timeInForce !== undefined) {
                 request['time_in_force'] = timeInForce.toLowerCase ();
+            }
+            const stopLoss = this.safeDict (params, 'stopLoss');
+            const takeProfit = this.safeDict (params, 'takeProfit');
+            const stopLossTriggerPriceAttached = this.safeNumber (stopLoss, 'triggerPrice');
+            const stopLossOrderPrice = this.safeNumber (stopLoss, 'price');
+            const stopLossType = this.safeString (stopLoss, 'type');
+            const takeProfitTriggerPriceAttached = this.safeNumber (takeProfit, 'triggerPrice');
+            const takeProfitOrderPrice = this.safeNumber (takeProfit, 'price');
+            const takeProfitType = this.safeString (takeProfit, 'type');
+            // on htx for attached tpsl orders sl_order_price or tp_order_price need to be filled and the sl_trigger_price or tp_trigger_price are optional
+            if (stopLoss !== undefined) {
+                if (stopLossTriggerPriceAttached !== undefined) {
+                    request['sl_trigger_price'] = this.priceToPrecision (symbol, stopLossTriggerPriceAttached);
+                }
+                if (stopLossOrderPrice !== undefined) {
+                    request['sl_order_price'] = this.priceToPrecision (symbol, stopLossOrderPrice);
+                }
+                if (stopLossType !== undefined) {
+                    request['sl_type'] = stopLossType;
+                }
+                params = this.omit (params, 'stopLoss');
+            }
+            if (takeProfit !== undefined) {
+                if (takeProfitTriggerPriceAttached !== undefined) {
+                    request['tp_trigger_price'] = this.priceToPrecision (symbol, takeProfitTriggerPriceAttached);
+                }
+                if (takeProfitOrderPrice !== undefined) {
+                    request['tp_order_price'] = this.priceToPrecision (symbol, takeProfitOrderPrice);
+                }
+                if (takeProfitType !== undefined) {
+                    request['tp_type'] = takeProfitType;
+                }
+                params = this.omit (params, 'takeProfit');
             }
         } else {
             if (hedged) {
@@ -5661,6 +5702,14 @@ export default class htx extends Exchange {
      * @param {bool} [params.hedged] *contract only* true for hedged mode, false for one way mode, default is false
      * @param {string} [params.marginMode] linear swap supports 'cross' and 'isolated', 'cross' is the default
      * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
+     * @param {object} [params.takeProfit] *takeProfit object in params, linear swap only* containing the triggerPrice at which the attached take profit order will be triggered
+     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+     * @param {float} [params.takeProfit.price] take profit price for take profit orders
+     * @param {string} [params.takeProfit.type] market is the default, limit, optimal_5, optimal_10, optimal_20
+     * @param {object} [params.stopLoss] *stopLoss object in params, linear swap only* containing the triggerPrice at which the attached stop loss order will be triggered
+     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @param {float} [params.stopLoss.price] stop loss price for stop loss orders
+     * @param {string} [params.stopLoss.type] market is the default, limit, optimal_5, optimal_10, optimal_20
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
