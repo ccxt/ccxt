@@ -2241,6 +2241,9 @@
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
             },
+            "fetchTicker": {
+                "lastBetweenBidAsk": "exchange too illiquid"
+            },
             "fetchTickers": "all tickers request exceedes max url length",
             "orderBook":{
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6425"
