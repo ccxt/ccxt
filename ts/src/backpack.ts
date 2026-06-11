@@ -1264,10 +1264,17 @@ export default class backpack extends Exchange {
         market = this.safeMarket (marketId, market);
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'quantity');
+        const isBuyerMaker = this.safeBool (trade, 'isBuyerMaker');
+        let side = this.parseOrderSide (this.safeString (trade, 'side'));
         const isMaker = this.safeBool (trade, 'isMaker');
-        const takerOrMaker = isMaker ? 'maker' : 'taker';
+        let takerOrMaker: Str = undefined;
+        if (isMaker !== undefined) {
+            takerOrMaker = isMaker ? 'maker' : 'taker';
+        } else if (isBuyerMaker !== undefined) {
+            takerOrMaker = 'taker';
+            side = isBuyerMaker ? 'sell' : 'buy';
+        }
         const orderId = this.safeString (trade, 'orderId');
-        const side = this.parseOrderSide (this.safeString (trade, 'side'));
         let fee = undefined;
         const feeAmount = this.safeString (trade, 'fee');
         let timestamp = this.safeInteger (trade, 'timestamp');
