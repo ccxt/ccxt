@@ -252,6 +252,7 @@
         "pear/console_table": "1.3.1",
         "phpseclib/phpseclib": "2.0.54",
         "psr/http-factory": "1.1.0",
+        "psr/http-factory-implementation": "1.0.0",
         "psr/http-message": "1.1",
         "ralouphie/getallheaders": "3.0.3",
         "ratchet/pawl": "0.4.3",

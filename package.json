@@ -4,6 +4,10 @@
   "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
+  "sideEffects": [
+    "./js/ccxt.js",
+    "./dist/ccxt.cjs"
+  ],
   "exports": {
     ".": {
       "import": {
@@ -17,7 +21,7 @@
     }
   },
   "engines": {
-    "node": ">=15.0.0"
+    "node": ">=18.0.0"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org",
@@ -350,6 +354,9 @@
   },
   "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd",
   "dependencies": {
-    "ws": "^8.8.1"
+    "ws": "8.21.0"
+  },
+  "optionalDependencies": {
+    "bufferutil": "4.1.0"
   }
 }
