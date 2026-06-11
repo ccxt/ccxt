@@ -6,7 +6,8 @@ FROM node:20-slim AS builder
 WORKDIR /app
 COPY . .
 RUN npm ci
-# served under /v2 behind nginx; absolute site URL for sitemap/canonical.
+# Root build (no NEXT_BASE_PATH): served at / behind nginx. Absolute site URL for
+# sitemap/canonical/robots. To stage under a subpath instead, set NEXT_BASE_PATH=/v2.
 # NEXT_PUBLIC_AI_ENABLED shows the "Ask AI" button; the OPENROUTER_API_KEY is provided
 # at RUNTIME (docker run -e ...), never baked into the image.
 ENV NEXT_PUBLIC_SITE_URL=https://docs.ccxt.com \
