@@ -67,7 +67,6 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 from ccxt.async_support.aftermath import aftermath                              # noqa: F401
 from ccxt.async_support.alpaca import alpaca                                    # noqa: F401
 from ccxt.async_support.apex import apex                                        # noqa: F401
-from ccxt.async_support.arkham import arkham                                    # noqa: F401
 from ccxt.async_support.ascendex import ascendex                                # noqa: F401
 from ccxt.async_support.aster import aster                                      # noqa: F401
 from ccxt.async_support.backpack import backpack                                # noqa: F401
@@ -179,7 +178,6 @@ exchanges = [
     'aftermath',
     'alpaca',
     'apex',
-    'arkham',
     'ascendex',
     'aster',
     'backpack',
