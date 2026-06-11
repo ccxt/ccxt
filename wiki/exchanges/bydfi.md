@@ -587,7 +587,7 @@ fetches historical positions
 
 
 ```javascript
-bydfi.fetchPositionHistory (symbol, since?, limit?, params?)
+bydfi.fetchPositionHistory (symbol, since?, limit?, params)
 ```
 
 
@@ -613,7 +613,7 @@ fetches historical positions
 
 
 ```javascript
-bydfi.fetchPositionsHistory (symbols, since?, limit?, params?)
+bydfi.fetchPositionsHistory (symbols, since?, limit?, params)
 ```
 
 
@@ -1144,7 +1144,7 @@ watch all open positions
 
 
 ```javascript
-bydfi.watchPositions (symbols?, since?, limit?, params?)
+bydfi.watchPositions (symbols?, since?, limit?, params)
 ```
 
 

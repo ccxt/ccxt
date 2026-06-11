@@ -821,7 +821,7 @@ watch all open positions
 
 
 ```javascript
-apex.watchPositions (symbols?, since?, limit?, params?)
+apex.watchPositions (symbols?, since?, limit?, params)
 ```
 
 

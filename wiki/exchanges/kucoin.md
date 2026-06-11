@@ -217,7 +217,7 @@ loads the migration status for the account (hf or not)
 
 
 ```javascript
-kucoin.loadMigrationStatus (force, undefined?)
+kucoin.loadMigrationStatus (force)
 ```
 
 
@@ -242,7 +242,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-kucoin.fetchCurrencies (params, undefined?)
+kucoin.fetchCurrencies (params)
 ```
 
 
@@ -3370,6 +3370,6 @@ watch all open positions
 
 
 ```javascript
-kucoin.watchPositions (symbols?, since?, limit?, params?)
+kucoin.watchPositions (symbols?, since?, limit?, params)
 ```
 

@@ -1919,7 +1919,7 @@ fetches historical positions
 
 
 ```javascript
-bybit.fetchPositionsHistory (symbols, since?, limit?, params?)
+bybit.fetchPositionsHistory (symbols, since?, limit?, params)
 ```
 
 
@@ -2697,7 +2697,7 @@ watch all open positions
 
 
 ```javascript
-bybit.watchPositions (symbols?, since?, limit?, params?)
+bybit.watchPositions (symbols?, since?, limit?, params)
 ```
 
 

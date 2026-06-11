@@ -1741,7 +1741,7 @@ fetches historical positions
 
 
 ```javascript
-gate.fetchPositionsHistory (symbols, since?, limit?, params?)
+gate.fetchPositionsHistory (symbols, since?, limit?, params)
 ```
 
 
@@ -2329,7 +2329,7 @@ watch all open positions
 
 
 ```javascript
-gate.watchPositions (symbols?, since?, limit?, params?)
+gate.watchPositions (symbols?, since?, limit?, params)
 ```
 
 

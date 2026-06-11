@@ -590,7 +590,7 @@ create a list of trade orders
 
 
 ```javascript
-hyperliquid.createOrdersRequest (orders, undefined?)
+hyperliquid.createOrdersRequest (orders)
 ```
 
 
@@ -1860,7 +1860,7 @@ watch all open positions
 
 
 ```javascript
-hyperliquid.watchPositions (symbols?, since?, limit?, params?)
+hyperliquid.watchPositions (symbols?, since?, limit?, params)
 ```
 
 

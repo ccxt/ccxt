@@ -1,8 +1,5 @@
-- [Watch Custom Exchange Specific Streams](./examples/py/)
-
-
- ```python
- import asyncio
+```python
+import asyncio
 import ccxt.pro
 
 
@@ -47,5 +44,5 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
- 
+
 ```

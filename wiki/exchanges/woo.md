@@ -289,7 +289,7 @@ create a trailing order by providing the symbol, type, side, amount, price and t
 
 
 ```javascript
-woo.createTrailingAmountOrder (symbol, type, side, amount, price?, trailingAmount?, trailingTriggerPrice?, params?)
+woo.createTrailingAmountOrder (symbol, type, side, amount, price?, trailingAmount, trailingTriggerPrice, params?)
 ```
 
 
@@ -316,7 +316,7 @@ create a trailing order by providing the symbol, type, side, amount, price and t
 
 
 ```javascript
-woo.createTrailingPercentOrder (symbol, type, side, amount, price?, trailingPercent?, trailingTriggerPrice?, params?)
+woo.createTrailingPercentOrder (symbol, type, side, amount, price?, trailingPercent, trailingTriggerPrice, params?)
 ```
 
 

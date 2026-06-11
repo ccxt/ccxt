@@ -1,8 +1,5 @@
-- [Phemex Cancel All Orders](./examples/py/)
-
-
- ```python
- import ccxt.pro
+```python
+import ccxt.pro
 from asyncio import run
 from pprint import pprint
 
@@ -25,5 +22,5 @@ async def main():
 
 
 run(main())
- 
+
 ```

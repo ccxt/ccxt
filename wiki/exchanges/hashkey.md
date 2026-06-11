@@ -1183,7 +1183,7 @@ watch all open positions
 
 
 ```javascript
-hashkey.watchPositions (symbols?, since?, limit?, params?)
+hashkey.watchPositions (symbols?, since?, limit?, params)
 ```
 
 

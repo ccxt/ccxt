@@ -1,8 +1,5 @@
-- [On Connected User Hook](./examples/py/)
-
-
- ```python
- import ccxt.pro
+```python
+import ccxt.pro
 from asyncio import run, ensure_future
 from pprint import pprint
 
@@ -57,5 +54,5 @@ exchange = MyBinance({
 
 
 run(watch_orders(exchange))
- 
+
 ```

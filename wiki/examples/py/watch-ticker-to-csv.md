@@ -1,8 +1,5 @@
-- [Watch Ticker To Csv](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 from asyncio import gather, run
 import ccxt.pro
@@ -47,5 +44,5 @@ async def main():
 
 
 run(main())
- 
+
 ```

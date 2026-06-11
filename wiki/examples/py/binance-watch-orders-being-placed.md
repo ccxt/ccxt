@@ -1,8 +1,5 @@
-- [Binance Watch Orders Being Placed](./examples/py/)
-
-
- ```python
- # Python
+```python
+# Python
 import ccxt.pro
 from asyncio import run, gather
 from pprint import pprint
@@ -61,5 +58,5 @@ async def main():
 
 
 run(main())
- 
+
 ```

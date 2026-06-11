@@ -1,8 +1,5 @@
-- [Multiple Exchanges Watch Orderbook Continuously](./examples/py/)
-
-
- ```python
- import ccxt.pro
+```python
+import ccxt.pro
 import asyncio
 import time
 
@@ -36,5 +33,5 @@ async def main():
 
 
 asyncio.run(main())
- 
+
 ```

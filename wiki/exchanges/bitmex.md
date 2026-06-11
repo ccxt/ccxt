@@ -976,7 +976,7 @@ watch all open positions
 
 
 ```javascript
-bitmex.watchPositions (symbols, since?, limit?, params?)
+bitmex.watchPositions (symbols, since?, limit?, params)
 ```
 
 

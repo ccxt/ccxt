@@ -1,8 +1,5 @@
-- [Watch Many Exchanges Many Tickers](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 from asyncio import run, gather
 import ccxt.pro
@@ -41,5 +38,5 @@ async def main():
 
 
 run(main())
- 
+
 ```

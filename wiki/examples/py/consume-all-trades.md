@@ -1,8 +1,5 @@
-- [Consume All Trades](./examples/py/)
-
-
- ```python
- import ccxt.pro
+```python
+import ccxt.pro
 from asyncio import run
 
 
@@ -24,5 +21,5 @@ async def consume_all_trades(exchange, symbol):
 exchange = ccxt.pro.bitmex()
 symbol = 'BTC/USD'
 run(consume_all_trades(exchange, symbol))
- 
+
 ```

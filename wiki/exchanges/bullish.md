@@ -509,7 +509,7 @@ cancels an open order
 
 
 ```javascript
-bullish.cancelOrder (id?, symbol?, params?)
+bullish.cancelOrder (id?, symbol, params?)
 ```
 
 
@@ -944,6 +944,6 @@ watch all open positions
 
 
 ```javascript
-bullish.watchPositions (symbols?, since?, limit?, params?)
+bullish.watchPositions (symbols?, since?, limit?, params)
 ```
 

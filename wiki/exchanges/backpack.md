@@ -1127,7 +1127,7 @@ watch all open positions
 
 
 ```javascript
-backpack.watchPositions (symbols?, since?, limit?, params?)
+backpack.watchPositions (symbols?, since?, limit?, params)
 ```
 
 
@@ -1148,6 +1148,6 @@ unWatches from the stream channel
 
 
 ```javascript
-backpack.unWatchPositions (symbols?, params?)
+backpack.unWatchPositions (symbols?, params)
 ```
 

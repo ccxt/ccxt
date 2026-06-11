@@ -1108,6 +1108,6 @@ watch all open positions
 
 
 ```javascript
-toobit.watchPositions (symbols?, since?, limit?, params?)
+toobit.watchPositions (symbols?, since?, limit?, params)
 ```
 

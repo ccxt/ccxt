@@ -1123,7 +1123,7 @@ fetches a transfer
 
 
 ```javascript
-mexc.fetchTransfer (id, code?, params?)
+mexc.fetchTransfer (id, code?, params)
 ```
 
 

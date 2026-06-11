@@ -104,7 +104,7 @@ enables or disables demo trading mode, if enabled will send PAPTRADING=1 in head
 
 
 ```javascript
-bitget.setSandboxMode (enabled, undefined?)
+bitget.setSandboxMode (enabled)
 ```
 
 
@@ -122,7 +122,7 @@ enables or disables demo trading mode, if enabled will send PAPTRADING=1 in head
 
 
 ```javascript
-bitget.enableDemoTrading (enabled, undefined?)
+bitget.enableDemoTrading (enabled)
 ```
 
 
@@ -1818,7 +1818,7 @@ fetches historical positions
 
 
 ```javascript
-bitget.fetchPositionsHistory (symbols?, since?, limit?, params?)
+bitget.fetchPositionsHistory (symbols?, since?, limit?, params)
 ```
 
 
@@ -2338,7 +2338,7 @@ watch all open positions
 
 
 ```javascript
-bitget.watchPositions (symbols, since?, limit?, params?)
+bitget.watchPositions (symbols, since?, limit?, params)
 ```
 
 
@@ -2543,7 +2543,7 @@ enables or disables demo trading mode, if enabled will send PAPTRADING=1 in head
 
 
 ```javascript
-bitget.setSandboxMode (enabled, undefined?)
+bitget.setSandboxMode (enabled)
 ```
 
 
@@ -2561,7 +2561,7 @@ enables or disables demo trading mode, if enabled will send PAPTRADING=1 in head
 
 
 ```javascript
-bitget.enableDemoTrading (enabled, undefined?)
+bitget.enableDemoTrading (enabled)
 ```
 
 
@@ -4257,7 +4257,7 @@ fetches historical positions
 
 
 ```javascript
-bitget.fetchPositionsHistory (symbols?, since?, limit?, params?)
+bitget.fetchPositionsHistory (symbols?, since?, limit?, params)
 ```
 
 
@@ -4777,7 +4777,7 @@ watch all open positions
 
 
 ```javascript
-bitget.watchPositions (symbols, since?, limit?, params?)
+bitget.watchPositions (symbols, since?, limit?, params)
 ```
 
 

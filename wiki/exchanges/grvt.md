@@ -850,7 +850,7 @@ watch all open positions
 
 
 ```javascript
-grvt.watchPositions (symbols?, since?, limit?, params?)
+grvt.watchPositions (symbols?, since?, limit?, params)
 ```
 
 

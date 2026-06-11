@@ -309,7 +309,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-luno.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
+luno.fetchOHLCV (symbol, timeframe, since?, limit?, params)
 ```
 
 

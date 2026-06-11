@@ -1,8 +1,5 @@
-- [Intercept Original Ohlcv Updates](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 from asyncio import run
 import ccxt.pro
@@ -33,5 +30,5 @@ async def main():
 if __name__ == "__main__":
     print('CCXT Version:', ccxt.__version__)
     run(main())
- 
+
 ```

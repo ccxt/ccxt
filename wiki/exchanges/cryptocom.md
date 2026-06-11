@@ -368,7 +368,7 @@ edit a trade order
 
 
 ```javascript
-cryptocom.editOrder (id, symbol, type?, side?, amount?, price?, params?)
+cryptocom.editOrder (id, symbol, type?, side?, amount, price, params?)
 ```
 
 
@@ -1261,7 +1261,7 @@ watch all open positions
 
 
 ```javascript
-cryptocom.watchPositions (symbols?, since?, limit?, params?)
+cryptocom.watchPositions (symbols?, since?, limit?, params)
 ```
 
 
@@ -1333,7 +1333,7 @@ edit a trade order
 
 
 ```javascript
-cryptocom.editOrderWs (id, symbol, type?, side?, amount?, price?, params?)
+cryptocom.editOrderWs (id, symbol, type?, side?, amount, price, params?)
 ```
 
 

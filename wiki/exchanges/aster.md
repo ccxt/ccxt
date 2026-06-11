@@ -900,7 +900,7 @@ fetches the history of margin added or reduced from contract isolated positions
 
 
 ```javascript
-aster.fetchMarginAdjustmentHistory (symbol, type?, since?, limit?, params?)
+aster.fetchMarginAdjustmentHistory (symbol, type?, since?, limit?, params)
 ```
 
 
@@ -1761,7 +1761,7 @@ watch all open positions
 
 
 ```javascript
-aster.watchPositions (symbols, since?, limit?, params?)
+aster.watchPositions (symbols, since?, limit?, params)
 ```
 
 

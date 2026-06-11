@@ -2548,7 +2548,7 @@ fetches the history of margin added or reduced from contract isolated positions
 
 
 ```javascript
-binance.fetchMarginAdjustmentHistory (symbol, type?, since?, limit?, params?)
+binance.fetchMarginAdjustmentHistory (symbol, type?, since?, limit?, params)
 ```
 
 
@@ -3938,7 +3938,7 @@ watch all open positions
 
 
 ```javascript
-binance.watchPositions (symbols, since?, limit?, params?)
+binance.watchPositions (symbols, since?, limit?, params)
 ```
 
 

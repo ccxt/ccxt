@@ -1657,7 +1657,7 @@ watch all open positions
 
 
 ```javascript
-bitmart.watchPositions (symbols, since?, limit?, params?)
+bitmart.watchPositions (symbols, since?, limit?, params)
 ```
 
 

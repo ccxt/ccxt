@@ -444,7 +444,7 @@ edit a trade order
 
 
 ```javascript
-deribit.editOrder (id, symbol?, type?, side?, amount?, price?, params?)
+deribit.editOrder (id, symbol?, type?, side?, amount, price?, params?)
 ```
 
 

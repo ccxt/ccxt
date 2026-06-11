@@ -1,8 +1,5 @@
-- [Many Exchanges Synchronously](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 include './ccxt.php';
 
 
@@ -27,5 +24,5 @@ function print_ticker($ticker, $exchange_name, $symbol) {
 
 \React\Async\coroutine($loop, $bittrex, $symbol);
 \React\Async\coroutine($loop, $binance, $symbol);
- 
+
 ```

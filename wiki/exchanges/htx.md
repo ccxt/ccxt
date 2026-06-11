@@ -666,7 +666,7 @@ create a trailing order by providing the symbol, type, side, amount, price and t
 
 
 ```javascript
-htx.createTrailingPercentOrder (symbol, type, side, amount, price?, trailingPercent?, trailingTriggerPrice?, params?)
+htx.createTrailingPercentOrder (symbol, type, side, amount, price?, trailingPercent, trailingTriggerPrice, params?)
 ```
 
 

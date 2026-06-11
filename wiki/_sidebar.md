@@ -101,7 +101,6 @@
 	- [tokocrypto](exchanges/tokocrypto.md)
 	- [toobit](exchanges/toobit.md)
 	- [upbit](exchanges/upbit.md)
-	- [wavesexchange](exchanges/wavesexchange.md)
 	- [weex](exchanges/weex.md)
 	- [whitebit](exchanges/whitebit.md)
 	- [woo](exchanges/woo.md)

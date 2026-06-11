@@ -1142,6 +1142,6 @@ watch all open positions
 
 
 ```javascript
-deepcoin.watchPositions (symbols?, since?, limit?, params?)
+deepcoin.watchPositions (symbols?, since?, limit?, params)
 ```
 

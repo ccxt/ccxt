@@ -1,8 +1,5 @@
-- [One Exchange Different Streams](./examples/py/)
-
-
- ```python
- import ccxt.pro
+```python
+import ccxt.pro
 import asyncio
 
 
@@ -37,5 +34,5 @@ async def main():
 
 
 asyncio.run(main())
- 
+
 ```

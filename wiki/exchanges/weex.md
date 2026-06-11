@@ -1812,7 +1812,7 @@ watch all open positions
 
 
 ```javascript
-weex.watchPositions (symbols, since?, limit?, params?)
+weex.watchPositions (symbols, since?, limit?, params)
 ```
 
 

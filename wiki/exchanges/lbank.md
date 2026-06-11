@@ -831,7 +831,7 @@ get the list of trades associated with the user
 
 
 ```javascript
-lbank.watchOrders (symbol?, since?, limit?, params?)
+lbank.watchOrders (symbol?, since?, limit?, params)
 ```
 
 

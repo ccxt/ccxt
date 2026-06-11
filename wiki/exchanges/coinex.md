@@ -1392,7 +1392,7 @@ fetches the history of margin added or reduced from contract isolated positions
 
 
 ```javascript
-coinex.fetchMarginAdjustmentHistory (symbol, type?, since?, limit?, params?)
+coinex.fetchMarginAdjustmentHistory (symbol, type?, since?, limit?, params)
 ```
 
 

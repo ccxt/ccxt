@@ -62,7 +62,7 @@ fetches the current integer timestamp in milliseconds from the xt server
 
 
 ```javascript
-xt.fetchTime (params, undefined?)
+xt.fetchTime (params)
 ```
 
 
@@ -82,7 +82,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-xt.fetchCurrencies (params, undefined?)
+xt.fetchCurrencies (params)
 ```
 
 
@@ -106,7 +106,7 @@ retrieves data on all markets for xt
 
 
 ```javascript
-xt.fetchMarkets (params, undefined?)
+xt.fetchMarkets (params)
 ```
 
 
@@ -136,7 +136,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-xt.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
+xt.fetchOHLCV (symbol, timeframe, since?, limit?, params)
 ```
 
 
@@ -162,7 +162,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-xt.fetchOrderBook (symbol, limit?, params?)
+xt.fetchOrderBook (symbol, limit?, params)
 ```
 
 
@@ -212,7 +212,7 @@ fetches price tickers for multiple markets, statistical calculations with the in
 
 
 ```javascript
-xt.fetchTickers (symbols?, params?)
+xt.fetchTickers (symbols?, params)
 ```
 
 
@@ -233,7 +233,7 @@ fetches the bid and ask price and volume for multiple markets
 
 
 ```javascript
-xt.fetchBidsAsks (symbols?, params?)
+xt.fetchBidsAsks (symbols?, params)
 ```
 
 
@@ -260,7 +260,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-xt.fetchTrades (symbol, since?, limit?, params?)
+xt.fetchTrades (symbol, since?, limit?, params)
 ```
 
 
@@ -287,7 +287,7 @@ fetch all trades made by the user
 
 
 ```javascript
-xt.fetchMyTrades (symbol?, since?, limit?, params?)
+xt.fetchMyTrades (symbol?, since?, limit?, params)
 ```
 
 
@@ -311,7 +311,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-xt.fetchBalance (params, undefined?)
+xt.fetchBalance (params)
 ```
 
 
@@ -371,7 +371,7 @@ create a trade order
 
 
 ```javascript
-xt.createOrder (symbol, type, side, amount, price?, params?)
+xt.createOrder (symbol, type, side, amount, price?, params)
 ```
 
 
@@ -401,7 +401,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-xt.fetchOrder (id, symbol?, params?)
+xt.fetchOrder (id, symbol?, params)
 ```
 
 
@@ -430,7 +430,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-xt.fetchOrders (symbol?, since?, limit?, params?)
+xt.fetchOrders (symbol?, since?, limit?, params)
 ```
 
 
@@ -461,7 +461,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-xt.fetchOpenOrders (symbol?, since?, limit?, params?)
+xt.fetchOpenOrders (symbol?, since?, limit?, params)
 ```
 
 
@@ -492,7 +492,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-xt.fetchClosedOrders (symbol?, since?, limit?, params?)
+xt.fetchClosedOrders (symbol?, since?, limit?, params)
 ```
 
 
@@ -523,7 +523,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-xt.fetchCanceledOrders (symbol?, since?, limit?, params?)
+xt.fetchCanceledOrders (symbol?, since?, limit?, params)
 ```
 
 
@@ -553,7 +553,7 @@ cancels an open order
 
 
 ```javascript
-xt.cancelOrder (id, symbol?, params?)
+xt.cancelOrder (id, symbol?, params)
 ```
 
 
@@ -582,7 +582,7 @@ cancel all open orders in a market
 
 
 ```javascript
-xt.cancelAllOrders (symbol?, params?)
+xt.cancelAllOrders (symbol?, params)
 ```
 
 
@@ -604,7 +604,7 @@ cancel multiple orders
 
 
 ```javascript
-xt.cancelOrders (ids, symbol?, params?)
+xt.cancelOrders (ids, symbol?, params)
 ```
 
 
@@ -627,7 +627,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-xt.fetchLedger (code?, since?, limit?, params?)
+xt.fetchLedger (code?, since?, limit?, params)
 ```
 
 
@@ -672,7 +672,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-xt.fetchDeposits (code?, since?, limit?, params?)
+xt.fetchDeposits (code?, since?, limit?, params)
 ```
 
 
@@ -695,7 +695,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-xt.fetchWithdrawals (code?, since?, limit?, params?)
+xt.fetchWithdrawals (code?, since?, limit?, params)
 ```
 
 
@@ -719,7 +719,7 @@ make a withdrawal
 
 
 ```javascript
-xt.withdraw (code, amount, address, tag?, params?)
+xt.withdraw (code, amount, address, tag?, params)
 ```
 
 
@@ -809,7 +809,7 @@ retrieve information on the maximum leverage for different trade sizes
 
 
 ```javascript
-xt.fetchLeverageTiers (symbols?, params?)
+xt.fetchLeverageTiers (symbols?, params)
 ```
 
 
@@ -854,7 +854,7 @@ fetches historical funding rates
 
 
 ```javascript
-xt.fetchFundingRateHistory (symbol?, since?, limit?, params?)
+xt.fetchFundingRateHistory (symbol?, since?, limit?, params)
 ```
 
 
@@ -919,7 +919,7 @@ fetch the funding history
 
 
 ```javascript
-xt.fetchFundingHistory (symbol, since?, limit?, params?)
+xt.fetchFundingHistory (symbol, since?, limit?, params)
 ```
 
 
@@ -961,7 +961,7 @@ fetch all open positions
 
 
 ```javascript
-xt.fetchPositions (symbols?, params?)
+xt.fetchPositions (symbols?, params)
 ```
 
 

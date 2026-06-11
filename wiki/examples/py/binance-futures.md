@@ -1,8 +1,5 @@
-- [Binance Futures](./examples/py/)
-
-
- ```python
- import ccxt.pro as ccxt
+```python
+import ccxt.pro as ccxt
 from asyncio import run
 
 print('CCXT Version:', ccxt.__version__)
@@ -29,5 +26,5 @@ async def main():
 
 
 run(main())
- 
+
 ```

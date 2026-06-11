@@ -619,7 +619,7 @@ fetches historical positions
 
 
 ```javascript
-blofin.fetchPositionsHistory (symbols?, since?, limit?, params?)
+blofin.fetchPositionsHistory (symbols?, since?, limit?, params)
 ```
 
 
@@ -1121,7 +1121,7 @@ watch all open positions
 
 
 ```javascript
-blofin.watchPositions (symbols, since?, limit?, params?)
+blofin.watchPositions (symbols, since?, limit?, params)
 ```
 
 

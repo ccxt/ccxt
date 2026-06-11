@@ -1,8 +1,5 @@
-- [Binance Watch Many Orderbooks](./examples/py/)
-
-
- ```python
- import ccxt.pro as ccxt
+```python
+import ccxt.pro as ccxt
 import asyncio
 
 orderbooks = {}
@@ -53,5 +50,5 @@ async def main():
 
 
 asyncio.run(main())
- 
+
 ```

@@ -1,8 +1,5 @@
-- [Spot Vs Future Arbitrage Bitmart](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
  
 import asyncio
 import sys
@@ -60,5 +57,5 @@ async def main():
 
 asyncio.run(main())
 
- 
+
 ```

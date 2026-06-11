@@ -2020,7 +2020,7 @@ fetches the history of margin added or reduced from contract isolated positions
 
 
 ```javascript
-okx.fetchMarginAdjustmentHistory (symbol?, type?, since?, limit?, params?)
+okx.fetchMarginAdjustmentHistory (symbol?, type?, since?, limit?, params)
 ```
 
 
@@ -2049,7 +2049,7 @@ fetches historical positions
 
 
 ```javascript
-okx.fetchPositionsHistory (symbols?, since?, limit?, params?)
+okx.fetchPositionsHistory (symbols?, since?, limit?, params)
 ```
 
 

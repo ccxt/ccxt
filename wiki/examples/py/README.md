@@ -269,9 +269,9 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Bitmex Order Value](./examples/py/bitmex-order-value.md)
 
-- [Bitmex_watch_ohlcv](./examples/py/bitmex_watch_ohlcv.md)
+- [Bitmex Watch Ohlcv](./examples/py/bitmex_watch_ohlcv.md)
 
-- [Bitmex_watch_ticker_and_ohlcv](./examples/py/bitmex_watch_ticker_and_ohlcv.md)
+- [Bitmex Watch Ticker And Ohlcv](./examples/py/bitmex_watch_ticker_and_ohlcv.md)
 
 - [Bittrex Fetch Closed Orders History](./examples/py/bittrex-fetch-closed-orders-history.md)
 

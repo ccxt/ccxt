@@ -1,8 +1,5 @@
-- [Binance Futures Watch Balance](./examples/py/)
-
-
- ```python
- import ccxt
+```python
+import ccxt
 import ccxt.pro
 import asyncio
 
@@ -42,5 +39,5 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
- 
+
 ```
