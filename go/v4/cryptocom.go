@@ -553,7 +553,7 @@ func (this *CryptocomCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 						ret_ = func(this *CryptocomCore) any {
 							// catch block:
 							var erString any = this.ExceptionMessage(e)
-							if IsTrue(IsGreaterThanOrEqual(GetIndexOf(erString, "\"msg\":\"SYS_ERROR\""), 0)) {
+							if IsTrue(IsGreaterThanOrEqual(GetIndexOf(erString, "SYS_ERROR"), 0)) {
 
 								// sub-accounts can't access this endpoint
 								// {"code":"10001","msg":"SYS_ERROR"}
