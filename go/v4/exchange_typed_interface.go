@@ -520,9 +520,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "upbit":
 		itf := NewUpbit(options)
 		return itf
-	case "wavesexchange":
-		itf := NewWavesexchange(options)
-		return itf
 	case "weex":
 		itf := NewWeex(options)
 		return itf
