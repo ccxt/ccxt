@@ -1,4 +1,4 @@
-import { base16, base64 } from "../../../scure-base/index.js";
+import { hex as base16, base64 } from "@scure/base";
 
 export function hex2b64(h:string) {
     return base64.encode (base16.decode (h))

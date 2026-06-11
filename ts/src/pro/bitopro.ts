@@ -1,10 +1,10 @@
 
 // ----------------------------------------------------------------------------
 
+import { sha384 } from '@noble/hashes/sha2.js';
 import bitoproRest from '../bitopro.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 import type { Int, OrderBook, Trade, Ticker, Balances, Market, Str, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 

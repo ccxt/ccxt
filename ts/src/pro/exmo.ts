@@ -1,10 +1,10 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha512 } from '@noble/hashes/sha2.js';
 import exmoRest from '../exmo.js';
 import { NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import type { Int, Str, OrderBook, Trade, Ticker, Balances, Market, Dict, Strings, Tickers, Order } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 

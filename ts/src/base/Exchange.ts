@@ -1,5 +1,10 @@
 // ----------------------------------------------------------------------------
 
+import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { keccak_256 } from '@noble/hashes/sha3.js';
+import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '@scure/starknet';
+import { sha256 } from '@noble/hashes/sha2.js';
+import { sha1 } from '@noble/hashes/legacy.js';
 import * as functions from './functions.js';
 // import {
 //     // keys as keysFunc,
@@ -45,14 +50,9 @@ import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { totp } from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
-import { secp256k1 } from '../static_dependencies/noble-curves/secp256k1.js';
-import { keccak_256 } from '../static_dependencies/noble-hashes/sha3.js';
 import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
-import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '../static_dependencies/scure-starknet/index.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { sha1 } from '../static_dependencies/noble-hashes/sha1.js';
 import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_dependencies/dydx-v4-client/onboarding.js';
 import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
 
@@ -1638,10 +1638,10 @@ export default class Exchange {
         // Removes the "0x" prefix if present
         const cleanPrivateKey = this.remove0xPrefix (privateKey);
         // Get the public key from the private key using secp256k1 curve
-        const publicKeyBytes = secp256k1.getPublicKey (cleanPrivateKey);
+        const publicKeyBytes = secp256k1.getPublicKey (this.base16ToBinary (cleanPrivateKey));
         // For Ethereum, we need to use the uncompressed public key (without the first byte which indicates compression)
         // secp256k1.getPublicKey returns compressed key, we need uncompressed
-        const publicKeyUncompressed = secp256k1.ProjectivePoint.fromHex (publicKeyBytes).toRawBytes (false).slice (1); // Remove 0x04 prefix
+        const publicKeyUncompressed = secp256k1.Point.fromBytes (publicKeyBytes).toBytes (false).slice (1); // Remove 0x04 prefix
         // Hash the public key with Keccak256
         const publicKeyHash = keccak_256 (publicKeyUncompressed);
         // Take the last 20 bytes (40 hex chars)
