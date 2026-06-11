@@ -581,7 +581,7 @@ class bittrade extends bittrade$1["default"] {
             }
             return false;
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
         if (this.handleErrorMessage(client, message)) {

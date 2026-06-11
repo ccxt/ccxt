@@ -476,7 +476,7 @@ export default class hollaex extends hollaexRest {
                 return false;
             }
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
         //

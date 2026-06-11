@@ -49,7 +49,6 @@ const version = '4.5.57';
 import aftermath from  './src/aftermath.js'
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
-import arkham from  './src/arkham.js'
 import ascendex from  './src/ascendex.js'
 import aster from  './src/aster.js'
 import backpack from  './src/backpack.js'
@@ -162,7 +161,6 @@ import zebpay from  './src/zebpay.js'
 import aftermathPro from  './src/pro/aftermath.js'
 import alpacaPro from  './src/pro/alpaca.js'
 import apexPro from  './src/pro/apex.js'
-import arkhamPro from  './src/pro/arkham.js'
 import ascendexPro from  './src/pro/ascendex.js'
 import asterPro from  './src/pro/aster.js'
 import backpackPro from  './src/pro/backpack.js'
@@ -244,7 +242,6 @@ const exchanges = {
     'aftermath':              aftermath,
     'alpaca':                 alpaca,
     'apex':                   apex,
-    'arkham':                 arkham,
     'ascendex':               ascendex,
     'aster':                  aster,
     'backpack':               backpack,
@@ -357,7 +354,6 @@ const pro = {
     'aftermath':              aftermathPro,
     'alpaca':                 alpacaPro,
     'apex':                   apexPro,
-    'arkham':                 arkhamPro,
     'ascendex':               ascendexPro,
     'aster':                  asterPro,
     'backpack':               backpackPro,
@@ -582,7 +578,6 @@ export {
     aftermath,
     alpaca,
     apex,
-    arkham,
     ascendex,
     aster,
     backpack,
