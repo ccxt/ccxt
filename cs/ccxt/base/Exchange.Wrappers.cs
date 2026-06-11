@@ -1476,6 +1476,5 @@ public class  Whitebit: whitebit { public Whitebit(object args = null) : base(ar
 public class  Woo: woo { public Woo(object args = null) : base(args) { } }
 public class  Woofipro: woofipro { public Woofipro(object args = null) : base(args) { } }
 public class  Xt: xt { public Xt(object args = null) : base(args) { } }
-public class  Yobit: yobit { public Yobit(object args = null) : base(args) { } }
 public class  Zaif: zaif { public Zaif(object args = null) : base(args) { } }
 public class  Zebpay: zebpay { public Zebpay(object args = null) : base(args) { } }
