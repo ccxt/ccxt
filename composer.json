@@ -270,12 +270,6 @@
         "symfony/polyfill-mbstring": "1.38.2",
         "symfony/polyfill-php80": "1.37.0"
     },
-    "suggest": {
-        "recoil/recoil": "Required for asynchronous API calls to exchanges with PHP",
-        "recoil/react": "Required for asynchronous API calls to exchanges with PHP",
-        "react/http": "Required for asynchronous API calls to exchanges with PHP",
-        "clue/buzz-react": "Required for asynchronous API calls to exchanges with PHP"
-    },
     "archive": {
         "exclude": [
             "/build",
