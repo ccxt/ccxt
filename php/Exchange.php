@@ -332,7 +332,6 @@ class Exchange {
         'aftermath',
         'alpaca',
         'apex',
-        'arkham',
         'ascendex',
         'aster',
         'backpack',

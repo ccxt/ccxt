@@ -22,7 +22,6 @@ Exchange::$exchanges = array(
     'aftermath',
     'alpaca',
     'apex',
-    'arkham',
     'ascendex',
     'aster',
     'backpack',
