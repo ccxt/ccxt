@@ -14,7 +14,6 @@
 	- [fetchCurrencies](exchanges/fetchCurrencies.md)
 	- [alpaca](exchanges/alpaca.md)
 	- [apex](exchanges/apex.md)
-	- [arkham](exchanges/arkham.md)
 	- [ascendex](exchanges/ascendex.md)
 	- [aster](exchanges/aster.md)
 	- [backpack](exchanges/backpack.md)
