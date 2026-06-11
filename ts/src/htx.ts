@@ -7688,7 +7688,13 @@ export default class htx extends Exchange {
                 auth += '&' + this.urlencode ({ 'Signature': signature });
                 url += '?' + auth;
                 if (method === 'POST') {
-                    body = this.json (isArrayParams ? params : query);
+                    let bodyRequest = undefined;
+                    if (isArrayParams) {
+                        bodyRequest = params;
+                    } else {
+                        bodyRequest = query;
+                    }
+                    body = this.json (bodyRequest);
                     if (!isArrayParams && (body.length === 2)) {
                         body = '{}';
                     }
