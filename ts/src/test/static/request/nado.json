@@ -29,6 +29,28 @@
                 "input": []
             }
         ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://archive.test.nado.xyz/v2/contracts",
+                "input": [
+                    "BTC/USDT0:USDT0"
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates",
+                "method": "fetchFundingRates",
+                "url": "https://archive.test.nado.xyz/v2/contracts",
+                "input": [
+                    [
+                        "BTC/USDT0:USDT0"
+                    ]
+                ]
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "fetchOrderBook",

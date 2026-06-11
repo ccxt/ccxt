@@ -3,7 +3,8 @@
 import Exchange from './abstract/nado.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Currency, Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import { BadSymbol } from './base/errors.js';
+import type { Currencies, Currency, Dict, FundingRate, FundingRates, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -35,6 +36,8 @@ export default class nado extends Exchange {
                 'createOrder': false,
                 'fetchBalance': false,
                 'fetchCurrencies': true,
+                'fetchFundingRate': true,
+                'fetchFundingRates': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': false,
@@ -365,6 +368,97 @@ export default class nado extends Exchange {
 
     /**
      * @method
+     * @name nado#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://docs.nado.xyz/developer-resources/api/v2/contracts
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const tickerId = this.safeString (market['info'], 'ticker_id');
+        const response = await this.archiveV2PublicGetContracts (params);
+        //
+        //     {
+        //         "BTC-PERP_USDT0": {
+        //             "product_id": 1,
+        //             "ticker_id": "BTC-PERP_USDT0",
+        //             "base_currency": "BTC-PERP",
+        //             "quote_currency": "USDT0",
+        //             "last_price": 25744.0,
+        //             "base_volume": 794.154,
+        //             "quote_volume": 20475749.367766097,
+        //             "product_type": "perpetual",
+        //             "contract_price": 25830.738843799172,
+        //             "contract_price_currency": "USD",
+        //             "open_interest": 3059.325,
+        //             "open_interest_usd": 79024625.11330591,
+        //             "index_price": 25878.913320746455,
+        //             "mark_price": 25783.996946729356,
+        //             "funding_rate": -0.003664562348812546,
+        //             "next_funding_rate_timestamp": 1694379600,
+        //             "price_change_percent_24h": -0.6348599635253989
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, tickerId, {});
+        return this.parseFundingRate (data, market);
+    }
+
+    /**
+     * @method
+     * @name nado#fetchFundingRates
+     * @description fetch the funding rate for multiple markets
+     * @see https://docs.nado.xyz/developer-resources/api/v2/contracts
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
+     * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+     */
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, 'swap', true);
+        const response = await this.archiveV2PublicGetContracts (params);
+        //
+        //     {
+        //         "BTC-PERP_USDT0": {
+        //             "product_id": 1,
+        //             "ticker_id": "BTC-PERP_USDT0",
+        //             "base_currency": "BTC-PERP",
+        //             "quote_currency": "USDT0",
+        //             "last_price": 25744.0,
+        //             "base_volume": 794.154,
+        //             "quote_volume": 20475749.367766097,
+        //             "product_type": "perpetual",
+        //             "contract_price": 25830.738843799172,
+        //             "contract_price_currency": "USD",
+        //             "open_interest": 3059.325,
+        //             "open_interest_usd": 79024625.11330591,
+        //             "index_price": 25878.913320746455,
+        //             "mark_price": 25783.996946729356,
+        //             "funding_rate": -0.003664562348812546,
+        //             "next_funding_rate_timestamp": 1694379600,
+        //             "price_change_percent_24h": -0.6348599635253989
+        //         }
+        //     }
+        //
+        const tickers = Object.keys (response);
+        const rates = [];
+        for (let i = 0; i < tickers.length; i++) {
+            const ticker = tickers[i];
+            rates.push (response[ticker]);
+        }
+        return this.parseFundingRates (rates, symbols);
+    }
+
+    /**
+     * @method
      * @name nado#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.nado.xyz/developer-resources/api/v2/orderbook
@@ -550,6 +644,53 @@ export default class nado extends Exchange {
             'cost': (costString === undefined) ? undefined : Precise.stringAbs (costString),
             'fee': undefined,
         }, market);
+    }
+
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
+        //
+        //     {
+        //         "product_id": 1,
+        //         "ticker_id": "BTC-PERP_USDT0",
+        //         "base_currency": "BTC-PERP",
+        //         "quote_currency": "USDT0",
+        //         "last_price": 25744.0,
+        //         "base_volume": 794.154,
+        //         "quote_volume": 20475749.367766097,
+        //         "product_type": "perpetual",
+        //         "contract_price": 25830.738843799172,
+        //         "contract_price_currency": "USD",
+        //         "open_interest": 3059.325,
+        //         "open_interest_usd": 79024625.11330591,
+        //         "index_price": 25878.913320746455,
+        //         "mark_price": 25783.996946729356,
+        //         "funding_rate": -0.003664562348812546,
+        //         "next_funding_rate_timestamp": 1694379600,
+        //         "price_change_percent_24h": -0.6348599635253989
+        //     }
+        //
+        const marketId = this.safeString (contract, 'product_id');
+        market = this.safeMarket (marketId, market);
+        const fundingTimestamp = this.safeTimestamp (contract, 'next_funding_rate_timestamp');
+        return {
+            'info': contract,
+            'symbol': market['symbol'],
+            'markPrice': this.safeNumber (contract, 'mark_price'),
+            'indexPrice': this.safeNumber (contract, 'index_price'),
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber (contract, 'funding_rate'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': '24h',
+        };
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {

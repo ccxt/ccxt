@@ -133,6 +133,146 @@
                 }
             }
         ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT0:USDT0"
+                ],
+                "httpResponse": {
+                    "BTC-PERP_USDT0": {
+                        "product_id": 2,
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "base_currency": "BTC-PERP",
+                        "quote_currency": "USDT0",
+                        "last_price": 25744,
+                        "base_volume": 794.154,
+                        "quote_volume": 20475749.367766097,
+                        "product_type": "perpetual",
+                        "contract_price": 25830.738843799172,
+                        "contract_price_currency": "USD",
+                        "open_interest": 3059.325,
+                        "open_interest_usd": 79024625.11330591,
+                        "index_price": 25878.913320746455,
+                        "mark_price": 25783.996946729356,
+                        "funding_rate": -0.003664562348812546,
+                        "next_funding_rate_timestamp": 1694379600,
+                        "price_change_percent_24h": -0.6348599635253989
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "product_id": 2,
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "base_currency": "BTC-PERP",
+                        "quote_currency": "USDT0",
+                        "last_price": 25744,
+                        "base_volume": 794.154,
+                        "quote_volume": 20475749.367766097,
+                        "product_type": "perpetual",
+                        "contract_price": 25830.738843799172,
+                        "contract_price_currency": "USD",
+                        "open_interest": 3059.325,
+                        "open_interest_usd": 79024625.11330591,
+                        "index_price": 25878.913320746455,
+                        "mark_price": 25783.996946729356,
+                        "funding_rate": -0.003664562348812546,
+                        "next_funding_rate_timestamp": 1694379600,
+                        "price_change_percent_24h": -0.6348599635253989
+                    },
+                    "symbol": "BTC/USDT0:USDT0",
+                    "markPrice": 25783.996946729356,
+                    "indexPrice": 25878.913320746455,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": -0.003664562348812546,
+                    "fundingTimestamp": 1694379600000,
+                    "fundingDatetime": "2023-09-10T21:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "24h"
+                }
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "BTC/USDT0:USDT0"
+                    ]
+                ],
+                "httpResponse": {
+                    "BTC-PERP_USDT0": {
+                        "product_id": 2,
+                        "ticker_id": "BTC-PERP_USDT0",
+                        "base_currency": "BTC-PERP",
+                        "quote_currency": "USDT0",
+                        "last_price": 25744,
+                        "base_volume": 794.154,
+                        "quote_volume": 20475749.367766097,
+                        "product_type": "perpetual",
+                        "contract_price": 25830.738843799172,
+                        "contract_price_currency": "USD",
+                        "open_interest": 3059.325,
+                        "open_interest_usd": 79024625.11330591,
+                        "index_price": 25878.913320746455,
+                        "mark_price": 25783.996946729356,
+                        "funding_rate": -0.003664562348812546,
+                        "next_funding_rate_timestamp": 1694379600,
+                        "price_change_percent_24h": -0.6348599635253989
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDT0:USDT0": {
+                        "info": {
+                            "product_id": 2,
+                            "ticker_id": "BTC-PERP_USDT0",
+                            "base_currency": "BTC-PERP",
+                            "quote_currency": "USDT0",
+                            "last_price": 25744,
+                            "base_volume": 794.154,
+                            "quote_volume": 20475749.367766097,
+                            "product_type": "perpetual",
+                            "contract_price": 25830.738843799172,
+                            "contract_price_currency": "USD",
+                            "open_interest": 3059.325,
+                            "open_interest_usd": 79024625.11330591,
+                            "index_price": 25878.913320746455,
+                            "mark_price": 25783.996946729356,
+                            "funding_rate": -0.003664562348812546,
+                            "next_funding_rate_timestamp": 1694379600,
+                            "price_change_percent_24h": -0.6348599635253989
+                        },
+                        "symbol": "BTC/USDT0:USDT0",
+                        "markPrice": 25783.996946729356,
+                        "indexPrice": 25878.913320746455,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": -0.003664562348812546,
+                        "fundingTimestamp": 1694379600000,
+                        "fundingDatetime": "2023-09-10T21:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "24h"
+                    }
+                }
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "fetchOrderBook",
