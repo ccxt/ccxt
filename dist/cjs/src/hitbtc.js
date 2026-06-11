@@ -974,7 +974,7 @@ class hitbtc extends hitbtc$1["default"] {
         for (let j = 0; j < rawNetworks.length; j++) {
             const rawNetwork = rawNetworks[j];
             const networkId = this.safeString2(rawNetwork, 'protocol', 'network');
-            let networkCode = this.networkIdToCode(networkId);
+            let networkCode = this.networkIdToCode(networkId, code);
             networkCode = (networkCode !== undefined) ? networkCode.toUpperCase() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
             networks[networkCode] = {
                 'info': rawNetwork,
@@ -1012,17 +1012,6 @@ class hitbtc extends hitbtc$1["default"] {
             },
             'type': undefined, // 'crypto' field emits incorrect values
         });
-    }
-    addKeyInArrayItems(obj, keyName) {
-        const result = [];
-        const keys = Object.keys(obj);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const item = obj[key];
-            item[keyName] = key;
-            result.push(item);
-        }
-        return result;
     }
     /**
      * @method
@@ -3709,7 +3698,8 @@ class hitbtc extends hitbtc$1["default"] {
         for (let j = 0; j < networks.length; j++) {
             const networkEntry = networks[j];
             const networkId = this.safeString(networkEntry, 'network');
-            let networkCode = this.networkIdToCode(networkId);
+            const code = this.safeString(currency, 'code');
+            let networkCode = this.networkIdToCode(networkId, code);
             networkCode = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
             const withdrawFee = this.safeNumber(networkEntry, 'payout_fee');
             const isDefault = this.safeValue(networkEntry, 'default');

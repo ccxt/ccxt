@@ -456,7 +456,7 @@ class hollaex(ccxt.async_support.hollaex):
         except Exception as e:
             if isinstance(e, AuthenticationError):
                 return False
-        return message
+        return True
 
     def handle_message(self, client: Client, message):
         #

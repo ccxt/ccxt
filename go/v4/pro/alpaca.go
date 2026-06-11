@@ -336,7 +336,7 @@ func  (this *AlpacaCore) HandleOrderBook(client any, message any)  {
     client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func  (this *AlpacaCore) HandleDelta(bookside any, delta any)  {
-    var bidAsk any = this.ParseBidAsk(delta, "p", "s")
+    var bidAsk any = this.ParseOrderBookBidAsk(delta, "p", "s")
     bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 func  (this *AlpacaCore) HandleDeltas(bookside any, deltas any)  {

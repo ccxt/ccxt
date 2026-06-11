@@ -545,7 +545,7 @@ class ascendex(Exchange, ImplicitAPI):
         for j in range(0, len(chains)):
             networkEtnry = chains[j]
             networkId = self.safe_string(networkEtnry, 'chainName')
-            networkCode = self.network_code_to_id(networkId)
+            networkCode = self.network_code_to_id(networkId, code)
             networks[networkCode] = {
                 'fee': self.safe_number(networkEtnry, 'withdrawFee'),
                 'active': None,
@@ -2489,7 +2489,7 @@ class ascendex(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         networkCode = self.safe_string_2(params, 'network', 'chainName')
-        networkId = self.network_code_to_id(networkCode)
+        networkId = self.network_code_to_id(networkCode, currency['code'])
         params = self.omit(params, ['chainName'])
         request: dict = {
             'asset': currency['id'],

@@ -278,6 +278,7 @@ export default class htx extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): Currency;
     networkIdToCode(networkId?: Str, currencyCode?: Str): string;
     networkCodeToId(networkCode: string, currencyCode?: Str): any;
     /**

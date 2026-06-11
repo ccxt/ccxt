@@ -440,51 +440,28 @@ class gemini extends gemini$1["default"] {
         //        ]
         //    }
         //
-        const result = {};
         this.options['tradingPairs'] = this.safeList(data, 'tradingPairs');
         const currenciesArray = this.safeValue(data, 'currencies', []);
-        for (let i = 0; i < currenciesArray.length; i++) {
-            const currency = currenciesArray[i];
-            const id = this.safeString(currency, 0);
-            const code = this.safeCurrencyCode(id);
-            const type = this.safeString(currency, 7) ? 'fiat' : 'crypto';
-            const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 5)));
-            const networks = {};
-            const networkId = this.safeString(currency, 9);
-            let networkCode = undefined;
-            if (networkId !== undefined) {
-                networkCode = this.networkIdToCode(networkId);
-                networks[networkCode] = {
-                    'info': currency,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': undefined,
-                    'precision': precision,
-                    'limits': {
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'name': this.safeString(currency, 1),
+        return this.parseCurrencies(currenciesArray);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 0);
+        const code = this.safeCurrencyCode(id);
+        const type = this.safeString(rawCurrency, 7) ? 'fiat' : 'crypto';
+        const precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
+        const networks = {};
+        const networkId = this.safeString(rawCurrency, 9);
+        let networkCode = undefined;
+        if (networkId !== undefined) {
+            networkCode = this.networkIdToCode(networkId, code);
+            networks[networkCode] = {
+                'info': rawCurrency,
+                'id': networkId,
+                'network': networkCode,
                 'active': undefined,
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'type': type,
                 'precision': precision,
                 'limits': {
                     'deposit': {
@@ -496,10 +473,31 @@ class gemini extends gemini$1["default"] {
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'info': rawCurrency,
+            'id': id,
+            'code': code,
+            'name': this.safeString(rawCurrency, 1),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'type': type,
+            'precision': precision,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -1912,7 +1910,7 @@ class gemini extends gemini$1["default"] {
         if (networkCode === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddresses() requires a network parameter');
         }
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, currency['code']);
         const request = {
             'network': networkId,
         };

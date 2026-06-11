@@ -878,7 +878,7 @@ class bingx extends Exchange {
         for ($j = 0; $j < count($networkList); $j++) {
             $rawNetwork = $networkList[$j];
             $network = $this->safe_string($rawNetwork, 'network');
-            $networkCode = $this->network_id_to_code($network);
+            $networkCode = $this->network_id_to_code($network, $code);
             $limits = array(
                 'withdraw' => array(
                     'min' => $this->safe_number($rawNetwork, 'withdrawMin'),
@@ -5482,7 +5482,7 @@ class bingx extends Exchange {
             'txid' => $this->safe_string($transaction, 'txId'),
             'type' => $type,
             'currency' => $code,
-            'network' => $this->network_id_to_code($network),
+            'network' => $this->network_id_to_code($network, $code),
             'amount' => $this->safe_number($transaction, 'amount'),
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'timestamp' => $timestamp,
@@ -6039,7 +6039,7 @@ class bingx extends Exchange {
         );
         $network = $this->safe_string_upper($params, 'network');
         if ($network !== null) {
-            $request['network'] = $this->network_code_to_id($network);
+            $request['network'] = $this->network_code_to_id($network, $currency['code']);
         }
         if ($tag !== null) {
             $request['addressTag'] = $tag;

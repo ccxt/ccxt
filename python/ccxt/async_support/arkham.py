@@ -506,7 +506,7 @@ class arkham(Exchange, ImplicitAPI):
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'symbol')
-                network = self.network_id_to_code(networkId)
+                network = self.network_id_to_code(networkId, code)
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -1778,7 +1778,7 @@ class arkham(Exchange, ImplicitAPI):
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddressesByNetwork() requires a "network" param')
         request: dict = {
-            'chain': self.network_code_to_id(networkCode),
+            'chain': self.network_code_to_id(networkCode, code),
         }
         response = await self.v1PrivateGetAccountDepositAddresses(self.extend(request, params))
         #
@@ -1891,7 +1891,7 @@ class arkham(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'transactionHash'),
             'type': None,
             'currency': code,
-            'network': self.network_id_to_code(self.safe_string(transaction, 'chain')),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'chain'), code),
             'amount': self.safe_number(transaction, 'amount'),
             'status': status,
             'timestamp': timestamp,

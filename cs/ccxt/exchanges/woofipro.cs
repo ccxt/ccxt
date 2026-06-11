@@ -692,62 +692,76 @@ public partial class woofipro : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(tokenRows)); postFixIncrement(ref i))
         {
             object token = getValue(tokenRows, i);
-            object currencyId = this.safeString(token, "token");
-            object networks = this.safeList(token, "chain_details");
-            object code = this.safeCurrencyCode(currencyId);
-            object resultingNetworks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
-            {
-                object networkEntry = getValue(networks, j);
-                object networkId = this.safeString(networkEntry, "chain_id");
-                object networkRow = this.safeDict(indexedChains, networkId);
-                object networkName = this.safeString(networkRow, "name");
-                object networkCode = this.networkIdToCode(networkName, code);
-                ((IDictionary<string,object>)resultingNetworks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                    } },
-                    { "active", null },
-                    { "deposit", null },
-                    { "withdraw", null },
-                    { "fee", this.safeNumber(networkEntry, "withdrawal_fee") },
-                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "decimals"))) },
-                    { "info", new List<object>() {networkEntry, networkRow} },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", currencyId },
-                { "name", null },
-                { "code", code },
-                { "precision", null },
-                { "active", null },
-                { "fee", null },
-                { "networks", resultingNetworks },
-                { "deposit", null },
-                { "withdraw", null },
+            object parsed = this.parseCurrency(new Dictionary<string, object>() {
+                { "_token", token },
+                { "_indexedChains", indexedChains },
+            });
+            ((IDictionary<string,object>)result)[(string)getValue(parsed, "code")] = parsed;
+        }
+        return result;
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object token = this.safeDict(rawCurrency, "_token", new Dictionary<string, object>() {});
+        object currencyId = this.safeString(token, "token");
+        object networks = this.safeList(token, "chain_details");
+        object code = this.safeCurrencyCode(currencyId);
+        object indexedChains = this.safeDict(rawCurrency, "_indexedChains", new Dictionary<string, object>() {});
+        object resultingNetworks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
+        {
+            object networkEntry = getValue(networks, j);
+            object networkId = this.safeString(networkEntry, "chain_id");
+            object networkRow = this.safeDict(indexedChains, networkId);
+            object networkName = this.safeString(networkRow, "name");
+            object networkCode = this.networkIdToCode(networkName, code);
+            ((IDictionary<string,object>)resultingNetworks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
                 { "limits", new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
                     { "deposit", new Dictionary<string, object>() {
                         { "min", null },
                         { "max", null },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(token, "minimum_withdraw_amount") },
-                        { "max", null },
-                    } },
                 } },
-                { "info", token },
-            });
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
+                { "fee", this.safeNumber(networkEntry, "withdrawal_fee") },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "decimals"))) },
+                { "info", new Dictionary<string, object>() {
+                    { "network", networkEntry },
+                    { "networkRow", networkRow },
+                } },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", currencyId },
+            { "name", null },
+            { "code", code },
+            { "precision", null },
+            { "active", null },
+            { "fee", null },
+            { "networks", resultingNetworks },
+            { "deposit", null },
+            { "withdraw", null },
+            { "limits", new Dictionary<string, object>() {
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(token, "minimum_withdraw_amount") },
+                    { "max", null },
+                } },
+            } },
+            { "info", token },
+        });
     }
 
     public virtual object parseTokenAndFeeTemp(object item, object feeTokenKey, object feeAmountKey)

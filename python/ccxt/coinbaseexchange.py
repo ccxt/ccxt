@@ -534,7 +534,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         for j in range(0, len(supportedNetworks)):
             network = supportedNetworks[j]
             networkId = self.safe_string(network, 'id')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             networks[networkCode] = {
                 'id': networkId,
                 'name': self.safe_string(network, 'name'),
@@ -1945,7 +1945,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'txid': self.safe_string(details, 'crypto_transaction_hash'),
             'type': type,
             'currency': code,
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'amount': amount,
             'status': self.parse_transaction_status(transaction),
             'timestamp': timestamp,

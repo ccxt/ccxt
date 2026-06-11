@@ -464,7 +464,7 @@ public partial class bitmex : Exchange
         {
             object chain = getValue(chains, j);
             object networkId = this.safeString(chain, "asset");
-            object network = this.networkIdToCode(networkId);
+            object network = this.networkIdToCode(networkId, code);
             object withdrawalFeeRaw = this.safeString(chain, "withdrawalFee");
             object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
             object isDepositEnabled = this.safeBool(chain, "depositEnabled", false);

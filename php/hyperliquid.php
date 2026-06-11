@@ -458,50 +458,50 @@ class hyperliquid extends Exchange {
         $tokens = $this->safe_list($response, 'tokens', array());
         // $meta = $this->safe_list($response, 'universe', array());
         $this->options['cachedCurrenciesById'] = array(); // used to map hip3 markets
-        $result = array();
-        for ($i = 0; $i < count($tokens); $i++) {
-            $data = $this->safe_dict($tokens, $i, array());
-            // $id = $i;
-            $id = $this->safe_string($data, 'index');
-            $name = $this->safe_string($data, 'name');
-            $code = $this->safe_currency_code($name);
-            $this->options['cachedCurrenciesById'][$id] = $name;
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $id,
-                'name' => $name,
-                'code' => $code,
-                'precision' => $this->parse_precision($this->safe_string($data, 'weiDecimals')),
-                'info' => $data,
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'networks' => null,
-                'fee' => null,
-                'type' => 'crypto',
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
+        return $this->parse_currencies($tokens);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        // $id = i;
+        $id = $this->safe_string($rawCurrency, 'index');
+        $name = $this->safe_string($rawCurrency, 'name');
+        $code = $this->safe_currency_code($name);
+        $this->options['cachedCurrenciesById'][$id] = $name;
+        $result = $this->safe_currency_structure(array(
+            'id' => $id,
+            'name' => $name,
+            'code' => $code,
+            'precision' => $this->parse_precision($this->safe_string($rawCurrency, 'weiDecimals')),
+            'info' => $rawCurrency,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'networks' => null,
+            'fee' => null,
+            'type' => 'crypto',
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
                 ),
-            ));
-            // add in wrapped map
-            $fullName = $this->safe_string($data, 'fullName');
-            if ($fullName !== null && $name !== null) {
-                $isWrapped = str_starts_with($fullName, 'Unit ') && str_starts_with($name, 'U');
-                if ($isWrapped) {
-                    $parts = explode('U', $name);
-                    $nameWithoutU = '';
-                    for ($j = 0; $j < count($parts); $j++) {
-                        $nameWithoutU = $nameWithoutU . $parts[$j];
-                    }
-                    $baseCode = $this->safe_currency_code($nameWithoutU);
-                    $this->options['spotCurrencyMapping'][$code] = $baseCode;
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+        ));
+        // add in wrapped map
+        $fullName = $this->safe_string($rawCurrency, 'fullName');
+        if ($fullName !== null && $name !== null) {
+            $isWrapped = str_starts_with($fullName, 'Unit ') && str_starts_with($name, 'U');
+            if ($isWrapped) {
+                $parts = explode('U', $name);
+                $nameWithoutU = '';
+                for ($j = 0; $j < count($parts); $j++) {
+                    $nameWithoutU = $nameWithoutU . $parts[$j];
                 }
+                $baseCode = $this->safe_currency_code($nameWithoutU);
+                $this->options['spotCurrencyMapping'][$code] = $baseCode;
             }
         }
         return $result;

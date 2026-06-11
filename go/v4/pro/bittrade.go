@@ -723,7 +723,7 @@ func  (this *BittradeCore) HandleErrorMessage(client any, message any) any  {
         }
         return false
     }
-    return message
+    return true
 }
 func  (this *BittradeCore) HandleMessage(client any, message any)  {
     if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {

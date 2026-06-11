@@ -466,7 +466,6 @@ class bitrue(Exchange, ImplicitAPI):
                     'XML': 'Stellar Lumens',
                     'XYM': 'Symbol',
                     'XTZ': 'Tezos',
-                    'theta': 'theta',
                     'THETA': 'THETA',
                     'VECHAIN': 'VeChain',
                     'WANCHAIN': 'Wanchain',
@@ -617,6 +616,7 @@ class bitrue(Exchange, ImplicitAPI):
                     "You don't have permission.": PermissionDenied,  # {"msg":"You don't have permission.","success":false}
                     'Market is closed.': ExchangeNotAvailable,  # {"code":-1013,"msg":"Market is closed."}
                     'Too many requests. Please try again later.': DDoSProtection,  # {"msg":"Too many requests. Please try again later.","success":false}
+                    'quantity less then minQty': InvalidOrder,  # {"code":-1111,"msg":"quantity less then minQty.","data":null}
                     '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable,  # 'Internal error; unable to process your request. Please try again.'
                     '-1002': AuthenticationError,  # 'You are not authorized to execute self request.'
@@ -2778,7 +2778,7 @@ class bitrue(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chainName'] = self.network_code_to_id(networkCode)
+            request['chainName'] = self.network_code_to_id(networkCode, currency['code'])
         if tag is not None:
             request['tag'] = tag
         response = await self.spotV1PrivatePostWithdrawCommit(self.extend(request, params))

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.56'
+__version__ = '4.5.57'
 
 # -----------------------------------------------------------------------------
 
@@ -124,10 +124,10 @@ from ccxt.async_support.derive import derive                                    
 from ccxt.async_support.digifinex import digifinex                              # noqa: F401
 from ccxt.async_support.dydx import dydx                                        # noqa: F401
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
+from ccxt.async_support.extended import extended                                # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
 from ccxt.async_support.foxbit import foxbit                                    # noqa: F401
 from ccxt.async_support.gate import gate                                        # noqa: F401
-from ccxt.async_support.gateio import gateio                                    # noqa: F401
 from ccxt.async_support.gemini import gemini                                    # noqa: F401
 from ccxt.async_support.grvt import grvt                                        # noqa: F401
 from ccxt.async_support.hashkey import hashkey                                  # noqa: F401
@@ -156,7 +156,6 @@ from ccxt.async_support.novadax import novadax                                  
 from ccxt.async_support.okx import okx                                          # noqa: F401
 from ccxt.async_support.okxus import okxus                                      # noqa: F401
 from ccxt.async_support.onetrading import onetrading                            # noqa: F401
-from ccxt.async_support.oxfun import oxfun                                      # noqa: F401
 from ccxt.async_support.p2b import p2b                                          # noqa: F401
 from ccxt.async_support.pacifica import pacifica                                # noqa: F401
 from ccxt.async_support.paradex import paradex                                  # noqa: F401
@@ -237,10 +236,10 @@ exchanges = [
     'digifinex',
     'dydx',
     'exmo',
+    'extended',
     'fmfwio',
     'foxbit',
     'gate',
-    'gateio',
     'gemini',
     'grvt',
     'hashkey',
@@ -269,7 +268,6 @@ exchanges = [
     'okx',
     'okxus',
     'onetrading',
-    'oxfun',
     'p2b',
     'pacifica',
     'paradex',

@@ -105,4 +105,8 @@ func TestPrecise() {
 	Assert(ccxt.Precise.StringLe("-3.1415", "-2"))
 	Assert(ccxt.Precise.StringLe("3.1415", "3.1415"))
 	Assert(ccxt.Precise.StringLe("3.1415", "3.14150000000000000000001"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringOr("5", "3"), "7"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringOr("10", "5"), "15")) // 1010 | 0101 = 1111 = 15
+	Assert(ccxt.IsEqual(ccxt.Precise.StringOr("0", "0"), "0"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringOr("7", "0"), "7"))
 }

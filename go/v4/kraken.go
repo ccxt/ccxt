@@ -835,70 +835,69 @@ func (this *KrakenCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		//         },
 		//     }
 		//
-		var currencies any = this.SafeValue(response, "result", map[string]any{})
-		var ids any = ObjectKeys(currencies)
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
-			var id any = GetValue(ids, i)
-			var currency any = GetValue(currencies, id)
-			// todo: will need to rethink the fees
-			// see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
-			// to add support for multiple withdrawal/deposit methods and
-			// differentiated fees for each particular method
-			//
-			// Notes about abbreviations:
-			// Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
-			// S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
-			//
-			var code any = this.SafeCurrencyCode(id)
-			// the below can not be reliable done in `safeCurrencyCode`, so we have to do it here
-			if IsTrue(IsLessThan(GetIndexOf(id, "."), 0)) {
-				var altName any = this.SafeString(currency, "altname")
-				// handle cases like below:
-				//
-				//  id   | altname
-				// ---------------
-				// XXBT  |  XBT
-				// ZUSD  |  USD
-				if IsTrue(IsTrue(!IsEqual(id, altName)) && IsTrue((IsTrue(StartsWith(id, "X")) || IsTrue(StartsWith(id, "Z"))))) {
-					code = this.SafeCurrencyCode(altName)
-					// also, add map in commonCurrencies:
-					AddElementToObject(this.CommonCurrencies, id, code)
-				} else {
-					code = this.SafeCurrencyCode(id)
-				}
-			}
-			var isFiat any = IsGreaterThanOrEqual(GetIndexOf(code, ".HOLD"), 0)
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"id":        id,
-				"code":      code,
-				"info":      currency,
-				"name":      this.SafeString(currency, "altname"),
-				"active":    IsEqual(this.SafeString(currency, "status"), "enabled"),
-				"type":      Ternary(IsTrue(isFiat), "fiat", "crypto"),
-				"deposit":   nil,
-				"withdraw":  nil,
-				"fee":       nil,
-				"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals"))),
-				"limits": map[string]any{
-					"amount": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"withdraw": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-				"networks": map[string]any{},
-			}))
-		}
+		var currencies any = this.SafeDict(response, "result", map[string]any{})
+		var enhancedArray any = this.AddKeyInArrayItems(currencies, "_coin_id")
 
-		ch <- result
+		ch <- this.ParseCurrencies(enhancedArray)
 		return nil
 
 	}()
 	return ch
+}
+func (this *KrakenCore) ParseCurrency(rawCurrency any) any {
+	// todo: will need to rethink the fees
+	// see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
+	// to add support for multiple withdrawal/deposit methods and
+	// differentiated fees for each particular method
+	//
+	// Notes about abbreviations:
+	// Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
+	// S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
+	//
+	var id any = this.SafeString(rawCurrency, "_coin_id")
+	var code any = this.SafeCurrencyCode(id)
+	// the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
+	if IsTrue(IsLessThan(GetIndexOf(id, "."), 0)) {
+		var altName any = this.SafeString(rawCurrency, "altname")
+		// handle cases like below:
+		//
+		//  id   | altname
+		// ---------------
+		// XXBT  |  XBT
+		// ZUSD  |  USD
+		if IsTrue(IsTrue(!IsEqual(id, altName)) && IsTrue((IsTrue(StartsWith(id, "X")) || IsTrue(StartsWith(id, "Z"))))) {
+			code = this.SafeCurrencyCode(altName)
+			// also, add map in commonCurrencies:
+			AddElementToObject(this.CommonCurrencies, id, code)
+		} else {
+			code = this.SafeCurrencyCode(id)
+		}
+	}
+	var isFiat any = IsGreaterThanOrEqual(GetIndexOf(code, ".HOLD"), 0)
+	rawCurrency = this.Omit(rawCurrency, "_coin_id")
+	return this.SafeCurrencyStructure(map[string]any{
+		"id":        id,
+		"code":      code,
+		"info":      rawCurrency,
+		"name":      this.SafeString(rawCurrency, "altname"),
+		"active":    IsEqual(this.SafeString(rawCurrency, "status"), "enabled"),
+		"type":      Ternary(IsTrue(isFiat), "fiat", "crypto"),
+		"deposit":   nil,
+		"withdraw":  nil,
+		"fee":       nil,
+		"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "decimals"))),
+		"limits": map[string]any{
+			"amount": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"networks": map[string]any{},
+	})
 }
 func (this *KrakenCore) SafeCurrencyCode(currencyId any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
@@ -994,7 +993,7 @@ func (this *KrakenCore) ParseTradingFee(response any, market any) any {
 		"tierBased":  true,
 	}
 }
-func (this *KrakenCore) ParseBidAsk(bidask any, optionalArgs ...any) any {
+func (this *KrakenCore) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) any {
 	priceKey := GetArg(optionalArgs, 0, 0)
 	_ = priceKey
 	amountKey := GetArg(optionalArgs, 1, 1)

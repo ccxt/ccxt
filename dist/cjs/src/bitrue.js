@@ -447,7 +447,6 @@ class bitrue extends bitrue$1["default"] {
                     'XML': 'Stellar Lumens',
                     'XYM': 'Symbol',
                     'XTZ': 'Tezos',
-                    'theta': 'theta',
                     'THETA': 'THETA',
                     'VECHAIN': 'VeChain',
                     'WANCHAIN': 'Wanchain',
@@ -598,6 +597,7 @@ class bitrue extends bitrue$1["default"] {
                     "You don't have permission.": errors.PermissionDenied,
                     'Market is closed.': errors.ExchangeNotAvailable,
                     'Too many requests. Please try again later.': errors.DDoSProtection,
+                    'quantity less then minQty': errors.InvalidOrder,
                     '-1000': errors.ExchangeNotAvailable,
                     '-1001': errors.ExchangeNotAvailable,
                     '-1002': errors.AuthenticationError,
@@ -2907,7 +2907,7 @@ class bitrue extends bitrue$1["default"] {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['chainName'] = this.networkCodeToId(networkCode);
+            request['chainName'] = this.networkCodeToId(networkCode, currency['code']);
         }
         if (tag !== undefined) {
             request['tag'] = tag;

@@ -462,50 +462,49 @@ class hyperliquid extends hyperliquid$1["default"] {
         const tokens = this.safeList(response, 'tokens', []);
         // const meta = this.safeList (response, 'universe', []);
         this.options['cachedCurrenciesById'] = {}; // used to map hip3 markets
-        const result = {};
-        for (let i = 0; i < tokens.length; i++) {
-            const data = this.safeDict(tokens, i, {});
-            // const id = i;
-            const id = this.safeString(data, 'index');
-            const name = this.safeString(data, 'name');
-            const code = this.safeCurrencyCode(name);
-            this.options['cachedCurrenciesById'][id] = name;
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'name': name,
-                'code': code,
-                'precision': this.parsePrecision(this.safeString(data, 'weiDecimals')),
-                'info': data,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'networks': undefined,
-                'fee': undefined,
-                'type': 'crypto',
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+        return this.parseCurrencies(tokens);
+    }
+    parseCurrency(rawCurrency) {
+        // const id = i;
+        const id = this.safeString(rawCurrency, 'index');
+        const name = this.safeString(rawCurrency, 'name');
+        const code = this.safeCurrencyCode(name);
+        this.options['cachedCurrenciesById'][id] = name;
+        const result = this.safeCurrencyStructure({
+            'id': id,
+            'name': name,
+            'code': code,
+            'precision': this.parsePrecision(this.safeString(rawCurrency, 'weiDecimals')),
+            'info': rawCurrency,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'networks': undefined,
+            'fee': undefined,
+            'type': 'crypto',
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-            });
-            // add in wrapped map
-            const fullName = this.safeString(data, 'fullName');
-            if (fullName !== undefined && name !== undefined) {
-                const isWrapped = fullName.startsWith('Unit ') && name.startsWith('U');
-                if (isWrapped) {
-                    const parts = name.split('U');
-                    let nameWithoutU = '';
-                    for (let j = 0; j < parts.length; j++) {
-                        nameWithoutU = nameWithoutU + parts[j];
-                    }
-                    const baseCode = this.safeCurrencyCode(nameWithoutU);
-                    this.options['spotCurrencyMapping'][code] = baseCode;
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+        });
+        // add in wrapped map
+        const fullName = this.safeString(rawCurrency, 'fullName');
+        if (fullName !== undefined && name !== undefined) {
+            const isWrapped = fullName.startsWith('Unit ') && name.startsWith('U');
+            if (isWrapped) {
+                const parts = name.split('U');
+                let nameWithoutU = '';
+                for (let j = 0; j < parts.length; j++) {
+                    nameWithoutU = nameWithoutU + parts[j];
                 }
+                const baseCode = this.safeCurrencyCode(nameWithoutU);
+                this.options['spotCurrencyMapping'][code] = baseCode;
             }
         }
         return result;

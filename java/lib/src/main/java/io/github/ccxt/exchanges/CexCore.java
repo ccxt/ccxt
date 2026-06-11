@@ -380,7 +380,7 @@ public class CexCore extends CexApi
         {
             Object networkId = Helpers.GetValue(keys, j);
             Object rawNetwork = Helpers.GetValue(rawNetworks, networkId);
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             Object deposit = Helpers.isEqual(this.safeString(rawNetwork, "deposit"), "enabled");
             Object withdraw = Helpers.isEqual(this.safeString(rawNetwork, "withdrawal"), "enabled");
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
@@ -2034,7 +2034,7 @@ public class CexCore extends CexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "accountId", finalAccountId );
                 put( "currency", Helpers.GetValue(currency, "id") );
-                put( "blockchain", CexCore.this.networkCodeToId(finalNetworkCode) );
+                put( "blockchain", CexCore.this.networkCodeToId(finalNetworkCode, Helpers.GetValue(currency, "code")) );
             }};
             Object response = (this.privatePostGetDepositAddress(this.extend(request, parameters))).join();
             //
@@ -2065,7 +2065,7 @@ public class CexCore extends CexApi
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", Helpers.GetValue(finalCurrency, "code") );
-            put( "network", CexCore.this.networkIdToCode(CexCore.this.safeString(depositAddress, "blockchain")) );
+            put( "network", CexCore.this.networkIdToCode(CexCore.this.safeString(depositAddress, "blockchain"), Helpers.GetValue(finalCurrency, "code")) );
             put( "address", address );
             put( "tag", null );
         }};

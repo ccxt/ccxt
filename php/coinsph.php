@@ -627,7 +627,7 @@ class coinsph extends Exchange {
         for ($j = 0; $j < count($networkList); $j++) {
             $networkItem = $networkList[$j];
             $network = $this->safe_string($networkItem, 'network');
-            $networkCode = $this->network_id_to_code($network);
+            $networkCode = $this->network_id_to_code($network, $code);
             $networks[$networkCode] = array(
                 'info' => $networkItem,
                 'id' => $network,

@@ -121,8 +121,12 @@ function testPrecise () {
     assert (Precise.stringLe ('3.1415', '3.1415'));
     assert (Precise.stringLe ('3.1415', '3.14150000000000000000001'));
 
-    // with undefined arguments (todo in golang)
-    // @SKIP_START_GO
+    assert (Precise.stringOr ('5', '3') === '7');
+    assert (Precise.stringOr ('10', '5') === '15');  // 1010 | 0101 = 1111 = 15
+    assert (Precise.stringOr ('0', '0') === '0');
+    assert (Precise.stringOr ('7', '0') === '7');
+
+    // with undefined arguments
     assert (Precise.stringMul (undefined, '1') === undefined);
     assert (Precise.stringMul ('1', undefined) === undefined);
     assert (Precise.stringMul (undefined, undefined) === undefined);
@@ -181,7 +185,6 @@ function testPrecise () {
     assert (Precise.stringLe (undefined, '1') === undefined);
     assert (Precise.stringLe ('1', undefined) === undefined);
     assert (Precise.stringLe (undefined, undefined) === undefined);
-    // @SKIP_END_GO
 }
 
 export default testPrecise;

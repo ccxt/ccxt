@@ -514,7 +514,7 @@ export default class apex extends Exchange {
                 const tokenName = this.safeString(token, 'token');
                 if (tokenName === currencyId) {
                     const networkId = this.safeString(chain, 'chainId');
-                    const networkCode = this.networkIdToCode(networkId);
+                    const networkCode = this.networkIdToCode(networkId, code);
                     networks[networkCode] = {
                         'info': chain,
                         'id': networkId,

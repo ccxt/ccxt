@@ -1158,54 +1158,53 @@ class mexc(Exchange, ImplicitAPI):
         #     ]
         #   }
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currency = response[i]
-            id = self.safe_string(currency, 'coin')
-            code = self.safe_currency_code(id)
-            networks: dict = {}
-            chains = self.safe_value(currency, 'networkList', [])
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                networkId = self.safe_string_2(chain, 'netWork', 'network')
-                network = self.network_id_to_code(networkId)
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'active': None,
-                    'deposit': self.safe_bool(chain, 'depositEnable', False),
-                    'withdraw': self.safe_bool(chain, 'withdrawEnable', False),
-                    'fee': self.safe_number(chain, 'withdrawFee'),
-                    'precision': None,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_string(chain, 'withdrawMin'),
-                            'max': self.safe_string(chain, 'withdrawMax'),
-                        },
-                    },
-                    'contract': self.safe_string(chain, 'contract'),
-                }
-            result[code] = self.safe_currency_structure({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'name': self.safe_string(currency, 'name'),
+        return self.parse_currencies(response)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'coin')
+        code = self.safe_currency_code(id)
+        networks: dict = {}
+        chains = self.safe_value(rawCurrency, 'networkList', [])
+        for j in range(0, len(chains)):
+            chain = chains[j]
+            networkId = self.safe_string_2(chain, 'netWork', 'network')
+            network = self.network_id_to_code(networkId, code)
+            networks[network] = {
+                'info': chain,
+                'id': networkId,
+                'network': network,
                 'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
+                'deposit': self.safe_bool(chain, 'depositEnable', False),
+                'withdraw': self.safe_bool(chain, 'withdrawEnable', False),
+                'fee': self.safe_number(chain, 'withdrawFee'),
                 'precision': None,
                 'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
+                    'withdraw': {
+                        'min': self.safe_string(chain, 'withdrawMin'),
+                        'max': self.safe_string(chain, 'withdrawMax'),
                     },
                 },
-                'type': 'crypto',
-                'networks': networks,
-            })
-        return result
+                'contract': self.safe_string(chain, 'contract'),
+            }
+        return self.safe_currency_structure({
+            'info': rawCurrency,
+            'id': id,
+            'code': code,
+            'name': self.safe_string(rawCurrency, 'name'),
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': None,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'type': 'crypto',
+            'networks': networks,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -1536,7 +1535,7 @@ class mexc(Exchange, ImplicitAPI):
             orderbook['nonce'] = self.safe_integer(data, 'version')
         return orderbook
 
-    def parse_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+    def parse_order_book_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         countKey = 2
         price = self.safe_number(bidask, priceKey)
         amount = self.safe_number(bidask, amountKey)
@@ -4550,11 +4549,12 @@ class mexc(Exchange, ImplicitAPI):
         #
         address = self.safe_string(depositAddress, 'address')
         currencyId = self.safe_string(depositAddress, 'coin')
+        code = self.safe_currency_code(currencyId, currency)
         networkId = self.safe_string(depositAddress, 'netWork')
         return {
             'info': depositAddress,
-            'currency': self.safe_currency_code(currencyId, currency),
-            'network': self.network_id_to_code(networkId, currencyId),
+            'currency': code,
+            'network': self.network_id_to_code(networkId, code),
             'address': address,
             'tag': self.safe_string(depositAddress, 'memo'),
         }
@@ -4850,11 +4850,11 @@ class mexc(Exchange, ImplicitAPI):
         currencyWithNetwork = self.safe_string(transaction, 'coin')
         if currencyWithNetwork is not None:
             currencyId = currencyWithNetwork.split('-')[0]
+        code = self.safe_currency_code(currencyId, currency)
         network = None
         rawNetwork = self.safe_string(transaction, 'network')
         if rawNetwork is not None:
-            network = self.network_id_to_code(rawNetwork)
-        code = self.safe_currency_code(currencyId, currency)
+            network = self.network_id_to_code(rawNetwork, code)
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amountString = self.safe_string(transaction, 'amount')
         address = self.safe_string(transaction, 'address')

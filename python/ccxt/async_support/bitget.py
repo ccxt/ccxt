@@ -2850,7 +2850,7 @@ class bitget(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' withdraw() requires a "network" parameter')
         await self.load_markets()
         currency = self.currency(code)
-        networkId = self.network_code_to_id(networkCode)
+        networkId = self.network_code_to_id(networkCode, code)
         request: dict = {
             'coin': currency['id'],
             'address': address,
@@ -3010,7 +3010,7 @@ class bitget(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'tradeId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'addressFrom': self.safe_string(transaction, 'fromAddress'),
             'address': self.safe_string(transaction, 'toAddress'),
             'addressTo': self.safe_string(transaction, 'toAddress'),

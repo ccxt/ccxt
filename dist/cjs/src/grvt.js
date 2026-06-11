@@ -1593,13 +1593,15 @@ class grvt extends grvt$1["default"] {
         let networkCode = undefined;
         let addressFrom = this.safeString(transaction, 'from_account_id');
         let addressTo = this.safeString(transaction, 'to_account_id');
+        const currencyId = this.safeString(transaction, 'currency');
+        const code = this.safeCurrencyCode(currencyId, currency);
         if ('transfer_metadata' in transaction) {
             const metaData = this.omitZero(this.safeString(transaction, 'transfer_metadata'));
             if (metaData !== undefined) {
                 const parsedMeta = this.parseJson(metaData);
                 direction = this.safeStringLower(parsedMeta, 'direction');
                 txId = this.safeString(parsedMeta, 'provider_tx_id');
-                networkCode = this.networkIdToCode(this.safeString(parsedMeta, 'chainid'));
+                networkCode = this.networkIdToCode(this.safeString(parsedMeta, 'chainid'), code);
                 if (direction === 'withdrawal') {
                     addressTo = this.safeString(parsedMeta, 'endpoint');
                 }
@@ -1609,8 +1611,6 @@ class grvt extends grvt$1["default"] {
             }
         }
         const timestamp = this.safeIntegerProduct2(transaction, 'event_time', 'initiated_time', 0.000001);
-        const currencyId = this.safeString(transaction, 'currency');
-        const code = this.safeCurrencyCode(currencyId, currency);
         return {
             'info': transaction,
             'id': undefined,
@@ -1912,7 +1912,7 @@ class grvt extends grvt$1["default"] {
             'signature': this.defaultSignature(),
         };
         const [networkCode, query] = this.handleNetworkCodeAndParams(params);
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, code);
         if (networkId === undefined) {
             throw new errors.BadRequest(this.id + ' withdraw() requires a network parameter');
         }

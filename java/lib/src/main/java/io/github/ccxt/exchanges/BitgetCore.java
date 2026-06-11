@@ -3021,7 +3021,7 @@ final Object finalMinNotional = minNotional;
             }
             (this.loadMarkets()).join();
             Object currency = this.currency(code);
-            Object networkId = this.networkCodeToId(networkCode);
+            Object networkId = this.networkCodeToId(networkCode, code);
             final Object finalNetworkCode = networkCode;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
@@ -3227,7 +3227,7 @@ final Object finalMinNotional = minNotional;
             put( "txid", BitgetCore.this.safeString(transaction, "tradeId") );
             put( "timestamp", timestamp );
             put( "datetime", BitgetCore.this.iso8601(timestamp) );
-            put( "network", BitgetCore.this.networkIdToCode(networkId) );
+            put( "network", BitgetCore.this.networkIdToCode(networkId, code) );
             put( "addressFrom", BitgetCore.this.safeString(transaction, "fromAddress") );
             put( "address", BitgetCore.this.safeString(transaction, "toAddress") );
             put( "addressTo", BitgetCore.this.safeString(transaction, "toAddress") );

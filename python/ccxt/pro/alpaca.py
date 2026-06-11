@@ -269,7 +269,7 @@ class alpaca(ccxt.async_support.alpaca):
         client.resolve(orderbook, messageHash)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta, 'p', 's')
+        bidAsk = self.parse_order_book_bid_ask(delta, 'p', 's')
         bookside.storeArray(bidAsk)
 
     def handle_deltas(self, bookside, deltas):

@@ -840,7 +840,7 @@ class backpack(ccxt.async_support.backpack):
 
     def handle_bid_asks(self, bookSide, bidAsks):
         for i in range(0, len(bidAsks)):
-            bidAsk = self.parse_bid_ask(bidAsks[i])
+            bidAsk = self.parse_order_book_bid_ask(bidAsks[i])
             bookSide.storeArray(bidAsk)
 
     def get_cache_index(self, orderbook, cache):

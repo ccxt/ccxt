@@ -608,7 +608,7 @@ public partial class coinsph : Exchange
         {
             object networkItem = getValue(networkList, j);
             object network = this.safeString(networkItem, "network");
-            object networkCode = this.networkIdToCode(network);
+            object networkCode = this.networkIdToCode(network, code);
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "info", networkItem },
                 { "id", network },

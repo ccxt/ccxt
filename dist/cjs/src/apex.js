@@ -513,7 +513,7 @@ class apex extends apex$1["default"] {
                 const tokenName = this.safeString(token, 'token');
                 if (tokenName === currencyId) {
                     const networkId = this.safeString(chain, 'chainId');
-                    const networkCode = this.networkIdToCode(networkId);
+                    const networkCode = this.networkIdToCode(networkId, code);
                     networks[networkCode] = {
                         'info': chain,
                         'id': networkId,

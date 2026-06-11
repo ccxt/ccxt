@@ -1429,46 +1429,45 @@ public partial class lighter : Exchange
         //     }
         //
         object data = this.safeList(response, "asset_details", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        return this.parseCurrencies(data);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, "asset_id");
+        object code = this.safeCurrencyCode(this.safeString(rawCurrency, "symbol"));
+        object decimals = this.safeString(rawCurrency, "decimals");
+        object isUSDC = (isEqual(code, "USDC"));
+        object depositMin = null;
+        object withdrawMin = null;
+        if (isTrue(isUSDC))
         {
-            object entry = getValue(data, i);
-            object id = this.safeString(entry, "asset_id");
-            object code = this.safeCurrencyCode(this.safeString(entry, "symbol"));
-            object decimals = this.safeString(entry, "decimals");
-            object isUSDC = (isEqual(code, "USDC"));
-            object depositMin = null;
-            object withdrawMin = null;
-            if (isTrue(isUSDC))
-            {
-                depositMin = this.safeNumber(entry, "min_transfer_amount");
-                withdrawMin = this.safeNumber(entry, "min_withdrawal_amount");
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "name", code },
-                { "code", code },
-                { "precision", this.parseNumber(add("1e-", decimals)) },
-                { "active", true },
-                { "fee", null },
-                { "networks", new Dictionary<string, object>() {} },
-                { "deposit", isUSDC },
-                { "withdraw", isUSDC },
-                { "type", "crypto" },
-                { "limits", new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", depositMin },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", withdrawMin },
-                        { "max", null },
-                    } },
-                } },
-                { "info", entry },
-            });
+            depositMin = this.safeNumber(rawCurrency, "min_transfer_amount");
+            withdrawMin = this.safeNumber(rawCurrency, "min_withdrawal_amount");
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "name", code },
+            { "code", code },
+            { "precision", this.parseNumber(add("1e-", decimals)) },
+            { "active", true },
+            { "fee", null },
+            { "networks", new Dictionary<string, object>() {} },
+            { "deposit", isUSDC },
+            { "withdraw", isUSDC },
+            { "type", "crypto" },
+            { "limits", new Dictionary<string, object>() {
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", depositMin },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", withdrawMin },
+                    { "max", null },
+                } },
+            } },
+            { "info", rawCurrency },
+        });
     }
 
     /**
@@ -2000,10 +1999,12 @@ public partial class lighter : Exchange
             } else
             {
                 object perpBalance = this.safeDict(result, "USDC", this.account());
-                object perpUSDCTotal = this.safeString(account, "collateral");
-                object perpUSDCFree = this.safeString(account, "available_balance");
-                ((IDictionary<string,object>)perpBalance)["total"] = Precise.stringAdd(getValue(perpBalance, "total"), perpUSDCTotal);
-                ((IDictionary<string,object>)perpBalance)["free"] = Precise.stringAdd(getValue(perpBalance, "free"), perpUSDCFree);
+                object perpTotal = this.safeString(perpBalance, "total", "0");
+                object perpFree = this.safeString(perpBalance, "free", "0");
+                object perpUSDCTotal = this.safeString(account, "collateral", "0");
+                object perpUSDCFree = this.safeString(account, "available_balance", "0");
+                ((IDictionary<string,object>)perpBalance)["total"] = Precise.stringAdd(perpTotal, perpUSDCTotal);
+                ((IDictionary<string,object>)perpBalance)["free"] = Precise.stringAdd(perpFree, perpUSDCFree);
                 ((IDictionary<string,object>)result)["USDC"] = perpBalance;
             }
         }

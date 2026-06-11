@@ -1112,7 +1112,7 @@ class mexc extends Exchange {
             /**
              * fetches all available currencies on an exchange
              *
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-$currency-information
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
@@ -1163,57 +1163,56 @@ class mexc extends Exchange {
             //     )
             //   }
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $currency = $response[$i];
-                $id = $this->safe_string($currency, 'coin');
-                $code = $this->safe_currency_code($id);
-                $networks = array();
-                $chains = $this->safe_value($currency, 'networkList', array());
-                for ($j = 0; $j < count($chains); $j++) {
-                    $chain = $chains[$j];
-                    $networkId = $this->safe_string_2($chain, 'netWork', 'network');
-                    $network = $this->network_id_to_code($networkId);
-                    $networks[$network] = array(
-                        'info' => $chain,
-                        'id' => $networkId,
-                        'network' => $network,
-                        'active' => null,
-                        'deposit' => $this->safe_bool($chain, 'depositEnable', false),
-                        'withdraw' => $this->safe_bool($chain, 'withdrawEnable', false),
-                        'fee' => $this->safe_number($chain, 'withdrawFee'),
-                        'precision' => null,
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_string($chain, 'withdrawMin'),
-                                'max' => $this->safe_string($chain, 'withdrawMax'),
-                            ),
-                        ),
-                        'contract' => $this->safe_string($chain, 'contract'),
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'info' => $currency,
-                    'id' => $id,
-                    'code' => $code,
-                    'name' => $this->safe_string($currency, 'name'),
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
-                    'precision' => null,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'type' => 'crypto',
-                    'networks' => $networks,
-                ));
-            }
-            return $result;
+            return $this->parse_currencies($response);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'coin');
+        $code = $this->safe_currency_code($id);
+        $networks = array();
+        $chains = $this->safe_value($rawCurrency, 'networkList', array());
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $chains[$j];
+            $networkId = $this->safe_string_2($chain, 'netWork', 'network');
+            $network = $this->network_id_to_code($networkId, $code);
+            $networks[$network] = array(
+                'info' => $chain,
+                'id' => $networkId,
+                'network' => $network,
+                'active' => null,
+                'deposit' => $this->safe_bool($chain, 'depositEnable', false),
+                'withdraw' => $this->safe_bool($chain, 'withdrawEnable', false),
+                'fee' => $this->safe_number($chain, 'withdrawFee'),
+                'precision' => null,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_string($chain, 'withdrawMin'),
+                        'max' => $this->safe_string($chain, 'withdrawMax'),
+                    ),
+                ),
+                'contract' => $this->safe_string($chain, 'contract'),
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'id' => $id,
+            'code' => $code,
+            'name' => $this->safe_string($rawCurrency, 'name'),
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'type' => 'crypto',
+            'networks' => $networks,
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
@@ -1563,7 +1562,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+    public function parse_order_book_bid_ask($bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         $countKey = 2;
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
@@ -4850,11 +4849,12 @@ class mexc extends Exchange {
         //
         $address = $this->safe_string($depositAddress, 'address');
         $currencyId = $this->safe_string($depositAddress, 'coin');
+        $code = $this->safe_currency_code($currencyId, $currency);
         $networkId = $this->safe_string($depositAddress, 'netWork');
         return array(
             'info' => $depositAddress,
-            'currency' => $this->safe_currency_code($currencyId, $currency),
-            'network' => $this->network_id_to_code($networkId, $currencyId),
+            'currency' => $code,
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'memo'),
         );
@@ -5185,12 +5185,12 @@ class mexc extends Exchange {
         if ($currencyWithNetwork !== null) {
             $currencyId = explode('-', $currencyWithNetwork)[0];
         }
+        $code = $this->safe_currency_code($currencyId, $currency);
         $network = null;
         $rawNetwork = $this->safe_string($transaction, 'network');
         if ($rawNetwork !== null) {
-            $network = $this->network_id_to_code($rawNetwork);
+            $network = $this->network_id_to_code($rawNetwork, $code);
         }
-        $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amountString = $this->safe_string($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');

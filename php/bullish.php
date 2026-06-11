@@ -2115,7 +2115,7 @@ class bullish extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['network'] = $this->network_code_to_id($networkCode);
+            $request['network'] = $this->network_code_to_id($networkCode, $code);
         } else {
             throw new ArgumentsRequired($this->id . ' withdraw() requires a network parameter');
         }
@@ -2189,7 +2189,7 @@ class bullish extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->network_id_to_code($network),
+            'network' => $this->network_id_to_code($network, $code),
             'addressFrom' => $sourceAddress,
             'address' => $address,
             'addressTo' => $address,
@@ -2392,7 +2392,7 @@ class bullish extends Exchange {
                 for ($i = 0; $i < count($safeResponse); $i++) {
                     $entry = $this->safe_dict($safeResponse, $i, array());
                     $networkId = $this->safe_string($entry, 'network');
-                    $networkCode = $this->network_id_to_code($networkId);
+                    $networkCode = $this->network_id_to_code($networkId, $code);
                     if ($network === $networkCode) {
                         $data = $entry;
                         break;
@@ -2409,10 +2409,11 @@ class bullish extends Exchange {
     public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         $id = $this->safe_string($depositAddress, 'symbol');
         $network = $this->safe_string($depositAddress, 'network');
+        $code = $this->safe_currency_code($id, $currency);
         return array(
             'info' => $depositAddress,
-            'currency' => $this->safe_currency_code($id, $currency),
-            'network' => $this->network_id_to_code($network),
+            'currency' => $code,
+            'network' => $this->network_id_to_code($network, $code),
             'address' => $this->safe_string($depositAddress, 'address'),
             'tag' => null,
         );

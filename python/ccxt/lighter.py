@@ -1199,42 +1199,41 @@ class lighter(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'asset_details', [])
-        result: dict = {}
-        for i in range(0, len(data)):
-            entry = data[i]
-            id = self.safe_string(entry, 'asset_id')
-            code = self.safe_currency_code(self.safe_string(entry, 'symbol'))
-            decimals = self.safe_string(entry, 'decimals')
-            isUSDC = (code == 'USDC')
-            depositMin = None
-            withdrawMin = None
-            if isUSDC:
-                depositMin = self.safe_number(entry, 'min_transfer_amount')
-                withdrawMin = self.safe_number(entry, 'min_withdrawal_amount')
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'name': code,
-                'code': code,
-                'precision': self.parse_number('1e-' + decimals),
-                'active': True,
-                'fee': None,
-                'networks': {},
-                'deposit': isUSDC,
-                'withdraw': isUSDC,
-                'type': 'crypto',
-                'limits': {
-                    'deposit': {
-                        'min': depositMin,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': withdrawMin,
-                        'max': None,
-                    },
+        return self.parse_currencies(data)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'asset_id')
+        code = self.safe_currency_code(self.safe_string(rawCurrency, 'symbol'))
+        decimals = self.safe_string(rawCurrency, 'decimals')
+        isUSDC = (code == 'USDC')
+        depositMin = None
+        withdrawMin = None
+        if isUSDC:
+            depositMin = self.safe_number(rawCurrency, 'min_transfer_amount')
+            withdrawMin = self.safe_number(rawCurrency, 'min_withdrawal_amount')
+        return self.safe_currency_structure({
+            'id': id,
+            'name': code,
+            'code': code,
+            'precision': self.parse_number('1e-' + decimals),
+            'active': True,
+            'fee': None,
+            'networks': {},
+            'deposit': isUSDC,
+            'withdraw': isUSDC,
+            'type': 'crypto',
+            'limits': {
+                'deposit': {
+                    'min': depositMin,
+                    'max': None,
                 },
-                'info': entry,
-            })
-        return result
+                'withdraw': {
+                    'min': withdrawMin,
+                    'max': None,
+                },
+            },
+            'info': rawCurrency,
+        })
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -1717,10 +1716,12 @@ class lighter(Exchange, ImplicitAPI):
                     result[code] = balance
             else:
                 perpBalance = self.safe_dict(result, 'USDC', self.account())
-                perpUSDCTotal = self.safe_string(account, 'collateral')
-                perpUSDCFree = self.safe_string(account, 'available_balance')
-                perpBalance['total'] = Precise.string_add(perpBalance['total'], perpUSDCTotal)
-                perpBalance['free'] = Precise.string_add(perpBalance['free'], perpUSDCFree)
+                perpTotal = self.safe_string(perpBalance, 'total', '0')
+                perpFree = self.safe_string(perpBalance, 'free', '0')
+                perpUSDCTotal = self.safe_string(account, 'collateral', '0')
+                perpUSDCFree = self.safe_string(account, 'available_balance', '0')
+                perpBalance['total'] = Precise.string_add(perpTotal, perpUSDCTotal)
+                perpBalance['free'] = Precise.string_add(perpFree, perpUSDCFree)
                 result['USDC'] = perpBalance
         return self.safe_balance(result)
 

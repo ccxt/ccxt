@@ -982,7 +982,7 @@ class bitget extends \ccxt\async\bitget {
     }
 
     public function handle_delta($bookside, $delta) {
-        $bidAsk = $this->parse_bid_ask($delta, 0, 1);
+        $bidAsk = $this->parse_order_book_bid_ask($delta, 0, 1);
         // we store the string representations in the orderbook for checksum calculation
         // this simplifies the code for generating checksums do not need to do any complex number transformations
         $bidAsk[] = $delta;

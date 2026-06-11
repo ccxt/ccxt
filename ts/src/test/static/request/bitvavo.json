@@ -49,6 +49,82 @@
                 "input": []
             }
         ],
+        "fetchAccounts": [
+            {
+                "description": "fetch accounts",
+                "method": "fetchAccounts",
+                "url": "https://api.bitvavo.com/v2/subaccounts",
+                "input": []
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.bitvavo.com/v2/subaccounts/transfers?symbol=BTC&start=0&limit=2&end=1000&subaccountId=3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                "input": [
+                    "BTC",
+                    0,
+                    2,
+                    {
+                        "until": 1000,
+                        "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    }
+                ]
+            }
+        ],
+        "fetchTransfer": [
+            {
+                "description": "fetch transfer",
+                "method": "fetchTransfer",
+                "url": "https://api.bitvavo.com/v2/subaccounts/transfers/4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                "input": [
+                    "4fa85f64-5717-4562-b3fc-2c963f66afa6"
+                ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer master to subaccount",
+                "method": "transfer",
+                "url": "https://api.bitvavo.com/v2/subaccounts/transfers",
+                "input": [
+                    "BTC",
+                    0.1,
+                    "master",
+                    "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    {
+                        "clientRequestId": "5fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    }
+                ],
+                "output": "{\"subaccountId\":\"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\"direction\":\"masterToSub\",\"symbol\":\"BTC\",\"amount\":\"0.1\",\"clientRequestId\":\"5fa85f64-5717-4562-b3fc-2c963f66afa6\"}"
+            },
+            {
+                "description": "transfer subaccount to master",
+                "method": "transfer",
+                "url": "https://api.bitvavo.com/v2/subaccounts/transfers",
+                "input": [
+                    "BTC",
+                    0.2,
+                    "subaccount",
+                    "master",
+                    {
+                        "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    }
+                ],
+                "output": "{\"subaccountId\":\"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\"direction\":\"subToMaster\",\"symbol\":\"BTC\",\"amount\":\"0.2\"}"
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetch trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://api.bitvavo.com/v2/account/fees?market=BTC-EUR",
+                "input": [
+                    "BTC/EUR"
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "Market buy order",
@@ -229,6 +305,29 @@
                 "input": []
             }
         ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "Cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.bitvavo.com/v2/cancelOrdersAfter",
+                "input": [
+                    30000
+                ],
+                "output": "{\"codGroupId\":1,\"expiryAfterSeconds\":30}"
+            },
+            {
+                "description": "Cancel all orders after with group id",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.bitvavo.com/v2/cancelOrdersAfter",
+                "input": [
+                    0,
+                    {
+                        "codGroupId": 2
+                    }
+                ],
+                "output": "{\"codGroupId\":2,\"expiryAfterSeconds\":0}"
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "fetch my trades",
@@ -246,6 +345,21 @@
                     "BTC/EUR",
                     0,
                     2
+                ]
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch ledger",
+                "method": "fetchLedger",
+                "url": "https://api.bitvavo.com/v2/account/history?fromDate=0&maxItems=2&toDate=1000",
+                "input": [
+                    null,
+                    0,
+                    2,
+                    {
+                        "until": 1000
+                    }
                 ]
             }
         ],

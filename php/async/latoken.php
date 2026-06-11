@@ -524,40 +524,39 @@ class latoken extends Exchange {
             //         ),
             //     )
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $currency = $response[$i];
-                $id = $this->safe_string($currency, 'id');
-                $tag = $this->safe_string($currency, 'tag');
-                $code = $this->safe_currency_code($tag);
-                $currencyType = $this->safe_string($currency, 'type');
-                $isCrypto = ($currencyType === 'CURRENCY_TYPE_CRYPTO' || $currencyType === 'CURRENCY_TYPE_IEO');
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'code' => $code,
-                    'info' => $currency,
-                    'name' => $this->safe_string($currency, 'name'),
-                    'type' => $isCrypto ? 'crypto' : 'other',
-                    'active' => $this->safe_string($currency, 'status') === 'CURRENCY_STATUS_ACTIVE',
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => $this->safe_number($currency, 'fee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals'))),
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => $this->safe_number($currency, 'minTransferAmount'),
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => array(),
-                ));
-            }
-            return $result;
+            return $this->parse_currencies($response);
         }) ();
+    }
+
+    public function parse_currency(array $currency): array {
+        $id = $this->safe_string($currency, 'id');
+        $tag = $this->safe_string($currency, 'tag');
+        $code = $this->safe_currency_code($tag);
+        $currencyType = $this->safe_string($currency, 'type');
+        $isCrypto = ($currencyType === 'CURRENCY_TYPE_CRYPTO' || $currencyType === 'CURRENCY_TYPE_IEO');
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => $currency,
+            'name' => $this->safe_string($currency, 'name'),
+            'type' => $isCrypto ? 'crypto' : 'other',
+            'active' => $this->safe_string($currency, 'status') === 'CURRENCY_STATUS_ACTIVE',
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => $this->safe_number($currency, 'fee'),
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals'))),
+            'limits' => array(
+                'amount' => array(
+                    'min' => $this->safe_number($currency, 'minTransferAmount'),
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => array(),
+        ));
     }
 
     public function fetch_balance($params = array ()): PromiseInterface {
