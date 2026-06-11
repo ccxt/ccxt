@@ -749,7 +749,7 @@ export default class yobit extends Exchange {
         //          "price":0.14046179,
         //          "amount":0.001,
         //          "tid":200256901,
-        //          "timestamp":1649861004
+        //          "timestamp":1649861005
         //      }
         //
         // fetchMyTrades (private)
