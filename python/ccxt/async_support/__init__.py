@@ -169,7 +169,6 @@ from ccxt.async_support.whitebit import whitebit                                
 from ccxt.async_support.woo import woo                                          # noqa: F401
 from ccxt.async_support.woofipro import woofipro                                # noqa: F401
 from ccxt.async_support.xt import xt                                            # noqa: F401
-from ccxt.async_support.yobit import yobit                                      # noqa: F401
 from ccxt.async_support.zaif import zaif                                        # noqa: F401
 from ccxt.async_support.zebpay import zebpay                                    # noqa: F401
 
@@ -279,7 +278,6 @@ exchanges = [
     'woo',
     'woofipro',
     'xt',
-    'yobit',
     'zaif',
     'zebpay',
 ]

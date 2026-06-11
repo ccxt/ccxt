@@ -189,7 +189,6 @@ from ccxt.whitebit import whitebit                                    # noqa: F4
 from ccxt.woo import woo                                              # noqa: F401
 from ccxt.woofipro import woofipro                                    # noqa: F401
 from ccxt.xt import xt                                                # noqa: F401
-from ccxt.yobit import yobit                                          # noqa: F401
 from ccxt.zaif import zaif                                            # noqa: F401
 from ccxt.zebpay import zebpay                                        # noqa: F401
 
@@ -299,7 +298,6 @@ exchanges = [
     'woo',
     'woofipro',
     'xt',
-    'yobit',
     'zaif',
     'zebpay',
 ]
