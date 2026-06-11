@@ -1411,6 +1411,16 @@ class Exchange {
         const signature = index$1.sign(msgHash.replace('0x', ''), pri.replace('0x', ''));
         return this.json([signature.r.toString(), signature.s.toString()]);
     }
+    extendedStarknetSign(msgHash, pri) {
+        const signature = index$1.sign(msgHash.replace('0x', ''), pri.replace('0x', ''));
+        return this.json([signature.r.toString(), signature.s.toString()]);
+    }
+    extendedStarknetGetSelectorFromName(name) {
+        return selector.getSelectorFromName(name);
+    }
+    extendedStarknetComputePoseidonHashOnElements(data) {
+        return classHash.computePoseidonHashOnElements(data);
+    }
     async getZKContractSignatureObj(seed, params = {}) {
         const formattedSlotId = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'slotId')), sha256.sha256, 'hex'))).toString();
         const formattedNonce = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'nonce')), sha256.sha256, 'hex'))).toString();

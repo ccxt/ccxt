@@ -1556,8 +1556,11 @@ export default class weex extends Exchange {
         const timestamp = this.safeInteger (trade, 'time');
         const isBuyer = this.safeBool (trade, 'isBuyer');
         let side = this.safeStringLower (trade, 'side');
+        const isBuyerMaker = this.safeBool (trade, 'isBuyerMaker');
         if (isBuyer !== undefined) {
             side = isBuyer ? 'buy' : 'sell';
+        } else if (isBuyerMaker !== undefined) {
+            side = isBuyerMaker ? 'sell' : 'buy';
         }
         let isSpot = true;
         if (market === undefined) {
@@ -1590,6 +1593,8 @@ export default class weex extends Exchange {
         let takerOrMaker = undefined;
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
+        } else if (isBuyerMaker !== undefined) {
+            takerOrMaker = 'taker';
         }
         return this.safeTrade ({
             'info': trade,

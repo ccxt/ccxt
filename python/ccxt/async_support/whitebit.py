@@ -671,7 +671,7 @@ class whitebit(Exchange, ImplicitAPI):
         allNetworks = self.array_concat(depositsNetworks, withdrawsNetworks)
         for j in range(0, len(allNetworks)):
             networkId = allNetworks[j]
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             networkDepositLimits = self.safe_dict(depositLimits, networkId, {})
             networkWithdrawLimits = self.safe_dict(withdrawLimits, networkId, {})
             networks[networkCode] = {
@@ -905,7 +905,7 @@ class whitebit(Exchange, ImplicitAPI):
                 if networkId is not None:
                     networkLength = len(networkId)
                     networkId = networkId[1:networkLength - 1]
-                    networkCode = self.network_id_to_code(networkId)
+                    networkCode = self.network_id_to_code(networkId, code)
                     depositWithdrawFees[code]['networks'][networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult,

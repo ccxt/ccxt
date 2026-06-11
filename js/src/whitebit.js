@@ -663,7 +663,7 @@ export default class whitebit extends Exchange {
         const allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
         for (let j = 0; j < allNetworks.length; j++) {
             const networkId = allNetworks[j];
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             const networkDepositLimits = this.safeDict(depositLimits, networkId, {});
             const networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, {});
             networks[networkCode] = {
@@ -900,7 +900,7 @@ export default class whitebit extends Exchange {
                 if (networkId !== undefined) {
                     const networkLength = networkId.length;
                     networkId = networkId.slice(1, networkLength - 1);
-                    const networkCode = this.networkIdToCode(networkId);
+                    const networkCode = this.networkIdToCode(networkId, code);
                     depositWithdrawFees[code]['networks'][networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult,

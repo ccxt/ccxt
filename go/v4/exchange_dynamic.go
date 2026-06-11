@@ -21,10 +21,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		apexItf := NewApexCore()
 		apexItf.Init(exchangeArgs)
 		return apexItf, true
-	case "arkham":
-		arkhamItf := NewArkhamCore()
-		arkhamItf.Init(exchangeArgs)
-		return arkhamItf, true
 	case "ascendex":
 		ascendexItf := NewAscendexCore()
 		ascendexItf.Init(exchangeArgs)
@@ -249,6 +245,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		exmoItf := NewExmoCore()
 		exmoItf.Init(exchangeArgs)
 		return exmoItf, true
+	case "extended":
+		extendedItf := NewExtendedCore()
+		extendedItf.Init(exchangeArgs)
+		return extendedItf, true
 	case "fmfwio":
 		fmfwioItf := NewFmfwioCore()
 		fmfwioItf.Init(exchangeArgs)

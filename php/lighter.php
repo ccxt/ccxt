@@ -1812,10 +1812,12 @@ class lighter extends Exchange {
                 }
             } else {
                 $perpBalance = $this->safe_dict($result, 'USDC', $this->account());
-                $perpUSDCTotal = $this->safe_string($account, 'collateral');
-                $perpUSDCFree = $this->safe_string($account, 'available_balance');
-                $perpBalance['total'] = Precise::string_add($perpBalance['total'], $perpUSDCTotal);
-                $perpBalance['free'] = Precise::string_add($perpBalance['free'], $perpUSDCFree);
+                $perpTotal = $this->safe_string($perpBalance, 'total', '0');
+                $perpFree = $this->safe_string($perpBalance, 'free', '0');
+                $perpUSDCTotal = $this->safe_string($account, 'collateral', '0');
+                $perpUSDCFree = $this->safe_string($account, 'available_balance', '0');
+                $perpBalance['total'] = Precise::string_add($perpTotal, $perpUSDCTotal);
+                $perpBalance['free'] = Precise::string_add($perpFree, $perpUSDCFree);
                 $result['USDC'] = $perpBalance;
             }
         }

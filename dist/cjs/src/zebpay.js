@@ -385,7 +385,7 @@ class zebpay extends zebpay$1["default"] {
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'chainId');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             const depositAllowed = this.safeBool(chain, 'isDepositEnabled') === true;
             deposit = (depositAllowed) ? depositAllowed : deposit;
             const withdrawAllowed = this.safeBool(chain, 'isWithdrawEnabled') === true;

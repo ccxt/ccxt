@@ -399,7 +399,7 @@ public partial class zebpay : Exchange
         {
             object chain = getValue(chains, j);
             object networkId = this.safeString(chain, "chainId");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             object depositAllowed = isEqual(this.safeBool(chain, "isDepositEnabled"), true);
             deposit = ((bool) isTrue((depositAllowed))) ? depositAllowed : deposit;
             object withdrawAllowed = isEqual(this.safeBool(chain, "isWithdrawEnabled"), true);

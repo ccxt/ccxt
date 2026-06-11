@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.56'
+__version__ = '4.5.57'
 
 # ----------------------------------------------------------------------------
 
@@ -60,7 +60,6 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 from ccxt.pro.aftermath import aftermath                                  # noqa: F401
 from ccxt.pro.alpaca import alpaca                                        # noqa: F401
 from ccxt.pro.apex import apex                                            # noqa: F401
-from ccxt.pro.arkham import arkham                                        # noqa: F401
 from ccxt.pro.ascendex import ascendex                                    # noqa: F401
 from ccxt.pro.aster import aster                                          # noqa: F401
 from ccxt.pro.backpack import backpack                                    # noqa: F401
@@ -100,6 +99,7 @@ from ccxt.pro.deribit import deribit                                      # noqa
 from ccxt.pro.derive import derive                                        # noqa: F401
 from ccxt.pro.dydx import dydx                                            # noqa: F401
 from ccxt.pro.exmo import exmo                                            # noqa: F401
+from ccxt.pro.extended import extended                                    # noqa: F401
 from ccxt.pro.gate import gate                                            # noqa: F401
 from ccxt.pro.gemini import gemini                                        # noqa: F401
 from ccxt.pro.grvt import grvt                                            # noqa: F401
@@ -141,7 +141,6 @@ exchanges = [
     'aftermath',
     'alpaca',
     'apex',
-    'arkham',
     'ascendex',
     'aster',
     'backpack',
@@ -181,6 +180,7 @@ exchanges = [
     'derive',
     'dydx',
     'exmo',
+    'extended',
     'gate',
     'gemini',
     'grvt',

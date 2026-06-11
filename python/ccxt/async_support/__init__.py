@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.56'
+__version__ = '4.5.57'
 
 # -----------------------------------------------------------------------------
 
@@ -67,7 +67,6 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 from ccxt.async_support.aftermath import aftermath                              # noqa: F401
 from ccxt.async_support.alpaca import alpaca                                    # noqa: F401
 from ccxt.async_support.apex import apex                                        # noqa: F401
-from ccxt.async_support.arkham import arkham                                    # noqa: F401
 from ccxt.async_support.ascendex import ascendex                                # noqa: F401
 from ccxt.async_support.aster import aster                                      # noqa: F401
 from ccxt.async_support.backpack import backpack                                # noqa: F401
@@ -124,6 +123,7 @@ from ccxt.async_support.derive import derive                                    
 from ccxt.async_support.digifinex import digifinex                              # noqa: F401
 from ccxt.async_support.dydx import dydx                                        # noqa: F401
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
+from ccxt.async_support.extended import extended                                # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
 from ccxt.async_support.foxbit import foxbit                                    # noqa: F401
 from ccxt.async_support.gate import gate                                        # noqa: F401
@@ -178,7 +178,6 @@ exchanges = [
     'aftermath',
     'alpaca',
     'apex',
-    'arkham',
     'ascendex',
     'aster',
     'backpack',
@@ -235,6 +234,7 @@ exchanges = [
     'digifinex',
     'dydx',
     'exmo',
+    'extended',
     'fmfwio',
     'foxbit',
     'gate',

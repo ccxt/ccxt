@@ -181,14 +181,8 @@ class Precise {
         return (new Precise(string1)).div(string2Precise, precision).toString();
     }
     static stringAdd(string1, string2) {
-        if ((string1 === undefined) && (string2 === undefined)) {
+        if ((string1 === undefined) || (string2 === undefined)) {
             return undefined;
-        }
-        if (string1 === undefined) {
-            return string2;
-        }
-        else if (string2 === undefined) {
-            return string1;
         }
         return (new Precise(string1)).add(new Precise(string2)).toString();
     }

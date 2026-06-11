@@ -659,7 +659,7 @@ public partial class bittrade : ccxt.bittrade
             }
             return false;
         }
-        return message;
+        return true;
     }
 
     public override void handleMessage(WebSocketClient client, object message)

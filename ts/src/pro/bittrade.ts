@@ -600,7 +600,7 @@ export default class bittrade extends bittradeRest {
             }
             return false;
         }
-        return message;
+        return true;
     }
 
     handleMessage (client: Client, message) {

@@ -1265,7 +1265,7 @@ export default class bitmart extends Exchange {
                     'type': isNtf ? 'other' : 'crypto',
                 };
             }
-            const networkCode = this.networkIdToCode (networkId);
+            const networkCode = this.networkIdToCode (networkId, currencyCode);
             const withdraw = this.safeBool (currency, 'withdraw_enabled');
             const deposit = this.safeBool (currency, 'deposit_enabled');
             entry['networks'][networkCode] = {
@@ -3890,11 +3890,12 @@ export default class bitmart extends Exchange {
         }
         const address = this.safeString (depositAddress, 'address');
         currency = this.safeCurrency (currencyId, currency);
+        const code = this.safeString (currency, 'code');
         this.checkAddress (address);
         return {
             'info': depositAddress,
-            'currency': this.safeString (currency, 'code'),
-            'network': this.networkIdToCode (network),
+            'currency': code,
+            'network': this.networkIdToCode (network, code),
             'address': address,
             'tag': this.safeString2 (depositAddress, 'address_memo', 'memo'),
         } as DepositAddress;
@@ -4193,7 +4194,7 @@ export default class bitmart extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': this.networkIdToCode (networkId),
+            'network': this.networkIdToCode (networkId, code),
             'address': address,
             'addressFrom': undefined,
             'addressTo': undefined,

@@ -1261,7 +1261,7 @@ class bitmart extends Exchange {
                     'type' => $isNtf ? 'other' : 'crypto',
                 );
             }
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $currencyCode);
             $withdraw = $this->safe_bool($currency, 'withdraw_enabled');
             $deposit = $this->safe_bool($currency, 'deposit_enabled');
             $entry['networks'][$networkCode] = array(
@@ -3878,11 +3878,12 @@ class bitmart extends Exchange {
         }
         $address = $this->safe_string($depositAddress, 'address');
         $currency = $this->safe_currency($currencyId, $currency);
+        $code = $this->safe_string($currency, 'code');
         $this->check_address($address);
         return array(
             'info' => $depositAddress,
-            'currency' => $this->safe_string($currency, 'code'),
-            'network' => $this->network_id_to_code($network),
+            'currency' => $code,
+            'network' => $this->network_id_to_code($network, $code),
             'address' => $address,
             'tag' => $this->safe_string_2($depositAddress, 'address_memo', 'memo'),
         );
@@ -4181,7 +4182,7 @@ class bitmart extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'addressFrom' => null,
             'addressTo' => null,

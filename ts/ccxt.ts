@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.56';
+const version = '4.5.57';
 
 (Exchange as any).ccxtVersion = version
 
@@ -49,7 +49,6 @@ const version = '4.5.56';
 import aftermath from  './src/aftermath.js'
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
-import arkham from  './src/arkham.js'
 import ascendex from  './src/ascendex.js'
 import aster from  './src/aster.js'
 import backpack from  './src/backpack.js'
@@ -106,6 +105,7 @@ import derive from  './src/derive.js'
 import digifinex from  './src/digifinex.js'
 import dydx from  './src/dydx.js'
 import exmo from  './src/exmo.js'
+import extended from  './src/extended.js'
 import fmfwio from  './src/fmfwio.js'
 import foxbit from  './src/foxbit.js'
 import gate from  './src/gate.js'
@@ -161,7 +161,6 @@ import zebpay from  './src/zebpay.js'
 import aftermathPro from  './src/pro/aftermath.js'
 import alpacaPro from  './src/pro/alpaca.js'
 import apexPro from  './src/pro/apex.js'
-import arkhamPro from  './src/pro/arkham.js'
 import ascendexPro from  './src/pro/ascendex.js'
 import asterPro from  './src/pro/aster.js'
 import backpackPro from  './src/pro/backpack.js'
@@ -201,6 +200,7 @@ import deribitPro from  './src/pro/deribit.js'
 import derivePro from  './src/pro/derive.js'
 import dydxPro from  './src/pro/dydx.js'
 import exmoPro from  './src/pro/exmo.js'
+import extendedPro from  './src/pro/extended.js'
 import gatePro from  './src/pro/gate.js'
 import geminiPro from  './src/pro/gemini.js'
 import grvtPro from  './src/pro/grvt.js'
@@ -242,7 +242,6 @@ const exchanges = {
     'aftermath':              aftermath,
     'alpaca':                 alpaca,
     'apex':                   apex,
-    'arkham':                 arkham,
     'ascendex':               ascendex,
     'aster':                  aster,
     'backpack':               backpack,
@@ -299,6 +298,7 @@ const exchanges = {
     'digifinex':              digifinex,
     'dydx':                   dydx,
     'exmo':                   exmo,
+    'extended':               extended,
     'fmfwio':                 fmfwio,
     'foxbit':                 foxbit,
     'gate':                   gate,
@@ -354,7 +354,6 @@ const pro = {
     'aftermath':              aftermathPro,
     'alpaca':                 alpacaPro,
     'apex':                   apexPro,
-    'arkham':                 arkhamPro,
     'ascendex':               ascendexPro,
     'aster':                  asterPro,
     'backpack':               backpackPro,
@@ -394,6 +393,7 @@ const pro = {
     'derive':                 derivePro,
     'dydx':                   dydxPro,
     'exmo':                   exmoPro,
+    'extended':               extendedPro,
     'gate':                   gatePro,
     'gemini':                 geminiPro,
     'grvt':                   grvtPro,
@@ -578,7 +578,6 @@ export {
     aftermath,
     alpaca,
     apex,
-    arkham,
     ascendex,
     aster,
     backpack,
@@ -635,6 +634,7 @@ export {
     digifinex,
     dydx,
     exmo,
+    extended,
     fmfwio,
     foxbit,
     gate,

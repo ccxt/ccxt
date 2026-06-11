@@ -712,7 +712,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             }
             return false;
         }
-        return message;
+        return true;
     }
 
     public void handleMessage(Client client, Object message)

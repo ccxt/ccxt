@@ -432,7 +432,7 @@ public class ZebpayCore extends ZebpayApi
         {
             Object chain = Helpers.GetValue(chains, j);
             Object networkId = this.safeString(chain, "chainId");
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             Object depositAllowed = Helpers.isEqual(this.safeBool(chain, "isDepositEnabled"), true);
             deposit = ((Helpers.isTrue((depositAllowed)))) ? depositAllowed : deposit;
             Object withdrawAllowed = Helpers.isEqual(this.safeBool(chain, "isWithdrawEnabled"), true);

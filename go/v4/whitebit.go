@@ -572,7 +572,7 @@ func (this *WhitebitCore) ParseCurrency(rawCurrency any) any {
 	var allNetworks any = this.ArrayConcat(depositsNetworks, withdrawsNetworks)
 	for j := 0; IsLessThan(j, GetArrayLength(allNetworks)); j++ {
 		var networkId any = GetValue(allNetworks, j)
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var networkDepositLimits any = this.SafeDict(depositLimits, networkId, map[string]any{})
 		var networkWithdrawLimits any = this.SafeDict(withdrawLimits, networkId, map[string]any{})
 		AddElementToObject(networks, networkCode, map[string]any{
@@ -849,7 +849,7 @@ func (this *WhitebitCore) ParseDepositWithdrawFees(response any, optionalArgs ..
 			if IsTrue(!IsEqual(networkId, nil)) {
 				var networkLength any = GetLength(networkId)
 				networkId = Slice(networkId, 1, Subtract(networkLength, 1))
-				var networkCode any = this.NetworkIdToCode(networkId)
+				var networkCode any = this.NetworkIdToCode(networkId, code)
 				AddElementToObject(GetValue(GetValue(depositWithdrawFees, code), "networks"), networkCode, map[string]any{
 					"withdraw": withdrawResult,
 					"deposit":  depositResult,

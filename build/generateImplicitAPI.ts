@@ -379,7 +379,10 @@ function createGoHeader(exchange: Exchange, parent: string){
 // -------------------------------------------------------------------------
 
 function createJavaHeader(exchange: Exchange, parent: string){
-    const capParent = capitalize(parent);
+    // When the parent is another exchange, extend its untyped Core class
+    // (CompletableFuture<Object> methods) — extending the typed wrapper would
+    // shadow the Core signatures and break the generated typed wrapper subclass.
+    const capParent = parent === 'Exchange' ? 'Exchange' : `${capitalize(parent)}Core`;
     const parentImport = parent === 'Exchange' ? `import io.github.ccxt.${capParent}` : `import io.github.ccxt.exchanges.${capParent}` ;
     const namespace = `package io.github.ccxt.api;\n${parentImport};`;
     const constructor = [
@@ -391,7 +394,7 @@ function createJavaHeader(exchange: Exchange, parent: string){
         `${IDEN}${IDEN}super(options);`,
         `${IDEN}}`,
     ].join('\n');
-    const header = `public class ${capitalize(exchange.id)}Api extends ${capitalize(parent)}\n{\n`;
+    const header = `public class ${capitalize(exchange.id)}Api extends ${capParent}\n{\n`;
     storedJavaMethods[exchange.id] = [ getPreamble(), namespace, '', header, constructor, ''];
 }
 

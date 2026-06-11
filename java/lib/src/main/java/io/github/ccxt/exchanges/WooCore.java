@@ -2689,7 +2689,7 @@ public class WooCore extends WooApi
             final Object finalNetworkCode = networkCode;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "token", Helpers.GetValue(currency, "id") );
-                put( "network", WooCore.this.networkCodeToId(finalNetworkCode) );
+                put( "network", WooCore.this.networkCodeToId(finalNetworkCode, Helpers.GetValue(currency, "code")) );
             }};
             Object response = (this.v3PrivateGetAssetWalletDeposit(this.extend(request, parameters))).join();
             //
@@ -2762,7 +2762,7 @@ public class WooCore extends WooApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
-                Helpers.addElementToObject(request, "network", this.networkCodeToId(networkCode));
+                Helpers.addElementToObject(request, "network", this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code")));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -3074,7 +3074,7 @@ public class WooCore extends WooApi
             put( "comment", null );
             put( "internal", null );
             put( "fee", fee );
-            put( "network", WooCore.this.networkIdToCode(WooCore.this.safeString(transaction, "network")) );
+            put( "network", WooCore.this.networkIdToCode(WooCore.this.safeString(transaction, "network"), code) );
         }};
     }
 
@@ -3341,7 +3341,7 @@ public class WooCore extends WooApi
             }
             parameters = this.omit(parameters, "network");
             Helpers.addElementToObject(request, "token", Helpers.GetValue(currency, "id"));
-            Helpers.addElementToObject(request, "network", this.networkCodeToId(network));
+            Helpers.addElementToObject(request, "network", this.networkCodeToId(network, Helpers.GetValue(currency, "code")));
             Object response = (this.v3PrivatePostAssetWalletWithdraw(this.extend(request, parameters))).join();
             //
             //     {

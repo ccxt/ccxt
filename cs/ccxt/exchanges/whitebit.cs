@@ -549,7 +549,7 @@ public partial class whitebit : Exchange
         for (object j = 0; isLessThan(j, getArrayLength(allNetworks)); postFixIncrement(ref j))
         {
             object networkId = getValue(allNetworks, j);
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             object networkDepositLimits = this.safeDict(depositLimits, networkId, new Dictionary<string, object>() {});
             object networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, new Dictionary<string, object>() {});
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
@@ -799,7 +799,7 @@ public partial class whitebit : Exchange
                 {
                     object networkLength = ((string)networkId).Length;
                     networkId = slice(networkId, 1, subtract(networkLength, 1));
-                    object networkCode = this.networkIdToCode(networkId);
+                    object networkCode = this.networkIdToCode(networkId, code);
                     ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                         { "withdraw", withdrawResult },
                         { "deposit", depositResult },

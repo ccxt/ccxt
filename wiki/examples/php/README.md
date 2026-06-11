@@ -126,11 +126,17 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Load All At Once](./examples/php/load-all-at-once.md)
 
+- [Many Exchanges Many Accounts](./examples/php/many-exchanges-many-accounts.md)
+
+- [Many Exchanges Synchronously](./examples/php/many-exchanges-synchronously.md)
+
 - [Margin Loan Borrow Buy Sell Repay](./examples/php/margin-loan-borrow-buy-sell-repay.md)
 
 - [Method Overload Override](./examples/php/method-overload-override.md)
 
 - [Nonce Override](./examples/php/nonce-override.md)
+
+- [One Exchange Many Streams](./examples/php/one-exchange-many-streams.md)
 
 - [Order Book Level Depth Extra Param](./examples/php/order-book-level-depth-extra-param.md)
 
@@ -155,6 +161,8 @@ php -f path/to/example.php # substitute for actual filename here
 - [Watch OrderBook For Symbols](./examples/php/watch-OrderBook-For-Symbols.md)
 
 - [Watch Trades For Symbols](./examples/php/watch-Trades-For-Symbols.md)
+
+- [Watch Multiple Methods Multiple Exchanges](./examples/php/watch-multiple-methods-multiple-exchanges.md)
 
 - [Watch Tickers](./examples/php/watch-tickers.md)
 

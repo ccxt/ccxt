@@ -2161,10 +2161,12 @@ public class LighterCore extends LighterApi
                 } else
                 {
                     Object perpBalance = this.safeDict(result, "USDC", this.account());
-                    Object perpUSDCTotal = this.safeString(account, "collateral");
-                    Object perpUSDCFree = this.safeString(account, "available_balance");
-                    Helpers.addElementToObject(perpBalance, "total", Precise.stringAdd(Helpers.GetValue(perpBalance, "total"), perpUSDCTotal));
-                    Helpers.addElementToObject(perpBalance, "free", Precise.stringAdd(Helpers.GetValue(perpBalance, "free"), perpUSDCFree));
+                    Object perpTotal = this.safeString(perpBalance, "total", "0");
+                    Object perpFree = this.safeString(perpBalance, "free", "0");
+                    Object perpUSDCTotal = this.safeString(account, "collateral", "0");
+                    Object perpUSDCFree = this.safeString(account, "available_balance", "0");
+                    Helpers.addElementToObject(perpBalance, "total", Precise.stringAdd(perpTotal, perpUSDCTotal));
+                    Helpers.addElementToObject(perpBalance, "free", Precise.stringAdd(perpFree, perpUSDCFree));
                     Helpers.addElementToObject(result, "USDC", perpBalance);
                 }
             }

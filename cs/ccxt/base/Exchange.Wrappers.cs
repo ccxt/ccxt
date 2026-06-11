@@ -1374,7 +1374,6 @@ public partial class Exchange
 public class  Aftermath: aftermath { public Aftermath(object args = null) : base(args) { } }
 public class  Alpaca: alpaca { public Alpaca(object args = null) : base(args) { } }
 public class  Apex: apex { public Apex(object args = null) : base(args) { } }
-public class  Arkham: arkham { public Arkham(object args = null) : base(args) { } }
 public class  Ascendex: ascendex { public Ascendex(object args = null) : base(args) { } }
 public class  Aster: aster { public Aster(object args = null) : base(args) { } }
 public class  Backpack: backpack { public Backpack(object args = null) : base(args) { } }
@@ -1431,6 +1430,7 @@ public class  Derive: derive { public Derive(object args = null) : base(args) { 
 public class  Digifinex: digifinex { public Digifinex(object args = null) : base(args) { } }
 public class  Dydx: dydx { public Dydx(object args = null) : base(args) { } }
 public class  Exmo: exmo { public Exmo(object args = null) : base(args) { } }
+public class  Extended: extended { public Extended(object args = null) : base(args) { } }
 public class  Fmfwio: fmfwio { public Fmfwio(object args = null) : base(args) { } }
 public class  Foxbit: foxbit { public Foxbit(object args = null) : base(args) { } }
 public class  Gate: gate { public Gate(object args = null) : base(args) { } }

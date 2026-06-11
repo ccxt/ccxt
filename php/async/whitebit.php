@@ -674,7 +674,7 @@ class whitebit extends Exchange {
         $allNetworks = $this->array_concat($depositsNetworks, $withdrawsNetworks);
         for ($j = 0; $j < count($allNetworks); $j++) {
             $networkId = $allNetworks[$j];
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networkDepositLimits = $this->safe_dict($depositLimits, $networkId, array());
             $networkWithdrawLimits = $this->safe_dict($withdrawLimits, $networkId, array());
             $networks[$networkCode] = array(
@@ -918,7 +918,7 @@ class whitebit extends Exchange {
                 if ($networkId !== null) {
                     $networkLength = count($networkId);
                     $networkId = mb_substr($networkId, 1, $networkLength - 1 - 1);
-                    $networkCode = $this->network_id_to_code($networkId);
+                    $networkCode = $this->network_id_to_code($networkId, $code);
                     $depositWithdrawFees[$code]['networks'][$networkCode] = array(
                         'withdraw' => $withdrawResult,
                         'deposit' => $depositResult,

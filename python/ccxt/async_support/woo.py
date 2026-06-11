@@ -2395,7 +2395,7 @@ class woo(Exchange, ImplicitAPI):
         networkCode, params = self.handle_network_code_and_params(params)
         request: dict = {
             'token': currency['id'],
-            'network': self.network_code_to_id(networkCode),
+            'network': self.network_code_to_id(networkCode, currency['code']),
         }
         response = await self.v3PrivateGetAssetWalletDeposit(self.extend(request, params))
         #
@@ -2443,7 +2443,7 @@ class woo(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['network'] = self.network_code_to_id(networkCode)
+            request['network'] = self.network_code_to_id(networkCode, currency['code'])
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -2684,7 +2684,7 @@ class woo(Exchange, ImplicitAPI):
             'comment': None,
             'internal': None,
             'fee': fee,
-            'network': self.network_id_to_code(self.safe_string(transaction, 'network')),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'network'), code),
         }
 
     def parse_transaction_status(self, status: Str):
@@ -2899,7 +2899,7 @@ class woo(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' withdraw() requires a network parameter for ' + code)
         params = self.omit(params, 'network')
         request['token'] = currency['id']
-        request['network'] = self.network_code_to_id(network)
+        request['network'] = self.network_code_to_id(network, currency['code'])
         response = await self.v3PrivatePostAssetWalletWithdraw(self.extend(request, params))
         #
         #     {

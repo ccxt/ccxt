@@ -11,7 +11,6 @@ var errors = require('./src/base/errors.js');
 var aftermath = require('./src/aftermath.js');
 var alpaca = require('./src/alpaca.js');
 var apex = require('./src/apex.js');
-var arkham = require('./src/arkham.js');
 var ascendex = require('./src/ascendex.js');
 var aster = require('./src/aster.js');
 var backpack = require('./src/backpack.js');
@@ -68,6 +67,7 @@ var derive = require('./src/derive.js');
 var digifinex = require('./src/digifinex.js');
 var dydx = require('./src/dydx.js');
 var exmo = require('./src/exmo.js');
+var extended = require('./src/extended.js');
 var fmfwio = require('./src/fmfwio.js');
 var foxbit = require('./src/foxbit.js');
 var gate = require('./src/gate.js');
@@ -120,7 +120,6 @@ var zebpay = require('./src/zebpay.js');
 var aftermath$1 = require('./src/pro/aftermath.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
 var apex$1 = require('./src/pro/apex.js');
-var arkham$1 = require('./src/pro/arkham.js');
 var ascendex$1 = require('./src/pro/ascendex.js');
 var aster$1 = require('./src/pro/aster.js');
 var backpack$1 = require('./src/pro/backpack.js');
@@ -160,6 +159,7 @@ var deribit$1 = require('./src/pro/deribit.js');
 var derive$1 = require('./src/pro/derive.js');
 var dydx$1 = require('./src/pro/dydx.js');
 var exmo$1 = require('./src/pro/exmo.js');
+var extended$1 = require('./src/pro/extended.js');
 var gate$1 = require('./src/pro/gate.js');
 var gemini$1 = require('./src/pro/gemini.js');
 var grvt$1 = require('./src/pro/grvt.js');
@@ -199,13 +199,12 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.56';
+const version = '4.5.57';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'aftermath': aftermath["default"],
     'alpaca': alpaca["default"],
     'apex': apex["default"],
-    'arkham': arkham["default"],
     'ascendex': ascendex["default"],
     'aster': aster["default"],
     'backpack': backpack["default"],
@@ -262,6 +261,7 @@ const exchanges = {
     'digifinex': digifinex["default"],
     'dydx': dydx["default"],
     'exmo': exmo["default"],
+    'extended': extended["default"],
     'fmfwio': fmfwio["default"],
     'foxbit': foxbit["default"],
     'gate': gate["default"],
@@ -316,7 +316,6 @@ const pro = {
     'aftermath': aftermath$1["default"],
     'alpaca': alpaca$1["default"],
     'apex': apex$1["default"],
-    'arkham': arkham$1["default"],
     'ascendex': ascendex$1["default"],
     'aster': aster$1["default"],
     'backpack': backpack$1["default"],
@@ -356,6 +355,7 @@ const pro = {
     'derive': derive$1["default"],
     'dydx': dydx$1["default"],
     'exmo': exmo$1["default"],
+    'extended': extended$1["default"],
     'gate': gate$1["default"],
     'gemini': gemini$1["default"],
     'grvt': grvt$1["default"],
@@ -447,7 +447,6 @@ exports.errors = errors;
 exports.aftermath = aftermath["default"];
 exports.alpaca = alpaca["default"];
 exports.apex = apex["default"];
-exports.arkham = arkham["default"];
 exports.ascendex = ascendex["default"];
 exports.aster = aster["default"];
 exports.backpack = backpack["default"];
@@ -504,6 +503,7 @@ exports.derive = derive["default"];
 exports.digifinex = digifinex["default"];
 exports.dydx = dydx["default"];
 exports.exmo = exmo["default"];
+exports.extended = extended["default"];
 exports.fmfwio = fmfwio["default"];
 exports.foxbit = foxbit["default"];
 exports.gate = gate["default"];
