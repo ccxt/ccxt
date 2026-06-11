@@ -444,6 +444,22 @@ use \ccxt\pro; // optional, since you can use fully qualified names
 echo 'CCXT version ', \ccxt\pro\Exchange::VERSION, "\n";
 echo 'Supported exchanges: ', json_encode(\ccxt\pro\Exchange::$exchanges), "\n";
 ```
+#### **C#/.NET**
+```c#
+using ccxt;
+using ccxt.pro;
+
+Console.WriteLine("CCXT version " + ccxt.Exchange.ccxtVersion);
+```
+#### **Go**
+```go
+import (
+    "fmt"
+    ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
+)
+
+fmt.Println("CCXT version", ccxtpro.Version)
+```
 #### **Java**
 ```java
 import io.github.ccxt.exchanges.pro.Binance;
@@ -510,6 +526,28 @@ using ccxt.pro;
             Console.WriteLine("Trades: " + JsonConvert.SerializeObject(trades, Formatting.Indented));
         }
     }
+```
+
+#### **Go**
+
+```go
+import (
+    "fmt"
+    ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
+)
+
+exchange := ccxtpro.NewBinance(map[string]interface{}{
+    "newUpdates": false,
+})
+defer exchange.Close()
+for {
+    orderbook, err := exchange.WatchOrderBook("BTC/USDT")
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    fmt.Println(orderbook.Asks[0], orderbook.Bids[0])
+}
 ```
 
 #### **Java**
@@ -702,6 +740,35 @@ if ($exchange->has['watchOrderBook']) {
     });
 }
 ```
+#### **C#/.NET**
+```c#
+if ((bool)exchange.has["watchOrderBook"])
+{
+    while (true)
+    {
+        try
+        {
+            var orderbook = await exchange.WatchOrderBook(symbol);
+            Console.WriteLine(orderbook["symbol"] + " " + orderbook.asks + " " + orderbook.bids);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}
+```
+#### **Go**
+```go
+for {
+    orderbook, err := exchange.WatchOrderBook(symbol)
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    fmt.Println(orderbook.Asks[0], orderbook.Bids[0])
+}
+```
 #### **Java**
 ```java
 import io.github.ccxt.types.OrderBook;
@@ -798,6 +865,35 @@ if ($exchange->has['watchTicker']) {
     });
 }
 ```
+#### **C#/.NET**
+```c#
+if ((bool)exchange.has["watchTicker"])
+{
+    while (true)
+    {
+        try
+        {
+            var ticker = await exchange.WatchTicker(symbol, parameters);
+            Console.WriteLine(ticker.last);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}
+```
+#### **Go**
+```go
+for {
+    ticker, err := exchange.WatchTicker(symbol)
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    fmt.Println(ticker.Last)
+}
+```
 #### **Java**
 ```java
 while (true) {
@@ -850,6 +946,35 @@ if ($exchange->has['watchTickers']) {
             }
         }
     });
+}
+```
+#### **C#/.NET**
+```c#
+if ((bool)exchange.has["watchTickers"])
+{
+    while (true)
+    {
+        try
+        {
+            var tickers = await exchange.WatchTickers(symbols, parameters);
+            Console.WriteLine(tickers.tickers.Count + " tickers");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}
+```
+#### **Go**
+```go
+for {
+    tickers, err := exchange.WatchTickers(ccxt.WithWatchTickersSymbols(symbols))
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    fmt.Println(len(tickers.Tickers))
 }
 ```
 #### **Java**
@@ -945,6 +1070,35 @@ if ($exchange->has['watchOHLCV']) {
     });
 }
 ```
+#### **C#/.NET**
+```c#
+if ((bool)exchange.has["watchOHLCV"])
+{
+    while (true)
+    {
+        try
+        {
+            var candles = await exchange.WatchOHLCV(symbol, timeframe);
+            Console.WriteLine(candles.Count + " candles");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}
+```
+#### **Go**
+```go
+for {
+    candles, err := exchange.WatchOHLCV(symbol)
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    fmt.Println(len(candles))
+}
+```
 #### **Java**
 ```java
 while (true) {
@@ -995,6 +1149,65 @@ if exchange.has['watchOHLCVForSymbols']:
             print(e)
             # stop the loop on exception or leave it commented to retry
             # raise e
+```
+#### **PHP**
+```php
+if ($exchange->has['watchOHLCVForSymbols']) {
+    $exchange::execute_and_run(function() use ($exchange, $since, $limit, $params) {
+        while (true) {
+            try {
+                $subscriptions = array(
+                    array('BTC/USDT', '1d'),
+                    array('LTC/USDT', '5m'),
+                    array('ETH/USDT', '1h'),
+                );
+                $candles = yield $exchange->watch_ohlcv_for_symbols($subscriptions, $since, $limit, $params);
+                echo date('c'), ' ', json_encode($candles), "\n";
+            } catch (Exception $e) {
+                echo get_class($e), ' ', $e->getMessage(), "\n";
+            }
+        }
+    });
+}
+```
+#### **C#/.NET**
+```c#
+if ((bool)exchange.has["watchOHLCVForSymbols"])
+{
+    var subscriptions = new List<List<string>>() {
+        new List<string>() { "BTC/USDT", "1d" },
+        new List<string>() { "LTC/USDT", "5m" },
+        new List<string>() { "ETH/USDT", "1h" },
+    };
+    while (true)
+    {
+        try
+        {
+            var candles = await exchange.WatchOHLCVForSymbols(subscriptions);
+            Console.WriteLine(candles.Count + " symbols");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}
+```
+#### **Go**
+```go
+subscriptions := [][]string{
+    {"BTC/USDT", "1d"},
+    {"LTC/USDT", "5m"},
+    {"ETH/USDT", "1h"},
+}
+for {
+    candles, err := exchange.WatchOHLCVForSymbols(subscriptions)
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    fmt.Println(len(candles))
+}
 ```
 #### **Java**
 ```java
@@ -1051,6 +1264,35 @@ if ($exchange->has['watchTrades']) {
     });
 }
 ```
+#### **C#/.NET**
+```c#
+if ((bool)exchange.has["watchTrades"])
+{
+    while (true)
+    {
+        try
+        {
+            var trades = await exchange.WatchTrades(symbol);
+            Console.WriteLine(trades.Count + " trades");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}
+```
+#### **Go**
+```go
+for {
+    trades, err := exchange.WatchTrades(symbol)
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    fmt.Println(len(trades))
+}
+```
 #### **Java**
 ```java
 while (true) {
@@ -1090,6 +1332,52 @@ if exchange.has['watchTradesForSymbols']:
             print(e)
             # stop the loop on exception or leave it commented to retry
             # raise e
+```
+#### **PHP**
+```php
+if ($exchange->has['watchTradesForSymbols']) {
+    $exchange::execute_and_run(function() use ($exchange, $since, $limit, $params) {
+        while (true) {
+            try {
+                $trades = yield $exchange->watch_trades_for_symbols(array('LTC/USDT', 'BTC/USDT'), $since, $limit, $params);
+                echo date('c'), ' ', json_encode($trades), "\n";
+            } catch (Exception $e) {
+                echo get_class($e), ' ', $e->getMessage(), "\n";
+            }
+        }
+    });
+}
+```
+#### **C#/.NET**
+```c#
+if ((bool)exchange.has["watchTradesForSymbols"])
+{
+    var symbols = new List<string>() { "LTC/USDT", "BTC/USDT" };
+    while (true)
+    {
+        try
+        {
+            var trades = await exchange.WatchTradesForSymbols(symbols);
+            Console.WriteLine(trades.Count + " trades");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}
+```
+#### **Go**
+```go
+symbols := []string{"LTC/USDT", "BTC/USDT"}
+for {
+    trades, err := exchange.WatchTradesForSymbols(symbols)
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    fmt.Println(len(trades))
+}
 ```
 #### **Java**
 ```java
@@ -1148,6 +1436,35 @@ if ($exchange->has['watchBalance']) {
     });
 }
 ```
+#### **C#/.NET**
+```c#
+if ((bool)exchange.has["watchBalance"])
+{
+    while (true)
+    {
+        try
+        {
+            var balance = await exchange.WatchBalance();
+            Console.WriteLine(balance);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}
+```
+#### **Go**
+```go
+for {
+    balance, err := exchange.WatchBalance()
+    if err != nil {
+        fmt.Println(err)
+        break
+    }
+    fmt.Println(balance)
+}
+```
 #### **Java**
 ```java
 while (true) {
@@ -1178,6 +1495,10 @@ watch_orders($symbol = null, $since = null, $lmit = null, $params = array());
 ```c#
 public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
 ```
+#### **Go**
+```go
+func (this *Binance) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error)
+```
 #### **Java**
 ```java
 while (true) {
@@ -1207,6 +1528,10 @@ watch_my_trades($symbol = null, $since = null, $lmit = null, $params = array());
 ```c#
 public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
 
+```
+#### **Go**
+```go
+func (this *Binance) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Trade, error)
 ```
 #### **Java**
 ```java
@@ -1239,6 +1564,10 @@ watch_positions($symbols = null, $since = null, $lmit = null, $params = array())
 ```c#
 public async Task<List<Position>> WatchPositions(List<string> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
 ```
+#### **Go**
+```go
+func (this *Binance) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Position, error)
+```
 #### **Java**
 ```java
 while (true) {
@@ -1268,6 +1597,10 @@ create_order_ws(string $symbol, string $type, string $side, float $amount, ?floa
 ```c#
     public async Task<Order> CreateOrderWs(string symbol, string type, string side, float amount, float? price2 = 0, Dictionary<string, object> parameters = null)
 ```
+#### **Go**
+```go
+func (this *Binance) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderWsOptions) (ccxt.Order, error)
+```
 #### **Java**
 ```java
 Object order = exchange.createOrderWs("BTC/USDT", "limit", "buy", 0.001, 50000.0).get(30, TimeUnit.SECONDS);
@@ -1288,6 +1621,14 @@ edit_order_ws(self, id, symbol: str, type: OrderType, side: OrderSide, amount: f
 #### **PHP**
 ```php
 edit_order_ws(string id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ())
+```
+#### **C#/.NET**
+```c#
+public async Task<Order> EditOrderWs(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+```
+#### **Go**
+```go
+func (this *Binance) EditOrderWs(id string, symbol string, typeVar string, side string, options ...ccxt.EditOrderWsOptions) (ccxt.Order, error)
 ```
 #### **Java**
 ```java
@@ -1311,6 +1652,14 @@ cancel_order_ws(self, id, symbol: str, params={})
 ```php
 cancel_order_ws(string $id, string $symbol, $params = array ())
 ```
+#### **C#/.NET**
+```c#
+public async Task<Order> CancelOrderWs(string id, string symbol = null, Dictionary<string, object> parameters = null)
+```
+#### **Go**
+```go
+func (this *Binance) CancelOrderWs(id string, options ...ccxt.CancelOrderWsOptions) (ccxt.Order, error)
+```
 #### **Java**
 ```java
 Object result = exchange.cancelOrderWs(orderId, "BTC/USDT").get(30, TimeUnit.SECONDS);
@@ -1333,6 +1682,14 @@ cancel_orders_ws(self, ids, symbol: str, params={})
 ```php
 cancel_orders_ws(string[] $ids, string $symbol, $params = array ())
 ```
+#### **C#/.NET**
+```c#
+public async Task<List<Order>> CancelOrdersWs(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+```
+#### **Go**
+```go
+func (this *Binance) CancelOrdersWs(ids []string, options ...ccxt.CancelOrdersWsOptions) ([]ccxt.Order, error)
+```
 #### **Java**
 ```java
 Object result = exchange.cancelOrdersWs(orderIds, "BTC/USDT").get(30, TimeUnit.SECONDS);
@@ -1353,6 +1710,14 @@ cancel_all_orders_ws(self, symbol: str, params={})
 #### **PHP**
 ```php
 cancel_all_orders_ws(string $symbol, $params = array ())
+```
+#### **C#/.NET**
+```c#
+public async Task<List<Order>> CancelAllOrdersWs(string symbol = null, Dictionary<string, object> parameters = null)
+```
+#### **Go**
+```go
+func (this *Binance) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions) ([]ccxt.Order, error)
 ```
 #### **Java**
 ```java
@@ -1420,6 +1785,23 @@ class myBinance extends \ccxt\pro\binance {
 $ex = new myBinance();
 $ex->watch_ticker('BTC/USDT');
 
+```
+#### **C#/.NET**
+```c#
+using ccxt.pro;
+
+class MyExchange : ccxt.pro.coinbase
+{
+    public override void handleMessage(WebSocketClient client, object message)
+    {
+        Console.WriteLine("Raw incoming message: " + message); // this is the raw update
+        base.handleMessage(client, message);
+        // your extra logic here
+    }
+}
+
+var ex = new MyExchange();
+await ex.WatchTicker("BTC/USDT");
 ```
 <!-- tabs:end -->
 

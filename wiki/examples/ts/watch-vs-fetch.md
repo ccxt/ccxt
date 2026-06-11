@@ -1,8 +1,5 @@
-- [Watch Vs Fetch](./examples/ts/)
-
-
- ```javascript
- // see this issue for details
+```javascript
+// see this issue for details
 // https://github.com/ccxt/ccxt/issues/6659
 
 
@@ -36,5 +33,5 @@ async function runRest () {
 
 runWs ();
 runRest ();
- 
+
 ```

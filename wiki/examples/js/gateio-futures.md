@@ -1,8 +1,5 @@
-- [Gateio Futures](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 
 
 const exchange = new ccxt.gate ({
@@ -51,5 +48,5 @@ const exchange = new ccxt.gate ({
     }
 
 }) ()
- 
+
 ```

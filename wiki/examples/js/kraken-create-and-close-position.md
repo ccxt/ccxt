@@ -1,8 +1,5 @@
-- [Kraken Create And Close Position](./examples/js/)
-
-
- ```javascript
- // @ts-nocheck
+```javascript
+// @ts-nocheck
 import ccxt from '../../js/ccxt.js';
 // AUTO-TRANSPILE //
 console.log('CCXT Version:', ccxt.version);
@@ -56,5 +53,5 @@ async function example() {
     }
 }
 await example();
- 
+
 ```

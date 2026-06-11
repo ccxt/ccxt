@@ -1,8 +1,5 @@
-- [Async Ticker](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import os
@@ -24,5 +21,5 @@ if __name__ == '__main__':
     id = 'binance'
     symbol = 'ETH/BTC'
     pprint(asyncio.run(test(id, symbol)))
- 
+
 ```

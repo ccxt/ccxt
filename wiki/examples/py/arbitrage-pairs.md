@@ -1,8 +1,5 @@
-- [Arbitrage Pairs](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -132,5 +129,5 @@ if len(sys.argv) > 2:
 
 else:
     print_usage()
- 
+
 ```

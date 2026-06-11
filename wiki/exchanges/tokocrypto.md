@@ -42,7 +42,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-tokocrypto.fetchTime ([params])
+tokocrypto.fetchTime (params?)
 ```
 
 
@@ -62,7 +62,7 @@ retrieves data on all markets for tokocrypto
 
 
 ```javascript
-tokocrypto.fetchMarkets ([params])
+tokocrypto.fetchMarkets (params?)
 ```
 
 
@@ -84,7 +84,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-tokocrypto.fetchOrderBook (symbol[, limit, params])
+tokocrypto.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -111,7 +111,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-tokocrypto.fetchTrades (symbol[, since, limit, params])
+tokocrypto.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -132,7 +132,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-tokocrypto.fetchTickers (symbols[, params])
+tokocrypto.fetchTickers (symbols, params?)
 ```
 
 
@@ -153,7 +153,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-tokocrypto.fetchTicker (symbol[, params])
+tokocrypto.fetchTicker (symbol, params?)
 ```
 
 
@@ -174,7 +174,7 @@ fetches the bid and ask price and volume for multiple markets
 
 
 ```javascript
-tokocrypto.fetchBidsAsks (symbols[, params])
+tokocrypto.fetchBidsAsks (symbols, params?)
 ```
 
 
@@ -200,7 +200,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-tokocrypto.fetchOHLCV (symbol, timeframe[, since, limit, params])
+tokocrypto.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -223,7 +223,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-tokocrypto.fetchBalance ([params])
+tokocrypto.fetchBalance (params?)
 ```
 
 
@@ -250,7 +250,7 @@ create a trade order
 
 
 ```javascript
-tokocrypto.createOrder (symbol, type, side, amount[, price, params])
+tokocrypto.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -272,7 +272,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-tokocrypto.fetchOrder (id, symbol[, params])
+tokocrypto.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -295,7 +295,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-tokocrypto.fetchOrders (symbol[, since, limit, params])
+tokocrypto.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -318,7 +318,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-tokocrypto.fetchOpenOrders (symbol[, since, limit, params])
+tokocrypto.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -341,7 +341,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-tokocrypto.fetchClosedOrders (symbol[, since, limit, params])
+tokocrypto.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -363,7 +363,7 @@ cancels an open order
 
 
 ```javascript
-tokocrypto.cancelOrder (id, symbol[, params])
+tokocrypto.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -386,7 +386,7 @@ fetch all trades made by the user
 
 
 ```javascript
-tokocrypto.fetchMyTrades (symbol[, since, limit, params])
+tokocrypto.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -407,7 +407,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-tokocrypto.fetchDepositAddress (code[, params])
+tokocrypto.fetchDepositAddress (code, params?)
 ```
 
 
@@ -431,7 +431,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-tokocrypto.fetchDeposits (code[, since, limit, params])
+tokocrypto.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -454,7 +454,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-tokocrypto.fetchWithdrawals (code[, since, limit, params])
+tokocrypto.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -478,6 +478,6 @@ make a withdrawal
 
 
 ```javascript
-tokocrypto.withdraw (code, amount, address, tag[, params])
+tokocrypto.withdraw (code, amount, address, tag, params?)
 ```
 

@@ -1,8 +1,5 @@
-- [Bittrex Balance](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import asTable from 'as-table';
@@ -51,5 +48,5 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
         }
     }
 
-}) () 
+}) ()
 ```

@@ -1,8 +1,5 @@
-- [Balances](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -83,5 +80,5 @@ except ccxt.ExchangeNotAvailable as e:
     print(type(e).__name__, e.args, 'Exchange Not Available due to downtime or maintenance (ignoring)')
 except ccxt.AuthenticationError as e:
     print(type(e).__name__, e.args, 'Authentication Error (missing API keys, ignoring)')
- 
+
 ```

@@ -1,8 +1,5 @@
-- [Balance Kraken](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -17,5 +14,5 @@ kraken = ccxt.kraken({
 })
 
 print(kraken.fetch_balance())
- 
+
 ```

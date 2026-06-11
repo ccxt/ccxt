@@ -1,8 +1,5 @@
-- [Fetch Balance All Exchanges](./examples/js/)
-
-
- ```javascript
- import * as fs from 'fs';
+```javascript
+import * as fs from 'fs';
 import ccxt from '../../js/ccxt.js';
 /**
  * @description Helper function to compare two balance objects
@@ -153,5 +150,5 @@ try {
 catch (error) {
     console.error(error);
 }
- 
+
 ```

@@ -1,8 +1,5 @@
-- [Watchpositions Many Exchanges Continuosly](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 // AUTO-TRANSPILE //
 // watch and handle constinuosly
 async function watchPositionsContinuously(exchange) {
@@ -51,5 +48,5 @@ async function example() {
     await Promise.all(promises);
 }
 await example();
- 
+
 ```

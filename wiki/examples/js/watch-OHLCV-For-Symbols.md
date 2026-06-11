@@ -1,8 +1,5 @@
-- [Watch Ohlcv For Symbols](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 // AUTO-TRANSPILE //
 async function example() {
     const binance = new ccxt.pro.binance({});
@@ -17,5 +14,5 @@ async function example() {
     }
 }
 await example();
- 
+
 ```

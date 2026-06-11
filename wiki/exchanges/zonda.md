@@ -37,7 +37,7 @@ retrieves data on all markets for zonda
 
 
 ```javascript
-zonda.fetchMarkets ([params])
+zonda.fetchMarkets (params?)
 ```
 
 
@@ -60,7 +60,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-zonda.fetchOpenOrders (symbol[, since, limit, params])
+zonda.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -83,7 +83,7 @@ fetch all trades made by the user
 
 
 ```javascript
-zonda.fetchMyTrades (symbol[, since, limit, params])
+zonda.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -103,7 +103,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-zonda.fetchBalance ([params])
+zonda.fetchBalance (params?)
 ```
 
 
@@ -125,7 +125,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-zonda.fetchOrderBook (symbol[, limit, params])
+zonda.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -147,7 +147,7 @@ v1_01PublicGetTradingTickerSymbol retrieves timestamp, datetime, bid, ask, close
 
 
 ```javascript
-zonda.fetchTicker (symbol[, params])
+zonda.fetchTicker (symbol, params?)
 ```
 
 
@@ -170,7 +170,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-zonda.fetchLedger ([code, since, limit, params])
+zonda.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -194,7 +194,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-zonda.fetchOHLCV (symbol, timeframe[, since, limit, params])
+zonda.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -217,7 +217,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-zonda.fetchTrades (symbol[, since, limit, params])
+zonda.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -242,7 +242,7 @@ create a trade order
 
 
 ```javascript
-zonda.createOrder (symbol, type, side, amount[, price, params])
+zonda.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -264,7 +264,7 @@ cancels an open order
 
 
 ```javascript
-zonda.cancelOrder (id, symbol[, params])
+zonda.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -286,7 +286,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-zonda.fetchDepositAddress (code[, params])
+zonda.fetchDepositAddress (code, params?)
 ```
 
 
@@ -307,7 +307,7 @@ fetch deposit addresses for multiple currencies and chain types
 
 
 ```javascript
-zonda.fetchDepositAddresses (codes[, params])
+zonda.fetchDepositAddresses (codes, params?)
 ```
 
 
@@ -331,7 +331,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-zonda.transfer (code, amount, fromAccount, toAccount[, params])
+zonda.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -355,6 +355,6 @@ make a withdrawal
 
 
 ```javascript
-zonda.withdraw (code, amount, address, tag[, params])
+zonda.withdraw (code, amount, address, tag, params?)
 ```
 

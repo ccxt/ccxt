@@ -1,8 +1,5 @@
-- [Hibachi Example](./examples/js/)
-
-
- ```javascript
- import { hibachi } from '../../js/ccxt.js';
+```javascript
+import { hibachi } from '../../js/ccxt.js';
 import fs from 'fs';
 /*
     In order to run the examples, you need to setup keys.local.json file like this:
@@ -115,5 +112,5 @@ async function example() {
     console.log(cancelAll);
 }
 example();
- 
+
 ```

@@ -1,8 +1,5 @@
-- [Fetch Funding Rate History](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 import asTable from 'as-table';
 
 const table  = asTable.configure ({ delimiter: ' | ' });
@@ -27,5 +24,5 @@ async function main () {
 }
 
 main ()
- 
+
 ```

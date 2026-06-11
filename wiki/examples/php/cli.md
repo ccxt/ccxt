@@ -1,8 +1,5 @@
-- [Cli](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 error_reporting(E_ALL);
 date_default_timezone_set('UTC');
@@ -206,5 +203,5 @@ $promise = Async\coroutine($main);
 Async\await($promise);
 
 ?>
- 
+
 ```

@@ -1,8 +1,5 @@
-- [Looping Over Specific Symbols Of All Exchanges](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import asTable from 'as-table';
@@ -93,5 +90,5 @@ ansicolor.nice
     }
 
 }) ()
- 
+
 ```

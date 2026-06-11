@@ -1,8 +1,5 @@
-- [Order Book Extra Level Depth Param](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import asTable from 'as-table';
@@ -21,5 +18,5 @@ ansicolor.nice
     })
 
     log (orders)
-}) () 
+}) ()
 ```

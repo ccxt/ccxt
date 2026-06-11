@@ -1,8 +1,5 @@
-- [Bitfinex2 Fetch Ohlcv](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -20,5 +17,5 @@ for ($i = 0; $i < 1000; $i++) {
     print_r ($exchange->iso8601($ohlcv[0][0]) . "\t" . count($ohlcv) . "\n");
 }
 
-?> 
+?>
 ```

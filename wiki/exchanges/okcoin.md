@@ -52,7 +52,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-okcoin.fetchTime ([params])
+okcoin.fetchTime (params?)
 ```
 
 
@@ -72,7 +72,7 @@ retrieves data on all markets for okcoin
 
 
 ```javascript
-okcoin.fetchMarkets ([params])
+okcoin.fetchMarkets (params?)
 ```
 
 
@@ -91,7 +91,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-okcoin.fetchCurrencies ([params])
+okcoin.fetchCurrencies (params?)
 ```
 
 
@@ -113,7 +113,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-okcoin.fetchOrderBook (symbol[, limit, params])
+okcoin.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -134,7 +134,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-okcoin.fetchTicker (symbol[, params])
+okcoin.fetchTicker (symbol, params?)
 ```
 
 
@@ -155,7 +155,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-okcoin.fetchTickers (symbols[, params])
+okcoin.fetchTickers (symbols, params?)
 ```
 
 
@@ -182,7 +182,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-okcoin.fetchTrades (symbol[, since, limit, params])
+okcoin.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -210,7 +210,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-okcoin.fetchOHLCV (symbol, timeframe[, since, limit, params])
+okcoin.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -229,7 +229,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-okcoin.fetchBalance ([params])
+okcoin.fetchBalance (params?)
 ```
 
 
@@ -251,7 +251,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-okcoin.createMarketBuyOrderWithCost (symbol, cost[, params])
+okcoin.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -294,7 +294,7 @@ create a trade order
 
 
 ```javascript
-okcoin.createOrder (symbol, type, side, amount, price[, params])
+okcoin.createOrder (symbol, type, side, amount, price, params?)
 ```
 
 
@@ -323,7 +323,7 @@ cancels an open order
 
 
 ```javascript
-okcoin.cancelOrder (id, symbol[, params])
+okcoin.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -350,7 +350,7 @@ cancel multiple orders
 
 
 ```javascript
-okcoin.cancelOrders (ids, symbol[, params])
+okcoin.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -376,7 +376,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-okcoin.fetchOrder (id, symbol[, params])
+okcoin.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -405,7 +405,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-okcoin.fetchOpenOrders (symbol[, since, limit, params])
+okcoin.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -435,7 +435,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-okcoin.fetchClosedOrders (symbol[, since, limit, params])
+okcoin.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -456,7 +456,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-okcoin.fetchDepositAddress (code[, params])
+okcoin.fetchDepositAddress (code, params?)
 ```
 
 
@@ -477,7 +477,7 @@ fetch a dictionary of addresses for a currency, indexed by network
 
 
 ```javascript
-okcoin.fetchDepositAddressesByNetwork (code[, params])
+okcoin.fetchDepositAddressesByNetwork (code, params?)
 ```
 
 
@@ -501,7 +501,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-okcoin.transfer (code, amount, fromAccount, toAccount[, params])
+okcoin.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -525,7 +525,7 @@ make a withdrawal
 
 
 ```javascript
-okcoin.withdraw (code, amount, address, tag[, params])
+okcoin.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -548,7 +548,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-okcoin.fetchDeposits (code[, since, limit, params])
+okcoin.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -571,7 +571,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-okcoin.fetchWithdrawals (code[, since, limit, params])
+okcoin.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -598,7 +598,7 @@ fetch all trades made by the user
 
 
 ```javascript
-okcoin.fetchMyTrades (symbol[, since, limit, params])
+okcoin.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -621,7 +621,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-okcoin.fetchOrderTrades (id, symbol[, since, limit, params])
+okcoin.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -649,7 +649,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-okcoin.fetchLedger ([code, since, limit, params])
+okcoin.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -672,7 +672,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-okcoin.watchTrades (symbol[, since, limit, params])
+okcoin.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -695,7 +695,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-okcoin.watchOrders (symbol[, since, limit, params])
+okcoin.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -716,7 +716,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-okcoin.watchTicker (symbol[, params])
+okcoin.watchTicker (symbol, params?)
 ```
 
 
@@ -740,7 +740,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-okcoin.watchOHLCV (symbol, timeframe[, since, limit, params])
+okcoin.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -762,7 +762,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-okcoin.watchOrderBook (symbol[, limit, params])
+okcoin.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -782,6 +782,6 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-okcoin.watchBalance ([params])
+okcoin.watchBalance (params?)
 ```
 

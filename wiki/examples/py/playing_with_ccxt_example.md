@@ -1,8 +1,5 @@
-- [Playing_with_ccxt_example](./examples/py/)
-
-
- ```python
- {
+```python
+{
   "nbformat": 4,
   "nbformat_minor": 0,
   "metadata": {
@@ -223,5 +220,5 @@
       "outputs": []
     }
   ]
-} 
+}
 ```

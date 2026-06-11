@@ -1,8 +1,5 @@
-- [Kraken Fetch My Trades Pagination](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -46,5 +43,5 @@ if first:
     last = exchange.safe_value(all_trades, len(all_trades) - 1)
     print('First:', first['datetime'])
     print('Last:', last['datetime'])
- 
+
 ```

@@ -38,7 +38,7 @@ retrieves data on all markets for alp
 
 
 ```javascript
-alp.fetchMarkets ([params])
+alp.fetchMarkets (params?)
 ```
 
 
@@ -59,7 +59,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-alp.fetchTickers (symbols[, params])
+alp.fetchTickers (symbols, params?)
 ```
 
 
@@ -80,7 +80,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-alp.fetchTicker (symbol[, params])
+alp.fetchTicker (symbol, params?)
 ```
 
 
@@ -102,7 +102,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-alp.fetchOrderBook (symbol[, limit, params])
+alp.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -125,7 +125,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-alp.fetchTrades (symbol[, since, limit, params])
+alp.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -148,7 +148,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-alp.fetchDeposits (code[, since, limit, params])
+alp.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -171,7 +171,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-alp.fetchWithdrawals (code[, since, limit, params])
+alp.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -195,7 +195,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-alp.fetchOHLCV (symbol, timeframe[, since, limit, params])
+alp.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -215,7 +215,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-alp.fetchBalance ([params])
+alp.fetchBalance (params?)
 ```
 
 
@@ -240,7 +240,7 @@ create a trade order
 
 
 ```javascript
-alp.createOrder (symbol, type, side, amount[, price, params])
+alp.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -262,7 +262,7 @@ cancels an open order
 
 
 ```javascript
-alp.cancelOrder (id, symbol[, params])
+alp.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -284,7 +284,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-alp.fetchOrder (id, symbol[, params])
+alp.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -307,7 +307,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-alp.fetchOrders (symbol[, since, limit, params])
+alp.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -330,7 +330,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-alp.fetchOpenOrders (symbol[, since, limit, params])
+alp.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -353,7 +353,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-alp.fetchClosedOrders (symbol[, since, limit, params])
+alp.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -376,6 +376,6 @@ fetch all trades made by the user
 
 
 ```javascript
-alp.fetchMyTrades (symbol[, since, limit, params])
+alp.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
