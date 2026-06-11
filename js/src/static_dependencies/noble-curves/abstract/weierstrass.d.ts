@@ -95,7 +95,7 @@ export declare const DER: {
             stack?: string;
         };
         captureStackTrace(targetObject: object, constructorOpt?: Function): void;
-        prepareStackTrace?: (err: Error, stackTraces: NodeJS.CallSite[]) => any;
+        prepareStackTrace(err: Error, stackTraces: NodeJS.CallSite[]): any;
         stackTraceLimit: number;
     };
     _parseInt(data: Uint8Array): {
