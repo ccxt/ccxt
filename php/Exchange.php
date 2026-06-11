@@ -434,7 +434,6 @@ class Exchange {
         'woo',
         'woofipro',
         'xt',
-        'yobit',
         'zaif',
         'zebpay',
     );
