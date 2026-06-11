@@ -4,7 +4,10 @@
     "outputType": "json",
     "options": {
         "authToken": "test-token",
-        "authTokenExpires": 9999999999999
+        "authTokenExpires": 9999999999999,
+        "builderFee": true,
+        "builder": "0x000000000000000000000000000000000000dEaD",
+        "builderFeeBpsTimes1k": 1000
     },
     "methods": {
         "fetchCurrencies": [
@@ -109,7 +112,7 @@
                     10,
                     1.5
                 ],
-                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\"}"
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000}"
             },
             {
                 "description": "Prepare market buy order for SOMI/USDso",
@@ -121,7 +124,7 @@
                     "buy",
                     10
                 ],
-                "output": "{\"walletAddress\":\"wallet\",\"type\":\"market\",\"side\":\"buy\",\"amount\":\"10\"}"
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"market\",\"side\":\"buy\",\"amount\":\"10\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000}"
             },
             {
                 "description": "Limit sell order for SOMI/USDso",
@@ -134,7 +137,7 @@
                     5,
                     2.0
                 ],
-                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"sell\",\"amount\":\"5\",\"price\":\"2\"}"
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"sell\",\"amount\":\"5\",\"price\":\"2\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000}"
             },
             {
                 "description": "Market sell order for SOMI/USDso",
@@ -146,7 +149,7 @@
                     "sell",
                     20
                 ],
-                "output": "{\"walletAddress\":\"wallet\",\"type\":\"market\",\"side\":\"sell\",\"amount\":\"20\"}"
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"market\",\"side\":\"sell\",\"amount\":\"20\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000}"
             },
             {
                 "description": "Limit order with timeInForce IOC",
@@ -160,7 +163,7 @@
                     1.5,
                     { "timeInForce": "IOC" }
                 ],
-                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"orderType\":\"immediateOrCancel\"}"
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"orderType\":\"immediateOrCancel\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000}"
             },
             {
                 "description": "Limit order with postOnly",
@@ -174,7 +177,7 @@
                     1.5,
                     { "postOnly": true }
                 ],
-                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"orderType\":\"postOnly\"}"
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"orderType\":\"postOnly\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000}"
             },
             {
                 "description": "Limit order with fundingSource vault and selfMatchingOption cancelTaker",
@@ -188,7 +191,7 @@
                     1.5,
                     { "fundingSource": "vault", "selfMatchingOption": "cancelTaker" }
                 ],
-                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"fundingSource\":\"vault\",\"selfMatchingOption\":\"cancelTaker\"}"
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000,\"fundingSource\":\"vault\",\"selfMatchingOption\":\"cancelTaker\"}"
             },
             {
                 "description": "Limit order with timeInForce FOK",
@@ -202,7 +205,7 @@
                     1.5,
                     { "timeInForce": "FOK" }
                 ],
-                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"orderType\":\"fillOrKill\"}"
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"orderType\":\"fillOrKill\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000}"
             },
             {
                 "description": "Limit order with wallet fundingSource",
@@ -216,7 +219,7 @@
                     1.5,
                     { "fundingSource": "wallet" }
                 ],
-                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"sell\",\"amount\":\"100\",\"price\":\"1.5\",\"fundingSource\":\"wallet\"}"
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"sell\",\"amount\":\"100\",\"price\":\"1.5\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"builderFeeBpsTimes1k\":1000,\"fundingSource\":\"wallet\"}"
             },
             {
                 "description": "Stop market sell order (stop-loss, inferred lte)",
@@ -273,6 +276,20 @@
                     { "stopPrice": 1.0 }
                 ],
                 "output": "{\"walletAddress\":\"wallet\",\"type\":\"market\",\"side\":\"sell\",\"amount\":\"100\",\"triggerPrice\":\"1\",\"triggerOperator\":\"lte\"}"
+            },
+            {
+                "description": "Limit order with explicit builder and builderFeeBpsTimes1k overriding the defaults",
+                "method": "createOrder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/orders",
+                "input": [
+                    "SOMI/USDso",
+                    "limit",
+                    "buy",
+                    10,
+                    1.5,
+                    { "builder": "0x1111111111111111111111111111111111111111", "builderFeeBpsTimes1k": 2500 }
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"type\":\"limit\",\"side\":\"buy\",\"amount\":\"10\",\"price\":\"1.5\",\"builder\":\"0x1111111111111111111111111111111111111111\",\"builderFeeBpsTimes1k\":2500}"
             }
         ],
         "cancelOrder": [
@@ -488,6 +505,38 @@
                     100
                 ],
                 "output": "{\"walletAddress\":\"wallet\",\"currency\":\"SOMI\",\"amount\":\"100\"}"
+            }
+        ],
+        "fetchBuilderMaxFee": [
+            {
+                "description": "Fetch protocol builder max fee for SOMI/USDso",
+                "method": "fetchBuilderMaxFee",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/builder/max-fee",
+                "input": [
+                    "SOMI/USDso"
+                ]
+            }
+        ],
+        "fetchBuilderApproval": [
+            {
+                "description": "Fetch builder approval for the default builder on SOMI/USDso",
+                "method": "fetchBuilderApproval",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/builder/approval?walletAddress=wallet&builder=0x000000000000000000000000000000000000dead",
+                "input": [
+                    "SOMI/USDso"
+                ]
+            }
+        ],
+        "approveBuilder": [
+            {
+                "description": "Approve the default builder up to 2500 BPS_TIMES_1K on SOMI/USDso",
+                "method": "approveBuilder",
+                "url": "https://api.dreamdex.io/v0/markets/SOMI:USDso/builder/approve",
+                "input": [
+                    "SOMI/USDso",
+                    2500
+                ],
+                "output": "{\"walletAddress\":\"wallet\",\"builder\":\"0x000000000000000000000000000000000000dead\",\"maxFeeBpsTimes1k\":2500}"
             }
         ]
     }

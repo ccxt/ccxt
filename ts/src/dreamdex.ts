@@ -153,6 +153,7 @@ export default class dreamdex extends Exchange {
                         'v0/orderbooks': 1,
                         'v0/tickers': 1,
                         'v0/auth/nonce': 1,
+                        'v0/markets/{symbol}/builder/max-fee': 1,
                     },
                     'post': {
                         'v0/auth/login': 1,
@@ -166,6 +167,7 @@ export default class dreamdex extends Exchange {
                         'v0/markets/{symbol}/trades/mine': 1,
                         'v0/markets/{symbol}/vault/balance': 1,
                         'v0/markets/{symbol}/stop-orders': 1,
+                        'v0/markets/{symbol}/builder/approval': 1,
                     },
                     'post': {
                         'v0/markets/{symbol}/orders': 1,
@@ -173,6 +175,7 @@ export default class dreamdex extends Exchange {
                         'v0/markets/{symbol}/vault/withdraw': 1,
                         'v0/markets/{symbol}/vault/approve': 1,
                         'v0/markets/{symbol}/stop-orders': 1,
+                        'v0/markets/{symbol}/builder/approve': 1,
                     },
                     'patch': {
                         'v0/markets/{symbol}/orders/{id}/reduce': 1,
@@ -264,6 +267,9 @@ export default class dreamdex extends Exchange {
                 'authToken': undefined,
                 'authTokenExpires': undefined,
                 'chainId': 5031,
+                'builderFee': true,
+                'builder': '0x000000000000000000000000000000000000dEaD', // TODO(maintainers): replace placeholder builder wallet before merge
+                'builderFeeBpsTimes1k': 1000, // 1 bps (unit: 1000 = 1 bps)
             },
             'exceptions': {
                 'exact': {
@@ -814,7 +820,8 @@ export default class dreamdex extends Exchange {
      * @returns {object} an unsigned EVM transaction { to, data, value, chainId, gasLimit, nonce }
      */
     async vaultDeposit (symbol: string, currency: string, amount: Num, params = {}): Promise<Dict> {
-        return (await this.vaultAction ('deposit', symbol, currency, amount, params)) as Dict;
+        const response = await this.vaultAction ('deposit', symbol, currency, amount, params);
+        return response as Dict;
     }
 
     /**
@@ -830,7 +837,8 @@ export default class dreamdex extends Exchange {
      * @returns {object} an unsigned EVM transaction { to, data, value, chainId, gasLimit, nonce }
      */
     async vaultWithdraw (symbol: string, currency: string, amount: Num, params = {}): Promise<Dict> {
-        return (await this.vaultAction ('withdraw', symbol, currency, amount, params)) as Dict;
+        const response = await this.vaultAction ('withdraw', symbol, currency, amount, params);
+        return response as Dict;
     }
 
     async vaultAction (action: string, symbol: string, currency: string, amount: Num, params = {}): Promise<any> {
@@ -874,6 +882,102 @@ export default class dreamdex extends Exchange {
 
     /**
      * @method
+     * @name dreamdex#fetchBuilderMaxFee
+     * @description fetches the protocol-wide cap on builder fees for a market (a value of zero disables builder codes)
+     * @see https://api.dreamdex.io/.well-known/oapi.json
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a structure containing maxFeeBpsTimes1k in BPS_TIMES_1K units (1000 = 1 bps)
+     */
+    async fetchBuilderMaxFee (symbol: string, params = {}): Promise<Dict> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetV0MarketsSymbolBuilderMaxFee (this.extend (request, params));
+        //
+        //     {
+        //         "maxFeeBpsTimes1k": "100000"
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name dreamdex#fetchBuilderApproval
+     * @description fetches a wallet's on-chain builder approval for a market
+     * @see https://api.dreamdex.io/.well-known/oapi.json
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.builder] builder wallet address to query (defaults to options.builder)
+     * @param {string} [params.walletAddress] the order owner's wallet address (defaults to this.walletAddress)
+     * @returns {object} a structure with builder, approved, effective and protocolMaxFee in BPS_TIMES_1K units (1000 = 1 bps)
+     */
+    async fetchBuilderApproval (symbol: string, params = {}): Promise<Dict> {
+        await this.signIn ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const walletAddress = this.safeString (params, 'walletAddress', this.walletAddress);
+        const builder = this.safeStringLower (params, 'builder', this.safeStringLower (this.options, 'builder'));
+        params = this.omit (params, [ 'walletAddress', 'builder' ]);
+        const request: Dict = {
+            'symbol': market['id'],
+            'walletAddress': walletAddress,
+            'builder': builder,
+        };
+        const response = await this.privateGetV0MarketsSymbolBuilderApproval (this.extend (request, params));
+        //
+        //     {
+        //         "builder": "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6",
+        //         "approved": "100000",
+        //         "effective": "100000",
+        //         "protocolMaxFee": "100000"
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name dreamdex#approveBuilder
+     * @description generates an unsigned EVM transaction approving a builder to charge a per-order fee up to maxFeeBpsTimes1k
+     * @see https://api.dreamdex.io/.well-known/oapi.json
+     * @param {string} symbol unified market symbol
+     * @param {int} maxFeeBpsTimes1k maximum per-order builder fee in BPS_TIMES_1K units (1000 = 1 bps)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.builder] builder wallet address to approve (defaults to options.builder)
+     * @param {string} [params.walletAddress] the order owner's wallet address (defaults to this.walletAddress)
+     * @returns {object} an unsigned EVM transaction { to, data, value, chainId }
+     */
+    async approveBuilder (symbol: string, maxFeeBpsTimes1k: Int, params = {}): Promise<Dict> {
+        await this.signIn ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const walletAddress = this.safeString (params, 'walletAddress', this.walletAddress);
+        const builder = this.safeStringLower (params, 'builder', this.safeStringLower (this.options, 'builder'));
+        params = this.omit (params, [ 'walletAddress', 'builder' ]);
+        const request: Dict = {
+            'symbol': market['id'],
+            'walletAddress': walletAddress,
+            'builder': builder,
+            'maxFeeBpsTimes1k': maxFeeBpsTimes1k,
+        };
+        const response = await this.privatePostV0MarketsSymbolBuilderApprove (this.extend (request, params));
+        //
+        //     {
+        //         "to": "0xcee4c19f4518A10FBeF92390FE6d9e7B18A4070c",
+        //         "data": "0x80702f83...",
+        //         "value": "0",
+        //         "chainId": "5031"
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
      * @name dreamdex#createOrder
      * @description creates an order by returning an unsigned EVM transaction for the user to sign and broadcast on-chain.
      * The order is not placed until the transaction is submitted to the Somnia network (chain ID 5031).
@@ -893,6 +997,8 @@ export default class dreamdex extends Exchange {
      * @param {bool} [params.postOnly] true to create a post-only order (alternative to timeInForce 'PO')
      * @param {string} [params.fundingSource] 'wallet' or 'vault' - where to source tokens (default is 'wallet', 'vault' uses pre-deposited balance)
      * @param {string} [params.selfMatchingOption] 'cancelTaker' or 'cancelMaker' - self-trade prevention behavior
+     * @param {string} [params.builder] builder wallet address that receives the per-order builder fee (defaults to options.builder; set options.builderFee=false to disable). Not supported for stop orders.
+     * @param {int} [params.builderFeeBpsTimes1k] builder fee rate in BPS_TIMES_1K units (1000 = 1 bps), must be greater than zero when builder is set (defaults to options.builderFeeBpsTimes1k)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with the unsigned EVM transaction in the info field
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
@@ -980,6 +1086,14 @@ export default class dreamdex extends Exchange {
         } else if (timeInForce === 'FOK') {
             request['orderType'] = 'fillOrKill';
         }
+        const builderFeeEnabled = this.safeBool (this.options, 'builderFee', true);
+        const builder = this.safeStringLower (params, 'builder', builderFeeEnabled ? this.safeStringLower (this.options, 'builder') : undefined);
+        const builderFee = this.safeInteger (params, 'builderFeeBpsTimes1k', builderFeeEnabled ? this.safeInteger (this.options, 'builderFeeBpsTimes1k') : undefined);
+        if ((builder !== undefined) && (builderFee !== undefined) && (builderFee > 0)) {
+            request['builder'] = builder;
+            request['builderFeeBpsTimes1k'] = builderFee;
+        }
+        params = this.omit (params, [ 'builder', 'builderFeeBpsTimes1k' ]);
         const response = await this.privatePostV0MarketsSymbolOrders (this.extend (request, params));
         //
         //     {
