@@ -245,7 +245,6 @@
         "ext-openssl": "*",
         "ext-gmp": "*",
         "symfony/polyfill-mbstring": "1.38.2",
-        "pear/console_table": "1.3.1",
         "react/http": "1.11.0",
         "react/async": "4.3.0",
         "ratchet/pawl": "0.4.3",
@@ -263,7 +262,8 @@
         "recoil/react": "Required for asynchronous API calls to exchanges with PHP",
         "react/http": "Required for asynchronous API calls to exchanges with PHP",
         "clue/buzz-react": "Required for asynchronous API calls to exchanges with PHP",
-        "react/event-loop": "Required for asynchronous API calls to exchanges with PHP"
+        "react/event-loop": "Required for asynchronous API calls to exchanges with PHP",
+        "pear/console_table": "Required for the ccxt-cli utility to display tables in the console"
     },
     "archive": {
         "exclude": [
