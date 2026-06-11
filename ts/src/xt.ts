@@ -573,7 +573,6 @@ export default class xt extends Exchange {
                     'BEP20': 'BNB Smart Chain',
                     'BEP2': 'BNB-BEP2',
                     'ETH': 'Ethereum',
-                    'BNB': 'BNB Smart Chain',
                     'AVAX': 'AVAX C-Chain',
                     'GAL': 'GAL(FT)',
                     'ALEO': 'ALEO(IOU)',
