@@ -4724,7 +4724,8 @@ export default class mexc extends Exchange {
                 },
             ];
         }
-        while (Precise.stringLt (floor, maxVol)) {
+        let loop = Precise.stringLt (floor, maxVol);
+        while (loop) {
             const cap = Precise.stringAdd (floor, riskIncrVol);
             const minNotional = this.parseNumber (floor);
             const mainMarginRate = this.parseNumber (maintenanceMarginRate);
@@ -4742,6 +4743,7 @@ export default class mexc extends Exchange {
             initialMarginRate = Precise.stringAdd (initialMarginRate, riskIncrImr);
             maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, riskIncrMmr);
             floor = cap;
+            loop = Precise.stringLt (floor, maxVol);
         }
         return tiers as LeverageTier[];
     }
