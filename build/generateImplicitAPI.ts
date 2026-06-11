@@ -24,6 +24,23 @@ let storedPyMethods: Dict = {};
 let storedGoMethods: Dict = {};
 let storedJavaMethods: Dict = {};
 
+// when true, we are generating the implicit APIs for the prediction-market
+// exchanges (ts/src/prediction/) which live in their own namespace/subfolder
+// in every language (ccxt.prediction, ccxt\prediction, ccxtprediction, ...)
+let isPrediction = false;
+
+function resetStoredMethods () {
+    storedCamelCaseMethods = {};
+    storedUnderscoreMethods = {};
+    storedTypeScriptMethods = {};
+    storedCSharpMethods = {};
+    storedContext = {};
+    storedPhpMethods = {};
+    storedPyMethods = {};
+    storedGoMethods = {};
+    storedJavaMethods = {};
+}
+
 
 const [,, ...args] = process.argv
 const langKeys = {
@@ -260,10 +277,14 @@ function createImplicitMethodsGo(){
         //     ``
         // ].join('\n');
 
+        // prediction exchanges live in their own package (ccxtprediction), so they
+        // cannot access the unexported callEndpointAsync from package ccxt — use the
+        // exported wrapper instead
+        const callEndpoint = isPrediction ? 'CallEndpointAsync' : 'callEndpointAsync';
         const methods = methodNames.map(method=> {
             return [
                 `func (this *${capitalize(exchange)}Core) ${capitalize(method)} (args ...any) <-chan any {`,
-                `   return this.callEndpointAsync("${method}", args...)`,
+                `   return this.${callEndpoint}("${method}", args...)`,
                 `}`,
                 ``,
             ].join('\n')
@@ -285,6 +306,7 @@ function createImplicitMethodsGo(){
 
 async function editFiles (path: string, methods: Dict, extension: string) {
     const exchanges = Object.keys (storedCamelCaseMethods);
+    fs.mkdirSync (path, { recursive: true });
     const files = exchanges.map (ex => path + ex + extension)
     await Promise.all (files.map ((path, idx) => promisedWriteFile (path, methods[exchanges[idx]].join ('\n') + '\n')))
     // await unlinkFiles (path, extension)
@@ -299,28 +321,30 @@ async function unlinkFiles (path: string, extension: string) {
 
 // -------------------------------------------------------------------------
 
-async function editAPIFilesCSharp(){
+async function editAPIFilesCSharp(subdir = ''){
     const exchanges = Object.keys(storedCamelCaseMethods);
-    const files = exchanges.map(ex => CSHARP_PATH + ex + '.cs');
+    fs.mkdirSync(CSHARP_PATH + subdir, { recursive: true });
+    const files = exchanges.map(ex => CSHARP_PATH + subdir + ex + '.cs');
     await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedCSharpMethods[exchanges[idx]].join ('\n'))))
 }
 
 // -------------------------------------------------------------------------
 
-async function editAPIFilesGo(){
+async function editAPIFilesGo(subdir = ''){
     const exchanges = Object.keys(storedCamelCaseMethods);
-    const files = exchanges.map(ex => GO_PATH + ex + '_api.go');
+    fs.mkdirSync(GO_PATH + subdir, { recursive: true });
+    const files = exchanges.map(ex => GO_PATH + subdir + ex + '_api.go');
     await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedGoMethods[exchanges[idx]].join ('\n'))))
 }
 
-async function editAPIFilesJava(){
+async function editAPIFilesJava(subdir = ''){
     const exchanges = Object.keys(storedCamelCaseMethods);
     // The api/ dir is auto-generated and not committed (see java/.gitignore),
     // so on a fresh clone it doesn't exist yet — fs.writeFile won't create
     // the parent dir on its own. mkdir -p first so this script works whether
     // the dir is already populated (CI rebuild) or empty (first run).
-    fs.mkdirSync(JAVA_PATH, { recursive: true });
-    const files = exchanges.map(ex => JAVA_PATH + capitalize(ex) + 'Api.java');
+    fs.mkdirSync(JAVA_PATH + subdir, { recursive: true });
+    const files = exchanges.map(ex => JAVA_PATH + subdir + capitalize(ex) + 'Api.java');
     await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedJavaMethods[exchanges[idx]].join ('\n'))))
 }
 
@@ -328,10 +352,11 @@ async function editAPIFilesJava(){
 
 function createTypescriptHeader(instance: Exchange, parent: string){
     const exchange = instance.id;
-    const importType = 'import { implicitReturnType } from \'../base/types.js\';'
+    const basePath = isPrediction ? '../../' : '../';
+    const importType = `import { implicitReturnType } from '${basePath}base/types.js';`
     const importParent = (parent === 'Exchange') ?
-        `import { Exchange as _Exchange } from '../base/Exchange.js';` :
-        `import _${parent} from '../${parent}.js';`
+        `import { Exchange as _Exchange } from '${basePath}base/Exchange.js';` :
+        `import _${parent} from '${basePath}${parent}.js';`
     const typescriptHeader = `interface ${parent} {`
     const typescriptFooter = `abstract class ${parent} extends _${parent} {}\n\nexport default ${parent}` // hotswap later
     storedTypeScriptMethods[exchange] = [ getPreamble (), importType, importParent, '', typescriptHeader, typescriptFooter ];
@@ -343,9 +368,10 @@ function createPhpHeader(instance: Exchange, parent: string){
     const exchange = instance.id;
     const phpParent = (parent === 'Exchange') ? '\\ccxt\\Exchange' : '\\ccxt\\' + parent;
     const phpHeader = `abstract class ${instance.id} extends ${phpParent} {`
+    const phpNamespace = isPrediction ? 'ccxt\\abstract\\prediction' : 'ccxt\\abstract';
     const phpPreamble = `<?php
 
-namespace ccxt\\abstract;
+namespace ${phpNamespace};
 
 // PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
@@ -364,7 +390,7 @@ function createPyHeader(instance: Exchange, parent: string){
 // -------------------------------------------------------------------------
 
 function createCSharpHeader(exchange: Exchange, parent: string){
-    const namespace = 'namespace ccxt;'
+    const namespace = isPrediction ? 'namespace ccxt.prediction;' : 'namespace ccxt;'
     const header = `public partial class ${exchange.id} : ${parent}\n{\n    public ${exchange.id} (object args = null): base(args) {}\n`;
     storedCSharpMethods[exchange.id] = [ getPreamble(), namespace, '', header];
 }
@@ -372,7 +398,7 @@ function createCSharpHeader(exchange: Exchange, parent: string){
 // -------------------------------------------------------------------------
 
 function createGoHeader(exchange: Exchange, parent: string){
-    const namespace = 'package ccxt'
+    const namespace = isPrediction ? 'package ccxtprediction' : 'package ccxt'
     storedGoMethods[exchange.id] = [ getPreamble(), namespace, ''];
 }
 
@@ -381,7 +407,8 @@ function createGoHeader(exchange: Exchange, parent: string){
 function createJavaHeader(exchange: Exchange, parent: string){
     const capParent = capitalize(parent);
     const parentImport = parent === 'Exchange' ? `import io.github.ccxt.${capParent}` : `import io.github.ccxt.exchanges.${capParent}` ;
-    const namespace = `package io.github.ccxt.api;\n${parentImport};`;
+    const javaPackage = isPrediction ? 'io.github.ccxt.api.prediction' : 'io.github.ccxt.api';
+    const namespace = `package ${javaPackage};\n${parentImport};`;
     const constructor = [
         `${IDEN}public ${capitalize(exchange.id)}Api () {`,
         `${IDEN}${IDEN}super();`,
@@ -398,13 +425,15 @@ function createJavaHeader(exchange: Exchange, parent: string){
 //-------------------------------------------------------------------------
 
 function populateImplicitMethods(exchanges: string[]) {
+    const container = isPrediction ? (ccxt as any).prediction : ccxt;
+    const proContainer = isPrediction ? (ccxt as any).prediction.pro : ccxt.pro;
     for (const index in exchanges) {
         const exchange = exchanges[index];
-        const exchangeClass = ccxt[exchange]
+        const exchangeClass = container[exchange]
         const instance = new exchangeClass();
         let api = instance.api
-        if (exchange in ccxt.pro) {
-            const proInstance = new ccxt.pro[exchange] ()
+        if (exchange in proContainer) {
+            const proInstance = new proContainer[exchange] ()
             api = proInstance.api
         }
         const parent = Object.getPrototypeOf (Object.getPrototypeOf(instance)).constructor.name
@@ -437,63 +466,76 @@ function readOptions() {
 
 //-------------------------------------------------------------------------
 
-async function main() {
-    readOptions();
-    const shouldGenerateAll = args.length === 0;
+async function generateImplicitAPIs (exchanges: string[], shouldGenerateAll: boolean, subdir = '') {
 
-    // const exchanges = ccxt.exchanges;
-
-    let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
-    exchanges = exchanges.ids;
-    // const exchanges = ['gate', 'gateio'];
-
-    log.bright.cyan ('Exporting TypeScript implicit api methods')
+    log.bright.cyan ('Exporting TypeScript implicit api methods', subdir ? ('(' + subdir + ')') : '')
     populateImplicitMethods(exchanges); // common step for all languages
 
     if (shouldGenerateAll || langKeys['--ts']) {
         createImplicitMethodsTs ()
-        await editFiles (TS_PATH, storedTypeScriptMethods, '.ts');
+        await editFiles (TS_PATH + subdir, storedTypeScriptMethods, '.ts');
         log.bright.cyan ('TypeScript implicit api methods completed!')
 
     }
 
     if (shouldGenerateAll || langKeys['--python']) {
         createImplicitMethodsPython ()
-        await editFiles (PY_PATH, storedPyMethods, '.py');
+        await editFiles (PY_PATH + subdir, storedPyMethods, '.py');
         log.bright.cyan ('Python implicit api methods completed!')
 
     }
 
     if (shouldGenerateAll || langKeys['--php']) {
         createImplicitMethodsPhp ()
-        await editFiles (PHP_PATH, storedPhpMethods, '.php');
+        await editFiles (PHP_PATH + subdir, storedPhpMethods, '.php');
         log.bright.cyan ('PHP sync implicit api methods completed!')
         // one more time for the async php
         Object.values (storedPhpMethods).forEach (x => {
             x[0] = x[0].replace (/ccxt\\abstract/, 'ccxt\\async\\abstract');
             x[2] = x[2].replace (/ccxt\\/, 'ccxt\\async\\')
         })
-        await editFiles (ASYNC_PHP_PATH, storedPhpMethods, '.php');
+        await editFiles (ASYNC_PHP_PATH + subdir, storedPhpMethods, '.php');
         log.bright.cyan ('PHP async implicit api methods completed!')
     }
 
     if (shouldGenerateAll || langKeys['--csharp']) {
         createImplicitMethodsCSharp()
-        await editAPIFilesCSharp();
+        await editAPIFilesCSharp(subdir);
         log.bright.cyan ('C# implicit api methods completed!')
     }
 
 
     if (shouldGenerateAll || langKeys['--go']) {
         createImplicitMethodsGo()
-        await editAPIFilesGo()
+        await editAPIFilesGo(subdir)
         log.bright.cyan ('GO implicit api methods completed!')
     }
 
     if (shouldGenerateAll || langKeys['--java']) {
         createImplicitMethodsJava()
-        await editAPIFilesJava()
+        await editAPIFilesJava(subdir)
         log.bright.cyan ('Java implicit api methods completed!')
+    }
+}
+
+async function main() {
+    readOptions();
+    const shouldGenerateAll = args.length === 0;
+
+    // const exchanges = ccxt.exchanges;
+
+    const allExchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
+    // const exchanges = ['gate', 'gateio'];
+
+    await generateImplicitAPIs (allExchanges.ids, shouldGenerateAll);
+
+    // second pass: prediction-market exchanges → abstract/prediction/ subfolders
+    const predictionIds = allExchanges.prediction || [];
+    if (predictionIds.length) {
+        resetStoredMethods ();
+        isPrediction = true;
+        await generateImplicitAPIs (predictionIds, shouldGenerateAll, 'prediction/');
+        isPrediction = false;
     }
 
     // await unlinkFiles (JS_PATH, '.js')

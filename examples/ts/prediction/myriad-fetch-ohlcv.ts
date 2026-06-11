@@ -4,7 +4,7 @@ import ccxt from '../../ts/ccxt.js';
 // AUTO-TRANSPILE //
 
 async function testMyriadFetchOHLCV () {
-    const exchange = new ccxt.myriad ();
+    const exchange = new ccxt.prediction.myriad ();
     try {
         const events = await exchange.fetchEvents ([ 'Trump' ], { 'limit': 10 });
         assert (events.length > 0, 'No Myriad events found');

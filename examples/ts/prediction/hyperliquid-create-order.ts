@@ -2,7 +2,7 @@ import ccxt from '../../ts/ccxt.js';
 
 async function example () {
 
-    const exchange = new ccxt.hyperliquid ({
+    const exchange = new ccxt.prediction.hyperliquid ({
         'walletAddress': 'YOUR_WALLET_ADDRESS',  // main account address (for balance/info queries)
         'privateKey': 'YOUR_PRIVATE_KEY',  // API wallet private key (authorized agent of main account)
         'sandboxMode': true,  // outcome markets are on testnet

@@ -1,7 +1,7 @@
 import ccxt from '../../ts/ccxt.js';
 
 async function example () {
-    const exchange = new ccxt.hyperliquid ({
+    const exchange = new ccxt.prediction.hyperliquid ({
         'sandboxMode': true,
     });
 

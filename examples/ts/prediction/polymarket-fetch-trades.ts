@@ -3,7 +3,7 @@ import ccxt from '../../ts/ccxt.js';
 // AUTO-TRANSPILE //
 
 async function example () {
-    const exchange = new ccxt.polymarket ();
+    const exchange = new ccxt.prediction.polymarket ();
 
     const events = await exchange.fetchEvents ([ 'Trump' ]);
 

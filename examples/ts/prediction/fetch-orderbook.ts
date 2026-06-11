@@ -3,10 +3,10 @@ import ccxt from '../../ts/ccxt.js';
 // AUTO-TRANSPILE //
 
 async function example () {
-    const exchange = new ccxt.polymarket ();
-    const kalshi = new ccxt.kalshi ();
-    const limitless = new ccxt.limitless ();
-    const myriad = new ccxt.myriad ();
+    const exchange = new ccxt.prediction.polymarket ();
+    const kalshi = new ccxt.prediction.kalshi ();
+    const limitless = new ccxt.prediction.limitless ();
+    const myriad = new ccxt.prediction.myriad ();
     const [ polyEvents, kalshiEvents, limitlessEvents, myriadEvents ] = await Promise.all ([
         exchange.fetchEvents ([ 'Trump' ]),
         kalshi.fetchEvents ([ 'Trump' ]),

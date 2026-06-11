@@ -27,7 +27,7 @@ async function primeDirectOutcomeForFastFetchTrades (exchange: any, outcomeId: s
 }
 
 async function example () {
-    const exchange = new ccxt.kalshi ();
+    const exchange = new ccxt.prediction.kalshi ();
 
     // Direct path: if you already know the exact ticker/outcome ID, use it first.
     // Can be overridden from CLI:
