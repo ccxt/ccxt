@@ -535,9 +535,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "xt":
 		itf := NewXt(options)
 		return itf
-	case "yobit":
-		itf := NewYobit(options)
-		return itf
 	case "zaif":
 		itf := NewZaif(options)
 		return itf

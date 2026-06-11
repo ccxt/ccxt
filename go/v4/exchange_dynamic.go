@@ -429,10 +429,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		xtItf := NewXtCore()
 		xtItf.Init(exchangeArgs)
 		return xtItf, true
-	case "yobit":
-		yobitItf := NewYobitCore()
-		yobitItf.Init(exchangeArgs)
-		return yobitItf, true
 	case "zaif":
 		zaifItf := NewZaifCore()
 		zaifItf.Init(exchangeArgs)
