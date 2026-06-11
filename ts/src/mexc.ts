@@ -4725,7 +4725,7 @@ export default class mexc extends Exchange {
             ];
         }
         let loop = Precise.stringLt (floor, maxVol);
-        while (loop) {
+        while (loop === true) {
             const cap = Precise.stringAdd (floor, riskIncrVol);
             const minNotional = this.parseNumber (floor);
             const mainMarginRate = this.parseNumber (maintenanceMarginRate);
