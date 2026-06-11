@@ -19,10 +19,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         apexItf := NewApexCore()
         apexItf.Init(exchangeArgs)
         return apexItf, true
-    case "arkham":
-        arkhamItf := NewArkhamCore()
-        arkhamItf.Init(exchangeArgs)
-        return arkhamItf, true
     case "ascendex":
         ascendexItf := NewAscendexCore()
         ascendexItf.Init(exchangeArgs)
