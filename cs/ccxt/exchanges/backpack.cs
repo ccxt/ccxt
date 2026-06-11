@@ -1296,10 +1296,19 @@ public partial class backpack : Exchange
         market = this.safeMarket(marketId, market);
         object price = this.safeString(trade, "price");
         object amount = this.safeString(trade, "quantity");
-        object isMaker = this.safeBool(trade, "isMaker");
-        object takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
-        object orderId = this.safeString(trade, "orderId");
+        object isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
         object side = this.parseOrderSide(this.safeString(trade, "side"));
+        object isMaker = this.safeBool(trade, "isMaker");
+        object takerOrMaker = null;
+        if (isTrue(!isEqual(isMaker, null)))
+        {
+            takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+        } else if (isTrue(!isEqual(isBuyerMaker, null)))
+        {
+            takerOrMaker = "taker";
+            side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
+        }
+        object orderId = this.safeString(trade, "orderId");
         object fee = null;
         object feeAmount = this.safeString(trade, "fee");
         object timestamp = this.safeInteger(trade, "timestamp");
