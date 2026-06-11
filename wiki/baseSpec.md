@@ -444,7 +444,6 @@ cancels an open order
 * [woo](/exchanges/woo.md#cancelorder)
 * [woofipro](/exchanges/woofipro.md#cancelorder)
 * [xt](/exchanges/xt.md#cancelorder)
-* [yobit](/exchanges/yobit.md#cancelorder)
 * [zaif](/exchanges/zaif.md#cancelorder)
 * [zebpay](/exchanges/zebpay.md#cancelorder)
 
@@ -897,7 +896,6 @@ create a currency deposit address
 * [poloniex](/exchanges/poloniex.md#createdepositaddress)
 * [upbit](/exchanges/upbit.md#createdepositaddress)
 * [whitebit](/exchanges/whitebit.md#createdepositaddress)
-* [yobit](/exchanges/yobit.md#createdepositaddress)
 
 ---
 
@@ -1156,7 +1154,6 @@ create a trade order
 * [woo](/exchanges/woo.md#createorder)
 * [woofipro](/exchanges/woofipro.md#createorder)
 * [xt](/exchanges/xt.md#createorder)
-* [yobit](/exchanges/yobit.md#createorder)
 * [zaif](/exchanges/zaif.md#createorder)
 * [zebpay](/exchanges/zebpay.md#createorder)
 
@@ -1980,7 +1977,6 @@ query for balance and get the amount of funds available for trading or funds loc
 * [woo](/exchanges/woo.md#fetchbalance)
 * [woofipro](/exchanges/woofipro.md#fetchbalance)
 * [xt](/exchanges/xt.md#fetchbalance)
-* [yobit](/exchanges/yobit.md#fetchbalance)
 * [zaif](/exchanges/zaif.md#fetchbalance)
 * [zebpay](/exchanges/zebpay.md#fetchbalance)
 
@@ -2796,7 +2792,6 @@ fetch the deposit address for a currency associated with this account
 * [whitebit](/exchanges/whitebit.md#fetchdepositaddress)
 * [woo](/exchanges/woo.md#fetchdepositaddress)
 * [xt](/exchanges/xt.md#fetchdepositaddress)
-* [yobit](/exchanges/yobit.md#fetchdepositaddress)
 
 ---
 
@@ -4028,7 +4023,6 @@ retrieves data on all markets for woo
 * [woo](/exchanges/woo.md#fetchmarkets)
 * [woofipro](/exchanges/woofipro.md#fetchmarkets)
 * [xt](/exchanges/xt.md#fetchmarkets)
-* [yobit](/exchanges/yobit.md#fetchmarkets)
 * [zaif](/exchanges/zaif.md#fetchmarkets)
 * [zebpay](/exchanges/zebpay.md#fetchmarkets)
 
@@ -4281,7 +4275,6 @@ fetch all trades made by the user
 * [woo](/exchanges/woo.md#fetchmytrades)
 * [woofipro](/exchanges/woofipro.md#fetchmytrades)
 * [xt](/exchanges/xt.md#fetchmytrades)
-* [yobit](/exchanges/yobit.md#fetchmytrades)
 * [zebpay](/exchanges/zebpay.md#fetchmytrades)
 
 ---
@@ -4699,7 +4692,6 @@ fetch all unfilled currently open orders
 * [woo](/exchanges/woo.md#fetchopenorders)
 * [woofipro](/exchanges/woofipro.md#fetchopenorders)
 * [xt](/exchanges/xt.md#fetchopenorders)
-* [yobit](/exchanges/yobit.md#fetchopenorders)
 * [zaif](/exchanges/zaif.md#fetchopenorders)
 * [zebpay](/exchanges/zebpay.md#fetchopenorders)
 
@@ -4890,7 +4882,6 @@ fetches information on an order made by the user
 * [woo](/exchanges/woo.md#fetchorder)
 * [woofipro](/exchanges/woofipro.md#fetchorder)
 * [xt](/exchanges/xt.md#fetchorder)
-* [yobit](/exchanges/yobit.md#fetchorder)
 * [zebpay](/exchanges/zebpay.md#fetchorder)
 
 ---
@@ -5003,7 +4994,6 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [woo](/exchanges/woo.md#fetchorderbook)
 * [woofipro](/exchanges/woofipro.md#fetchorderbook)
 * [xt](/exchanges/xt.md#fetchorderbook)
-* [yobit](/exchanges/yobit.md#fetchorderbook)
 * [zaif](/exchanges/zaif.md#fetchorderbook)
 * [zebpay](/exchanges/zebpay.md#fetchorderbook)
 
@@ -5050,7 +5040,6 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [hitbtc](/exchanges/hitbtc.md#fetchorderbooks)
 * [hollaex](/exchanges/hollaex.md#fetchorderbooks)
 * [upbit](/exchanges/upbit.md#fetchorderbooks)
-* [yobit](/exchanges/yobit.md#fetchorderbooks)
 
 ---
 
@@ -5962,7 +5951,6 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [upbit](/exchanges/upbit.md#fetchticker)
 * [whitebit](/exchanges/whitebit.md#fetchticker)
 * [xt](/exchanges/xt.md#fetchticker)
-* [yobit](/exchanges/yobit.md#fetchticker)
 * [zaif](/exchanges/zaif.md#fetchticker)
 * [zebpay](/exchanges/zebpay.md#fetchticker)
 
@@ -6082,7 +6070,6 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [weex](/exchanges/weex.md#fetchtickers)
 * [whitebit](/exchanges/whitebit.md#fetchtickers)
 * [xt](/exchanges/xt.md#fetchtickers)
-* [yobit](/exchanges/yobit.md#fetchtickers)
 * [zebpay](/exchanges/zebpay.md#fetchtickers)
 
 ---
@@ -6265,7 +6252,6 @@ get the list of most recent trades for a particular symbol
 * [woo](/exchanges/woo.md#fetchtrades)
 * [woofipro](/exchanges/woofipro.md#fetchtrades)
 * [xt](/exchanges/xt.md#fetchtrades)
-* [yobit](/exchanges/yobit.md#fetchtrades)
 * [zaif](/exchanges/zaif.md#fetchtrades)
 * [zebpay](/exchanges/zebpay.md#fetchtrades)
 
@@ -6401,7 +6387,6 @@ fetch the trading fees for multiple markets
 * [whitebit](/exchanges/whitebit.md#fetchtradingfees)
 * [woo](/exchanges/woo.md#fetchtradingfees)
 * [woofipro](/exchanges/woofipro.md#fetchtradingfees)
-* [yobit](/exchanges/yobit.md#fetchtradingfees)
 * [zebpay(futures)](/exchanges/zebpay(futures).md#fetchtradingfees)
 
 ---
@@ -9059,7 +9044,6 @@ make a withdrawal
 * [woo](/exchanges/woo.md#withdraw)
 * [woofipro](/exchanges/woofipro.md#withdraw)
 * [xt](/exchanges/xt.md#withdraw)
-* [yobit](/exchanges/yobit.md#withdraw)
 * [zaif](/exchanges/zaif.md#withdraw)
 
 ---

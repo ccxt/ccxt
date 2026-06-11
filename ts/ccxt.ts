@@ -151,7 +151,6 @@ import whitebit from  './src/whitebit.js'
 import woo from  './src/woo.js'
 import woofipro from  './src/woofipro.js'
 import xt from  './src/xt.js'
-import yobit from  './src/yobit.js'
 import zaif from  './src/zaif.js'
 import zebpay from  './src/zebpay.js'
 
@@ -343,7 +342,6 @@ const exchanges = {
     'woo':                    woo,
     'woofipro':               woofipro,
     'xt':                     xt,
-    'yobit':                  yobit,
     'zaif':                   zaif,
     'zebpay':                 zebpay,
 }
@@ -678,7 +676,6 @@ export {
     woo,
     woofipro,
     xt,
-    yobit,
     zaif,
     zebpay,    
 }

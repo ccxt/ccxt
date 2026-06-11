@@ -113,7 +113,6 @@ var whitebit = require('./src/whitebit.js');
 var woo = require('./src/woo.js');
 var woofipro = require('./src/woofipro.js');
 var xt = require('./src/xt.js');
-var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
 var zebpay = require('./src/zebpay.js');
 var aftermath$1 = require('./src/pro/aftermath.js');
@@ -306,7 +305,6 @@ const exchanges = {
     'woo': woo["default"],
     'woofipro': woofipro["default"],
     'xt': xt["default"],
-    'yobit': yobit["default"],
     'zaif': zaif["default"],
     'zebpay': zebpay["default"],
 };
@@ -547,7 +545,6 @@ exports.whitebit = whitebit["default"];
 exports.woo = woo["default"];
 exports.woofipro = woofipro["default"];
 exports.xt = xt["default"];
-exports.yobit = yobit["default"];
 exports.zaif = zaif["default"];
 exports.zebpay = zebpay["default"];
 exports["default"] = ccxt;

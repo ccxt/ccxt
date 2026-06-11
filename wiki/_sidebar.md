@@ -106,6 +106,5 @@
 	- [woo](exchanges/woo.md)
 	- [woofipro](exchanges/woofipro.md)
 	- [xt](exchanges/xt.md)
-	- [yobit](exchanges/yobit.md)
 	- [zaif](exchanges/zaif.md)
 	- [fetchStatus](exchanges/fetchStatus.md)
