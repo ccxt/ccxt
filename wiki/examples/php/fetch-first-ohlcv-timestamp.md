@@ -1,8 +1,5 @@
-- [Fetch First Ohlcv Timestamp](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -104,5 +101,5 @@ if ($run_example) {
     var_dump('- Earliest bar timestamp:', $earliest_timestamp, ', readable: ', $my_ex->iso8601($earliest_timestamp));
     var_dump('- market.created value:', $my_ex->market($symbol)['created']);
 }
- 
+
 ```

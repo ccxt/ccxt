@@ -1,8 +1,5 @@
-- [Watch Trades Many Symbols](./examples/ts/)
-
-
- ```javascript
- 'use strict';
+```javascript
+'use strict';
 
 import ccxt from '../../js/ccxt.js';
 
@@ -32,5 +29,5 @@ async function main () {
     await Promise.all (symbols.map ((symbol) => watchTrades (exchange, symbol)));
 }
 
-main (); 
+main ();
 ```

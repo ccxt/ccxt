@@ -1,8 +1,5 @@
-- [Coinbase Fetch All Balances](./examples/js/)
-
-
- ```javascript
- "use strict";
+```javascript
+"use strict";
 
 const ccxt = require ('../../js/ccxt.js')
 
@@ -40,5 +37,5 @@ async function main () {
 }
 
 main ()
- 
+
 ```

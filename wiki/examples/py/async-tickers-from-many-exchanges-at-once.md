@@ -1,8 +1,5 @@
-- [Async Tickers From Many Exchanges At Once](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import ccxt
@@ -46,5 +43,5 @@ if __name__ == '__main__':
     tic = time.time()
     a = [sync_client(exchange) for exchange in exchanges]
     print("sync call spend:", time.time() - tic)
- 
+
 ```

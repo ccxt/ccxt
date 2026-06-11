@@ -1,8 +1,5 @@
-- [Load All Contracts](./examples/js/)
-
-
- ```javascript
- "use strict";
+```javascript
+"use strict";
 
 const ccxt = require ('../../js/ccxt.js')
 
@@ -42,5 +39,5 @@ async function main () {
     await Promise.all (ccxt.exchanges.map (exchangeId => loadAllExchanges (exchangeId)))
 }
 
-main () 
+main ()
 ```

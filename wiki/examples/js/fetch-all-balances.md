@@ -1,8 +1,5 @@
-- [Fetch All Balances](./examples/js/)
-
-
- ```javascript
- import { PAD_WITH_ZERO } from '../../js/src/base/functions/number.js';
+```javascript
+import { PAD_WITH_ZERO } from '../../js/src/base/functions/number.js';
 
 //-----------------------------------------------------------------------------
 
@@ -221,5 +218,5 @@ function initializeAllExchanges () {
     console.log (new Date ())
 
 }) ()
- 
+
 ```

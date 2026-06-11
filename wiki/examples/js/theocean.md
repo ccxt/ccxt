@@ -1,8 +1,5 @@
-- [Theocean](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 (async function main () {
@@ -43,5 +40,5 @@ import ccxt from '../../js/ccxt.js';
 
     process.exit ();
 }) ()
- 
+
 ```

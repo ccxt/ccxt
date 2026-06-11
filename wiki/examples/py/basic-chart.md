@@ -1,8 +1,5 @@
-- [Basic Chart](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -41,5 +38,5 @@ print("\n" + kraken.name + " ₿ = $" + str(last) + "\n")  # print last closing 
 
 last = print_chart(coinbasepro, 'BTC/USD', '1h')
 print("\n" + coinbasepro.name + " ₿ = $" + str(last) + "\n")  # print last closing price
- 
+
 ```

@@ -1,8 +1,5 @@
-- [Create Order Handle Errors](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 // ----------------------------------------------------------------------------
 
@@ -57,5 +54,5 @@ import ccxt from '../../js/ccxt.js';
     }
 
 }) ()
- 
+
 ```

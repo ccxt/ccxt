@@ -1,8 +1,5 @@
-- [Async Binance Futures Vs Spot](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import os
@@ -47,5 +44,5 @@ async def run():
 
 
 asyncio.run(run())
- 
+
 ```

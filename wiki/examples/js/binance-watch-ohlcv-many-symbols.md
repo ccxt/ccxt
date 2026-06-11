@@ -1,8 +1,5 @@
-- [Binance Watch Ohlcv Many Symbols](./examples/js/)
-
-
- ```javascript
- 'use strict';
+```javascript
+'use strict';
 import ccxt from '../../js/ccxt.js';
 console.log('CCXT Version:', ccxt.version); // eslint-disable-line import/no-named-as-default-member
 function handle(exchange, symbol, timeframe, candles) {
@@ -52,5 +49,5 @@ async function main() {
     }
 }
 main();
- 
+
 ```

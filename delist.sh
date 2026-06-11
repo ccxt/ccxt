@@ -66,8 +66,6 @@ files=(
     "java/lib/src/main/java/io/github/ccxt/exchanges/$(echo ${EXCHANGE:0:1} | tr '[:lower:]' '[:upper:]')${EXCHANGE:1}Core.java"
     "java/lib/src/main/java/io/github/ccxt/exchanges/pro/$(echo ${EXCHANGE:0:1} | tr '[:lower:]' '[:upper:]')${EXCHANGE:1}.java"
     "java/lib/src/main/java/io/github/ccxt/exchanges/pro/$(echo ${EXCHANGE:0:1} | tr '[:lower:]' '[:upper:]')${EXCHANGE:1}Core.java"
-    # Wiki
-    "wiki/exchanges/${EXCHANGE}.md"
 )
 
 for file in "${files[@]}"; do

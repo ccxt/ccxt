@@ -1,8 +1,5 @@
-- [Shared Load Markets](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 
 // ----------------------------------------------------------------------------
 // an example of how to load markets for each exchange just once
@@ -82,5 +79,5 @@ async function main () {
 }
 
 main ()
- 
+
 ```

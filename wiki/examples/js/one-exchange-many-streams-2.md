@@ -1,8 +1,5 @@
-- [One Exchange Many Streams 2](./examples/js/)
-
-
- ```javascript
- 'use strict';
+```javascript
+'use strict';
 import ccxt from '../../js/ccxt.js';
 console.log('CCXT Version:', ccxt.version);
 async function main() {
@@ -25,5 +22,5 @@ async function main() {
     await Promise.all(symbols.map((symbol) => loop(symbol)));
 }
 main();
- 
+
 ```

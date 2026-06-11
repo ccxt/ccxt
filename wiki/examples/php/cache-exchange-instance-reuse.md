@@ -1,8 +1,5 @@
-- [Cache Exchange Instance Reuse](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 error_reporting(E_ALL);
 date_default_timezone_set('UTC');
@@ -30,5 +27,5 @@ function create_exchange($exchange_id, $config) {
 
 $exchange1 = create_exchange('bittrex', ['custom_id'=>'mybittrex1']);
 print ($exchange1->fetch_trades('BTC/USDT')[0]);
- 
+
 ```

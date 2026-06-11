@@ -1,8 +1,5 @@
-- [Fetch Orders](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import asTable from 'as-table';
@@ -28,5 +25,5 @@ async function test () {
     log (order)
 }
 
-test () 
+test ()
 ```

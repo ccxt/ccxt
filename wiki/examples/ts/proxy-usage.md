@@ -1,8 +1,5 @@
-- [Proxy Usage](./examples/ts/)
+```javascript
 
-
- ```javascript
- 
 import ccxt from '../../js/ccxt.js';
 
 // AUTO-TRANSPILE //
@@ -99,5 +96,5 @@ async def test():
 
 asyncio.run(test())
 
-*/ 
+*/
 ```

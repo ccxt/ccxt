@@ -67,7 +67,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-woofipro.fetchStatus ([params])
+woofipro.fetchStatus (params?)
 ```
 
 
@@ -87,7 +87,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-woofipro.fetchTime ([params])
+woofipro.fetchTime (params?)
 ```
 
 
@@ -107,7 +107,7 @@ retrieves data on all markets for woofipro
 
 
 ```javascript
-woofipro.fetchMarkets ([params])
+woofipro.fetchMarkets (params?)
 ```
 
 
@@ -131,7 +131,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-woofipro.fetchCurrencies ([params])
+woofipro.fetchCurrencies (params?)
 ```
 
 
@@ -154,7 +154,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-woofipro.fetchTrades (symbol[, since, limit, params])
+woofipro.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -175,7 +175,7 @@ fetch the current funding rate interval
 
 
 ```javascript
-woofipro.fetchFundingInterval (symbol[, params])
+woofipro.fetchFundingInterval (symbol, params?)
 ```
 
 
@@ -196,7 +196,7 @@ fetch the current funding rate
 
 
 ```javascript
-woofipro.fetchFundingRate (symbol[, params])
+woofipro.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -217,7 +217,7 @@ fetch the current funding rate for multiple markets
 
 
 ```javascript
-woofipro.fetchFundingRates (symbols[, params])
+woofipro.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -242,7 +242,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-woofipro.fetchFundingRateHistory (symbol[, since, limit, params])
+woofipro.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -266,7 +266,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-woofipro.fetchFundingHistory ([symbol, since, limit, params])
+woofipro.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 
@@ -286,7 +286,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-woofipro.fetchTradingFees ([params])
+woofipro.fetchTradingFees (params?)
 ```
 
 
@@ -308,7 +308,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-woofipro.fetchOrderBook (symbol[, limit, params])
+woofipro.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -332,7 +332,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-woofipro.fetchOHLCV (symbol, timeframe[, since, limit, params])
+woofipro.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -369,7 +369,7 @@ create a trade order
 
 
 ```javascript
-woofipro.createOrder (symbol, type, side, amount[, price, params])
+woofipro.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -390,7 +390,7 @@ woofipro.createOrder (symbol, type, side, amount[, price, params])
 
 
 ```javascript
-woofipro.createOrders (orders[, params])
+woofipro.createOrders (orders, params?)
 ```
 
 
@@ -423,7 +423,7 @@ edit a trade order
 
 
 ```javascript
-woofipro.editOrder (id, symbol, type, side, amount[, price, params])
+woofipro.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -453,7 +453,7 @@ cancels an open order
 
 
 ```javascript
-woofipro.cancelOrder (id, symbol[, params])
+woofipro.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -480,7 +480,7 @@ cancel multiple orders
 
 
 ```javascript
-woofipro.cancelOrders (ids[, symbol, params])
+woofipro.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -506,7 +506,7 @@ cancel all open orders in a market
 
 
 ```javascript
-woofipro.cancelAllOrders (symbol[, params])
+woofipro.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -536,7 +536,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-woofipro.fetchOrder (id, symbol[, params])
+woofipro.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -568,7 +568,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-woofipro.fetchOrders (symbol[, since, limit, params])
+woofipro.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -600,7 +600,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-woofipro.fetchOpenOrders (symbol[, since, limit, params])
+woofipro.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -632,7 +632,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-woofipro.fetchClosedOrders (symbol[, since, limit, params])
+woofipro.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -656,7 +656,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-woofipro.fetchOrderTrades (id, symbol[, since, limit, params])
+woofipro.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -681,7 +681,7 @@ fetch all trades made by the user
 
 
 ```javascript
-woofipro.fetchMyTrades (symbol[, since, limit, params])
+woofipro.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -701,7 +701,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-woofipro.fetchBalance ([params])
+woofipro.fetchBalance (params?)
 ```
 
 
@@ -724,7 +724,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-woofipro.fetchLedger ([code, since, limit, params])
+woofipro.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -747,7 +747,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-woofipro.fetchDeposits (code[, since, limit, params])
+woofipro.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -770,7 +770,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-woofipro.fetchWithdrawals (code[, since, limit, params])
+woofipro.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -793,7 +793,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-woofipro.fetchDepositsWithdrawals ([code, since, limit, params])
+woofipro.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -817,7 +817,7 @@ make a withdrawal
 
 
 ```javascript
-woofipro.withdraw (code, amount, address, tag[, params])
+woofipro.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -838,7 +838,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-woofipro.fetchLeverage (symbol[, params])
+woofipro.fetchLeverage (symbol, params?)
 ```
 
 
@@ -860,7 +860,7 @@ set the level of leverage for a market
 
 
 ```javascript
-woofipro.setLeverage ([leverage, symbol, params])
+woofipro.setLeverage (leverage?, symbol?, params?)
 ```
 
 
@@ -881,7 +881,7 @@ fetch data on an open position
 
 
 ```javascript
-woofipro.fetchPosition (symbol[, params])
+woofipro.fetchPosition (symbol, params?)
 ```
 
 
@@ -902,7 +902,7 @@ fetch all open positions
 
 
 ```javascript
-woofipro.fetchPositions ([symbols, params])
+woofipro.fetchPositions (symbols?, params?)
 ```
 
 
@@ -924,7 +924,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-woofipro.watchOrderBook (symbol[, limit, params])
+woofipro.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -945,7 +945,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-woofipro.watchTicker (symbol[, params])
+woofipro.watchTicker (symbol, params?)
 ```
 
 
@@ -966,7 +966,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-woofipro.watchTickers (symbols[, params])
+woofipro.watchTickers (symbols, params?)
 ```
 
 
@@ -987,7 +987,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-woofipro.watchBidsAsks (symbols[, params])
+woofipro.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -1011,7 +1011,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-woofipro.watchOHLCV (symbol, timeframe[, since, limit, params])
+woofipro.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1034,7 +1034,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-woofipro.watchTrades (symbol[, since, limit, params])
+woofipro.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1062,7 +1062,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-woofipro.watchOrders (symbol[, since, limit, params])
+woofipro.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1090,7 +1090,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-woofipro.watchMyTrades (symbol[, since, limit, params])
+woofipro.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1113,7 +1113,7 @@ watch all open positions
 
 
 ```javascript
-woofipro.watchPositions ([symbols, since, limit, params])
+woofipro.watchPositions (symbols?, since?, limit?, params?)
 ```
 
 
@@ -1133,6 +1133,6 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-woofipro.watchBalance ([params])
+woofipro.watchBalance (params?)
 ```
 

@@ -99,7 +99,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-htx.fetchStatus ([params])
+htx.fetchStatus (params?)
 ```
 
 
@@ -123,7 +123,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-htx.fetchTime ([params])
+htx.fetchTime (params?)
 ```
 
 
@@ -144,7 +144,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-htx.fetchTradingFee (symbol[, params])
+htx.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -170,7 +170,7 @@ retrieves data on all markets for huobi
 
 
 ```javascript
-htx.fetchMarkets ([params])
+htx.fetchMarkets (params?)
 ```
 
 
@@ -197,7 +197,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-htx.fetchTicker (symbol[, params])
+htx.fetchTicker (symbol, params?)
 ```
 
 
@@ -224,7 +224,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-htx.fetchTickers ([symbols, params])
+htx.fetchTickers (symbols?, params?)
 ```
 
 
@@ -250,7 +250,7 @@ fetches the last price for multiple markets
 
 
 ```javascript
-htx.fetchLastPrices ([symbols, params])
+htx.fetchLastPrices (symbols?, params?)
 ```
 
 
@@ -278,7 +278,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-htx.fetchOrderBook (symbol[, limit, params])
+htx.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -302,7 +302,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-htx.fetchOrderTrades (id, symbol[, since, limit, params])
+htx.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -332,7 +332,7 @@ fetch all trades made by the user
 
 
 ```javascript
-htx.fetchMyTrades (symbol[, since, limit, params])
+htx.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -361,7 +361,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-htx.fetchTrades (symbol[, since, limit, params])
+htx.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -393,7 +393,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-htx.fetchOHLCV (symbol, timeframe[, since, limit, params])
+htx.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -413,7 +413,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-htx.fetchAccounts ([params])
+htx.fetchAccounts (params?)
 ```
 
 
@@ -436,7 +436,7 @@ fetch all the accounts by a type and marginModeassociated with a profile
 
 
 ```javascript
-htx.fetchAccountIdByType (type[, marginMode, symbol, params])
+htx.fetchAccountIdByType (type, marginMode?, symbol?, params?)
 ```
 
 
@@ -456,7 +456,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-htx.fetchCurrencies ([params])
+htx.fetchCurrencies (params?)
 ```
 
 
@@ -489,7 +489,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-htx.fetchBalance ([params])
+htx.fetchBalance (params?)
 ```
 
 
@@ -519,7 +519,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-htx.fetchOrder (id, symbol[, params])
+htx.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -554,7 +554,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-htx.fetchOrders (symbol[, since, limit, params])
+htx.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -587,7 +587,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-htx.fetchClosedOrders (symbol[, since, limit, params])
+htx.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -618,7 +618,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-htx.fetchOpenOrders (symbol[, since, limit, params])
+htx.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -640,7 +640,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-htx.createMarketBuyOrderWithCost (symbol, cost[, params])
+htx.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -666,7 +666,7 @@ create a trailing order by providing the symbol, type, side, amount, price and t
 
 
 ```javascript
-htx.createTrailingPercentOrder (symbol, type, side, amount[, price, trailingPercent, trailingTriggerPrice, params])
+htx.createTrailingPercentOrder (symbol, type, side, amount, price?, trailingPercent?, trailingTriggerPrice?, params?)
 ```
 
 
@@ -717,7 +717,7 @@ create a trade order
 
 
 ```javascript
-htx.createOrder (symbol, type, side, amount[, price, params])
+htx.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -745,7 +745,7 @@ create a list of trade orders
 
 
 ```javascript
-htx.createOrders (orders[, params])
+htx.createOrders (orders, params?)
 ```
 
 
@@ -769,7 +769,7 @@ cancels an open order
 
 
 ```javascript
-htx.cancelOrder (id, symbol[, params])
+htx.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -792,7 +792,7 @@ cancel multiple orders
 
 
 ```javascript
-htx.cancelOrders (ids, symbol[, params])
+htx.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -815,7 +815,7 @@ cancel all open orders
 
 
 ```javascript
-htx.cancelAllOrders (symbol[, params])
+htx.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -836,7 +836,7 @@ dead man's switch, cancel all orders after the given timeout
 
 
 ```javascript
-htx.cancelAllOrdersAfter (timeout[, params])
+htx.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -857,7 +857,7 @@ fetch a dictionary of addresses for a currency, indexed by network
 
 
 ```javascript
-htx.fetchDepositAddressesByNetwork (code[, params])
+htx.fetchDepositAddressesByNetwork (code, params?)
 ```
 
 
@@ -878,7 +878,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-htx.fetchDepositAddress (code[, params])
+htx.fetchDepositAddress (code, params?)
 ```
 
 
@@ -901,7 +901,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-htx.fetchDeposits (code[, since, limit, params])
+htx.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -924,7 +924,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-htx.fetchWithdrawals (code[, since, limit, params])
+htx.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -948,7 +948,7 @@ make a withdrawal
 
 
 ```javascript
-htx.withdraw (code, amount, address, tag[, params])
+htx.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -983,7 +983,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-htx.transfer (code, amount, fromAccount, toAccount[, params])
+htx.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -1003,7 +1003,7 @@ fetch the borrow interest rates of all currencies
 
 
 ```javascript
-htx.fetchIsolatedBorrowRates ([params])
+htx.fetchIsolatedBorrowRates (params?)
 ```
 
 
@@ -1031,7 +1031,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-htx.fetchFundingRateHistory (symbol[, since, limit, params])
+htx.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1056,7 +1056,7 @@ fetch the current funding rate
 
 
 ```javascript
-htx.fetchFundingRate (symbol[, params])
+htx.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -1081,7 +1081,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-htx.fetchFundingRates (symbols[, params])
+htx.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -1109,7 +1109,7 @@ fetch the interest owed by the user for borrowing currency for margin trading
 
 
 ```javascript
-htx.fetchBorrowInterest (code, symbol[, since, limit, params])
+htx.fetchBorrowInterest (code, symbol, since?, limit?, params?)
 ```
 
 
@@ -1137,7 +1137,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-htx.fetchFundingHistory (symbol[, since, limit, params])
+htx.fetchFundingHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1165,7 +1165,7 @@ set the level of leverage for a market
 
 
 ```javascript
-htx.setLeverage (leverage, symbol[, params])
+htx.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -1195,7 +1195,7 @@ fetch all open positions
 
 
 ```javascript
-htx.fetchPositions ([symbols, params])
+htx.fetchPositions (symbols?, params?)
 ```
 
 
@@ -1222,7 +1222,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-htx.fetchPosition (symbol[, params])
+htx.fetchPosition (symbol, params?)
 ```
 
 
@@ -1247,7 +1247,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-htx.fetchLedger ([code, since, limit, params])
+htx.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -1267,7 +1267,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-htx.fetchLeverageTiers (symbols[, params])
+htx.fetchLeverageTiers (symbols, params?)
 ```
 
 
@@ -1298,7 +1298,7 @@ Retrieves the open interest history of a currency
 
 
 ```javascript
-htx.fetchOpenInterestHistory (symbol, timeframe[, since, limit, params])
+htx.fetchOpenInterestHistory (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1324,7 +1324,7 @@ Retrieves the open interest for a list of symbols
 
 
 ```javascript
-htx.fetchOpenInterests ([symbols, params])
+htx.fetchOpenInterests (symbols?, params?)
 ```
 
 
@@ -1350,7 +1350,7 @@ Retrieves the open interest of a currency
 
 
 ```javascript
-htx.fetchOpenInterest (symbol[, params])
+htx.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -1377,7 +1377,7 @@ create a loan to borrow margin
 
 
 ```javascript
-htx.borrowIsolatedMargin (symbol, code, amount[, params])
+htx.borrowIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -1403,7 +1403,7 @@ create a loan to borrow margin
 
 
 ```javascript
-htx.borrowCrossMargin (code, amount[, params])
+htx.borrowCrossMargin (code, amount, params?)
 ```
 
 
@@ -1426,7 +1426,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-htx.repayIsolatedMargin (symbol, code, amount[, params])
+htx.repayIsolatedMargin (symbol, code, amount, params?)
 ```
 
 
@@ -1448,7 +1448,7 @@ repay borrowed margin and interest
 
 
 ```javascript
-htx.repayCrossMargin (code, amount[, params])
+htx.repayCrossMargin (code, amount, params?)
 ```
 
 
@@ -1479,7 +1479,7 @@ Fetches historical settlement records
 
 
 ```javascript
-htx.fetchSettlementHistory (symbol[, since, limit, params])
+htx.fetchSettlementHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -1500,7 +1500,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-htx.fetchDepositWithdrawFees (codes[, params])
+htx.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -1530,7 +1530,7 @@ retrieves the public liquidations of a trading pair
 
 
 ```javascript
-htx.fetchLiquidations (symbol[, since, limit, params])
+htx.fetchLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -1562,7 +1562,7 @@ closes open positions for a contract market, requires 'amount' in params, unlike
 
 
 ```javascript
-htx.closePositions (symbol, side[, params])
+htx.closePositions (symbol, side, params?)
 ```
 
 
@@ -1589,7 +1589,7 @@ set hedged to true or false
 
 
 ```javascript
-htx.setPositionMode (hedged[, symbol, params])
+htx.setPositionMode (hedged, symbol?, params?)
 ```
 
 
@@ -1616,7 +1616,7 @@ fetches the auto deleveraging rank and risk percentage for a list of symbols
 
 
 ```javascript
-htx.fetchPositionsADLRank ([symbols, params])
+htx.fetchPositionsADLRank (symbols?, params?)
 ```
 
 
@@ -1641,7 +1641,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-htx.watchTicker (symbol[, params])
+htx.watchTicker (symbol, params?)
 ```
 
 
@@ -1666,7 +1666,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-htx.unWatchTicker (symbol[, params])
+htx.unWatchTicker (symbol, params?)
 ```
 
 
@@ -1694,7 +1694,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-htx.watchTrades (symbol[, since, limit, params])
+htx.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1720,7 +1720,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-htx.unWatchTrades (symbol[, params])
+htx.unWatchTrades (symbol, params?)
 ```
 
 
@@ -1749,7 +1749,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-htx.watchOHLCV (symbol, timeframe[, since, limit, params])
+htx.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1777,7 +1777,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-htx.unWatchOHLCV (symbol, timeframe[, params])
+htx.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -1804,7 +1804,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-htx.watchOrderBook (symbol[, limit, params])
+htx.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1831,7 +1831,7 @@ unsubscribe from the orderbook channel
 
 
 ```javascript
-htx.unWatchOrderBook (symbol[, params])
+htx.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -1854,7 +1854,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-htx.watchMyTrades (symbol[, since, limit, params])
+htx.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1877,7 +1877,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-htx.watchOrders (symbol[, since, limit, params])
+htx.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1906,7 +1906,7 @@ watch all open positions. Note: huobi has one channel for each marginMode and ty
 
 
 ```javascript
-htx.watchPositions ([symbols, since, limit, params])
+htx.watchPositions (symbols?, since?, limit?, params?)
 ```
 
 
@@ -1932,6 +1932,6 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-htx.watchBalance ([params])
+htx.watchBalance (params?)
 ```
 

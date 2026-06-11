@@ -1,8 +1,5 @@
-- [Blockchaincom Withdrawal](./examples/js/)
-
-
- ```javascript
- "use strict";
+```javascript
+"use strict";
 
 const ccxt = require('../../ccxt.js')
 const asTable = require('as-table')
@@ -61,5 +58,5 @@ const address = 'BENEFICIARY_ID';
     }
 
 })()
- 
+
 ```
