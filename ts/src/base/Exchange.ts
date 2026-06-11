@@ -9372,7 +9372,7 @@ export default class Exchange {
         if (outcomeObj !== undefined) {
             return outcomeObj;
         }
-        return { 'id': outcomeIdOrSymbol, 'symbol': outcomeIdOrSymbol, 'marketSymbol': undefined, 'label': undefined, 'info': {} };
+        return { 'id': outcomeIdOrSymbol, 'symbol': outcomeIdOrSymbol, 'marketSymbol': undefined, 'label': undefined, 'info': {}};
     }
 
     safeOutcomeSymbol (outcomeIdOrSymbol: Str, outcomeObj: any = undefined): Str {
