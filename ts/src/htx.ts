@@ -811,8 +811,6 @@ export default class htx extends Exchange {
                             'linear-swap-api/v1/swap_cross_batchorder': 1,
                             'linear-swap-api/v1/swap_cancel': 1,
                             'linear-swap-api/v1/swap_cross_cancel': 1,
-                            'linear-swap-api/v1/swap_cancelall': 1,
-                            'linear-swap-api/v1/swap_cross_cancelall': 1,
                             'linear-swap-api/v1/swap_switch_lever_rate': 30,
                             'linear-swap-api/v1/swap_cross_switch_lever_rate': 30,
                             'linear-swap-api/v1/swap_order_detail': 1,
@@ -832,28 +830,16 @@ export default class htx extends Exchange {
                             // Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order': 1,
                             'linear-swap-api/v1/swap_cross_trigger_order': 1,
-                            'linear-swap-api/v1/swap_trigger_cancel': 1,
-                            'linear-swap-api/v1/swap_cross_trigger_cancel': 1,
-                            'linear-swap-api/v1/swap_trigger_cancelall': 1,
-                            'linear-swap-api/v1/swap_cross_trigger_cancelall': 1,
                             'linear-swap-api/v1/swap_trigger_openorders': 1,
                             'linear-swap-api/v1/swap_cross_trigger_openorders': 1,
                             'linear-swap-api/v1/swap_tpsl_order': 1,
                             'linear-swap-api/v1/swap_cross_tpsl_order': 1,
-                            'linear-swap-api/v1/swap_tpsl_cancel': 1,
-                            'linear-swap-api/v1/swap_cross_tpsl_cancel': 1,
-                            'linear-swap-api/v1/swap_tpsl_cancelall': 1,
-                            'linear-swap-api/v1/swap_cross_tpsl_cancelall': 1,
                             'linear-swap-api/v1/swap_tpsl_openorders': 1,
                             'linear-swap-api/v1/swap_cross_tpsl_openorders': 1,
                             'linear-swap-api/v1/swap_relation_tpsl_order': 1,
                             'linear-swap-api/v1/swap_cross_relation_tpsl_order': 1,
                             'linear-swap-api/v1/swap_track_order': 1,
                             'linear-swap-api/v1/swap_cross_track_order': 1,
-                            'linear-swap-api/v1/swap_track_cancel': 1,
-                            'linear-swap-api/v1/swap_cross_track_cancel': 1,
-                            'linear-swap-api/v1/swap_track_cancelall': 1,
-                            'linear-swap-api/v1/swap_cross_track_cancelall': 1,
                             'linear-swap-api/v1/swap_track_openorders': 1,
                             'linear-swap-api/v1/swap_cross_track_openorders': 1,
                             'v5/account/asset_mode': 1,
@@ -6262,33 +6248,16 @@ export default class htx extends Exchange {
                 request['contract_code'] = market['id'];
             }
             if (market['linear']) {
-                let marginMode = undefined;
-                [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrders', params);
-                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-                if (!trigger && !stopLossTakeProfit) {
-                    if (clientOrderIds === undefined) {
-                        request['order_id'] = ids;
+                if (clientOrderIds === undefined) {
+                    request['order_id'] = ids;
+                } else {
+                    if (typeof clientOrderIds === 'string') {
+                        request['client_order_id'] = clientOrderIds.split (',');
                     } else {
-                        if (typeof clientOrderIds === 'string') {
-                            request['client_order_id'] = clientOrderIds.split (',');
-                        } else {
-                            request['client_order_id'] = clientOrderIds;
-                        }
-                    }
-                    response = await this.contractPrivatePostV5TradeCancelBatchOrders (this.extend (request, params));
-                } else if (marginMode === 'isolated') {
-                    if (trigger) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerCancel (this.extend (request, params));
-                    } else if (stopLossTakeProfit) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapTpslCancel (this.extend (request, params));
-                    }
-                } else if (marginMode === 'cross') {
-                    if (trigger) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel (this.extend (request, params));
-                    } else if (stopLossTakeProfit) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel (this.extend (request, params));
+                        request['client_order_id'] = clientOrderIds;
                     }
                 }
+                response = await this.contractPrivatePostV5TradeCancelBatchOrders (this.extend (request, params));
             } else if (market['inverse']) {
                 if (market['swap']) {
                     if (trigger) {
@@ -6550,44 +6519,22 @@ export default class htx extends Exchange {
             const trailing = this.safeBool (params, 'trailing', false);
             params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
             if (market['linear']) {
-                let marginMode = undefined;
-                [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
-                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-                if (!trigger && !trailing && !stopLossTakeProfit) {
-                    response = await this.contractPrivatePostV5TradeCancelAllOrders (this.extend (request, params));
-                    //
-                    //     {
-                    //         "code": 200,
-                    //         "message": "Success",
-                    //         "data": [
-                    //             {
-                    //                 "code": 200,
-                    //                 "message": "Success",
-                    //                 "order_id": "1513547991763062784",
-                    //                 "client_order_id": "1513547991763062784"
-                    //             },
-                    //         ],
-                    //         "ts": 1780899655629
-                    //     }
-                    //
-                }
-                if (marginMode === 'isolated') {
-                    if (trigger) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerCancelall (this.extend (request, params));
-                    } else if (stopLossTakeProfit) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapTpslCancelall (this.extend (request, params));
-                    } else if (trailing) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapTrackCancelall (this.extend (request, params));
-                    }
-                } else if (marginMode === 'cross') {
-                    if (trigger) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall (this.extend (request, params));
-                    } else if (stopLossTakeProfit) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall (this.extend (request, params));
-                    } else if (trailing) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTrackCancelall (this.extend (request, params));
-                    }
-                }
+                response = await this.contractPrivatePostV5TradeCancelAllOrders (this.extend (request, params));
+                //
+                //     {
+                //         "code": 200,
+                //         "message": "Success",
+                //         "data": [
+                //             {
+                //                 "code": 200,
+                //                 "message": "Success",
+                //                 "order_id": "1513547991763062784",
+                //                 "client_order_id": "1513547991763062784"
+                //             },
+                //         ],
+                //         "ts": 1780899655629
+                //     }
+                //
             } else if (market['inverse']) {
                 if (market['swap']) {
                     if (trigger) {
