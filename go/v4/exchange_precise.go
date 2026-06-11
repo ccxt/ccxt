@@ -288,16 +288,16 @@ func StringOr(string1, string2 any) any {
 	return NewPrecise(string1.(string)).Or(NewPrecise(string2.(string))).String()
 }
 
-func StringGt(a, b any) bool {
+func StringGt(a, b any) any {
 	if a == nil || b == nil {
-		return false
+		return nil
 	}
 	return NewPrecise(a.(string)).Gt(NewPrecise(b.(string)))
 }
 
-func StringEq(a, b any) bool {
+func StringEq(a, b any) any {
 	if a == nil || b == nil {
-		return false
+		return nil
 	}
 	return NewPrecise(a.(string)).Equals(NewPrecise(b.(string)))
 }
@@ -309,23 +309,23 @@ func StringMax(a, b any) any {
 	return NewPrecise(a.(string)).Max(NewPrecise(b.(string))).String()
 }
 
-func StringEquals(a, b any) bool {
+func StringEquals(a, b any) any {
 	if a == nil || b == nil {
-		return false
+		return nil
 	}
 	return NewPrecise(a.(string)).Equals(NewPrecise(b.(string)))
 }
 
-func StringMin(string1, string2 any) string {
+func StringMin(string1, string2 any) any {
 	if string1 == nil || string2 == nil {
-		return ""
+		return nil
 	}
 	return NewPrecise(string1.(string)).Min(NewPrecise(string2.(string))).String()
 }
 
-func StringLt(a, b any) bool {
+func StringLt(a, b any) any {
 	if a == nil || b == nil {
-		return false
+		return nil
 	}
 	return NewPrecise(a.(string)).Lt(NewPrecise(b.(string)))
 }
@@ -344,16 +344,16 @@ func StringNeg(a any) any {
 	return NewPrecise(a.(string)).Neg().String()
 }
 
-func StringLe(a, b any) bool {
+func StringLe(a, b any) any {
 	if a == nil || b == nil {
-		return false
+		return nil
 	}
 	return NewPrecise(a.(string)).Le(NewPrecise(b.(string)))
 }
 
-func StringGe(a, b any) bool {
+func StringGe(a, b any) any {
 	if a == nil || b == nil {
-		return false
+		return nil
 	}
 	return NewPrecise(a.(string)).Ge(NewPrecise(b.(string)))
 }
