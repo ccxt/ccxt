@@ -816,7 +816,7 @@ class deepcoin extends deepcoin$1["default"] {
             'instId': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = Math.min(limit, 2000);
+            request['limit'] = Math.min(limit, 500);
         }
         const productGroup = this.getProductGroupFromMarket(market);
         request['productGroup'] = productGroup;
