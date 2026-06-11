@@ -9,8 +9,7 @@ RUN npm ci
 # served under /v2 behind nginx; absolute site URL for sitemap/canonical.
 # NEXT_PUBLIC_AI_ENABLED shows the "Ask AI" button; the OPENROUTER_API_KEY is provided
 # at RUNTIME (docker run -e ...), never baked into the image.
-ENV NEXT_BASE_PATH=/v2 \
-    NEXT_PUBLIC_SITE_URL=https://docs.ccxt.com \
+ENV NEXT_PUBLIC_SITE_URL=https://docs.ccxt.com \
     NEXT_PUBLIC_AI_ENABLED=true \
     NODE_OPTIONS=--max-old-space-size=4096
 RUN npm run build
