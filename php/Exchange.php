@@ -304,7 +304,6 @@ class Exchange {
     public $last_request_body = null;
     public $last_request_url = null;
 
-    public $requiresEddsa = false;
     public $rateLimit = 2000;
 
     public $commonCurrencies = array(
@@ -1370,13 +1369,6 @@ class Exchange {
             'v' => $ellipticSignature->recoveryParam,
         );
         return $signature;
-    }
-
-    public static function axolotl($request, $secret, $algorithm = 'ed25519') {
-        // this method is experimental ( ͡° ͜ʖ ͡°)
-        $curve = new EdDSA($algorithm);
-        $signature = $curve->signModified($request, $secret);
-        return static::binary_to_base58(static::base16_to_binary($signature->toHex()));
     }
 
     public static function eddsa($request, $secret, $algorithm = 'ed25519') {

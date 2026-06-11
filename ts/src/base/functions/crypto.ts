@@ -1,7 +1,7 @@
 /*  ------------------------------------------------------------------------ */
 
 import { hmac as _hmac } from '../../static_dependencies/noble-hashes/hmac.js';
-import { base16,  base64, base58 } from '../../static_dependencies/scure-base/index.js';
+import { base16,  base64 } from '../../static_dependencies/scure-base/index.js';
 import { CHash, Input } from '../../static_dependencies/noble-hashes/utils.js';
 import { CurveFn } from '../../static_dependencies/noble-curves/abstract/weierstrass.js';
 import { CurveFn as CurveFnEDDSA } from '../../static_dependencies/noble-curves/abstract/edwards.js';
@@ -93,12 +93,6 @@ function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null
     }
 }
 
-function axolotl (request: Hex, secret: Hex, curve: CurveFnEDDSA) {
-    // used for waves.exchange (that's why the output is base58)
-    const signature = curve.signModified (request, secret)
-    return base58.encode (signature)
-}
-
 function eddsa (request: Hex, secret: Input, curve: CurveFnEDDSA) {
     let privateKey = undefined;
     if (secret.length === 32) {
@@ -144,7 +138,6 @@ export {
     crc32,
     ecdsa,
     eddsa,
-    axolotl,
 };
 
 /*  ------------------------------------------------------------------------ */
