@@ -119,10 +119,8 @@ import hollaex from  './src/hollaex.js'
 import htx from  './src/htx.js'
 import huobi from  './src/huobi.js'
 import hyperliquid from  './src/hyperliquid.js'
-import hyperliquidprediction from  './src/hyperliquidprediction.js'
 import independentreserve from  './src/independentreserve.js'
 import indodax from  './src/indodax.js'
-import kalshi from  './src/kalshi.js'
 import kraken from  './src/kraken.js'
 import krakenfutures from  './src/krakenfutures.js'
 import kucoin from  './src/kucoin.js'
@@ -130,13 +128,11 @@ import kucoinfutures from  './src/kucoinfutures.js'
 import latoken from  './src/latoken.js'
 import lbank from  './src/lbank.js'
 import lighter from  './src/lighter.js'
-import limitless from  './src/limitless.js'
 import luno from  './src/luno.js'
 import mercado from  './src/mercado.js'
 import mexc from  './src/mexc.js'
 import modetrade from  './src/modetrade.js'
 import myokx from  './src/myokx.js'
-import myriad from  './src/myriad.js'
 import ndax from  './src/ndax.js'
 import novadax from  './src/novadax.js'
 import okx from  './src/okx.js'
@@ -149,7 +145,6 @@ import paradex from  './src/paradex.js'
 import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
-import polymarket from  './src/polymarket.js'
 import tokocrypto from  './src/tokocrypto.js'
 import toobit from  './src/toobit.js'
 import upbit from  './src/upbit.js'
@@ -239,7 +234,6 @@ import pacificaPro from  './src/pro/pacifica.js'
 import paradexPro from  './src/pro/paradex.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
-import polymarketPro from  './src/pro/polymarket.js'
 import toobitPro from  './src/pro/toobit.js'
 import upbitPro from  './src/pro/upbit.js'
 import weexPro from  './src/pro/weex.js'
@@ -247,6 +241,14 @@ import whitebitPro from  './src/pro/whitebit.js'
 import wooPro from  './src/pro/woo.js'
 import woofiproPro from  './src/pro/woofipro.js'
 import xtPro from  './src/pro/xt.js'
+
+import hyperliquidPrediction from  './src/prediction/hyperliquid.js'
+import kalshiPrediction from  './src/prediction/kalshi.js'
+import limitlessPrediction from  './src/prediction/limitless.js'
+import myriadPrediction from  './src/prediction/myriad.js'
+import polymarketPrediction from  './src/prediction/polymarket.js'
+
+import polymarketPredictionPro from  './src/prediction/pro/polymarket.js'
 
 const exchanges = {
     'aftermath':              aftermath,
@@ -322,10 +324,8 @@ const exchanges = {
     'htx':                    htx,
     'huobi':                  huobi,
     'hyperliquid':            hyperliquid,
-    'hyperliquidprediction':  hyperliquidprediction,
     'independentreserve':     independentreserve,
     'indodax':                indodax,
-    'kalshi':                 kalshi,
     'kraken':                 kraken,
     'krakenfutures':          krakenfutures,
     'kucoin':                 kucoin,
@@ -333,13 +333,11 @@ const exchanges = {
     'latoken':                latoken,
     'lbank':                  lbank,
     'lighter':                lighter,
-    'limitless':              limitless,
     'luno':                   luno,
     'mercado':                mercado,
     'mexc':                   mexc,
     'modetrade':              modetrade,
     'myokx':                  myokx,
-    'myriad':                 myriad,
     'ndax':                   ndax,
     'novadax':                novadax,
     'okx':                    okx,
@@ -352,7 +350,6 @@ const exchanges = {
     'paymium':                paymium,
     'phemex':                 phemex,
     'poloniex':               poloniex,
-    'polymarket':             polymarket,
     'tokocrypto':             tokocrypto,
     'toobit':                 toobit,
     'upbit':                  upbit,
@@ -442,7 +439,6 @@ const pro = {
     'paradex':                paradexPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
-    'polymarket':             polymarketPro,
     'toobit':                 toobitPro,
     'upbit':                  upbitPro,
     'weex':                   weexPro,
@@ -465,13 +461,31 @@ for (const exchange in pro) {
 pro['Exchange'] = Exchange // now the same for rest and ts
 //-----------------------------------------------------------------------------
 
-const ccxt = Object.assign ({ version, Exchange, Precise, 'exchanges': Object.keys (exchanges), 'pro': pro}, exchanges, functions, errors)
+const prediction = {
+    'hyperliquid':            hyperliquidPrediction,
+    'kalshi':                 kalshiPrediction,
+    'limitless':              limitlessPrediction,
+    'myriad':                 myriadPrediction,
+    'polymarket':             polymarketPrediction,
+}
+
+const predictionPro = {
+    'polymarket':             polymarketPredictionPro,
+};
+
+(prediction as any).exchanges = Object.keys (prediction)
+;(prediction as any).pro = predictionPro
+prediction['Exchange'] = Exchange
+//-----------------------------------------------------------------------------
+
+const ccxt = Object.assign ({ version, Exchange, Precise, 'exchanges': Object.keys (exchanges), 'pro': pro, 'prediction': prediction}, exchanges, functions, errors)
 
 export {
     version,
     Exchange,
     exchanges,
     pro,
+    prediction,
     Precise,
     functions,
     errors,
@@ -671,10 +685,8 @@ export {
     htx,
     huobi,
     hyperliquid,
-    hyperliquidprediction,
     independentreserve,
     indodax,
-    kalshi,
     kraken,
     krakenfutures,
     kucoin,
@@ -682,13 +694,11 @@ export {
     latoken,
     lbank,
     lighter,
-    limitless,
     luno,
     mercado,
     mexc,
     modetrade,
     myokx,
-    myriad,
     ndax,
     novadax,
     okx,
@@ -701,7 +711,6 @@ export {
     paymium,
     phemex,
     poloniex,
-    polymarket,
     tokocrypto,
     toobit,
     upbit,
