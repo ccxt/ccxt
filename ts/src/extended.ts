@@ -3397,12 +3397,10 @@ export default class extended extends Exchange {
         }
         const hexChars = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' ];
         let result = '';
-        let loop = Precise.stringGt (decimalString, '0');
-        while (loop === true) {
+        while (Precise.stringGt (decimalString, '0') === true) {
             const remainder = this.parseToInt (Precise.stringMod (decimalString, '16'));
             result = hexChars[remainder] + result;
             decimalString = Precise.stringDiv (decimalString, '16', 0);
-            loop = Precise.stringGt (decimalString, '0');
         }
         if (result === '') {
             return '0';

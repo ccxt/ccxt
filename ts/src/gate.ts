@@ -6570,8 +6570,7 @@ export default class gate extends Exchange {
         let initialMarginRatio = initialMarginUnit;
         let floor = '0';
         const tiers = [];
-        let loop = Precise.stringLt (floor, riskLimitMax);
-        while (loop === true) {
+        while (Precise.stringLt (floor, riskLimitMax) === true) {
             const cap = Precise.stringAdd (floor, riskLimitStep);
             tiers.push ({
                 'tier': this.parseNumber (Precise.stringDiv (cap, riskLimitStep)),
@@ -6586,7 +6585,6 @@ export default class gate extends Exchange {
             maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, maintenanceMarginUnit);
             initialMarginRatio = Precise.stringAdd (initialMarginRatio, initialMarginUnit);
             floor = cap;
-            loop = Precise.stringLt (floor, riskLimitMax);
         }
         return tiers as LeverageTier[];
     }
