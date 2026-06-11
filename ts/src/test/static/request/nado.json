@@ -51,6 +51,28 @@
                 ]
             }
         ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "url": "https://archive.test.nado.xyz/v2/contracts",
+                "input": [
+                    "BTC/USDT0:USDT0"
+                ]
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "fetchOpenInterests",
+                "method": "fetchOpenInterests",
+                "url": "https://archive.test.nado.xyz/v2/contracts",
+                "input": [
+                    [
+                        "BTC/USDT0:USDT0"
+                    ]
+                ]
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "fetchOrderBook",
