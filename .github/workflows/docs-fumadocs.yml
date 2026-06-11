@@ -1,11 +1,11 @@
 name: Deploy Fumadocs
 
 # Builds the Fumadocs site as a container (arm64, matching the docs box) and deploys it
-# as a long-running Next.js server behind nginx at /v2. Automates the manual flow:
+# as a long-running Next.js server behind nginx at / (root). Automates the manual flow:
 # build image -> push to GHCR -> box pulls + restarts the container.
 #
 # Consumes the committed wiki/*.md (kept current by js.yml's build-docs).
-# Cutover to root: drop NEXT_BASE_PATH=/v2 in the Dockerfile + point nginx `location /`.
+# The image is a root build (no NEXT_BASE_PATH); nginx proxies `location /` to it.
 
 on:
   release:
@@ -97,15 +97,16 @@ jobs:
           # content present-but-covered, so we assert the article is NOT a duplicated
           # grid cell, real content strings are there, no error boundary, and the homepage
           # hero renders.
+          # Root build (no /v2): the app serves at /. nginx proxies `location / -> :3005`.
           smoke() {
             local port="$1" html n
-            for i in $(seq 1 30); do curl -fsS -o /dev/null "http://127.0.0.1:${port}/v2/docs/install" 2>/dev/null && break; sleep 2; done
-            html=$(curl -fsS --max-time 25 "http://127.0.0.1:${port}/v2/docs/exchanges/binance") || { echo "smoke: binance not 200"; return 1; }
+            for i in $(seq 1 30); do curl -fsS -o /dev/null "http://127.0.0.1:${port}/docs/install" 2>/dev/null && break; sleep 2; done
+            html=$(curl -fsS --max-time 25 "http://127.0.0.1:${port}/docs/exchanges/binance") || { echo "smoke: binance not 200"; return 1; }
             echo "$html" | grep -q "fetchTicker" || { echo "smoke: binance content missing"; return 1; }
             n=$(echo "$html" | grep -o '\[grid-area:main\]' | wc -l)
             [ "$n" -le 1 ] || { echo "smoke: content-overlap regression (grid-area:main x$n)"; return 1; }
             echo "$html" | grep -qi "couldn.t load" && { echo "smoke: error boundary rendered"; return 1; }
-            curl -fsS --max-time 25 "http://127.0.0.1:${port}/v2" | grep -q "Connect to any exchange" || { echo "smoke: homepage hero missing"; return 1; }
+            curl -fsS --max-time 25 "http://127.0.0.1:${port}/" | grep -q "Connect to any exchange" || { echo "smoke: homepage hero missing"; return 1; }
             echo "smoke: OK (grid-area:main x$n)"
           }
 
