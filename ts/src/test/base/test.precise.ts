@@ -158,9 +158,9 @@ function testPrecise () {
     assert (Precise.stringEquals ('1', undefined) === false);
     assert (Precise.stringEquals (undefined, undefined) === false);
 
-    assert (Precise.stringEq (undefined, '1') === undefined);
-    assert (Precise.stringEq ('1', undefined) === undefined);
-    assert (Precise.stringEq (undefined, undefined) === undefined);
+    assert (Precise.stringEq (undefined, '1') === false);
+    assert (Precise.stringEq ('1', undefined) === false);
+    assert (Precise.stringEq (undefined, undefined) === false);
 
     assert (Precise.stringMin (undefined, '1') === undefined);
     assert (Precise.stringMin ('1', undefined) === undefined);
