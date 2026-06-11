@@ -3527,8 +3527,11 @@ export default class htx extends Exchange {
     }
 
     networkCodeToId (networkCode: string, currencyCode: Str = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        if (networkCode === undefined) {
+            return undefined;
+        }
         if (currencyCode === undefined) {
-            throw new ArgumentsRequired (this.id + ' networkCodeToId() requires a currencyCode argument');
+            return super.networkCodeToId (networkCode);
         }
         const keys = Object.keys (this.options['networkChainIdsByNames']);
         const keysLength = keys.length;
@@ -4238,10 +4241,6 @@ export default class htx extends Exchange {
         return await this.fetchSpotOrdersByStates ('filled', symbol, since, limit, params);
     }
 
-    async fetchCanceledSpotOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        return await this.fetchSpotOrdersByStates ('partial-canceled,canceled', symbol, since, limit, params);
-    }
-
     async fetchContractOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchContractOrders() requires a symbol argument');
@@ -4420,31 +4419,6 @@ export default class htx extends Exchange {
         return await this.fetchContractOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchCanceledContractOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchCanceledContractOrders() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const request: Dict = {};
-        const market = this.market (symbol);
-        if (market['linear']) {
-            const trigger = this.safeBool2 (params, 'stop', 'trigger');
-            const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
-            const stopLoss = this.safeBool (params, 'stopLoss');
-            const takeProfit = this.safeBool (params, 'takeProfit');
-            const trailing = this.safeBool (params, 'trailing', false);
-            const isAlgo = (trigger || stopLoss || takeProfit || stopLossTakeProfit || trailing);
-            if (isAlgo) {
-                request['states'] = 'canceled';
-            } else {
-                request['states'] = 'partially_canceled,canceled';
-            }
-        } else {
-            request['status'] = '5,7'; // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
-        }
-        return await this.fetchContractOrders (symbol, since, limit, this.extend (request, params));
-    }
-
     /**
      * @method
      * @name htx#fetchOrders
@@ -4518,9 +4492,28 @@ export default class htx extends Exchange {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
         if (marketType === 'spot') {
-            return await this.fetchCanceledSpotOrders (symbol, since, limit, params);
+            return await this.fetchSpotOrdersByStates ('partial-canceled,canceled', symbol, since, limit, params);
         } else {
-            return await this.fetchCanceledContractOrders (symbol, since, limit, params);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires a symbol argument for ' + marketType + ' orders');
+            }
+            const request: Dict = {};
+            if (market['linear']) {
+                const trigger = this.safeBool2 (params, 'stop', 'trigger');
+                const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
+                const stopLoss = this.safeBool (params, 'stopLoss');
+                const takeProfit = this.safeBool (params, 'takeProfit');
+                const trailing = this.safeBool (params, 'trailing', false);
+                const isAlgo = (trigger || stopLoss || takeProfit || stopLossTakeProfit || trailing);
+                if (isAlgo) {
+                    request['states'] = 'canceled';
+                } else {
+                    request['states'] = 'partially_canceled,canceled';
+                }
+            } else {
+                request['status'] = '5,7'; // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
+            }
+            return await this.fetchContractOrders (symbol, since, limit, this.extend (request, params));
         }
     }
 
@@ -6047,17 +6040,17 @@ export default class htx extends Exchange {
             }
             if (isLinear) {
                 if (trigger || stopLossTakeProfit || trailing) {
-                    const requestBody = [ {
+                    const requestItem = {
                         'contract_code': market['id'],
-                    } ];
+                    };
                     if (clientOrderId === undefined) {
-                        requestBody[0]['algo_id'] = id;
+                        requestItem['algo_id'] = id;
                         params = this.omit (params, 'algo_id');
                     } else {
-                        requestBody[0]['algo_client_order_id'] = clientOrderId;
+                        requestItem['algo_client_order_id'] = clientOrderId;
                         params = this.omit (params, [ 'client_order_id', 'clientOrderId', 'algo_client_order_id' ]);
                     }
-                    requestBody[0] = this.extend (requestBody[0], params);
+                    const requestBody = [ this.extend (requestItem, params) ];
                     response = await this.contractPrivatePostV5AlgoCancelOrders (requestBody);
                 } else {
                     response = await this.contractPrivatePostV5TradeCancelOrder (this.extend (request, params));
@@ -7609,7 +7602,13 @@ export default class htx extends Exchange {
                 auth += '&' + this.urlencode ({ 'Signature': signature });
                 url += '?' + auth;
                 if (method === 'POST') {
-                    body = this.json (isArrayParams ? params : query);
+                    let bodyRequest = undefined;
+                    if (isArrayParams) {
+                        bodyRequest = params;
+                    } else {
+                        bodyRequest = query;
+                    }
+                    body = this.json (bodyRequest);
                     headers = {
                         'Content-Type': 'application/json',
                     };
