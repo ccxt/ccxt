@@ -517,7 +517,6 @@ public class XtCore extends XtApi
                     put( "BEP20", "BNB Smart Chain" );
                     put( "BEP2", "BNB-BEP2" );
                     put( "ETH", "Ethereum" );
-                    put( "BNB", "BNB Smart Chain" );
                     put( "AVAX", "AVAX C-Chain" );
                     put( "GAL", "GAL(FT)" );
                     put( "ALEO", "ALEO(IOU)" );
