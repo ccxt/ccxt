@@ -38,6 +38,8 @@ const baseExchangeJsFile = './ts/src/base/Exchange.ts'
 const exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds = exchanges.ids;
 const exchangesWsIds = exchanges.ws;
+const exchangesPredictionIds = exchanges.prediction || [];
+const exchangesPredictionWsIds = exchanges.predictionWs || [];
 
 let shouldTranspileTests = true
 
@@ -69,6 +71,9 @@ class Transpiler {
 
     buildPython = true;
     buildPHP = true;
+    // true while transpiling the prediction-market exchanges (ts/src/prediction/),
+    // which live in their own namespace/subfolder in every language
+    isPrediction = false;
 
     baseMethodsList!: any[];
 
@@ -742,7 +747,8 @@ class Transpiler {
                 ('from ccxt' + asyncString + '.' + safeString (baseClasses, baseClass, baseClass) + ' import ' + baseClass),
         ]
         if (className !== 'testMainClass') {
-            imports.push ('from ccxt.abstract.' + className + ' import ImplicitAPI')
+            const abstractModule = this.isPrediction ? 'ccxt.abstract.prediction.' : 'ccxt.abstract.'
+            imports.push ('from ' + abstractModule + className + ' import ImplicitAPI')
         }
         return imports
     }
@@ -978,6 +984,12 @@ class Transpiler {
     }
 
     createPHPClassHeader (className: string, baseClass: string, bodyAsString: string, namespace: string) {
+        // prediction exchanges live in ccxt\prediction / ccxt\prediction\async but their
+        // implicit-api abstract classes live in ccxt\abstract\prediction / ccxt\async\abstract\prediction
+        let abstractNamespace = namespace + "\\abstract";
+        if (this.isPrediction) {
+            abstractNamespace = (namespace.indexOf ('async') > -1) ? "ccxt\\async\\abstract\\prediction" : "ccxt\\abstract\\prediction";
+        }
         return [
             "<?php",
             "",
@@ -987,7 +999,7 @@ class Transpiler {
             "// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code",
             "",
             "use Exception; // a common import",
-            "use " + namespace + "\\abstract\\" + className + " as " + baseClass + ';',
+            "use " + abstractNamespace + "\\" + className + " as " + baseClass + ';',
         ]
     }
 
@@ -995,11 +1007,19 @@ class Transpiler {
 
         let bodyAsString = body.join ("\n")
 
-        let header = this.createPHPClassHeader (className, baseClass, bodyAsString, async ? 'ccxt\\async' : 'ccxt')
+        let namespace = async ? 'ccxt\\async' : 'ccxt'
+        if (this.isPrediction) {
+            namespace = async ? 'ccxt\\prediction\\async' : 'ccxt\\prediction'
+        }
+        let header = this.createPHPClassHeader (className, baseClass, bodyAsString, namespace)
 
         const errorImports: string[] = []
 
-        if (async) {
+        // classes outside of the root ccxt namespace (ccxt\async, ccxt\prediction, ...)
+        // cannot resolve the error classes or Precise without explicit imports
+        const needsRootImports = async || this.isPrediction
+
+        if (needsRootImports) {
             for (let error in errors) {
                 const regex = new RegExp ("[^'\"]" + error + "[^'\"]")
                 if (bodyAsString.match (regex)) {
@@ -1011,10 +1031,13 @@ class Transpiler {
         const precisionImports: string[] = []
         const libraryImports: string[] = []
 
-        if (async) {
+        if (needsRootImports) {
             if (bodyAsString.match (/[\s(]Precise/)) {
                 precisionImports.push ('use ccxt\\Precise;')
             }
+        }
+
+        if (async) {
             if (bodyAsString.match (/Async\\await/)) {
                 libraryImports.push ('use \\React\\Async;')
             }
@@ -1412,7 +1435,11 @@ class Transpiler {
 
         // exchanges.json accounts for ids included in exchanges.cfg
         let ids: string[] = [];
-        if (tsFolder.indexOf('pro/') > -1) {
+        if (tsFolder.indexOf('prediction/pro') > -1) {
+            ids = exchangesPredictionWsIds;
+        } else if (tsFolder.indexOf('prediction') > -1) {
+            ids = exchangesPredictionIds;
+        } else if (tsFolder.indexOf('pro/') > -1) {
             ids = exchangesWsIds;
         } else {
             ids = exchangeIds;
@@ -3012,16 +3039,16 @@ class Transpiler {
 
     // ============================================================================
 
-    async transpileEverything (force = false, child = false) {
+    async transpileEverything (force = false, child = false, prediction = false) {
 
         // default pattern is '.js'
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
-            , python2Folder  = './python/ccxt/'
-            , python3Folder  = './python/ccxt/async_support/'
-            , phpFolder      = './php/'
-            , phpAsyncFolder = './php/async/'
-            , tsFolder = './ts/src/'
-            , jsFolder = './js/src/'
+            , python2Folder  = prediction ? './python/ccxt/prediction/' : './python/ccxt/'
+            , python3Folder  = prediction ? './python/ccxt/prediction/async_support/' : './python/ccxt/async_support/'
+            , phpFolder      = prediction ? './php/prediction/' : './php/'
+            , phpAsyncFolder = prediction ? './php/prediction/async/' : './php/async/'
+            , tsFolder = prediction ? './ts/src/prediction/' : './ts/src/'
+            , jsFolder = prediction ? './js/src/prediction/' : './js/src/'
             // , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder }
             , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, jsFolder, exchanges }
 
@@ -3029,7 +3056,7 @@ class Transpiler {
         if (transpilingSingleExchange) {
             force = true; // when transpiling single exchange, we always force
         }
-        if (!transpilingSingleExchange && !child) {
+        if ((!transpilingSingleExchange && !child) || prediction) {
             if (this.buildPython) {
                 createFolderRecursively (python2Folder)
                 createFolderRecursively (python3Folder)
@@ -3042,14 +3069,27 @@ class Transpiler {
         }
 
         // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, pattern, force)
+        this.isPrediction = prediction
         const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, (child || !!exchanges.length))
+        this.isPrediction = false
 
         if (classes === null) {
             log.bright.yellow ('0 files transpiled.')
             return;
         }
+        if (prediction) {
+            // the prediction pass only transpiles the derived exchange classes —
+            // base methods, errors, tests and examples are handled by the main pass
+            log.bright.green ('Transpiled prediction exchanges successfully.')
+            return
+        }
         if (child) {
             return
+        }
+
+        // full builds also transpile the prediction-market exchanges (ts/src/prediction/)
+        if (!exchanges.length) {
+            await this.transpileEverything (force, child, true)
         }
 
         if (!transpilingSingleExchange) {
@@ -3164,12 +3204,16 @@ if (isMainEntry(metaFileUrl)) {
     } else if (multiprocess) {
         (async () => {
             await parallelizeTranspiling (exchangeIds, undefined, force, pyOnly, phpOnly)
+            // the prediction exchanges are few — transpile them serially after the workers finish
+            await transpiler.transpileEverything (force, false, true)
         })()
     } else if (addJsHeaders) {
         transpiler.addGeneratedHeaderToJs ('./js/')
     } else {
         (async () => {
-            await transpiler.transpileEverything (force, child)
+            // --prediction transpiles the given exchange(s) from ts/src/prediction/
+            const prediction = process.argv.includes ('--prediction')
+            await transpiler.transpileEverything (force, child, prediction)
         })()
     }
 
