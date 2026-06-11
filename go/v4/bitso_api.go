@@ -7,158 +7,158 @@
 
 package ccxt
 
-func (this *BitsoCore) PublicGetAvailableBooks(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAvailableBooks", args...)
+func (this *BitsoCore) PublicGetAvailableBooks (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetAvailableBooks", args...)
 }
 
-func (this *BitsoCore) PublicGetTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTicker", args...)
+func (this *BitsoCore) PublicGetTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *BitsoCore) PublicGetOrderBook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrderBook", args...)
+func (this *BitsoCore) PublicGetOrderBook (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetOrderBook", args...)
 }
 
-func (this *BitsoCore) PublicGetTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTrades", args...)
+func (this *BitsoCore) PublicGetTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *BitsoCore) PublicGetOhlc(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOhlc", args...)
+func (this *BitsoCore) PublicGetOhlc (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetOhlc", args...)
 }
 
-func (this *BitsoCore) PrivateGetAccountStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountStatus", args...)
+func (this *BitsoCore) PrivateGetAccountStatus (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountStatus", args...)
 }
 
-func (this *BitsoCore) PrivateGetBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBalance", args...)
+func (this *BitsoCore) PrivateGetBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetBalance", args...)
 }
 
-func (this *BitsoCore) PrivateGetFees(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFees", args...)
+func (this *BitsoCore) PrivateGetFees (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFees", args...)
 }
 
-func (this *BitsoCore) PrivateGetFundings(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFundings", args...)
+func (this *BitsoCore) PrivateGetFundings (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFundings", args...)
 }
 
-func (this *BitsoCore) PrivateGetFundingsFid(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFundingsFid", args...)
+func (this *BitsoCore) PrivateGetFundingsFid (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFundingsFid", args...)
 }
 
-func (this *BitsoCore) PrivateGetFundingDestination(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFundingDestination", args...)
+func (this *BitsoCore) PrivateGetFundingDestination (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetFundingDestination", args...)
 }
 
-func (this *BitsoCore) PrivateGetKycDocuments(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetKycDocuments", args...)
+func (this *BitsoCore) PrivateGetKycDocuments (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetKycDocuments", args...)
 }
 
-func (this *BitsoCore) PrivateGetLedger(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetLedger", args...)
+func (this *BitsoCore) PrivateGetLedger (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetLedger", args...)
 }
 
-func (this *BitsoCore) PrivateGetLedgerTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetLedgerTrades", args...)
+func (this *BitsoCore) PrivateGetLedgerTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetLedgerTrades", args...)
 }
 
-func (this *BitsoCore) PrivateGetLedgerFees(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetLedgerFees", args...)
+func (this *BitsoCore) PrivateGetLedgerFees (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetLedgerFees", args...)
 }
 
-func (this *BitsoCore) PrivateGetLedgerFundings(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetLedgerFundings", args...)
+func (this *BitsoCore) PrivateGetLedgerFundings (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetLedgerFundings", args...)
 }
 
-func (this *BitsoCore) PrivateGetLedgerWithdrawals(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetLedgerWithdrawals", args...)
+func (this *BitsoCore) PrivateGetLedgerWithdrawals (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetLedgerWithdrawals", args...)
 }
 
-func (this *BitsoCore) PrivateGetMxBankCodes(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetMxBankCodes", args...)
+func (this *BitsoCore) PrivateGetMxBankCodes (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetMxBankCodes", args...)
 }
 
-func (this *BitsoCore) PrivateGetOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOpenOrders", args...)
+func (this *BitsoCore) PrivateGetOpenOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetOpenOrders", args...)
 }
 
-func (this *BitsoCore) PrivateGetOrderTradesOid(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrderTradesOid", args...)
+func (this *BitsoCore) PrivateGetOrderTradesOid (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetOrderTradesOid", args...)
 }
 
-func (this *BitsoCore) PrivateGetOrdersOid(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrdersOid", args...)
+func (this *BitsoCore) PrivateGetOrdersOid (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetOrdersOid", args...)
 }
 
-func (this *BitsoCore) PrivateGetUserTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUserTrades", args...)
+func (this *BitsoCore) PrivateGetUserTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetUserTrades", args...)
 }
 
-func (this *BitsoCore) PrivateGetUserTradesTid(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUserTradesTid", args...)
+func (this *BitsoCore) PrivateGetUserTradesTid (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetUserTradesTid", args...)
 }
 
-func (this *BitsoCore) PrivateGetWithdrawals(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWithdrawals", args...)
+func (this *BitsoCore) PrivateGetWithdrawals (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetWithdrawals", args...)
 }
 
-func (this *BitsoCore) PrivateGetWithdrawalsWid(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWithdrawalsWid", args...)
+func (this *BitsoCore) PrivateGetWithdrawalsWid (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetWithdrawalsWid", args...)
 }
 
-func (this *BitsoCore) PrivatePostBitcoinWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBitcoinWithdrawal", args...)
+func (this *BitsoCore) PrivatePostBitcoinWithdrawal (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostBitcoinWithdrawal", args...)
 }
 
-func (this *BitsoCore) PrivatePostDebitCardWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDebitCardWithdrawal", args...)
+func (this *BitsoCore) PrivatePostDebitCardWithdrawal (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDebitCardWithdrawal", args...)
 }
 
-func (this *BitsoCore) PrivatePostEtherWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostEtherWithdrawal", args...)
+func (this *BitsoCore) PrivatePostEtherWithdrawal (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostEtherWithdrawal", args...)
 }
 
-func (this *BitsoCore) PrivatePostOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrders", args...)
+func (this *BitsoCore) PrivatePostOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *BitsoCore) PrivatePostPhoneNumber(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPhoneNumber", args...)
+func (this *BitsoCore) PrivatePostPhoneNumber (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostPhoneNumber", args...)
 }
 
-func (this *BitsoCore) PrivatePostPhoneVerification(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPhoneVerification", args...)
+func (this *BitsoCore) PrivatePostPhoneVerification (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostPhoneVerification", args...)
 }
 
-func (this *BitsoCore) PrivatePostPhoneWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPhoneWithdrawal", args...)
+func (this *BitsoCore) PrivatePostPhoneWithdrawal (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostPhoneWithdrawal", args...)
 }
 
-func (this *BitsoCore) PrivatePostSpeiWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpeiWithdrawal", args...)
+func (this *BitsoCore) PrivatePostSpeiWithdrawal (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpeiWithdrawal", args...)
 }
 
-func (this *BitsoCore) PrivatePostRippleWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRippleWithdrawal", args...)
+func (this *BitsoCore) PrivatePostRippleWithdrawal (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostRippleWithdrawal", args...)
 }
 
-func (this *BitsoCore) PrivatePostBcashWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBcashWithdrawal", args...)
+func (this *BitsoCore) PrivatePostBcashWithdrawal (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostBcashWithdrawal", args...)
 }
 
-func (this *BitsoCore) PrivatePostLitecoinWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostLitecoinWithdrawal", args...)
+func (this *BitsoCore) PrivatePostLitecoinWithdrawal (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostLitecoinWithdrawal", args...)
 }
 
-func (this *BitsoCore) PrivateDeleteOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteOrders", args...)
+func (this *BitsoCore) PrivateDeleteOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateDeleteOrders", args...)
 }
 
-func (this *BitsoCore) PrivateDeleteOrdersOid(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteOrdersOid", args...)
+func (this *BitsoCore) PrivateDeleteOrdersOid (args ...any) <-chan any {
+   return this.callEndpointAsync("privateDeleteOrdersOid", args...)
 }
 
-func (this *BitsoCore) PrivateDeleteOrdersAll(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteOrdersAll", args...)
+func (this *BitsoCore) PrivateDeleteOrdersAll (args ...any) <-chan any {
+   return this.callEndpointAsync("privateDeleteOrdersAll", args...)
 }

@@ -7,214 +7,214 @@
 
 package ccxt
 
-func (this *DeepcoinCore) PublicGetDeepcoinMarketBooks(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinMarketBooks", args...)
+func (this *DeepcoinCore) PublicGetDeepcoinMarketBooks (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetDeepcoinMarketBooks", args...)
 }
 
-func (this *DeepcoinCore) PublicGetDeepcoinMarketCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinMarketCandles", args...)
+func (this *DeepcoinCore) PublicGetDeepcoinMarketCandles (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetDeepcoinMarketCandles", args...)
 }
 
-func (this *DeepcoinCore) PublicGetDeepcoinMarketInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinMarketInstruments", args...)
+func (this *DeepcoinCore) PublicGetDeepcoinMarketInstruments (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetDeepcoinMarketInstruments", args...)
 }
 
-func (this *DeepcoinCore) PublicGetDeepcoinMarketTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinMarketTickers", args...)
+func (this *DeepcoinCore) PublicGetDeepcoinMarketTickers (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetDeepcoinMarketTickers", args...)
 }
 
-func (this *DeepcoinCore) PublicGetDeepcoinMarketIndexCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinMarketIndexCandles", args...)
+func (this *DeepcoinCore) PublicGetDeepcoinMarketIndexCandles (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetDeepcoinMarketIndexCandles", args...)
 }
 
-func (this *DeepcoinCore) PublicGetDeepcoinMarketTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinMarketTrades", args...)
+func (this *DeepcoinCore) PublicGetDeepcoinMarketTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetDeepcoinMarketTrades", args...)
 }
 
-func (this *DeepcoinCore) PublicGetDeepcoinMarketMarkPriceCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinMarketMarkPriceCandles", args...)
+func (this *DeepcoinCore) PublicGetDeepcoinMarketMarkPriceCandles (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetDeepcoinMarketMarkPriceCandles", args...)
 }
 
-func (this *DeepcoinCore) PublicGetDeepcoinMarketStepMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinMarketStepMargin", args...)
+func (this *DeepcoinCore) PublicGetDeepcoinMarketStepMargin (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetDeepcoinMarketStepMargin", args...)
 }
 
-func (this *DeepcoinCore) PublicGetDeepcoinTradeFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinTradeFundingRate", args...)
+func (this *DeepcoinCore) PublicGetDeepcoinTradeFundingRate (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetDeepcoinTradeFundingRate", args...)
 }
 
-func (this *DeepcoinCore) PublicGetDeepcoinTradeFundRateCurrentFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinTradeFundRateCurrentFundingRate", args...)
+func (this *DeepcoinCore) PublicGetDeepcoinTradeFundRateCurrentFundingRate (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetDeepcoinTradeFundRateCurrentFundingRate", args...)
 }
 
-func (this *DeepcoinCore) PublicGetDeepcoinTradeFundRateHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinTradeFundRateHistory", args...)
+func (this *DeepcoinCore) PublicGetDeepcoinTradeFundRateHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetDeepcoinTradeFundRateHistory", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinAccountBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinAccountBalances", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinAccountBalances (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinAccountBalances", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinAccountBills(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinAccountBills", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinAccountBills (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinAccountBills", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinAccountPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinAccountPositions", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinAccountPositions (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinAccountPositions", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinTradeFills(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinTradeFills", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinTradeFills (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinTradeFills", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinTradeOrderByID(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinTradeOrderByID", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinTradeOrderByID (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinTradeOrderByID", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinTradeFinishOrderByID(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinTradeFinishOrderByID", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinTradeFinishOrderByID (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinTradeFinishOrderByID", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinTradeOrdersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinTradeOrdersHistory", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinTradeOrdersHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinTradeOrdersHistory", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinTradeV2OrdersPending(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinTradeV2OrdersPending", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinTradeV2OrdersPending (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinTradeV2OrdersPending", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinTradeTriggerOrdersPending(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinTradeTriggerOrdersPending", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinTradeTriggerOrdersPending (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinTradeTriggerOrdersPending", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinTradeTriggerOrdersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinTradeTriggerOrdersHistory", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinTradeTriggerOrdersHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinTradeTriggerOrdersHistory", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinCopytradingSupportContracts(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinCopytradingSupportContracts", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinCopytradingSupportContracts (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinCopytradingSupportContracts", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinCopytradingLeaderPosition(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinCopytradingLeaderPosition", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinCopytradingLeaderPosition (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinCopytradingLeaderPosition", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinCopytradingEstimateProfit(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinCopytradingEstimateProfit", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinCopytradingEstimateProfit (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinCopytradingEstimateProfit", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinCopytradingHistoryProfit(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinCopytradingHistoryProfit", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinCopytradingHistoryProfit (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinCopytradingHistoryProfit", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinCopytradingFollowerRank(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinCopytradingFollowerRank", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinCopytradingFollowerRank (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinCopytradingFollowerRank", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinInternalTransferSupport(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinInternalTransferSupport", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinInternalTransferSupport (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinInternalTransferSupport", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinInternalTransferHistoryOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinInternalTransferHistoryOrder", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinInternalTransferHistoryOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinInternalTransferHistoryOrder", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinRebateConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinRebateConfig", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinRebateConfig (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinRebateConfig", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinAgentsUsers(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinAgentsUsers", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinAgentsUsers (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinAgentsUsers", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinAgentsUsersRebateList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinAgentsUsersRebateList", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinAgentsUsersRebateList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinAgentsUsersRebateList", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinAgentsUsersRebates(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinAgentsUsersRebates", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinAgentsUsersRebates (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinAgentsUsersRebates", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinAssetDepositList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinAssetDepositList", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinAssetDepositList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinAssetDepositList", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinAssetWithdrawList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinAssetWithdrawList", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinAssetWithdrawList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinAssetWithdrawList", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinAssetRechargeChainList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinAssetRechargeChainList", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinAssetRechargeChainList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinAssetRechargeChainList", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinListenkeyAcquire(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinListenkeyAcquire", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinListenkeyAcquire (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinListenkeyAcquire", args...)
 }
 
-func (this *DeepcoinCore) PrivateGetDeepcoinListenkeyExtend(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinListenkeyExtend", args...)
+func (this *DeepcoinCore) PrivateGetDeepcoinListenkeyExtend (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDeepcoinListenkeyExtend", args...)
 }
 
-func (this *DeepcoinCore) PrivatePostDeepcoinAccountSetLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinAccountSetLeverage", args...)
+func (this *DeepcoinCore) PrivatePostDeepcoinAccountSetLeverage (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDeepcoinAccountSetLeverage", args...)
 }
 
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinTradeOrder", args...)
+func (this *DeepcoinCore) PrivatePostDeepcoinTradeOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDeepcoinTradeOrder", args...)
 }
 
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeReplaceOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinTradeReplaceOrder", args...)
+func (this *DeepcoinCore) PrivatePostDeepcoinTradeReplaceOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDeepcoinTradeReplaceOrder", args...)
 }
 
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinTradeCancelOrder", args...)
+func (this *DeepcoinCore) PrivatePostDeepcoinTradeCancelOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDeepcoinTradeCancelOrder", args...)
 }
 
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeBatchCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinTradeBatchCancelOrder", args...)
+func (this *DeepcoinCore) PrivatePostDeepcoinTradeBatchCancelOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDeepcoinTradeBatchCancelOrder", args...)
 }
 
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeCancelTriggerOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinTradeCancelTriggerOrder", args...)
+func (this *DeepcoinCore) PrivatePostDeepcoinTradeCancelTriggerOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDeepcoinTradeCancelTriggerOrder", args...)
 }
 
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeSwapCancelAll(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinTradeSwapCancelAll", args...)
+func (this *DeepcoinCore) PrivatePostDeepcoinTradeSwapCancelAll (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDeepcoinTradeSwapCancelAll", args...)
 }
 
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeTriggerOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinTradeTriggerOrder", args...)
+func (this *DeepcoinCore) PrivatePostDeepcoinTradeTriggerOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDeepcoinTradeTriggerOrder", args...)
 }
 
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeBatchClosePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinTradeBatchClosePosition", args...)
+func (this *DeepcoinCore) PrivatePostDeepcoinTradeBatchClosePosition (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDeepcoinTradeBatchClosePosition", args...)
 }
 
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeReplaceOrderSltp(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinTradeReplaceOrderSltp", args...)
+func (this *DeepcoinCore) PrivatePostDeepcoinTradeReplaceOrderSltp (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDeepcoinTradeReplaceOrderSltp", args...)
 }
 
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeClosePositionByIds(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinTradeClosePositionByIds", args...)
+func (this *DeepcoinCore) PrivatePostDeepcoinTradeClosePositionByIds (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDeepcoinTradeClosePositionByIds", args...)
 }
 
-func (this *DeepcoinCore) PrivatePostDeepcoinCopytradingLeaderSettings(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinCopytradingLeaderSettings", args...)
+func (this *DeepcoinCore) PrivatePostDeepcoinCopytradingLeaderSettings (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDeepcoinCopytradingLeaderSettings", args...)
 }
 
-func (this *DeepcoinCore) PrivatePostDeepcoinCopytradingSetContracts(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinCopytradingSetContracts", args...)
+func (this *DeepcoinCore) PrivatePostDeepcoinCopytradingSetContracts (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDeepcoinCopytradingSetContracts", args...)
 }
 
-func (this *DeepcoinCore) PrivatePostDeepcoinInternalTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinInternalTransfer", args...)
+func (this *DeepcoinCore) PrivatePostDeepcoinInternalTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDeepcoinInternalTransfer", args...)
 }
 
-func (this *DeepcoinCore) PrivatePostDeepcoinRebateConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinRebateConfig", args...)
+func (this *DeepcoinCore) PrivatePostDeepcoinRebateConfig (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDeepcoinRebateConfig", args...)
 }
 
-func (this *DeepcoinCore) PrivatePostDeepcoinAssetTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinAssetTransfer", args...)
+func (this *DeepcoinCore) PrivatePostDeepcoinAssetTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDeepcoinAssetTransfer", args...)
 }
