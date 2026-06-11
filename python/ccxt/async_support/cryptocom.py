@@ -579,7 +579,7 @@ class cryptocom(Exchange, ImplicitAPI):
             response = await self.v1PrivatePostPrivateGetCurrencyNetworks(params)
         except Exception as e:
             erString = self.exception_message(e)
-            if erString.find('"msg":"SYS_ERROR"') >= 0:
+            if erString.find('SYS_ERROR') >= 0:
                 # sub-accounts can't access self endpoint
                 # {"code":"10001","msg":"SYS_ERROR"}
                 return {}
