@@ -831,6 +831,36 @@ async function exportEverything () {
             replacement: "exchanges = [\n" + "    '" + wsIds.join ("',\n    '") + "'," + "\n]",
         },
         {
+            file: './python/ccxt/prediction/__init__.py',
+            regex: /(?:from ccxt\.prediction\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+            replacement: predictionIds.map (id => ('from ccxt.prediction.' + id + ' import ' + id).padEnd (80) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+        },
+        {
+            file: './python/ccxt/prediction/__init__.py',
+            regex: /exchanges \= \[[^\]]+\]/,
+            replacement: "exchanges = [\n" + "    '" + predictionIds.join ("',\n    '") + "'," + "\n]",
+        },
+        {
+            file: './python/ccxt/prediction/async_support/__init__.py',
+            regex: /(?:from ccxt\.prediction\.async_support\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+            replacement: predictionIds.map (id => ('from ccxt.prediction.async_support.' + id + ' import ' + id).padEnd (90) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+        },
+        {
+            file: './python/ccxt/prediction/async_support/__init__.py',
+            regex: /exchanges \= \[[^\]]+\]/,
+            replacement: "exchanges = [\n" + "    '" + predictionIds.join ("',\n    '") + "'," + "\n]",
+        },
+        {
+            file: './python/ccxt/prediction/pro/__init__.py',
+            regex: /(?:from ccxt\.prediction\.pro\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+            replacement: predictionWsIds.map (id => ('from ccxt.prediction.pro.' + id + ' import ' + id).padEnd (80) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+        },
+        {
+            file: './python/ccxt/prediction/pro/__init__.py',
+            regex: /exchanges \= \[[^\]]+\]/,
+            replacement: "exchanges = [\n" + "    '" + predictionWsIds.join ("',\n    '") + "'," + "\n]",
+        },
+        {
             file: './cs/ccxt/base/Exchange.MetaData.cs',
             regex: /public static List<string> exchanges =.+$/gm,
             replacement: `public static List<string> exchanges = new List<string> { ${ids.map(i=>`"${i}"`).join(', ')} };`,
