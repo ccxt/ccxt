@@ -3682,7 +3682,7 @@ The list of candles is returned sorted in ascending (historical/chronological) o
 
 ### Mark, Index and PremiumIndex Candlestick Charts
 
-To obtain historical Mark, Index Price and Premium Index candlesticks pass the `'price'` [params-override](overriding-unified-api-params) to `fetchOHLCV`. The `'price'` parameter accepts one of the following values:
+To obtain historical Mark, Index Price and Premium Index candlesticks pass the `'price'` [params-override](#overriding-unified-api-params) to `fetchOHLCV`. The `'price'` parameter accepts one of the following values:
 
 - `'mark'`
 - `'index'`
@@ -5486,8 +5486,8 @@ Parameters
   - `sell` give base currency and receive quote currency; for example, buying `BTC/USD` means that you will receive dollars for your bitcoins.
 - **type** a string literal type of order
   **Unified types:**
-  - [market](market-orders) not allowed by some exchanges, see [their docs](#exchanges) for details
-  - [limit](limit-orders)
+  - [market](#market-orders) not allowed by some exchanges, see [their docs](#exchanges) for details
+  - [limit](#limit-orders)
   - see #custom-order-params and #other-order-types for non-unified types
 - **amount**, how much of currency you want to trade usually, but not always, in units of the base currency of the trading pair symbol (the units for some exchanges are dependent on the side of the order: see their API docs for details.)
 - **price** the price at which the order is to be fullfilled at in units of the quote currency (ignored in market orders)
@@ -5533,7 +5533,7 @@ number_contracts = round((0.5 * 1) / market['contractSize'])
 
 #### Limit Orders
 
-Limit orders placed on the order book of the exchange for a price specified by the trader. They are fullfilled(closed) when there are no orders in the same market at a better price, and another trader creates a [market order](market-orders) or an opposite order for a price that matches or exceeds the price of the limit order.
+Limit orders placed on the order book of the exchange for a price specified by the trader. They are fullfilled(closed) when there are no orders in the same market at a better price, and another trader creates a [market order](#market-orders) or an opposite order for a price that matches or exceeds the price of the limit order.
 
 Limit orders may not be fully filled. This happens when the filling order is for a smaller amount than the amount specified by the limit order.
 
@@ -6335,8 +6335,8 @@ Parameters
   - `sell` give base currency and receive quote currency; for example, buying `BTC/USD` means that you will receive dollars for your bitcoins.
 - **type** (String) *required* type of order
   **Unified types:**
-  - [`market`](market-orders) not allowed by some exchanges, see [their docs](#exchanges) for details
-  - [`limit`](limit-orders)
+  - [`market`](#market-orders) not allowed by some exchanges, see [their docs](#exchanges) for details
+  - [`limit`](#limit-orders)
   - see #custom-order-params and #other-order-types for non-unified types
 - **amount** (Number) *required* how much of currency you want to trade usually, but not always, in units of the base currency of the trading pair symbol (the units for some exchanges are dependent on the side of the order: see their API docs for details.)
 - **price** (Float) the price at which the order is to be fullfilled at in units of the quote currency (ignored in market orders)

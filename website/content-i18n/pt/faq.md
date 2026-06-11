@@ -86,7 +86,7 @@ description: "Se a sua pergunta for formulada de forma resumida como acima, não
 
   ## Como criar uma ordem com takeProfit+stopLoss?
   Algumas exchanges suportam `createOrder` com as sub-ordens adicionais "anexadas" `stopLoss` e `takeProfit` - veja [Ordens StopLoss e TakeProfit Anexadas a uma Posição](/docs/manual#stoploss-and-takeprofit-orders-attached-to-a-position). 
-  No entanto, algumas exchanges podem não suportar esse recurso e você precisará executar métodos `createOrder` separados para adicionar uma ordem condicional (por exemplo, ***ordem trigger | ordem stoploss | ordem takeprofit**) à posição já aberta - veja [Ordens Condicionais](Manual.md#Conditional Orders).
+  No entanto, algumas exchanges podem não suportar esse recurso e você precisará executar métodos `createOrder` separados para adicionar uma ordem condicional (por exemplo, ***ordem trigger | ordem stoploss | ordem takeprofit**) à posição já aberta - veja [Ordens Condicionais](/docs/manual#conditional-orders).
   Você também pode verificá-las consultando `exchange.has['createOrderWithTakeProfitAndStopLoss']`, `exchange.has['createStopLossOrder']` e `exchange.has['createTakeProfitOrder']`, porém eles não são tão precisos quanto a propriedade `.features`.
 
   ## Qual é a diferença entre ordens `takeProfit/stopLoss` e `takeProfitPrice/stopLossPrice`

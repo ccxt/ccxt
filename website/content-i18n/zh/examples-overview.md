@@ -15,13 +15,13 @@ description: "要从任何文件夹运行 ccxt 示例，请在控制台中输入
 
 ### Typescript
 
-[Typescript 示例](/examples/ts/)
+[Typescript 示例](/docs/examples/ts/)
 
 ---
 
 ### JavaScript
 
-[JavaScript 示例](/examples/js/)
+[JavaScript 示例](/docs/examples/js/)
 
 ```bash
 node path/to/example.js # 替换为实际文件名
@@ -41,7 +41,7 @@ node path/to/example.js # 替换为实际文件名
 
 ### PHP
 
-[PHP 示例](/examples/php/)
+[PHP 示例](/docs/examples/php/)
 
 ```bash
 php -f path/to/example.php # 替换为实际文件名
@@ -51,7 +51,7 @@ php -f path/to/example.php # 替换为实际文件名
 
 ### Python
 
-[Python 示例](/examples/py/)
+[Python 示例](/docs/examples/py/)
 
 ![基本图表](https://user-images.githubusercontent.com/1294454/29979754-6d62354c-8f4f-11e7-9e0a-22e87b4a093b.jpg)
 

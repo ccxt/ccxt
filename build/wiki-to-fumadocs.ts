@@ -175,6 +175,9 @@ function rewriteLinks (md: string): string {
             (m, text, ex) => (live.has(ex) ? m : text));
     }
 
+    // generator gap: methods with no exchange context emit /exchanges/<anonymous>.md — unlink.
+    s = s.replace(/\[([^\]]+)\]\(\/?(?:docs\/)?exchanges\/(?:&lt;anonymous&gt;|<anonymous>)\.md(?:#[\w-]+)?\)/g, '$1');
+
     // absolute exchange links: /exchanges/<ex>.md(#m)
     s = s.replace(/\/exchanges\/([\w]+)\.md(#[\w-]+)?/g,
         (_m, ex, frag) => `/docs/exchanges/${ex}${frag ?? ''}`);
@@ -187,6 +190,8 @@ function rewriteLinks (md: string): string {
     s = s.replace(/\]\((?:\.\/)?examples\/(js|py|ts|php|cs|go|java)\/([\w.\-]+)\.md\)/g, '](/docs/examples/$1/$2)');
     // example dir links: ./examples/<lang>/ -> /docs/examples/<lang>
     s = s.replace(/\]\((?:\.\/)?examples\/(js|py|ts|php|cs|go|java)\/?\)/g, '](/docs/examples/$1)');
+    // absolute example links missing the /docs prefix: /examples/<lang>(/file) -> /docs/examples/...
+    s = s.replace(/\]\(\/examples\/(js|py|ts|php|cs|go|java)((?:\/[^)]*)?)\)/g, '](/docs/examples/$1$2)');
 
     // relative guide query-anchor: ](Examples?id=js) / ](Manual?id=x) etc.
     s = s.replace(/\]\((?:\.\/)?([\w.\-]+)\?id=([\w-]+)\)/g, (_m, page, anchor) => {
