@@ -50,7 +50,7 @@ export default class nado extends Exchange {
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'withdraw': false,
             },
@@ -79,6 +79,7 @@ export default class nado extends Exchange {
                         'get': {
                             'symbols': 2,
                             'query': 1,
+                            'edge/query': 1,
                         },
                         'post': {
                             'query': 1,
@@ -156,6 +157,30 @@ export default class nado extends Exchange {
                 'broad': {},
             },
         });
+    }
+
+    /**
+     * @method
+     * @name nado#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/edge#control-messages
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    async fetchTime (params = {}): Promise<Int> {
+        const request: Dict = {
+            'type': 'time',
+        };
+        const response = await this.gatewayPublicGetEdgeQuery (this.extend (request, params));
+        //
+        //     {
+        //         "status": "success",
+        //         "method": "time",
+        //         "id": 2,
+        //         "server_time": "1780000000123"
+        //     }
+        //
+        return this.safeInteger (response, 'server_time');
     }
 
     /**

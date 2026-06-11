@@ -2,6 +2,20 @@
     "exchange": "nado",
     "skipKeys": [],
     "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "status": "success",
+                    "method": "time",
+                    "id": 2,
+                    "server_time": "1780000000123"
+                },
+                "parsedResponse": 1780000000123
+            }
+        ],
         "fetchStatus": [
             {
                 "description": "fetchStatus",
