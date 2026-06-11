@@ -1,0 +1,248 @@
+{
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "fetch server time",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "iso": "2026-05-22T09:33:52.522Z",
+                    "epoch": "1779442432"
+                },
+                "parsedResponse": 1779442432000
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetch ticker for a swap market",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTC-PERP",
+                        "last": "77203.3",
+                        "lowestAsk": "77203.3",
+                        "highestBid": "77199.3",
+                        "openInterest": "70510904",
+                        "openInterestUSD": "54436744.74",
+                        "percentageChange": "-0.5009",
+                        "volume": "503334224.764866",
+                        "high24Hr": "78056",
+                        "low24Hr": "76693.5",
+                        "base": "BTC",
+                        "quote": "USDT",
+                        "contractStart": "0",
+                        "contractEnd": "0",
+                        "active": true,
+                        "timeBasedContract": false,
+                        "fundingRate": "0.00005104",
+                        "contractSize": "0.00001",
+                        "minValidPrice": "0.1",
+                        "minPriceIncrement": "0.1",
+                        "minOrderSize": "1",
+                        "maxOrderSize": "7500000",
+                        "minSizeIncrement": "1"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 78056,
+                    "low": 76693.5,
+                    "bid": 77199.3,
+                    "bidVolume": null,
+                    "ask": 77203.3,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 77591.95811821414,
+                    "close": 77203.3,
+                    "last": 77203.3,
+                    "previousClose": null,
+                    "change": -388.6581182141346,
+                    "percentage": -0.5009,
+                    "average": 77397.6,
+                    "baseVolume": null,
+                    "quoteVolume": 503334224.764866,
+                    "info": {
+                        "symbol": "BTC-PERP",
+                        "last": "77203.3",
+                        "lowestAsk": "77203.3",
+                        "highestBid": "77199.3",
+                        "openInterest": "70510904",
+                        "openInterestUSD": "54436744.74",
+                        "percentageChange": "-0.5009",
+                        "volume": "503334224.764866",
+                        "high24Hr": "78056",
+                        "low24Hr": "76693.5",
+                        "base": "BTC",
+                        "quote": "USDT",
+                        "contractStart": "0",
+                        "contractEnd": "0",
+                        "active": true,
+                        "timeBasedContract": false,
+                        "fundingRate": "0.00005104",
+                        "contractSize": "0.00001",
+                        "minValidPrice": "0.1",
+                        "minPriceIncrement": "0.1",
+                        "minOrderSize": "1",
+                        "maxOrderSize": "7500000",
+                        "minSizeIncrement": "1"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch order book for a spot market",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "buyQuote": [
+                        {"price": "61500.0", "size": "0.5"},
+                        {"price": "61490.0", "size": "1.2"}
+                    ],
+                    "sellQuote": [
+                        {"price": "61510.0", "size": "0.3"},
+                        {"price": "61520.0", "size": "0.8"}
+                    ],
+                    "timestamp": 1748750400000,
+                    "symbol": "BTC-USDT"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "bids": [
+                        [61500, 0.5],
+                        [61490, 1.2]
+                    ],
+                    "asks": [
+                        [61510, 0.3],
+                        [61520, 0.8]
+                    ],
+                    "timestamp": 1748750400000,
+                    "datetime": "2025-06-01T04:00:00.000Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch OHLCV for a spot market with 1m timeframe",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1m"
+                ],
+                "httpResponse": [
+                    [1748750400, 77000.0, 77500.0, 76800.0, 77200.0, 5.5]
+                ],
+                "parsedResponse": [
+                    [1748750400000, 77000, 77500, 76800, 77200, 5.5]
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch public trades for a spot market",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "tradeId": "12345",
+                        "timestamp": 1748750400000,
+                        "side": "sell",
+                        "price": "77203.3",
+                        "size": "0.01",
+                        "symbol": "BTC-USDT"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "12345",
+                        "timestamp": 1748750400000,
+                        "datetime": "2025-06-01T04:00:00.000Z",
+                        "symbol": "BTC/USDT",
+                        "order": null,
+                        "type": "limit",
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 77203.3,
+                        "amount": 0.01,
+                        "cost": 772.033,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": [],
+                        "info": {
+                            "tradeId": "12345",
+                            "timestamp": 1748750400000,
+                            "side": "sell",
+                            "price": "77203.3",
+                            "size": "0.01",
+                            "symbol": "BTC-USDT"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate for a swap market",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTC-PERP",
+                        "last": "77203.3",
+                        "lowestAsk": "77203.3",
+                        "highestBid": "77199.3",
+                        "fundingRate": "0.00005104",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "contractSize": "0.00001"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.00005104,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "info": {
+                        "symbol": "BTC-PERP",
+                        "last": "77203.3",
+                        "lowestAsk": "77203.3",
+                        "highestBid": "77199.3",
+                        "fundingRate": "0.00005104",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "contractSize": "0.00001"
+                    }
+                }
+            }
+        ]
+    },
+    "options": {}
+}
