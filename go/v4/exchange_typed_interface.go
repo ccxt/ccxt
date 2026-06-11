@@ -229,9 +229,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "apex":
 		itf := NewApex(options)
 		return itf
-	case "arkham":
-		itf := NewArkham(options)
-		return itf
 	case "ascendex":
 		itf := NewAscendex(options)
 		return itf
