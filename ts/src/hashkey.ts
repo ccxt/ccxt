@@ -1174,65 +1174,64 @@ export default class hashkey extends Exchange {
         //         ]
         //     }
         //
-        const result: Dict = {};
-        for (let i = 0; i < coins.length; i++) {
-            const currecy = coins[i];
-            const currencyId = this.safeString (currecy, 'coinId');
-            const code = this.safeCurrencyCode (currencyId);
-            const networks = this.safeList (currecy, 'chainTypes');
-            const parsedNetworks: Dict = {};
-            for (let j = 0; j < networks.length; j++) {
-                const network = networks[j];
-                const networkId = this.safeString (network, 'chainType');
-                const networkCode = this.networkCodeToId (networkId);
-                parsedNetworks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber (network, 'minWithdrawQuantity'),
-                            'max': this.parseNumber (this.omitZero (this.safeString (network, 'maxWithdrawQuantity'))),
-                        },
-                        'deposit': {
-                            'min': this.safeNumber (network, 'minDepositQuantity'),
-                            'max': undefined,
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': this.safeBool (network, 'allowDeposit'),
-                    'withdraw': this.safeBool (network, 'allowWithdraw'),
-                    'fee': this.safeNumber (network, 'withdrawFee'),
-                    'precision': undefined,
-                    'info': network,
-                };
-            }
-            const rawType = this.safeString (currecy, 'tokenType');
-            const type = (rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
-            result[code] = this.safeCurrencyStructure ({
-                'id': currencyId,
-                'code': code,
-                'precision': undefined,
-                'type': type,
-                'name': this.safeString (currecy, 'coinFullName'),
-                'active': undefined,
-                'deposit': this.safeBool (currecy, 'allowDeposit'),
-                'withdraw': this.safeBool (currecy, 'allowWithdraw'),
-                'fee': undefined,
+        return this.parseCurrencies (coins);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const currencyId = this.safeString (rawCurrency, 'coinId');
+        const code = this.safeCurrencyCode (currencyId);
+        const networks = this.safeList (rawCurrency, 'chainTypes');
+        const parsedNetworks: Dict = {};
+        for (let j = 0; j < networks.length; j++) {
+            const network = networks[j];
+            const networkId = this.safeString (network, 'chainType');
+            const networkCode = this.networkCodeToId (networkId, code);
+            parsedNetworks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.safeNumber (network, 'minWithdrawQuantity'),
+                        'max': this.parseNumber (this.omitZero (this.safeString (network, 'maxWithdrawQuantity'))),
+                    },
+                    'deposit': {
+                        'min': this.safeNumber (network, 'minDepositQuantity'),
                         'max': undefined,
                     },
                 },
-                'networks': parsedNetworks,
-                'info': currecy,
-            });
+                'active': undefined,
+                'deposit': this.safeBool (network, 'allowDeposit'),
+                'withdraw': this.safeBool (network, 'allowWithdraw'),
+                'fee': this.safeNumber (network, 'withdrawFee'),
+                'precision': undefined,
+                'info': network,
+            };
         }
-        return result;
+        const rawType = this.safeString (rawCurrency, 'tokenType');
+        const type = (rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
+        return this.safeCurrencyStructure ({
+            'id': currencyId,
+            'code': code,
+            'precision': undefined,
+            'type': type,
+            'name': this.safeString (rawCurrency, 'coinFullName'),
+            'active': undefined,
+            'deposit': this.safeBool (rawCurrency, 'allowDeposit'),
+            'withdraw': this.safeBool (rawCurrency, 'allowWithdraw'),
+            'fee': undefined,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': parsedNetworks,
+            'info': rawCurrency,
+        });
     }
 
     /**
@@ -2072,7 +2071,7 @@ export default class hashkey extends Exchange {
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chainType'] = this.networkCodeToId (networkCode);
+            request['chainType'] = this.networkCodeToId (networkCode, currency['code']);
         }
         const response = await this.privatePostApiV1AccountWithdraw (this.extend (request, params));
         //

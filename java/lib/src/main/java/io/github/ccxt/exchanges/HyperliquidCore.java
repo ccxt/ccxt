@@ -493,60 +493,60 @@ public class HyperliquidCore extends HyperliquidApi
             Object tokens = this.safeList(response, "tokens", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             // const meta = this.safeList (response, 'universe', []);
             Helpers.addElementToObject(this.options, "cachedCurrenciesById", new java.util.HashMap<String, Object>() {{}}); // used to map hip3 markets
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tokens)); i++)
-            {
-                Object data = this.safeDict(tokens, i, new java.util.HashMap<String, Object>() {{}});
-                // const id = i;
-                Object id = this.safeString(data, "index");
-                Object name = this.safeString(data, "name");
-                Object code = this.safeCurrencyCode(name);
-                Helpers.addElementToObject(Helpers.GetValue(this.options, "cachedCurrenciesById"), id, name);
-                final Object finalName = name;
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", id );
-        put( "name", finalName );
-        put( "code", code );
-        put( "precision", HyperliquidCore.this.parsePrecision(HyperliquidCore.this.safeString(data, "weiDecimals")) );
-        put( "info", data );
-        put( "active", null );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "networks", null );
-        put( "fee", null );
-        put( "type", "crypto" );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-    }}));
-                // add in wrapped map
-                Object fullName = this.safeString(data, "fullName");
-                if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(fullName, null)) && Helpers.isTrue(!Helpers.isEqual(name, null))))
-                {
-                    Object isWrapped = Helpers.isTrue(((String)fullName).startsWith(((String)"Unit "))) && Helpers.isTrue(((String)name).startsWith(((String)"U")));
-                    if (Helpers.isTrue(isWrapped))
-                    {
-                        Object parts = Helpers.split(name, "U");
-                        Object nameWithoutU = "";
-                        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(parts)); j++)
-                        {
-                            nameWithoutU = Helpers.add(nameWithoutU, Helpers.GetValue(parts, j));
-                        }
-                        Object baseCode = this.safeCurrencyCode(nameWithoutU);
-                        Helpers.addElementToObject(Helpers.GetValue(this.options, "spotCurrencyMapping"), code, baseCode);
-                    }
-                }
-            }
-            return result;
+            return this.parseCurrencies(tokens);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        // const id = i;
+        Object id = this.safeString(rawCurrency, "index");
+        Object name = this.safeString(rawCurrency, "name");
+        Object code = this.safeCurrencyCode(name);
+        Helpers.addElementToObject(Helpers.GetValue(this.options, "cachedCurrenciesById"), id, name);
+        final Object finalName = name;
+        Object result = this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", id );
+            put( "name", finalName );
+            put( "code", code );
+            put( "precision", HyperliquidCore.this.parsePrecision(HyperliquidCore.this.safeString(rawCurrency, "weiDecimals")) );
+            put( "info", rawCurrency );
+            put( "active", null );
+            put( "deposit", null );
+            put( "withdraw", null );
+            put( "networks", null );
+            put( "fee", null );
+            put( "type", "crypto" );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "amount", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }} );
+        }});
+        // add in wrapped map
+        Object fullName = this.safeString(rawCurrency, "fullName");
+        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(fullName, null)) && Helpers.isTrue(!Helpers.isEqual(name, null))))
+        {
+            Object isWrapped = Helpers.isTrue(((String)fullName).startsWith(((String)"Unit "))) && Helpers.isTrue(((String)name).startsWith(((String)"U")));
+            if (Helpers.isTrue(isWrapped))
+            {
+                Object parts = Helpers.split(name, "U");
+                Object nameWithoutU = "";
+                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(parts)); j++)
+                {
+                    nameWithoutU = Helpers.add(nameWithoutU, Helpers.GetValue(parts, j));
+                }
+                Object baseCode = this.safeCurrencyCode(nameWithoutU);
+                Helpers.addElementToObject(Helpers.GetValue(this.options, "spotCurrencyMapping"), code, baseCode);
+            }
+        }
+        return result;
     }
 
     /**

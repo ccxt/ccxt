@@ -854,7 +854,7 @@ class whitebit(ccxt.async_support.whitebit):
                 if 'authenticated' in client.subscriptions:
                     del client.subscriptions['authenticated']
                 return False
-        return message
+        return True
 
     def handle_message(self, client: Client, message):
         #

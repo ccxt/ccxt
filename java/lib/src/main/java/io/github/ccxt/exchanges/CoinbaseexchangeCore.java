@@ -417,7 +417,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         {
             Object network = Helpers.GetValue(supportedNetworks, j);
             Object networkId = this.safeString(network, "id");
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
     put( "name", CoinbaseexchangeCore.this.safeString(network, "name") );
@@ -2268,7 +2268,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             put( "txid", CoinbaseexchangeCore.this.safeString(details, "crypto_transaction_hash") );
             put( "type", finalType );
             put( "currency", code );
-            put( "network", CoinbaseexchangeCore.this.networkIdToCode(networkId) );
+            put( "network", CoinbaseexchangeCore.this.networkIdToCode(networkId, code) );
             put( "amount", finalAmount );
             put( "status", CoinbaseexchangeCore.this.parseTransactionStatus(transaction) );
             put( "timestamp", timestamp );

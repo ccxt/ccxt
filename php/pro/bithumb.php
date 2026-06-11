@@ -266,7 +266,7 @@ class bithumb extends \ccxt\async\bithumb {
         //
         $sideId = $this->safe_string($delta, 'orderType');
         $side = ($sideId === 'bid') ? 'bids' : 'asks';
-        $bidAsk = $this->parse_bid_ask($delta, 'price', 'quantity');
+        $bidAsk = $this->parse_order_book_bid_ask($delta, 'price', 'quantity');
         $orderbookSide = $orderbook[$side];
         $orderbookSide->storeArray ($bidAsk);
     }

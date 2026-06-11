@@ -520,39 +520,38 @@ export default class latoken extends Exchange {
         //         },
         //     ]
         //
-        const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString (currency, 'id');
-            const tag = this.safeString (currency, 'tag');
-            const code = this.safeCurrencyCode (tag);
-            const currencyType = this.safeString (currency, 'type');
-            const isCrypto = (currencyType === 'CURRENCY_TYPE_CRYPTO' || currencyType === 'CURRENCY_TYPE_IEO');
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': this.safeString (currency, 'name'),
-                'type': isCrypto ? 'crypto' : 'other',
-                'active': this.safeString (currency, 'status') === 'CURRENCY_STATUS_ACTIVE',
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': this.safeNumber (currency, 'fee'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals'))),
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber (currency, 'minTransferAmount'),
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+        return this.parseCurrencies (response);
+    }
+
+    parseCurrency (currency: Dict): Currency {
+        const id = this.safeString (currency, 'id');
+        const tag = this.safeString (currency, 'tag');
+        const code = this.safeCurrencyCode (tag);
+        const currencyType = this.safeString (currency, 'type');
+        const isCrypto = (currencyType === 'CURRENCY_TYPE_CRYPTO' || currencyType === 'CURRENCY_TYPE_IEO');
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'code': code,
+            'info': currency,
+            'name': this.safeString (currency, 'name'),
+            'type': isCrypto ? 'crypto' : 'other',
+            'active': this.safeString (currency, 'status') === 'CURRENCY_STATUS_ACTIVE',
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': this.safeNumber (currency, 'fee'),
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals'))),
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber (currency, 'minTransferAmount'),
+                    'max': undefined,
                 },
-                'networks': {},
-            });
-        }
-        return result;
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': {},
+        });
     }
 
     /**

@@ -513,10 +513,10 @@ public class XtCore extends XtApi
                 put( "networks", new java.util.HashMap<String, Object>() {{
                     put( "ERC20", "Ethereum" );
                     put( "TRC20", "Tron" );
+                    put( "TRX", "Tron" );
                     put( "BEP20", "BNB Smart Chain" );
                     put( "BEP2", "BNB-BEP2" );
                     put( "ETH", "Ethereum" );
-                    put( "TRON", "Tron" );
                     put( "BNB", "BNB Smart Chain" );
                     put( "AVAX", "AVAX C-Chain" );
                     put( "GAL", "GAL(FT)" );

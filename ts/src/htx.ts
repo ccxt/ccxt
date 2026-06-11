@@ -189,7 +189,7 @@ export default class htx extends Exchange {
                 },
                 'www': 'https://www.huobi.com',
                 'referral': {
-                    'url': 'https://www.htx.com.vc/invite/en-us/1h?invite_code=6rmm2223',
+                    'url': 'https://www.htx.com/invite/en-us/1h?invite_code=6rmm2223',
                     'discount': 0.15,
                 },
                 'doc': [
@@ -1193,6 +1193,9 @@ export default class htx extends Exchange {
                     // 'ONT': [ 'ONT', 'ONTOLOGY' ],
                     // 'BCC': 'BCC', BCH's somewhat chain
                     // 'DBC1': 'DBC1',
+                },
+                'networksById': {
+                    'MATIC': 'MATIC',
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
@@ -3440,75 +3443,80 @@ export default class htx extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []);
-        const result: Dict = {};
-        this.options['networkChainIdsByNames'] = {};
         this.options['networkNamesByChainIds'] = {};
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const currencyId = this.safeString (entry, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const assetType = this.safeString (entry, 'assetType');
-            const type = assetType === '1' ? 'crypto' : 'fiat';
-            this.options['networkChainIdsByNames'][code] = {};
-            const chains = this.safeList (entry, 'chains', []);
-            const networks: Dict = {};
-            for (let j = 0; j < chains.length; j++) {
-                const chainEntry = chains[j];
-                const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
-                const title = this.safeString2 (chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
-                this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
-                this.options['networkNamesByChainIds'][uniqueChainId] = title;
-                const networkCode = this.networkIdToCode (uniqueChainId);
-                networks[networkCode] = {
-                    'info': chainEntry,
-                    'id': uniqueChainId,
-                    'network': networkCode,
-                    'limits': {
-                        'deposit': {
-                            'min': this.safeNumber (chainEntry, 'minDepositAmt'),
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': this.safeNumber (chainEntry, 'minWithdrawAmt'),
-                            'max': this.safeNumber (chainEntry, 'maxWithdrawAmt'),
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': this.safeString (chainEntry, 'depositStatus') === 'allowed',
-                    'withdraw': this.safeString (chainEntry, 'withdrawStatus') === 'allowed',
-                    'fee': this.safeNumber (chainEntry, 'transactFeeWithdraw'),
-                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chainEntry, 'withdrawPrecision'))),
-                };
-            }
-            result[code] = this.safeCurrencyStructure ({
-                'info': entry,
-                'code': code,
-                'id': currencyId,
-                'active': this.safeString (entry, 'instStatus') === 'normal',
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'name': undefined,
-                'type': type,
+        this.options['networkChainIdsByNames'] = {};
+        return this.parseCurrencies (data);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        if (!('networkNamesByChainIds' in this.options)) {
+            this.options['networkNamesByChainIds'] = {};
+        }
+        if (!('networkChainIdsByNames' in this.options)) {
+            this.options['networkChainIdsByNames'] = {};
+        }
+        const currencyId = this.safeString (rawCurrency, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const assetType = this.safeString (rawCurrency, 'assetType');
+        const type = (assetType === '1') ? 'crypto' : 'fiat';
+        this.options['networkChainIdsByNames'][code] = {};
+        const chains = this.safeList (rawCurrency, 'chains', []);
+        const networks: Dict = {};
+        for (let j = 0; j < chains.length; j++) {
+            const chainEntry = chains[j];
+            const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
+            const title = this.safeString2 (chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
+            this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
+            this.options['networkNamesByChainIds'][uniqueChainId] = title;
+            const networkCode = this.networkIdToCode (uniqueChainId, code);
+            networks[networkCode] = {
+                'info': chainEntry,
+                'id': uniqueChainId,
+                'network': networkCode,
                 'limits': {
-                    'amount': {
-                        'min': undefined,
+                    'deposit': {
+                        'min': this.safeNumber (chainEntry, 'minDepositAmt'),
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber (chainEntry, 'minWithdrawAmt'),
+                        'max': this.safeNumber (chainEntry, 'maxWithdrawAmt'),
                     },
                 },
-                'precision': undefined,
-                'networks': networks,
-            });
+                'active': undefined,
+                'deposit': this.safeString (chainEntry, 'depositStatus') === 'allowed',
+                'withdraw': this.safeString (chainEntry, 'withdrawStatus') === 'allowed',
+                'fee': this.safeNumber (chainEntry, 'transactFeeWithdraw'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (chainEntry, 'withdrawPrecision'))),
+            };
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'active': this.safeString (rawCurrency, 'instStatus') === 'normal',
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'name': undefined,
+            'type': type,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'precision': undefined,
+            'networks': networks,
+        });
     }
 
     networkIdToCode (networkId: Str = undefined, currencyCode: Str = undefined) {
@@ -3519,7 +3527,7 @@ export default class htx extends Exchange {
             throw new ExchangeError (this.id + ' networkIdToCode() - markets need to be loaded at first');
         }
         const networkTitle = this.safeValue (this.options['networkNamesByChainIds'], networkId, networkId);
-        return super.networkIdToCode (networkTitle);
+        return super.networkIdToCode (networkTitle, currencyCode);
     }
 
     networkCodeToId (networkCode: string, currencyCode: Str = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
@@ -3535,7 +3543,7 @@ export default class htx extends Exchange {
         if (networkCode in uniqueNetworkIds) {
             return uniqueNetworkIds[networkCode];
         } else {
-            const networkTitle = super.networkCodeToId (networkCode);
+            const networkTitle = super.networkCodeToId (networkCode, currencyCode);
             return this.safeValue (uniqueNetworkIds, networkTitle, networkTitle);
         }
     }
@@ -6426,7 +6434,7 @@ export default class htx extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': this.networkIdToCode (networkId),
+            'network': this.networkIdToCode (networkId, code),
             'note': note,
             'info': depositAddress,
         };
@@ -6713,7 +6721,7 @@ export default class htx extends Exchange {
             'txid': txHash,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.networkIdToCode (networkId),
+            'network': this.networkIdToCode (networkId, code),
             'address': this.safeString (transaction, 'address'),
             'addressTo': undefined,
             'addressFrom': undefined,
@@ -9232,12 +9240,13 @@ export default class htx extends Exchange {
         //          }
         //
         const chains = this.safeValue (fee, 'chains', []);
+        const code = this.safeString (currency, 'code');
         let result = this.depositWithdrawFee (fee);
         for (let j = 0; j < chains.length; j++) {
             const chainEntry = chains[j];
             const networkId = this.safeString (chainEntry, 'chain');
             const withdrawFeeType = this.safeString (chainEntry, 'withdrawFeeType');
-            const networkCode = this.networkIdToCode (networkId);
+            const networkCode = this.networkIdToCode (networkId, code);
             let withdrawFee = undefined;
             let withdrawResult = undefined;
             if (withdrawFeeType === 'fixed') {

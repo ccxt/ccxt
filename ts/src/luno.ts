@@ -332,39 +332,20 @@ export default class luno extends Exchange {
         //     }
         //
         const currenciesData = this.safeList (response, 'data', []);
-        const result: Dict = {};
-        for (let i = 0; i < currenciesData.length; i++) {
-            const networkEntry = currenciesData[i];
-            const id = this.safeString (networkEntry, 'native_currency');
-            const code = this.safeCurrencyCode (id);
-            if (!(code in result)) {
-                result[code] = {
-                    'id': id,
-                    'code': code,
-                    'precision': undefined,
-                    'type': undefined,
-                    'name': undefined,
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                    'networks': {},
-                    'info': {},
-                };
-            }
+        const grouped = this.groupBy (currenciesData, 'native_currency');
+        const values = Object.values (grouped);
+        return this.parseCurrencies (values);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const id = this.safeString (rawCurrency[0], 'native_currency'); // first item is guaranteed
+        const code = this.safeCurrencyCode (id);
+        const networks = {};
+        for (let i = 0; i < rawCurrency.length; i++) {
+            const networkEntry = rawCurrency[i];
             const networkId = this.safeString (networkEntry, 'name');
-            const networkCode = this.networkIdToCode (networkId);
-            result[code]['networks'][networkCode] = {
+            const networkCode = this.networkIdToCode (networkId, code);
+            networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
                 'limits': {
@@ -384,18 +365,30 @@ export default class luno extends Exchange {
                 'precision': undefined,
                 'info': networkEntry,
             };
-            // add entry in info
-            const info = this.safeList (result[code], 'info', []);
-            info.push (networkEntry);
-            result[code]['info'] = info;
         }
-        // only after all entries are formed in currencies, restructure each entry
-        const allKeys = Object.keys (result);
-        for (let i = 0; i < allKeys.length; i++) {
-            const code = allKeys[i];
-            result[code] = this.safeCurrencyStructure (result[code]); // this is needed after adding network entry
-        }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'code': code,
+            'precision': undefined,
+            'type': undefined,
+            'name': undefined,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'limits': {
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+            'info': rawCurrency,
+        });
     }
 
     /**

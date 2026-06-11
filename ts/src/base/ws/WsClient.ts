@@ -46,7 +46,11 @@ export default class WsClient extends Client {
             this.options['headers'] = Object.assign (this.options['headers'] || {}, connectionHeaders);
         }
         if (isNode) {
-            this.connection = new WebSocketPlatform (this.url, this.protocols, this.options)
+            // this patch yields the event loop between messages
+            // which prevents starving futures with multiple synchronous message events
+            this.options = this.options || {};
+            this.options['allowSynchronousEvents'] = false;
+            this.connection = new WebSocketPlatform (this.url, this.protocols, this.options);
         } else {
             this.connection = new WebSocketPlatform (this.url, this.protocols)
             this.connection.binaryType = "arraybuffer"; // for browsers not to use blob by default

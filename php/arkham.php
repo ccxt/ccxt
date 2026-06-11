@@ -490,7 +490,7 @@ class arkham extends Exchange {
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'symbol');
-                $network = $this->network_id_to_code($networkId);
+                $network = $this->network_id_to_code($networkId, $code);
                 $networks[$network] = array(
                     'info' => $chain,
                     'id' => $networkId,
@@ -1828,7 +1828,7 @@ class arkham extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddressesByNetwork() requires a "network" param');
         }
         $request = array(
-            'chain' => $this->network_code_to_id($networkCode),
+            'chain' => $this->network_code_to_id($networkCode, $code),
         );
         $response = $this->v1PrivateGetAccountDepositAddresses ($this->extend($request, $params));
         //
@@ -1949,7 +1949,7 @@ class arkham extends Exchange {
             'txid' => $this->safe_string($transaction, 'transactionHash'),
             'type' => null,
             'currency' => $code,
-            'network' => $this->network_id_to_code($this->safe_string($transaction, 'chain')),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'chain'), $code),
             'amount' => $this->safe_number($transaction, 'amount'),
             'status' => $status,
             'timestamp' => $timestamp,

@@ -5,7 +5,7 @@ import sys
 import asyncio
 import time
 from pprint import pprint
-from datetime import datetime
+from datetime import datetime, timezone
 
 # -----------------------------------------------------------------------------
 
@@ -69,7 +69,7 @@ async def main():
 
     end = time.time()
     duration = str(int((end - start) * 1000))
-    now = str(datetime.utcnow().isoformat())
+    now = str(datetime.now(timezone.utc).isoformat())
 
     print('python', sys.version)
     print('CCXT Version:', ccxt.__version__)

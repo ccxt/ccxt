@@ -2779,14 +2779,23 @@ export default class poloniex extends Exchange {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        const [request, extraParams, currency, networkEntry] = this.prepareRequestForDepositAddress(code, params);
-        params = extraParams;
-        request['amount'] = this.currencyToPrecision(code, amount);
-        request['address'] = address;
+        const currency = this.currency(code);
+        const request = {
+            'coin': currency['id'],
+            'amount': this.currencyToPrecision(code, amount),
+            'address': address,
+        };
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode === undefined) {
+            // we need to know the network to find out the currency-junction
+            throw new ArgumentsRequired(this.id + ' withdraw requires a network parameter for ' + code + '.');
+        }
+        request['network'] = this.networkCodeToId(networkCode, code);
         if (tag !== undefined) {
             request['paymentId'] = tag;
         }
-        const response = await this.privatePostWalletsWithdraw(this.extend(request, params));
+        const response = await this.privatePostV2WalletsWithdraw(this.extend(request, params));
         //
         //     {
         //         "response": "Withdrew 1.00000000 USDT.",
@@ -2794,11 +2803,7 @@ export default class poloniex extends Exchange {
         //         "withdrawalNumber": 13449869
         //     }
         //
-        const withdrawResponse = {
-            'response': response,
-            'withdrawNetworkEntry': networkEntry,
-        };
-        return this.parseTransaction(withdrawResponse, currency);
+        return this.parseTransaction(response, currency);
     }
     async fetchTransactionsHelper(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -3011,7 +3016,7 @@ export default class poloniex extends Exchange {
                     for (let j = 0; j < childChains.length; j++) {
                         let networkId = childChains[j];
                         networkId = networkId.replace(code, '');
-                        const networkCode = this.networkIdToCode(networkId);
+                        const networkCode = this.networkIdToCode(networkId, currency['code']);
                         const networkInfo = this.safeValue(response, networkId);
                         const networkObject = {};
                         const withdrawFee = this.safeNumber(networkInfo, 'withdrawalFee');
@@ -3047,7 +3052,7 @@ export default class poloniex extends Exchange {
         };
         depositWithdrawFee['withdraw'] = withdrawResult;
         depositWithdrawFee['deposit'] = depositResult;
-        const networkCode = this.networkIdToCode(networkId);
+        const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
         depositWithdrawFee['networks'][networkCode] = {
             'withdraw': withdrawResult,
             'deposit': depositResult,

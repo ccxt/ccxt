@@ -205,7 +205,7 @@ class htx(Exchange, ImplicitAPI):
                 },
                 'www': 'https://www.huobi.com',
                 'referral': {
-                    'url': 'https://www.htx.com.vc/invite/en-us/1h?invite_code=6rmm2223',
+                    'url': 'https://www.htx.com/invite/en-us/1h?invite_code=6rmm2223',
                     'discount': 0.15,
                 },
                 'doc': [
@@ -1209,6 +1209,9 @@ class htx(Exchange, ImplicitAPI):
                     # 'ONT': ['ONT', 'ONTOLOGY'],
                     # 'BCC': 'BCC', BCH's somewhat chain
                     # 'DBC1': 'DBC1',
+                },
+                'networksById': {
+                    'MATIC': 'MATIC',
                 },
                 # https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders',  # 'spot_private_get_v1_order_history'  # https://github.com/ccxt/ccxt/pull/5392
@@ -3323,73 +3326,76 @@ class htx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_list(response, 'data', [])
-        result: dict = {}
-        self.options['networkChainIdsByNames'] = {}
         self.options['networkNamesByChainIds'] = {}
-        for i in range(0, len(data)):
-            entry = data[i]
-            currencyId = self.safe_string(entry, 'currency')
-            code = self.safe_currency_code(currencyId)
-            assetType = self.safe_string(entry, 'assetType')
-            type = assetType == 'crypto' if '1' else 'fiat'
-            self.options['networkChainIdsByNames'][code] = {}
-            chains = self.safe_list(entry, 'chains', [])
-            networks: dict = {}
-            for j in range(0, len(chains)):
-                chainEntry = chains[j]
-                uniqueChainId = self.safe_string(chainEntry, 'chain')  # i.e. usdterc20, trc20usdt ...
-                title = self.safe_string_2(chainEntry, 'baseChain', 'displayName')  # baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
-                self.options['networkChainIdsByNames'][code][title] = uniqueChainId
-                self.options['networkNamesByChainIds'][uniqueChainId] = title
-                networkCode = self.network_id_to_code(uniqueChainId)
-                networks[networkCode] = {
-                    'info': chainEntry,
-                    'id': uniqueChainId,
-                    'network': networkCode,
-                    'limits': {
-                        'deposit': {
-                            'min': self.safe_number(chainEntry, 'minDepositAmt'),
-                            'max': None,
-                        },
-                        'withdraw': {
-                            'min': self.safe_number(chainEntry, 'minWithdrawAmt'),
-                            'max': self.safe_number(chainEntry, 'maxWithdrawAmt'),
-                        },
-                    },
-                    'active': None,
-                    'deposit': self.safe_string(chainEntry, 'depositStatus') == 'allowed',
-                    'withdraw': self.safe_string(chainEntry, 'withdrawStatus') == 'allowed',
-                    'fee': self.safe_number(chainEntry, 'transactFeeWithdraw'),
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(chainEntry, 'withdrawPrecision'))),
-                }
-            result[code] = self.safe_currency_structure({
-                'info': entry,
-                'code': code,
-                'id': currencyId,
-                'active': self.safe_string(entry, 'instStatus') == 'normal',
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'name': None,
-                'type': type,
+        self.options['networkChainIdsByNames'] = {}
+        return self.parse_currencies(data)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        if not ('networkNamesByChainIds' in self.options):
+            self.options['networkNamesByChainIds'] = {}
+        if not ('networkChainIdsByNames' in self.options):
+            self.options['networkChainIdsByNames'] = {}
+        currencyId = self.safe_string(rawCurrency, 'currency')
+        code = self.safe_currency_code(currencyId)
+        assetType = self.safe_string(rawCurrency, 'assetType')
+        type = 'crypto' if (assetType == '1') else 'fiat'
+        self.options['networkChainIdsByNames'][code] = {}
+        chains = self.safe_list(rawCurrency, 'chains', [])
+        networks: dict = {}
+        for j in range(0, len(chains)):
+            chainEntry = chains[j]
+            uniqueChainId = self.safe_string(chainEntry, 'chain')  # i.e. usdterc20, trc20usdt ...
+            title = self.safe_string_2(chainEntry, 'baseChain', 'displayName')  # baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
+            self.options['networkChainIdsByNames'][code][title] = uniqueChainId
+            self.options['networkNamesByChainIds'][uniqueChainId] = title
+            networkCode = self.network_id_to_code(uniqueChainId, code)
+            networks[networkCode] = {
+                'info': chainEntry,
+                'id': uniqueChainId,
+                'network': networkCode,
                 'limits': {
-                    'amount': {
-                        'min': None,
+                    'deposit': {
+                        'min': self.safe_number(chainEntry, 'minDepositAmt'),
                         'max': None,
                     },
                     'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
+                        'min': self.safe_number(chainEntry, 'minWithdrawAmt'),
+                        'max': self.safe_number(chainEntry, 'maxWithdrawAmt'),
                     },
                 },
-                'precision': None,
-                'networks': networks,
-            })
-        return result
+                'active': None,
+                'deposit': self.safe_string(chainEntry, 'depositStatus') == 'allowed',
+                'withdraw': self.safe_string(chainEntry, 'withdrawStatus') == 'allowed',
+                'fee': self.safe_number(chainEntry, 'transactFeeWithdraw'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(chainEntry, 'withdrawPrecision'))),
+            }
+        return self.safe_currency_structure({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'active': self.safe_string(rawCurrency, 'instStatus') == 'normal',
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'name': None,
+            'type': type,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'precision': None,
+            'networks': networks,
+        })
 
     def network_id_to_code(self, networkId: Str = None, currencyCode: Str = None):
         # here network-id is provided pair of currency & chain(i.e. trc20usdt)
@@ -3398,7 +3404,7 @@ class htx(Exchange, ImplicitAPI):
         if keysLength == 0:
             raise ExchangeError(self.id + ' networkIdToCode() - markets need to be loaded at first')
         networkTitle = self.safe_value(self.options['networkNamesByChainIds'], networkId, networkId)
-        return super(htx, self).network_id_to_code(networkTitle)
+        return super(htx, self).network_id_to_code(networkTitle, currencyCode)
 
     def network_code_to_id(self, networkCode: str, currencyCode: Str = None):
         if currencyCode is None:
@@ -3411,7 +3417,7 @@ class htx(Exchange, ImplicitAPI):
         if networkCode in uniqueNetworkIds:
             return uniqueNetworkIds[networkCode]
         else:
-            networkTitle = super(htx, self).network_code_to_id(networkCode)
+            networkTitle = super(htx, self).network_code_to_id(networkCode, currencyCode)
             return self.safe_value(uniqueNetworkIds, networkTitle, networkTitle)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -6091,7 +6097,7 @@ class htx(Exchange, ImplicitAPI):
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'note': note,
             'info': depositAddress,
         }
@@ -6359,7 +6365,7 @@ class htx(Exchange, ImplicitAPI):
             'txid': txHash,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'address': self.safe_string(transaction, 'address'),
             'addressTo': None,
             'addressFrom': None,
@@ -8744,12 +8750,13 @@ class htx(Exchange, ImplicitAPI):
         #          }
         #
         chains = self.safe_value(fee, 'chains', [])
+        code = self.safe_string(currency, 'code')
         result = self.deposit_withdraw_fee(fee)
         for j in range(0, len(chains)):
             chainEntry = chains[j]
             networkId = self.safe_string(chainEntry, 'chain')
             withdrawFeeType = self.safe_string(chainEntry, 'withdrawFeeType')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             withdrawFee = None
             withdrawResult = None
             if withdrawFeeType == 'fixed':

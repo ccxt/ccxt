@@ -546,7 +546,7 @@ public class AscendexCore extends AscendexApi
         {
             Object networkEtnry = Helpers.GetValue(chains, j);
             Object networkId = this.safeString(networkEtnry, "chainName");
-            Object networkCode = this.networkCodeToId(networkId);
+            Object networkCode = this.networkCodeToId(networkId, code);
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "fee", AscendexCore.this.safeNumber(networkEtnry, "withdrawFee") );
     put( "active", null );
@@ -2894,7 +2894,7 @@ public class AscendexCore extends AscendexApi
             (this.loadMarkets()).join();
             Object currency = this.currency(code);
             Object networkCode = this.safeString2(parameters, "network", "chainName");
-            Object networkId = this.networkCodeToId(networkCode);
+            Object networkId = this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("chainName")));
             final Object finalNetworkId = networkId;
             Object request = new java.util.HashMap<String, Object>() {{

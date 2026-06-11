@@ -833,7 +833,7 @@ func  (this *BlockchaincomCore) HandleOrderBook(client any, message any)  {
     client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func  (this *BlockchaincomCore) HandleDelta(bookside any, delta any)  {
-    var bookArray any = this.ParseBidAsk(delta, "px", "qty", "num")
+    var bookArray any = this.ParseOrderBookBidAsk(delta, "px", "qty", "num")
     bookside.(ccxt.IOrderBookSide).StoreArray(bookArray)
 }
 func  (this *BlockchaincomCore) HandleDeltas(bookside any, deltas any)  {

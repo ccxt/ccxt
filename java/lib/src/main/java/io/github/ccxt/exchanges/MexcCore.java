@@ -1000,60 +1000,59 @@ public class MexcCore extends MexcApi
             //     ]
             //   }
             //
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
-            {
-                Object currency = Helpers.GetValue(response, i);
-                Object id = this.safeString(currency, "coin");
-                Object code = this.safeCurrencyCode(id);
-                Object networks = new java.util.HashMap<String, Object>() {{}};
-                Object chains = this.safeValue(currency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
-                {
-                    Object chain = Helpers.GetValue(chains, j);
-                    Object networkId = this.safeString2(chain, "netWork", "network");
-                    Object network = this.networkIdToCode(networkId);
-                    Helpers.addElementToObject(networks, network, new java.util.HashMap<String, Object>() {{
-        put( "info", chain );
-        put( "id", networkId );
-        put( "network", network );
-        put( "active", null );
-        put( "deposit", MexcCore.this.safeBool(chain, "depositEnable", false) );
-        put( "withdraw", MexcCore.this.safeBool(chain, "withdrawEnable", false) );
-        put( "fee", MexcCore.this.safeNumber(chain, "withdrawFee") );
-        put( "precision", null );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", MexcCore.this.safeString(chain, "withdrawMin") );
-                put( "max", MexcCore.this.safeString(chain, "withdrawMax") );
-            }} );
-        }} );
-        put( "contract", MexcCore.this.safeString(chain, "contract") );
-    }});
-                }
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "info", currency );
-        put( "id", id );
-        put( "code", code );
-        put( "name", MexcCore.this.safeString(currency, "name") );
-        put( "active", null );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "fee", null );
-        put( "precision", null );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "type", "crypto" );
-        put( "networks", networks );
-    }}));
-            }
-            return result;
+            return this.parseCurrencies(response);
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object id = this.safeString(rawCurrency, "coin");
+        Object code = this.safeCurrencyCode(id);
+        Object networks = new java.util.HashMap<String, Object>() {{}};
+        Object chains = this.safeValue(rawCurrency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
+        {
+            Object chain = Helpers.GetValue(chains, j);
+            Object networkId = this.safeString2(chain, "netWork", "network");
+            Object network = this.networkIdToCode(networkId, code);
+            Helpers.addElementToObject(networks, network, new java.util.HashMap<String, Object>() {{
+    put( "info", chain );
+    put( "id", networkId );
+    put( "network", network );
+    put( "active", null );
+    put( "deposit", MexcCore.this.safeBool(chain, "depositEnable", false) );
+    put( "withdraw", MexcCore.this.safeBool(chain, "withdrawEnable", false) );
+    put( "fee", MexcCore.this.safeNumber(chain, "withdrawFee") );
+    put( "precision", null );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", MexcCore.this.safeString(chain, "withdrawMin") );
+            put( "max", MexcCore.this.safeString(chain, "withdrawMax") );
+        }} );
+    }} );
+    put( "contract", MexcCore.this.safeString(chain, "contract") );
+}});
+        }
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "info", rawCurrency );
+            put( "id", id );
+            put( "code", code );
+            put( "name", MexcCore.this.safeString(rawCurrency, "name") );
+            put( "active", null );
+            put( "deposit", null );
+            put( "withdraw", null );
+            put( "fee", null );
+            put( "precision", null );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "amount", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "type", "crypto" );
+            put( "networks", networks );
+        }});
     }
 
     /**
@@ -1438,7 +1437,7 @@ public class MexcCore extends MexcApi
 
     }
 
-    public Object parseBidAsk(Object bidask, Object... optionalArgs)
+    public Object parseOrderBookBidAsk(Object bidask, Object... optionalArgs)
     {
         Object priceKey = Helpers.getArg(optionalArgs, 0, 0);
         Object amountKey = Helpers.getArg(optionalArgs, 1, 1);
@@ -5011,11 +5010,12 @@ final Object finalRiskIncrVol = riskIncrVol;
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object address = this.safeString(depositAddress, "address");
         Object currencyId = this.safeString(depositAddress, "coin");
+        Object code = this.safeCurrencyCode(currencyId, currency);
         Object networkId = this.safeString(depositAddress, "netWork");
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", MexcCore.this.safeCurrencyCode(currencyId, currency) );
-            put( "network", MexcCore.this.networkIdToCode(networkId, currencyId) );
+            put( "currency", code );
+            put( "network", MexcCore.this.networkIdToCode(networkId, code) );
             put( "address", address );
             put( "tag", MexcCore.this.safeString(depositAddress, "memo") );
         }};
@@ -5390,13 +5390,13 @@ final Object finalRiskIncrVol = riskIncrVol;
         {
             currencyId = Helpers.GetValue(Helpers.split(currencyWithNetwork, "-"), 0);
         }
+        Object code = this.safeCurrencyCode(currencyId, currency);
         Object network = null;
         Object rawNetwork = this.safeString(transaction, "network");
         if (Helpers.isTrue(!Helpers.isEqual(rawNetwork, null)))
         {
-            network = this.networkIdToCode(rawNetwork);
+            network = this.networkIdToCode(rawNetwork, code);
         }
-        Object code = this.safeCurrencyCode(currencyId, currency);
         Object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         Object amountString = this.safeString(transaction, "amount");
         Object address = this.safeString(transaction, "address");

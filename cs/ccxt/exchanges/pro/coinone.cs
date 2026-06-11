@@ -133,7 +133,7 @@ public partial class coinone : ccxt.coinone
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseBidAsk(delta, "price", "qty");
+        object bidAsk = this.parseOrderBookBidAsk(delta, "price", "qty");
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 

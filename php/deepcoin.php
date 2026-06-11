@@ -1077,7 +1077,7 @@ class deepcoin extends Exchange {
         $amount = $this->safe_number($transaction, 'amount');
         $timestamp = $this->safe_timestamp($transaction, 'createTime');
         $networkId = $this->safe_string($transaction, 'chainName');
-        $network = $this->network_id_to_code($networkId);
+        $network = $this->network_id_to_code($networkId, $code);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         return array(
             'info' => $transaction,
@@ -1228,10 +1228,11 @@ class deepcoin extends Exchange {
         $chain = $this->safe_string($response, 'chain');
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
+        $code = $this->safe_string($currency, 'code');
         return array(
             'info' => $response,
             'currency' => null,
-            'network' => $this->network_id_to_code($chain),
+            'network' => $this->network_id_to_code($chain, $code),
             'address' => $address,
             'tag' => $this->safe_string($response, 'memo'),
         );

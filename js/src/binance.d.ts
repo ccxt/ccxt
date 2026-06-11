@@ -44,6 +44,8 @@ export default class binance extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrenciesCustom(responseCurrencies: any, marginablesById: any): Currencies;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name binance#fetchMarkets

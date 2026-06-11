@@ -380,7 +380,7 @@ class cex(Exchange, ImplicitAPI):
         for j in range(0, len(keys)):
             networkId = keys[j]
             rawNetwork = rawNetworks[networkId]
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             deposit = self.safe_string(rawNetwork, 'deposit') == 'enabled'
             withdraw = self.safe_string(rawNetwork, 'withdrawal') == 'enabled'
             networks[networkCode] = {
@@ -1659,7 +1659,7 @@ class cex(Exchange, ImplicitAPI):
         request: dict = {
             'accountId': accountId,
             'currency': currency['id'],  # documentation is wrong about self param
-            'blockchain': self.network_code_to_id(networkCode),
+            'blockchain': self.network_code_to_id(networkCode, currency['code']),
         }
         response = self.privatePostGetDepositAddress(self.extend(request, params))
         #
@@ -1684,7 +1684,7 @@ class cex(Exchange, ImplicitAPI):
         return {
             'info': depositAddress,
             'currency': currency['code'],
-            'network': self.network_id_to_code(self.safe_string(depositAddress, 'blockchain')),
+            'network': self.network_id_to_code(self.safe_string(depositAddress, 'blockchain'), currency['code']),
             'address': address,
             'tag': None,
         }

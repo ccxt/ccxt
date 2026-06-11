@@ -646,76 +646,75 @@ export default class whitebit extends Exchange {
         //   }
         // }
         //
-        const ids = Object.keys (response);
-        const result: Dict = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const currency = response[id];
-            // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
-            const code = this.safeCurrencyCode (id);
-            const hasProvider = ('providers' in currency);
-            const networks = {};
-            const rawNetworks = this.safeDict (currency, 'networks', {});
-            const depositsNetworks = this.safeList (rawNetworks, 'deposits', []);
-            const withdrawsNetworks = this.safeList (rawNetworks, 'withdraws', []);
-            const networkLimits = this.safeDict (currency, 'limits', {});
-            const depositLimits = this.safeDict (networkLimits, 'deposit', {});
-            const withdrawLimits = this.safeDict (networkLimits, 'withdraw', {});
-            const allNetworks = this.arrayConcat (depositsNetworks, withdrawsNetworks);
-            for (let j = 0; j < allNetworks.length; j++) {
-                const networkId = allNetworks[j];
-                const networkCode = this.networkIdToCode (networkId);
-                const networkDepositLimits = this.safeDict (depositLimits, networkId, {});
-                const networkWithdrawLimits = this.safeDict (withdrawLimits, networkId, {});
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.inArray (networkId, depositsNetworks),
-                    'withdraw': this.inArray (networkId, withdrawsNetworks),
-                    'fee': undefined,
-                    'precision': undefined,
-                    'limits': {
-                        'deposit': {
-                            'min': this.safeNumber (networkDepositLimits, 'min'),
-                            'max': this.safeNumber (networkDepositLimits, 'max'),
-                        },
-                        'withdraw': {
-                            'min': this.safeNumber (networkWithdrawLimits, 'min'),
-                            'max': this.safeNumber (networkWithdrawLimits, 'max'),
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'code': code,
-                'info': currency, // the original payload
-                'name': undefined, // see the comment above
+        const enhancedArray = this.addKeyInArrayItems (response, '_coin_id');
+        return this.parseCurrencies (enhancedArray);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
+        const id = this.safeString (rawCurrency, '_coin_id');
+        const code = this.safeCurrencyCode (id);
+        const hasProvider = ('providers' in rawCurrency);
+        const networks = {};
+        const rawNetworks = this.safeDict (rawCurrency, 'networks', {});
+        const depositsNetworks = this.safeList (rawNetworks, 'deposits', []);
+        const withdrawsNetworks = this.safeList (rawNetworks, 'withdraws', []);
+        const networkLimits = this.safeDict (rawCurrency, 'limits', {});
+        const depositLimits = this.safeDict (networkLimits, 'deposit', {});
+        const withdrawLimits = this.safeDict (networkLimits, 'withdraw', {});
+        const allNetworks = this.arrayConcat (depositsNetworks, withdrawsNetworks);
+        for (let j = 0; j < allNetworks.length; j++) {
+            const networkId = allNetworks[j];
+            const networkCode = this.networkIdToCode (networkId, code);
+            const networkDepositLimits = this.safeDict (depositLimits, networkId, {});
+            const networkWithdrawLimits = this.safeDict (withdrawLimits, networkId, {});
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'active': undefined,
-                'deposit': this.safeBool (currency, 'can_deposit'),
-                'withdraw': this.safeBool (currency, 'can_withdraw'),
+                'deposit': this.inArray (networkId, depositsNetworks),
+                'withdraw': this.inArray (networkId, withdrawsNetworks),
                 'fee': undefined,
-                'networks': networks,
-                'type': hasProvider ? 'fiat' : 'crypto',
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'currency_precision'))),
+                'precision': undefined,
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+                    'deposit': {
+                        'min': this.safeNumber (networkDepositLimits, 'min'),
+                        'max': this.safeNumber (networkDepositLimits, 'max'),
                     },
                     'withdraw': {
-                        'min': this.safeNumber (currency, 'min_withdraw'),
-                        'max': this.safeNumber (currency, 'max_withdraw'),
-                    },
-                    'deposit': {
-                        'min': this.safeNumber (currency, 'min_deposit'),
-                        'max': this.safeNumber (currency, 'max_deposit'),
+                        'min': this.safeNumber (networkWithdrawLimits, 'min'),
+                        'max': this.safeNumber (networkWithdrawLimits, 'max'),
                     },
                 },
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'code': code,
+            'info': rawCurrency, // the original payload
+            'name': undefined, // see the comment above
+            'active': undefined,
+            'deposit': this.safeBool (rawCurrency, 'can_deposit'),
+            'withdraw': this.safeBool (rawCurrency, 'can_withdraw'),
+            'fee': undefined,
+            'networks': networks,
+            'type': hasProvider ? 'fiat' : 'crypto',
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'currency_precision'))),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber (rawCurrency, 'min_withdraw'),
+                    'max': this.safeNumber (rawCurrency, 'max_withdraw'),
+                },
+                'deposit': {
+                    'min': this.safeNumber (rawCurrency, 'min_deposit'),
+                    'max': this.safeNumber (rawCurrency, 'max_deposit'),
+                },
+            },
+        });
     }
 
     /**
@@ -906,7 +905,7 @@ export default class whitebit extends Exchange {
                 if (networkId !== undefined) {
                     const networkLength = networkId.length;
                     networkId = networkId.slice (1, networkLength - 1);
-                    const networkCode = this.networkIdToCode (networkId);
+                    const networkCode = this.networkIdToCode (networkId, code);
                     depositWithdrawFees[code]['networks'][networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult,

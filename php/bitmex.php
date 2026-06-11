@@ -478,7 +478,7 @@ class bitmex extends Exchange {
         for ($j = 0; $j < count($chains); $j++) {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'asset');
-            $network = $this->network_id_to_code($networkId);
+            $network = $this->network_id_to_code($networkId, $code);
             $withdrawalFeeRaw = $this->safe_string($chain, 'withdrawalFee');
             $withdrawalFee = $this->parse_number(Precise::string_mul($withdrawalFeeRaw, $precisionString));
             $isDepositEnabled = $this->safe_bool($chain, 'depositEnabled', false);

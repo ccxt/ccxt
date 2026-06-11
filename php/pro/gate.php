@@ -673,7 +673,7 @@ class gate extends \ccxt\async\gate {
         for ($i = 0; $i < count($bidAsks); $i++) {
             $bidAsk = $bidAsks[$i];
             if ((gettype($bidAsk) === 'array' && array_keys($bidAsk) === array_keys(array_keys($bidAsk)))) {
-                $bookSide->storeArray ($this->parse_bid_ask($bidAsk));
+                $bookSide->storeArray ($this->parse_order_book_bid_ask($bidAsk));
             } else {
                 $price = $this->safe_float($bidAsk, 'p');
                 $amount = $this->safe_float($bidAsk, 's');

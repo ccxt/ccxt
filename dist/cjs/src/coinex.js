@@ -730,90 +730,88 @@ class coinex extends coinex$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const coin = data[i];
-            const asset = this.safeDict(coin, 'asset', {});
-            const chains = this.safeList(coin, 'chains', []);
-            const currencyId = this.safeString(asset, 'ccy');
-            if (currencyId === undefined) {
-                continue; // coinex returns empty structures for some reason
+        return this.parseCurrencies(data);
+    }
+    parseCurrency(coin) {
+        const asset = this.safeDict(coin, 'asset', {});
+        const chains = this.safeList(coin, 'chains', []);
+        const currencyId = this.safeString(asset, 'ccy');
+        if (currencyId === undefined) {
+            return undefined; // coinex returns empty structures for some reason
+        }
+        const code = this.safeCurrencyCode(currencyId);
+        const canDeposit = this.safeBool(asset, 'deposit_enabled');
+        const canWithdraw = this.safeBool(asset, 'withdraw_enabled');
+        const firstChain = this.safeDict(chains, 0, {});
+        const firstPrecisionString = this.parsePrecision(this.safeString(firstChain, 'withdrawal_precision'));
+        const networks = {};
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString(chain, 'chain');
+            const networkCode = this.networkIdToCode(networkId, code);
+            if (networkId === undefined) {
+                continue;
             }
-            const code = this.safeCurrencyCode(currencyId);
-            const canDeposit = this.safeBool(asset, 'deposit_enabled');
-            const canWithdraw = this.safeBool(asset, 'withdraw_enabled');
-            const firstChain = this.safeDict(chains, 0, {});
-            const firstPrecisionString = this.parsePrecision(this.safeString(firstChain, 'withdrawal_precision'));
-            const networks = {};
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString(chain, 'chain');
-                const networkCode = this.networkIdToCode(networkId, code);
-                if (networkId === undefined) {
-                    continue;
-                }
-                const precisionString = this.parsePrecision(this.safeString(chain, 'withdrawal_precision'));
-                const feeString = this.safeString(chain, 'withdrawal_fee');
-                const minNetworkDepositString = this.safeString(chain, 'min_deposit_amount');
-                const minNetworkWithdrawString = this.safeString(chain, 'min_withdraw_amount');
-                const canDepositChain = this.safeBool(chain, 'deposit_enabled');
-                const canWithdrawChain = this.safeBool(chain, 'withdraw_enabled');
-                const network = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'name': undefined,
-                    'active': canDepositChain && canWithdrawChain,
-                    'deposit': canDepositChain,
-                    'withdraw': canWithdrawChain,
-                    'fee': this.parseNumber(feeString),
-                    'precision': this.parseNumber(precisionString),
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.parseNumber(minNetworkDepositString),
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': this.parseNumber(minNetworkWithdrawString),
-                            'max': undefined,
-                        },
-                    },
-                    'info': chain,
-                };
-                networks[networkCode] = network;
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': currencyId,
-                'code': code,
+            const precisionString = this.parsePrecision(this.safeString(chain, 'withdrawal_precision'));
+            const feeString = this.safeString(chain, 'withdrawal_fee');
+            const minNetworkDepositString = this.safeString(chain, 'min_deposit_amount');
+            const minNetworkWithdrawString = this.safeString(chain, 'min_withdraw_amount');
+            const canDepositChain = this.safeBool(chain, 'deposit_enabled');
+            const canWithdrawChain = this.safeBool(chain, 'withdraw_enabled');
+            const network = {
+                'id': networkId,
+                'network': networkCode,
                 'name': undefined,
-                'active': canDeposit && canWithdraw,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
-                'fee': undefined,
-                'precision': this.parseNumber(firstPrecisionString),
+                'active': canDepositChain && canWithdrawChain,
+                'deposit': canDepositChain,
+                'withdraw': canWithdrawChain,
+                'fee': this.parseNumber(feeString),
+                'precision': this.parseNumber(precisionString),
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': undefined,
+                        'min': this.parseNumber(minNetworkDepositString),
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.parseNumber(minNetworkWithdrawString),
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-                'type': 'crypto',
-                'info': coin,
-            });
+                'info': chain,
+            };
+            networks[networkCode] = network;
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'code': code,
+            'name': undefined,
+            'active': canDeposit && canWithdraw,
+            'deposit': canDeposit,
+            'withdraw': canWithdraw,
+            'fee': undefined,
+            'precision': this.parseNumber(firstPrecisionString),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+            'type': 'crypto',
+            'info': coin,
+        });
     }
     /**
      * @method
@@ -3998,7 +3996,7 @@ class coinex extends coinex$1["default"] {
         if (networkCode === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddress() requires a "network" parameter');
         }
-        request['chain'] = this.networkCodeToId(networkCode); // required for on-chain, not required for inter-user transfer
+        request['chain'] = this.networkCodeToId(networkCode, currency['code']); // required for on-chain, not required for inter-user transfer
         const response = await this.v2PrivateGetAssetsDepositAddress(this.extend(request, params));
         //
         //     {
@@ -4924,7 +4922,7 @@ class coinex extends coinex$1["default"] {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId(networkCode); // required for on-chain, not required for inter-user transfer
+            request['chain'] = this.networkCodeToId(networkCode, currency['code']); // required for on-chain, not required for inter-user transfer
         }
         const response = await this.v2PrivatePostAssetsWithdraw(this.extend(request, params));
         //
@@ -5131,7 +5129,7 @@ class coinex extends coinex$1["default"] {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -5834,7 +5832,9 @@ class coinex extends coinex$1["default"] {
                 result['withdraw']['percentage'] = false;
                 const networkId = this.safeString(entry, 'chain');
                 if (networkId) {
-                    const networkCode = this.networkIdToCode(networkId, this.safeString(asset, 'ccy'));
+                    const currencyId = this.safeString(asset, 'ccy');
+                    const feeCode = this.safeCurrencyCode(currencyId, currency);
+                    const networkCode = this.networkIdToCode(networkId, feeCode);
                     result['networks'][networkCode] = {
                         'withdraw': {
                             'fee': this.safeNumber(entry, 'withdrawal_fee'),

@@ -6,6 +6,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://api.mexc.com/api/v3/capital/config/getall?timestamp=1780312477164&recvWindow=5000&signature=cf1f8a11e21c847264b68f4cf6fe6a87bd12558a16c515b47710e06ae6ca2da3",
+                "input": [],
+                "output": null
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer from swap to spot",

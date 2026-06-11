@@ -448,7 +448,6 @@ export default class bitrue extends Exchange {
                     'XML': 'Stellar Lumens',
                     'XYM': 'Symbol',
                     'XTZ': 'Tezos',
-                    'theta': 'theta',
                     'THETA': 'THETA',
                     'VECHAIN': 'VeChain',
                     'WANCHAIN': 'Wanchain',
@@ -599,6 +598,7 @@ export default class bitrue extends Exchange {
                     "You don't have permission.": PermissionDenied,
                     'Market is closed.': ExchangeNotAvailable,
                     'Too many requests. Please try again later.': DDoSProtection,
+                    'quantity less then minQty': InvalidOrder,
                     '-1000': ExchangeNotAvailable,
                     '-1001': ExchangeNotAvailable,
                     '-1002': AuthenticationError,
@@ -2908,7 +2908,7 @@ export default class bitrue extends Exchange {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['chainName'] = this.networkCodeToId(networkCode);
+            request['chainName'] = this.networkCodeToId(networkCode, currency['code']);
         }
         if (tag !== undefined) {
             request['tag'] = tag;

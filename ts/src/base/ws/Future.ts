@@ -17,16 +17,12 @@ export function Future (): FutureInterface {
 
     p.resolve = function _resolve () {
         // eslint-disable-next-line prefer-rest-params
-        queueMicrotask (() => {
-            resolve.apply (this, arguments)
-        })
+        resolve.apply (this, arguments)
     }
 
     p.reject = function _reject () {
         // eslint-disable-next-line prefer-rest-params
-        queueMicrotask (() => {
-            reject.apply (this, arguments)
-        })
+        reject.apply (this, arguments)
     }
 
     return p

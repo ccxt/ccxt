@@ -1151,56 +1151,54 @@ class mexc extends mexc$1["default"] {
         //     ]
         //   }
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString(currency, 'coin');
-            const code = this.safeCurrencyCode(id);
-            const networks = {};
-            const chains = this.safeValue(currency, 'networkList', []);
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString2(chain, 'netWork', 'network');
-                const network = this.networkIdToCode(networkId);
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'active': undefined,
-                    'deposit': this.safeBool(chain, 'depositEnable', false),
-                    'withdraw': this.safeBool(chain, 'withdrawEnable', false),
-                    'fee': this.safeNumber(chain, 'withdrawFee'),
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeString(chain, 'withdrawMin'),
-                            'max': this.safeString(chain, 'withdrawMax'),
-                        },
-                    },
-                    'contract': this.safeString(chain, 'contract'),
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'name': this.safeString(currency, 'name'),
+        return this.parseCurrencies(response);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'coin');
+        const code = this.safeCurrencyCode(id);
+        const networks = {};
+        const chains = this.safeValue(rawCurrency, 'networkList', []);
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString2(chain, 'netWork', 'network');
+            const network = this.networkIdToCode(networkId, code);
+            networks[network] = {
+                'info': chain,
+                'id': networkId,
+                'network': network,
                 'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
+                'deposit': this.safeBool(chain, 'depositEnable', false),
+                'withdraw': this.safeBool(chain, 'withdrawEnable', false),
+                'fee': this.safeNumber(chain, 'withdrawFee'),
                 'precision': undefined,
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+                    'withdraw': {
+                        'min': this.safeString(chain, 'withdrawMin'),
+                        'max': this.safeString(chain, 'withdrawMax'),
                     },
                 },
-                'type': 'crypto',
-                'networks': networks,
-            });
+                'contract': this.safeString(chain, 'contract'),
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'info': rawCurrency,
+            'id': id,
+            'code': code,
+            'name': this.safeString(rawCurrency, 'name'),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'type': 'crypto',
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -1538,7 +1536,7 @@ class mexc extends mexc$1["default"] {
         }
         return orderbook;
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+    parseOrderBookBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const countKey = 2;
         const price = this.safeNumber(bidask, priceKey);
         const amount = this.safeNumber(bidask, amountKey);
@@ -4767,11 +4765,12 @@ class mexc extends mexc$1["default"] {
         //
         const address = this.safeString(depositAddress, 'address');
         const currencyId = this.safeString(depositAddress, 'coin');
+        const code = this.safeCurrencyCode(currencyId, currency);
         const networkId = this.safeString(depositAddress, 'netWork');
         return {
             'info': depositAddress,
-            'currency': this.safeCurrencyCode(currencyId, currency),
-            'network': this.networkIdToCode(networkId, currencyId),
+            'currency': code,
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'tag': this.safeString(depositAddress, 'memo'),
         };
@@ -5090,12 +5089,12 @@ class mexc extends mexc$1["default"] {
         if (currencyWithNetwork !== undefined) {
             currencyId = currencyWithNetwork.split('-')[0];
         }
+        const code = this.safeCurrencyCode(currencyId, currency);
         let network = undefined;
         const rawNetwork = this.safeString(transaction, 'network');
         if (rawNetwork !== undefined) {
-            network = this.networkIdToCode(rawNetwork);
+            network = this.networkIdToCode(rawNetwork, code);
         }
-        const code = this.safeCurrencyCode(currencyId, currency);
         const status = this.parseTransactionStatusByType(this.safeString(transaction, 'status'), type);
         let amountString = this.safeString(transaction, 'amount');
         const address = this.safeString(transaction, 'address');

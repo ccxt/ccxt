@@ -208,14 +208,15 @@ async def test_no_memory_leak():
 
     print(f"Running concurrent watch operations for {duration_seconds} seconds across {len(symbols)} symbols...")
 
-    start_time = asyncio.get_event_loop().time()
+    loop = asyncio.get_running_loop()
+    start_time = loop.time()
     max_tasks_seen = initial_tasks
     iterations = 0
 
     async def watch_continuously(symbol):
         """Continuously watch a symbol to create sustained load"""
         nonlocal iterations
-        while asyncio.get_event_loop().time() - start_time < duration_seconds:
+        while loop.time() - start_time < duration_seconds:
             try:
                 await exchange.watch_ticker(symbol)
                 iterations += 1
@@ -230,11 +231,11 @@ async def test_no_memory_leak():
     # Monitor task count while running
     async def monitor_tasks():
         nonlocal max_tasks_seen
-        while asyncio.get_event_loop().time() - start_time < duration_seconds:
+        while loop.time() - start_time < duration_seconds:
             await asyncio.sleep(5)
             current_tasks = len(asyncio.all_tasks())
             max_tasks_seen = max(max_tasks_seen, current_tasks)
-            elapsed = asyncio.get_event_loop().time() - start_time
+            elapsed = loop.time() - start_time
             task_growth = current_tasks - initial_tasks
             print(f"  [{elapsed:.1f}s] Tasks: {current_tasks} (growth: {task_growth}), Iterations: {iterations}")
 

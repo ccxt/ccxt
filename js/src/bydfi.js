@@ -2820,7 +2820,7 @@ export default class bydfi extends Exchange {
             'txid': this.safeString(transaction, 'txId'),
             'type': undefined,
             'currency': code,
-            'network': this.networkIdToCode(this.safeString(transaction, 'network')),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network'), code),
             'amount': this.safeNumber(transaction, 'amount'),
             'status': this.parseTransactionStatus(rawStatus),
             'timestamp': timestamp,

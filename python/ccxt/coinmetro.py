@@ -872,7 +872,7 @@ class coinmetro(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(book, 'seqNumber')
         return orderbook
 
-    def parse_bids_asks(self, bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+    def parse_order_book_bids_asks(self, bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         prices = list(bidasks.keys())
         result = []
         for i in range(0, len(prices)):

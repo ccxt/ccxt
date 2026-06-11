@@ -1243,13 +1243,14 @@ class coinbaseinternational extends Exchange {
         $addressFrom = $this->safe_string_n($transaction, array( 'from_address', 'from_cb_account', $this->safe_string_n($fromPorfolio, array( 'id', 'uuid', 'name' )), 'from_counterparty_id' ));
         $toPorfolio = $this->safe_dict($transaction, 'from_portfolio', array());
         $addressTo = $this->safe_string_n($transaction, array( 'to_address', 'to_cb_account', $this->safe_string_n($toPorfolio, array( 'id', 'uuid', 'name' )), 'to_counterparty_id' ));
+        $code = $this->safe_string($currency, 'code');
         return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'transfer_uuid'),
             'txid' => $this->safe_string($transaction, 'transaction_uuid'),
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
-            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network_name')),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network_name'), $code),
             'address' => null, // TODO check if withdraw or deposit and populate
             'addressTo' => $addressTo,
             'addressFrom' => $addressFrom,

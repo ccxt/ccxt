@@ -883,7 +883,7 @@ export default class weex extends weexRest {
         client.resolve(orderbook, messageHash);
     }
     handleDelta(bookside, delta) {
-        const bidAsk = this.parseBidAsk(delta);
+        const bidAsk = this.parseOrderBookBidAsk(delta);
         bookside.storeArray(bidAsk);
     }
     /**

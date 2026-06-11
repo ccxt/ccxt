@@ -622,7 +622,7 @@ class toobit extends \ccxt\async\toobit {
     }
 
     public function handle_delta($bookside, $delta) {
-        $bidAsk = $this->parse_bid_ask($delta);
+        $bidAsk = $this->parse_order_book_bid_ask($delta);
         $bookside->storeArray ($bidAsk);
     }
 

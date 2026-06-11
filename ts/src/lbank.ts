@@ -454,66 +454,66 @@ export default class lbank extends Exchange {
         //
         const currenciesData = this.safeList (response, 'data', []);
         const grouped = this.groupBy (currenciesData, 'assetCode');
-        const groupedKeys = Object.keys (grouped);
-        const result: Dict = {};
-        for (let i = 0; i < groupedKeys.length; i++) {
-            const id = (groupedKeys[i]).toString (); // some currencies are numeric
-            const code = this.safeCurrencyCode (id);
-            const networksRaw = grouped[id];
-            const networks = {};
-            for (let j = 0; j < networksRaw.length; j++) {
-                const networkEntry = networksRaw[j];
-                let networkId = this.safeString (networkEntry, 'chain');
-                if (networkId === undefined) {
-                    networkId = this.safeString (networkEntry, 'assetCode'); // use type as fallback if networkId is not present
-                }
-                const networkCode = this.networkIdToCode (networkId);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber (networkEntry, 'min'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.safeNumber (networkEntry, 'minTransfer'),
-                            'max': undefined,
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': this.safeBool (networkEntry, 'canWithDraw'),
-                    'fee': this.safeNumber (networkEntry, 'fee'),
-                    'precision': this.parseNumber (this.parsePrecision (this.safeString (networkEntry, 'transferAmtScale'))),
-                    'info': networkEntry,
-                };
+        const values = Object.values (grouped);
+        return this.parseCurrencies (values);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const id = this.safeString (rawCurrency[0], 'assetCode'); // first member is guaranteed
+        const code = this.safeCurrencyCode (id);
+        const networksRaw = rawCurrency;
+        const networks = {};
+        for (let j = 0; j < networksRaw.length; j++) {
+            const networkEntry = networksRaw[j];
+            let networkId = this.safeString (networkEntry, 'chain');
+            if (networkId === undefined) {
+                networkId = this.safeString (networkEntry, 'assetCode'); // use type as fallback if networkId is not present
             }
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'code': code,
-                'precision': undefined,
-                'type': undefined,
-                'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
+            const networkCode = this.networkIdToCode (networkId, code);
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'limits': {
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.safeNumber (networkEntry, 'min'),
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': undefined,
+                        'min': this.safeNumber (networkEntry, 'minTransfer'),
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-                'info': networksRaw,
-            });
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': this.safeBool (networkEntry, 'canWithDraw'),
+                'fee': this.safeNumber (networkEntry, 'fee'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (networkEntry, 'transferAmtScale'))),
+                'info': networkEntry,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'code': code,
+            'precision': undefined,
+            'type': undefined,
+            'name': undefined,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'limits': {
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+            'info': networksRaw,
+        });
     }
 
     /**
@@ -2292,7 +2292,7 @@ export default class lbank extends Exchange {
         return {
             'info': response,
             'currency': code,
-            'network': this.networkIdToCode (this.safeString (result, 'netWork')),
+            'network': this.networkIdToCode (this.safeString (result, 'netWork'), code),
             'address': address,
             'tag': tag,
         } as DepositAddress;
@@ -2483,7 +2483,7 @@ export default class lbank extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.networkIdToCode (this.safeString (transaction, 'networkName')),
+            'network': this.networkIdToCode (this.safeString (transaction, 'networkName'), code),
             'address': address,
             'addressTo': addressTo,
             'addressFrom': addressFrom,
@@ -2690,7 +2690,7 @@ export default class lbank extends Exchange {
                 const networkEntry = networkList[j];
                 const fee = this.safeNumber (networkEntry, 'withdrawFee');
                 if (fee !== undefined) {
-                    const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'name'));
+                    const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'name'), code);
                     withdrawFees[code][networkCode] = fee;
                 }
             }
@@ -2743,7 +2743,7 @@ export default class lbank extends Exchange {
             if (canWithdraw === 'true') {
                 const currencyId = this.safeString (item, 'assetCode');
                 const codeInner = this.safeCurrencyCode (currencyId);
-                let network = this.networkIdToCode (this.safeString (item, 'chain'));
+                let network = this.networkIdToCode (this.safeString (item, 'chain'), codeInner);
                 if (network === undefined) {
                     network = codeInner;
                 }
@@ -2895,7 +2895,7 @@ export default class lbank extends Exchange {
                             const resultCodeInfo = result[code]['info'];
                             resultCodeInfo.push (fee);
                         }
-                        const networkCode = this.networkIdToCode (this.safeString (fee, 'chain'));
+                        const networkCode = this.networkIdToCode (this.safeString (fee, 'chain'), code);
                         if (networkCode !== undefined) {
                             result[code]['networks'][networkCode] = {
                                 'withdraw': {
@@ -2948,10 +2948,11 @@ export default class lbank extends Exchange {
         //    }
         //
         const result = this.depositWithdrawFee (fee);
+        const code = this.safeString (currency, 'code');
         const networkList = this.safeValue (fee, 'networkList', []);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
-            const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'name'));
+            const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'name'), code);
             const withdrawFee = this.safeNumber (networkEntry, 'withdrawFee');
             const isDefault = this.safeValue (networkEntry, 'isDefault');
             if (withdrawFee !== undefined) {

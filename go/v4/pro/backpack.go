@@ -1214,7 +1214,7 @@ func  (this *BackpackCore) HandleDelta(orderbook any, delta any)  {
 }
 func  (this *BackpackCore) HandleBidAsks(bookSide any, bidAsks any)  {
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(bidAsks)); i++ {
-        var bidAsk any = this.ParseBidAsk(ccxt.GetValue(bidAsks, i))
+        var bidAsk any = this.ParseOrderBookBidAsk(ccxt.GetValue(bidAsks, i))
         bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
     }
 }

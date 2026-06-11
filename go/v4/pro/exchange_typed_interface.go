@@ -145,11 +145,11 @@ func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
     case "exmo":
         itf := NewExmo(options)
         return itf
+    case "extended":
+        itf := NewExtended(options)
+        return itf
     case "gate":
         itf := NewGate(options)
-        return itf
-    case "gateio":
-        itf := NewGateio(options)
         return itf
     case "gemini":
         itf := NewGemini(options)
@@ -219,9 +219,6 @@ func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
         return itf
     case "onetrading":
         itf := NewOnetrading(options)
-        return itf
-    case "oxfun":
-        itf := NewOxfun(options)
         return itf
     case "p2b":
         itf := NewP2b(options)

@@ -2799,14 +2799,23 @@ class poloniex extends Exchange {
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
-        list($request, $extraParams, $currency, $networkEntry) = $this->prepare_request_for_deposit_address($code, $params);
-        $params = $extraParams;
-        $request['amount'] = $this->currency_to_precision($code, $amount);
-        $request['address'] = $address;
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+            'address' => $address,
+        );
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        if ($networkCode === null) {
+            // we need to know the network to find out the $currency-junction
+            throw new ArgumentsRequired($this->id . ' withdraw requires a network parameter for ' . $code . '.');
+        }
+        $request['network'] = $this->network_code_to_id($networkCode, $code);
         if ($tag !== null) {
             $request['paymentId'] = $tag;
         }
-        $response = $this->privatePostWalletsWithdraw ($this->extend($request, $params));
+        $response = $this->privatePostV2WalletsWithdraw ($this->extend($request, $params));
         //
         //     {
         //         "response" => "Withdrew 1.00000000 USDT.",
@@ -2814,11 +2823,7 @@ class poloniex extends Exchange {
         //         "withdrawalNumber" => 13449869
         //     }
         //
-        $withdrawResponse = array(
-            'response' => $response,
-            'withdrawNetworkEntry' => $networkEntry,
-        );
-        return $this->parse_transaction($withdrawResponse, $currency);
+        return $this->parse_transaction($response, $currency);
     }
 
     public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3036,7 +3041,7 @@ class poloniex extends Exchange {
                     for ($j = 0; $j < count($childChains); $j++) {
                         $networkId = $childChains[$j];
                         $networkId = str_replace($code, '', $networkId);
-                        $networkCode = $this->network_id_to_code($networkId);
+                        $networkCode = $this->network_id_to_code($networkId, $currency['code']);
                         $networkInfo = $this->safe_value($response, $networkId);
                         $networkObject = array();
                         $withdrawFee = $this->safe_number($networkInfo, 'withdrawalFee');
@@ -3073,7 +3078,7 @@ class poloniex extends Exchange {
         );
         $depositWithdrawFee['withdraw'] = $withdrawResult;
         $depositWithdrawFee['deposit'] = $depositResult;
-        $networkCode = $this->network_id_to_code($networkId);
+        $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
         $depositWithdrawFee['networks'][$networkCode] = array(
             'withdraw' => $withdrawResult,
             'deposit' => $depositResult,

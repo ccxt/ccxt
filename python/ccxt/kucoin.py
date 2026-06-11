@@ -3538,7 +3538,7 @@ class kucoin(Exchange, ImplicitAPI):
             networkCode = None
             networkCode, params = self.handle_network_code_and_params(params)
             if networkCode is not None:
-                request['chain'] = self.network_code_to_id(networkCode).lower()
+                request['chain'] = self.network_code_to_id(networkCode, code).lower()
             #
             #     {
             #         "code": "200000",
@@ -4133,6 +4133,7 @@ class kucoin(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
+        market = self.market(symbol)
         request = self.create_uta_order_request(symbol, type, side, amount, price, params)
         response = self.utaPrivatePostAccountModeOrderPlace(request)
         #
@@ -4147,7 +4148,7 @@ class kucoin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data)
+        return self.parse_order(data, market)
 
     def create_uta_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)

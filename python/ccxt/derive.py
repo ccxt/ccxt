@@ -457,7 +457,6 @@ class derive(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        result: dict = {}
         tokenResponse = self.publicGetGetAllCurrencies(params)
         #
         #    {
@@ -508,33 +507,33 @@ class derive(Exchange, ImplicitAPI):
         # }
         #
         currencies = self.safe_list(tokenResponse, 'result', [])
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            currencyId = self.safe_string(currency, 'currency')
-            code = self.safe_currency_code(currencyId)
-            result[code] = self.safe_currency_structure({
-                'id': currencyId,
-                'name': None,
-                'code': code,
-                'precision': None,
-                'active': None,
-                'fee': None,
-                'networks': None,
-                'deposit': None,
-                'withdraw': None,
-                'limits': {
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
+        return self.parse_currencies(currencies)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        currencyId = self.safe_string(rawCurrency, 'currency')
+        code = self.safe_currency_code(currencyId)
+        return self.safe_currency_structure({
+            'id': currencyId,
+            'name': None,
+            'code': code,
+            'precision': None,
+            'active': None,
+            'fee': None,
+            'networks': None,
+            'deposit': None,
+            'withdraw': None,
+            'limits': {
+                'deposit': {
+                    'min': None,
+                    'max': None,
                 },
-                'info': currency,
-            })
-        return result
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'info': rawCurrency,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
