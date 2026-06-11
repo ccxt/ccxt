@@ -439,11 +439,11 @@ func (e *PreciseStruct) StringOr(string1, string2 any) any {
 	return StringOr(string1, string2)
 }
 
-func (e *PreciseStruct) StringGt(a, b any) bool {
+func (e *PreciseStruct) StringGt(a, b any) any {
 	return StringGt(a, b)
 }
 
-func (e *PreciseStruct) StringEq(a, b any) bool {
+func (e *PreciseStruct) StringEq(a, b any) any {
 	return StringEq(a, b)
 }
 
@@ -451,7 +451,7 @@ func (e *PreciseStruct) StringMax(a, b any) any {
 	return StringMax(a, b)
 }
 
-func (e *PreciseStruct) StringEquals(a, b any) bool {
+func (e *PreciseStruct) StringEquals(a, b any) any {
 	return StringEquals(a, b)
 }
 
@@ -459,7 +459,7 @@ func (e *PreciseStruct) StringMin(string1, string2 any) any {
 	return StringMin(string1, string2)
 }
 
-func (e *PreciseStruct) StringLt(a, b any) bool {
+func (e *PreciseStruct) StringLt(a, b any) any {
 	return StringLt(a, b)
 }
 
@@ -471,11 +471,11 @@ func (e *PreciseStruct) StringNeg(a any) any {
 	return StringNeg(a)
 }
 
-func (e *PreciseStruct) StringLe(a, b any) bool {
+func (e *PreciseStruct) StringLe(a, b any) any {
 	return StringLe(a, b)
 }
 
-func (e *PreciseStruct) StringGe(a, b any) bool {
+func (e *PreciseStruct) StringGe(a, b any) any {
 	return StringGe(a, b)
 }
 
