@@ -45,6 +45,70 @@
         ],
         "createOrder": [
             {
+                "description": "spot market buy takeProfitPrice",
+                "method": "createOrder",
+                "url": "https://sapi.asterdex.com/api/v3/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "buy",
+                    0.005,
+                    null,
+                    {
+                        "takeProfitPrice": 1000
+                    }
+                ],
+                "output": "nonce=1781091322832000&user=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&signer=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&symbol=ETHUSDT&side=BUY&type=TAKE_PROFIT_MARKET&quantity=0.005&stopPrice=1000&signature=0x83d97b288b54df9b2ebec0de9013aaa1c3dcbb5800b47ff63d618a3334b602f007cdf4930340e2f34458ed3d287898e2630aa75f8019aec7ca1de91e30a63a721c"
+            },
+            {
+                "description": "spot market sell takeProfitPrice",
+                "method": "createOrder",
+                "url": "https://sapi.asterdex.com/api/v3/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "sell",
+                    0.005,
+                    null,
+                    {
+                        "takeProfitPrice": 2000
+                    }
+                ],
+                "output": "nonce=1781091298834000&user=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&signer=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&symbol=ETHUSDT&side=SELL&type=TAKE_PROFIT_MARKET&quantity=0.005&stopPrice=2000&signature=0x48d6ca70f30a4fbc6c7e4e83c57d0f10db062a506b1acd1287edd69553d7a73425aaca44295eefeb2abaceb2b143d459cfec3bafa84fad6bbce932087368db7d1c"
+            },
+            {
+                "description": "spot market sell stopLossPrice",
+                "method": "createOrder",
+                "url": "https://sapi.asterdex.com/api/v3/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "sell",
+                    0.005,
+                    null,
+                    {
+                        "stopLossPrice": 1000
+                    }
+                ],
+                "output": "nonce=1781091253290000&user=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&signer=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&symbol=ETHUSDT&side=SELL&type=STOP_MARKET&quantity=0.005&stopPrice=1000&signature=0x17521a52318a6c4772c400b041cdd36f9a1ff1164bec06bb8eb886ca34512dfe1a9aeb0d4149d948d7bcad9c583fb5b4242277c7115ff6d62d02318292bf8c771b"
+            },
+            {
+                "description": "spot market buy stopLossPrice",
+                "method": "createOrder",
+                "url": "https://sapi.asterdex.com/api/v3/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "buy",
+                    0.005,
+                    null,
+                    {
+                        "stopLossPrice": 2000
+                    }
+                ],
+                "output": "nonce=1781091217436000&user=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&signer=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&symbol=ETHUSDT&side=BUY&type=STOP_MARKET&quantity=0.005&stopPrice=2000&signature=0xe34d324b05aca80a532d09c19829cba6a423f0108b5a0f76e3e751309e726cd156457599bd9faee9bc7906654f6066600cd647bfa4e82af6e818802d7d46bcba1c"
+            },
+            {
                 "description": "spot market sell",
                 "method": "createOrder",
                 "url": "https://sapi.asterdex.com/api/v3/order",
