@@ -10,7 +10,7 @@ const basePath = process.env.NEXT_BASE_PATH || "";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // ccxt is a large server-side dependency; keep it external to the bundle so
-  // the run API spawns it from node_modules rather than webpack inlining it.
+  // the run API spawns it from node_modules rather than rspack inlining it.
   serverExternalPackages: ["ccxt"],
   // The playground sits inside the CCXT monorepo (which has its own lockfile);
   // pin the tracing root here so Next doesn't infer the monorepo as the root.

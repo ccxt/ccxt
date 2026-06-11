@@ -27,7 +27,7 @@ Uma forma alternativa de instalar esta biblioteca é construir um pacote persona
 
 ### JavaScript (NPM)
 
-A versão JavaScript do ccxt funciona tanto no Node quanto em navegadores web. Requer suporte a ES6 e sintaxe `async/await` (Node 15+). Ao compilar com Webpack e Babel, certifique-se de que não está [excluído](https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331582275) na sua configuração do `babel-loader`.
+A versão JavaScript do ccxt funciona tanto no Node quanto em navegadores web. Requer suporte a ES6 e sintaxe `async/await` (Node 15+). Ao compilar com Rspack (ou Webpack) e Babel, certifique-se de que não está [excluído](https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331582275) na sua configuração do `babel-loader`.
 
 [Biblioteca de trading de criptomoedas ccxt no npm](http://npmjs.com/package/ccxt)
 
@@ -63,7 +63,7 @@ console.log (ccxt.exchanges) // imprime todas as exchanges disponíveis
 
 ### Builds Personalizados em JavaScript
 
-Leva tempo para carregar todos os scripts e recursos. O problema com o uso em navegador é que a biblioteca CCXT inteira pesa alguns megabytes, o que é muito para uma aplicação web. Às vezes, também é crítico para uma aplicação Node. Portanto, para reduzir o tempo de carregamento, você pode querer fazer sua própria compilação personalizada do CCXT para seu aplicativo com apenas as exchanges que precisa. O CCXT usa webpack para remover caminhos de código morto para tornar o pacote menor.
+Leva tempo para carregar todos os scripts e recursos. O problema com o uso em navegador é que a biblioteca CCXT inteira pesa alguns megabytes, o que é muito para uma aplicação web. Às vezes, também é crítico para uma aplicação Node. Portanto, para reduzir o tempo de carregamento, você pode querer fazer sua própria compilação personalizada do CCXT para seu aplicativo com apenas as exchanges que precisa. O CCXT usa rspack para remover caminhos de código morto para tornar o pacote menor.
 
 Siga estas etapas:
 
