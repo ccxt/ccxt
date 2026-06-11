@@ -565,7 +565,7 @@ class cryptocom extends cryptocom$1["default"] {
         }
         catch (e) {
             const erString = this.exceptionMessage(e);
-            if (erString.indexOf('"msg":"SYS_ERROR"') >= 0) {
+            if (erString.indexOf('SYS_ERROR') >= 0) {
                 // sub-accounts can't access this endpoint
                 // {"code":"10001","msg":"SYS_ERROR"}
                 return {};
