@@ -935,7 +935,7 @@ func (this *DeepcoinCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
 			"instId": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", mathMin(limit, 2000))
+			AddElementToObject(request, "limit", mathMin(limit, 500))
 		}
 		var productGroup any = this.GetProductGroupFromMarket(market)
 		AddElementToObject(request, "productGroup", productGroup)
