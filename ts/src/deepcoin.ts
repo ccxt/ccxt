@@ -825,7 +825,7 @@ export default class deepcoin extends Exchange {
             'instId': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = Math.min (limit, 2000);
+            request['limit'] = Math.min (limit, 500);
         }
         const productGroup = this.getProductGroupFromMarket (market);
         request['productGroup'] = productGroup;
