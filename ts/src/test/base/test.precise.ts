@@ -135,8 +135,8 @@ function testPrecise () {
     assert (Precise.stringDiv ('1', undefined) === undefined);
     assert (Precise.stringDiv (undefined, undefined) === undefined);
 
-    assert (Precise.stringAdd (undefined, '1') === '1');
-    assert (Precise.stringAdd ('1', undefined) === '1');
+    assert (Precise.stringAdd (undefined, '1') === undefined);
+    assert (Precise.stringAdd ('1', undefined) === undefined);
     assert (Precise.stringAdd (undefined, undefined) === undefined);
 
     assert (Precise.stringSub (undefined, '1') === undefined);
