@@ -7,94 +7,94 @@
 
 package ccxt
 
-func (this *Bit2cCore) PublicGetExchangesPairTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetExchangesPairTicker", args...)
+func (this *Bit2cCore) PublicGetExchangesPairTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetExchangesPairTicker", args...)
 }
 
-func (this *Bit2cCore) PublicGetExchangesPairOrderbook (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetExchangesPairOrderbook", args...)
+func (this *Bit2cCore) PublicGetExchangesPairOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetExchangesPairOrderbook", args...)
 }
 
-func (this *Bit2cCore) PublicGetExchangesPairTrades (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetExchangesPairTrades", args...)
+func (this *Bit2cCore) PublicGetExchangesPairTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetExchangesPairTrades", args...)
 }
 
-func (this *Bit2cCore) PublicGetExchangesPairLasttrades (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetExchangesPairLasttrades", args...)
+func (this *Bit2cCore) PublicGetExchangesPairLasttrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetExchangesPairLasttrades", args...)
 }
 
-func (this *Bit2cCore) PrivatePostMerchantCreateCheckout (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostMerchantCreateCheckout", args...)
+func (this *Bit2cCore) PrivatePostMerchantCreateCheckout(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMerchantCreateCheckout", args...)
 }
 
-func (this *Bit2cCore) PrivatePostFundsAddCoinFundsRequest (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostFundsAddCoinFundsRequest", args...)
+func (this *Bit2cCore) PrivatePostFundsAddCoinFundsRequest(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFundsAddCoinFundsRequest", args...)
 }
 
-func (this *Bit2cCore) PrivatePostOrderAddFund (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrderAddFund", args...)
+func (this *Bit2cCore) PrivatePostOrderAddFund(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderAddFund", args...)
 }
 
-func (this *Bit2cCore) PrivatePostOrderAddOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrderAddOrder", args...)
+func (this *Bit2cCore) PrivatePostOrderAddOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderAddOrder", args...)
 }
 
-func (this *Bit2cCore) PrivatePostOrderGetById (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrderGetById", args...)
+func (this *Bit2cCore) PrivatePostOrderGetById(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderGetById", args...)
 }
 
-func (this *Bit2cCore) PrivatePostOrderAddOrderMarketPriceBuy (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrderAddOrderMarketPriceBuy", args...)
+func (this *Bit2cCore) PrivatePostOrderAddOrderMarketPriceBuy(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderAddOrderMarketPriceBuy", args...)
 }
 
-func (this *Bit2cCore) PrivatePostOrderAddOrderMarketPriceSell (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrderAddOrderMarketPriceSell", args...)
+func (this *Bit2cCore) PrivatePostOrderAddOrderMarketPriceSell(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderAddOrderMarketPriceSell", args...)
 }
 
-func (this *Bit2cCore) PrivatePostOrderCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrderCancelOrder", args...)
+func (this *Bit2cCore) PrivatePostOrderCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderCancelOrder", args...)
 }
 
-func (this *Bit2cCore) PrivatePostOrderAddCoinFundsRequest (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrderAddCoinFundsRequest", args...)
+func (this *Bit2cCore) PrivatePostOrderAddCoinFundsRequest(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderAddCoinFundsRequest", args...)
 }
 
-func (this *Bit2cCore) PrivatePostOrderAddStopOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrderAddStopOrder", args...)
+func (this *Bit2cCore) PrivatePostOrderAddStopOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderAddStopOrder", args...)
 }
 
-func (this *Bit2cCore) PrivatePostPaymentGetMyId (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostPaymentGetMyId", args...)
+func (this *Bit2cCore) PrivatePostPaymentGetMyId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPaymentGetMyId", args...)
 }
 
-func (this *Bit2cCore) PrivatePostPaymentSend (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostPaymentSend", args...)
+func (this *Bit2cCore) PrivatePostPaymentSend(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPaymentSend", args...)
 }
 
-func (this *Bit2cCore) PrivatePostPaymentPay (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostPaymentPay", args...)
+func (this *Bit2cCore) PrivatePostPaymentPay(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPaymentPay", args...)
 }
 
-func (this *Bit2cCore) PrivateGetAccountBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAccountBalance", args...)
+func (this *Bit2cCore) PrivateGetAccountBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountBalance", args...)
 }
 
-func (this *Bit2cCore) PrivateGetAccountBalanceV2 (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAccountBalanceV2", args...)
+func (this *Bit2cCore) PrivateGetAccountBalanceV2(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountBalanceV2", args...)
 }
 
-func (this *Bit2cCore) PrivateGetOrderMyOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOrderMyOrders", args...)
+func (this *Bit2cCore) PrivateGetOrderMyOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrderMyOrders", args...)
 }
 
-func (this *Bit2cCore) PrivateGetOrderGetById (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOrderGetById", args...)
+func (this *Bit2cCore) PrivateGetOrderGetById(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrderGetById", args...)
 }
 
-func (this *Bit2cCore) PrivateGetOrderAccountHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOrderAccountHistory", args...)
+func (this *Bit2cCore) PrivateGetOrderAccountHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrderAccountHistory", args...)
 }
 
-func (this *Bit2cCore) PrivateGetOrderOrderHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOrderOrderHistory", args...)
+func (this *Bit2cCore) PrivateGetOrderOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrderOrderHistory", args...)
 }

@@ -7,1398 +7,1398 @@
 
 package ccxt
 
-func (this *KucoinCore) PublicGetCurrencies (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetCurrencies", args...)
+func (this *KucoinCore) PublicGetCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetCurrencies", args...)
 }
 
-func (this *KucoinCore) PublicGetCurrenciesCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetCurrenciesCurrency", args...)
+func (this *KucoinCore) PublicGetCurrenciesCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetCurrenciesCurrency", args...)
 }
 
-func (this *KucoinCore) PublicGetSymbols (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetSymbols", args...)
+func (this *KucoinCore) PublicGetSymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSymbols", args...)
 }
 
-func (this *KucoinCore) PublicGetMarketOrderbookLevel1 (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketOrderbookLevel1", args...)
+func (this *KucoinCore) PublicGetMarketOrderbookLevel1(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketOrderbookLevel1", args...)
 }
 
-func (this *KucoinCore) PublicGetMarketAllTickers (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketAllTickers", args...)
+func (this *KucoinCore) PublicGetMarketAllTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketAllTickers", args...)
 }
 
-func (this *KucoinCore) PublicGetMarketStats (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketStats", args...)
+func (this *KucoinCore) PublicGetMarketStats(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketStats", args...)
 }
 
-func (this *KucoinCore) PublicGetMarkets (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarkets", args...)
+func (this *KucoinCore) PublicGetMarkets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
-func (this *KucoinCore) PublicGetMarketOrderbookLevelLevelLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketOrderbookLevelLevelLimit", args...)
+func (this *KucoinCore) PublicGetMarketOrderbookLevelLevelLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketOrderbookLevelLevelLimit", args...)
 }
 
-func (this *KucoinCore) PublicGetMarketOrderbookLevel220 (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketOrderbookLevel220", args...)
+func (this *KucoinCore) PublicGetMarketOrderbookLevel220(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketOrderbookLevel220", args...)
 }
 
-func (this *KucoinCore) PublicGetMarketOrderbookLevel2100 (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketOrderbookLevel2100", args...)
+func (this *KucoinCore) PublicGetMarketOrderbookLevel2100(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketOrderbookLevel2100", args...)
 }
 
-func (this *KucoinCore) PublicGetMarketHistories (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketHistories", args...)
+func (this *KucoinCore) PublicGetMarketHistories(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketHistories", args...)
 }
 
-func (this *KucoinCore) PublicGetMarketCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketCandles", args...)
+func (this *KucoinCore) PublicGetMarketCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketCandles", args...)
 }
 
-func (this *KucoinCore) PublicGetPrices (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPrices", args...)
+func (this *KucoinCore) PublicGetPrices(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPrices", args...)
 }
 
-func (this *KucoinCore) PublicGetTimestamp (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTimestamp", args...)
+func (this *KucoinCore) PublicGetTimestamp(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTimestamp", args...)
 }
 
-func (this *KucoinCore) PublicGetStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetStatus", args...)
+func (this *KucoinCore) PublicGetStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetStatus", args...)
 }
 
-func (this *KucoinCore) PublicGetMarkPriceSymbolCurrent (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarkPriceSymbolCurrent", args...)
+func (this *KucoinCore) PublicGetMarkPriceSymbolCurrent(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarkPriceSymbolCurrent", args...)
 }
 
-func (this *KucoinCore) PublicGetMarkPriceAllSymbols (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarkPriceAllSymbols", args...)
+func (this *KucoinCore) PublicGetMarkPriceAllSymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarkPriceAllSymbols", args...)
 }
 
-func (this *KucoinCore) PublicGetMarginConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarginConfig", args...)
+func (this *KucoinCore) PublicGetMarginConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarginConfig", args...)
 }
 
-func (this *KucoinCore) PublicGetAnnouncements (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetAnnouncements", args...)
+func (this *KucoinCore) PublicGetAnnouncements(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAnnouncements", args...)
 }
 
-func (this *KucoinCore) PublicGetMarginCollateralRatio (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarginCollateralRatio", args...)
+func (this *KucoinCore) PublicGetMarginCollateralRatio(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarginCollateralRatio", args...)
 }
 
-func (this *KucoinCore) PublicGetConvertSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetConvertSymbol", args...)
+func (this *KucoinCore) PublicGetConvertSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetConvertSymbol", args...)
 }
 
-func (this *KucoinCore) PublicGetConvertCurrencies (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetConvertCurrencies", args...)
+func (this *KucoinCore) PublicGetConvertCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetConvertCurrencies", args...)
 }
 
-func (this *KucoinCore) PublicPostBulletPublic (args ...any) <-chan any {
-   return this.callEndpointAsync("publicPostBulletPublic", args...)
+func (this *KucoinCore) PublicPostBulletPublic(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostBulletPublic", args...)
 }
 
-func (this *KucoinCore) PrivateGetUserInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUserInfo", args...)
+func (this *KucoinCore) PrivateGetUserInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserInfo", args...)
 }
 
-func (this *KucoinCore) PrivateGetUserApiKey (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUserApiKey", args...)
+func (this *KucoinCore) PrivateGetUserApiKey(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserApiKey", args...)
 }
 
-func (this *KucoinCore) PrivateGetAccounts (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAccounts", args...)
+func (this *KucoinCore) PrivateGetAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccounts", args...)
 }
 
-func (this *KucoinCore) PrivateGetAccountsAccountId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAccountsAccountId", args...)
+func (this *KucoinCore) PrivateGetAccountsAccountId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountsAccountId", args...)
 }
 
-func (this *KucoinCore) PrivateGetAccountsLedgers (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAccountsLedgers", args...)
+func (this *KucoinCore) PrivateGetAccountsLedgers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountsLedgers", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfAccountsLedgers (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfAccountsLedgers", args...)
+func (this *KucoinCore) PrivateGetHfAccountsLedgers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfAccountsLedgers", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginAccountLedgers (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfMarginAccountLedgers", args...)
+func (this *KucoinCore) PrivateGetHfMarginAccountLedgers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfMarginAccountLedgers", args...)
 }
 
-func (this *KucoinCore) PrivateGetTransactionHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetTransactionHistory", args...)
+func (this *KucoinCore) PrivateGetTransactionHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTransactionHistory", args...)
 }
 
-func (this *KucoinCore) PrivateGetSubUser (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSubUser", args...)
+func (this *KucoinCore) PrivateGetSubUser(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubUser", args...)
 }
 
-func (this *KucoinCore) PrivateGetSubAccountsSubUserId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSubAccountsSubUserId", args...)
+func (this *KucoinCore) PrivateGetSubAccountsSubUserId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubAccountsSubUserId", args...)
 }
 
-func (this *KucoinCore) PrivateGetSubAccounts (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSubAccounts", args...)
+func (this *KucoinCore) PrivateGetSubAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubAccounts", args...)
 }
 
-func (this *KucoinCore) PrivateGetSubApiKey (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSubApiKey", args...)
+func (this *KucoinCore) PrivateGetSubApiKey(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubApiKey", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarginAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginAccount", args...)
+func (this *KucoinCore) PrivateGetMarginAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginAccount", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarginAccounts (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginAccounts", args...)
+func (this *KucoinCore) PrivateGetMarginAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginAccounts", args...)
 }
 
-func (this *KucoinCore) PrivateGetIsolatedAccounts (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetIsolatedAccounts", args...)
+func (this *KucoinCore) PrivateGetIsolatedAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetIsolatedAccounts", args...)
 }
 
-func (this *KucoinCore) PrivateGetDepositAddresses (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetDepositAddresses", args...)
+func (this *KucoinCore) PrivateGetDepositAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetDepositAddresses", args...)
 }
 
-func (this *KucoinCore) PrivateGetDeposits (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetDeposits", args...)
+func (this *KucoinCore) PrivateGetDeposits(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetDeposits", args...)
 }
 
-func (this *KucoinCore) PrivateGetHistDeposits (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHistDeposits", args...)
+func (this *KucoinCore) PrivateGetHistDeposits(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHistDeposits", args...)
 }
 
-func (this *KucoinCore) PrivateGetWithdrawals (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWithdrawals", args...)
+func (this *KucoinCore) PrivateGetWithdrawals(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWithdrawals", args...)
 }
 
-func (this *KucoinCore) PrivateGetHistWithdrawals (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHistWithdrawals", args...)
+func (this *KucoinCore) PrivateGetHistWithdrawals(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHistWithdrawals", args...)
 }
 
-func (this *KucoinCore) PrivateGetWithdrawalsQuotas (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWithdrawalsQuotas", args...)
+func (this *KucoinCore) PrivateGetWithdrawalsQuotas(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWithdrawalsQuotas", args...)
 }
 
-func (this *KucoinCore) PrivateGetAccountsTransferable (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAccountsTransferable", args...)
+func (this *KucoinCore) PrivateGetAccountsTransferable(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountsTransferable", args...)
 }
 
-func (this *KucoinCore) PrivateGetTransferList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetTransferList", args...)
+func (this *KucoinCore) PrivateGetTransferList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTransferList", args...)
 }
 
-func (this *KucoinCore) PrivateGetBaseFee (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetBaseFee", args...)
+func (this *KucoinCore) PrivateGetBaseFee(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetBaseFee", args...)
 }
 
-func (this *KucoinCore) PrivateGetTradeFees (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetTradeFees", args...)
+func (this *KucoinCore) PrivateGetTradeFees(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeFees", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarketOrderbookLevelLevel (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarketOrderbookLevelLevel", args...)
+func (this *KucoinCore) PrivateGetMarketOrderbookLevelLevel(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarketOrderbookLevelLevel", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarketOrderbookLevel2 (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarketOrderbookLevel2", args...)
+func (this *KucoinCore) PrivateGetMarketOrderbookLevel2(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarketOrderbookLevel2", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarketOrderbookLevel3 (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarketOrderbookLevel3", args...)
+func (this *KucoinCore) PrivateGetMarketOrderbookLevel3(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarketOrderbookLevel3", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfAccountsOpened (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfAccountsOpened", args...)
+func (this *KucoinCore) PrivateGetHfAccountsOpened(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfAccountsOpened", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfOrdersActive (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfOrdersActive", args...)
+func (this *KucoinCore) PrivateGetHfOrdersActive(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfOrdersActive", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfOrdersActiveSymbols (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfOrdersActiveSymbols", args...)
+func (this *KucoinCore) PrivateGetHfOrdersActiveSymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfOrdersActiveSymbols", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginOrderActiveSymbols (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfMarginOrderActiveSymbols", args...)
+func (this *KucoinCore) PrivateGetHfMarginOrderActiveSymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfMarginOrderActiveSymbols", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfOrdersDone (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfOrdersDone", args...)
+func (this *KucoinCore) PrivateGetHfOrdersDone(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfOrdersDone", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfOrdersOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfOrdersOrderId", args...)
+func (this *KucoinCore) PrivateGetHfOrdersOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfOrdersOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfOrdersClientOrderClientOid (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfOrdersClientOrderClientOid", args...)
+func (this *KucoinCore) PrivateGetHfOrdersClientOrderClientOid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfOrdersClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfOrdersDeadCancelAllQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfOrdersDeadCancelAllQuery", args...)
+func (this *KucoinCore) PrivateGetHfOrdersDeadCancelAllQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfOrdersDeadCancelAllQuery", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfFills (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfFills", args...)
+func (this *KucoinCore) PrivateGetHfFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfFills", args...)
 }
 
-func (this *KucoinCore) PrivateGetOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOrders", args...)
+func (this *KucoinCore) PrivateGetOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *KucoinCore) PrivateGetLimitOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetLimitOrders", args...)
+func (this *KucoinCore) PrivateGetLimitOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetLimitOrders", args...)
 }
 
-func (this *KucoinCore) PrivateGetOrdersOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOrdersOrderId", args...)
+func (this *KucoinCore) PrivateGetOrdersOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateGetOrderClientOrderClientOid (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOrderClientOrderClientOid", args...)
+func (this *KucoinCore) PrivateGetOrderClientOrderClientOid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrderClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateGetFills (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFills", args...)
+func (this *KucoinCore) PrivateGetFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFills", args...)
 }
 
-func (this *KucoinCore) PrivateGetLimitFills (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetLimitFills", args...)
+func (this *KucoinCore) PrivateGetLimitFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetLimitFills", args...)
 }
 
-func (this *KucoinCore) PrivateGetStopOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetStopOrder", args...)
+func (this *KucoinCore) PrivateGetStopOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetStopOrder", args...)
 }
 
-func (this *KucoinCore) PrivateGetStopOrderOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetStopOrderOrderId", args...)
+func (this *KucoinCore) PrivateGetStopOrderOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetStopOrderOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateGetStopOrderQueryOrderByClientOid (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetStopOrderQueryOrderByClientOid", args...)
+func (this *KucoinCore) PrivateGetStopOrderQueryOrderByClientOid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetStopOrderQueryOrderByClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateGetOcoOrderOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOcoOrderOrderId", args...)
+func (this *KucoinCore) PrivateGetOcoOrderOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOcoOrderOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateGetOcoOrderDetailsOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOcoOrderDetailsOrderId", args...)
+func (this *KucoinCore) PrivateGetOcoOrderDetailsOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOcoOrderDetailsOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateGetOcoClientOrderClientOid (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOcoClientOrderClientOid", args...)
+func (this *KucoinCore) PrivateGetOcoClientOrderClientOid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOcoClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateGetOcoOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOcoOrders", args...)
+func (this *KucoinCore) PrivateGetOcoOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOcoOrders", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginOrdersActive (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfMarginOrdersActive", args...)
+func (this *KucoinCore) PrivateGetHfMarginOrdersActive(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfMarginOrdersActive", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginOrdersDone (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfMarginOrdersDone", args...)
+func (this *KucoinCore) PrivateGetHfMarginOrdersDone(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfMarginOrdersDone", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginOrdersOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfMarginOrdersOrderId", args...)
+func (this *KucoinCore) PrivateGetHfMarginOrdersOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfMarginOrdersOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginOrdersClientOrderClientOid (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfMarginOrdersClientOrderClientOid", args...)
+func (this *KucoinCore) PrivateGetHfMarginOrdersClientOrderClientOid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfMarginOrdersClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginFills (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfMarginFills", args...)
+func (this *KucoinCore) PrivateGetHfMarginFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfMarginFills", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginStopOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfMarginStopOrders", args...)
+func (this *KucoinCore) PrivateGetHfMarginStopOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfMarginStopOrders", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginStopOrderOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfMarginStopOrderOrderId", args...)
+func (this *KucoinCore) PrivateGetHfMarginStopOrderOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfMarginStopOrderOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginStopOrderClientOid (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfMarginStopOrderClientOid", args...)
+func (this *KucoinCore) PrivateGetHfMarginStopOrderClientOid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfMarginStopOrderClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginOcoOrderOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfMarginOcoOrderOrderId", args...)
+func (this *KucoinCore) PrivateGetHfMarginOcoOrderOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfMarginOcoOrderOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginOcoOrderClientOid (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfMarginOcoOrderClientOid", args...)
+func (this *KucoinCore) PrivateGetHfMarginOcoOrderClientOid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfMarginOcoOrderClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginOcoOrderDetailOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfMarginOcoOrderDetailOrderId", args...)
+func (this *KucoinCore) PrivateGetHfMarginOcoOrderDetailOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfMarginOcoOrderDetailOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateGetHfMarginOcoOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHfMarginOcoOrders", args...)
+func (this *KucoinCore) PrivateGetHfMarginOcoOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHfMarginOcoOrders", args...)
 }
 
-func (this *KucoinCore) PrivateGetEtfInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetEtfInfo", args...)
+func (this *KucoinCore) PrivateGetEtfInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetEtfInfo", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarginCurrencies (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginCurrencies", args...)
+func (this *KucoinCore) PrivateGetMarginCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginCurrencies", args...)
 }
 
-func (this *KucoinCore) PrivateGetRiskLimitStrategy (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetRiskLimitStrategy", args...)
+func (this *KucoinCore) PrivateGetRiskLimitStrategy(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetRiskLimitStrategy", args...)
 }
 
-func (this *KucoinCore) PrivateGetIsolatedSymbols (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetIsolatedSymbols", args...)
+func (this *KucoinCore) PrivateGetIsolatedSymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetIsolatedSymbols", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarginSymbols (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginSymbols", args...)
+func (this *KucoinCore) PrivateGetMarginSymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginSymbols", args...)
 }
 
-func (this *KucoinCore) PrivateGetIsolatedAccountSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetIsolatedAccountSymbol", args...)
+func (this *KucoinCore) PrivateGetIsolatedAccountSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetIsolatedAccountSymbol", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarginBorrow (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginBorrow", args...)
+func (this *KucoinCore) PrivateGetMarginBorrow(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginBorrow", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarginRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginRepay", args...)
+func (this *KucoinCore) PrivateGetMarginRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginRepay", args...)
 }
 
-func (this *KucoinCore) PrivateGetMarginInterest (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginInterest", args...)
+func (this *KucoinCore) PrivateGetMarginInterest(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginInterest", args...)
 }
 
-func (this *KucoinCore) PrivateGetProjectList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetProjectList", args...)
+func (this *KucoinCore) PrivateGetProjectList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetProjectList", args...)
 }
 
-func (this *KucoinCore) PrivateGetProjectMarketInterestRate (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetProjectMarketInterestRate", args...)
+func (this *KucoinCore) PrivateGetProjectMarketInterestRate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetProjectMarketInterestRate", args...)
 }
 
-func (this *KucoinCore) PrivateGetRedeemOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetRedeemOrders", args...)
+func (this *KucoinCore) PrivateGetRedeemOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetRedeemOrders", args...)
 }
 
-func (this *KucoinCore) PrivateGetPurchaseOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetPurchaseOrders", args...)
+func (this *KucoinCore) PrivateGetPurchaseOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetPurchaseOrders", args...)
 }
 
-func (this *KucoinCore) PrivateGetBrokerApiRebaseDownload (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetBrokerApiRebaseDownload", args...)
+func (this *KucoinCore) PrivateGetBrokerApiRebaseDownload(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetBrokerApiRebaseDownload", args...)
 }
 
-func (this *KucoinCore) PrivateGetBrokerQueryMyCommission (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetBrokerQueryMyCommission", args...)
+func (this *KucoinCore) PrivateGetBrokerQueryMyCommission(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetBrokerQueryMyCommission", args...)
 }
 
-func (this *KucoinCore) PrivateGetBrokerQueryUser (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetBrokerQueryUser", args...)
+func (this *KucoinCore) PrivateGetBrokerQueryUser(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetBrokerQueryUser", args...)
 }
 
-func (this *KucoinCore) PrivateGetBrokerQueryDetailByUid (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetBrokerQueryDetailByUid", args...)
+func (this *KucoinCore) PrivateGetBrokerQueryDetailByUid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetBrokerQueryDetailByUid", args...)
 }
 
-func (this *KucoinCore) PrivateGetMigrateUserAccountStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMigrateUserAccountStatus", args...)
+func (this *KucoinCore) PrivateGetMigrateUserAccountStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMigrateUserAccountStatus", args...)
 }
 
-func (this *KucoinCore) PrivateGetConvertQuote (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetConvertQuote", args...)
+func (this *KucoinCore) PrivateGetConvertQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetConvertQuote", args...)
 }
 
-func (this *KucoinCore) PrivateGetConvertOrderDetail (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetConvertOrderDetail", args...)
+func (this *KucoinCore) PrivateGetConvertOrderDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetConvertOrderDetail", args...)
 }
 
-func (this *KucoinCore) PrivateGetConvertOrderHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetConvertOrderHistory", args...)
+func (this *KucoinCore) PrivateGetConvertOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetConvertOrderHistory", args...)
 }
 
-func (this *KucoinCore) PrivateGetConvertLimitQuote (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetConvertLimitQuote", args...)
+func (this *KucoinCore) PrivateGetConvertLimitQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetConvertLimitQuote", args...)
 }
 
-func (this *KucoinCore) PrivateGetConvertLimitOrderDetail (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetConvertLimitOrderDetail", args...)
+func (this *KucoinCore) PrivateGetConvertLimitOrderDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetConvertLimitOrderDetail", args...)
 }
 
-func (this *KucoinCore) PrivateGetConvertLimitOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetConvertLimitOrders", args...)
+func (this *KucoinCore) PrivateGetConvertLimitOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetConvertLimitOrders", args...)
 }
 
-func (this *KucoinCore) PrivateGetAffiliateInviterStatistics (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAffiliateInviterStatistics", args...)
+func (this *KucoinCore) PrivateGetAffiliateInviterStatistics(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateInviterStatistics", args...)
 }
 
-func (this *KucoinCore) PrivatePostSubUserCreated (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSubUserCreated", args...)
+func (this *KucoinCore) PrivatePostSubUserCreated(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubUserCreated", args...)
 }
 
-func (this *KucoinCore) PrivatePostSubApiKey (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSubApiKey", args...)
+func (this *KucoinCore) PrivatePostSubApiKey(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubApiKey", args...)
 }
 
-func (this *KucoinCore) PrivatePostSubApiKeyUpdate (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSubApiKeyUpdate", args...)
+func (this *KucoinCore) PrivatePostSubApiKeyUpdate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubApiKeyUpdate", args...)
 }
 
-func (this *KucoinCore) PrivatePostDepositAddresses (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostDepositAddresses", args...)
+func (this *KucoinCore) PrivatePostDepositAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDepositAddresses", args...)
 }
 
-func (this *KucoinCore) PrivatePostWithdrawals (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWithdrawals", args...)
+func (this *KucoinCore) PrivatePostWithdrawals(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdrawals", args...)
 }
 
-func (this *KucoinCore) PrivatePostAccountsUniversalTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostAccountsUniversalTransfer", args...)
+func (this *KucoinCore) PrivatePostAccountsUniversalTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountsUniversalTransfer", args...)
 }
 
-func (this *KucoinCore) PrivatePostAccountsSubTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostAccountsSubTransfer", args...)
+func (this *KucoinCore) PrivatePostAccountsSubTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountsSubTransfer", args...)
 }
 
-func (this *KucoinCore) PrivatePostAccountsInnerTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostAccountsInnerTransfer", args...)
+func (this *KucoinCore) PrivatePostAccountsInnerTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountsInnerTransfer", args...)
 }
 
-func (this *KucoinCore) PrivatePostTransferOut (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTransferOut", args...)
+func (this *KucoinCore) PrivatePostTransferOut(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTransferOut", args...)
 }
 
-func (this *KucoinCore) PrivatePostTransferIn (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTransferIn", args...)
+func (this *KucoinCore) PrivatePostTransferIn(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTransferIn", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostHfOrders", args...)
+func (this *KucoinCore) PrivatePostHfOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostHfOrders", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfOrdersTest (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostHfOrdersTest", args...)
+func (this *KucoinCore) PrivatePostHfOrdersTest(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostHfOrdersTest", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfOrdersSync (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostHfOrdersSync", args...)
+func (this *KucoinCore) PrivatePostHfOrdersSync(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostHfOrdersSync", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfOrdersMulti (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostHfOrdersMulti", args...)
+func (this *KucoinCore) PrivatePostHfOrdersMulti(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostHfOrdersMulti", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfOrdersMultiSync (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostHfOrdersMultiSync", args...)
+func (this *KucoinCore) PrivatePostHfOrdersMultiSync(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostHfOrdersMultiSync", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfOrdersAlter (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostHfOrdersAlter", args...)
+func (this *KucoinCore) PrivatePostHfOrdersAlter(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostHfOrdersAlter", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfOrdersDeadCancelAll (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostHfOrdersDeadCancelAll", args...)
+func (this *KucoinCore) PrivatePostHfOrdersDeadCancelAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostHfOrdersDeadCancelAll", args...)
 }
 
-func (this *KucoinCore) PrivatePostOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrders", args...)
+func (this *KucoinCore) PrivatePostOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *KucoinCore) PrivatePostOrdersTest (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrdersTest", args...)
+func (this *KucoinCore) PrivatePostOrdersTest(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrdersTest", args...)
 }
 
-func (this *KucoinCore) PrivatePostOrdersMulti (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrdersMulti", args...)
+func (this *KucoinCore) PrivatePostOrdersMulti(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrdersMulti", args...)
 }
 
-func (this *KucoinCore) PrivatePostStopOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostStopOrder", args...)
+func (this *KucoinCore) PrivatePostStopOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostStopOrder", args...)
 }
 
-func (this *KucoinCore) PrivatePostOcoOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOcoOrder", args...)
+func (this *KucoinCore) PrivatePostOcoOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOcoOrder", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfMarginOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostHfMarginOrder", args...)
+func (this *KucoinCore) PrivatePostHfMarginOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostHfMarginOrder", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfMarginOrderTest (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostHfMarginOrderTest", args...)
+func (this *KucoinCore) PrivatePostHfMarginOrderTest(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostHfMarginOrderTest", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfMarginStopOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostHfMarginStopOrder", args...)
+func (this *KucoinCore) PrivatePostHfMarginStopOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostHfMarginStopOrder", args...)
 }
 
-func (this *KucoinCore) PrivatePostMarginOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostMarginOrder", args...)
+func (this *KucoinCore) PrivatePostMarginOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginOrder", args...)
 }
 
-func (this *KucoinCore) PrivatePostMarginOrderTest (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostMarginOrderTest", args...)
+func (this *KucoinCore) PrivatePostMarginOrderTest(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginOrderTest", args...)
 }
 
-func (this *KucoinCore) PrivatePostHfMarginOcoOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostHfMarginOcoOrder", args...)
+func (this *KucoinCore) PrivatePostHfMarginOcoOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostHfMarginOcoOrder", args...)
 }
 
-func (this *KucoinCore) PrivatePostMarginBorrow (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostMarginBorrow", args...)
+func (this *KucoinCore) PrivatePostMarginBorrow(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginBorrow", args...)
 }
 
-func (this *KucoinCore) PrivatePostMarginRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostMarginRepay", args...)
+func (this *KucoinCore) PrivatePostMarginRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginRepay", args...)
 }
 
-func (this *KucoinCore) PrivatePostPurchase (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostPurchase", args...)
+func (this *KucoinCore) PrivatePostPurchase(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPurchase", args...)
 }
 
-func (this *KucoinCore) PrivatePostRedeem (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostRedeem", args...)
+func (this *KucoinCore) PrivatePostRedeem(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRedeem", args...)
 }
 
-func (this *KucoinCore) PrivatePostLendPurchaseUpdate (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostLendPurchaseUpdate", args...)
+func (this *KucoinCore) PrivatePostLendPurchaseUpdate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLendPurchaseUpdate", args...)
 }
 
-func (this *KucoinCore) PrivatePostConvertOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostConvertOrder", args...)
+func (this *KucoinCore) PrivatePostConvertOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostConvertOrder", args...)
 }
 
-func (this *KucoinCore) PrivatePostConvertLimitOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostConvertLimitOrder", args...)
+func (this *KucoinCore) PrivatePostConvertLimitOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostConvertLimitOrder", args...)
 }
 
-func (this *KucoinCore) PrivatePostBulletPrivate (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostBulletPrivate", args...)
+func (this *KucoinCore) PrivatePostBulletPrivate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBulletPrivate", args...)
 }
 
-func (this *KucoinCore) PrivatePostPositionUpdateUserLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostPositionUpdateUserLeverage", args...)
+func (this *KucoinCore) PrivatePostPositionUpdateUserLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPositionUpdateUserLeverage", args...)
 }
 
-func (this *KucoinCore) PrivatePostDepositAddressCreate (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostDepositAddressCreate", args...)
+func (this *KucoinCore) PrivatePostDepositAddressCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDepositAddressCreate", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteSubApiKey (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteSubApiKey", args...)
+func (this *KucoinCore) PrivateDeleteSubApiKey(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteSubApiKey", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteWithdrawalsWithdrawalId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteWithdrawalsWithdrawalId", args...)
+func (this *KucoinCore) PrivateDeleteWithdrawalsWithdrawalId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteWithdrawalsWithdrawalId", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfOrdersOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteHfOrdersOrderId", args...)
+func (this *KucoinCore) PrivateDeleteHfOrdersOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteHfOrdersOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfOrdersSyncOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteHfOrdersSyncOrderId", args...)
+func (this *KucoinCore) PrivateDeleteHfOrdersSyncOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteHfOrdersSyncOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfOrdersClientOrderClientOid (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteHfOrdersClientOrderClientOid", args...)
+func (this *KucoinCore) PrivateDeleteHfOrdersClientOrderClientOid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteHfOrdersClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfOrdersSyncClientOrderClientOid (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteHfOrdersSyncClientOrderClientOid", args...)
+func (this *KucoinCore) PrivateDeleteHfOrdersSyncClientOrderClientOid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteHfOrdersSyncClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfOrdersCancelOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteHfOrdersCancelOrderId", args...)
+func (this *KucoinCore) PrivateDeleteHfOrdersCancelOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteHfOrdersCancelOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteHfOrders", args...)
+func (this *KucoinCore) PrivateDeleteHfOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteHfOrders", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfOrdersCancelAll (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteHfOrdersCancelAll", args...)
+func (this *KucoinCore) PrivateDeleteHfOrdersCancelAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteHfOrdersCancelAll", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteOrdersOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteOrdersOrderId", args...)
+func (this *KucoinCore) PrivateDeleteOrdersOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrdersOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteOrderClientOrderClientOid (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteOrderClientOrderClientOid", args...)
+func (this *KucoinCore) PrivateDeleteOrderClientOrderClientOid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrderClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteOrders", args...)
+func (this *KucoinCore) PrivateDeleteOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrders", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteStopOrderOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteStopOrderOrderId", args...)
+func (this *KucoinCore) PrivateDeleteStopOrderOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteStopOrderOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteStopOrderCancelOrderByClientOid (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteStopOrderCancelOrderByClientOid", args...)
+func (this *KucoinCore) PrivateDeleteStopOrderCancelOrderByClientOid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteStopOrderCancelOrderByClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteStopOrderCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteStopOrderCancel", args...)
+func (this *KucoinCore) PrivateDeleteStopOrderCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteStopOrderCancel", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteOcoOrderOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteOcoOrderOrderId", args...)
+func (this *KucoinCore) PrivateDeleteOcoOrderOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOcoOrderOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteOcoClientOrderClientOid (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteOcoClientOrderClientOid", args...)
+func (this *KucoinCore) PrivateDeleteOcoClientOrderClientOid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOcoClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteOcoOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteOcoOrders", args...)
+func (this *KucoinCore) PrivateDeleteOcoOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOcoOrders", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfMarginOrdersOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteHfMarginOrdersOrderId", args...)
+func (this *KucoinCore) PrivateDeleteHfMarginOrdersOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteHfMarginOrdersOrderId", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfMarginOrdersClientOrderClientOid (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteHfMarginOrdersClientOrderClientOid", args...)
+func (this *KucoinCore) PrivateDeleteHfMarginOrdersClientOrderClientOid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteHfMarginOrdersClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfMarginOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteHfMarginOrders", args...)
+func (this *KucoinCore) PrivateDeleteHfMarginOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteHfMarginOrders", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfMarginStopOrderCancelById (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteHfMarginStopOrderCancelById", args...)
+func (this *KucoinCore) PrivateDeleteHfMarginStopOrderCancelById(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteHfMarginStopOrderCancelById", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfMarginStopOrderCancelByClientOid (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteHfMarginStopOrderCancelByClientOid", args...)
+func (this *KucoinCore) PrivateDeleteHfMarginStopOrderCancelByClientOid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteHfMarginStopOrderCancelByClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfMarginStopOrderCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteHfMarginStopOrderCancel", args...)
+func (this *KucoinCore) PrivateDeleteHfMarginStopOrderCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteHfMarginStopOrderCancel", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfMarginOcoOrderCancelById (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteHfMarginOcoOrderCancelById", args...)
+func (this *KucoinCore) PrivateDeleteHfMarginOcoOrderCancelById(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteHfMarginOcoOrderCancelById", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfMarginOcoOrderCancelByClientOid (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteHfMarginOcoOrderCancelByClientOid", args...)
+func (this *KucoinCore) PrivateDeleteHfMarginOcoOrderCancelByClientOid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteHfMarginOcoOrderCancelByClientOid", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteHfMarginOcoOrderCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteHfMarginOcoOrderCancel", args...)
+func (this *KucoinCore) PrivateDeleteHfMarginOcoOrderCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteHfMarginOcoOrderCancel", args...)
 }
 
-func (this *KucoinCore) PrivateDeleteConvertLimitOrderCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteConvertLimitOrderCancel", args...)
+func (this *KucoinCore) PrivateDeleteConvertLimitOrderCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteConvertLimitOrderCancel", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetContractsActive (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetContractsActive", args...)
+func (this *KucoinCore) FuturesPublicGetContractsActive(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetContractsActive", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetContractsSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetContractsSymbol", args...)
+func (this *KucoinCore) FuturesPublicGetContractsSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetContractsSymbol", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetTicker", args...)
+func (this *KucoinCore) FuturesPublicGetTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetTicker", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetAllTickers (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetAllTickers", args...)
+func (this *KucoinCore) FuturesPublicGetAllTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetAllTickers", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetLevel2Snapshot (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetLevel2Snapshot", args...)
+func (this *KucoinCore) FuturesPublicGetLevel2Snapshot(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetLevel2Snapshot", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetLevel2Depth20 (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetLevel2Depth20", args...)
+func (this *KucoinCore) FuturesPublicGetLevel2Depth20(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetLevel2Depth20", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetLevel2Depth100 (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetLevel2Depth100", args...)
+func (this *KucoinCore) FuturesPublicGetLevel2Depth100(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetLevel2Depth100", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetTradeHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetTradeHistory", args...)
+func (this *KucoinCore) FuturesPublicGetTradeHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetTradeHistory", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetKlineQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetKlineQuery", args...)
+func (this *KucoinCore) FuturesPublicGetKlineQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetKlineQuery", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetInterestQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetInterestQuery", args...)
+func (this *KucoinCore) FuturesPublicGetInterestQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetInterestQuery", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetIndexQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetIndexQuery", args...)
+func (this *KucoinCore) FuturesPublicGetIndexQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetIndexQuery", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetMarkPriceSymbolCurrent (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetMarkPriceSymbolCurrent", args...)
+func (this *KucoinCore) FuturesPublicGetMarkPriceSymbolCurrent(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetMarkPriceSymbolCurrent", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetPremiumQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetPremiumQuery", args...)
+func (this *KucoinCore) FuturesPublicGetPremiumQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetPremiumQuery", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetTradeStatistics (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetTradeStatistics", args...)
+func (this *KucoinCore) FuturesPublicGetTradeStatistics(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetTradeStatistics", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetFundingRateSymbolCurrent (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetFundingRateSymbolCurrent", args...)
+func (this *KucoinCore) FuturesPublicGetFundingRateSymbolCurrent(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetFundingRateSymbolCurrent", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetContractFundingRates (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetContractFundingRates", args...)
+func (this *KucoinCore) FuturesPublicGetContractFundingRates(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetContractFundingRates", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetTimestamp (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetTimestamp", args...)
+func (this *KucoinCore) FuturesPublicGetTimestamp(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetTimestamp", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetStatus", args...)
+func (this *KucoinCore) FuturesPublicGetStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetStatus", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetLevel2MessageQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetLevel2MessageQuery", args...)
+func (this *KucoinCore) FuturesPublicGetLevel2MessageQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetLevel2MessageQuery", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetContractsRiskLimitSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetContractsRiskLimitSymbol", args...)
+func (this *KucoinCore) FuturesPublicGetContractsRiskLimitSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetContractsRiskLimitSymbol", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetLevel3MessageQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetLevel3MessageQuery", args...)
+func (this *KucoinCore) FuturesPublicGetLevel3MessageQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetLevel3MessageQuery", args...)
 }
 
-func (this *KucoinCore) FuturesPublicGetLevel3Snapshot (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicGetLevel3Snapshot", args...)
+func (this *KucoinCore) FuturesPublicGetLevel3Snapshot(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicGetLevel3Snapshot", args...)
 }
 
-func (this *KucoinCore) FuturesPublicPostBulletPublic (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPublicPostBulletPublic", args...)
+func (this *KucoinCore) FuturesPublicPostBulletPublic(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPublicPostBulletPublic", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetTransactionHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetTransactionHistory", args...)
+func (this *KucoinCore) FuturesPrivateGetTransactionHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetTransactionHistory", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetAccountOverview (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetAccountOverview", args...)
+func (this *KucoinCore) FuturesPrivateGetAccountOverview(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetAccountOverview", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetAccountOverviewAll (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetAccountOverviewAll", args...)
+func (this *KucoinCore) FuturesPrivateGetAccountOverviewAll(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetAccountOverviewAll", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetTransferList (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetTransferList", args...)
+func (this *KucoinCore) FuturesPrivateGetTransferList(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetTransferList", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetOrders", args...)
+func (this *KucoinCore) FuturesPrivateGetOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetOrders", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetStopOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetStopOrders", args...)
+func (this *KucoinCore) FuturesPrivateGetStopOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetStopOrders", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetRecentDoneOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetRecentDoneOrders", args...)
+func (this *KucoinCore) FuturesPrivateGetRecentDoneOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetRecentDoneOrders", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetOrdersOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetOrdersOrderId", args...)
+func (this *KucoinCore) FuturesPrivateGetOrdersOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetOrdersOrderId", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetOrdersByClientOid (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetOrdersByClientOid", args...)
+func (this *KucoinCore) FuturesPrivateGetOrdersByClientOid(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetOrdersByClientOid", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetFills (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetFills", args...)
+func (this *KucoinCore) FuturesPrivateGetFills(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetFills", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetRecentFills (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetRecentFills", args...)
+func (this *KucoinCore) FuturesPrivateGetRecentFills(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetRecentFills", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetTradeFees (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetTradeFees", args...)
+func (this *KucoinCore) FuturesPrivateGetTradeFees(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetTradeFees", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetOpenOrderStatistics (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetOpenOrderStatistics", args...)
+func (this *KucoinCore) FuturesPrivateGetOpenOrderStatistics(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetOpenOrderStatistics", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetPosition (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetPosition", args...)
+func (this *KucoinCore) FuturesPrivateGetPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetPosition", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetPositions (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetPositions", args...)
+func (this *KucoinCore) FuturesPrivateGetPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetPositions", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetMarginMaxWithdrawMargin (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetMarginMaxWithdrawMargin", args...)
+func (this *KucoinCore) FuturesPrivateGetMarginMaxWithdrawMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetMarginMaxWithdrawMargin", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetContractsRiskLimitSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetContractsRiskLimitSymbol", args...)
+func (this *KucoinCore) FuturesPrivateGetContractsRiskLimitSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetContractsRiskLimitSymbol", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetFundingHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetFundingHistory", args...)
+func (this *KucoinCore) FuturesPrivateGetFundingHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetFundingHistory", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetCopyTradeFuturesGetMaxOpenSize (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetCopyTradeFuturesGetMaxOpenSize", args...)
+func (this *KucoinCore) FuturesPrivateGetCopyTradeFuturesGetMaxOpenSize(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetCopyTradeFuturesGetMaxOpenSize", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetCopyTradeFuturesPositionMarginMaxWithdrawMargin (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetCopyTradeFuturesPositionMarginMaxWithdrawMargin", args...)
+func (this *KucoinCore) FuturesPrivateGetCopyTradeFuturesPositionMarginMaxWithdrawMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetCopyTradeFuturesPositionMarginMaxWithdrawMargin", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetHistoryPositions (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetHistoryPositions", args...)
+func (this *KucoinCore) FuturesPrivateGetHistoryPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetHistoryPositions", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetPositionGetMarginMode (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetPositionGetMarginMode", args...)
+func (this *KucoinCore) FuturesPrivateGetPositionGetMarginMode(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetPositionGetMarginMode", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetPositionGetPositionMode (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetPositionGetPositionMode", args...)
+func (this *KucoinCore) FuturesPrivateGetPositionGetPositionMode(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetPositionGetPositionMode", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetDepositAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetDepositAddress", args...)
+func (this *KucoinCore) FuturesPrivateGetDepositAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetDepositAddress", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetDepositList (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetDepositList", args...)
+func (this *KucoinCore) FuturesPrivateGetDepositList(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetDepositList", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetWithdrawalsQuotas (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetWithdrawalsQuotas", args...)
+func (this *KucoinCore) FuturesPrivateGetWithdrawalsQuotas(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetWithdrawalsQuotas", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetWithdrawalList (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetWithdrawalList", args...)
+func (this *KucoinCore) FuturesPrivateGetWithdrawalList(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetWithdrawalList", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetSubApiKey (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetSubApiKey", args...)
+func (this *KucoinCore) FuturesPrivateGetSubApiKey(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetSubApiKey", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetTradeStatistics (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetTradeStatistics", args...)
+func (this *KucoinCore) FuturesPrivateGetTradeStatistics(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetTradeStatistics", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetGetMaxOpenSize (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetGetMaxOpenSize", args...)
+func (this *KucoinCore) FuturesPrivateGetGetMaxOpenSize(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetGetMaxOpenSize", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateGetGetCrossUserLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateGetGetCrossUserLeverage", args...)
+func (this *KucoinCore) FuturesPrivateGetGetCrossUserLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateGetGetCrossUserLeverage", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostTransferOut (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostTransferOut", args...)
+func (this *KucoinCore) FuturesPrivatePostTransferOut(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostTransferOut", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostTransferIn (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostTransferIn", args...)
+func (this *KucoinCore) FuturesPrivatePostTransferIn(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostTransferIn", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostOrders", args...)
+func (this *KucoinCore) FuturesPrivatePostOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostOrders", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostStOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostStOrders", args...)
+func (this *KucoinCore) FuturesPrivatePostStOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostStOrders", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostOrdersTest (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostOrdersTest", args...)
+func (this *KucoinCore) FuturesPrivatePostOrdersTest(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostOrdersTest", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostOrdersMulti (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostOrdersMulti", args...)
+func (this *KucoinCore) FuturesPrivatePostOrdersMulti(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostOrdersMulti", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostPositionMarginAutoDepositStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostPositionMarginAutoDepositStatus", args...)
+func (this *KucoinCore) FuturesPrivatePostPositionMarginAutoDepositStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostPositionMarginAutoDepositStatus", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostMarginWithdrawMargin (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostMarginWithdrawMargin", args...)
+func (this *KucoinCore) FuturesPrivatePostMarginWithdrawMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostMarginWithdrawMargin", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostPositionMarginDepositMargin (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostPositionMarginDepositMargin", args...)
+func (this *KucoinCore) FuturesPrivatePostPositionMarginDepositMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostPositionMarginDepositMargin", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostPositionRiskLimitLevelChange (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostPositionRiskLimitLevelChange", args...)
+func (this *KucoinCore) FuturesPrivatePostPositionRiskLimitLevelChange(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostPositionRiskLimitLevelChange", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesOrders", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesOrders", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesOrdersTest (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesOrdersTest", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesOrdersTest(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesOrdersTest", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesStOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesStOrders", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesStOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesStOrders", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionMarginDepositMargin (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionMarginDepositMargin", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionMarginDepositMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionMarginDepositMargin", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionMarginWithdrawMargin (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionMarginWithdrawMargin", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionMarginWithdrawMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionMarginWithdrawMargin", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionRiskLimitLevelChange (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionRiskLimitLevelChange", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionRiskLimitLevelChange(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionRiskLimitLevelChange", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionMarginAutoDepositStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionMarginAutoDepositStatus", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionMarginAutoDepositStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionMarginAutoDepositStatus", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionChangeMarginMode (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionChangeMarginMode", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionChangeMarginMode(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionChangeMarginMode", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionChangeCrossUserLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionChangeCrossUserLeverage", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeFuturesPositionChangeCrossUserLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeFuturesPositionChangeCrossUserLeverage", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradeGetCrossModeMarginRequirement (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradeGetCrossModeMarginRequirement", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradeGetCrossModeMarginRequirement(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradeGetCrossModeMarginRequirement", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostCopyTradePositionSwitchPositionMode (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostCopyTradePositionSwitchPositionMode", args...)
+func (this *KucoinCore) FuturesPrivatePostCopyTradePositionSwitchPositionMode(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostCopyTradePositionSwitchPositionMode", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostChangeCrossUserLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostChangeCrossUserLeverage", args...)
+func (this *KucoinCore) FuturesPrivatePostChangeCrossUserLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostChangeCrossUserLeverage", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostWithdrawals (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostWithdrawals", args...)
+func (this *KucoinCore) FuturesPrivatePostWithdrawals(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostWithdrawals", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostSubApiKey (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostSubApiKey", args...)
+func (this *KucoinCore) FuturesPrivatePostSubApiKey(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostSubApiKey", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostSubApiKeyUpdate (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostSubApiKeyUpdate", args...)
+func (this *KucoinCore) FuturesPrivatePostSubApiKeyUpdate(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostSubApiKeyUpdate", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostPositionChangeMarginMode (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostPositionChangeMarginMode", args...)
+func (this *KucoinCore) FuturesPrivatePostPositionChangeMarginMode(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostPositionChangeMarginMode", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostPositionSwitchPositionMode (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostPositionSwitchPositionMode", args...)
+func (this *KucoinCore) FuturesPrivatePostPositionSwitchPositionMode(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostPositionSwitchPositionMode", args...)
 }
 
-func (this *KucoinCore) FuturesPrivatePostBulletPrivate (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivatePostBulletPrivate", args...)
+func (this *KucoinCore) FuturesPrivatePostBulletPrivate(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivatePostBulletPrivate", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateDeleteOrdersOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateDeleteOrdersOrderId", args...)
+func (this *KucoinCore) FuturesPrivateDeleteOrdersOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateDeleteOrdersOrderId", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateDeleteOrdersClientOrderClientOid (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateDeleteOrdersClientOrderClientOid", args...)
+func (this *KucoinCore) FuturesPrivateDeleteOrdersClientOrderClientOid(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateDeleteOrdersClientOrderClientOid", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateDeleteOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateDeleteOrders", args...)
+func (this *KucoinCore) FuturesPrivateDeleteOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateDeleteOrders", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateDeleteStopOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateDeleteStopOrders", args...)
+func (this *KucoinCore) FuturesPrivateDeleteStopOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateDeleteStopOrders", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateDeleteCopyTradeFuturesOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateDeleteCopyTradeFuturesOrders", args...)
+func (this *KucoinCore) FuturesPrivateDeleteCopyTradeFuturesOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateDeleteCopyTradeFuturesOrders", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateDeleteCopyTradeFuturesOrdersClientOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateDeleteCopyTradeFuturesOrdersClientOrder", args...)
+func (this *KucoinCore) FuturesPrivateDeleteCopyTradeFuturesOrdersClientOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateDeleteCopyTradeFuturesOrdersClientOrder", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateDeleteOrdersMultiCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateDeleteOrdersMultiCancel", args...)
+func (this *KucoinCore) FuturesPrivateDeleteOrdersMultiCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateDeleteOrdersMultiCancel", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateDeleteWithdrawalsWithdrawalId (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateDeleteWithdrawalsWithdrawalId", args...)
+func (this *KucoinCore) FuturesPrivateDeleteWithdrawalsWithdrawalId(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateDeleteWithdrawalsWithdrawalId", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateDeleteCancelTransferOut (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateDeleteCancelTransferOut", args...)
+func (this *KucoinCore) FuturesPrivateDeleteCancelTransferOut(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateDeleteCancelTransferOut", args...)
 }
 
-func (this *KucoinCore) FuturesPrivateDeleteSubApiKey (args ...any) <-chan any {
-   return this.callEndpointAsync("futuresPrivateDeleteSubApiKey", args...)
+func (this *KucoinCore) FuturesPrivateDeleteSubApiKey(args ...any) <-chan any {
+	return this.callEndpointAsync("futuresPrivateDeleteSubApiKey", args...)
 }
 
-func (this *KucoinCore) WebExchangeGetCurrencyCurrencyChainInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("webExchangeGetCurrencyCurrencyChainInfo", args...)
+func (this *KucoinCore) WebExchangeGetCurrencyCurrencyChainInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("webExchangeGetCurrencyCurrencyChainInfo", args...)
 }
 
-func (this *KucoinCore) WebExchangeGetContractSymbolFundingRates (args ...any) <-chan any {
-   return this.callEndpointAsync("webExchangeGetContractSymbolFundingRates", args...)
+func (this *KucoinCore) WebExchangeGetContractSymbolFundingRates(args ...any) <-chan any {
+	return this.callEndpointAsync("webExchangeGetContractSymbolFundingRates", args...)
 }
 
-func (this *KucoinCore) BrokerGetBrokerNdInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("brokerGetBrokerNdInfo", args...)
+func (this *KucoinCore) BrokerGetBrokerNdInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerGetBrokerNdInfo", args...)
 }
 
-func (this *KucoinCore) BrokerGetBrokerNdAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("brokerGetBrokerNdAccount", args...)
+func (this *KucoinCore) BrokerGetBrokerNdAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerGetBrokerNdAccount", args...)
 }
 
-func (this *KucoinCore) BrokerGetBrokerNdAccountApikey (args ...any) <-chan any {
-   return this.callEndpointAsync("brokerGetBrokerNdAccountApikey", args...)
+func (this *KucoinCore) BrokerGetBrokerNdAccountApikey(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerGetBrokerNdAccountApikey", args...)
 }
 
-func (this *KucoinCore) BrokerGetBrokerNdRebaseDownload (args ...any) <-chan any {
-   return this.callEndpointAsync("brokerGetBrokerNdRebaseDownload", args...)
+func (this *KucoinCore) BrokerGetBrokerNdRebaseDownload(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerGetBrokerNdRebaseDownload", args...)
 }
 
-func (this *KucoinCore) BrokerGetAssetNdbrokerDepositList (args ...any) <-chan any {
-   return this.callEndpointAsync("brokerGetAssetNdbrokerDepositList", args...)
+func (this *KucoinCore) BrokerGetAssetNdbrokerDepositList(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerGetAssetNdbrokerDepositList", args...)
 }
 
-func (this *KucoinCore) BrokerGetBrokerNdTransferDetail (args ...any) <-chan any {
-   return this.callEndpointAsync("brokerGetBrokerNdTransferDetail", args...)
+func (this *KucoinCore) BrokerGetBrokerNdTransferDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerGetBrokerNdTransferDetail", args...)
 }
 
-func (this *KucoinCore) BrokerGetBrokerNdDepositDetail (args ...any) <-chan any {
-   return this.callEndpointAsync("brokerGetBrokerNdDepositDetail", args...)
+func (this *KucoinCore) BrokerGetBrokerNdDepositDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerGetBrokerNdDepositDetail", args...)
 }
 
-func (this *KucoinCore) BrokerGetBrokerNdWithdrawDetail (args ...any) <-chan any {
-   return this.callEndpointAsync("brokerGetBrokerNdWithdrawDetail", args...)
+func (this *KucoinCore) BrokerGetBrokerNdWithdrawDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerGetBrokerNdWithdrawDetail", args...)
 }
 
-func (this *KucoinCore) BrokerPostBrokerNdTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("brokerPostBrokerNdTransfer", args...)
+func (this *KucoinCore) BrokerPostBrokerNdTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPostBrokerNdTransfer", args...)
 }
 
-func (this *KucoinCore) BrokerPostBrokerNdAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("brokerPostBrokerNdAccount", args...)
+func (this *KucoinCore) BrokerPostBrokerNdAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPostBrokerNdAccount", args...)
 }
 
-func (this *KucoinCore) BrokerPostBrokerNdAccountApikey (args ...any) <-chan any {
-   return this.callEndpointAsync("brokerPostBrokerNdAccountApikey", args...)
+func (this *KucoinCore) BrokerPostBrokerNdAccountApikey(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPostBrokerNdAccountApikey", args...)
 }
 
-func (this *KucoinCore) BrokerPostBrokerNdAccountUpdateApikey (args ...any) <-chan any {
-   return this.callEndpointAsync("brokerPostBrokerNdAccountUpdateApikey", args...)
+func (this *KucoinCore) BrokerPostBrokerNdAccountUpdateApikey(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPostBrokerNdAccountUpdateApikey", args...)
 }
 
-func (this *KucoinCore) BrokerDeleteBrokerNdAccountApikey (args ...any) <-chan any {
-   return this.callEndpointAsync("brokerDeleteBrokerNdAccountApikey", args...)
+func (this *KucoinCore) BrokerDeleteBrokerNdAccountApikey(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerDeleteBrokerNdAccountApikey", args...)
 }
 
-func (this *KucoinCore) EarnGetOtcLoanDiscountRateConfigs (args ...any) <-chan any {
-   return this.callEndpointAsync("earnGetOtcLoanDiscountRateConfigs", args...)
+func (this *KucoinCore) EarnGetOtcLoanDiscountRateConfigs(args ...any) <-chan any {
+	return this.callEndpointAsync("earnGetOtcLoanDiscountRateConfigs", args...)
 }
 
-func (this *KucoinCore) EarnGetOtcLoanLoan (args ...any) <-chan any {
-   return this.callEndpointAsync("earnGetOtcLoanLoan", args...)
+func (this *KucoinCore) EarnGetOtcLoanLoan(args ...any) <-chan any {
+	return this.callEndpointAsync("earnGetOtcLoanLoan", args...)
 }
 
-func (this *KucoinCore) EarnGetOtcLoanAccounts (args ...any) <-chan any {
-   return this.callEndpointAsync("earnGetOtcLoanAccounts", args...)
+func (this *KucoinCore) EarnGetOtcLoanAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("earnGetOtcLoanAccounts", args...)
 }
 
-func (this *KucoinCore) EarnGetEarnRedeemPreview (args ...any) <-chan any {
-   return this.callEndpointAsync("earnGetEarnRedeemPreview", args...)
+func (this *KucoinCore) EarnGetEarnRedeemPreview(args ...any) <-chan any {
+	return this.callEndpointAsync("earnGetEarnRedeemPreview", args...)
 }
 
-func (this *KucoinCore) EarnGetEarnSavingProducts (args ...any) <-chan any {
-   return this.callEndpointAsync("earnGetEarnSavingProducts", args...)
+func (this *KucoinCore) EarnGetEarnSavingProducts(args ...any) <-chan any {
+	return this.callEndpointAsync("earnGetEarnSavingProducts", args...)
 }
 
-func (this *KucoinCore) EarnGetEarnHoldAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("earnGetEarnHoldAssets", args...)
+func (this *KucoinCore) EarnGetEarnHoldAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("earnGetEarnHoldAssets", args...)
 }
 
-func (this *KucoinCore) EarnGetEarnPromotionProducts (args ...any) <-chan any {
-   return this.callEndpointAsync("earnGetEarnPromotionProducts", args...)
+func (this *KucoinCore) EarnGetEarnPromotionProducts(args ...any) <-chan any {
+	return this.callEndpointAsync("earnGetEarnPromotionProducts", args...)
 }
 
-func (this *KucoinCore) EarnGetEarnKcsStakingProducts (args ...any) <-chan any {
-   return this.callEndpointAsync("earnGetEarnKcsStakingProducts", args...)
+func (this *KucoinCore) EarnGetEarnKcsStakingProducts(args ...any) <-chan any {
+	return this.callEndpointAsync("earnGetEarnKcsStakingProducts", args...)
 }
 
-func (this *KucoinCore) EarnGetEarnStakingProducts (args ...any) <-chan any {
-   return this.callEndpointAsync("earnGetEarnStakingProducts", args...)
+func (this *KucoinCore) EarnGetEarnStakingProducts(args ...any) <-chan any {
+	return this.callEndpointAsync("earnGetEarnStakingProducts", args...)
 }
 
-func (this *KucoinCore) EarnGetEarnEthStakingProducts (args ...any) <-chan any {
-   return this.callEndpointAsync("earnGetEarnEthStakingProducts", args...)
+func (this *KucoinCore) EarnGetEarnEthStakingProducts(args ...any) <-chan any {
+	return this.callEndpointAsync("earnGetEarnEthStakingProducts", args...)
 }
 
-func (this *KucoinCore) EarnGetStructEarnDualProducts (args ...any) <-chan any {
-   return this.callEndpointAsync("earnGetStructEarnDualProducts", args...)
+func (this *KucoinCore) EarnGetStructEarnDualProducts(args ...any) <-chan any {
+	return this.callEndpointAsync("earnGetStructEarnDualProducts", args...)
 }
 
-func (this *KucoinCore) EarnGetStructEarnOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("earnGetStructEarnOrders", args...)
+func (this *KucoinCore) EarnGetStructEarnOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("earnGetStructEarnOrders", args...)
 }
 
-func (this *KucoinCore) EarnPostEarnOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("earnPostEarnOrders", args...)
+func (this *KucoinCore) EarnPostEarnOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("earnPostEarnOrders", args...)
 }
 
-func (this *KucoinCore) EarnPostStructEarnOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("earnPostStructEarnOrders", args...)
+func (this *KucoinCore) EarnPostStructEarnOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("earnPostStructEarnOrders", args...)
 }
 
-func (this *KucoinCore) EarnDeleteEarnOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("earnDeleteEarnOrders", args...)
+func (this *KucoinCore) EarnDeleteEarnOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("earnDeleteEarnOrders", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketAnnouncement (args ...any) <-chan any {
-   return this.callEndpointAsync("utaGetMarketAnnouncement", args...)
+func (this *KucoinCore) UtaGetMarketAnnouncement(args ...any) <-chan any {
+	return this.callEndpointAsync("utaGetMarketAnnouncement", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("utaGetMarketCurrency", args...)
+func (this *KucoinCore) UtaGetMarketCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("utaGetMarketCurrency", args...)
 }
 
-func (this *KucoinCore) UtaGetAssetCurrencies (args ...any) <-chan any {
-   return this.callEndpointAsync("utaGetAssetCurrencies", args...)
+func (this *KucoinCore) UtaGetAssetCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("utaGetAssetCurrencies", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketInstrument (args ...any) <-chan any {
-   return this.callEndpointAsync("utaGetMarketInstrument", args...)
+func (this *KucoinCore) UtaGetMarketInstrument(args ...any) <-chan any {
+	return this.callEndpointAsync("utaGetMarketInstrument", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("utaGetMarketTicker", args...)
+func (this *KucoinCore) UtaGetMarketTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("utaGetMarketTicker", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketTrade (args ...any) <-chan any {
-   return this.callEndpointAsync("utaGetMarketTrade", args...)
+func (this *KucoinCore) UtaGetMarketTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("utaGetMarketTrade", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketKline (args ...any) <-chan any {
-   return this.callEndpointAsync("utaGetMarketKline", args...)
+func (this *KucoinCore) UtaGetMarketKline(args ...any) <-chan any {
+	return this.callEndpointAsync("utaGetMarketKline", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketFundingRate (args ...any) <-chan any {
-   return this.callEndpointAsync("utaGetMarketFundingRate", args...)
+func (this *KucoinCore) UtaGetMarketFundingRate(args ...any) <-chan any {
+	return this.callEndpointAsync("utaGetMarketFundingRate", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketFundingRateHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("utaGetMarketFundingRateHistory", args...)
+func (this *KucoinCore) UtaGetMarketFundingRateHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("utaGetMarketFundingRateHistory", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketCrossConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("utaGetMarketCrossConfig", args...)
+func (this *KucoinCore) UtaGetMarketCrossConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("utaGetMarketCrossConfig", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketCollateralDiscountRatio (args ...any) <-chan any {
-   return this.callEndpointAsync("utaGetMarketCollateralDiscountRatio", args...)
+func (this *KucoinCore) UtaGetMarketCollateralDiscountRatio(args ...any) <-chan any {
+	return this.callEndpointAsync("utaGetMarketCollateralDiscountRatio", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketIndexPrice (args ...any) <-chan any {
-   return this.callEndpointAsync("utaGetMarketIndexPrice", args...)
+func (this *KucoinCore) UtaGetMarketIndexPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("utaGetMarketIndexPrice", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketPositionTiers (args ...any) <-chan any {
-   return this.callEndpointAsync("utaGetMarketPositionTiers", args...)
+func (this *KucoinCore) UtaGetMarketPositionTiers(args ...any) <-chan any {
+	return this.callEndpointAsync("utaGetMarketPositionTiers", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketOpenInterest (args ...any) <-chan any {
-   return this.callEndpointAsync("utaGetMarketOpenInterest", args...)
+func (this *KucoinCore) UtaGetMarketOpenInterest(args ...any) <-chan any {
+	return this.callEndpointAsync("utaGetMarketOpenInterest", args...)
 }
 
-func (this *KucoinCore) UtaGetServerStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("utaGetServerStatus", args...)
+func (this *KucoinCore) UtaGetServerStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("utaGetServerStatus", args...)
 }
 
-func (this *KucoinCore) UtaGetMarketBorrowableCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("utaGetMarketBorrowableCurrency", args...)
+func (this *KucoinCore) UtaGetMarketBorrowableCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("utaGetMarketBorrowableCurrency", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetMarketOrderbook (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetMarketOrderbook", args...)
+func (this *KucoinCore) UtaPrivateGetMarketOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetMarketOrderbook", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetAccountBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetAccountBalance", args...)
+func (this *KucoinCore) UtaPrivateGetAccountBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetAccountBalance", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetAccountTransferQuota (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetAccountTransferQuota", args...)
+func (this *KucoinCore) UtaPrivateGetAccountTransferQuota(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetAccountTransferQuota", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetAccountMode (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetAccountMode", args...)
+func (this *KucoinCore) UtaPrivateGetAccountMode(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetAccountMode", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetAccountLedger (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetAccountLedger", args...)
+func (this *KucoinCore) UtaPrivateGetAccountLedger(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetAccountLedger", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetAccountInterestHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetAccountInterestHistory", args...)
+func (this *KucoinCore) UtaPrivateGetAccountInterestHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetAccountInterestHistory", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetAssetDepositAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetAssetDepositAddress", args...)
+func (this *KucoinCore) UtaPrivateGetAssetDepositAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetAssetDepositAddress", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetAccountDepositAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetAccountDepositAddress", args...)
+func (this *KucoinCore) UtaPrivateGetAccountDepositAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetAccountDepositAddress", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetAccountModeAccountBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetAccountModeAccountBalance", args...)
+func (this *KucoinCore) UtaPrivateGetAccountModeAccountBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetAccountModeAccountBalance", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetAccountModeAccountOverview (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetAccountModeAccountOverview", args...)
+func (this *KucoinCore) UtaPrivateGetAccountModeAccountOverview(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetAccountModeAccountOverview", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetAccountModeOrderDetail (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetAccountModeOrderDetail", args...)
+func (this *KucoinCore) UtaPrivateGetAccountModeOrderDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetAccountModeOrderDetail", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetAccountModeOrderOpenList (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetAccountModeOrderOpenList", args...)
+func (this *KucoinCore) UtaPrivateGetAccountModeOrderOpenList(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetAccountModeOrderOpenList", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetAccountModeOrderHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetAccountModeOrderHistory", args...)
+func (this *KucoinCore) UtaPrivateGetAccountModeOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetAccountModeOrderHistory", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetAccountModeOrderExecution (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetAccountModeOrderExecution", args...)
+func (this *KucoinCore) UtaPrivateGetAccountModeOrderExecution(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetAccountModeOrderExecution", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetAccountModePositionOpenList (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetAccountModePositionOpenList", args...)
+func (this *KucoinCore) UtaPrivateGetAccountModePositionOpenList(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetAccountModePositionOpenList", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetAccountModePositionHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetAccountModePositionHistory", args...)
+func (this *KucoinCore) UtaPrivateGetAccountModePositionHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetAccountModePositionHistory", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetPositionHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetPositionHistory", args...)
+func (this *KucoinCore) UtaPrivateGetPositionHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetPositionHistory", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetAccountModePositionTiers (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetAccountModePositionTiers", args...)
+func (this *KucoinCore) UtaPrivateGetAccountModePositionTiers(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetAccountModePositionTiers", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetSubAccountBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetSubAccountBalance", args...)
+func (this *KucoinCore) UtaPrivateGetSubAccountBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetSubAccountBalance", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetUserFeeRate (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetUserFeeRate", args...)
+func (this *KucoinCore) UtaPrivateGetUserFeeRate(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetUserFeeRate", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetDcpQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetDcpQuery", args...)
+func (this *KucoinCore) UtaPrivateGetDcpQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetDcpQuery", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetUnifiedAccountLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetUnifiedAccountLeverage", args...)
+func (this *KucoinCore) UtaPrivateGetUnifiedAccountLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetUnifiedAccountLeverage", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetPositionFundingHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetPositionFundingHistory", args...)
+func (this *KucoinCore) UtaPrivateGetPositionFundingHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetPositionFundingHistory", args...)
 }
 
-func (this *KucoinCore) UtaPrivateGetAccountInterestLimits (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivateGetAccountInterestLimits", args...)
+func (this *KucoinCore) UtaPrivateGetAccountInterestLimits(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivateGetAccountInterestLimits", args...)
 }
 
-func (this *KucoinCore) UtaPrivatePostAccountTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivatePostAccountTransfer", args...)
+func (this *KucoinCore) UtaPrivatePostAccountTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivatePostAccountTransfer", args...)
 }
 
-func (this *KucoinCore) UtaPrivatePostAccountMode (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivatePostAccountMode", args...)
+func (this *KucoinCore) UtaPrivatePostAccountMode(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivatePostAccountMode", args...)
 }
 
-func (this *KucoinCore) UtaPrivatePostAccountModeAccountModifyLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivatePostAccountModeAccountModifyLeverage", args...)
+func (this *KucoinCore) UtaPrivatePostAccountModeAccountModifyLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivatePostAccountModeAccountModifyLeverage", args...)
 }
 
-func (this *KucoinCore) UtaPrivatePostAccountModeOrderPlace (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivatePostAccountModeOrderPlace", args...)
+func (this *KucoinCore) UtaPrivatePostAccountModeOrderPlace(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivatePostAccountModeOrderPlace", args...)
 }
 
-func (this *KucoinCore) UtaPrivatePostAccountModeOrderPlaceBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivatePostAccountModeOrderPlaceBatch", args...)
+func (this *KucoinCore) UtaPrivatePostAccountModeOrderPlaceBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivatePostAccountModeOrderPlaceBatch", args...)
 }
 
-func (this *KucoinCore) UtaPrivatePostAccountModeOrderCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivatePostAccountModeOrderCancel", args...)
+func (this *KucoinCore) UtaPrivatePostAccountModeOrderCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivatePostAccountModeOrderCancel", args...)
 }
 
-func (this *KucoinCore) UtaPrivatePostAccountModeOrderCancelBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivatePostAccountModeOrderCancelBatch", args...)
+func (this *KucoinCore) UtaPrivatePostAccountModeOrderCancelBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivatePostAccountModeOrderCancelBatch", args...)
 }
 
-func (this *KucoinCore) UtaPrivatePostAccountModeOrderCancelAll (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivatePostAccountModeOrderCancelAll", args...)
+func (this *KucoinCore) UtaPrivatePostAccountModeOrderCancelAll(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivatePostAccountModeOrderCancelAll", args...)
 }
 
-func (this *KucoinCore) UtaPrivatePostSubAccountCanTransferOut (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivatePostSubAccountCanTransferOut", args...)
+func (this *KucoinCore) UtaPrivatePostSubAccountCanTransferOut(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivatePostSubAccountCanTransferOut", args...)
 }
 
-func (this *KucoinCore) UtaPrivatePostDcpSet (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivatePostDcpSet", args...)
+func (this *KucoinCore) UtaPrivatePostDcpSet(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivatePostDcpSet", args...)
 }
 
-func (this *KucoinCore) UtaPrivatePostAccountModeAccountModifyLeverageMarginCross (args ...any) <-chan any {
-   return this.callEndpointAsync("utaPrivatePostAccountModeAccountModifyLeverageMarginCross", args...)
+func (this *KucoinCore) UtaPrivatePostAccountModeAccountModifyLeverageMarginCross(args ...any) <-chan any {
+	return this.callEndpointAsync("utaPrivatePostAccountModeAccountModifyLeverageMarginCross", args...)
 }

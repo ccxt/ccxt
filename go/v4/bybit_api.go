@@ -7,1458 +7,1458 @@
 
 package ccxt
 
-func (this *BybitCore) PublicGetSpotV3PublicSymbols (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetSpotV3PublicSymbols", args...)
+func (this *BybitCore) PublicGetSpotV3PublicSymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotV3PublicSymbols", args...)
 }
 
-func (this *BybitCore) PublicGetSpotV3PublicQuoteDepth (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetSpotV3PublicQuoteDepth", args...)
+func (this *BybitCore) PublicGetSpotV3PublicQuoteDepth(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteDepth", args...)
 }
 
-func (this *BybitCore) PublicGetSpotV3PublicQuoteDepthMerged (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetSpotV3PublicQuoteDepthMerged", args...)
+func (this *BybitCore) PublicGetSpotV3PublicQuoteDepthMerged(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteDepthMerged", args...)
 }
 
-func (this *BybitCore) PublicGetSpotV3PublicQuoteTrades (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetSpotV3PublicQuoteTrades", args...)
+func (this *BybitCore) PublicGetSpotV3PublicQuoteTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteTrades", args...)
 }
 
-func (this *BybitCore) PublicGetSpotV3PublicQuoteKline (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetSpotV3PublicQuoteKline", args...)
+func (this *BybitCore) PublicGetSpotV3PublicQuoteKline(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteKline", args...)
 }
 
-func (this *BybitCore) PublicGetSpotV3PublicQuoteTicker24hr (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetSpotV3PublicQuoteTicker24hr", args...)
+func (this *BybitCore) PublicGetSpotV3PublicQuoteTicker24hr(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteTicker24hr", args...)
 }
 
-func (this *BybitCore) PublicGetSpotV3PublicQuoteTickerPrice (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetSpotV3PublicQuoteTickerPrice", args...)
+func (this *BybitCore) PublicGetSpotV3PublicQuoteTickerPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteTickerPrice", args...)
 }
 
-func (this *BybitCore) PublicGetSpotV3PublicQuoteTickerBookTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetSpotV3PublicQuoteTickerBookTicker", args...)
+func (this *BybitCore) PublicGetSpotV3PublicQuoteTickerBookTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteTickerBookTicker", args...)
 }
 
-func (this *BybitCore) PublicGetSpotV3PublicServerTime (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetSpotV3PublicServerTime", args...)
+func (this *BybitCore) PublicGetSpotV3PublicServerTime(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotV3PublicServerTime", args...)
 }
 
-func (this *BybitCore) PublicGetSpotV3PublicInfos (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetSpotV3PublicInfos", args...)
+func (this *BybitCore) PublicGetSpotV3PublicInfos(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotV3PublicInfos", args...)
 }
 
-func (this *BybitCore) PublicGetSpotV3PublicMarginProductInfos (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetSpotV3PublicMarginProductInfos", args...)
+func (this *BybitCore) PublicGetSpotV3PublicMarginProductInfos(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotV3PublicMarginProductInfos", args...)
 }
 
-func (this *BybitCore) PublicGetSpotV3PublicMarginEnsureTokens (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetSpotV3PublicMarginEnsureTokens", args...)
+func (this *BybitCore) PublicGetSpotV3PublicMarginEnsureTokens(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotV3PublicMarginEnsureTokens", args...)
 }
 
-func (this *BybitCore) PublicGetV3PublicTime (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV3PublicTime", args...)
+func (this *BybitCore) PublicGetV3PublicTime(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV3PublicTime", args...)
 }
 
-func (this *BybitCore) PublicGetContractV3PublicCopytradingSymbolList (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetContractV3PublicCopytradingSymbolList", args...)
+func (this *BybitCore) PublicGetContractV3PublicCopytradingSymbolList(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetContractV3PublicCopytradingSymbolList", args...)
 }
 
-func (this *BybitCore) PublicGetDerivativesV3PublicOrderBookL2 (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicOrderBookL2", args...)
+func (this *BybitCore) PublicGetDerivativesV3PublicOrderBookL2(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicOrderBookL2", args...)
 }
 
-func (this *BybitCore) PublicGetDerivativesV3PublicKline (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicKline", args...)
+func (this *BybitCore) PublicGetDerivativesV3PublicKline(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicKline", args...)
 }
 
-func (this *BybitCore) PublicGetDerivativesV3PublicTickers (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicTickers", args...)
+func (this *BybitCore) PublicGetDerivativesV3PublicTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicTickers", args...)
 }
 
-func (this *BybitCore) PublicGetDerivativesV3PublicInstrumentsInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicInstrumentsInfo", args...)
+func (this *BybitCore) PublicGetDerivativesV3PublicInstrumentsInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicInstrumentsInfo", args...)
 }
 
-func (this *BybitCore) PublicGetDerivativesV3PublicMarkPriceKline (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicMarkPriceKline", args...)
+func (this *BybitCore) PublicGetDerivativesV3PublicMarkPriceKline(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicMarkPriceKline", args...)
 }
 
-func (this *BybitCore) PublicGetDerivativesV3PublicIndexPriceKline (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicIndexPriceKline", args...)
+func (this *BybitCore) PublicGetDerivativesV3PublicIndexPriceKline(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicIndexPriceKline", args...)
 }
 
-func (this *BybitCore) PublicGetDerivativesV3PublicFundingHistoryFundingRate (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicFundingHistoryFundingRate", args...)
+func (this *BybitCore) PublicGetDerivativesV3PublicFundingHistoryFundingRate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicFundingHistoryFundingRate", args...)
 }
 
-func (this *BybitCore) PublicGetDerivativesV3PublicRiskLimitList (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicRiskLimitList", args...)
+func (this *BybitCore) PublicGetDerivativesV3PublicRiskLimitList(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicRiskLimitList", args...)
 }
 
-func (this *BybitCore) PublicGetDerivativesV3PublicDeliveryPrice (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicDeliveryPrice", args...)
+func (this *BybitCore) PublicGetDerivativesV3PublicDeliveryPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicDeliveryPrice", args...)
 }
 
-func (this *BybitCore) PublicGetDerivativesV3PublicRecentTrade (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicRecentTrade", args...)
+func (this *BybitCore) PublicGetDerivativesV3PublicRecentTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicRecentTrade", args...)
 }
 
-func (this *BybitCore) PublicGetDerivativesV3PublicOpenInterest (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicOpenInterest", args...)
+func (this *BybitCore) PublicGetDerivativesV3PublicOpenInterest(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicOpenInterest", args...)
 }
 
-func (this *BybitCore) PublicGetDerivativesV3PublicInsurance (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicInsurance", args...)
+func (this *BybitCore) PublicGetDerivativesV3PublicInsurance(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicInsurance", args...)
 }
 
-func (this *BybitCore) PublicGetV5AnnouncementsIndex (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5AnnouncementsIndex", args...)
+func (this *BybitCore) PublicGetV5AnnouncementsIndex(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5AnnouncementsIndex", args...)
 }
 
-func (this *BybitCore) PublicGetV5MarketTime (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5MarketTime", args...)
+func (this *BybitCore) PublicGetV5MarketTime(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketTime", args...)
 }
 
-func (this *BybitCore) PublicGetV5MarketKline (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5MarketKline", args...)
+func (this *BybitCore) PublicGetV5MarketKline(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketKline", args...)
 }
 
-func (this *BybitCore) PublicGetV5MarketMarkPriceKline (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5MarketMarkPriceKline", args...)
+func (this *BybitCore) PublicGetV5MarketMarkPriceKline(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketMarkPriceKline", args...)
 }
 
-func (this *BybitCore) PublicGetV5MarketIndexPriceKline (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5MarketIndexPriceKline", args...)
+func (this *BybitCore) PublicGetV5MarketIndexPriceKline(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketIndexPriceKline", args...)
 }
 
-func (this *BybitCore) PublicGetV5MarketPremiumIndexPriceKline (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5MarketPremiumIndexPriceKline", args...)
+func (this *BybitCore) PublicGetV5MarketPremiumIndexPriceKline(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketPremiumIndexPriceKline", args...)
 }
 
-func (this *BybitCore) PublicGetV5MarketInstrumentsInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5MarketInstrumentsInfo", args...)
+func (this *BybitCore) PublicGetV5MarketInstrumentsInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketInstrumentsInfo", args...)
 }
 
-func (this *BybitCore) PublicGetV5MarketOrderbook (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5MarketOrderbook", args...)
+func (this *BybitCore) PublicGetV5MarketOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketOrderbook", args...)
 }
 
-func (this *BybitCore) PublicGetV5MarketTickers (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5MarketTickers", args...)
+func (this *BybitCore) PublicGetV5MarketTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketTickers", args...)
 }
 
-func (this *BybitCore) PublicGetV5MarketFundingHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5MarketFundingHistory", args...)
+func (this *BybitCore) PublicGetV5MarketFundingHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketFundingHistory", args...)
 }
 
-func (this *BybitCore) PublicGetV5MarketRecentTrade (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5MarketRecentTrade", args...)
+func (this *BybitCore) PublicGetV5MarketRecentTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketRecentTrade", args...)
 }
 
-func (this *BybitCore) PublicGetV5MarketOpenInterest (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5MarketOpenInterest", args...)
+func (this *BybitCore) PublicGetV5MarketOpenInterest(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketOpenInterest", args...)
 }
 
-func (this *BybitCore) PublicGetV5MarketHistoricalVolatility (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5MarketHistoricalVolatility", args...)
+func (this *BybitCore) PublicGetV5MarketHistoricalVolatility(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketHistoricalVolatility", args...)
 }
 
-func (this *BybitCore) PublicGetV5MarketInsurance (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5MarketInsurance", args...)
+func (this *BybitCore) PublicGetV5MarketInsurance(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketInsurance", args...)
 }
 
-func (this *BybitCore) PublicGetV5MarketRiskLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5MarketRiskLimit", args...)
+func (this *BybitCore) PublicGetV5MarketRiskLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketRiskLimit", args...)
 }
 
-func (this *BybitCore) PublicGetV5MarketDeliveryPrice (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5MarketDeliveryPrice", args...)
+func (this *BybitCore) PublicGetV5MarketDeliveryPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketDeliveryPrice", args...)
 }
 
-func (this *BybitCore) PublicGetV5MarketAccountRatio (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5MarketAccountRatio", args...)
+func (this *BybitCore) PublicGetV5MarketAccountRatio(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketAccountRatio", args...)
 }
 
-func (this *BybitCore) PublicGetV5SpotLeverTokenInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5SpotLeverTokenInfo", args...)
+func (this *BybitCore) PublicGetV5SpotLeverTokenInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5SpotLeverTokenInfo", args...)
 }
 
-func (this *BybitCore) PublicGetV5SpotLeverTokenReference (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5SpotLeverTokenReference", args...)
+func (this *BybitCore) PublicGetV5SpotLeverTokenReference(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5SpotLeverTokenReference", args...)
 }
 
-func (this *BybitCore) PublicGetV5SpotMarginTradeData (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5SpotMarginTradeData", args...)
+func (this *BybitCore) PublicGetV5SpotMarginTradeData(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5SpotMarginTradeData", args...)
 }
 
-func (this *BybitCore) PublicGetV5SpotMarginTradeCollateral (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5SpotMarginTradeCollateral", args...)
+func (this *BybitCore) PublicGetV5SpotMarginTradeCollateral(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5SpotMarginTradeCollateral", args...)
 }
 
-func (this *BybitCore) PublicGetV5SpotCrossMarginTradeData (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5SpotCrossMarginTradeData", args...)
+func (this *BybitCore) PublicGetV5SpotCrossMarginTradeData(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5SpotCrossMarginTradeData", args...)
 }
 
-func (this *BybitCore) PublicGetV5SpotCrossMarginTradePledgeToken (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5SpotCrossMarginTradePledgeToken", args...)
+func (this *BybitCore) PublicGetV5SpotCrossMarginTradePledgeToken(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5SpotCrossMarginTradePledgeToken", args...)
 }
 
-func (this *BybitCore) PublicGetV5SpotCrossMarginTradeBorrowToken (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5SpotCrossMarginTradeBorrowToken", args...)
+func (this *BybitCore) PublicGetV5SpotCrossMarginTradeBorrowToken(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5SpotCrossMarginTradeBorrowToken", args...)
 }
 
-func (this *BybitCore) PublicGetV5CryptoLoanCollateralData (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5CryptoLoanCollateralData", args...)
+func (this *BybitCore) PublicGetV5CryptoLoanCollateralData(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5CryptoLoanCollateralData", args...)
 }
 
-func (this *BybitCore) PublicGetV5CryptoLoanLoanableData (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5CryptoLoanLoanableData", args...)
+func (this *BybitCore) PublicGetV5CryptoLoanLoanableData(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5CryptoLoanLoanableData", args...)
 }
 
-func (this *BybitCore) PublicGetV5CryptoLoanCommonLoanableData (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5CryptoLoanCommonLoanableData", args...)
+func (this *BybitCore) PublicGetV5CryptoLoanCommonLoanableData(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5CryptoLoanCommonLoanableData", args...)
 }
 
-func (this *BybitCore) PublicGetV5CryptoLoanCommonCollateralData (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5CryptoLoanCommonCollateralData", args...)
+func (this *BybitCore) PublicGetV5CryptoLoanCommonCollateralData(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5CryptoLoanCommonCollateralData", args...)
 }
 
-func (this *BybitCore) PublicGetV5CryptoLoanFixedSupplyOrderQuote (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5CryptoLoanFixedSupplyOrderQuote", args...)
+func (this *BybitCore) PublicGetV5CryptoLoanFixedSupplyOrderQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5CryptoLoanFixedSupplyOrderQuote", args...)
 }
 
-func (this *BybitCore) PublicGetV5CryptoLoanFixedBorrowOrderQuote (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5CryptoLoanFixedBorrowOrderQuote", args...)
+func (this *BybitCore) PublicGetV5CryptoLoanFixedBorrowOrderQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5CryptoLoanFixedBorrowOrderQuote", args...)
 }
 
-func (this *BybitCore) PublicGetV5InsLoanProductInfos (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5InsLoanProductInfos", args...)
+func (this *BybitCore) PublicGetV5InsLoanProductInfos(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5InsLoanProductInfos", args...)
 }
 
-func (this *BybitCore) PublicGetV5InsLoanEnsureTokensConvert (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5InsLoanEnsureTokensConvert", args...)
+func (this *BybitCore) PublicGetV5InsLoanEnsureTokensConvert(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5InsLoanEnsureTokensConvert", args...)
 }
 
-func (this *BybitCore) PublicGetV5EarnProduct (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV5EarnProduct", args...)
+func (this *BybitCore) PublicGetV5EarnProduct(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5EarnProduct", args...)
 }
 
-func (this *BybitCore) PrivateGetV5MarketInstrumentsInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5MarketInstrumentsInfo", args...)
+func (this *BybitCore) PrivateGetV5MarketInstrumentsInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5MarketInstrumentsInfo", args...)
 }
 
-func (this *BybitCore) PrivateGetV2PrivateWalletFundRecords (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV2PrivateWalletFundRecords", args...)
+func (this *BybitCore) PrivateGetV2PrivateWalletFundRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2PrivateWalletFundRecords", args...)
 }
 
-func (this *BybitCore) PrivateGetSpotV3PrivateOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotV3PrivateOrder", args...)
+func (this *BybitCore) PrivateGetSpotV3PrivateOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotV3PrivateOrder", args...)
 }
 
-func (this *BybitCore) PrivateGetSpotV3PrivateOpenOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotV3PrivateOpenOrders", args...)
+func (this *BybitCore) PrivateGetSpotV3PrivateOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotV3PrivateOpenOrders", args...)
 }
 
-func (this *BybitCore) PrivateGetSpotV3PrivateHistoryOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotV3PrivateHistoryOrders", args...)
+func (this *BybitCore) PrivateGetSpotV3PrivateHistoryOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotV3PrivateHistoryOrders", args...)
 }
 
-func (this *BybitCore) PrivateGetSpotV3PrivateMyTrades (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotV3PrivateMyTrades", args...)
+func (this *BybitCore) PrivateGetSpotV3PrivateMyTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotV3PrivateMyTrades", args...)
 }
 
-func (this *BybitCore) PrivateGetSpotV3PrivateAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotV3PrivateAccount", args...)
+func (this *BybitCore) PrivateGetSpotV3PrivateAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotV3PrivateAccount", args...)
 }
 
-func (this *BybitCore) PrivateGetSpotV3PrivateReference (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotV3PrivateReference", args...)
+func (this *BybitCore) PrivateGetSpotV3PrivateReference(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotV3PrivateReference", args...)
 }
 
-func (this *BybitCore) PrivateGetSpotV3PrivateRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotV3PrivateRecord", args...)
+func (this *BybitCore) PrivateGetSpotV3PrivateRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotV3PrivateRecord", args...)
 }
 
-func (this *BybitCore) PrivateGetSpotV3PrivateCrossMarginOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginOrders", args...)
+func (this *BybitCore) PrivateGetSpotV3PrivateCrossMarginOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginOrders", args...)
 }
 
-func (this *BybitCore) PrivateGetSpotV3PrivateCrossMarginAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginAccount", args...)
+func (this *BybitCore) PrivateGetSpotV3PrivateCrossMarginAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginAccount", args...)
 }
 
-func (this *BybitCore) PrivateGetSpotV3PrivateCrossMarginLoanInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginLoanInfo", args...)
+func (this *BybitCore) PrivateGetSpotV3PrivateCrossMarginLoanInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginLoanInfo", args...)
 }
 
-func (this *BybitCore) PrivateGetSpotV3PrivateCrossMarginRepayHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginRepayHistory", args...)
+func (this *BybitCore) PrivateGetSpotV3PrivateCrossMarginRepayHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginRepayHistory", args...)
 }
 
-func (this *BybitCore) PrivateGetSpotV3PrivateMarginLoanInfos (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotV3PrivateMarginLoanInfos", args...)
+func (this *BybitCore) PrivateGetSpotV3PrivateMarginLoanInfos(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotV3PrivateMarginLoanInfos", args...)
 }
 
-func (this *BybitCore) PrivateGetSpotV3PrivateMarginRepaidInfos (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotV3PrivateMarginRepaidInfos", args...)
+func (this *BybitCore) PrivateGetSpotV3PrivateMarginRepaidInfos(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotV3PrivateMarginRepaidInfos", args...)
 }
 
-func (this *BybitCore) PrivateGetSpotV3PrivateMarginLtv (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotV3PrivateMarginLtv", args...)
+func (this *BybitCore) PrivateGetSpotV3PrivateMarginLtv(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotV3PrivateMarginLtv", args...)
 }
 
-func (this *BybitCore) PrivateGetAssetV3PrivateTransferInterTransferListQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAssetV3PrivateTransferInterTransferListQuery", args...)
+func (this *BybitCore) PrivateGetAssetV3PrivateTransferInterTransferListQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferInterTransferListQuery", args...)
 }
 
-func (this *BybitCore) PrivateGetAssetV3PrivateTransferSubMemberListQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAssetV3PrivateTransferSubMemberListQuery", args...)
+func (this *BybitCore) PrivateGetAssetV3PrivateTransferSubMemberListQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferSubMemberListQuery", args...)
 }
 
-func (this *BybitCore) PrivateGetAssetV3PrivateTransferSubMemberTransferListQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAssetV3PrivateTransferSubMemberTransferListQuery", args...)
+func (this *BybitCore) PrivateGetAssetV3PrivateTransferSubMemberTransferListQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferSubMemberTransferListQuery", args...)
 }
 
-func (this *BybitCore) PrivateGetAssetV3PrivateTransferUniversalTransferListQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAssetV3PrivateTransferUniversalTransferListQuery", args...)
+func (this *BybitCore) PrivateGetAssetV3PrivateTransferUniversalTransferListQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferUniversalTransferListQuery", args...)
 }
 
-func (this *BybitCore) PrivateGetAssetV3PrivateCoinInfoQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAssetV3PrivateCoinInfoQuery", args...)
+func (this *BybitCore) PrivateGetAssetV3PrivateCoinInfoQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssetV3PrivateCoinInfoQuery", args...)
 }
 
-func (this *BybitCore) PrivateGetAssetV3PrivateDepositAddressQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAssetV3PrivateDepositAddressQuery", args...)
+func (this *BybitCore) PrivateGetAssetV3PrivateDepositAddressQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssetV3PrivateDepositAddressQuery", args...)
 }
 
-func (this *BybitCore) PrivateGetContractV3PrivateCopytradingOrderList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetContractV3PrivateCopytradingOrderList", args...)
+func (this *BybitCore) PrivateGetContractV3PrivateCopytradingOrderList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetContractV3PrivateCopytradingOrderList", args...)
 }
 
-func (this *BybitCore) PrivateGetContractV3PrivateCopytradingPositionList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetContractV3PrivateCopytradingPositionList", args...)
+func (this *BybitCore) PrivateGetContractV3PrivateCopytradingPositionList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetContractV3PrivateCopytradingPositionList", args...)
 }
 
-func (this *BybitCore) PrivateGetContractV3PrivateCopytradingWalletBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetContractV3PrivateCopytradingWalletBalance", args...)
+func (this *BybitCore) PrivateGetContractV3PrivateCopytradingWalletBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetContractV3PrivateCopytradingWalletBalance", args...)
 }
 
-func (this *BybitCore) PrivateGetContractV3PrivatePositionLimitInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetContractV3PrivatePositionLimitInfo", args...)
+func (this *BybitCore) PrivateGetContractV3PrivatePositionLimitInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetContractV3PrivatePositionLimitInfo", args...)
 }
 
-func (this *BybitCore) PrivateGetContractV3PrivateOrderUnfilledOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetContractV3PrivateOrderUnfilledOrders", args...)
+func (this *BybitCore) PrivateGetContractV3PrivateOrderUnfilledOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetContractV3PrivateOrderUnfilledOrders", args...)
 }
 
-func (this *BybitCore) PrivateGetContractV3PrivateOrderList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetContractV3PrivateOrderList", args...)
+func (this *BybitCore) PrivateGetContractV3PrivateOrderList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetContractV3PrivateOrderList", args...)
 }
 
-func (this *BybitCore) PrivateGetContractV3PrivatePositionList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetContractV3PrivatePositionList", args...)
+func (this *BybitCore) PrivateGetContractV3PrivatePositionList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetContractV3PrivatePositionList", args...)
 }
 
-func (this *BybitCore) PrivateGetContractV3PrivateExecutionList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetContractV3PrivateExecutionList", args...)
+func (this *BybitCore) PrivateGetContractV3PrivateExecutionList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetContractV3PrivateExecutionList", args...)
 }
 
-func (this *BybitCore) PrivateGetContractV3PrivatePositionClosedPnl (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetContractV3PrivatePositionClosedPnl", args...)
+func (this *BybitCore) PrivateGetContractV3PrivatePositionClosedPnl(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetContractV3PrivatePositionClosedPnl", args...)
 }
 
-func (this *BybitCore) PrivateGetContractV3PrivateAccountWalletBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetContractV3PrivateAccountWalletBalance", args...)
+func (this *BybitCore) PrivateGetContractV3PrivateAccountWalletBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetContractV3PrivateAccountWalletBalance", args...)
 }
 
-func (this *BybitCore) PrivateGetContractV3PrivateAccountFeeRate (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetContractV3PrivateAccountFeeRate", args...)
+func (this *BybitCore) PrivateGetContractV3PrivateAccountFeeRate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetContractV3PrivateAccountFeeRate", args...)
 }
 
-func (this *BybitCore) PrivateGetContractV3PrivateAccountWalletFundRecords (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetContractV3PrivateAccountWalletFundRecords", args...)
+func (this *BybitCore) PrivateGetContractV3PrivateAccountWalletFundRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetContractV3PrivateAccountWalletFundRecords", args...)
 }
 
-func (this *BybitCore) PrivateGetUnifiedV3PrivateOrderUnfilledOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateOrderUnfilledOrders", args...)
+func (this *BybitCore) PrivateGetUnifiedV3PrivateOrderUnfilledOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateOrderUnfilledOrders", args...)
 }
 
-func (this *BybitCore) PrivateGetUnifiedV3PrivateOrderList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateOrderList", args...)
+func (this *BybitCore) PrivateGetUnifiedV3PrivateOrderList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateOrderList", args...)
 }
 
-func (this *BybitCore) PrivateGetUnifiedV3PrivatePositionList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivatePositionList", args...)
+func (this *BybitCore) PrivateGetUnifiedV3PrivatePositionList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivatePositionList", args...)
 }
 
-func (this *BybitCore) PrivateGetUnifiedV3PrivateExecutionList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateExecutionList", args...)
+func (this *BybitCore) PrivateGetUnifiedV3PrivateExecutionList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateExecutionList", args...)
 }
 
-func (this *BybitCore) PrivateGetUnifiedV3PrivateDeliveryRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateDeliveryRecord", args...)
+func (this *BybitCore) PrivateGetUnifiedV3PrivateDeliveryRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateDeliveryRecord", args...)
 }
 
-func (this *BybitCore) PrivateGetUnifiedV3PrivateSettlementRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateSettlementRecord", args...)
+func (this *BybitCore) PrivateGetUnifiedV3PrivateSettlementRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateSettlementRecord", args...)
 }
 
-func (this *BybitCore) PrivateGetUnifiedV3PrivateAccountWalletBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountWalletBalance", args...)
+func (this *BybitCore) PrivateGetUnifiedV3PrivateAccountWalletBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountWalletBalance", args...)
 }
 
-func (this *BybitCore) PrivateGetUnifiedV3PrivateAccountTransactionLog (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountTransactionLog", args...)
+func (this *BybitCore) PrivateGetUnifiedV3PrivateAccountTransactionLog(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountTransactionLog", args...)
 }
 
-func (this *BybitCore) PrivateGetUnifiedV3PrivateAccountBorrowHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountBorrowHistory", args...)
+func (this *BybitCore) PrivateGetUnifiedV3PrivateAccountBorrowHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountBorrowHistory", args...)
 }
 
-func (this *BybitCore) PrivateGetUnifiedV3PrivateAccountBorrowRate (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountBorrowRate", args...)
+func (this *BybitCore) PrivateGetUnifiedV3PrivateAccountBorrowRate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountBorrowRate", args...)
 }
 
-func (this *BybitCore) PrivateGetUnifiedV3PrivateAccountInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountInfo", args...)
+func (this *BybitCore) PrivateGetUnifiedV3PrivateAccountInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountInfo", args...)
 }
 
-func (this *BybitCore) PrivateGetUserV3PrivateFrozenSubMember (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUserV3PrivateFrozenSubMember", args...)
+func (this *BybitCore) PrivateGetUserV3PrivateFrozenSubMember(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserV3PrivateFrozenSubMember", args...)
 }
 
-func (this *BybitCore) PrivateGetUserV3PrivateQuerySubMembers (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUserV3PrivateQuerySubMembers", args...)
+func (this *BybitCore) PrivateGetUserV3PrivateQuerySubMembers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserV3PrivateQuerySubMembers", args...)
 }
 
-func (this *BybitCore) PrivateGetUserV3PrivateQueryApi (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUserV3PrivateQueryApi", args...)
+func (this *BybitCore) PrivateGetUserV3PrivateQueryApi(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserV3PrivateQueryApi", args...)
 }
 
-func (this *BybitCore) PrivateGetUserV3PrivateGetMemberType (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUserV3PrivateGetMemberType", args...)
+func (this *BybitCore) PrivateGetUserV3PrivateGetMemberType(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserV3PrivateGetMemberType", args...)
 }
 
-func (this *BybitCore) PrivateGetAssetV3PrivateTransferTransferCoinListQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAssetV3PrivateTransferTransferCoinListQuery", args...)
+func (this *BybitCore) PrivateGetAssetV3PrivateTransferTransferCoinListQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferTransferCoinListQuery", args...)
 }
 
-func (this *BybitCore) PrivateGetAssetV3PrivateTransferAccountCoinBalanceQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAssetV3PrivateTransferAccountCoinBalanceQuery", args...)
+func (this *BybitCore) PrivateGetAssetV3PrivateTransferAccountCoinBalanceQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferAccountCoinBalanceQuery", args...)
 }
 
-func (this *BybitCore) PrivateGetAssetV3PrivateTransferAccountCoinsBalanceQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery", args...)
+func (this *BybitCore) PrivateGetAssetV3PrivateTransferAccountCoinsBalanceQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery", args...)
 }
 
-func (this *BybitCore) PrivateGetAssetV3PrivateTransferAssetInfoQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAssetV3PrivateTransferAssetInfoQuery", args...)
+func (this *BybitCore) PrivateGetAssetV3PrivateTransferAssetInfoQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferAssetInfoQuery", args...)
 }
 
-func (this *BybitCore) PrivateGetAssetV3PublicDepositAllowedDepositListQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAssetV3PublicDepositAllowedDepositListQuery", args...)
+func (this *BybitCore) PrivateGetAssetV3PublicDepositAllowedDepositListQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssetV3PublicDepositAllowedDepositListQuery", args...)
 }
 
-func (this *BybitCore) PrivateGetAssetV3PrivateDepositRecordQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAssetV3PrivateDepositRecordQuery", args...)
+func (this *BybitCore) PrivateGetAssetV3PrivateDepositRecordQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssetV3PrivateDepositRecordQuery", args...)
 }
 
-func (this *BybitCore) PrivateGetAssetV3PrivateWithdrawRecordQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAssetV3PrivateWithdrawRecordQuery", args...)
+func (this *BybitCore) PrivateGetAssetV3PrivateWithdrawRecordQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssetV3PrivateWithdrawRecordQuery", args...)
 }
 
-func (this *BybitCore) PrivateGetV5OrderRealtime (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5OrderRealtime", args...)
+func (this *BybitCore) PrivateGetV5OrderRealtime(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5OrderRealtime", args...)
 }
 
-func (this *BybitCore) PrivateGetV5OrderHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5OrderHistory", args...)
+func (this *BybitCore) PrivateGetV5OrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5OrderHistory", args...)
 }
 
-func (this *BybitCore) PrivateGetV5OrderSpotBorrowCheck (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5OrderSpotBorrowCheck", args...)
+func (this *BybitCore) PrivateGetV5OrderSpotBorrowCheck(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5OrderSpotBorrowCheck", args...)
 }
 
-func (this *BybitCore) PrivateGetV5PositionList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5PositionList", args...)
+func (this *BybitCore) PrivateGetV5PositionList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5PositionList", args...)
 }
 
-func (this *BybitCore) PrivateGetV5ExecutionList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5ExecutionList", args...)
+func (this *BybitCore) PrivateGetV5ExecutionList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5ExecutionList", args...)
 }
 
-func (this *BybitCore) PrivateGetV5PositionClosedPnl (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5PositionClosedPnl", args...)
+func (this *BybitCore) PrivateGetV5PositionClosedPnl(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5PositionClosedPnl", args...)
 }
 
-func (this *BybitCore) PrivateGetV5PositionMoveHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5PositionMoveHistory", args...)
+func (this *BybitCore) PrivateGetV5PositionMoveHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5PositionMoveHistory", args...)
 }
 
-func (this *BybitCore) PrivateGetV5PreUpgradeOrderHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5PreUpgradeOrderHistory", args...)
+func (this *BybitCore) PrivateGetV5PreUpgradeOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5PreUpgradeOrderHistory", args...)
 }
 
-func (this *BybitCore) PrivateGetV5PreUpgradeExecutionList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5PreUpgradeExecutionList", args...)
+func (this *BybitCore) PrivateGetV5PreUpgradeExecutionList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5PreUpgradeExecutionList", args...)
 }
 
-func (this *BybitCore) PrivateGetV5PreUpgradePositionClosedPnl (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5PreUpgradePositionClosedPnl", args...)
+func (this *BybitCore) PrivateGetV5PreUpgradePositionClosedPnl(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5PreUpgradePositionClosedPnl", args...)
 }
 
-func (this *BybitCore) PrivateGetV5PreUpgradeAccountTransactionLog (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5PreUpgradeAccountTransactionLog", args...)
+func (this *BybitCore) PrivateGetV5PreUpgradeAccountTransactionLog(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5PreUpgradeAccountTransactionLog", args...)
 }
 
-func (this *BybitCore) PrivateGetV5PreUpgradeAssetDeliveryRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5PreUpgradeAssetDeliveryRecord", args...)
+func (this *BybitCore) PrivateGetV5PreUpgradeAssetDeliveryRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5PreUpgradeAssetDeliveryRecord", args...)
 }
 
-func (this *BybitCore) PrivateGetV5PreUpgradeAssetSettlementRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5PreUpgradeAssetSettlementRecord", args...)
+func (this *BybitCore) PrivateGetV5PreUpgradeAssetSettlementRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5PreUpgradeAssetSettlementRecord", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AccountWalletBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AccountWalletBalance", args...)
+func (this *BybitCore) PrivateGetV5AccountWalletBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AccountWalletBalance", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AccountBorrowHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AccountBorrowHistory", args...)
+func (this *BybitCore) PrivateGetV5AccountBorrowHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AccountBorrowHistory", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AccountInstrumentsInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AccountInstrumentsInfo", args...)
+func (this *BybitCore) PrivateGetV5AccountInstrumentsInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AccountInstrumentsInfo", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AccountCollateralInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AccountCollateralInfo", args...)
+func (this *BybitCore) PrivateGetV5AccountCollateralInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AccountCollateralInfo", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetCoinGreeks (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetCoinGreeks", args...)
+func (this *BybitCore) PrivateGetV5AssetCoinGreeks(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetCoinGreeks", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AccountFeeRate (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AccountFeeRate", args...)
+func (this *BybitCore) PrivateGetV5AccountFeeRate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AccountFeeRate", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AccountInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AccountInfo", args...)
+func (this *BybitCore) PrivateGetV5AccountInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AccountInfo", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AccountTransactionLog (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AccountTransactionLog", args...)
+func (this *BybitCore) PrivateGetV5AccountTransactionLog(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AccountTransactionLog", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AccountContractTransactionLog (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AccountContractTransactionLog", args...)
+func (this *BybitCore) PrivateGetV5AccountContractTransactionLog(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AccountContractTransactionLog", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AccountSmpGroup (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AccountSmpGroup", args...)
+func (this *BybitCore) PrivateGetV5AccountSmpGroup(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AccountSmpGroup", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AccountMmpState (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AccountMmpState", args...)
+func (this *BybitCore) PrivateGetV5AccountMmpState(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AccountMmpState", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AccountWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AccountWithdrawal", args...)
+func (this *BybitCore) PrivateGetV5AccountWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AccountWithdrawal", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetExchangeQueryCoinList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetExchangeQueryCoinList", args...)
+func (this *BybitCore) PrivateGetV5AssetExchangeQueryCoinList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetExchangeQueryCoinList", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetExchangeConvertResultQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetExchangeConvertResultQuery", args...)
+func (this *BybitCore) PrivateGetV5AssetExchangeConvertResultQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetExchangeConvertResultQuery", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetExchangeQueryConvertHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetExchangeQueryConvertHistory", args...)
+func (this *BybitCore) PrivateGetV5AssetExchangeQueryConvertHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetExchangeQueryConvertHistory", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetExchangeOrderRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetExchangeOrderRecord", args...)
+func (this *BybitCore) PrivateGetV5AssetExchangeOrderRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetExchangeOrderRecord", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetDeliveryRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetDeliveryRecord", args...)
+func (this *BybitCore) PrivateGetV5AssetDeliveryRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetDeliveryRecord", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetSettlementRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetSettlementRecord", args...)
+func (this *BybitCore) PrivateGetV5AssetSettlementRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetSettlementRecord", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetTransferQueryAssetInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetTransferQueryAssetInfo", args...)
+func (this *BybitCore) PrivateGetV5AssetTransferQueryAssetInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetTransferQueryAssetInfo", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetTransferQueryAccountCoinsBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetTransferQueryAccountCoinsBalance", args...)
+func (this *BybitCore) PrivateGetV5AssetTransferQueryAccountCoinsBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetTransferQueryAccountCoinsBalance", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetTransferQueryAccountCoinBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetTransferQueryAccountCoinBalance", args...)
+func (this *BybitCore) PrivateGetV5AssetTransferQueryAccountCoinBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetTransferQueryAccountCoinBalance", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetTransferQueryTransferCoinList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetTransferQueryTransferCoinList", args...)
+func (this *BybitCore) PrivateGetV5AssetTransferQueryTransferCoinList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetTransferQueryTransferCoinList", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetTransferQueryInterTransferList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetTransferQueryInterTransferList", args...)
+func (this *BybitCore) PrivateGetV5AssetTransferQueryInterTransferList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetTransferQueryInterTransferList", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetTransferQuerySubMemberList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetTransferQuerySubMemberList", args...)
+func (this *BybitCore) PrivateGetV5AssetTransferQuerySubMemberList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetTransferQuerySubMemberList", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetTransferQueryUniversalTransferList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetTransferQueryUniversalTransferList", args...)
+func (this *BybitCore) PrivateGetV5AssetTransferQueryUniversalTransferList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetTransferQueryUniversalTransferList", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetDepositQueryAllowedList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetDepositQueryAllowedList", args...)
+func (this *BybitCore) PrivateGetV5AssetDepositQueryAllowedList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetDepositQueryAllowedList", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetDepositQueryRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetDepositQueryRecord", args...)
+func (this *BybitCore) PrivateGetV5AssetDepositQueryRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetDepositQueryRecord", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetDepositQuerySubMemberRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetDepositQuerySubMemberRecord", args...)
+func (this *BybitCore) PrivateGetV5AssetDepositQuerySubMemberRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetDepositQuerySubMemberRecord", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetDepositQueryInternalRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetDepositQueryInternalRecord", args...)
+func (this *BybitCore) PrivateGetV5AssetDepositQueryInternalRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetDepositQueryInternalRecord", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetDepositQueryAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetDepositQueryAddress", args...)
+func (this *BybitCore) PrivateGetV5AssetDepositQueryAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetDepositQueryAddress", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetDepositQuerySubMemberAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetDepositQuerySubMemberAddress", args...)
+func (this *BybitCore) PrivateGetV5AssetDepositQuerySubMemberAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetDepositQuerySubMemberAddress", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetCoinQueryInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetCoinQueryInfo", args...)
+func (this *BybitCore) PrivateGetV5AssetCoinQueryInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetCoinQueryInfo", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetWithdrawQueryAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetWithdrawQueryAddress", args...)
+func (this *BybitCore) PrivateGetV5AssetWithdrawQueryAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetWithdrawQueryAddress", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetWithdrawQueryRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetWithdrawQueryRecord", args...)
+func (this *BybitCore) PrivateGetV5AssetWithdrawQueryRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetWithdrawQueryRecord", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetWithdrawWithdrawableAmount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetWithdrawWithdrawableAmount", args...)
+func (this *BybitCore) PrivateGetV5AssetWithdrawWithdrawableAmount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetWithdrawWithdrawableAmount", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetWithdrawVaspList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetWithdrawVaspList", args...)
+func (this *BybitCore) PrivateGetV5AssetWithdrawVaspList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetWithdrawVaspList", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetConvertSmallBalanceList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetConvertSmallBalanceList", args...)
+func (this *BybitCore) PrivateGetV5AssetConvertSmallBalanceList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetConvertSmallBalanceList", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AssetConvertSmallBalanceHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AssetConvertSmallBalanceHistory", args...)
+func (this *BybitCore) PrivateGetV5AssetConvertSmallBalanceHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetConvertSmallBalanceHistory", args...)
 }
 
-func (this *BybitCore) PrivateGetV5FiatQueryCoinList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5FiatQueryCoinList", args...)
+func (this *BybitCore) PrivateGetV5FiatQueryCoinList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5FiatQueryCoinList", args...)
 }
 
-func (this *BybitCore) PrivateGetV5FiatReferencePrice (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5FiatReferencePrice", args...)
+func (this *BybitCore) PrivateGetV5FiatReferencePrice(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5FiatReferencePrice", args...)
 }
 
-func (this *BybitCore) PrivateGetV5FiatTradeQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5FiatTradeQuery", args...)
+func (this *BybitCore) PrivateGetV5FiatTradeQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5FiatTradeQuery", args...)
 }
 
-func (this *BybitCore) PrivateGetV5FiatQueryTradeHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5FiatQueryTradeHistory", args...)
+func (this *BybitCore) PrivateGetV5FiatQueryTradeHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5FiatQueryTradeHistory", args...)
 }
 
-func (this *BybitCore) PrivateGetV5FiatBalanceQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5FiatBalanceQuery", args...)
+func (this *BybitCore) PrivateGetV5FiatBalanceQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5FiatBalanceQuery", args...)
 }
 
-func (this *BybitCore) PrivateGetV5UserQuerySubMembers (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5UserQuerySubMembers", args...)
+func (this *BybitCore) PrivateGetV5UserQuerySubMembers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5UserQuerySubMembers", args...)
 }
 
-func (this *BybitCore) PrivateGetV5UserQueryApi (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5UserQueryApi", args...)
+func (this *BybitCore) PrivateGetV5UserQueryApi(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5UserQueryApi", args...)
 }
 
-func (this *BybitCore) PrivateGetV5UserSubApikeys (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5UserSubApikeys", args...)
+func (this *BybitCore) PrivateGetV5UserSubApikeys(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5UserSubApikeys", args...)
 }
 
-func (this *BybitCore) PrivateGetV5UserGetMemberType (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5UserGetMemberType", args...)
+func (this *BybitCore) PrivateGetV5UserGetMemberType(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5UserGetMemberType", args...)
 }
 
-func (this *BybitCore) PrivateGetV5UserAffCustomerInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5UserAffCustomerInfo", args...)
+func (this *BybitCore) PrivateGetV5UserAffCustomerInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5UserAffCustomerInfo", args...)
 }
 
-func (this *BybitCore) PrivateGetV5UserDelSubmember (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5UserDelSubmember", args...)
+func (this *BybitCore) PrivateGetV5UserDelSubmember(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5UserDelSubmember", args...)
 }
 
-func (this *BybitCore) PrivateGetV5UserSubmembers (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5UserSubmembers", args...)
+func (this *BybitCore) PrivateGetV5UserSubmembers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5UserSubmembers", args...)
 }
 
-func (this *BybitCore) PrivateGetV5AffiliateAffUserList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5AffiliateAffUserList", args...)
+func (this *BybitCore) PrivateGetV5AffiliateAffUserList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AffiliateAffUserList", args...)
 }
 
-func (this *BybitCore) PrivateGetV5SpotLeverTokenOrderRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5SpotLeverTokenOrderRecord", args...)
+func (this *BybitCore) PrivateGetV5SpotLeverTokenOrderRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotLeverTokenOrderRecord", args...)
 }
 
-func (this *BybitCore) PrivateGetV5SpotMarginTradeInterestRateHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5SpotMarginTradeInterestRateHistory", args...)
+func (this *BybitCore) PrivateGetV5SpotMarginTradeInterestRateHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeInterestRateHistory", args...)
 }
 
-func (this *BybitCore) PrivateGetV5SpotMarginTradeState (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5SpotMarginTradeState", args...)
+func (this *BybitCore) PrivateGetV5SpotMarginTradeState(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeState", args...)
 }
 
-func (this *BybitCore) PrivateGetV5SpotMarginTradeMaxBorrowable (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5SpotMarginTradeMaxBorrowable", args...)
+func (this *BybitCore) PrivateGetV5SpotMarginTradeMaxBorrowable(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeMaxBorrowable", args...)
 }
 
-func (this *BybitCore) PrivateGetV5SpotMarginTradePositionTiers (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5SpotMarginTradePositionTiers", args...)
+func (this *BybitCore) PrivateGetV5SpotMarginTradePositionTiers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradePositionTiers", args...)
 }
 
-func (this *BybitCore) PrivateGetV5SpotMarginTradeCoinstate (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5SpotMarginTradeCoinstate", args...)
+func (this *BybitCore) PrivateGetV5SpotMarginTradeCoinstate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeCoinstate", args...)
 }
 
-func (this *BybitCore) PrivateGetV5SpotMarginTradeRepaymentAvailableAmount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5SpotMarginTradeRepaymentAvailableAmount", args...)
+func (this *BybitCore) PrivateGetV5SpotMarginTradeRepaymentAvailableAmount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeRepaymentAvailableAmount", args...)
 }
 
-func (this *BybitCore) PrivateGetV5SpotMarginTradeGetAutoRepayMode (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5SpotMarginTradeGetAutoRepayMode", args...)
+func (this *BybitCore) PrivateGetV5SpotMarginTradeGetAutoRepayMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeGetAutoRepayMode", args...)
 }
 
-func (this *BybitCore) PrivateGetV5SpotCrossMarginTradeLoanInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeLoanInfo", args...)
+func (this *BybitCore) PrivateGetV5SpotCrossMarginTradeLoanInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeLoanInfo", args...)
 }
 
-func (this *BybitCore) PrivateGetV5SpotCrossMarginTradeAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeAccount", args...)
+func (this *BybitCore) PrivateGetV5SpotCrossMarginTradeAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeAccount", args...)
 }
 
-func (this *BybitCore) PrivateGetV5SpotCrossMarginTradeOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeOrders", args...)
+func (this *BybitCore) PrivateGetV5SpotCrossMarginTradeOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeOrders", args...)
 }
 
-func (this *BybitCore) PrivateGetV5SpotCrossMarginTradeRepayHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeRepayHistory", args...)
+func (this *BybitCore) PrivateGetV5SpotCrossMarginTradeRepayHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeRepayHistory", args...)
 }
 
-func (this *BybitCore) PrivateGetV5CryptoLoanBorrowableCollateralisableNumber (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5CryptoLoanBorrowableCollateralisableNumber", args...)
+func (this *BybitCore) PrivateGetV5CryptoLoanBorrowableCollateralisableNumber(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanBorrowableCollateralisableNumber", args...)
 }
 
-func (this *BybitCore) PrivateGetV5CryptoLoanOngoingOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5CryptoLoanOngoingOrders", args...)
+func (this *BybitCore) PrivateGetV5CryptoLoanOngoingOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanOngoingOrders", args...)
 }
 
-func (this *BybitCore) PrivateGetV5CryptoLoanRepaymentHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5CryptoLoanRepaymentHistory", args...)
+func (this *BybitCore) PrivateGetV5CryptoLoanRepaymentHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanRepaymentHistory", args...)
 }
 
-func (this *BybitCore) PrivateGetV5CryptoLoanBorrowHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5CryptoLoanBorrowHistory", args...)
+func (this *BybitCore) PrivateGetV5CryptoLoanBorrowHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanBorrowHistory", args...)
 }
 
-func (this *BybitCore) PrivateGetV5CryptoLoanMaxCollateralAmount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5CryptoLoanMaxCollateralAmount", args...)
+func (this *BybitCore) PrivateGetV5CryptoLoanMaxCollateralAmount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanMaxCollateralAmount", args...)
 }
 
-func (this *BybitCore) PrivateGetV5CryptoLoanAdjustmentHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5CryptoLoanAdjustmentHistory", args...)
+func (this *BybitCore) PrivateGetV5CryptoLoanAdjustmentHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanAdjustmentHistory", args...)
 }
 
-func (this *BybitCore) PrivateGetV5CryptoLoanCommonMaxCollateralAmount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5CryptoLoanCommonMaxCollateralAmount", args...)
+func (this *BybitCore) PrivateGetV5CryptoLoanCommonMaxCollateralAmount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanCommonMaxCollateralAmount", args...)
 }
 
-func (this *BybitCore) PrivateGetV5CryptoLoanCommonAdjustmentHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5CryptoLoanCommonAdjustmentHistory", args...)
+func (this *BybitCore) PrivateGetV5CryptoLoanCommonAdjustmentHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanCommonAdjustmentHistory", args...)
 }
 
-func (this *BybitCore) PrivateGetV5CryptoLoanCommonPosition (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5CryptoLoanCommonPosition", args...)
+func (this *BybitCore) PrivateGetV5CryptoLoanCommonPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanCommonPosition", args...)
 }
 
-func (this *BybitCore) PrivateGetV5CryptoLoanFlexibleOngoingCoin (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5CryptoLoanFlexibleOngoingCoin", args...)
+func (this *BybitCore) PrivateGetV5CryptoLoanFlexibleOngoingCoin(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFlexibleOngoingCoin", args...)
 }
 
-func (this *BybitCore) PrivateGetV5CryptoLoanFlexibleBorrowHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5CryptoLoanFlexibleBorrowHistory", args...)
+func (this *BybitCore) PrivateGetV5CryptoLoanFlexibleBorrowHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFlexibleBorrowHistory", args...)
 }
 
-func (this *BybitCore) PrivateGetV5CryptoLoanFlexibleRepaymentHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5CryptoLoanFlexibleRepaymentHistory", args...)
+func (this *BybitCore) PrivateGetV5CryptoLoanFlexibleRepaymentHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFlexibleRepaymentHistory", args...)
 }
 
-func (this *BybitCore) PrivateGetV5CryptoLoanFixedBorrowContractInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5CryptoLoanFixedBorrowContractInfo", args...)
+func (this *BybitCore) PrivateGetV5CryptoLoanFixedBorrowContractInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFixedBorrowContractInfo", args...)
 }
 
-func (this *BybitCore) PrivateGetV5CryptoLoanFixedSupplyContractInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5CryptoLoanFixedSupplyContractInfo", args...)
+func (this *BybitCore) PrivateGetV5CryptoLoanFixedSupplyContractInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFixedSupplyContractInfo", args...)
 }
 
-func (this *BybitCore) PrivateGetV5CryptoLoanFixedBorrowOrderInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5CryptoLoanFixedBorrowOrderInfo", args...)
+func (this *BybitCore) PrivateGetV5CryptoLoanFixedBorrowOrderInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFixedBorrowOrderInfo", args...)
 }
 
-func (this *BybitCore) PrivateGetV5CryptoLoanFixedRenewInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5CryptoLoanFixedRenewInfo", args...)
+func (this *BybitCore) PrivateGetV5CryptoLoanFixedRenewInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFixedRenewInfo", args...)
 }
 
-func (this *BybitCore) PrivateGetV5CryptoLoanFixedSupplyOrderInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5CryptoLoanFixedSupplyOrderInfo", args...)
+func (this *BybitCore) PrivateGetV5CryptoLoanFixedSupplyOrderInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFixedSupplyOrderInfo", args...)
 }
 
-func (this *BybitCore) PrivateGetV5CryptoLoanFixedRepaymentHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5CryptoLoanFixedRepaymentHistory", args...)
+func (this *BybitCore) PrivateGetV5CryptoLoanFixedRepaymentHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFixedRepaymentHistory", args...)
 }
 
-func (this *BybitCore) PrivateGetV5InsLoanProductInfos (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5InsLoanProductInfos", args...)
+func (this *BybitCore) PrivateGetV5InsLoanProductInfos(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5InsLoanProductInfos", args...)
 }
 
-func (this *BybitCore) PrivateGetV5InsLoanEnsureTokensConvert (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5InsLoanEnsureTokensConvert", args...)
+func (this *BybitCore) PrivateGetV5InsLoanEnsureTokensConvert(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5InsLoanEnsureTokensConvert", args...)
 }
 
-func (this *BybitCore) PrivateGetV5InsLoanLoanOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5InsLoanLoanOrder", args...)
+func (this *BybitCore) PrivateGetV5InsLoanLoanOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5InsLoanLoanOrder", args...)
 }
 
-func (this *BybitCore) PrivateGetV5InsLoanRepaidHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5InsLoanRepaidHistory", args...)
+func (this *BybitCore) PrivateGetV5InsLoanRepaidHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5InsLoanRepaidHistory", args...)
 }
 
-func (this *BybitCore) PrivateGetV5InsLoanLtvConvert (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5InsLoanLtvConvert", args...)
+func (this *BybitCore) PrivateGetV5InsLoanLtvConvert(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5InsLoanLtvConvert", args...)
 }
 
-func (this *BybitCore) PrivateGetV5LendingInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5LendingInfo", args...)
+func (this *BybitCore) PrivateGetV5LendingInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5LendingInfo", args...)
 }
 
-func (this *BybitCore) PrivateGetV5LendingHistoryOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5LendingHistoryOrder", args...)
+func (this *BybitCore) PrivateGetV5LendingHistoryOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5LendingHistoryOrder", args...)
 }
 
-func (this *BybitCore) PrivateGetV5LendingAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5LendingAccount", args...)
+func (this *BybitCore) PrivateGetV5LendingAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5LendingAccount", args...)
 }
 
-func (this *BybitCore) PrivateGetV5BrokerEarningRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5BrokerEarningRecord", args...)
+func (this *BybitCore) PrivateGetV5BrokerEarningRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5BrokerEarningRecord", args...)
 }
 
-func (this *BybitCore) PrivateGetV5BrokerEarningsInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5BrokerEarningsInfo", args...)
+func (this *BybitCore) PrivateGetV5BrokerEarningsInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5BrokerEarningsInfo", args...)
 }
 
-func (this *BybitCore) PrivateGetV5BrokerAccountInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5BrokerAccountInfo", args...)
+func (this *BybitCore) PrivateGetV5BrokerAccountInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5BrokerAccountInfo", args...)
 }
 
-func (this *BybitCore) PrivateGetV5BrokerAssetQuerySubMemberDepositRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5BrokerAssetQuerySubMemberDepositRecord", args...)
+func (this *BybitCore) PrivateGetV5BrokerAssetQuerySubMemberDepositRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5BrokerAssetQuerySubMemberDepositRecord", args...)
 }
 
-func (this *BybitCore) PrivateGetV5EarnProduct (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5EarnProduct", args...)
+func (this *BybitCore) PrivateGetV5EarnProduct(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5EarnProduct", args...)
 }
 
-func (this *BybitCore) PrivateGetV5EarnOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5EarnOrder", args...)
+func (this *BybitCore) PrivateGetV5EarnOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5EarnOrder", args...)
 }
 
-func (this *BybitCore) PrivateGetV5EarnPosition (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5EarnPosition", args...)
+func (this *BybitCore) PrivateGetV5EarnPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5EarnPosition", args...)
 }
 
-func (this *BybitCore) PrivateGetV5EarnYield (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5EarnYield", args...)
+func (this *BybitCore) PrivateGetV5EarnYield(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5EarnYield", args...)
 }
 
-func (this *BybitCore) PrivateGetV5EarnHourlyYield (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetV5EarnHourlyYield", args...)
+func (this *BybitCore) PrivateGetV5EarnHourlyYield(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5EarnHourlyYield", args...)
 }
 
-func (this *BybitCore) PrivatePostSpotV3PrivateOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSpotV3PrivateOrder", args...)
+func (this *BybitCore) PrivatePostSpotV3PrivateOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSpotV3PrivateOrder", args...)
 }
 
-func (this *BybitCore) PrivatePostSpotV3PrivateCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSpotV3PrivateCancelOrder", args...)
+func (this *BybitCore) PrivatePostSpotV3PrivateCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSpotV3PrivateCancelOrder", args...)
 }
 
-func (this *BybitCore) PrivatePostSpotV3PrivateCancelOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSpotV3PrivateCancelOrders", args...)
+func (this *BybitCore) PrivatePostSpotV3PrivateCancelOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSpotV3PrivateCancelOrders", args...)
 }
 
-func (this *BybitCore) PrivatePostSpotV3PrivateCancelOrdersByIds (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSpotV3PrivateCancelOrdersByIds", args...)
+func (this *BybitCore) PrivatePostSpotV3PrivateCancelOrdersByIds(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSpotV3PrivateCancelOrdersByIds", args...)
 }
 
-func (this *BybitCore) PrivatePostSpotV3PrivatePurchase (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSpotV3PrivatePurchase", args...)
+func (this *BybitCore) PrivatePostSpotV3PrivatePurchase(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSpotV3PrivatePurchase", args...)
 }
 
-func (this *BybitCore) PrivatePostSpotV3PrivateRedeem (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSpotV3PrivateRedeem", args...)
+func (this *BybitCore) PrivatePostSpotV3PrivateRedeem(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSpotV3PrivateRedeem", args...)
 }
 
-func (this *BybitCore) PrivatePostSpotV3PrivateCrossMarginLoan (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSpotV3PrivateCrossMarginLoan", args...)
+func (this *BybitCore) PrivatePostSpotV3PrivateCrossMarginLoan(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSpotV3PrivateCrossMarginLoan", args...)
 }
 
-func (this *BybitCore) PrivatePostSpotV3PrivateCrossMarginRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSpotV3PrivateCrossMarginRepay", args...)
+func (this *BybitCore) PrivatePostSpotV3PrivateCrossMarginRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSpotV3PrivateCrossMarginRepay", args...)
 }
 
-func (this *BybitCore) PrivatePostAssetV3PrivateTransferInterTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostAssetV3PrivateTransferInterTransfer", args...)
+func (this *BybitCore) PrivatePostAssetV3PrivateTransferInterTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAssetV3PrivateTransferInterTransfer", args...)
 }
 
-func (this *BybitCore) PrivatePostAssetV3PrivateWithdrawCreate (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostAssetV3PrivateWithdrawCreate", args...)
+func (this *BybitCore) PrivatePostAssetV3PrivateWithdrawCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAssetV3PrivateWithdrawCreate", args...)
 }
 
-func (this *BybitCore) PrivatePostAssetV3PrivateWithdrawCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostAssetV3PrivateWithdrawCancel", args...)
+func (this *BybitCore) PrivatePostAssetV3PrivateWithdrawCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAssetV3PrivateWithdrawCancel", args...)
 }
 
-func (this *BybitCore) PrivatePostAssetV3PrivateTransferSubMemberTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostAssetV3PrivateTransferSubMemberTransfer", args...)
+func (this *BybitCore) PrivatePostAssetV3PrivateTransferSubMemberTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAssetV3PrivateTransferSubMemberTransfer", args...)
 }
 
-func (this *BybitCore) PrivatePostAssetV3PrivateTransferTransferSubMemberSave (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostAssetV3PrivateTransferTransferSubMemberSave", args...)
+func (this *BybitCore) PrivatePostAssetV3PrivateTransferTransferSubMemberSave(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAssetV3PrivateTransferTransferSubMemberSave", args...)
 }
 
-func (this *BybitCore) PrivatePostAssetV3PrivateTransferUniversalTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostAssetV3PrivateTransferUniversalTransfer", args...)
+func (this *BybitCore) PrivatePostAssetV3PrivateTransferUniversalTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAssetV3PrivateTransferUniversalTransfer", args...)
 }
 
-func (this *BybitCore) PrivatePostUserV3PrivateCreateSubMember (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUserV3PrivateCreateSubMember", args...)
+func (this *BybitCore) PrivatePostUserV3PrivateCreateSubMember(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserV3PrivateCreateSubMember", args...)
 }
 
-func (this *BybitCore) PrivatePostUserV3PrivateCreateSubApi (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUserV3PrivateCreateSubApi", args...)
+func (this *BybitCore) PrivatePostUserV3PrivateCreateSubApi(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserV3PrivateCreateSubApi", args...)
 }
 
-func (this *BybitCore) PrivatePostUserV3PrivateUpdateApi (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUserV3PrivateUpdateApi", args...)
+func (this *BybitCore) PrivatePostUserV3PrivateUpdateApi(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserV3PrivateUpdateApi", args...)
 }
 
-func (this *BybitCore) PrivatePostUserV3PrivateDeleteApi (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUserV3PrivateDeleteApi", args...)
+func (this *BybitCore) PrivatePostUserV3PrivateDeleteApi(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserV3PrivateDeleteApi", args...)
 }
 
-func (this *BybitCore) PrivatePostUserV3PrivateUpdateSubApi (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUserV3PrivateUpdateSubApi", args...)
+func (this *BybitCore) PrivatePostUserV3PrivateUpdateSubApi(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserV3PrivateUpdateSubApi", args...)
 }
 
-func (this *BybitCore) PrivatePostUserV3PrivateDeleteSubApi (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUserV3PrivateDeleteSubApi", args...)
+func (this *BybitCore) PrivatePostUserV3PrivateDeleteSubApi(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserV3PrivateDeleteSubApi", args...)
 }
 
-func (this *BybitCore) PrivatePostContractV3PrivateCopytradingOrderCreate (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderCreate", args...)
+func (this *BybitCore) PrivatePostContractV3PrivateCopytradingOrderCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderCreate", args...)
 }
 
-func (this *BybitCore) PrivatePostContractV3PrivateCopytradingOrderCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderCancel", args...)
+func (this *BybitCore) PrivatePostContractV3PrivateCopytradingOrderCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderCancel", args...)
 }
 
-func (this *BybitCore) PrivatePostContractV3PrivateCopytradingOrderClose (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderClose", args...)
+func (this *BybitCore) PrivatePostContractV3PrivateCopytradingOrderClose(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderClose", args...)
 }
 
-func (this *BybitCore) PrivatePostContractV3PrivateCopytradingPositionClose (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostContractV3PrivateCopytradingPositionClose", args...)
+func (this *BybitCore) PrivatePostContractV3PrivateCopytradingPositionClose(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingPositionClose", args...)
 }
 
-func (this *BybitCore) PrivatePostContractV3PrivateCopytradingPositionSetLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostContractV3PrivateCopytradingPositionSetLeverage", args...)
+func (this *BybitCore) PrivatePostContractV3PrivateCopytradingPositionSetLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingPositionSetLeverage", args...)
 }
 
-func (this *BybitCore) PrivatePostContractV3PrivateCopytradingWalletTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostContractV3PrivateCopytradingWalletTransfer", args...)
+func (this *BybitCore) PrivatePostContractV3PrivateCopytradingWalletTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingWalletTransfer", args...)
 }
 
-func (this *BybitCore) PrivatePostContractV3PrivateCopytradingOrderTradingStop (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderTradingStop", args...)
+func (this *BybitCore) PrivatePostContractV3PrivateCopytradingOrderTradingStop(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderTradingStop", args...)
 }
 
-func (this *BybitCore) PrivatePostContractV3PrivateOrderCreate (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostContractV3PrivateOrderCreate", args...)
+func (this *BybitCore) PrivatePostContractV3PrivateOrderCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostContractV3PrivateOrderCreate", args...)
 }
 
-func (this *BybitCore) PrivatePostContractV3PrivateOrderCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostContractV3PrivateOrderCancel", args...)
+func (this *BybitCore) PrivatePostContractV3PrivateOrderCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostContractV3PrivateOrderCancel", args...)
 }
 
-func (this *BybitCore) PrivatePostContractV3PrivateOrderCancelAll (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostContractV3PrivateOrderCancelAll", args...)
+func (this *BybitCore) PrivatePostContractV3PrivateOrderCancelAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostContractV3PrivateOrderCancelAll", args...)
 }
 
-func (this *BybitCore) PrivatePostContractV3PrivateOrderReplace (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostContractV3PrivateOrderReplace", args...)
+func (this *BybitCore) PrivatePostContractV3PrivateOrderReplace(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostContractV3PrivateOrderReplace", args...)
 }
 
-func (this *BybitCore) PrivatePostContractV3PrivatePositionSetAutoAddMargin (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostContractV3PrivatePositionSetAutoAddMargin", args...)
+func (this *BybitCore) PrivatePostContractV3PrivatePositionSetAutoAddMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionSetAutoAddMargin", args...)
 }
 
-func (this *BybitCore) PrivatePostContractV3PrivatePositionSwitchIsolated (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostContractV3PrivatePositionSwitchIsolated", args...)
+func (this *BybitCore) PrivatePostContractV3PrivatePositionSwitchIsolated(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionSwitchIsolated", args...)
 }
 
-func (this *BybitCore) PrivatePostContractV3PrivatePositionSwitchMode (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostContractV3PrivatePositionSwitchMode", args...)
+func (this *BybitCore) PrivatePostContractV3PrivatePositionSwitchMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionSwitchMode", args...)
 }
 
-func (this *BybitCore) PrivatePostContractV3PrivatePositionSwitchTpslMode (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostContractV3PrivatePositionSwitchTpslMode", args...)
+func (this *BybitCore) PrivatePostContractV3PrivatePositionSwitchTpslMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionSwitchTpslMode", args...)
 }
 
-func (this *BybitCore) PrivatePostContractV3PrivatePositionSetLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostContractV3PrivatePositionSetLeverage", args...)
+func (this *BybitCore) PrivatePostContractV3PrivatePositionSetLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionSetLeverage", args...)
 }
 
-func (this *BybitCore) PrivatePostContractV3PrivatePositionTradingStop (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostContractV3PrivatePositionTradingStop", args...)
+func (this *BybitCore) PrivatePostContractV3PrivatePositionTradingStop(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionTradingStop", args...)
 }
 
-func (this *BybitCore) PrivatePostContractV3PrivatePositionSetRiskLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostContractV3PrivatePositionSetRiskLimit", args...)
+func (this *BybitCore) PrivatePostContractV3PrivatePositionSetRiskLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionSetRiskLimit", args...)
 }
 
-func (this *BybitCore) PrivatePostContractV3PrivateAccountSetMarginMode (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostContractV3PrivateAccountSetMarginMode", args...)
+func (this *BybitCore) PrivatePostContractV3PrivateAccountSetMarginMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostContractV3PrivateAccountSetMarginMode", args...)
 }
 
-func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderCreate (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCreate", args...)
+func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCreate", args...)
 }
 
-func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderReplace (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderReplace", args...)
+func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderReplace(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderReplace", args...)
 }
 
-func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCancel", args...)
+func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCancel", args...)
 }
 
-func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderCreateBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCreateBatch", args...)
+func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderCreateBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCreateBatch", args...)
 }
 
-func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderReplaceBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderReplaceBatch", args...)
+func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderReplaceBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderReplaceBatch", args...)
 }
 
-func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderCancelBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCancelBatch", args...)
+func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderCancelBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCancelBatch", args...)
 }
 
-func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderCancelAll (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCancelAll", args...)
+func (this *BybitCore) PrivatePostUnifiedV3PrivateOrderCancelAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCancelAll", args...)
 }
 
-func (this *BybitCore) PrivatePostUnifiedV3PrivatePositionSetLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionSetLeverage", args...)
+func (this *BybitCore) PrivatePostUnifiedV3PrivatePositionSetLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionSetLeverage", args...)
 }
 
-func (this *BybitCore) PrivatePostUnifiedV3PrivatePositionTpslSwitchMode (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionTpslSwitchMode", args...)
+func (this *BybitCore) PrivatePostUnifiedV3PrivatePositionTpslSwitchMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionTpslSwitchMode", args...)
 }
 
-func (this *BybitCore) PrivatePostUnifiedV3PrivatePositionSetRiskLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionSetRiskLimit", args...)
+func (this *BybitCore) PrivatePostUnifiedV3PrivatePositionSetRiskLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionSetRiskLimit", args...)
 }
 
-func (this *BybitCore) PrivatePostUnifiedV3PrivatePositionTradingStop (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionTradingStop", args...)
+func (this *BybitCore) PrivatePostUnifiedV3PrivatePositionTradingStop(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionTradingStop", args...)
 }
 
-func (this *BybitCore) PrivatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount", args...)
+func (this *BybitCore) PrivatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount", args...)
 }
 
-func (this *BybitCore) PrivatePostUnifiedV3PrivateAccountSetMarginMode (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivateAccountSetMarginMode", args...)
+func (this *BybitCore) PrivatePostUnifiedV3PrivateAccountSetMarginMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateAccountSetMarginMode", args...)
 }
 
-func (this *BybitCore) PrivatePostFhtComplianceTaxV3PrivateRegistertime (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateRegistertime", args...)
+func (this *BybitCore) PrivatePostFhtComplianceTaxV3PrivateRegistertime(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateRegistertime", args...)
 }
 
-func (this *BybitCore) PrivatePostFhtComplianceTaxV3PrivateCreate (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateCreate", args...)
+func (this *BybitCore) PrivatePostFhtComplianceTaxV3PrivateCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateCreate", args...)
 }
 
-func (this *BybitCore) PrivatePostFhtComplianceTaxV3PrivateStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateStatus", args...)
+func (this *BybitCore) PrivatePostFhtComplianceTaxV3PrivateStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateStatus", args...)
 }
 
-func (this *BybitCore) PrivatePostFhtComplianceTaxV3PrivateUrl (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateUrl", args...)
+func (this *BybitCore) PrivatePostFhtComplianceTaxV3PrivateUrl(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateUrl", args...)
 }
 
-func (this *BybitCore) PrivatePostV5OrderCreate (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5OrderCreate", args...)
+func (this *BybitCore) PrivatePostV5OrderCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5OrderCreate", args...)
 }
 
-func (this *BybitCore) PrivatePostV5OrderAmend (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5OrderAmend", args...)
+func (this *BybitCore) PrivatePostV5OrderAmend(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5OrderAmend", args...)
 }
 
-func (this *BybitCore) PrivatePostV5OrderCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5OrderCancel", args...)
+func (this *BybitCore) PrivatePostV5OrderCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5OrderCancel", args...)
 }
 
-func (this *BybitCore) PrivatePostV5OrderCancelAll (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5OrderCancelAll", args...)
+func (this *BybitCore) PrivatePostV5OrderCancelAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5OrderCancelAll", args...)
 }
 
-func (this *BybitCore) PrivatePostV5OrderCreateBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5OrderCreateBatch", args...)
+func (this *BybitCore) PrivatePostV5OrderCreateBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5OrderCreateBatch", args...)
 }
 
-func (this *BybitCore) PrivatePostV5OrderAmendBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5OrderAmendBatch", args...)
+func (this *BybitCore) PrivatePostV5OrderAmendBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5OrderAmendBatch", args...)
 }
 
-func (this *BybitCore) PrivatePostV5OrderCancelBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5OrderCancelBatch", args...)
+func (this *BybitCore) PrivatePostV5OrderCancelBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5OrderCancelBatch", args...)
 }
 
-func (this *BybitCore) PrivatePostV5OrderDisconnectedCancelAll (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5OrderDisconnectedCancelAll", args...)
+func (this *BybitCore) PrivatePostV5OrderDisconnectedCancelAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5OrderDisconnectedCancelAll", args...)
 }
 
-func (this *BybitCore) PrivatePostV5PositionSetLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5PositionSetLeverage", args...)
+func (this *BybitCore) PrivatePostV5PositionSetLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5PositionSetLeverage", args...)
 }
 
-func (this *BybitCore) PrivatePostV5PositionSwitchIsolated (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5PositionSwitchIsolated", args...)
+func (this *BybitCore) PrivatePostV5PositionSwitchIsolated(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5PositionSwitchIsolated", args...)
 }
 
-func (this *BybitCore) PrivatePostV5PositionSetTpslMode (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5PositionSetTpslMode", args...)
+func (this *BybitCore) PrivatePostV5PositionSetTpslMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5PositionSetTpslMode", args...)
 }
 
-func (this *BybitCore) PrivatePostV5PositionSwitchMode (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5PositionSwitchMode", args...)
+func (this *BybitCore) PrivatePostV5PositionSwitchMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5PositionSwitchMode", args...)
 }
 
-func (this *BybitCore) PrivatePostV5PositionSetRiskLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5PositionSetRiskLimit", args...)
+func (this *BybitCore) PrivatePostV5PositionSetRiskLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5PositionSetRiskLimit", args...)
 }
 
-func (this *BybitCore) PrivatePostV5PositionTradingStop (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5PositionTradingStop", args...)
+func (this *BybitCore) PrivatePostV5PositionTradingStop(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5PositionTradingStop", args...)
 }
 
-func (this *BybitCore) PrivatePostV5PositionSetAutoAddMargin (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5PositionSetAutoAddMargin", args...)
+func (this *BybitCore) PrivatePostV5PositionSetAutoAddMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5PositionSetAutoAddMargin", args...)
 }
 
-func (this *BybitCore) PrivatePostV5PositionAddMargin (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5PositionAddMargin", args...)
+func (this *BybitCore) PrivatePostV5PositionAddMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5PositionAddMargin", args...)
 }
 
-func (this *BybitCore) PrivatePostV5PositionMovePositions (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5PositionMovePositions", args...)
+func (this *BybitCore) PrivatePostV5PositionMovePositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5PositionMovePositions", args...)
 }
 
-func (this *BybitCore) PrivatePostV5PositionConfirmPendingMmr (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5PositionConfirmPendingMmr", args...)
+func (this *BybitCore) PrivatePostV5PositionConfirmPendingMmr(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5PositionConfirmPendingMmr", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AccountUpgradeToUta (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AccountUpgradeToUta", args...)
+func (this *BybitCore) PrivatePostV5AccountUpgradeToUta(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AccountUpgradeToUta", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AccountQuickRepayment (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AccountQuickRepayment", args...)
+func (this *BybitCore) PrivatePostV5AccountQuickRepayment(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AccountQuickRepayment", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AccountSetMarginMode (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AccountSetMarginMode", args...)
+func (this *BybitCore) PrivatePostV5AccountSetMarginMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AccountSetMarginMode", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AccountSetHedgingMode (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AccountSetHedgingMode", args...)
+func (this *BybitCore) PrivatePostV5AccountSetHedgingMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AccountSetHedgingMode", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AccountMmpModify (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AccountMmpModify", args...)
+func (this *BybitCore) PrivatePostV5AccountMmpModify(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AccountMmpModify", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AccountMmpReset (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AccountMmpReset", args...)
+func (this *BybitCore) PrivatePostV5AccountMmpReset(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AccountMmpReset", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AccountBorrow (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AccountBorrow", args...)
+func (this *BybitCore) PrivatePostV5AccountBorrow(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AccountBorrow", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AccountRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AccountRepay", args...)
+func (this *BybitCore) PrivatePostV5AccountRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AccountRepay", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AccountNoConvertRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AccountNoConvertRepay", args...)
+func (this *BybitCore) PrivatePostV5AccountNoConvertRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AccountNoConvertRepay", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AccountSetLimitPxAction (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AccountSetLimitPxAction", args...)
+func (this *BybitCore) PrivatePostV5AccountSetLimitPxAction(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AccountSetLimitPxAction", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AssetExchangeQuoteApply (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AssetExchangeQuoteApply", args...)
+func (this *BybitCore) PrivatePostV5AssetExchangeQuoteApply(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AssetExchangeQuoteApply", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AssetExchangeConvertExecute (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AssetExchangeConvertExecute", args...)
+func (this *BybitCore) PrivatePostV5AssetExchangeConvertExecute(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AssetExchangeConvertExecute", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AssetTransferInterTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AssetTransferInterTransfer", args...)
+func (this *BybitCore) PrivatePostV5AssetTransferInterTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AssetTransferInterTransfer", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AssetTransferSaveTransferSubMember (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AssetTransferSaveTransferSubMember", args...)
+func (this *BybitCore) PrivatePostV5AssetTransferSaveTransferSubMember(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AssetTransferSaveTransferSubMember", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AssetTransferUniversalTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AssetTransferUniversalTransfer", args...)
+func (this *BybitCore) PrivatePostV5AssetTransferUniversalTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AssetTransferUniversalTransfer", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AssetDepositDepositToAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AssetDepositDepositToAccount", args...)
+func (this *BybitCore) PrivatePostV5AssetDepositDepositToAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AssetDepositDepositToAccount", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AssetWithdrawCreate (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AssetWithdrawCreate", args...)
+func (this *BybitCore) PrivatePostV5AssetWithdrawCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AssetWithdrawCreate", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AssetWithdrawCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AssetWithdrawCancel", args...)
+func (this *BybitCore) PrivatePostV5AssetWithdrawCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AssetWithdrawCancel", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AssetCovertGetQuote (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AssetCovertGetQuote", args...)
+func (this *BybitCore) PrivatePostV5AssetCovertGetQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AssetCovertGetQuote", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AssetCovertSmallBalanceExecute (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AssetCovertSmallBalanceExecute", args...)
+func (this *BybitCore) PrivatePostV5AssetCovertSmallBalanceExecute(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AssetCovertSmallBalanceExecute", args...)
 }
 
-func (this *BybitCore) PrivatePostV5FiatQuoteApply (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5FiatQuoteApply", args...)
+func (this *BybitCore) PrivatePostV5FiatQuoteApply(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5FiatQuoteApply", args...)
 }
 
-func (this *BybitCore) PrivatePostV5FiatTradeExecute (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5FiatTradeExecute", args...)
+func (this *BybitCore) PrivatePostV5FiatTradeExecute(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5FiatTradeExecute", args...)
 }
 
-func (this *BybitCore) PrivatePostV5UserCreateSubMember (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5UserCreateSubMember", args...)
+func (this *BybitCore) PrivatePostV5UserCreateSubMember(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5UserCreateSubMember", args...)
 }
 
-func (this *BybitCore) PrivatePostV5UserCreateSubApi (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5UserCreateSubApi", args...)
+func (this *BybitCore) PrivatePostV5UserCreateSubApi(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5UserCreateSubApi", args...)
 }
 
-func (this *BybitCore) PrivatePostV5UserFrozenSubMember (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5UserFrozenSubMember", args...)
+func (this *BybitCore) PrivatePostV5UserFrozenSubMember(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5UserFrozenSubMember", args...)
 }
 
-func (this *BybitCore) PrivatePostV5UserUpdateApi (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5UserUpdateApi", args...)
+func (this *BybitCore) PrivatePostV5UserUpdateApi(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5UserUpdateApi", args...)
 }
 
-func (this *BybitCore) PrivatePostV5UserUpdateSubApi (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5UserUpdateSubApi", args...)
+func (this *BybitCore) PrivatePostV5UserUpdateSubApi(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5UserUpdateSubApi", args...)
 }
 
-func (this *BybitCore) PrivatePostV5UserDeleteApi (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5UserDeleteApi", args...)
+func (this *BybitCore) PrivatePostV5UserDeleteApi(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5UserDeleteApi", args...)
 }
 
-func (this *BybitCore) PrivatePostV5UserDeleteSubApi (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5UserDeleteSubApi", args...)
+func (this *BybitCore) PrivatePostV5UserDeleteSubApi(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5UserDeleteSubApi", args...)
 }
 
-func (this *BybitCore) PrivatePostV5SpotLeverTokenPurchase (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5SpotLeverTokenPurchase", args...)
+func (this *BybitCore) PrivatePostV5SpotLeverTokenPurchase(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5SpotLeverTokenPurchase", args...)
 }
 
-func (this *BybitCore) PrivatePostV5SpotLeverTokenRedeem (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5SpotLeverTokenRedeem", args...)
+func (this *BybitCore) PrivatePostV5SpotLeverTokenRedeem(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5SpotLeverTokenRedeem", args...)
 }
 
-func (this *BybitCore) PrivatePostV5SpotMarginTradeSwitchMode (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5SpotMarginTradeSwitchMode", args...)
+func (this *BybitCore) PrivatePostV5SpotMarginTradeSwitchMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5SpotMarginTradeSwitchMode", args...)
 }
 
-func (this *BybitCore) PrivatePostV5SpotMarginTradeSetLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5SpotMarginTradeSetLeverage", args...)
+func (this *BybitCore) PrivatePostV5SpotMarginTradeSetLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5SpotMarginTradeSetLeverage", args...)
 }
 
-func (this *BybitCore) PrivatePostV5SpotMarginTradeSetAutoRepayMode (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5SpotMarginTradeSetAutoRepayMode", args...)
+func (this *BybitCore) PrivatePostV5SpotMarginTradeSetAutoRepayMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5SpotMarginTradeSetAutoRepayMode", args...)
 }
 
-func (this *BybitCore) PrivatePostV5SpotCrossMarginTradeLoan (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5SpotCrossMarginTradeLoan", args...)
+func (this *BybitCore) PrivatePostV5SpotCrossMarginTradeLoan(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5SpotCrossMarginTradeLoan", args...)
 }
 
-func (this *BybitCore) PrivatePostV5SpotCrossMarginTradeRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5SpotCrossMarginTradeRepay", args...)
+func (this *BybitCore) PrivatePostV5SpotCrossMarginTradeRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5SpotCrossMarginTradeRepay", args...)
 }
 
-func (this *BybitCore) PrivatePostV5SpotCrossMarginTradeSwitch (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5SpotCrossMarginTradeSwitch", args...)
+func (this *BybitCore) PrivatePostV5SpotCrossMarginTradeSwitch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5SpotCrossMarginTradeSwitch", args...)
 }
 
-func (this *BybitCore) PrivatePostV5CryptoLoanBorrow (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5CryptoLoanBorrow", args...)
+func (this *BybitCore) PrivatePostV5CryptoLoanBorrow(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5CryptoLoanBorrow", args...)
 }
 
-func (this *BybitCore) PrivatePostV5CryptoLoanRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5CryptoLoanRepay", args...)
+func (this *BybitCore) PrivatePostV5CryptoLoanRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5CryptoLoanRepay", args...)
 }
 
-func (this *BybitCore) PrivatePostV5CryptoLoanAdjustLtv (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5CryptoLoanAdjustLtv", args...)
+func (this *BybitCore) PrivatePostV5CryptoLoanAdjustLtv(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5CryptoLoanAdjustLtv", args...)
 }
 
-func (this *BybitCore) PrivatePostV5CryptoLoanCommonAdjustLtv (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5CryptoLoanCommonAdjustLtv", args...)
+func (this *BybitCore) PrivatePostV5CryptoLoanCommonAdjustLtv(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5CryptoLoanCommonAdjustLtv", args...)
 }
 
-func (this *BybitCore) PrivatePostV5CryptoLoanCommonMaxLoan (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5CryptoLoanCommonMaxLoan", args...)
+func (this *BybitCore) PrivatePostV5CryptoLoanCommonMaxLoan(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5CryptoLoanCommonMaxLoan", args...)
 }
 
-func (this *BybitCore) PrivatePostV5CryptoLoanFlexibleBorrow (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5CryptoLoanFlexibleBorrow", args...)
+func (this *BybitCore) PrivatePostV5CryptoLoanFlexibleBorrow(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFlexibleBorrow", args...)
 }
 
-func (this *BybitCore) PrivatePostV5CryptoLoanFlexibleRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5CryptoLoanFlexibleRepay", args...)
+func (this *BybitCore) PrivatePostV5CryptoLoanFlexibleRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFlexibleRepay", args...)
 }
 
-func (this *BybitCore) PrivatePostV5CryptoLoanFlexibleRepayCollateral (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5CryptoLoanFlexibleRepayCollateral", args...)
+func (this *BybitCore) PrivatePostV5CryptoLoanFlexibleRepayCollateral(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFlexibleRepayCollateral", args...)
 }
 
-func (this *BybitCore) PrivatePostV5CryptoLoanFixedBorrow (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5CryptoLoanFixedBorrow", args...)
+func (this *BybitCore) PrivatePostV5CryptoLoanFixedBorrow(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFixedBorrow", args...)
 }
 
-func (this *BybitCore) PrivatePostV5CryptoLoanFixedRenew (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5CryptoLoanFixedRenew", args...)
+func (this *BybitCore) PrivatePostV5CryptoLoanFixedRenew(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFixedRenew", args...)
 }
 
-func (this *BybitCore) PrivatePostV5CryptoLoanFixedSupply (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5CryptoLoanFixedSupply", args...)
+func (this *BybitCore) PrivatePostV5CryptoLoanFixedSupply(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFixedSupply", args...)
 }
 
-func (this *BybitCore) PrivatePostV5CryptoLoanFixedBorrowOrderCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5CryptoLoanFixedBorrowOrderCancel", args...)
+func (this *BybitCore) PrivatePostV5CryptoLoanFixedBorrowOrderCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFixedBorrowOrderCancel", args...)
 }
 
-func (this *BybitCore) PrivatePostV5CryptoLoanFixedSupplyOrderCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5CryptoLoanFixedSupplyOrderCancel", args...)
+func (this *BybitCore) PrivatePostV5CryptoLoanFixedSupplyOrderCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFixedSupplyOrderCancel", args...)
 }
 
-func (this *BybitCore) PrivatePostV5CryptoLoanFixedFullyRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5CryptoLoanFixedFullyRepay", args...)
+func (this *BybitCore) PrivatePostV5CryptoLoanFixedFullyRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFixedFullyRepay", args...)
 }
 
-func (this *BybitCore) PrivatePostV5CryptoLoanFixedRepayCollateral (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5CryptoLoanFixedRepayCollateral", args...)
+func (this *BybitCore) PrivatePostV5CryptoLoanFixedRepayCollateral(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5CryptoLoanFixedRepayCollateral", args...)
 }
 
-func (this *BybitCore) PrivatePostV5InsLoanAssociationUid (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5InsLoanAssociationUid", args...)
+func (this *BybitCore) PrivatePostV5InsLoanAssociationUid(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5InsLoanAssociationUid", args...)
 }
 
-func (this *BybitCore) PrivatePostV5InsLoanRepayLoan (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5InsLoanRepayLoan", args...)
+func (this *BybitCore) PrivatePostV5InsLoanRepayLoan(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5InsLoanRepayLoan", args...)
 }
 
-func (this *BybitCore) PrivatePostV5LendingPurchase (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5LendingPurchase", args...)
+func (this *BybitCore) PrivatePostV5LendingPurchase(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5LendingPurchase", args...)
 }
 
-func (this *BybitCore) PrivatePostV5LendingRedeem (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5LendingRedeem", args...)
+func (this *BybitCore) PrivatePostV5LendingRedeem(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5LendingRedeem", args...)
 }
 
-func (this *BybitCore) PrivatePostV5LendingRedeemCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5LendingRedeemCancel", args...)
+func (this *BybitCore) PrivatePostV5LendingRedeemCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5LendingRedeemCancel", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AccountSetCollateralSwitch (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AccountSetCollateralSwitch", args...)
+func (this *BybitCore) PrivatePostV5AccountSetCollateralSwitch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AccountSetCollateralSwitch", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AccountSetCollateralSwitchBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AccountSetCollateralSwitchBatch", args...)
+func (this *BybitCore) PrivatePostV5AccountSetCollateralSwitchBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AccountSetCollateralSwitchBatch", args...)
 }
 
-func (this *BybitCore) PrivatePostV5AccountDemoApplyMoney (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5AccountDemoApplyMoney", args...)
+func (this *BybitCore) PrivatePostV5AccountDemoApplyMoney(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AccountDemoApplyMoney", args...)
 }
 
-func (this *BybitCore) PrivatePostV5BrokerAwardInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5BrokerAwardInfo", args...)
+func (this *BybitCore) PrivatePostV5BrokerAwardInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5BrokerAwardInfo", args...)
 }
 
-func (this *BybitCore) PrivatePostV5BrokerAwardDistributeAward (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5BrokerAwardDistributeAward", args...)
+func (this *BybitCore) PrivatePostV5BrokerAwardDistributeAward(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5BrokerAwardDistributeAward", args...)
 }
 
-func (this *BybitCore) PrivatePostV5BrokerAwardDistributionRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5BrokerAwardDistributionRecord", args...)
+func (this *BybitCore) PrivatePostV5BrokerAwardDistributionRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5BrokerAwardDistributionRecord", args...)
 }
 
-func (this *BybitCore) PrivatePostV5EarnPlaceOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV5EarnPlaceOrder", args...)
+func (this *BybitCore) PrivatePostV5EarnPlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5EarnPlaceOrder", args...)
 }

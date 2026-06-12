@@ -7,118 +7,118 @@
 
 package ccxt
 
-func (this *HollaexCore) PublicGetHealth (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetHealth", args...)
+func (this *HollaexCore) PublicGetHealth(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetHealth", args...)
 }
 
-func (this *HollaexCore) PublicGetConstants (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetConstants", args...)
+func (this *HollaexCore) PublicGetConstants(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetConstants", args...)
 }
 
-func (this *HollaexCore) PublicGetKit (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetKit", args...)
+func (this *HollaexCore) PublicGetKit(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetKit", args...)
 }
 
-func (this *HollaexCore) PublicGetTiers (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTiers", args...)
+func (this *HollaexCore) PublicGetTiers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTiers", args...)
 }
 
-func (this *HollaexCore) PublicGetTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTicker", args...)
+func (this *HollaexCore) PublicGetTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *HollaexCore) PublicGetTickers (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTickers", args...)
+func (this *HollaexCore) PublicGetTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *HollaexCore) PublicGetOrderbook (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetOrderbook", args...)
+func (this *HollaexCore) PublicGetOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
-func (this *HollaexCore) PublicGetOrderbooks (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetOrderbooks", args...)
+func (this *HollaexCore) PublicGetOrderbooks(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrderbooks", args...)
 }
 
-func (this *HollaexCore) PublicGetTrades (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTrades", args...)
+func (this *HollaexCore) PublicGetTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *HollaexCore) PublicGetChart (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetChart", args...)
+func (this *HollaexCore) PublicGetChart(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetChart", args...)
 }
 
-func (this *HollaexCore) PublicGetCharts (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetCharts", args...)
+func (this *HollaexCore) PublicGetCharts(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetCharts", args...)
 }
 
-func (this *HollaexCore) PublicGetMinicharts (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMinicharts", args...)
+func (this *HollaexCore) PublicGetMinicharts(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMinicharts", args...)
 }
 
-func (this *HollaexCore) PublicGetOraclePrices (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetOraclePrices", args...)
+func (this *HollaexCore) PublicGetOraclePrices(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOraclePrices", args...)
 }
 
-func (this *HollaexCore) PublicGetQuickTrade (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetQuickTrade", args...)
+func (this *HollaexCore) PublicGetQuickTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetQuickTrade", args...)
 }
 
-func (this *HollaexCore) PublicGetUdfConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetUdfConfig", args...)
+func (this *HollaexCore) PublicGetUdfConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetUdfConfig", args...)
 }
 
-func (this *HollaexCore) PublicGetUdfHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetUdfHistory", args...)
+func (this *HollaexCore) PublicGetUdfHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetUdfHistory", args...)
 }
 
-func (this *HollaexCore) PublicGetUdfSymbols (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetUdfSymbols", args...)
+func (this *HollaexCore) PublicGetUdfSymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetUdfSymbols", args...)
 }
 
-func (this *HollaexCore) PrivateGetUser (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUser", args...)
+func (this *HollaexCore) PrivateGetUser(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUser", args...)
 }
 
-func (this *HollaexCore) PrivateGetUserBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUserBalance", args...)
+func (this *HollaexCore) PrivateGetUserBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserBalance", args...)
 }
 
-func (this *HollaexCore) PrivateGetUserDeposits (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUserDeposits", args...)
+func (this *HollaexCore) PrivateGetUserDeposits(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserDeposits", args...)
 }
 
-func (this *HollaexCore) PrivateGetUserWithdrawals (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUserWithdrawals", args...)
+func (this *HollaexCore) PrivateGetUserWithdrawals(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserWithdrawals", args...)
 }
 
-func (this *HollaexCore) PrivateGetUserWithdrawalFee (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUserWithdrawalFee", args...)
+func (this *HollaexCore) PrivateGetUserWithdrawalFee(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserWithdrawalFee", args...)
 }
 
-func (this *HollaexCore) PrivateGetUserTrades (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUserTrades", args...)
+func (this *HollaexCore) PrivateGetUserTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserTrades", args...)
 }
 
-func (this *HollaexCore) PrivateGetOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOrders", args...)
+func (this *HollaexCore) PrivateGetOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *HollaexCore) PrivateGetOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOrder", args...)
+func (this *HollaexCore) PrivateGetOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrder", args...)
 }
 
-func (this *HollaexCore) PrivatePostUserWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUserWithdrawal", args...)
+func (this *HollaexCore) PrivatePostUserWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserWithdrawal", args...)
 }
 
-func (this *HollaexCore) PrivatePostOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrder", args...)
+func (this *HollaexCore) PrivatePostOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrder", args...)
 }
 
-func (this *HollaexCore) PrivateDeleteOrderAll (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteOrderAll", args...)
+func (this *HollaexCore) PrivateDeleteOrderAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrderAll", args...)
 }
 
-func (this *HollaexCore) PrivateDeleteOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteOrder", args...)
+func (this *HollaexCore) PrivateDeleteOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrder", args...)
 }
