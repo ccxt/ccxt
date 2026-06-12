@@ -132,9 +132,9 @@ public partial class Exchange
     }
     public object last_request_url { get; set; }
 
-    public readonly System.Collections.Concurrent.ConcurrentQueue<Dictionary<string, object>> recentFetchesCache = new ();
+    public readonly System.Collections.Concurrent.ConcurrentQueue<Dictionary<string, object>> fetchHistoryCache = new ();
 
-    public int recentFetchesCacheSize = 0;
+    public int fetchHistoryCacheSize = 0;
 
     public float MAX_VALUE = float.MaxValue;
 

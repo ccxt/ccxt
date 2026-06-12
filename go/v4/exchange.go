@@ -178,8 +178,8 @@ type Exchange struct {
 	// tests only
 	FetchResponse any
 
-	IsSandboxModeEnabled   bool
-	RecentFetchesCacheSize int
+	IsSandboxModeEnabled  bool
+	FetchHistoryCacheSize int
 
 	// ws
 	WsClients   map[string]any // one websocket client per URL
@@ -2125,21 +2125,21 @@ func (cl *ConcurrentListForRequests) GetAll() []any {
 	return cp
 }
 
-var RecentFetchesCache = &ConcurrentListForRequests{}
+var FetchHistoryCache = &ConcurrentListForRequests{}
 
 func (e *Exchange) AddFetchCache(item any) {
 
-	RecentFetchesCache.Lock()
-	defer RecentFetchesCache.Unlock()
+	FetchHistoryCache.Lock()
+	defer FetchHistoryCache.Unlock()
 
-	RecentFetchesCache.items = append(RecentFetchesCache.items, item)
+	FetchHistoryCache.items = append(FetchHistoryCache.items, item)
 
-	if e.RecentFetchesCacheSize > 0 && len(RecentFetchesCache.items) > e.RecentFetchesCacheSize {
-		RecentFetchesCache.items = RecentFetchesCache.items[1:]
+	if e.FetchHistoryCacheSize > 0 && len(FetchHistoryCache.items) > e.FetchHistoryCacheSize {
+		FetchHistoryCache.items = FetchHistoryCache.items[1:]
 	}
 }
 func (e *Exchange) GetFetchCache() []any {
-	return RecentFetchesCache.GetAll()
+	return FetchHistoryCache.GetAll()
 }
 
 // #########################################

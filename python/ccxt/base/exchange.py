@@ -397,8 +397,8 @@ class Exchange(object):
     last_request_body = None
     last_request_url = None
     last_request_headers = None
-    recent_fetches_cache_size = 0
-    recent_fetches_cache = collections.deque(maxlen=0)
+    fetch_history_cache_size = 0
+    fetch_history_cache = collections.deque(maxlen=0)
 
     requiresEddsa = False
     base58_encoder = None
@@ -560,14 +560,14 @@ class Exchange(object):
         raise ValueError(f'invalid file path: {file_path}')
 
     def add_fetch_cache(self, data):
-        if self.recent_fetches_cache_size <= 0:
+        if self.fetch_history_cache_size <= 0:
             return
-        if self.recent_fetches_cache.maxlen == 0:
-            self.recent_fetches_cache = collections.deque(maxlen=self.recent_fetches_cache_size)
-        self.recent_fetches_cache.append(data)
+        if self.fetch_history_cache.maxlen == 0:
+            self.fetch_history_cache = collections.deque(maxlen=self.fetch_history_cache_size)
+        self.fetch_history_cache.append(data)
 
     def get_fetch_cache(self):
-        return self.recent_fetches_cache
+        return self.fetch_history_cache
 
     @staticmethod
     def gzip_deflate(response, text):

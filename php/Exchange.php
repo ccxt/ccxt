@@ -303,8 +303,8 @@ class Exchange {
     public $last_request_headers = null;
     public $last_request_body = null;
     public $last_request_url = null;
-    public $recent_fetches_cache = [];
-    public $recent_fetches_cache_size = 0;
+    public $fetch_history_cache = [];
+    public $fetch_history_cache_size = 0;
 
     public $requiresEddsa = false;
     public $rateLimit = 2000;
@@ -1312,17 +1312,17 @@ class Exchange {
     }
 
     public function add_fetch_cache($data) {
-        if ($this->recent_fetches_cache_size <= 0) {
+        if ($this->fetch_history_cache_size <= 0) {
             return;
         }
-        if (count($this->recent_fetches_cache) >= $this->recent_fetches_cache_size) {
-            array_shift($this->recent_fetches_cache);
+        if (count($this->fetch_history_cache) >= $this->fetch_history_cache_size) {
+            array_shift($this->fetch_history_cache);
         }
-        $this->recent_fetches_cache[] = $data;
+        $this->fetch_history_cache[] = $data;
     }
 
     public function get_fetch_cache() {
-        return $this->recent_fetches_cache;
+        return $this->fetch_history_cache;
     }
 
     public static function base64_to_base64url(string $base64, bool $stripPadding = true): string {

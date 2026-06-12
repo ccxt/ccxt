@@ -160,8 +160,8 @@ public class Exchange {
     public volatile Object last_http_response;
     public volatile Object last_request_body;
     public volatile Object last_request_url;
-    public final ConcurrentLinkedQueue<Map<String, Object>> recentFetchesCache = new ConcurrentLinkedQueue<>();
-    public int recentFetchesCacheSize = 0;
+    public final ConcurrentLinkedQueue<Map<String, Object>> fetchHistoryCache = new ConcurrentLinkedQueue<>();
+    public int fetchHistoryCacheSize = 0;
 
     public boolean returnResponseHeaders = false;
     public Map<String, Object> headers = new HashMap<>();
@@ -539,16 +539,16 @@ public class Exchange {
     }
 
     public void addFetchCache(Map<String, Object> data) {
-        if (recentFetchesCacheSize <= 0) {
+        if (fetchHistoryCacheSize <= 0) {
             return;
         }
-        recentFetchesCache.offer(data);
-        while (recentFetchesCache.size() > recentFetchesCacheSize)
-            recentFetchesCache.poll(); // drops oldest
+        fetchHistoryCache.offer(data);
+        while (fetchHistoryCache.size() > fetchHistoryCacheSize)
+            fetchHistoryCache.poll(); // drops oldest
     }
 
     public List<Map<String, Object>> getFetchCache() {
-        return new ArrayList<>(recentFetchesCache);
+        return new ArrayList<>(fetchHistoryCache);
     }
 
     // === HELPERS === //

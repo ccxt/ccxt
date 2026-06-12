@@ -45,17 +45,17 @@ public partial class Exchange
     }
 
     public void addFetchCache(Object data) {
-        if (recentFetchesCacheSize <= 0) {
+        if (fetchHistoryCacheSize <= 0) {
             return;
         }
-        recentFetchesCache.Enqueue(data as Dictionary<string,object>);
-        while (recentFetchesCache.Count > recentFetchesCacheSize)
-            recentFetchesCache.TryDequeue(out _); // drops oldest
+        fetchHistoryCache.Enqueue(data as Dictionary<string,object>);
+        while (fetchHistoryCache.Count > fetchHistoryCacheSize)
+            fetchHistoryCache.TryDequeue(out _); // drops oldest
     }
 
     public List<Dictionary<string, object>> getFetchCache()
     {
-        return recentFetchesCache.ToList();
+        return fetchHistoryCache.ToList();
     }
     // public object buildOHLCVC(object trades, object timeframe, object since, object limit)
     // {
