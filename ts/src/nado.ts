@@ -7,7 +7,7 @@ import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ArgumentsRequired, BadRequest, BadSymbol, ExchangeError, InvalidOrder } from './base/errors.js';
-import type { Currencies, Currency, Dict, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Currencies, Currency, Dict, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -35,7 +35,8 @@ export default class nado extends Exchange {
                 'future': false,
                 'option': false,
                 'cancelAllOrders': false,
-                'cancelOrder': false,
+                'cancelOrder': true,
+                'cancelOrders': true,
                 'createOrder': true,
                 'fetchBalance': false,
                 'fetchCurrencies': true,
@@ -147,6 +148,10 @@ export default class nado extends Exchange {
                     'expiration': '4294967295',
                     'subaccount': 'default',
                 },
+                'cancelOrders': {
+                    'recvWindow': 5000,
+                    'subaccount': 'default',
+                },
             },
             'timeframes': {
                 '1m': 60,
@@ -181,16 +186,13 @@ export default class nado extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
-     * @param {string} [params.chainId] EIP-712 domain chain id, fetched from contracts query if not provided
      * @param {string|int} [params.expiration] order expiration timestamp in seconds, defaults to 4294967295
-     * @param {string|int} [params.nonce] custom order nonce
-     * @param {int} [params.recvWindow] milliseconds added to now when auto-generating the nonce, defaults to 5000
      * @param {string|int} [params.appendix] pre-encoded order appendix
      * @param {boolean} [params.reduceOnly] true if the order should only reduce position
      * @param {boolean} [params.postOnly] true to create a post-only order
      * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK', or 'PO'
-     * @param {boolean} [params.spot_leverage] whether leverage should be used for spot, defaults to true
-     * @param {int} [params.id] client-provided request id
+     * @param {boolean} [params.spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias params.spot_leverage
+     * @param {int} [params.clientOrderId] client-provided request id, exchange-specific alias params.id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
@@ -218,22 +220,15 @@ export default class nado extends Exchange {
         if (expiration === undefined) {
             expiration = this.safeString (createOrderOptions, 'expiration', '4294967295');
         }
-        let nonce = this.safeString (params, 'nonce');
-        let recvWindow = undefined;
-        [ recvWindow, params ] = this.handleOptionAndParams (params, 'createOrder', 'recvWindow', this.safeInteger (createOrderOptions, 'recvWindow', 5000));
-        const nonceRandom = this.safeString (params, 'nonceRandom');
-        params = this.omit (params, [ 'expiration', 'nonce', 'nonceRandom' ]);
-        if (nonce === undefined) {
-            nonce = this.createOrderNonce (recvWindow, nonceRandom);
-        }
+        const recvWindow = this.safeInteger (createOrderOptions, 'recvWindow', 5000);
+        const nonce = this.createOrderNonce (recvWindow);
         let appendix = this.safeString (params, 'appendix');
         if (appendix === undefined) {
             appendix = this.createOrderAppendix (params);
         }
-        let clientOrderId = this.safeInteger (params, 'id');
-        [ clientOrderId, params ] = this.handleOptionAndParams (params, 'createOrder', 'clientOrderId', clientOrderId);
-        const spotLeverage = this.safeBool (params, 'spot_leverage');
-        params = this.omit (params, [ 'appendix', 'reduceOnly', 'postOnly', 'timeInForce', 'clientOrderId', 'id', 'spot_leverage' ]);
+        const clientOrderId = this.safeInteger2 (params, 'clientOrderId', 'id');
+        const spotLeverage = this.safeBool2 (params, 'spotLeverage', 'spot_leverage');
+        params = this.omit (params, [ 'expiration', 'nonce', 'appendix', 'reduceOnly', 'postOnly', 'timeInForce', 'clientOrderId', 'id', 'spotLeverage', 'spot_leverage' ]);
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const order: Dict = {
             'sender': sender,
@@ -243,12 +238,8 @@ export default class nado extends Exchange {
             'nonce': nonce,
             'appendix': appendix,
         };
-        let chainId = this.safeString (params, 'chainId');
-        params = this.omit (params, 'chainId');
-        if (chainId === undefined) {
-            const contracts = await this.queryContracts ();
-            chainId = this.safeString (contracts, 'chain_id');
-        }
+        const contracts = await this.queryContracts ();
+        const chainId = this.safeString (contracts, 'chain_id');
         const signature = this.signOrder (order, productId, chainId);
         const placeOrder: Dict = {
             'product_id': productId,
@@ -277,6 +268,122 @@ export default class nado extends Exchange {
         //     }
         //
         return this.parseOrder (this.extend ({ 'place_order': placeOrder }, response), market);
+    }
+
+    /**
+     * @method
+     * @name nado#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-orders
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
+     * @param {string} [params.requiredUnfilledAmount] cancel only if the order's absolute remaining unfilled amount matches this amount, exchange-specific raw x18 alias params.required_unfilled_amount
+     * @param {int} [params.clientOrderId] client-provided request id, exchange-specific alias params.id
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        const orders = await this.cancelOrders ([ id ], symbol, params);
+        return this.safeDict (orders, 0) as Order;
+    }
+
+    /**
+     * @method
+     * @name nado#cancelOrders
+     * @description cancel multiple orders
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-orders
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
+     * @param {string} [params.requiredUnfilledAmount] cancel only if the order's absolute remaining unfilled amount matches this amount, exchange-specific raw x18 alias params.required_unfilled_amount
+     * @param {int} [params.clientOrderId] client-provided request id, exchange-specific alias params.id
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
+        this.checkRequiredCredentials ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const productId = this.parseToInt (market['id']);
+        const cancelOrdersOptions = this.safeDict (this.options, 'cancelOrders', {});
+        let subaccount = undefined;
+        [ subaccount, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'subaccount', this.safeString (cancelOrdersOptions, 'subaccount', 'default'));
+        const sender = this.createSubaccount (this.walletAddress, subaccount);
+        const productIds = [];
+        for (let i = 0; i < ids.length; i++) {
+            productIds.push (productId);
+        }
+        const recvWindow = this.safeInteger (cancelOrdersOptions, 'recvWindow', 5000);
+        const nonce = this.createOrderNonce (recvWindow);
+        const tx: Dict = {
+            'sender': sender,
+            'productIds': productIds,
+            'digests': ids,
+            'nonce': nonce,
+        };
+        const contracts = await this.queryContracts ();
+        const chainId = this.safeString (contracts, 'chain_id');
+        const endpointAddress = this.safeString (contracts, 'endpoint_addr');
+        if (endpointAddress === undefined) {
+            throw new ExchangeError (this.id + ' cancelOrders() requires endpoint_addr from contracts query');
+        }
+        const signature = this.signCancellation (tx, chainId, endpointAddress);
+        const clientOrderId = this.safeInteger2 (params, 'clientOrderId', 'id');
+        const requiredUnfilledAmountRaw = this.safeString (params, 'required_unfilled_amount');
+        const requiredUnfilledAmount = this.safeString (params, 'requiredUnfilledAmount');
+        params = this.omit (params, [ 'clientOrderId', 'id', 'requiredUnfilledAmount', 'required_unfilled_amount' ]);
+        const cancelOrders: Dict = {
+            'tx': tx,
+            'signature': signature,
+        };
+        if (requiredUnfilledAmountRaw !== undefined) {
+            cancelOrders['required_unfilled_amount'] = requiredUnfilledAmountRaw;
+        } else if (requiredUnfilledAmount !== undefined) {
+            cancelOrders['required_unfilled_amount'] = this.convertToX18 (requiredUnfilledAmount);
+        }
+        if (clientOrderId !== undefined) {
+            cancelOrders['id'] = clientOrderId;
+        }
+        const request: Dict = {
+            'cancel_orders': cancelOrders,
+        };
+        const response = await this.gatewayPrivatePostExecute (this.extend (request, params));
+        //
+        //     {
+        //         "status": "success",
+        //         "signature": "0x...",
+        //         "data": {
+        //             "cancelled_orders": [
+        //                 {
+        //                     "product_id": 2,
+        //                     "sender": "0x...",
+        //                     "price_x18": "20000000000000000000000",
+        //                     "amount": "-100000000000000000",
+        //                     "expiration": "1686332748",
+        //                     "order_type": "post_only",
+        //                     "nonce": "1768248100142339392",
+        //                     "unfilled_amount": "-100000000000000000",
+        //                     "digest": "0x...",
+        //                     "appendix": "1537",
+        //                     "placed_at": 1686332708
+        //                 }
+        //             ]
+        //         },
+        //         "request_type": "execute_cancel_orders",
+        //         "id": 100
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const cancelledOrders = this.safeList (data, 'cancelled_orders', []);
+        const result = [];
+        for (let i = 0; i < cancelledOrders.length; i++) {
+            result.push (this.parseOrder (cancelledOrders[i], market));
+        }
+        return result;
     }
 
     /**
@@ -1027,6 +1134,8 @@ export default class nado extends Exchange {
 
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
+        // create order
+        //
         //     {
         //         "status": "success",
         //         "signature": "0x...",
@@ -1049,48 +1158,107 @@ export default class nado extends Exchange {
         //         }
         //     }
         //
-        const placeOrder = this.safeDict (order, 'place_order', {});
-        const rawOrder = this.safeDict (placeOrder, 'order', {});
-        const marketId = this.safeString (placeOrder, 'product_id');
-        market = this.safeMarket (marketId, market);
-        const data = this.safeDict (order, 'data', {});
-        const amountString = this.safeString (rawOrder, 'amount');
+        // cancel order
+        //
+        //     {
+        //         "product_id": 2,
+        //         "sender": "0x...",
+        //         "price_x18": "20000000000000000000000",
+        //         "amount": "-100000000000000000",
+        //         "expiration": "1686332748",
+        //         "order_type": "post_only",
+        //         "nonce": "1768248100142339392",
+        //         "unfilled_amount": "-100000000000000000",
+        //         "digest": "0x...",
+        //         "appendix": "1537",
+        //         "placed_at": 1686332708
+        //     }
+        //
+        let id = undefined;
+        let clientOrderId = undefined;
+        let timestamp = undefined;
+        let timeInForce = undefined;
+        let postOnly = undefined;
         let side = undefined;
+        let price = undefined;
         let amount = undefined;
-        if (amountString !== undefined) {
-            side = Precise.stringLt (amountString, '0') ? 'sell' : 'buy';
-            amount = this.parseX18 (Precise.stringAbs (amountString));
-        }
-        const responseStatus = this.safeString (order, 'status');
-        let status = 'rejected';
-        if (responseStatus === 'success') {
-            status = 'open';
+        let remaining = undefined;
+        let status = undefined;
+        const cancelOrderDigest = this.safeString (order, 'digest');
+        if (cancelOrderDigest !== undefined) {
+            id = cancelOrderDigest;
+            const marketId = this.safeString (order, 'product_id');
+            market = this.safeMarket (marketId, market);
+            const amountString = this.safeString (order, 'amount');
+            if (amountString !== undefined) {
+                side = Precise.stringLt (amountString, '0') ? 'sell' : 'buy';
+                amount = this.parseX18 (Precise.stringAbs (amountString));
+            }
+            const unfilledAmount = this.safeString (order, 'unfilled_amount');
+            if (unfilledAmount !== undefined) {
+                remaining = this.parseX18 (Precise.stringAbs (unfilledAmount));
+            }
+            timestamp = this.safeTimestamp (order, 'placed_at');
+            const orderType = this.safeString (order, 'order_type');
+            timeInForce = this.parseOrderTimeInForce (orderType);
+            postOnly = orderType === 'post_only';
+            price = this.parseX18 (this.safeString (order, 'price_x18'));
+            status = 'canceled';
+        } else {
+            const placeOrder = this.safeDict (order, 'place_order', {});
+            const rawOrder = this.safeDict (placeOrder, 'order', {});
+            const marketId = this.safeString (placeOrder, 'product_id');
+            market = this.safeMarket (marketId, market);
+            const data = this.safeDict (order, 'data', {});
+            id = this.safeString (data, 'digest');
+            clientOrderId = this.safeString (order, 'id');
+            const amountString = this.safeString (rawOrder, 'amount');
+            if (amountString !== undefined) {
+                side = Precise.stringLt (amountString, '0') ? 'sell' : 'buy';
+                amount = this.parseX18 (Precise.stringAbs (amountString));
+            }
+            const responseStatus = this.safeString (order, 'status');
+            status = 'rejected';
+            if (responseStatus === 'success') {
+                status = 'open';
+            }
+            price = this.parseX18 (this.safeString (rawOrder, 'priceX18'));
         }
         return this.safeOrder ({
             'info': order,
-            'id': this.safeString (data, 'digest'),
-            'clientOrderId': this.safeString (order, 'id'),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': undefined,
             'symbol': market['symbol'],
             'type': 'limit',
-            'timeInForce': undefined,
-            'postOnly': undefined,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
-            'price': this.parseX18 (this.safeString (rawOrder, 'priceX18')),
+            'price': price,
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'average': undefined,
             'filled': undefined,
-            'remaining': undefined,
+            'remaining': remaining,
             'status': status,
             'fee': undefined,
             'trades': undefined,
         }, market);
+    }
+
+    parseOrderTimeInForce (timeInForce: Str) {
+        const timeInForces: Dict = {
+            'default': 'GTC',
+            'ioc': 'IOC',
+            'fok': 'FOK',
+            'post_only': 'PO',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
     convertToX18 (value: string) {
@@ -1104,10 +1272,9 @@ export default class nado extends Exchange {
         return this.parseNumber (Precise.stringDiv (value, '1000000000000000000'));
     }
 
-    createOrderNonce (recvWindow, nonceRandom = undefined) {
-        const random = (nonceRandom === undefined) ? this.randNumber (6) : this.parseToInt (nonceRandom);
+    createOrderNonce (recvWindow) {
         const expires = this.sum (this.milliseconds (), recvWindow);
-        return Precise.stringAdd (Precise.stringMul (this.numberToString (expires), '1048576'), this.numberToString (random));
+        return Precise.stringMul (this.numberToString (expires), '1048576');
     }
 
     createOrderAppendix (params = {}) {
@@ -1195,6 +1362,26 @@ export default class nado extends Exchange {
             ],
         };
         const encoded = this.ethEncodeStructuredData (domain, messageTypes, order);
+        const hash = '0x' + this.hash (encoded, keccak, 'hex');
+        return this.signHash (hash, this.privateKey);
+    }
+
+    signCancellation (cancellation, chainId, endpointAddress: string) {
+        const domain: Dict = {
+            'name': 'Nado',
+            'version': '0.0.1',
+            'chainId': chainId,
+            'verifyingContract': endpointAddress,
+        };
+        const messageTypes: Dict = {
+            'Cancellation': [
+                { 'name': 'sender', 'type': 'bytes32' },
+                { 'name': 'productIds', 'type': 'uint32[]' },
+                { 'name': 'digests', 'type': 'bytes32[]' },
+                { 'name': 'nonce', 'type': 'uint64' },
+            ],
+        };
+        const encoded = this.ethEncodeStructuredData (domain, messageTypes, cancellation);
         const hash = '0x' + this.hash (encoded, keccak, 'hex');
         return this.signHash (hash, this.privateKey);
     }
