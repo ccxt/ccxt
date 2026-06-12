@@ -148,7 +148,6 @@ description: "欢迎随时提出建议和贡献！请务必阅读贡献指南"
 - [Python3とCCXTを使用して仮想通貨の自動売買プログラムを作る](http://www.hacky.xyz/entry/2018/03/18/200822) – 使用 Python 3 和 CCXT 进行自动化加密货币交易
 - [ccxtを使って裁定取引botを作ってみたらなぜか虚しくなった件](https://qiita.com/reon777/items/21ed87f19cdd50f08bd9) – 一篇日文文章，解释使用 CCXT 编写套利机器人的基础知识。
 - [Python 3 / BitMEX の BOT を作ろう CCXT + BOT サンプルコード 〈基礎編〉](https://note.mu/mman/n/n5a9083864335) – 基于 Python 3 使用 CCXT 的 BitMEX 基础机器人示例。
-- [ccxtがbtcfxbot界隈でちょっと話題になっていたので使ってみた](http://cryptojapan.ml/entry/2018/03/01/151752) – 尝试使用 CCXT 构建基础机器人。
 - [python異步加協程獲取比特幣市場信息](https://hk.saowen.com/a/18a648f24d6e7f54981e9db4411b56730a35dd2b3b27519083543bcd6198cd27) – 一篇中文文章，介绍如何将 CCXT 与 Python 结合使用。
 - [Лучшая криптотрейдинг библиотека?](http://medium.com/@vladthelittleone/лучшая-криптотрейдинг-библиотека-67e308f96c1f) – 一篇俄文文章，介绍如何设置 CCXT 以连接加密货币交易所并进行交易。
 

@@ -148,7 +148,6 @@ description: "제안과 기여는 언제나 환영합니다! 기여 가이드라
 - [Python3とCCXTを使用して仮想通貨の自動売買プログラムを作る](http://www.hacky.xyz/entry/2018/03/18/200822) – Python 3과 CCXT를 사용한 암호화폐 자동 매매
 - [ccxtを使って裁定取引botを作ってみたらなぜか虚しくなった件](https://qiita.com/reon777/items/21ed87f19cdd50f08bd9) – CCXT로 차익거래 봇을 프로그래밍하는 기초를 설명하는 일본어 아티클.
 - [Python 3 / BitMEX の BOT を作ろう CCXT + BOT サンプルコード 〈基礎編〉](https://note.mu/mman/n/n5a9083864335) – Python 3에서 CCXT를 사용한 기본 BitMEX 봇 샘플.
-- [ccxtがbtcfxbot界隈でちょっと話題になっていたので使ってみた](http://cryptojapan.ml/entry/2018/03/01/151752) – 기본 봇을 위해 CCXT를 사용해보기.
 - [python異步加協程獲取比特幣市場信息](https://hk.saowen.com/a/18a648f24d6e7f54981e9db4411b56730a35dd2b3b27519083543bcd6198cd27) – Python과 CCXT를 사용하는 방법에 관한 중국어 아티클.
 - [Лучшая криптотрейдинг библиотека?](http://medium.com/@vladthelittleone/лучшая-криптотрейдинг-библиотека-67e308f96c1f) – 암호화폐 거래소와 연결하고 거래하기 위해 CCXT를 설정하는 방법에 관한 러시아어 아티클.
 
