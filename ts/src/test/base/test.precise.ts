@@ -154,14 +154,6 @@ function testPrecise () {
     assert (Precise.stringOr ('1', undefined) === undefined);
     assert (Precise.stringOr (undefined, undefined) === undefined);
 
-    assert (Precise.stringEquals (undefined, '1') === false);
-    assert (Precise.stringEquals ('1', undefined) === false);
-    assert (Precise.stringEquals (undefined, undefined) === false);
-
-    assert (Precise.stringEq (undefined, '1') === false);
-    assert (Precise.stringEq ('1', undefined) === false);
-    assert (Precise.stringEq (undefined, undefined) === false);
-
     assert (Precise.stringMin (undefined, '1') === undefined);
     assert (Precise.stringMin ('1', undefined) === undefined);
     assert (Precise.stringMin (undefined, undefined) === undefined);
@@ -170,21 +162,31 @@ function testPrecise () {
     assert (Precise.stringMax ('1', undefined) === undefined);
     assert (Precise.stringMax (undefined, undefined) === undefined);
 
-    assert (Precise.stringGt (undefined, '1') === undefined);
-    assert (Precise.stringGt ('1', undefined) === undefined);
-    assert (Precise.stringGt (undefined, undefined) === undefined);
+    // bool false
 
-    assert (Precise.stringGe (undefined, '1') === undefined);
-    assert (Precise.stringGe ('1', undefined) === undefined);
-    assert (Precise.stringGe (undefined, undefined) === undefined);
+    assert (Precise.stringEquals (undefined, '1') === false);
+    assert (Precise.stringEquals ('1', undefined) === false);
+    assert (Precise.stringEquals (undefined, undefined) === false);
 
-    assert (Precise.stringLt (undefined, '1') === undefined);
-    assert (Precise.stringLt ('1', undefined) === undefined);
-    assert (Precise.stringLt (undefined, undefined) === undefined);
+    assert (Precise.stringEq (undefined, '1') === false);
+    assert (Precise.stringEq ('1', undefined) === false);
+    assert (Precise.stringEq (undefined, undefined) === false);
 
-    assert (Precise.stringLe (undefined, '1') === undefined);
-    assert (Precise.stringLe ('1', undefined) === undefined);
-    assert (Precise.stringLe (undefined, undefined) === undefined);
+    assert (Precise.stringGt (undefined, '1') === false);
+    assert (Precise.stringGt ('1', undefined) === false);
+    assert (Precise.stringGt (undefined, undefined) === false);
+
+    assert (Precise.stringGe (undefined, '1') === false);
+    assert (Precise.stringGe ('1', undefined) === false);
+    assert (Precise.stringGe (undefined, undefined) === false);
+
+    assert (Precise.stringLt (undefined, '1') === false);
+    assert (Precise.stringLt ('1', undefined) === false);
+    assert (Precise.stringLt (undefined, undefined) === false);
+
+    assert (Precise.stringLe (undefined, '1') === false);
+    assert (Precise.stringLe ('1', undefined) === false);
+    assert (Precise.stringLe (undefined, undefined) === false);
 }
 
 export default testPrecise;
