@@ -264,6 +264,13 @@ function init_exchange ($exchangeId, $args, $is_ws = false) {
     $exchangeClassString = '\\ccxt\\' . (IS_SYNCHRONOUS ? '' : 'async\\') . $exchangeId;
     if ($is_ws) {
         $exchangeClassString = '\\ccxt\\pro\\' . $exchangeId;
+    } elseif (!class_exists($exchangeClassString)) {
+        // fall back to the prediction-markets namespace (\ccxt\prediction\<id>)
+        // regular ccxt ids always win for ids present in both (e.g. hyperliquid)
+        $predictionClassString = '\\ccxt\\prediction\\' . (IS_SYNCHRONOUS ? '' : 'async\\') . $exchangeId;
+        if (class_exists($predictionClassString)) {
+            $exchangeClassString = $predictionClassString;
+        }
     }
     $newClass = create_dynamic_class ($exchangeId, $exchangeClassString, $args);
     return $newClass;

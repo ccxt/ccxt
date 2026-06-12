@@ -4126,7 +4126,33 @@ export default class Exchange {
         this.currencies_by_id = this.indexBySafe (this.currencies, 'id');
         const currenciesSortedByCode = this.keysort (this.currencies);
         this.codes = Object.keys (currenciesSortedByCode);
+        if (this.isPrediction ()) {
+            this.setOutcomesFromMarkets ();
+        }
         return this.markets;
+    }
+
+    setOutcomesFromMarkets () {
+        // prediction markets carry their outcome tokens under the outcomes key,
+        // rebuild the outcome lookup caches so cached market data works offline
+        this.outcomes = {};
+        this.outcomes_by_id = {};
+        const marketKeys = Object.keys (this.markets);
+        for (let i = 0; i < marketKeys.length; i++) {
+            const market = this.markets[marketKeys[i]];
+            const outcomesList = this.safeList (market, 'outcomes', []);
+            for (let j = 0; j < outcomesList.length; j++) {
+                const oc = outcomesList[j];
+                const ocSymbol = this.safeString (oc, 'symbol');
+                if (ocSymbol !== undefined) {
+                    this.outcomes[ocSymbol] = oc;
+                }
+                const ocId = this.safeString (oc, 'id');
+                if (ocId !== undefined) {
+                    this.outcomes_by_id[ocId] = oc;
+                }
+            }
+        }
     }
 
     setMarketsFromExchange (sourceExchange) {
@@ -9304,7 +9330,9 @@ export default class Exchange {
     }
 
     checkEventsAndMarkets (outcome: Str = undefined) {
-        if (!this.events || this.isEmpty (this.events)) {
+        const hasEvents = (this.events !== undefined) && !this.isEmpty (this.events);
+        const hasOutcomes = (this.outcomes !== undefined) && !this.isEmpty (this.outcomes);
+        if (!hasEvents && !hasOutcomes) {
             throw new ArgumentsRequired ('Events are required to be loaded, please fetch them first using fetchEvents');
         }
         if (outcome !== undefined) {

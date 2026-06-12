@@ -945,10 +945,10 @@ export default class myriad extends Exchange {
         const price = this.safeNumber (ohlcv, 'price', this.safeNumber (ohlcv, 'value'));  // fallback single-value tick
         return [
             this.safeTimestamp (ohlcv, 'timestamp'),
-            open !== undefined ? open : price,
-            high !== undefined ? high : price,
-            low !== undefined ? low : price,
-            close !== undefined ? close : price,
+            (open !== undefined) ? open : price,
+            (high !== undefined) ? high : price,
+            (low !== undefined) ? low : price,
+            (close !== undefined) ? close : price,
             0,   // price_charts endpoint has no volume
         ];
     }

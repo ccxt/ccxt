@@ -13,8 +13,12 @@ public partial class Exchange
             className = "ccxt.pro." + className;
         }
 
-        var type = assembly.GetTypes()
-            .First(t => t.Name == className || t.FullName == className);
+        // prefer the regular ccxt namespace, then the prediction-markets namespace
+        // (regular ccxt ids always win for ids present in both, e.g. hyperliquid)
+        var types = assembly.GetTypes();
+        var type = types.FirstOrDefault(t => t.FullName == "ccxt." + className)
+            ?? types.FirstOrDefault(t => t.FullName == "ccxt.prediction." + className)
+            ?? types.First(t => t.Name == className || t.FullName == className);
 
 
         // tmp check this, can't find constructor

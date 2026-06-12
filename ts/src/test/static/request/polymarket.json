@@ -1,0 +1,51 @@
+{
+    "exchange": "polymarket",
+    "disabledJava": true,
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook for a yes outcome",
+                "method": "fetchOrderBook",
+                "url": "https://clob.polymarket.com/book?token_id=16040015440196279900485035793550429453516625694844857319147506590755961451627",
+                "input": [
+                    "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades with limit",
+                "method": "fetchTrades",
+                "url": "https://data-api.polymarket.com/trades?market=0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422&limit=5",
+                "input": [
+                    "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+                    null,
+                    5
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV with since and limit",
+                "method": "fetchOHLCV",
+                "url": "https://clob.polymarket.com/prices-history?market=16040015440196279900485035793550429453516625694844857319147506590755961451627&fidelity=1&startTs=1740000000&endTs=1740006000",
+                "input": [
+                    "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+                    "1m",
+                    1740000000000,
+                    100
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://clob.polymarket.com/time",
+                "input": []
+            }
+        ]
+    }
+}

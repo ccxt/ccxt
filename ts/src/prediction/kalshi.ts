@@ -4,7 +4,7 @@ import { rsa } from '../base/functions/rsa.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type {
     Int, Str, Num, Dict, Strings,
-    Market, Ticker, OrderBook, Trade, OHLCV,
+    Market, Ticker, Tickers, OrderBook, Trade, OHLCV,
     Order, Balances, Position,
 } from '../base/types.js';
 
@@ -43,7 +43,7 @@ export default class kalshi extends Exchange {
                 'fetchOrderBook': true,
                 'fetchPositions': true,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTrades': true,
                 'prediction': true,
             },
@@ -71,14 +71,42 @@ export default class kalshi extends Exchange {
                     'public': {
                         'get': {
                             'events': 1,
+                            'events/multivariate': 1,
+                            'events/fee_changes': 1,
                             'events/{event_ticker}': 1,
+                            'events/{event_ticker}/metadata': 1,
                             'series': 1,
+                            'series/fee_changes': 1,
                             'series/{series_ticker}': 1,
+                            'series/{series_ticker}/markets/{ticker}/candlesticks': 1,
+                            'series/{series_ticker}/events/{ticker}/candlesticks': 1,
+                            'series/{series_ticker}/events/{ticker}/forecast_percentile_history': 1,
                             'markets': 1,
+                            'markets/trades': 1,
+                            'markets/orderbooks': 1,
+                            'markets/candlesticks': 1,
                             'markets/{ticker}': 1,
                             'markets/{ticker}/orderbook': 1,
-                            'markets/trades': 1,
-                            'series/{series_ticker}/markets/{ticker}/candlesticks': 1,
+                            'exchange/status': 1,
+                            'exchange/schedule': 1,
+                            'exchange/announcements': 1,
+                            'exchange/user_data_timestamp': 1,
+                            'milestones': 1,
+                            'milestones/{milestone_id}': 1,
+                            'structured_targets': 1,
+                            'structured_targets/{structured_target_id}': 1,
+                            'search/filters_by_sport': 1,
+                            'search/tags_by_categories': 1,
+                            'live_data/batch': 1,
+                            'live_data/milestone/{milestone_id}': 1,
+                            'historical/markets': 1,
+                            'historical/markets/{ticker}/candlesticks': 1,
+                            'historical/trades': 1,
+                            'historical/cutoff_timestamps': 1,
+                            'multivariate_event_collections': 1,
+                            'multivariate_event_collections/{collection_ticker}': 1,
+                            'multivariate_event_collections/{collection_ticker}/lookup': 1,
+                            'incentive_programs': 1,
                         },
                     },
                     'private': {
@@ -86,15 +114,44 @@ export default class kalshi extends Exchange {
                             'portfolio/balance': 1,
                             'portfolio/orders': 1,
                             'portfolio/orders/{order_id}': 1,
+                            'portfolio/orders/{order_id}/queue_position': 1,
+                            'portfolio/orders/queue_positions': 1,
                             'portfolio/positions': 1,
                             'portfolio/fills': 1,
+                            'portfolio/settlements': 1,
+                            'portfolio/deposits': 1,
+                            'portfolio/withdrawals': 1,
+                            'portfolio/order_groups': 1,
+                            'portfolio/order_groups/{order_group_id}': 1,
+                            'portfolio/summary/total_resting_order_value': 1,
+                            'portfolio/subaccounts/balances': 1,
+                            'portfolio/subaccounts/netting': 1,
+                            'portfolio/subaccounts/transfers': 1,
+                            'historical/fills': 1,
+                            'historical/orders': 1,
                         },
                         'post': {
                             'portfolio/orders': 1,
+                            'portfolio/orders/batched': 1,
+                            'portfolio/orders/{order_id}/amend': 1,
+                            'portfolio/orders/{order_id}/decrease': 1,
+                            'portfolio/order_groups/create': 1,
+                            'portfolio/subaccounts': 1,
+                            'portfolio/subaccounts/transfer': 1,
+                            'multivariate_event_collections/{collection_ticker}': 1,
+                        },
+                        'put': {
+                            'portfolio/order_groups/{order_group_id}/reset': 1,
+                            'portfolio/order_groups/{order_group_id}/trigger': 1,
+                            'portfolio/order_groups/{order_group_id}/limit': 1,
+                            'portfolio/subaccounts/netting': 1,
+                            'multivariate_event_collections/{collection_ticker}/lookup': 1,
                         },
                         'delete': {
                             'portfolio/orders/{order_id}': 1,
                             'portfolio/orders': 1,
+                            'portfolio/orders/batched': 1,
+                            'portfolio/order_groups/{order_group_id}': 1,
                         },
                     },
                 },
@@ -155,7 +212,7 @@ export default class kalshi extends Exchange {
                     const title = this.safeString (raw, 'title', '').toLowerCase ();
                     let matches = false;
                     for (let mi = 0; mi < lowerQueries.length; mi++) {
-                        if (ticker.indexOf (lowerQueries[mi]) !== -1 || title.indexOf (lowerQueries[mi]) !== -1) {
+                        if (ticker.indexOf (lowerQueries[mi]) > -1 || title.indexOf (lowerQueries[mi]) > -1) {
                             matches = true;
                             break;
                         }
@@ -253,7 +310,9 @@ export default class kalshi extends Exchange {
         const ticker = this.safeString (raw, 'ticker');
         const eventTicker = this.safeString (raw, 'event_ticker');
         const subtitle = this.safeString (raw, 'subtitle', this.safeString (raw, 'title'));
-        const active = this.safeString (raw, 'status') === 'open';
+        // markets use status 'active' while events use 'open'
+        const status = this.safeString (raw, 'status');
+        const active = (status === 'active') || (status === 'open');
         const endDate = this.safeString (raw, 'expiration_time');
         const volume = this.safeNumber (raw, 'volume');
         const liquidity = this.safeNumber (raw, 'liquidity');
@@ -514,11 +573,12 @@ export default class kalshi extends Exchange {
             ask = yesAsk;
             close = last;
         }
-        const bidVolume = isNo ? undefined : this.safeNumber (raw, 'yes_bid_size_fp');
-        const askVolume = isNo ? undefined : this.safeNumber (raw, 'yes_ask_size_fp');
+        // the book is quoted in the yes token, the no side mirrors with sizes swapped
+        const bidVolume = (isNo) ? this.safeNumber (raw, 'yes_ask_size_fp') : this.safeNumber (raw, 'yes_bid_size_fp');
+        const askVolume = (isNo) ? this.safeNumber (raw, 'yes_bid_size_fp') : this.safeNumber (raw, 'yes_ask_size_fp');
         let average = undefined;
         if ((bid !== undefined) && (ask !== undefined)) {
-            average = (bid + ask) / 2;
+            average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (this.numberToString (bid), this.numberToString (ask)), '2'));
         }
         return this.safeTicker ({
             'symbol': symbol,
@@ -538,10 +598,91 @@ export default class kalshi extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': average,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeNumber (raw, 'volume'),
+            'baseVolume': this.safeNumberN (raw, [ 'volume_24h_fp', 'volume_24h', 'volume' ]),
+            'quoteVolume': undefined,
             'info': raw,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name kalshi#fetchTickers
+     * @description fetches tickers for multiple outcomes at once, batching their market tickers through the markets endpoint
+     * @see https://docs.kalshi.com/api-reference/market/get-markets
+     * @param {string[]} [symbols] unified outcome symbols, fetches tickers for all loaded outcomes when omitted
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
+     */
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        const targets: any[] = [];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                this.checkEventsAndMarkets (symbols[i]);
+                targets.push (symbols[i]);
+            }
+        } else {
+            this.checkEventsAndMarkets ();
+            const allKeys = Object.keys (this.outcomes);
+            for (let i = 0; i < allKeys.length; i++) {
+                targets.push (allKeys[i]);
+            }
+        }
+        // group requested outcomes by their market ticker, yes and no outcomes share one market
+        const outcomesByTicker: Dict = {};
+        const tickers: any[] = [];
+        for (let i = 0; i < targets.length; i++) {
+            const outcomeObj = this.outcome (targets[i]);
+            const ticker = this.safeString (outcomeObj['info'], 'ticker');
+            if (ticker === undefined) {
+                continue;
+            }
+            if (!(ticker in outcomesByTicker)) {
+                outcomesByTicker[ticker] = [];
+                tickers.push (ticker);
+            }
+            // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
+            const grouped = outcomesByTicker[ticker];
+            grouped.push (outcomeObj);
+            outcomesByTicker[ticker] = grouped;
+        }
+        const chunkSize = this.safeInteger (this.options, 'fetchTickersBatchSize', 100);
+        const result: Tickers = {};
+        const tickersLength = tickers.length;
+        let startIndex = 0;
+        while (startIndex < tickersLength) {
+            let endIndex = this.sum (startIndex, chunkSize);
+            if (endIndex > tickersLength) {
+                endIndex = tickersLength;
+            }
+            const chunk: any[] = [];
+            for (let i = startIndex; i < endIndex; i++) {
+                chunk.push (tickers[i]);
+            }
+            const request: Dict = {
+                'tickers': chunk.join (','),
+                'limit': chunkSize,
+            };
+            const response = await this.kalshiPublicGetMarkets (this.extend (request, params));
+            const rawMarkets = this.safeList (response, 'markets', []) as any[];
+            for (let i = 0; i < rawMarkets.length; i++) {
+                const raw = rawMarkets[i];
+                const marketTicker = this.safeString (raw, 'ticker');
+                if ((marketTicker === undefined) || !(marketTicker in outcomesByTicker)) {
+                    continue;
+                }
+                const grouped = outcomesByTicker[marketTicker] as any[];
+                for (let j = 0; j < grouped.length; j++) {
+                    const ticker = this.parseTicker (raw, grouped[j]);
+                    const symbolKey = this.safeString (ticker, 'symbol');
+                    if (symbolKey !== undefined) {
+                        result[symbolKey] = ticker;
+                    }
+                }
+            }
+            startIndex = this.sum (startIndex, chunkSize);
+        }
+        return result;
     }
 
     /**
@@ -664,10 +805,11 @@ export default class kalshi extends Exchange {
         const now = this.seconds ();
         const tf = this.parseTimeframe (timeframe);
         if (since !== undefined) {
-            request['start_ts'] = this.parseToInt (since / 1000);
+            const sinceS = this.parseToInt (since / 1000);
+            request['start_ts'] = sinceS;
             if (limit !== undefined) {
-                const end = (since / 1000) + limit * tf;
-                request['end_ts'] = end < now ? end : now;
+                const end = this.sum (sinceS, limit * tf);
+                request['end_ts'] = (end < now) ? end : now;
             }
         } else {
             const defaultLimit = this.safeInteger (this.options, 'defaultFetchOHLCVLimit', 200);
@@ -1043,7 +1185,8 @@ export default class kalshi extends Exchange {
         const ticker = this.safeString (order, 'ticker');
         const mkt = this.safeOutcome (ticker, market as any);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const side = this.safeString (order, 'action') === 'buy' ? 'buy' : 'sell';
+        const action = this.safeString (order, 'action');
+        const side = (action === 'buy') ? 'buy' : 'sell';
         const priceCents = this.safeNumber (order, 'no_price', this.safeNumber (order, 'yes_price'));
         let price = undefined;
         if (priceCents !== undefined) {
@@ -1125,9 +1268,9 @@ export default class kalshi extends Exchange {
             priceCents = this.parseToInt (price * 100 + 0.5);
         }
         const request: Dict = {
-            'action': side === 'buy' ? 'buy' : 'sell',
+            'action': (side === 'buy') ? 'buy' : 'sell',
             'count': amount,
-            'side': outcomeLabel === 'NO' ? 'no' : 'yes',
+            'side': (outcomeLabel === 'NO') ? 'no' : 'yes',
             'ticker': ticker,
             'type': type,
         };
@@ -1201,7 +1344,7 @@ export default class kalshi extends Exchange {
         queries = (queries === undefined) ? [] : queries;
         const status = this.safeString (params, 'status', this.safeString (this.options, 'defaultEventStatus', 'open'));
         const pageLimit = this.safeInteger (params, 'limit', 200);
-        const maxPages = this.safeInteger (params, 'maxPages', 5);
+        const maxPages = this.safeInteger (params, 'maxPages', 50);
         const rest = this.omit (params, [ 'status', 'limit', 'maxPages' ]);
         if (!this.events) {
             this.events = {};
@@ -1214,12 +1357,12 @@ export default class kalshi extends Exchange {
             lowerQueries.push (queries[qi].toLowerCase ());
         }
         const lowerQueriesLength = lowerQueries.length;
-        // Phase 1: sequential cursor scan (lightweight — no nested markets) to collect matching tickers
-        const matchedTickers: string[] = [];
+        // sequential cursor scan with nested markets included, collecting the matching events directly
+        const matchedEvents: any[] = [];
         let cursor: string | undefined = undefined;
         let page = 0;
         while (page < maxPages) {
-            const request: Dict = { 'status': status, 'limit': pageLimit };
+            const request: Dict = { 'status': status, 'limit': pageLimit, 'with_nested_markets': true };
             if (cursor) {
                 request['cursor'] = cursor;
             }
@@ -1230,16 +1373,17 @@ export default class kalshi extends Exchange {
             for (let rei = 0; rei < rawEvents.length; rei++) {
                 const rawEvent = rawEvents[rei];
                 const ticker = this.safeString (rawEvent, 'event_ticker', '');
+                const tickerLower = ticker.toLowerCase ();
                 const title = this.safeString (rawEvent, 'title', '').toLowerCase ();
                 let matches = (lowerQueriesLength === 0);
                 for (let li = 0; li < lowerQueries.length; li++) {
-                    if (ticker.toLowerCase ().indexOf (lowerQueries[li]) !== -1 || title.indexOf (lowerQueries[li]) !== -1) {
+                    if (tickerLower.indexOf (lowerQueries[li]) > -1 || title.indexOf (lowerQueries[li]) > -1) {
                         matches = true;
                         break;
                     }
                 }
                 if (matches && ticker) {
-                    matchedTickers.push (ticker);
+                    matchedEvents.push (rawEvent);
                 }
             }
             page = this.sum (page, 1);
@@ -1247,16 +1391,9 @@ export default class kalshi extends Exchange {
                 break;
             }
         }
-        // Phase 2: fetch full event details (with nested markets) for all matched tickers in parallel
-        const detailPromises: any[] = [];
-        for (let ti = 0; ti < matchedTickers.length; ti++) {
-            detailPromises.push (this.kalshiPublicGetEventsEventTicker ({ 'event_ticker': matchedTickers[ti], 'with_nested_markets': true }));
-        }
-        const detailResponses = await Promise.all (detailPromises);
         const result: any[] = [];
-        for (let di = 0; di < detailResponses.length; di++) {
-            const detail = detailResponses[di];
-            const fullEvent = this.safeValue (detail, 'event', detail) as Dict;
+        for (let di = 0; di < matchedEvents.length; di++) {
+            const fullEvent = matchedEvents[di];
             const rawNestedMarkets = this.safeList (fullEvent, 'markets', []) as any[];
             const rawNestedMarketsLength = rawNestedMarkets.length;
             if (rawNestedMarketsLength === 0) {

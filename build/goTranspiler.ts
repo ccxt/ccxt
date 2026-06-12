@@ -1725,10 +1725,11 @@ ${constStatements.join('\n')}
     }
 
 
-    createDynamicInstanceFile(ws = false){
-        const dynamicInstanceFile = `./go/v4${ws ? '/pro' : ''}/exchange_dynamic.go`;
-        const exchanges = ws ? exchangeIdsWs : ['Exchange'].concat(exchangeIds);
-        
+    createDynamicInstanceFile(ws = false, prediction = false){
+        const subFolder = ws ? '/pro' : (prediction ? '/prediction' : '');
+        const dynamicInstanceFile = `./go/v4${subFolder}/exchange_dynamic.go`;
+        const exchanges = ws ? exchangeIdsWs : (prediction ? exchangeIdsPrediction : ['Exchange'].concat(exchangeIds));
+        const externalPackage = ws || prediction; // packages outside go/v4 import the base ccxt package
         const caseStatements = exchanges.map(exchange => {
             const coreName = (exchange === 'Exchange') ? exchange : capitalize(exchange) + 'Core';
             return`    case "${exchange}":
@@ -1738,7 +1739,7 @@ ${constStatements.join('\n')}
         });
 
         const functionDecl = `
-func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (${ws ? 'ccxt.' : ''}ICoreExchange, bool) {
+func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (${externalPackage ? 'ccxt.' : ''}ICoreExchange, bool) {
     switch exchangeId {
 ${caseStatements.join('\n')}
     default:
@@ -1747,8 +1748,8 @@ ${caseStatements.join('\n')}
 }
 `;
         const file = [
-            `package ccxt${ws ? 'pro' : ''}`,
-            ws ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : '',
+            `package ccxt${ws ? 'pro' : (prediction ? 'prediction' : '')}`,
+            externalPackage ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : '',
             this.createGeneratedHeader().join('\n'),
             '',
             functionDecl,
@@ -1984,6 +1985,7 @@ ${caseStatements.join('\n')}
             baseGoTypeOptionNames.add (structMatch[1]);
         }
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, true, 'prediction');
+        this.createDynamicInstanceFile (false, true);
     }
 
     async transpileEverything (force = false, child = false, baseOnly = false, examplesOnly = false) {

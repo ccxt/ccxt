@@ -159,7 +159,7 @@ export default class hyperliquid extends Exchange {
      * @returns {int} the outcome side encoding
      */
     outcomeEncoding (outcomeId: number, side: number): number {
-        return (10 * outcomeId) + side;
+        return this.sum (10 * outcomeId, side);
     }
 
     /**
@@ -171,7 +171,7 @@ export default class hyperliquid extends Exchange {
      * @returns {int} the asset id
      */
     outcomeAssetId (encoding: number): number {
-        return 100000000 + encoding;
+        return this.sum (100000000, encoding);
     }
 
     /**
@@ -754,14 +754,14 @@ export default class hyperliquid extends Exchange {
         const rawAsks = this.safeList (levels, 1, []);
         const topBid = this.safeDict (rawBids, 0);
         const topAsk = this.safeDict (rawAsks, 0);
-        const bid = topBid !== undefined ? this.safeNumber (topBid, 'px') : undefined;
-        const ask = topAsk !== undefined ? this.safeNumber (topAsk, 'px') : undefined;
-        const bidVolume = topBid !== undefined ? this.safeNumber (topBid, 'sz') : undefined;
-        const askVolume = topAsk !== undefined ? this.safeNumber (topAsk, 'sz') : undefined;
+        const bid = (topBid !== undefined) ? this.safeNumber (topBid, 'px') : undefined;
+        const ask = (topAsk !== undefined) ? this.safeNumber (topAsk, 'px') : undefined;
+        const bidVolume = (topBid !== undefined) ? this.safeNumber (topBid, 'sz') : undefined;
+        const askVolume = (topAsk !== undefined) ? this.safeNumber (topAsk, 'sz') : undefined;
         // Use synthetic mid if no l2Book
         let mid = this.safeNumber (raw, 'mid');
         if (mid === undefined && bid !== undefined && ask !== undefined) {
-            mid = (bid + ask) / 2;
+            mid = this.sum (bid, ask) / 2;
         }
         // For prediction market context from info (if available)
         const ctx = market ? this.safeDict (this.safeDict (market as any, 'info', {}), 'ctx', {}) : {};
@@ -863,7 +863,8 @@ export default class hyperliquid extends Exchange {
         if (since === undefined) {
             const tf = this.parseTimeframe (timeframe);
             const candleCount = (limit !== undefined) ? limit : 100;
-            startTime = this.sum (until, (tf * candleCount * -1000));
+            const startOffset = tf * candleCount * -1000;
+            startTime = this.sum (until, startOffset);
             if (startTime < 0) {
                 startTime = 0;
             }
@@ -1401,7 +1402,7 @@ export default class hyperliquid extends Exchange {
             const requestId = this.safeString (requestIds, i, this.safeString (requestIds, 0));
             const order = {
                 'id': requestId,
-                'clientOrderId': clientOrderId !== undefined ? requestId : undefined,
+                'clientOrderId': (clientOrderId !== undefined) ? requestId : undefined,
                 'info': status,
                 'status': 'canceled',
                 'symbol': outcomeSymbol,
@@ -1578,10 +1579,14 @@ export default class hyperliquid extends Exchange {
         const outcomeObj = this.safeOutcome (coin, market as any);
         const marketSymbol = this.safeString (outcomeObj, 'marketSymbol');
         const resolvedMarket = marketSymbol ? this.safeMarket (marketSymbol, market as any) : market;
-        const side = this.safeString (entry, 'side') === 'B' ? 'buy' : 'sell';
+        const sideRaw = this.safeString (entry, 'side');
+        const side = (sideRaw === 'B') ? 'buy' : 'sell';
         const totalAmount = this.safeString (entry, 'origSz');
         const remaining = this.safeString (entry, 'sz');
-        const filled = remaining !== undefined && totalAmount !== undefined ? Precise.stringSub (totalAmount, remaining) : undefined;
+        let filled = undefined;
+        if ((remaining !== undefined) && (totalAmount !== undefined)) {
+            filled = Precise.stringSub (totalAmount, remaining);
+        }
         const timestamp = this.safeInteger (entry, 'timestamp');
         const tifRaw = this.safeString (entry, 'tif');
         const tif = this.parseTimeInForce (tifRaw);
@@ -1739,6 +1744,10 @@ export default class hyperliquid extends Exchange {
         if (fee !== undefined) {
             feeObject = { 'cost': fee, 'currency': feeCurrency };
         }
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = this.parseNumber (Precise.stringMul (price, amount));
+        }
         return this.safeTrade ({
             'id': this.safeString (trade, 'tid'),
             'info': trade,
@@ -1753,7 +1762,7 @@ export default class hyperliquid extends Exchange {
             'takerOrMaker': this.safeBool (trade, 'crossed') ? 'taker' : 'maker',
             'price': this.parseNumber (price),
             'amount': this.parseNumber (amount),
-            'cost': price !== undefined && amount !== undefined ? this.parseNumber (Precise.stringMul (price, amount)) : undefined,
+            'cost': cost,
             'fee': feeObject,
         }, resolvedMarket);
     }
@@ -1792,7 +1801,7 @@ export default class hyperliquid extends Exchange {
                 const symLower = parentSymbolOrEmpty.toLowerCase ();
                 let matches = false;
                 for (let qi = 0; qi < lowerQueries.length; qi++) {
-                    if (description.indexOf (lowerQueries[qi]) !== -1 || symLower.indexOf (lowerQueries[qi]) !== -1) {
+                    if (description.indexOf (lowerQueries[qi]) > -1 || symLower.indexOf (lowerQueries[qi]) > -1) {
                         matches = true;
                         break;
                     }

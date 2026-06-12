@@ -2261,7 +2261,39 @@ public partial class Exchange
         this.currencies_by_id = this.indexBySafe(this.currencies, "id");
         object currenciesSortedByCode = this.keysort(this.currencies);
         this.codes = new List<object>(((IDictionary<string,object>)currenciesSortedByCode).Keys);
+        if (isTrue(this.isPrediction()))
+        {
+            this.setOutcomesFromMarkets();
+        }
         return this.markets;
+    }
+
+    public virtual void setOutcomesFromMarkets()
+    {
+        // prediction markets carry their outcome tokens under the outcomes key,
+        // rebuild the outcome lookup caches so cached market data works offline
+        this.outcomes = new Dictionary<string, object>() {};
+        this.outcomes_by_id = new Dictionary<string, object>() {};
+        object marketKeys = new List<object>(((IDictionary<string,object>)this.markets).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(marketKeys)); postFixIncrement(ref i))
+        {
+            object market = getValue(this.markets, getValue(marketKeys, i));
+            object outcomesList = this.safeList(market, "outcomes", new List<object>() {});
+            for (object j = 0; isLessThan(j, getArrayLength(outcomesList)); postFixIncrement(ref j))
+            {
+                object oc = getValue(outcomesList, j);
+                object ocSymbol = this.safeString(oc, "symbol");
+                if (isTrue(!isEqual(ocSymbol, null)))
+                {
+                    ((IDictionary<string,object>)this.outcomes)[(string)ocSymbol] = oc;
+                }
+                object ocId = this.safeString(oc, "id");
+                if (isTrue(!isEqual(ocId, null)))
+                {
+                    ((IDictionary<string,object>)this.outcomes_by_id)[(string)ocId] = oc;
+                }
+            }
+        }
     }
 
     public virtual Exchange setMarketsFromExchange(Exchange sourceExchange)
@@ -8750,7 +8782,9 @@ public partial class Exchange
 
     public virtual void checkEventsAndMarkets(object outcome = null)
     {
-        if (isTrue(!isTrue(this.events) || isTrue(this.isEmpty(this.events))))
+        object hasEvents = isTrue((!isEqual(this.events, null))) && !isTrue(this.isEmpty(this.events));
+        object hasOutcomes = isTrue((!isEqual(this.outcomes, null))) && !isTrue(this.isEmpty(this.outcomes));
+        if (isTrue(!isTrue(hasEvents) && !isTrue(hasOutcomes)))
         {
             throw new ArgumentsRequired ((string)"Events are required to be loaded, please fetch them first using fetchEvents") ;
         }

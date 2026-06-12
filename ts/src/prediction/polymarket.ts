@@ -908,8 +908,8 @@ export default class polymarket extends Exchange {
         if (since !== undefined) {
             startS = this.parseToInt (since / 1000);
             if (limit !== undefined) {
-                const endBound = startS + limit * fidelityMin * 60;
-                endS = endBound < nowS ? endBound : nowS;
+                const endBound = this.sum (startS, limit * fidelityMin * 60);
+                endS = (endBound < nowS) ? endBound : nowS;
             }
         } else {
             const barCount = (limit !== undefined) ? limit : 100;
@@ -958,7 +958,8 @@ export default class polymarket extends Exchange {
                 candle[2] = Math.max (candle[2] as number, price); // high
                 candle[3] = Math.min (candle[3] as number, price); // low
                 candle[4] = price;                                  // close (last tick wins)
-                candle[5] = (candle[5] as number) + vol;           // volume
+                candle[5] = this.sum (candle[5] as number, vol);   // volume
+                buckets[bucketKey] = candle; // reassign after mutation, php arrays are value types
             }
         }
         const bucketKeys = Object.keys (buckets);
