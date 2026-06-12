@@ -3,8 +3,11 @@
 import Exchange from './abstract/nado.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { BadSymbol } from './base/errors.js';
-import type { Currencies, Currency, Dict, FundingRate, FundingRates, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import { ecdsa } from './base/functions/crypto.js';
+import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
+import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
+import { ArgumentsRequired, BadRequest, BadSymbol, ExchangeError, InvalidOrder } from './base/errors.js';
+import type { Currencies, Currency, Dict, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -33,7 +36,7 @@ export default class nado extends Exchange {
                 'option': false,
                 'cancelAllOrders': false,
                 'cancelOrder': false,
-                'createOrder': false,
+                'createOrder': true,
                 'fetchBalance': false,
                 'fetchCurrencies': true,
                 'fetchFundingRate': true,
@@ -139,6 +142,11 @@ export default class nado extends Exchange {
             },
             'options': {
                 'defaultType': 'swap',
+                'createOrder': {
+                    'recvWindow': 5000,
+                    'expiration': '4294967295',
+                    'subaccount': 'default',
+                },
             },
             'timeframes': {
                 '1m': 60,
@@ -153,10 +161,122 @@ export default class nado extends Exchange {
             },
             'features': {},
             'exceptions': {
-                'exact': {},
+                'exact': {
+                    '2007': InvalidOrder,
+                },
                 'broad': {},
             },
         });
+    }
+
+    /**
+     * @method
+     * @name nado#createOrder
+     * @description create a trade order
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/place-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
+     * @param {string} [params.chainId] EIP-712 domain chain id, fetched from contracts query if not provided
+     * @param {string|int} [params.expiration] order expiration timestamp in seconds, defaults to 4294967295
+     * @param {string|int} [params.nonce] custom order nonce
+     * @param {int} [params.recvWindow] milliseconds added to now when auto-generating the nonce, defaults to 5000
+     * @param {string|int} [params.appendix] pre-encoded order appendix
+     * @param {boolean} [params.reduceOnly] true if the order should only reduce position
+     * @param {boolean} [params.postOnly] true to create a post-only order
+     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK', or 'PO'
+     * @param {boolean} [params.spot_leverage] whether leverage should be used for spot, defaults to true
+     * @param {int} [params.id] client-provided request id
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (type !== 'limit') {
+            throw new InvalidOrder (this.id + ' createOrder() supports limit orders only');
+        }
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument');
+        }
+        const productId = this.parseToInt (market['id']);
+        const priceString = this.priceToPrecision (symbol, price);
+        const amountString = this.amountToPrecision (symbol, amount);
+        const priceX18 = this.convertToX18 (priceString);
+        let amountX18 = this.convertToX18 (amountString);
+        if (side === 'sell') {
+            amountX18 = Precise.stringMul (amountX18, '-1');
+        }
+        const createOrderOptions = this.safeDict (this.options, 'createOrder', {});
+        let subaccount = undefined;
+        [ subaccount, params ] = this.handleOptionAndParams (params, 'createOrder', 'subaccount', this.safeString (createOrderOptions, 'subaccount', 'default'));
+        let expiration = this.safeString (params, 'expiration');
+        if (expiration === undefined) {
+            expiration = this.safeString (createOrderOptions, 'expiration', '4294967295');
+        }
+        let nonce = this.safeString (params, 'nonce');
+        let recvWindow = undefined;
+        [ recvWindow, params ] = this.handleOptionAndParams (params, 'createOrder', 'recvWindow', this.safeInteger (createOrderOptions, 'recvWindow', 5000));
+        const nonceRandom = this.safeString (params, 'nonceRandom');
+        params = this.omit (params, [ 'expiration', 'nonce', 'nonceRandom' ]);
+        if (nonce === undefined) {
+            nonce = this.createOrderNonce (recvWindow, nonceRandom);
+        }
+        let appendix = this.safeString (params, 'appendix');
+        if (appendix === undefined) {
+            appendix = this.createOrderAppendix (params);
+        }
+        let clientOrderId = this.safeInteger (params, 'id');
+        [ clientOrderId, params ] = this.handleOptionAndParams (params, 'createOrder', 'clientOrderId', clientOrderId);
+        const spotLeverage = this.safeBool (params, 'spot_leverage');
+        params = this.omit (params, [ 'appendix', 'reduceOnly', 'postOnly', 'timeInForce', 'clientOrderId', 'id', 'spot_leverage' ]);
+        const sender = this.createSubaccount (this.walletAddress, subaccount);
+        const order: Dict = {
+            'sender': sender,
+            'priceX18': priceX18,
+            'amount': amountX18,
+            'expiration': expiration,
+            'nonce': nonce,
+            'appendix': appendix,
+        };
+        let chainId = this.safeString (params, 'chainId');
+        params = this.omit (params, 'chainId');
+        if (chainId === undefined) {
+            const contracts = await this.queryContracts ();
+            chainId = this.safeString (contracts, 'chain_id');
+        }
+        const signature = this.signOrder (order, productId, chainId);
+        const placeOrder: Dict = {
+            'product_id': productId,
+            'order': order,
+            'signature': signature,
+        };
+        if (clientOrderId !== undefined) {
+            placeOrder['id'] = clientOrderId;
+        }
+        if (spotLeverage !== undefined) {
+            placeOrder['spot_leverage'] = spotLeverage;
+        }
+        const request: Dict = {
+            'place_order': placeOrder,
+        };
+        const response = await this.gatewayPrivatePostExecute (this.extend (request, params));
+        //
+        //     {
+        //         "status": "success",
+        //         "signature": "0x...",
+        //         "data": {
+        //             "digest": "0x..."
+        //         },
+        //         "request_type": "execute_place_order",
+        //         "id": 100
+        //     }
+        //
+        return this.parseOrder (this.extend ({ 'place_order': placeOrder }, response), market);
     }
 
     /**
@@ -905,11 +1025,186 @@ export default class nado extends Exchange {
         });
     }
 
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        //     {
+        //         "status": "success",
+        //         "signature": "0x...",
+        //         "data": {
+        //             "digest": "0x..."
+        //         },
+        //         "request_type": "execute_place_order",
+        //         "id": 100,
+        //         "place_order": {
+        //             "product_id": 2,
+        //             "order": {
+        //                 "sender": "0x...",
+        //                 "priceX18": "1000000000000000000",
+        //                 "amount": "1000000000000000000",
+        //                 "expiration": "4294967295",
+        //                 "nonce": "1757062078359666688",
+        //                 "appendix": "1"
+        //             },
+        //             "signature": "0x..."
+        //         }
+        //     }
+        //
+        const placeOrder = this.safeDict (order, 'place_order', {});
+        const rawOrder = this.safeDict (placeOrder, 'order', {});
+        const marketId = this.safeString (placeOrder, 'product_id');
+        market = this.safeMarket (marketId, market);
+        const data = this.safeDict (order, 'data', {});
+        const amountString = this.safeString (rawOrder, 'amount');
+        let side = undefined;
+        let amount = undefined;
+        if (amountString !== undefined) {
+            side = Precise.stringLt (amountString, '0') ? 'sell' : 'buy';
+            amount = this.parseX18 (Precise.stringAbs (amountString));
+        }
+        const responseStatus = this.safeString (order, 'status');
+        let status = 'rejected';
+        if (responseStatus === 'success') {
+            status = 'open';
+        }
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString (data, 'digest'),
+            'clientOrderId': this.safeString (order, 'id'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': undefined,
+            'symbol': market['symbol'],
+            'type': 'limit',
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': this.parseX18 (this.safeString (rawOrder, 'priceX18')),
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'amount': amount,
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        }, market);
+    }
+
+    convertToX18 (value: string) {
+        return Precise.stringDiv (Precise.stringMul (value, '1000000000000000000'), '1', 0);
+    }
+
     parseX18 (value) {
         if (value === undefined) {
             return undefined;
         }
         return this.parseNumber (Precise.stringDiv (value, '1000000000000000000'));
+    }
+
+    createOrderNonce (recvWindow, nonceRandom = undefined) {
+        const random = (nonceRandom === undefined) ? this.randNumber (6) : this.parseToInt (nonceRandom);
+        const expires = this.sum (this.milliseconds (), recvWindow);
+        return Precise.stringAdd (Precise.stringMul (this.numberToString (expires), '1048576'), this.numberToString (random));
+    }
+
+    createOrderAppendix (params = {}) {
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        const postOnly = this.isPostOnly (false, undefined, params);
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        let orderType = 0;
+        if (timeInForce === 'IOC') {
+            orderType = 1;
+        } else if (timeInForce === 'FOK') {
+            orderType = 2;
+        } else if (postOnly || (timeInForce === 'PO')) {
+            orderType = 3;
+        } else if ((timeInForce !== undefined) && (timeInForce !== 'GTC')) {
+            throw new BadRequest (this.id + ' createOrder() only supports timeInForce values GTC, IOC, FOK, or PO');
+        }
+        let appendix = '1'; // version
+        if (orderType !== 0) {
+            appendix = Precise.stringAdd (appendix, Precise.stringMul (this.numberToString (orderType), '512'));
+        }
+        if (reduceOnly) {
+            appendix = Precise.stringAdd (appendix, '2048');
+        }
+        return appendix;
+    }
+
+    createSubaccount (walletAddress: string, subaccount = 'default') {
+        if (walletAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires exchange.walletAddress');
+        }
+        const address = this.remove0xPrefix (walletAddress).toLowerCase ();
+        if (address.length !== 40) {
+            throw new BadRequest (this.id + ' createOrder() requires a 20-byte walletAddress');
+        }
+        const encoded = this.remove0xPrefix (this.stringToBase16 (subaccount));
+        if (encoded.length > 24) {
+            throw new BadRequest (this.id + ' createOrder() subaccount must fit in 12 bytes');
+        }
+        return '0x' + address + this.padHex (encoded, 24, false);
+    }
+
+    async queryContracts (params = {}) {
+        const cachedContracts = this.safeDict (this.options, 'gatewayContracts');
+        if (cachedContracts !== undefined) {
+            return cachedContracts;
+        }
+        const request: Dict = {
+            'type': 'contracts',
+        };
+        const response = await this.gatewayPublicGetQuery (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        this.options['gatewayContracts'] = data;
+        return data;
+    }
+
+    orderVerifyingContract (productId: Int) {
+        return '0x' + this.padHex (this.intToBase16 (productId), 40);
+    }
+
+    padHex (value: string, length: Int, left = true) {
+        const zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
+        const padded = left ? (zeros + value) : (value + zeros);
+        if (left) {
+            const start = padded.length - length;
+            return padded.slice (start, padded.length);
+        }
+        return padded.slice (0, length);
+    }
+
+    signOrder (order, productId: Int, chainId) {
+        const domain: Dict = {
+            'name': 'Nado',
+            'version': '0.0.1',
+            'chainId': chainId,
+            'verifyingContract': this.orderVerifyingContract (productId),
+        };
+        const messageTypes: Dict = {
+            'Order': [
+                { 'name': 'sender', 'type': 'bytes32' },
+                { 'name': 'priceX18', 'type': 'int128' },
+                { 'name': 'amount', 'type': 'int128' },
+                { 'name': 'expiration', 'type': 'uint64' },
+                { 'name': 'nonce', 'type': 'uint64' },
+                { 'name': 'appendix', 'type': 'uint128' },
+            ],
+        };
+        const encoded = this.ethEncodeStructuredData (domain, messageTypes, order);
+        const hash = '0x' + this.hash (encoded, keccak, 'hex');
+        return this.signHash (hash, this.privateKey);
+    }
+
+    signHash (hash, privateKey) {
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        const r = signature['r'];
+        const s = signature['s'];
+        const v = this.intToBase16 (this.sum (27, signature['v'])).toLowerCase ();
+        return '0x' + this.padHex (r, 64) + this.padHex (s, 64) + v;
     }
 
     removeMarketSuffix (marketId) {
@@ -945,5 +1240,30 @@ export default class nado extends Exchange {
             body = this.json (query);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode: Int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        if (!response) {
+            return undefined; // fallback to default error handler
+        }
+        //
+        //     {
+        //         "status": "failure",
+        //         "signature": "0x...",
+        //         "error_code": 2007,
+        //         "error": "Order price must be within a range of 80% to 120% of oracle price.",
+        //         "request_type": "execute_place_order"
+        //     }
+        //
+        const status = this.safeString (response, 'status');
+        const errorCode = this.safeString (response, 'error_code');
+        const error = this.safeString (response, 'error');
+        if ((status === 'failure') || (errorCode !== undefined) || (error !== undefined)) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
+        return undefined;
     }
 }

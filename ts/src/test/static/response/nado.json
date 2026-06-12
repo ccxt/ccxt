@@ -1,7 +1,87 @@
 {
     "exchange": "nado",
     "skipKeys": [],
+    "walletAddress": "0x1230000000000000000000000000000000000123",
+    "privateKey": "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771",
     "methods": {
+        "createOrder": [
+            {
+                "description": "createOrder limit buy",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    "limit",
+                    "buy",
+                    0.01,
+                    100000,
+                    {
+                        "chainId": "763373",
+                        "nonce": "1761322608857448448",
+                        "expiration": "4294967295",
+                        "id": 100
+                    }
+                ],
+                "httpResponse": {
+                    "status": "success",
+                    "signature": "0xresponse",
+                    "data": {
+                        "digest": "0xabcdef"
+                    },
+                    "request_type": "execute_place_order",
+                    "id": 100
+                },
+                "parsedResponse": {
+                    "info": {
+                        "place_order": {
+                            "product_id": 2,
+                            "order": {
+                                "sender": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                                "priceX18": "100000000000000000000000",
+                                "amount": "10000000000000000",
+                                "expiration": "4294967295",
+                                "nonce": "1761322608857448448",
+                                "appendix": "1"
+                            },
+                            "signature": "0x9927ce4f46bb3ca5fa0983e85815f497af74b77665f15895028791c0739707b638a317f573805fcf407909068989bc8f40f76c864251d2798c42abdf21dd6baf1b",
+                            "id": 100
+                        },
+                        "status": "success",
+                        "signature": "0xresponse",
+                        "data": {
+                            "digest": "0xabcdef"
+                        },
+                        "request_type": "execute_place_order",
+                        "id": 100
+                    },
+                    "id": "0xabcdef",
+                    "clientOrderId": "100",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT0:USDT0",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 100000,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "amount": 0.01,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetchTime",
