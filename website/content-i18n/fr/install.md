@@ -27,7 +27,7 @@ Une autre façon d'installer cette bibliothèque est de construire un bundle per
 
 ### JavaScript (NPM)
 
-La version JavaScript de ccxt fonctionne à la fois dans Node et les navigateurs web. Nécessite la prise en charge de ES6 et de la syntaxe `async/await` (Node 15+). Lors de la compilation avec Webpack et Babel, assurez-vous qu'elle n'est [pas exclue](https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331582275) dans votre configuration `babel-loader`.
+La version JavaScript de ccxt fonctionne à la fois dans Node et les navigateurs web. Nécessite la prise en charge de ES6 et de la syntaxe `async/await` (Node 15+). Lors de la compilation avec Rspack (ou Webpack) et Babel, assurez-vous qu'elle n'est [pas exclue](https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331582275) dans votre configuration `babel-loader`.
 
 [Bibliothèque de trading crypto ccxt dans npm](http://npmjs.com/package/ccxt)
 
@@ -63,7 +63,7 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 ### Builds JavaScript personnalisés
 
-Il faut du temps pour charger tous les scripts et ressources. Le problème avec l'utilisation dans le navigateur est que la bibliothèque CCXT entière pèse plusieurs mégaoctets, ce qui est beaucoup pour une application web. Parfois, c'est aussi critique pour une application Node. Par conséquent, pour réduire le temps de chargement, vous voudrez peut-être créer votre propre build personnalisé de CCXT pour votre application avec uniquement les exchanges dont vous avez besoin. CCXT utilise webpack pour supprimer les chemins de code morts afin de réduire la taille du package.
+Il faut du temps pour charger tous les scripts et ressources. Le problème avec l'utilisation dans le navigateur est que la bibliothèque CCXT entière pèse plusieurs mégaoctets, ce qui est beaucoup pour une application web. Parfois, c'est aussi critique pour une application Node. Par conséquent, pour réduire le temps de chargement, vous voudrez peut-être créer votre propre build personnalisé de CCXT pour votre application avec uniquement les exchanges dont vous avez besoin. CCXT utilise rspack pour supprimer les chemins de code morts afin de réduire la taille du package.
 
 Suivez ces étapes :
 
