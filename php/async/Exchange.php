@@ -7557,6 +7557,10 @@ class Exchange extends \ccxt\Exchange {
                 return $this->events;
             }
             $events = Async\await($this->fetch_events(null, $params));
+            if ($this->events !== null) {
+                // exchange implementations maintain their own event cache inside fetchEvents
+                return $this->events;
+            }
             return $this->set_events($events);
         }) ();
     }
@@ -7592,7 +7596,7 @@ class Exchange extends \ccxt\Exchange {
         if ($outcomeObj !== null) {
             return $outcomeObj;
         }
-        return array( 'id' => $outcomeIdOrSymbol, 'symbol' => $outcomeIdOrSymbol, 'marketSymbol' => null, 'label' => null, 'info' => array() );
+        return array( 'id' => $outcomeIdOrSymbol, 'symbol' => $outcomeIdOrSymbol, 'marketSymbol' => null, 'label' => null, 'info' => array());
     }
 
     public function safe_outcome_symbol(?string $outcomeIdOrSymbol, mixed $outcomeObj = null) {

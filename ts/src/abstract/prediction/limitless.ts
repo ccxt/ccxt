@@ -21,6 +21,8 @@ interface Exchange {
     limitlessPublicGetMarketsAddressOrSlugOracleCandles (params?: {}): Promise<implicitReturnType>;
     limitlessPublicGetMarketsSlugGetFeedEvents (params?: {}): Promise<implicitReturnType>;
     limitlessPublicGetMarketsSlugEvents (params?: {}): Promise<implicitReturnType>;
+    limitlessPublicGetMarketsTimeline (params?: {}): Promise<implicitReturnType>;
+    limitlessPublicGetMarketsSlugTimeline (params?: {}): Promise<implicitReturnType>;
     limitlessPublicGetNavigation (params?: {}): Promise<implicitReturnType>;
     limitlessPublicGetMarketPagesByPath (params?: {}): Promise<implicitReturnType>;
     limitlessPublicGetMarketPagesIdMarkets (params?: {}): Promise<implicitReturnType>;
@@ -31,6 +33,7 @@ interface Exchange {
     limitlessPublicGetPortfolioAccountPositions (params?: {}): Promise<implicitReturnType>;
     limitlessPublicGetPortfolioAccountPnlChart (params?: {}): Promise<implicitReturnType>;
     limitlessPrivateGetAuthApiKeys (params?: {}): Promise<implicitReturnType>;
+    limitlessPrivateGetProfilesPartnerAccounts (params?: {}): Promise<implicitReturnType>;
     limitlessPrivateGetMarketsSlugUserOrders (params?: {}): Promise<implicitReturnType>;
     limitlessPrivateGetPortfolioPositions (params?: {}): Promise<implicitReturnType>;
     limitlessPrivateGetPortfolioTrades (params?: {}): Promise<implicitReturnType>;
@@ -48,10 +51,13 @@ interface Exchange {
     limitlessPrivatePostAuthApiKeys (params?: {}): Promise<implicitReturnType>;
     limitlessPrivatePostAuthLogin (params?: {}): Promise<implicitReturnType>;
     limitlessPrivatePostOrders (params?: {}): Promise<implicitReturnType>;
+    limitlessPrivatePostOrdersCancel (params?: {}): Promise<implicitReturnType>;
     limitlessPrivatePostOrdersCancelBatch (params?: {}): Promise<implicitReturnType>;
+    limitlessPrivatePostOrdersBatchCancel (params?: {}): Promise<implicitReturnType>;
     limitlessPrivatePostOrdersStatusBatch (params?: {}): Promise<implicitReturnType>;
     limitlessPrivatePostPortfolioRedeem (params?: {}): Promise<implicitReturnType>;
     limitlessPrivatePostPortfolioWithdraw (params?: {}): Promise<implicitReturnType>;
+    limitlessPrivatePostPortfolioWithdrawalAddresses (params?: {}): Promise<implicitReturnType>;
     limitlessPrivatePostAuthApiTokensDerive (params?: {}): Promise<implicitReturnType>;
     limitlessPrivatePostProfilesPartnerAccounts (params?: {}): Promise<implicitReturnType>;
     limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry (params?: {}): Promise<implicitReturnType>;
@@ -59,6 +65,7 @@ interface Exchange {
     limitlessPrivateDeleteOrdersOrderId (params?: {}): Promise<implicitReturnType>;
     limitlessPrivateDeleteOrdersAllSlug (params?: {}): Promise<implicitReturnType>;
     limitlessPrivateDeleteAuthApiTokensTokenId (params?: {}): Promise<implicitReturnType>;
+    limitlessPrivateDeletePortfolioWithdrawalAddressesAddress (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

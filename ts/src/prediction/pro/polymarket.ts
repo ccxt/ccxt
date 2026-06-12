@@ -2,13 +2,9 @@ import polymarketRest from '../polymarket.js';
 import { Precise } from '../../base/Precise.js';
 import { ArrayCache } from '../../base/ws/Cache.js';
 import type {
-    Int, Str, Dict,
+    Int, Str, Dict, // eslint-disable-line no-unused-vars
     OrderBook, Trade, Ticker,
 } from '../../base/types.js';
-
-// ---------------------------------------------------------------------------
-
-const WS_URL = 'wss://ws-subscriptions-clob.polymarket.com/ws/market';
 
 // ---------------------------------------------------------------------------
 
@@ -24,6 +20,11 @@ export default class polymarket extends polymarketRest {
                 'watchOrderBook': true,
                 'watchTrades': true,
                 'watchTicker': true,
+            },
+            'urls': {
+                'api': {
+                    'ws': 'wss://ws-subscriptions-clob.polymarket.com/ws/market',
+                },
             },
         });
     }
@@ -58,7 +59,7 @@ export default class polymarket extends polymarketRest {
             return;
         }
         if (this.orderbooks[symbol] === undefined) {
-            this.orderbooks[symbol] = this.orderBook ([]);
+            this.orderbooks[symbol] = this.orderBook ({});
         }
         const orderbook = this.orderbooks[symbol];
         const timestamp = this.parsePolyTimestamp (this.safeString (event, 'timestamp'));
@@ -145,20 +146,24 @@ export default class polymarket extends polymarketRest {
         if (!this.trades) {
             this.trades = {};
         }
-        if (this.trades[symbol] === undefined) {
+        let tradesArray = this.trades[symbol];
+        if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.trades[symbol] = new ArrayCache (limit);
+            tradesArray = new ArrayCache (limit);
+            this.trades[symbol] = tradesArray;
         }
-        this.trades[symbol].append (trade);
-        client.resolve (this.trades[symbol], 'trades::' + symbol);
+        tradesArray.append (trade);
+        client.resolve (tradesArray, 'trades::' + symbol);
     }
 
     /**
-     * Streams live order-book updates for a single Polymarket outcome token.
-     * Resolves on every snapshot or delta received from the WS feed.
-     * @param outcome  CCXT outcome symbol (e.g. "ELECTION/YES:USDC")
-     * @param limit    Optional depth limit applied after resolving
-     * @param params   Extra params (passed through but currently unused)
+     * @method
+     * @name polymarket#watchOrderBook
+     * @description streams live order-book updates for a single polymarket outcome token, resolves on every snapshot or delta received from the WS feed
+     * @param {string} symbol CCXT outcome symbol (e.g. "ELECTION/YES:USDC")
+     * @param {int} [limit] optional depth limit applied after resolving
+     * @param {object} [params] extra parameters (passed through but currently unused)
+     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
     async watchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<OrderBook> {
         const outcome = symbol;
@@ -169,17 +174,20 @@ export default class polymarket extends polymarketRest {
         const messageHash = 'orderbook::' + symbol;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'operation': 'subscribe', 'assets_ids': [ tokenId ] };
-        const orderbook = await this.watch (WS_URL, messageHash, subscribeMsg, subscribeHash);
+        const url = this.urls['api']['ws'];
+        const orderbook = await this.watch (url, messageHash, subscribeMsg, subscribeHash);
         return orderbook.limit ();
     }
 
     /**
-     * Streams live fills for a single Polymarket outcome token.
-     * Each resolution delivers the full trades cache filtered by since/limit.
-     * @param outcome  CCXT outcome symbol
-     * @param since    Optional Unix timestamp (ms) lower bound
-     * @param limit    Optional max number of trades to return
-     * @param params   Extra params (unused)
+     * @method
+     * @name polymarket#watchTrades
+     * @description streams live fills for a single polymarket outcome token, each resolution delivers the full trades cache filtered by since/limit
+     * @param {string} symbol CCXT outcome symbol
+     * @param {int} [since] optional Unix timestamp (ms) lower bound
+     * @param {int} [limit] optional max number of trades to return
+     * @param {object} [params] extra parameters (unused)
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
     async watchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const outcome = symbol;
@@ -190,15 +198,18 @@ export default class polymarket extends polymarketRest {
         const messageHash = 'trades::' + symbol;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'operation': 'subscribe', 'assets_ids': [ tokenId ] };
-        const trades = await this.watch (WS_URL, messageHash, subscribeMsg, subscribeHash);
+        const url = this.urls['api']['ws'];
+        const trades = await this.watch (url, messageHash, subscribeMsg, subscribeHash);
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     /**
-     * Streams a synthetic Ticker derived from order-book snapshots and deltas.
-     * mid-price = (best bid + best ask) / 2.
-     * @param outcome  CCXT outcome symbol
-     * @param params   Extra params (unused)
+     * @method
+     * @name polymarket#watchTicker
+     * @description streams a synthetic ticker derived from order-book snapshots and deltas, mid-price = (best bid + best ask) / 2
+     * @param {string} symbol CCXT outcome symbol
+     * @param {object} [params] extra parameters (unused)
+     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     async watchTicker (symbol: Str, params = {}): Promise<Ticker> {
         const outcome = symbol;
@@ -210,9 +221,10 @@ export default class polymarket extends polymarketRest {
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'operation': 'subscribe', 'assets_ids': [ tokenId ] };
         if (this.orderbooks[symbol] === undefined) {
-            this.orderbooks[symbol] = this.orderBook ([]);
+            this.orderbooks[symbol] = this.orderBook ({});
         }
-        const orderbook = await this.watch (WS_URL, messageHash, subscribeMsg, subscribeHash);
+        const url = this.urls['api']['ws'];
+        const orderbook = await this.watch (url, messageHash, subscribeMsg, subscribeHash);
         const bids = orderbook['bids'] as any;
         const asks = orderbook['asks'] as any;
         let bestBid = undefined;
@@ -270,20 +282,31 @@ export default class polymarket extends polymarketRest {
     }
 
     /**
-     * Resolves a CLOB token ID to a unified CCXT outcome symbol.
-     * Uses this.marketsById populated by loadMarkets() — market.id = clobTokenId.
+     * @ignore
+     * @method
+     * @name polymarket#tokenIdToSymbol
+     * @description resolves a CLOB token id to a unified CCXT outcome symbol, uses this.outcomes_by_id populated by fetchEvents() — outcome.id = clobTokenId
+     * @param {string} tokenId the CLOB token id
+     * @returns {string} the unified outcome symbol, or undefined when unknown
      */
     tokenIdToSymbol (tokenId: string): Str {
         if (!tokenId) {
             return undefined;
         }
-        const marketsById = this.markets_by_id as any;
-        const market = (marketsById !== undefined) ? marketsById[tokenId] : undefined;
-        return market ? (market['symbol'] as string) : undefined;
+        if ((this.outcomes_by_id === undefined) || !(tokenId in this.outcomes_by_id)) {
+            return undefined;
+        }
+        const outcomeObj = this.outcomes_by_id[tokenId];
+        return this.safeString (outcomeObj, 'symbol');
     }
 
     /**
-     * Parses a Polymarket timestamp (Unix milliseconds as a string) to a number.
+     * @ignore
+     * @method
+     * @name polymarket#parsePolyTimestamp
+     * @description parses a polymarket timestamp (Unix milliseconds as a string) to a number
+     * @param {string} [raw] the raw timestamp string
+     * @returns {int} the timestamp in ms, defaults to the current time when missing
      */
     parsePolyTimestamp (raw: Str): number {
         if (raw === undefined) {

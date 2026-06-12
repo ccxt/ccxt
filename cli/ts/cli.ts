@@ -78,7 +78,8 @@ interface CLIOptions {
     history?: boolean;
 }
 
-const exchanges = Object.keys (ccxt.exchanges) as string[];
+const predictionExchanges = ((ccxt as any).prediction !== undefined) ? ((ccxt as any).prediction.exchanges as string[]) : [];
+const exchanges = (Object.keys (ccxt.exchanges) as string[]).concat (predictionExchanges.filter ((id) => !(id in ccxt.exchanges)));
 const commandToShow = local ? 'node ./cli' : 'ccxt';
 const program = new Command ();
 
@@ -128,6 +129,7 @@ program
     .option ('--swap', 'sets defaultType as swap')
     .option ('--future', 'sets defaultType as future')
     .option ('--option', 'sets defaultType as option')
+    .option ('--prediction', 'uses the prediction-markets namespace (ccxt.prediction)')
     .option ('--poll', 'will repeat the call continously')
     .option ('--i', 'iteractive mode, keeps the session opened')
     .option ('--iso8601')

@@ -1496,6 +1496,13 @@ func (this *Exchange) callEndpointAsync(endpointName string, args ...any) <-chan
 	return ch
 }
 
+// CallEndpointAsync is the exported pass-through used by implicit-API files that are
+// generated into sibling packages (e.g. go/v4/prediction) and therefore cannot reach
+// the unexported callEndpointAsync
+func (this *Exchange) CallEndpointAsync(endpointName string, args ...any) <-chan any {
+	return this.callEndpointAsync(endpointName, args...)
+}
+
 // returns a future (implemented as a channel) that will be resolved by client.Resolve(data, messageHash)
 //
 // Signature in the generated code varies (2-5 parameters), therefore the variadic form is used and parsed internally

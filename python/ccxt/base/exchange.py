@@ -8275,6 +8275,9 @@ class Exchange(object):
         if not reload and self.events:
             return self.events
         events = self.fetch_events(None, params)
+        if self.events is not None:
+            # exchange implementations maintain their own event cache inside fetchEvents
+            return self.events
         return self.set_events(events)
 
     def load_events(self, reload=False, params={}):

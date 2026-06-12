@@ -8731,5 +8731,220 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         return false;  // stub
     }
+
+    public virtual object isPrediction()
+    {
+        return this.safeBool(this.has, "prediction", false);
+    }
+
+    public async virtual Task<object> loadMarketsAndEvents(object reload = null, object parameters = null)
+    {
+        reload ??= false;
+        parameters ??= new Dictionary<string, object>();
+        object res = await promiseAll(new List<object> {this.loadMarkets(reload, parameters), this.loadEvents(reload, parameters)});
+        return new Dictionary<string, object>() {
+            { "markets", getValue(res, 0) },
+            { "events", getValue(res, 1) },
+        };
+    }
+
+    public virtual void checkEventsAndMarkets(object outcome = null)
+    {
+        if (isTrue(!isTrue(this.events) || isTrue(this.isEmpty(this.events))))
+        {
+            throw new ArgumentsRequired ((string)"Events are required to be loaded, please fetch them first using fetchEvents") ;
+        }
+        if (isTrue(!isEqual(outcome, null)))
+        {
+            if (isTrue(!isTrue((inOp(this.outcomes, outcome))) && !isTrue((inOp(this.outcomes_by_id, outcome)))))
+            {
+                throw new ArgumentsRequired ((string)"The specified outcome is not valid/available, please fetch events and outcomes first using fetchEvents") ;
+            }
+        }
+    }
+
+    public async virtual Task<object> fetchEvents(object queries = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchEvents() is not supported yet")) ;
+    }
+
+    public virtual object setEvents(object events)
+    {
+        this.events = new Dictionary<string, object>() {};
+        this.events_by_slug = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
+        {
+            object eventVar = getValue(events, i);
+            object id = this.safeString(eventVar, "id");
+            object slug = this.safeString(eventVar, "slug");
+            if (isTrue(!isEqual(id, null)))
+            {
+                ((IDictionary<string,object>)this.events)[(string)id] = eventVar;
+            }
+            if (isTrue(!isEqual(slug, null)))
+            {
+                ((IDictionary<string,object>)this.events_by_slug)[(string)slug] = eventVar;
+            }
+        }
+        return this.events;
+    }
+
+    public async virtual Task<object> loadEventsHelper(object reload = null, object parameters = null)
+    {
+        reload ??= false;
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(!isTrue(reload) && isTrue(this.events)))
+        {
+            return this.events;
+        }
+        object events = await this.fetchEvents(null, parameters);
+        if (isTrue(!isEqual(this.events, null)))
+        {
+            // exchange implementations maintain their own event cache inside fetchEvents
+            return this.events;
+        }
+        return this.setEvents(events);
+    }
+
+    public async virtual Task<object> loadEvents(object reload = null, object parameters = null)
+    {
+        reload ??= false;
+        parameters ??= new Dictionary<string, object>();
+        return await this.loadEventsHelper(reload, parameters);
+    }
+
+    public virtual object outcome(object outcomeSymbol)
+    {
+        if (isTrue(isEqual(this.outcomes, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " outcomes not loaded")) ;
+        }
+        if (isTrue(inOp(this.outcomes, outcomeSymbol)))
+        {
+            return getValue(this.outcomes, outcomeSymbol);
+        }
+        if (isTrue(inOp(this.outcomes_by_id, outcomeSymbol)))
+        {
+            return getValue(this.outcomes_by_id, outcomeSymbol);
+        }
+        throw new BadSymbol ((string)add(add(this.id, " does not have outcome symbol "), outcomeSymbol)) ;
+    }
+
+    public virtual object safeOutcome(object outcomeIdOrSymbol, object outcomeObj = null)
+    {
+        if (isTrue(!isEqual(outcomeIdOrSymbol, null)))
+        {
+            if (isTrue(isTrue((!isEqual(this.outcomes, null))) && isTrue((inOp(this.outcomes, outcomeIdOrSymbol)))))
+            {
+                return getValue(this.outcomes, outcomeIdOrSymbol);
+            }
+            if (isTrue(isTrue((!isEqual(this.outcomes_by_id, null))) && isTrue((inOp(this.outcomes_by_id, outcomeIdOrSymbol)))))
+            {
+                return getValue(this.outcomes_by_id, outcomeIdOrSymbol);
+            }
+        }
+        if (isTrue(!isEqual(outcomeObj, null)))
+        {
+            return outcomeObj;
+        }
+        return new Dictionary<string, object>() {
+            { "id", outcomeIdOrSymbol },
+            { "symbol", outcomeIdOrSymbol },
+            { "marketSymbol", null },
+            { "label", null },
+            { "info", new Dictionary<string, object>() {} },
+        };
+    }
+
+    public virtual object safeOutcomeSymbol(object outcomeIdOrSymbol, object outcomeObj = null)
+    {
+        outcomeObj = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);
+        return getValue(outcomeObj, "symbol");
+    }
+
+    public virtual object shortenSlug(object slug)
+    {
+        object replacements = new Dictionary<string, object>() {
+            { "federal-reserve", "fed" },
+            { "interest-rates", "rates" },
+            { "interest-rate", "rate" },
+            { "basis-points", "bps" },
+            { "basis-point", "bp" },
+            { "executive-order", "eo" },
+            { "united-states", "us" },
+            { "united-kingdom", "uk" },
+            { "european-union", "eu" },
+            { "artificial-intelligence", "ai" },
+            { "republican-party", "gop" },
+            { "democratic-party", "dems" },
+            { "stock-market", "market" },
+            { "price-target", "pt" },
+            { "market-cap", "mcap" },
+            { "increase", "hike" },
+            { "decrease", "cut" },
+            { "higher", "up" },
+            { "lower", "down" },
+            { "greater", "gt" },
+            { "less", "lt" },
+            { "million", "M" },
+            { "billion", "B" },
+            { "trillion", "T" },
+            { "percent", "pct" },
+        };
+        object stopWords = new List<object>() {"will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"};
+        object lower = ((bool) isTrue((isEqual(slug, null)))) ? "" : ((string)slug).ToLower();
+        object allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
+        object chars = this.stringToCharsArray(lower);
+        object s = "";
+        object lastDash = true; // start true to drop leading separators
+        for (object i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
+        {
+            object ch = getValue(chars, i);
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(allowed, ch), 0)))
+            {
+                s = add(s, ch);
+                lastDash = false;
+            } else if (!isTrue(lastDash))
+            {
+                s = add(s, "-");
+                lastDash = true;
+            }
+        }
+        object replacementKeys = new List<object>(((IDictionary<string,object>)replacements).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(replacementKeys)); postFixIncrement(ref i))
+        {
+            object replacementKey = getValue(replacementKeys, i);
+            object replacementValue = this.safeString(replacements, replacementKey);
+            s = ((string)s).Replace((string)replacementKey, (string)replacementValue);
+        }
+        object rawParts = ((string)s).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+        object parts = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rawParts)); postFixIncrement(ref i))
+        {
+            object w = getValue(rawParts, i);
+            if (isTrue(isTrue(isGreaterThan(((string)w).Length, 0)) && !isTrue(this.inArray(w, stopWords))))
+            {
+                ((IList<object>)parts).Add(w);
+            }
+        }
+        object joined = String.Join("_", ((IList<object>)parts).ToArray());
+        return ((string)joined).ToUpper();
+    }
+
+    public virtual object slugToMarketSymbol(object eventSlug, object marketSlug)
+    {
+        return this.shortenSlug(marketSlug);
+    }
+
+    public virtual object slugToOutcomeSymbol(object eventSlug, object marketSlug, object outcome)
+    {
+        return add(add(this.shortenSlug(marketSlug), ":"), ((string)outcome).ToUpper());
+    }
+
+    public virtual object slugToMarketId(object eventSlug, object marketSlug, object outcome)
+    {
+        return this.slugToOutcomeSymbol(eventSlug, marketSlug, outcome);
+    }
 }
 

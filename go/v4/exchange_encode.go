@@ -335,18 +335,23 @@ func (e *Exchange) Rawencode(params ...any) string {
 
 func (e *Exchange) UrlencodeWithArrayRepeat(parameters2 any) string {
 	parameters := parameters2.(map[string]any)
+	encodeValue := func(value any) string {
+		if IsNumber(value) {
+			return url.QueryEscape(NumberToString(value))
+		}
+		if boolVal, ok := value.(bool); ok {
+			return strings.ToLower(fmt.Sprintf("%v", boolVal))
+		}
+		return url.QueryEscape(ToString(value))
+	}
 	var outList []string
 	for key, value := range parameters {
 		if values, ok := value.([]any); ok {
 			for _, item := range values {
-				outList = append(outList, fmt.Sprintf("%s=%v", key, item))
+				outList = append(outList, fmt.Sprintf("%s=%s", url.QueryEscape(key), encodeValue(item)))
 			}
 		} else {
-			if IsNumber(value) {
-				value = NumberToString(value)
-			}
-			value = strings.ReplaceAll(value.(string), ",", "%2C")
-			outList = append(outList, fmt.Sprintf("%s=%v", key, value))
+			outList = append(outList, fmt.Sprintf("%s=%s", url.QueryEscape(key), encodeValue(value)))
 		}
 	}
 	return strings.Join(outList, "&")

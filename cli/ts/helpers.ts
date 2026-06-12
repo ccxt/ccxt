@@ -480,7 +480,11 @@ async function loadSettingsAndCreateExchange (
     const timeout = 30000;
 
     try {
-        if ((ccxt.pro as any).exchanges.includes (exchangeId)) {
+        const prediction = (ccxt as any).prediction;
+        const isPredictionExchange = (prediction !== undefined) && prediction.exchanges.includes (exchangeId);
+        if (isPredictionExchange && (cliOptions.prediction || ccxt[exchangeId] === undefined)) {
+            exchange = new prediction[exchangeId] ({ timeout, httpsAgent, ...finalSettings });
+        } else if ((ccxt.pro as any).exchanges.includes (exchangeId)) {
             exchange = new ccxt.pro[exchangeId] ({ timeout, httpsAgent, ...finalSettings });
         } else {
             exchange = new ccxt[exchangeId] ({ timeout, httpsAgent, ...finalSettings });

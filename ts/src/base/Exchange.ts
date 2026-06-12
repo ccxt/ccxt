@@ -9303,7 +9303,7 @@ export default class Exchange {
         };
     }
 
-    async checkEventsAndMarkets (outcome: Str = undefined) {
+    checkEventsAndMarkets (outcome: Str = undefined) {
         if (!this.events || this.isEmpty (this.events)) {
             throw new ArgumentsRequired ('Events are required to be loaded, please fetch them first using fetchEvents');
         }
@@ -9340,6 +9340,10 @@ export default class Exchange {
             return this.events;
         }
         const events = await this.fetchEvents (undefined, params);
+        if (this.events !== undefined) {
+            // exchange implementations maintain their own event cache inside fetchEvents
+            return this.events;
+        }
         return this.setEvents (events);
     }
 
