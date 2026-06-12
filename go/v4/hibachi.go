@@ -129,7 +129,7 @@ func (this *HibachiCore) Describe() any {
 			},
 			"www": "https://www.hibachi.xyz/",
 			"referral": map[string]any{
-				"url": "hibachi.xyz/r/ZBL2YFWIHU",
+				"url": "https://hibachi.xyz/r/ZBL2YFWIHU",
 			},
 		},
 		"api": map[string]any{
