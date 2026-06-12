@@ -232,14 +232,14 @@ class Precise {
 
     public static function string_equals($string1, $string2) {
         if (($string1 === null) || ($string2 === null)) {
-            return null;
+            return false;
         }
         return (new Precise($string1))->equals(new Precise($string2));
     }
 
     public static function string_eq($string1, $string2) {
         if (($string1 === null) || ($string2 === null)) {
-            return null;
+            return false;
         }
         return (new Precise($string1))->equals(new Precise($string2));
     }
@@ -260,28 +260,28 @@ class Precise {
 
     public static function string_gt($string1, $string2) {
         if (($string1 === null) || ($string2 === null)) {
-            return null;
+            return false;
         }
         return (new Precise($string1))->gt(new Precise($string2));
     }
 
     public static function string_ge($string1, $string2) {
         if (($string1 === null) || ($string2 === null)) {
-            return null;
+            return false;
         }
         return (new Precise($string1))->ge(new Precise($string2));
     }
 
     public static function string_lt($string1, $string2) {
         if (($string1 === null) || ($string2 === null)) {
-            return null;
+            return false;
         }
         return (new Precise($string1))->lt(new Precise($string2));
     }
 
     public static function string_le($string1, $string2) {
         if (($string1 === null) || ($string2 === null)) {
-            return null;
+            return false;
         }
         return (new Precise($string1))->le(new Precise($string2));
     }
