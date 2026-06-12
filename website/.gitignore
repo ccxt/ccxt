@@ -3,6 +3,8 @@
 
 # generated content
 .source
+# runtime exchange-status snapshots written by the status monitor (see lib/exchange-status.ts)
+/data
 # converted from wiki/ by build/wiki-to-fumadocs.ts (regenerate with `npm run fumadocs-content`)
 /content/docs
 
