@@ -803,8 +803,6 @@ export default class htx extends Exchange {
                             'linear-swap-api/v3/swap_financial_record': 1,
                             'linear-swap-api/v3/swap_financial_record_exact': 1,
                             // Swap Trade Interface
-                            'linear-swap-api/v1/swap_switch_lever_rate': 30,
-                            'linear-swap-api/v1/swap_cross_switch_lever_rate': 30,
                             'linear-swap-api/v1/swap_cross_matchresults': 1,
                             'linear-swap-api/v1/swap_cross_matchresults_exact': 1,
                             'linear-swap-api/v1/linear-cancel-after': 1,
@@ -7847,13 +7845,13 @@ export default class htx extends Exchange {
      * @method
      * @name htx#setLeverage
      * @description set the level of leverage for a market
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-leverage
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-leverage
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1959439f997
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#switch-leverage
      * @see https://huobiapi.github.io/docs/dm/v1/en/#switch-leverage  // Coin-m futures
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} response from the exchange
      */
     async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
@@ -7876,22 +7874,18 @@ export default class htx extends Exchange {
             let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
             marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-            if (marginMode === 'isolated') {
-                response = await this.contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate (this.extend (request, query));
-            } else if (marginMode === 'cross') {
-                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate (this.extend (request, query));
-            } else {
-                throw new NotSupported (this.id + ' setLeverage() not support this market type');
-            }
+            request['margin_mode'] = marginMode;
+            response = await this.contractPrivatePostV5PositionLever (this.extend (request, query));
             //
             //     {
-            //       "status": "ok",
-            //       "data": {
-            //         "contract_code": "BTC-USDT",
-            //         "lever_rate": "100",
-            //         "margin_mode": "isolated"
-            //       },
-            //       "ts": "1641184710649"
+            //          "code": 200,
+            //          "message": "Success",
+            //          "data": {
+            //             "contract_code": "BTC-USDT",
+            //             "margin_mode": "cross",
+            //             "lever_rate": 10
+            //         },
+            //         "ts": 1781233510379
             //     }
             //
         } else {

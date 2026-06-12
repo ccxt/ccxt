@@ -797,14 +797,14 @@
         ],
         "setLeverage": [
             {
-                "description": "Set linear leverage",
+                "description": "Linear swap setLeverage",
                 "method": "setLeverage",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_switch_lever_rate?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A58&Signature=SnWzCM6V5BNqBA95kG8NK9aZPmqkLPiW0USifdlTN9U%3D",
+                "url": "https://api.hbdm.vn/v5/position/lever?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-06-12T03%3A05%3A09&Signature=NBMyY%2BveWKDHQKHFOYOWTXoZ3jThk6PLOx5KHuR6ziI%3D",
                 "input": [
-                    5,
-                    "LTC/USDT:USDT"
+                    10,
+                    "BTC/USDT:USDT"
                 ],
-                "output": "{\"lever_rate\":5,\"contract_code\":\"LTC-USDT\"}"
+                "output": "{\"lever_rate\":10,\"contract_code\":\"BTC-USDT\",\"margin_mode\":\"cross\"}"
             },
             {
                 "description": "Set inverse leverage",
