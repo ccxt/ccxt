@@ -2282,7 +2282,7 @@ export default class whitebit extends Exchange {
             const id = balanceKeys[i];
             const code = this.safeCurrencyCode (id);
             const balance = response[id];
-            if (typeof balance === 'object' && balance !== undefined) {
+            if (balance !== undefined && this.isDictionary (balance)) {
                 const account = this.account ();
                 account['free'] = this.safeString2 (balance, 'available', 'main_balance');
                 account['used'] = this.safeString (balance, 'freeze');
