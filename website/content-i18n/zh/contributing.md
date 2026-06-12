@@ -1075,8 +1075,8 @@ node run-tests --python-async kraken # test Kraken with Python async test, requi
 
 按照以下步骤添加测试：
 
-- 在 [ts/tests/Exchange](ts/test/Exchange/) 中创建一个文件，遵循可转译的语法规范。
-- 将测试添加到 `runPrivateTests` 或 `runPublicTests`，路径为 [ts/src/test/tests.ts](ts/src/test/tests.ts#L354)，或者对于 CCXT Pro 端点，添加到 [ts/src/pro/test/tests.ts](ts/src/pro/test/tests.ts#L121)。
+- 在 [ts/tests/Exchange](https://github.com/ccxt/ccxt/tree/master/ts/test/Exchange) 中创建一个文件，遵循可转译的语法规范。
+- 将测试添加到 `runPrivateTests` 或 `runPublicTests`，路径为 [ts/src/test/tests.ts](https://github.com/ccxt/ccxt/blob/master/ts/src/test/tests.ts#L354)，或者对于 CCXT Pro 端点，添加到 [ts/src/pro/test/tests.ts](https://github.com/ccxt/ccxt/blob/master/ts/src/pro/test/tests.ts#L121)。
 - 运行 `npm run transpile` 以生成 JavaScript、Python 和 PHP 的测试文件。
 - 调用测试 `node run-tests`
 

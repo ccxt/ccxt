@@ -86,7 +86,7 @@ description: "위와 같이 짧은 형식으로 질문을 작성하시면 도움
 
   ## takeProfit+stopLoss가 포함된 주문은 어떻게 생성하나요?
   일부 거래소는 추가적인 "연결된" `stopLoss` & `takeProfit` 하위 주문과 함께 `createOrder`를 지원합니다 - [포지션에 연결된 StopLoss 및 TakeProfit 주문](/docs/manual#stoploss-and-takeprofit-orders-attached-to-a-position)을 참고하세요. 
-  그러나 일부 거래소는 해당 기능을 지원하지 않을 수 있으며, 이미 열린 포지션에 조건부 주문(예: ***trigger order | stoploss order | takeprofit order**)을 추가하려면 별도의 `createOrder` 메서드를 실행해야 합니다 - [조건부 주문](Manual.md#Conditional Orders)을 참고하세요.
+  그러나 일부 거래소는 해당 기능을 지원하지 않을 수 있으며, 이미 열린 포지션에 조건부 주문(예: ***trigger order | stoploss order | takeprofit order**)을 추가하려면 별도의 `createOrder` 메서드를 실행해야 합니다 - [조건부 주문](/docs/manual#conditional-orders)을 참고하세요.
   `exchange.has['createOrderWithTakeProfitAndStopLoss']`, `exchange.has['createStopLossOrder']`, `exchange.has['createTakeProfitOrder']`를 확인하여 지원 여부를 알 수 있지만, `.features` 속성만큼 정확하지는 않습니다.
 
   ## `takeProfit/stopLoss`와 `takeProfitPrice/stopLossPrice` 주문의 차이점은 무엇인가요?

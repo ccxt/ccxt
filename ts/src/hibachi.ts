@@ -133,7 +133,7 @@ export default class hibachi extends Exchange {
                 },
                 'www': 'https://www.hibachi.xyz/',
                 'referral': {
-                    'url': 'hibachi.xyz/r/ZBL2YFWIHU',
+                    'url': 'https://hibachi.xyz/r/ZBL2YFWIHU',
                 },
             },
             'api': {

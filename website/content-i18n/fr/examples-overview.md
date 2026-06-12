@@ -15,13 +15,13 @@ Pour exécuter les exemples ccxt depuis n'importe quel dossier, tapez l'une des 
 
 ### Typescript
 
-[Exemples Typescript](/examples/ts/)
+[Exemples Typescript](/docs/examples/ts/)
 
 ---
 
 ### JavaScript
 
-[Exemples JavaScript](/examples/js/)
+[Exemples JavaScript](/docs/examples/js/)
 
 ```bash
 node path/to/example.js # substitute for actual filename here
@@ -41,7 +41,7 @@ Tous les modules ci-dessus sont installés automatiquement par npm avec les dép
 
 ### PHP
 
-[Exemples PHP](/examples/php/)
+[Exemples PHP](/docs/examples/php/)
 
 ```bash
 php -f path/to/example.php # substitute for actual filename here
@@ -51,7 +51,7 @@ php -f path/to/example.php # substitute for actual filename here
 
 ### Python
 
-[Exemples Python](/examples/py/)
+[Exemples Python](/docs/examples/py/)
 
 ![basic-chart](https://user-images.githubusercontent.com/1294454/29979754-6d62354c-8f4f-11e7-9e0a-22e87b4a093b.jpg)
 

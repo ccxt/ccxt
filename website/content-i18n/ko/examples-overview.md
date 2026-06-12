@@ -15,13 +15,13 @@ description: "모든 폴더에서 ccxt 예제를 실행하려면 콘솔에서 �
 
 ### Typescript
 
-[Typescript 예제](/examples/ts/)
+[Typescript 예제](/docs/examples/ts/)
 
 ---
 
 ### JavaScript
 
-[JavaScript 예제](/examples/js/)
+[JavaScript 예제](/docs/examples/js/)
 
 ```bash
 node path/to/example.js # substitute for actual filename here
@@ -41,7 +41,7 @@ node path/to/example.js # substitute for actual filename here
 
 ### PHP
 
-[PHP 예제](/examples/php/)
+[PHP 예제](/docs/examples/php/)
 
 ```bash
 php -f path/to/example.php # substitute for actual filename here
@@ -51,7 +51,7 @@ php -f path/to/example.php # substitute for actual filename here
 
 ### Python
 
-[Python 예제](/examples/py/)
+[Python 예제](/docs/examples/py/)
 
 ![basic-chart](https://user-images.githubusercontent.com/1294454/29979754-6d62354c-8f4f-11e7-9e0a-22e87b4a093b.jpg)
 
