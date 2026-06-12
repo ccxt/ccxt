@@ -230,7 +230,7 @@
     "@rollup/plugin-commonjs": "^21.0.3",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "@rspack/cli": "^1.7.11",
+    "@rspack/cli": "^2.0.8",
     "@rspack/core": "^1.7.11",
     "@types/node": "^18.15.11",
     "@typescript-eslint/eslint-plugin": "^5.30.5",
