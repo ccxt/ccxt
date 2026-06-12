@@ -431,3 +431,20 @@ CCXT is also a builder on Extended meaning that by default users will pay 1bps (
 ```
 exchange.options['builderFee'] = False
 ```
+
+### How to use the Apex Exchange in CCXT?
+
+An example on how to instantiate the Apex exchange:
+
+```
+exchange = ccxt.apex({
+    'apiKey': 'your api Key',
+    'secret': 'your api secret',
+    'walletAddress': 'your eth address',
+    'options': {
+        'accountId': 'your account id',
+        'passphrase': 'your api passphrase',
+        'seeds': 'your zklink omni seed',
+    },
+})
+```
