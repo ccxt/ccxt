@@ -1,6 +1,5 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import seed from './exchange-status.seed.json';
 
 // Single source of truth for the exchange-status feed: both /api/status and the
 // /docs/status page read through here, so they can never disagree.
@@ -48,5 +47,5 @@ export async function readExchangeStatus(): Promise<StatusEntry[]> {
   } catch {
     // missing file (monitor not started yet) or invalid JSON — fall through to seed
   }
-  return seed as StatusEntry[];
+  return [];
 }
