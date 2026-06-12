@@ -11,6 +11,10 @@ const config = {
   // path (.next/standalone/server.js) rather than a monorepo-nested one.
   outputFileTracingRoot: import.meta.dirname,
   reactStrictMode: true,
+  // ccxt (used by the health monitor, src/lib/health-monitor.ts) is a large server-only
+  // package — load it from node_modules at runtime instead of bundling it. It is still
+  // traced into the standalone output.
+  serverExternalPackages: ['ccxt'],
   // Serve under a subpath (e.g. /v2) when NEXT_BASE_PATH is set, so the new docs can
   // coexist with the old site. Unset = root build (for the eventual cutover).
   basePath: process.env.NEXT_BASE_PATH || undefined,
