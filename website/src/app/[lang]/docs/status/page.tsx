@@ -21,8 +21,9 @@ const PROBE_ORIGIN: { label: string; value: string }[] = [
 export const dynamic = 'force-dynamic';
 
 // Render server-side in UTC so output doesn't depend on the build/server timezone.
+// Hours and minutes only — the snapshot is at most ~30 minutes old, so the date is noise.
 function formatCheckedAt(iso: string): string {
-  return `${new Date(iso).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
+  return `${new Date(iso).toISOString().slice(11, 16)} UTC`;
 }
 
 function StatusBadge({ ok }: { ok: boolean }) {
@@ -67,6 +68,7 @@ export default async function Page(props: { params: Promise<{ lang: string }> })
         <table>
           <thead>
             <tr>
+              <th aria-label="Logo" />
               <th>Exchange</th>
               <th>Status</th>
               <th>Method</th>
@@ -79,6 +81,23 @@ export default async function Page(props: { params: Promise<{ lang: string }> })
             {entries.map((entry) => (
               <tr key={entry.exchange}>
                 <td>
+                  {entry.logo ? (
+                    // plain <img>, not the zoomable MDX wrapper — it's a tiny inline mark
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={entry.logo}
+                      alt={`${entry.exchange} logo`}
+                      loading="lazy"
+                      decoding="async"
+                      width={85}
+                      height={25}
+                      // fixed 85x25 box; object-contain letterboxes the varying logo
+                      // aspect ratios instead of stretching them
+                      className="h-[25px] w-[85px] max-w-none object-contain"
+                    />
+                  ) : null}
+                </td>
+                <td>
                   <Link href={`${prefix}/docs/exchanges/${entry.exchange}`} className="font-medium">
                     {entry.exchange}
                   </Link>
@@ -87,7 +106,7 @@ export default async function Page(props: { params: Promise<{ lang: string }> })
                   <StatusBadge ok={entry.ok} />
                 </td>
                 <td>{entry.method ? <code>{entry.method}</code> : '—'}</td>
-                <td>{entry.latencyMs} ms</td>
+                <td className="font-bold">{entry.latencyMs} ms</td>
                 <td>{formatCheckedAt(entry.checkedAt)}</td>
                 <td>{entry.error ? <code>{entry.error}</code> : '—'}</td>
               </tr>

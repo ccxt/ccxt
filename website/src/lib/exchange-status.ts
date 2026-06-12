@@ -17,6 +17,7 @@ export type StatusEntry = {
   latencyMs: number;
   checkedAt: string; // ISO 8601
   method?: string; // unified method used to probe (fetchStatus, fetchTime, ...)
+  logo?: string; // exchange logo URL (from ccxt's urls.logo)
   error?: string;
 };
 
@@ -32,6 +33,7 @@ function isStatusEntry(value: unknown): value is StatusEntry {
     && typeof entry.latencyMs === 'number'
     && typeof entry.checkedAt === 'string'
     && (entry.method === undefined || typeof entry.method === 'string')
+    && (entry.logo === undefined || typeof entry.logo === 'string')
     && (entry.error === undefined || typeof entry.error === 'string')
   );
 }
