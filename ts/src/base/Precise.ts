@@ -237,14 +237,14 @@ class Precise {
 
     static stringEquals (string1: Str, string2: Str) {
         if ((string1 === undefined) || (string2 === undefined)) {
-            return undefined;
+            return false;
         }
         return (new Precise (string1)).equals (new Precise (string2));
     }
 
     static stringEq (string1: Str, string2: Str) {
         if ((string1 === undefined) || (string2 === undefined)) {
-            return undefined;
+            return false;
         }
         return (new Precise (string1)).equals (new Precise (string2));
     }
