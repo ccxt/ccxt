@@ -148,7 +148,6 @@ Sugestões e contribuições são sempre bem-vindas! Certifique-se de ler as [di
 - [Python3とCCXTを使用して仮想通貨の自動売買プログラムを作る](http://www.hacky.xyz/entry/2018/03/18/200822) – Negociação automática de criptomoedas usando Python 3 e CCXT
 - [ccxtを使って裁定取引botを作ってみたらなぜか虚しくなった件](https://qiita.com/reon777/items/21ed87f19cdd50f08bd9) – Um artigo em japonês explicando os fundamentos da programação de um bot de arbitragem com CCXT.
 - [Python 3 / BitMEX の BOT を作ろう CCXT + BOT サンプルコード 〈基礎編〉](https://note.mu/mman/n/n5a9083864335) – Um exemplo de bot básico para BitMEX com CCXT em Python 3.
-- [ccxtがbtcfxbot界隈でちょっと話題になっていたので使ってみた](http://cryptojapan.ml/entry/2018/03/01/151752) – Testando CCXT para um bot básico.
 - [python異步加協程獲取比特幣市場信息](https://hk.saowen.com/a/18a648f24d6e7f54981e9db4411b56730a35dd2b3b27519083543bcd6198cd27) – Um artigo em chinês sobre como usar CCXT com Python.
 - [Лучшая криптотрейдинг библиотека?](http://medium.com/@vladthelittleone/лучшая-криптотрейдинг-библиотека-67e308f96c1f) – Um artigo em russo sobre como configurar o CCXT para conectar e negociar com corretoras de criptomoedas.
 
