@@ -148,7 +148,7 @@ class dydx extends Exchange {
                 'fees' => array(
                     'https://docs.dydx.exchange/introduction-trading_fees',
                 ),
-                'referral' => 'dydx.trade?ref=ccxt',
+                'referral' => 'https://dydx.trade?ref=ccxt',
             ),
             'api' => array(
                 'indexer' => array(
