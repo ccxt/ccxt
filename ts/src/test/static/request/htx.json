@@ -1418,11 +1418,13 @@
         ],
         "fetchFundingRateHistory": [
             {
-                "description": "fetch Funding Rate History - swap linear",
+                "description": "Linear swap fetchFundingRateHistory",
                 "method": "fetchFundingRateHistory",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_historical_funding_rate?contract_code=LTC-USDT&page_size=50",
+                "url": "https://api.hbdm.vn/v5/market/funding_rate_history?contract_code=BTC-USDT&limit=1",
                 "input": [
-                    "LTC/USDT:USDT"
+                    "BTC/USDT:USDT",
+                    null,
+                    1
                 ]
             },
             {
@@ -1436,11 +1438,11 @@
         ],
         "fetchFundingRate": [
             {
-                "description": "fetch Funding Rate - swap linear",
+                "description": "Linear swap fetchFundingRate",
                 "method": "fetchFundingRate",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_funding_rate?contract_code=LTC-USDT",
+                "url": "https://api.hbdm.vn/v5/market/funding_rate?contract_code=BTC-USDT",
                 "input": [
-                    "LTC/USDT:USDT"
+                    "BTC/USDT:USDT"
                 ]
             },
             {
@@ -1453,17 +1455,6 @@
             }
         ],
         "fetchFundingRates": [
-            {
-                "description": "fetch Funding Rates - swap linear",
-                "method": "fetchFundingRates",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_batch_funding_rate",
-                "input": [
-                    null,
-                    {
-                        "subType": "linear"
-                    }
-                ]
-            },
             {
                 "description": "fetch Funding Rates - swap inverse",
                 "method": "fetchFundingRates",

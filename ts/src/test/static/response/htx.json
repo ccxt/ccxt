@@ -4799,6 +4799,190 @@
                     }
                 ]
             }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "Linear swap fetch funding rate",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "Success",
+                    "data": [
+                        {
+                            "contract_code": "BTC-USDT",
+                            "funding_rate": "0.000081913965631512",
+                            "funding_time": "1781251200000",
+                            "next_funding_time": "1781280000000",
+                            "min_funding_rate": "-0.003750000000000000",
+                            "max_funding_rate": "0.003750000000000000"
+                        }
+                    ],
+                    "ts": "1781235566039"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "contract_code": "BTC-USDT",
+                        "funding_rate": "0.000081913965631512",
+                        "funding_time": "1781251200000",
+                        "next_funding_time": "1781280000000",
+                        "min_funding_rate": "-0.003750000000000000",
+                        "max_funding_rate": "0.003750000000000000"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.000081913965631512,
+                    "fundingTimestamp": 1781251200000,
+                    "fundingDatetime": "2026-06-12T08:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1781280000000,
+                    "nextFundingDatetime": "2026-06-12T16:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                }
+            },
+            {
+                "description": "Inverse swap fetch funding rate",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "data": {
+                        "estimated_rate": null,
+                        "funding_rate": "0.000100000000000000",
+                        "contract_code": "BTC-USD",
+                        "symbol": "BTC",
+                        "fee_asset": "BTC",
+                        "funding_time": "1781280000000",
+                        "next_funding_time": null
+                    },
+                    "ts": "1781254404101"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "estimated_rate": null,
+                        "funding_rate": "0.000100000000000000",
+                        "contract_code": "BTC-USD",
+                        "symbol": "BTC",
+                        "fee_asset": "BTC",
+                        "funding_time": "1781280000000",
+                        "next_funding_time": null
+                    },
+                    "symbol": "BTC/USD:BTC",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.0001,
+                    "fundingTimestamp": 1781280000000,
+                    "fundingDatetime": "2026-06-12T16:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": null
+                }
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "Linear swap fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "Success",
+                    "data": [
+                        {
+                            "id": "1",
+                            "contract_code": "BTC-USDT",
+                            "funding_rate": "0.0001",
+                            "funding_time": "1603296000000"
+                        }
+                    ],
+                    "ts": "1781254621720"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "1",
+                            "contract_code": "BTC-USDT",
+                            "funding_rate": "0.0001",
+                            "funding_time": "1603296000000"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1603296000000,
+                        "datetime": "2020-10-21T16:00:00.000Z"
+                    }
+                ]
+            },
+            {
+                "description": "Inverse swap fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USD:BTC",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "data": {
+                        "total_page": "6810",
+                        "current_page": "1",
+                        "total_size": "6810",
+                        "data": [
+                            {
+                                "avg_premium_index": "0.000149696771643437",
+                                "funding_rate": "0.000100000000000000",
+                                "realized_rate": null,
+                                "funding_time": "1781251200000",
+                                "contract_code": "BTC-USD",
+                                "symbol": "BTC",
+                                "fee_asset": "BTC"
+                            }
+                        ]
+                    },
+                    "ts": "1781254828066"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "avg_premium_index": "0.000149696771643437",
+                            "funding_rate": "0.000100000000000000",
+                            "realized_rate": null,
+                            "funding_time": "1781251200000",
+                            "contract_code": "BTC-USD",
+                            "symbol": "BTC",
+                            "fee_asset": "BTC",
+                            "current_page": "1"
+                        },
+                        "symbol": "BTC/USD:BTC",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1781251200000,
+                        "datetime": "2026-06-12T08:00:00.000Z"
+                    }
+                ]
+            }
         ]
     }
 }

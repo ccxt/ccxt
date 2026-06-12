@@ -608,14 +608,13 @@ export default class htx extends Exchange {
                             'linear-swap-api/v1/swap_elite_position_ratio': 1,
                             'linear-swap-api/v1/swap_liquidation_orders': 1,
                             'linear-swap-api/v1/swap_settlement_records': 1,
-                            'linear-swap-api/v1/swap_funding_rate': 1,
-                            'linear-swap-api/v1/swap_batch_funding_rate': 1,
-                            'linear-swap-api/v1/swap_historical_funding_rate': 1,
                             'linear-swap-api/v3/swap_liquidation_orders': 1,
                             'index/market/history/linear_swap_premium_index_kline': 1,
                             'index/market/history/linear_swap_estimated_rate_kline': 1,
                             'index/market/history/linear_swap_basis': 1,
                             'linear-swap-api/v1/swap_estimated_settlement_price': 1,
+                            'v5/market/funding_rate': 1,
+                            'v5/market/funding_rate_history': 1,
                         },
                     },
                     'private': {
@@ -7193,14 +7192,15 @@ export default class htx extends Exchange {
     /**
      * @method
      * @name htx#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97ea5941
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
-     * @description fetches historical funding rate prices
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-     * @param {int} [since] not used by huobi, but filtered internally by ccxt
-     * @param {int} [limit] not used by huobi, but filtered internally by ccxt
+     * @param {int} [since] the earliest time in ms to fetch funding rate history for
+     * @param {int} [limit] the maximum number of structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -7217,58 +7217,98 @@ export default class htx extends Exchange {
         const request: Dict = {
             'contract_code': market['id'],
         };
-        if (limit !== undefined) {
-            request['page_size'] = limit;
+        if (market['linear']) {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            if (since !== undefined) {
+                request['start_time'] = since;
+            }
         } else {
-            request['page_size'] = 50; // max
+            if (limit !== undefined) {
+                request['page_size'] = limit;
+            } else {
+                request['page_size'] = 50; // max
+            }
         }
         let response = undefined;
         if (market['inverse']) {
             response = await this.contractPublicGetSwapApiV1SwapHistoricalFundingRate (this.extend (request, params));
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": {
+            //             "total_page": 6810,
+            //             "current_page": 1,
+            //             "total_size": 6810,
+            //             "data": [
+            //                 {
+            //                     "avg_premium_index": "0.000149696771643437",
+            //                     "funding_rate": "0.000100000000000000",
+            //                     "realized_rate": null,
+            //                     "funding_time": "1781251200000",
+            //                     "contract_code": "BTC-USD",
+            //                     "symbol": "BTC",
+            //                     "fee_asset": "BTC"
+            //                 }
+            //             ]
+            //         },
+            //         "ts": 1781254828066
+            //     }
+            //
         } else if (market['linear']) {
-            response = await this.contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate (this.extend (request, params));
+            response = await this.contractPublicGetV5MarketFundingRateHistory (this.extend (request, params));
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": [
+            //             {
+            //                 "id": "1",
+            //                 "contract_code": "BTC-USDT",
+            //                 "funding_rate": "0.0001",
+            //                 "funding_time": "1603296000000"
+            //             }
+            //         ],
+            //         "ts": 1781254621720
+            //     }
+            //
         } else {
             throw new NotSupported (this.id + ' fetchFundingRateHistory() supports inverse and linear swaps only');
         }
-        //
-        // {
-        //     "status": "ok",
-        //     "data": {
-        //         "total_page": 62,
-        //         "current_page": 1,
-        //         "total_size": 1237,
-        //         "data": [
-        //             {
-        //                 "avg_premium_index": "-0.000208064395065541",
-        //                 "funding_rate": "0.000100000000000000",
-        //                 "realized_rate": "0.000100000000000000",
-        //                 "funding_time": "1638921600000",
-        //                 "contract_code": "BTC-USDT",
-        //                 "symbol": "BTC",
-        //                 "fee_asset": "USDT"
-        //             },
-        //         ]
-        //     },
-        //     "ts": 1638939294277
-        // }
-        //
         const data = this.safeValue (response, 'data');
-        const cursor = this.safeValue (data, 'current_page');
-        const result = this.safeValue (data, 'data', []);
         const rates = [];
-        for (let i = 0; i < result.length; i++) {
-            const entry = result[i];
-            entry['current_page'] = cursor;
-            const marketId = this.safeString (entry, 'contract_code');
-            const symbolInner = this.safeSymbol (marketId);
-            const timestamp = this.safeInteger (entry, 'funding_time');
-            rates.push ({
-                'info': entry,
-                'symbol': symbolInner,
-                'fundingRate': this.safeNumber (entry, 'funding_rate'),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-            });
+        if (market['linear']) {
+            for (let i = 0; i < data.length; i++) {
+                const entry = data[i];
+                const marketId = this.safeString (entry, 'contract_code');
+                const symbolInner = this.safeSymbol (marketId, market);
+                const timestamp = this.safeInteger (entry, 'funding_time');
+                rates.push ({
+                    'info': entry,
+                    'symbol': symbolInner,
+                    'fundingRate': this.safeNumber (entry, 'funding_rate'),
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601 (timestamp),
+                });
+            }
+        } else {
+            const cursor = this.safeValue (data, 'current_page');
+            const result = this.safeValue (data, 'data', []);
+            for (let i = 0; i < result.length; i++) {
+                const entry = result[i];
+                entry['current_page'] = cursor;
+                const marketId = this.safeString (entry, 'contract_code');
+                const symbolInner = this.safeSymbol (marketId);
+                const timestamp = this.safeInteger (entry, 'funding_time');
+                rates.push ({
+                    'info': entry,
+                    'symbol': symbolInner,
+                    'fundingRate': this.safeNumber (entry, 'funding_rate'),
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601 (timestamp),
+                });
+            }
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
@@ -7276,19 +7316,28 @@ export default class htx extends Exchange {
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {
         //
-        // {
-        //      "status": "ok",
-        //      "data": {
-        //         "estimated_rate": "0.000100000000000000",
+        // inverse swap
+        //
+        //     {
+        //         "estimated_rate": null,
         //         "funding_rate": "0.000100000000000000",
-        //         "contract_code": "BCH-USD",
-        //         "symbol": "BCH",
-        //         "fee_asset": "BCH",
-        //         "funding_time": "1639094400000",
-        //         "next_funding_time": "1639123200000"
-        //     },
-        //     "ts": 1639085854775
-        // }
+        //         "contract_code": "BTC-USD",
+        //         "symbol": "BTC",
+        //         "fee_asset": "BTC",
+        //         "funding_time": "1781280000000",
+        //         "next_funding_time": null
+        //     }
+        //
+        // linear swap
+        //
+        //     {
+        //         "contract_code": "BTC-USDT",
+        //         "funding_rate": "0.000083024939363172",
+        //         "funding_time": "1781251200000",
+        //         "next_funding_time": "1781280000000",
+        //         "min_funding_rate": "-0.003750000000000000",
+        //         "max_funding_rate": "0.003750000000000000"
+        //     }
         //
         const nextFundingRate = this.safeNumber (contract, 'estimated_rate');
         const fundingTimestamp = this.safeInteger (contract, 'funding_time');
@@ -7336,7 +7385,7 @@ export default class htx extends Exchange {
      * @name htx#fetchFundingRate
      * @description fetch the current funding rate
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-funding-rate
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-funding-rate
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97d0c0bf
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -7350,27 +7399,50 @@ export default class htx extends Exchange {
         let response = undefined;
         if (market['inverse']) {
             response = await this.contractPublicGetSwapApiV1SwapFundingRate (this.extend (request, params));
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": {
+            //             "estimated_rate": null,
+            //             "funding_rate": "0.000100000000000000",
+            //             "contract_code": "BTC-USD",
+            //             "symbol": "BTC",
+            //             "fee_asset": "BTC",
+            //             "funding_time": "1781280000000",
+            //             "next_funding_time": null
+            //         },
+            //         "ts": 1781254404101
+            //     }
+            //
         } else if (market['linear']) {
-            response = await this.contractPublicGetLinearSwapApiV1SwapFundingRate (this.extend (request, params));
+            response = await this.contractPublicGetV5MarketFundingRate (this.extend (request, params));
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": [
+            //             {
+            //                 "contract_code": "BTC-USDT",
+            //                 "funding_rate": "0.000083024939363172",
+            //                 "funding_time": "1781251200000",
+            //                 "next_funding_time": "1781280000000",
+            //                 "min_funding_rate": "-0.003750000000000000",
+            //                 "max_funding_rate": "0.003750000000000000"
+            //             }
+            //         ],
+            //         "ts": 1781235318758
+            //     }
+            //
         } else {
             throw new NotSupported (this.id + ' fetchFundingRate() supports inverse and linear swaps only');
         }
-        //
-        // {
-        //     "status": "ok",
-        //     "data": {
-        //         "estimated_rate": "0.000100000000000000",
-        //         "funding_rate": "0.000100000000000000",
-        //         "contract_code": "BTC-USDT",
-        //         "symbol": "BTC",
-        //         "fee_asset": "USDT",
-        //         "funding_time": "1603699200000",
-        //         "next_funding_time": "1603728000000"
-        //     },
-        //     "ts": 1603696494714
-        // }
-        //
-        const result = this.safeValue (response, 'data', {});
+        let result = undefined;
+        if (market['linear']) {
+            const data = this.safeList (response, 'data', []);
+            result = this.safeDict (data, 0, {});
+        } else {
+            result = this.safeValue (response, 'data', {});
+        }
         return this.parseFundingRate (result, market);
     }
 
@@ -7378,7 +7450,6 @@ export default class htx extends Exchange {
      * @method
      * @name htx#fetchFundingRates
      * @description fetch the funding rate for multiple markets
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-funding-rate
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -7401,7 +7472,7 @@ export default class htx extends Exchange {
         };
         let response = undefined;
         if (subType === 'linear') {
-            response = await this.contractPublicGetLinearSwapApiV1SwapBatchFundingRate (this.extend (request, params));
+            throw new NotSupported (this.id + ' fetchFundingRates() not support this market type');
         } else if (subType === 'inverse') {
             response = await this.contractPublicGetSwapApiV1SwapBatchFundingRate (this.extend (request, params));
         } else {
