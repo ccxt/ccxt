@@ -1,6 +1,5 @@
 {
     "exchange": "polymarket",
-    "disabledJava": true,
     "skipKeys": [],
     "outputType": "json",
     "methods": {

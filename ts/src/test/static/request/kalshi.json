@@ -1,6 +1,5 @@
 {
     "exchange": "kalshi",
-    "disabledJava": true,
     "skipKeys": [],
     "outputType": "json",
     "methods": {

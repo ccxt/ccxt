@@ -1,6 +1,5 @@
 {
     "exchange": "myriad",
-    "disabledJava": true,
     "skipKeys": [],
     "outputType": "json",
     "methods": {

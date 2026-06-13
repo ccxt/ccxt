@@ -1,6 +1,5 @@
 {
     "exchange": "limitless",
-    "disabledJava": true,
     "skipKeys": [
         "timestamp",
         "datetime"
