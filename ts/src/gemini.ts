@@ -1,11 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha384 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/gemini.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, RateLimitExceeded, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------

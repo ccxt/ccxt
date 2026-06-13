@@ -1,11 +1,10 @@
 //  ---------------------------------------------------------------------------
 
+import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/krakenfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num, LeverageTier, LeverageTiers, int, FundingRate, FundingRates, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------

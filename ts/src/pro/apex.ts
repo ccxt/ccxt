@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import apexRest from '../apex.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Trade, Dict, OrderBook, Ticker, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, NetworkError } from '../base/errors.js';
 import { OHLCV, Order, Position, Str } from '../base/types.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 

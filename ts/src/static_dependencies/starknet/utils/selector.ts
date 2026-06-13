@@ -1,4 +1,4 @@
-import { keccak } from '../../scure-starknet/index.js';
+import { keccak } from '@scure/starknet';
 import { MASK_250 } from '../constants.js';
 import { BigNumberish } from '../types/index.js';
 import { addHexPrefix, removeHexPrefix, utf8ToArray } from './encode.js';

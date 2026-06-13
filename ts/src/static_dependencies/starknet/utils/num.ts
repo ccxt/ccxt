@@ -1,4 +1,4 @@
-import { hexToBytes as hexToBytesNoble } from '../../noble-curves/abstract/utils.js';
+import { hexToBytes as hexToBytesNoble } from '@noble/curves/utils.js';
 
 import { BigNumberish } from '../types/index.js';
 import assert from './assert.js';

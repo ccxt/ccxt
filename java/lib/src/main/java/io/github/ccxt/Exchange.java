@@ -621,10 +621,6 @@ public class Exchange {
         return unsigned;
     }
 
-    public  Object axolotl(Object a, Object b, Object c) {
-        return Crypto.axolotl(a, b, c);
-    }
-
     // public Object md5() {
     //     return Crypto.md5();
     // }

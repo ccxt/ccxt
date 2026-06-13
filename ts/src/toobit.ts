@@ -1,10 +1,10 @@
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/toobit.js';
 import { OperationFailed, ArgumentsRequired, ExchangeError, BadRequest, OrderNotFound, BadSymbol, NotSupported, PermissionDenied, RateLimitExceeded, OperationRejected, InvalidOrder, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, TransferEntry, Num, Dict, int, DepositAddress, Market, MarketInterface, FundingRateHistory, LedgerEntry, Position, FundingRate, FundingRates, TradingFees, Leverage, Currencies } from './base/types.js';
 
 //  ---------------------------------------------------------------------------

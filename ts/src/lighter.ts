@@ -1,12 +1,12 @@
 //  ---------------------------------------------------------------------------
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, NotSupported, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
 import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction, Trade, Account, MarginModification } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 
 //  ---------------------------------------------------------------------------
 

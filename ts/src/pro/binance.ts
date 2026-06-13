@@ -1,15 +1,15 @@
 
 // ----------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
+import { ed25519 } from '@noble/curves/ed25519.js';
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ChecksumError, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, Num, Dict, Liquidation } from '../base/types.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
-import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
 import Client from '../base/ws/Client.js';
 
 // -----------------------------------------------------------------------------
