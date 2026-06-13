@@ -1,6 +1,6 @@
 import polymarketRest from '../polymarket.js';
 import { Precise } from '../../base/Precise.js';
-import { ArrayCache } from '../../base/ws/Cache.js';
+import { ArrayCacheBySymbolById } from '../../base/ws/Cache.js';
 import type {
     Int, Str, Dict, // eslint-disable-line no-unused-vars
     OrderBook, Trade, Ticker,
@@ -149,7 +149,8 @@ export default class polymarket extends polymarketRest {
         let tradesArray = this.trades[symbol];
         if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            tradesArray = new ArrayCache (limit);
+            // dedups by transaction_hash so a re-emitted last-trade on reconnect is not duplicated
+            tradesArray = new ArrayCacheBySymbolById (limit);
             this.trades[symbol] = tradesArray;
         }
         tradesArray.append (trade);
