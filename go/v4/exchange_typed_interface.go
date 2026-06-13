@@ -430,9 +430,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "htx":
 		itf := NewHtx(options)
 		return itf
-	case "huobi":
-		itf := NewHuobi(options)
-		return itf
 	case "hyperliquid":
 		itf := NewHyperliquid(options)
 		return itf
