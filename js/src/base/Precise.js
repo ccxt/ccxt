@@ -218,13 +218,13 @@ class Precise {
     }
     static stringEquals(string1, string2) {
         if ((string1 === undefined) || (string2 === undefined)) {
-            return undefined;
+            return false;
         }
         return (new Precise(string1)).equals(new Precise(string2));
     }
     static stringEq(string1, string2) {
         if ((string1 === undefined) || (string2 === undefined)) {
-            return undefined;
+            return false;
         }
         return (new Precise(string1)).equals(new Precise(string2));
     }
@@ -242,25 +242,25 @@ class Precise {
     }
     static stringGt(string1, string2) {
         if ((string1 === undefined) || (string2 === undefined)) {
-            return undefined;
+            return false;
         }
         return (new Precise(string1)).gt(new Precise(string2));
     }
     static stringGe(string1, string2) {
         if ((string1 === undefined) || (string2 === undefined)) {
-            return undefined;
+            return false;
         }
         return (new Precise(string1)).ge(new Precise(string2));
     }
     static stringLt(string1, string2) {
         if ((string1 === undefined) || (string2 === undefined)) {
-            return undefined;
+            return false;
         }
         return (new Precise(string1)).lt(new Precise(string2));
     }
     static stringLe(string1, string2) {
         if ((string1 === undefined) || (string2 === undefined)) {
-            return undefined;
+            return false;
         }
         return (new Precise(string1)).le(new Precise(string2));
     }
