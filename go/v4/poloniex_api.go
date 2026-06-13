@@ -7,406 +7,406 @@
 
 package ccxt
 
-func (this *PoloniexCore) PublicGetMarkets (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarkets", args...)
+func (this *PoloniexCore) PublicGetMarkets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
-func (this *PoloniexCore) PublicGetMarketsSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketsSymbol", args...)
+func (this *PoloniexCore) PublicGetMarketsSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketsSymbol", args...)
 }
 
-func (this *PoloniexCore) PublicGetCurrencies (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetCurrencies", args...)
+func (this *PoloniexCore) PublicGetCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetCurrencies", args...)
 }
 
-func (this *PoloniexCore) PublicGetCurrenciesCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetCurrenciesCurrency", args...)
+func (this *PoloniexCore) PublicGetCurrenciesCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetCurrenciesCurrency", args...)
 }
 
-func (this *PoloniexCore) PublicGetV2Currencies (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV2Currencies", args...)
+func (this *PoloniexCore) PublicGetV2Currencies(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV2Currencies", args...)
 }
 
-func (this *PoloniexCore) PublicGetV2CurrenciesCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetV2CurrenciesCurrency", args...)
+func (this *PoloniexCore) PublicGetV2CurrenciesCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV2CurrenciesCurrency", args...)
 }
 
-func (this *PoloniexCore) PublicGetTimestamp (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTimestamp", args...)
+func (this *PoloniexCore) PublicGetTimestamp(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTimestamp", args...)
 }
 
-func (this *PoloniexCore) PublicGetMarketsPrice (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketsPrice", args...)
+func (this *PoloniexCore) PublicGetMarketsPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketsPrice", args...)
 }
 
-func (this *PoloniexCore) PublicGetMarketsSymbolPrice (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketsSymbolPrice", args...)
+func (this *PoloniexCore) PublicGetMarketsSymbolPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketsSymbolPrice", args...)
 }
 
-func (this *PoloniexCore) PublicGetMarketsMarkPrice (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketsMarkPrice", args...)
+func (this *PoloniexCore) PublicGetMarketsMarkPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketsMarkPrice", args...)
 }
 
-func (this *PoloniexCore) PublicGetMarketsSymbolMarkPrice (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketsSymbolMarkPrice", args...)
+func (this *PoloniexCore) PublicGetMarketsSymbolMarkPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketsSymbolMarkPrice", args...)
 }
 
-func (this *PoloniexCore) PublicGetMarketsSymbolMarkPriceComponents (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketsSymbolMarkPriceComponents", args...)
+func (this *PoloniexCore) PublicGetMarketsSymbolMarkPriceComponents(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketsSymbolMarkPriceComponents", args...)
 }
 
-func (this *PoloniexCore) PublicGetMarketsSymbolOrderBook (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketsSymbolOrderBook", args...)
+func (this *PoloniexCore) PublicGetMarketsSymbolOrderBook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketsSymbolOrderBook", args...)
 }
 
-func (this *PoloniexCore) PublicGetMarketsSymbolCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketsSymbolCandles", args...)
+func (this *PoloniexCore) PublicGetMarketsSymbolCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketsSymbolCandles", args...)
 }
 
-func (this *PoloniexCore) PublicGetMarketsSymbolTrades (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketsSymbolTrades", args...)
+func (this *PoloniexCore) PublicGetMarketsSymbolTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketsSymbolTrades", args...)
 }
 
-func (this *PoloniexCore) PublicGetMarketsTicker24h (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketsTicker24h", args...)
+func (this *PoloniexCore) PublicGetMarketsTicker24h(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketsTicker24h", args...)
 }
 
-func (this *PoloniexCore) PublicGetMarketsSymbolTicker24h (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketsSymbolTicker24h", args...)
+func (this *PoloniexCore) PublicGetMarketsSymbolTicker24h(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketsSymbolTicker24h", args...)
 }
 
-func (this *PoloniexCore) PublicGetMarketsCollateralInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketsCollateralInfo", args...)
+func (this *PoloniexCore) PublicGetMarketsCollateralInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketsCollateralInfo", args...)
 }
 
-func (this *PoloniexCore) PublicGetMarketsCurrencyCollateralInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketsCurrencyCollateralInfo", args...)
+func (this *PoloniexCore) PublicGetMarketsCurrencyCollateralInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketsCurrencyCollateralInfo", args...)
 }
 
-func (this *PoloniexCore) PublicGetMarketsBorrowRatesInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarketsBorrowRatesInfo", args...)
+func (this *PoloniexCore) PublicGetMarketsBorrowRatesInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketsBorrowRatesInfo", args...)
 }
 
-func (this *PoloniexCore) PrivateGetAccounts (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAccounts", args...)
+func (this *PoloniexCore) PrivateGetAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccounts", args...)
 }
 
-func (this *PoloniexCore) PrivateGetAccountsBalances (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAccountsBalances", args...)
+func (this *PoloniexCore) PrivateGetAccountsBalances(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountsBalances", args...)
 }
 
-func (this *PoloniexCore) PrivateGetAccountsIdBalances (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAccountsIdBalances", args...)
+func (this *PoloniexCore) PrivateGetAccountsIdBalances(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountsIdBalances", args...)
 }
 
-func (this *PoloniexCore) PrivateGetAccountsActivity (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAccountsActivity", args...)
+func (this *PoloniexCore) PrivateGetAccountsActivity(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountsActivity", args...)
 }
 
-func (this *PoloniexCore) PrivateGetAccountsTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAccountsTransfer", args...)
+func (this *PoloniexCore) PrivateGetAccountsTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountsTransfer", args...)
 }
 
-func (this *PoloniexCore) PrivateGetAccountsTransferId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAccountsTransferId", args...)
+func (this *PoloniexCore) PrivateGetAccountsTransferId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountsTransferId", args...)
 }
 
-func (this *PoloniexCore) PrivateGetFeeinfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFeeinfo", args...)
+func (this *PoloniexCore) PrivateGetFeeinfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFeeinfo", args...)
 }
 
-func (this *PoloniexCore) PrivateGetAccountsInterestHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAccountsInterestHistory", args...)
+func (this *PoloniexCore) PrivateGetAccountsInterestHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountsInterestHistory", args...)
 }
 
-func (this *PoloniexCore) PrivateGetSubaccounts (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSubaccounts", args...)
+func (this *PoloniexCore) PrivateGetSubaccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubaccounts", args...)
 }
 
-func (this *PoloniexCore) PrivateGetSubaccountsBalances (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSubaccountsBalances", args...)
+func (this *PoloniexCore) PrivateGetSubaccountsBalances(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubaccountsBalances", args...)
 }
 
-func (this *PoloniexCore) PrivateGetSubaccountsIdBalances (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSubaccountsIdBalances", args...)
+func (this *PoloniexCore) PrivateGetSubaccountsIdBalances(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubaccountsIdBalances", args...)
 }
 
-func (this *PoloniexCore) PrivateGetSubaccountsTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSubaccountsTransfer", args...)
+func (this *PoloniexCore) PrivateGetSubaccountsTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubaccountsTransfer", args...)
 }
 
-func (this *PoloniexCore) PrivateGetSubaccountsTransferId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSubaccountsTransferId", args...)
+func (this *PoloniexCore) PrivateGetSubaccountsTransferId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubaccountsTransferId", args...)
 }
 
-func (this *PoloniexCore) PrivateGetWalletsAddresses (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletsAddresses", args...)
+func (this *PoloniexCore) PrivateGetWalletsAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletsAddresses", args...)
 }
 
-func (this *PoloniexCore) PrivateGetWalletsAddressesCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletsAddressesCurrency", args...)
+func (this *PoloniexCore) PrivateGetWalletsAddressesCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletsAddressesCurrency", args...)
 }
 
-func (this *PoloniexCore) PrivateGetWalletsActivity (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletsActivity", args...)
+func (this *PoloniexCore) PrivateGetWalletsActivity(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletsActivity", args...)
 }
 
-func (this *PoloniexCore) PrivateGetMarginAccountMargin (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginAccountMargin", args...)
+func (this *PoloniexCore) PrivateGetMarginAccountMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginAccountMargin", args...)
 }
 
-func (this *PoloniexCore) PrivateGetMarginBorrowStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginBorrowStatus", args...)
+func (this *PoloniexCore) PrivateGetMarginBorrowStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginBorrowStatus", args...)
 }
 
-func (this *PoloniexCore) PrivateGetMarginMaxSize (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginMaxSize", args...)
+func (this *PoloniexCore) PrivateGetMarginMaxSize(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginMaxSize", args...)
 }
 
-func (this *PoloniexCore) PrivateGetOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOrders", args...)
+func (this *PoloniexCore) PrivateGetOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *PoloniexCore) PrivateGetOrdersId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOrdersId", args...)
+func (this *PoloniexCore) PrivateGetOrdersId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersId", args...)
 }
 
-func (this *PoloniexCore) PrivateGetOrdersKillSwitchStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOrdersKillSwitchStatus", args...)
+func (this *PoloniexCore) PrivateGetOrdersKillSwitchStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersKillSwitchStatus", args...)
 }
 
-func (this *PoloniexCore) PrivateGetSmartorders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSmartorders", args...)
+func (this *PoloniexCore) PrivateGetSmartorders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSmartorders", args...)
 }
 
-func (this *PoloniexCore) PrivateGetSmartordersId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSmartordersId", args...)
+func (this *PoloniexCore) PrivateGetSmartordersId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSmartordersId", args...)
 }
 
-func (this *PoloniexCore) PrivateGetOrdersHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOrdersHistory", args...)
+func (this *PoloniexCore) PrivateGetOrdersHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersHistory", args...)
 }
 
-func (this *PoloniexCore) PrivateGetSmartordersHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSmartordersHistory", args...)
+func (this *PoloniexCore) PrivateGetSmartordersHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSmartordersHistory", args...)
 }
 
-func (this *PoloniexCore) PrivateGetTrades (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetTrades", args...)
+func (this *PoloniexCore) PrivateGetTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTrades", args...)
 }
 
-func (this *PoloniexCore) PrivateGetOrdersIdTrades (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOrdersIdTrades", args...)
+func (this *PoloniexCore) PrivateGetOrdersIdTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersIdTrades", args...)
 }
 
-func (this *PoloniexCore) PrivatePostAccountsTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostAccountsTransfer", args...)
+func (this *PoloniexCore) PrivatePostAccountsTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountsTransfer", args...)
 }
 
-func (this *PoloniexCore) PrivatePostSubaccountsTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSubaccountsTransfer", args...)
+func (this *PoloniexCore) PrivatePostSubaccountsTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubaccountsTransfer", args...)
 }
 
-func (this *PoloniexCore) PrivatePostWalletsAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWalletsAddress", args...)
+func (this *PoloniexCore) PrivatePostWalletsAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletsAddress", args...)
 }
 
-func (this *PoloniexCore) PrivatePostWalletsWithdraw (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWalletsWithdraw", args...)
+func (this *PoloniexCore) PrivatePostWalletsWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletsWithdraw", args...)
 }
 
-func (this *PoloniexCore) PrivatePostV2WalletsWithdraw (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostV2WalletsWithdraw", args...)
+func (this *PoloniexCore) PrivatePostV2WalletsWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2WalletsWithdraw", args...)
 }
 
-func (this *PoloniexCore) PrivatePostOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrders", args...)
+func (this *PoloniexCore) PrivatePostOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *PoloniexCore) PrivatePostOrdersBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrdersBatch", args...)
+func (this *PoloniexCore) PrivatePostOrdersBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrdersBatch", args...)
 }
 
-func (this *PoloniexCore) PrivatePostOrdersKillSwitch (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrdersKillSwitch", args...)
+func (this *PoloniexCore) PrivatePostOrdersKillSwitch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrdersKillSwitch", args...)
 }
 
-func (this *PoloniexCore) PrivatePostSmartorders (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSmartorders", args...)
+func (this *PoloniexCore) PrivatePostSmartorders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSmartorders", args...)
 }
 
-func (this *PoloniexCore) PrivateDeleteOrdersId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteOrdersId", args...)
+func (this *PoloniexCore) PrivateDeleteOrdersId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrdersId", args...)
 }
 
-func (this *PoloniexCore) PrivateDeleteOrdersCancelByIds (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteOrdersCancelByIds", args...)
+func (this *PoloniexCore) PrivateDeleteOrdersCancelByIds(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrdersCancelByIds", args...)
 }
 
-func (this *PoloniexCore) PrivateDeleteOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteOrders", args...)
+func (this *PoloniexCore) PrivateDeleteOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrders", args...)
 }
 
-func (this *PoloniexCore) PrivateDeleteSmartordersId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteSmartordersId", args...)
+func (this *PoloniexCore) PrivateDeleteSmartordersId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteSmartordersId", args...)
 }
 
-func (this *PoloniexCore) PrivateDeleteSmartordersCancelByIds (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteSmartordersCancelByIds", args...)
+func (this *PoloniexCore) PrivateDeleteSmartordersCancelByIds(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteSmartordersCancelByIds", args...)
 }
 
-func (this *PoloniexCore) PrivateDeleteSmartorders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteSmartorders", args...)
+func (this *PoloniexCore) PrivateDeleteSmartorders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteSmartorders", args...)
 }
 
-func (this *PoloniexCore) PrivatePutOrdersId (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePutOrdersId", args...)
+func (this *PoloniexCore) PrivatePutOrdersId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutOrdersId", args...)
 }
 
-func (this *PoloniexCore) PrivatePutSmartordersId (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePutSmartordersId", args...)
+func (this *PoloniexCore) PrivatePutSmartordersId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutSmartordersId", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketAllInstruments (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPublicGetV3MarketAllInstruments", args...)
+func (this *PoloniexCore) SwapPublicGetV3MarketAllInstruments(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketAllInstruments", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketInstruments (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPublicGetV3MarketInstruments", args...)
+func (this *PoloniexCore) SwapPublicGetV3MarketInstruments(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketInstruments", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketOrderBook (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPublicGetV3MarketOrderBook", args...)
+func (this *PoloniexCore) SwapPublicGetV3MarketOrderBook(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketOrderBook", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPublicGetV3MarketCandles", args...)
+func (this *PoloniexCore) SwapPublicGetV3MarketCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketCandles", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketIndexPriceCandlesticks (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPublicGetV3MarketIndexPriceCandlesticks", args...)
+func (this *PoloniexCore) SwapPublicGetV3MarketIndexPriceCandlesticks(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketIndexPriceCandlesticks", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketPremiumIndexCandlesticks (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPublicGetV3MarketPremiumIndexCandlesticks", args...)
+func (this *PoloniexCore) SwapPublicGetV3MarketPremiumIndexCandlesticks(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketPremiumIndexCandlesticks", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketMarkPriceCandlesticks (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPublicGetV3MarketMarkPriceCandlesticks", args...)
+func (this *PoloniexCore) SwapPublicGetV3MarketMarkPriceCandlesticks(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketMarkPriceCandlesticks", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketTrades (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPublicGetV3MarketTrades", args...)
+func (this *PoloniexCore) SwapPublicGetV3MarketTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketTrades", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketLiquidationOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPublicGetV3MarketLiquidationOrder", args...)
+func (this *PoloniexCore) SwapPublicGetV3MarketLiquidationOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketLiquidationOrder", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketTickers (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPublicGetV3MarketTickers", args...)
+func (this *PoloniexCore) SwapPublicGetV3MarketTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketTickers", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketMarkPrice (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPublicGetV3MarketMarkPrice", args...)
+func (this *PoloniexCore) SwapPublicGetV3MarketMarkPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketMarkPrice", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketIndexPrice (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPublicGetV3MarketIndexPrice", args...)
+func (this *PoloniexCore) SwapPublicGetV3MarketIndexPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketIndexPrice", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketIndexPriceComponents (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPublicGetV3MarketIndexPriceComponents", args...)
+func (this *PoloniexCore) SwapPublicGetV3MarketIndexPriceComponents(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketIndexPriceComponents", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketFundingRate (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPublicGetV3MarketFundingRate", args...)
+func (this *PoloniexCore) SwapPublicGetV3MarketFundingRate(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketFundingRate", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketOpenInterest (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPublicGetV3MarketOpenInterest", args...)
+func (this *PoloniexCore) SwapPublicGetV3MarketOpenInterest(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketOpenInterest", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketInsurance (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPublicGetV3MarketInsurance", args...)
+func (this *PoloniexCore) SwapPublicGetV3MarketInsurance(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketInsurance", args...)
 }
 
-func (this *PoloniexCore) SwapPublicGetV3MarketRiskLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPublicGetV3MarketRiskLimit", args...)
+func (this *PoloniexCore) SwapPublicGetV3MarketRiskLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketRiskLimit", args...)
 }
 
-func (this *PoloniexCore) SwapPrivateGetV3AccountBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPrivateGetV3AccountBalance", args...)
+func (this *PoloniexCore) SwapPrivateGetV3AccountBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivateGetV3AccountBalance", args...)
 }
 
-func (this *PoloniexCore) SwapPrivateGetV3AccountBills (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPrivateGetV3AccountBills", args...)
+func (this *PoloniexCore) SwapPrivateGetV3AccountBills(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivateGetV3AccountBills", args...)
 }
 
-func (this *PoloniexCore) SwapPrivateGetV3TradeOrderOpens (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPrivateGetV3TradeOrderOpens", args...)
+func (this *PoloniexCore) SwapPrivateGetV3TradeOrderOpens(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivateGetV3TradeOrderOpens", args...)
 }
 
-func (this *PoloniexCore) SwapPrivateGetV3TradeOrderTrades (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPrivateGetV3TradeOrderTrades", args...)
+func (this *PoloniexCore) SwapPrivateGetV3TradeOrderTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivateGetV3TradeOrderTrades", args...)
 }
 
-func (this *PoloniexCore) SwapPrivateGetV3TradeOrderHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPrivateGetV3TradeOrderHistory", args...)
+func (this *PoloniexCore) SwapPrivateGetV3TradeOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivateGetV3TradeOrderHistory", args...)
 }
 
-func (this *PoloniexCore) SwapPrivateGetV3TradePositionOpens (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPrivateGetV3TradePositionOpens", args...)
+func (this *PoloniexCore) SwapPrivateGetV3TradePositionOpens(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivateGetV3TradePositionOpens", args...)
 }
 
-func (this *PoloniexCore) SwapPrivateGetV3TradePositionHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPrivateGetV3TradePositionHistory", args...)
+func (this *PoloniexCore) SwapPrivateGetV3TradePositionHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivateGetV3TradePositionHistory", args...)
 }
 
-func (this *PoloniexCore) SwapPrivateGetV3PositionLeverages (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPrivateGetV3PositionLeverages", args...)
+func (this *PoloniexCore) SwapPrivateGetV3PositionLeverages(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivateGetV3PositionLeverages", args...)
 }
 
-func (this *PoloniexCore) SwapPrivateGetV3PositionMode (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPrivateGetV3PositionMode", args...)
+func (this *PoloniexCore) SwapPrivateGetV3PositionMode(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivateGetV3PositionMode", args...)
 }
 
-func (this *PoloniexCore) SwapPrivatePostV3TradeOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPrivatePostV3TradeOrder", args...)
+func (this *PoloniexCore) SwapPrivatePostV3TradeOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivatePostV3TradeOrder", args...)
 }
 
-func (this *PoloniexCore) SwapPrivatePostV3TradeOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPrivatePostV3TradeOrders", args...)
+func (this *PoloniexCore) SwapPrivatePostV3TradeOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivatePostV3TradeOrders", args...)
 }
 
-func (this *PoloniexCore) SwapPrivatePostV3TradePosition (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPrivatePostV3TradePosition", args...)
+func (this *PoloniexCore) SwapPrivatePostV3TradePosition(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivatePostV3TradePosition", args...)
 }
 
-func (this *PoloniexCore) SwapPrivatePostV3TradePositionAll (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPrivatePostV3TradePositionAll", args...)
+func (this *PoloniexCore) SwapPrivatePostV3TradePositionAll(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivatePostV3TradePositionAll", args...)
 }
 
-func (this *PoloniexCore) SwapPrivatePostV3PositionLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPrivatePostV3PositionLeverage", args...)
+func (this *PoloniexCore) SwapPrivatePostV3PositionLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivatePostV3PositionLeverage", args...)
 }
 
-func (this *PoloniexCore) SwapPrivatePostV3PositionMode (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPrivatePostV3PositionMode", args...)
+func (this *PoloniexCore) SwapPrivatePostV3PositionMode(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivatePostV3PositionMode", args...)
 }
 
-func (this *PoloniexCore) SwapPrivatePostV3TradePositionMargin (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPrivatePostV3TradePositionMargin", args...)
+func (this *PoloniexCore) SwapPrivatePostV3TradePositionMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivatePostV3TradePositionMargin", args...)
 }
 
-func (this *PoloniexCore) SwapPrivateDeleteV3TradeOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPrivateDeleteV3TradeOrder", args...)
+func (this *PoloniexCore) SwapPrivateDeleteV3TradeOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivateDeleteV3TradeOrder", args...)
 }
 
-func (this *PoloniexCore) SwapPrivateDeleteV3TradeBatchOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPrivateDeleteV3TradeBatchOrders", args...)
+func (this *PoloniexCore) SwapPrivateDeleteV3TradeBatchOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivateDeleteV3TradeBatchOrders", args...)
 }
 
-func (this *PoloniexCore) SwapPrivateDeleteV3TradeAllOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("swapPrivateDeleteV3TradeAllOrders", args...)
+func (this *PoloniexCore) SwapPrivateDeleteV3TradeAllOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivateDeleteV3TradeAllOrders", args...)
 }

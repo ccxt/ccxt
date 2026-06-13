@@ -7,202 +7,202 @@
 
 package ccxt
 
-func (this *DeltaCore) PublicGetAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetAssets", args...)
+func (this *DeltaCore) PublicGetAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAssets", args...)
 }
 
-func (this *DeltaCore) PublicGetIndices (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetIndices", args...)
+func (this *DeltaCore) PublicGetIndices(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetIndices", args...)
 }
 
-func (this *DeltaCore) PublicGetProducts (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetProducts", args...)
+func (this *DeltaCore) PublicGetProducts(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetProducts", args...)
 }
 
-func (this *DeltaCore) PublicGetProductsSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetProductsSymbol", args...)
+func (this *DeltaCore) PublicGetProductsSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetProductsSymbol", args...)
 }
 
-func (this *DeltaCore) PublicGetTickers (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTickers", args...)
+func (this *DeltaCore) PublicGetTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *DeltaCore) PublicGetTickersSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTickersSymbol", args...)
+func (this *DeltaCore) PublicGetTickersSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTickersSymbol", args...)
 }
 
-func (this *DeltaCore) PublicGetL2orderbookSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetL2orderbookSymbol", args...)
+func (this *DeltaCore) PublicGetL2orderbookSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetL2orderbookSymbol", args...)
 }
 
-func (this *DeltaCore) PublicGetTradesSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTradesSymbol", args...)
+func (this *DeltaCore) PublicGetTradesSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTradesSymbol", args...)
 }
 
-func (this *DeltaCore) PublicGetStats (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetStats", args...)
+func (this *DeltaCore) PublicGetStats(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetStats", args...)
 }
 
-func (this *DeltaCore) PublicGetHistoryCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetHistoryCandles", args...)
+func (this *DeltaCore) PublicGetHistoryCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetHistoryCandles", args...)
 }
 
-func (this *DeltaCore) PublicGetHistorySparklines (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetHistorySparklines", args...)
+func (this *DeltaCore) PublicGetHistorySparklines(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetHistorySparklines", args...)
 }
 
-func (this *DeltaCore) PublicGetSettings (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetSettings", args...)
+func (this *DeltaCore) PublicGetSettings(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSettings", args...)
 }
 
-func (this *DeltaCore) PrivateGetOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOrders", args...)
+func (this *DeltaCore) PrivateGetOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *DeltaCore) PrivateGetOrdersOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOrdersOrderId", args...)
+func (this *DeltaCore) PrivateGetOrdersOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersOrderId", args...)
 }
 
-func (this *DeltaCore) PrivateGetOrdersClientOrderIdClientOid (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOrdersClientOrderIdClientOid", args...)
+func (this *DeltaCore) PrivateGetOrdersClientOrderIdClientOid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersClientOrderIdClientOid", args...)
 }
 
-func (this *DeltaCore) PrivateGetProductsProductIdOrdersLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetProductsProductIdOrdersLeverage", args...)
+func (this *DeltaCore) PrivateGetProductsProductIdOrdersLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetProductsProductIdOrdersLeverage", args...)
 }
 
-func (this *DeltaCore) PrivateGetPositionsMargined (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetPositionsMargined", args...)
+func (this *DeltaCore) PrivateGetPositionsMargined(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetPositionsMargined", args...)
 }
 
-func (this *DeltaCore) PrivateGetPositions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetPositions", args...)
+func (this *DeltaCore) PrivateGetPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetPositions", args...)
 }
 
-func (this *DeltaCore) PrivateGetOrdersHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOrdersHistory", args...)
+func (this *DeltaCore) PrivateGetOrdersHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersHistory", args...)
 }
 
-func (this *DeltaCore) PrivateGetFills (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFills", args...)
+func (this *DeltaCore) PrivateGetFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFills", args...)
 }
 
-func (this *DeltaCore) PrivateGetFillsHistoryDownloadCsv (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFillsHistoryDownloadCsv", args...)
+func (this *DeltaCore) PrivateGetFillsHistoryDownloadCsv(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFillsHistoryDownloadCsv", args...)
 }
 
-func (this *DeltaCore) PrivateGetWalletBalances (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletBalances", args...)
+func (this *DeltaCore) PrivateGetWalletBalances(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletBalances", args...)
 }
 
-func (this *DeltaCore) PrivateGetWalletTransactions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletTransactions", args...)
+func (this *DeltaCore) PrivateGetWalletTransactions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletTransactions", args...)
 }
 
-func (this *DeltaCore) PrivateGetWalletTransactionsDownload (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletTransactionsDownload", args...)
+func (this *DeltaCore) PrivateGetWalletTransactionsDownload(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletTransactionsDownload", args...)
 }
 
-func (this *DeltaCore) PrivateGetWalletsSubAccountsTransferHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletsSubAccountsTransferHistory", args...)
+func (this *DeltaCore) PrivateGetWalletsSubAccountsTransferHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletsSubAccountsTransferHistory", args...)
 }
 
-func (this *DeltaCore) PrivateGetUsersTradingPreferences (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUsersTradingPreferences", args...)
+func (this *DeltaCore) PrivateGetUsersTradingPreferences(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUsersTradingPreferences", args...)
 }
 
-func (this *DeltaCore) PrivateGetSubAccounts (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSubAccounts", args...)
+func (this *DeltaCore) PrivateGetSubAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubAccounts", args...)
 }
 
-func (this *DeltaCore) PrivateGetProfile (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetProfile", args...)
+func (this *DeltaCore) PrivateGetProfile(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetProfile", args...)
 }
 
-func (this *DeltaCore) PrivateGetHeartbeat (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetHeartbeat", args...)
+func (this *DeltaCore) PrivateGetHeartbeat(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetHeartbeat", args...)
 }
 
-func (this *DeltaCore) PrivateGetDepositsAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetDepositsAddress", args...)
+func (this *DeltaCore) PrivateGetDepositsAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetDepositsAddress", args...)
 }
 
-func (this *DeltaCore) PrivatePostOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrders", args...)
+func (this *DeltaCore) PrivatePostOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *DeltaCore) PrivatePostOrdersBracket (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrdersBracket", args...)
+func (this *DeltaCore) PrivatePostOrdersBracket(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrdersBracket", args...)
 }
 
-func (this *DeltaCore) PrivatePostOrdersBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrdersBatch", args...)
+func (this *DeltaCore) PrivatePostOrdersBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrdersBatch", args...)
 }
 
-func (this *DeltaCore) PrivatePostProductsProductIdOrdersLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostProductsProductIdOrdersLeverage", args...)
+func (this *DeltaCore) PrivatePostProductsProductIdOrdersLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostProductsProductIdOrdersLeverage", args...)
 }
 
-func (this *DeltaCore) PrivatePostPositionsChangeMargin (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostPositionsChangeMargin", args...)
+func (this *DeltaCore) PrivatePostPositionsChangeMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPositionsChangeMargin", args...)
 }
 
-func (this *DeltaCore) PrivatePostPositionsCloseAll (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostPositionsCloseAll", args...)
+func (this *DeltaCore) PrivatePostPositionsCloseAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPositionsCloseAll", args...)
 }
 
-func (this *DeltaCore) PrivatePostWalletsSubAccountBalanceTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWalletsSubAccountBalanceTransfer", args...)
+func (this *DeltaCore) PrivatePostWalletsSubAccountBalanceTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletsSubAccountBalanceTransfer", args...)
 }
 
-func (this *DeltaCore) PrivatePostHeartbeatCreate (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostHeartbeatCreate", args...)
+func (this *DeltaCore) PrivatePostHeartbeatCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostHeartbeatCreate", args...)
 }
 
-func (this *DeltaCore) PrivatePostHeartbeat (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostHeartbeat", args...)
+func (this *DeltaCore) PrivatePostHeartbeat(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostHeartbeat", args...)
 }
 
-func (this *DeltaCore) PrivatePostOrdersCancelAfter (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrdersCancelAfter", args...)
+func (this *DeltaCore) PrivatePostOrdersCancelAfter(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrdersCancelAfter", args...)
 }
 
-func (this *DeltaCore) PrivatePostOrdersLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrdersLeverage", args...)
+func (this *DeltaCore) PrivatePostOrdersLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrdersLeverage", args...)
 }
 
-func (this *DeltaCore) PrivatePutOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePutOrders", args...)
+func (this *DeltaCore) PrivatePutOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutOrders", args...)
 }
 
-func (this *DeltaCore) PrivatePutOrdersBracket (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePutOrdersBracket", args...)
+func (this *DeltaCore) PrivatePutOrdersBracket(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutOrdersBracket", args...)
 }
 
-func (this *DeltaCore) PrivatePutOrdersBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePutOrdersBatch", args...)
+func (this *DeltaCore) PrivatePutOrdersBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutOrdersBatch", args...)
 }
 
-func (this *DeltaCore) PrivatePutPositionsAutoTopup (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePutPositionsAutoTopup", args...)
+func (this *DeltaCore) PrivatePutPositionsAutoTopup(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutPositionsAutoTopup", args...)
 }
 
-func (this *DeltaCore) PrivatePutUsersUpdateMmp (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePutUsersUpdateMmp", args...)
+func (this *DeltaCore) PrivatePutUsersUpdateMmp(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutUsersUpdateMmp", args...)
 }
 
-func (this *DeltaCore) PrivatePutUsersResetMmp (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePutUsersResetMmp", args...)
+func (this *DeltaCore) PrivatePutUsersResetMmp(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutUsersResetMmp", args...)
 }
 
-func (this *DeltaCore) PrivateDeleteOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteOrders", args...)
+func (this *DeltaCore) PrivateDeleteOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrders", args...)
 }
 
-func (this *DeltaCore) PrivateDeleteOrdersAll (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteOrdersAll", args...)
+func (this *DeltaCore) PrivateDeleteOrdersAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrdersAll", args...)
 }
 
-func (this *DeltaCore) PrivateDeleteOrdersBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteOrdersBatch", args...)
+func (this *DeltaCore) PrivateDeleteOrdersBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrdersBatch", args...)
 }

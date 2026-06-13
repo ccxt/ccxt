@@ -86,7 +86,7 @@ description: "如果您的问题像上面那样简短，我们将不予协助。
 
   ## 如何创建带有止盈+止损的订单？
   一些交易所支持通过 `createOrder` 附带额外的 `stopLoss` 和 `takeProfit` 子订单——请查看[附加到仓位的止损和止盈订单](/docs/manual#stoploss-and-takeprofit-orders-attached-to-a-position)。
-  但是，某些交易所可能不支持该功能，您需要单独运行 `createOrder` 方法来向已开仓位添加条件订单（例如 ***触发订单 | 止损订单 | 止盈订单**）——请查看[条件订单](Manual.md#Conditional Orders)。
+  但是，某些交易所可能不支持该功能，您需要单独运行 `createOrder` 方法来向已开仓位添加条件订单（例如 ***触发订单 | 止损订单 | 止盈订单**）——请查看[条件订单](/docs/manual#conditional-orders)。
   您还可以通过查看 `exchange.has['createOrderWithTakeProfitAndStopLoss']`、`exchange.has['createStopLossOrder']` 和 `exchange.has['createTakeProfitOrder']` 来检查，但它们不如 `.features` 属性精确。
 
   ## `takeProfit/stopLoss` 和 `takeProfitPrice/stopLossPrice` 订单之间有什么区别

@@ -1074,8 +1074,8 @@ node run-tests --python-async kraken # test Kraken with Python async test, requi
 
 테스트를 추가하려면 다음 단계를 따르세요:
 
-- 트랜스파일 가능한 문법을 따라 [ts/tests/Exchange](ts/test/Exchange/)에 파일을 생성하세요.
-- [ts/src/test/tests.ts](ts/src/test/tests.ts#L354)의 `runPrivateTests` 또는 `runPublicTests`에 테스트를 추가하거나, CCXT Pro 엔드포인트의 경우 [ts/src/pro/test/tests.ts](ts/src/pro/test/tests.ts#L121)에 추가하세요.
+- 트랜스파일 가능한 문법을 따라 [ts/tests/Exchange](https://github.com/ccxt/ccxt/tree/master/ts/test/Exchange)에 파일을 생성하세요.
+- [ts/src/test/tests.ts](https://github.com/ccxt/ccxt/blob/master/ts/src/test/tests.ts#L354)의 `runPrivateTests` 또는 `runPublicTests`에 테스트를 추가하거나, CCXT Pro 엔드포인트의 경우 [ts/src/pro/test/tests.ts](https://github.com/ccxt/ccxt/blob/master/ts/src/pro/test/tests.ts#L121)에 추가하세요.
 - `npm run transpile`을 실행하여 JavaScript, Python, PHP에서 테스트 파일을 생성하세요.
 - `node run-tests`로 테스트를 호출하세요.
 

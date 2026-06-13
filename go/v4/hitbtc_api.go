@@ -7,446 +7,446 @@
 
 package ccxt
 
-func (this *HitbtcCore) PublicGetPublicCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicCurrency", args...)
+func (this *HitbtcCore) PublicGetPublicCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicCurrency", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicCurrencyCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicCurrencyCurrency", args...)
+func (this *HitbtcCore) PublicGetPublicCurrencyCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicCurrencyCurrency", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicSymbol", args...)
+func (this *HitbtcCore) PublicGetPublicSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicSymbol", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicSymbolSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicSymbolSymbol", args...)
+func (this *HitbtcCore) PublicGetPublicSymbolSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicSymbolSymbol", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicTicker", args...)
+func (this *HitbtcCore) PublicGetPublicTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicTicker", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicTickerSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicTickerSymbol", args...)
+func (this *HitbtcCore) PublicGetPublicTickerSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicTickerSymbol", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicPriceRate (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicPriceRate", args...)
+func (this *HitbtcCore) PublicGetPublicPriceRate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicPriceRate", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicPriceHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicPriceHistory", args...)
+func (this *HitbtcCore) PublicGetPublicPriceHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicPriceHistory", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicPriceTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicPriceTicker", args...)
+func (this *HitbtcCore) PublicGetPublicPriceTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicPriceTicker", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicPriceTickerSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicPriceTickerSymbol", args...)
+func (this *HitbtcCore) PublicGetPublicPriceTickerSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicPriceTickerSymbol", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicTrades (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicTrades", args...)
+func (this *HitbtcCore) PublicGetPublicTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicTrades", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicTradesSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicTradesSymbol", args...)
+func (this *HitbtcCore) PublicGetPublicTradesSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicTradesSymbol", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicOrderbook (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicOrderbook", args...)
+func (this *HitbtcCore) PublicGetPublicOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicOrderbook", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicOrderbookSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicOrderbookSymbol", args...)
+func (this *HitbtcCore) PublicGetPublicOrderbookSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicOrderbookSymbol", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicCandles", args...)
+func (this *HitbtcCore) PublicGetPublicCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicCandles", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicCandlesSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicCandlesSymbol", args...)
+func (this *HitbtcCore) PublicGetPublicCandlesSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicCandlesSymbol", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicConvertedCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicConvertedCandles", args...)
+func (this *HitbtcCore) PublicGetPublicConvertedCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicConvertedCandles", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicConvertedCandlesSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicConvertedCandlesSymbol", args...)
+func (this *HitbtcCore) PublicGetPublicConvertedCandlesSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicConvertedCandlesSymbol", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicFuturesInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesInfo", args...)
+func (this *HitbtcCore) PublicGetPublicFuturesInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesInfo", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicFuturesInfoSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesInfoSymbol", args...)
+func (this *HitbtcCore) PublicGetPublicFuturesInfoSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesInfoSymbol", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicFuturesHistoryFunding (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesHistoryFunding", args...)
+func (this *HitbtcCore) PublicGetPublicFuturesHistoryFunding(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesHistoryFunding", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicFuturesHistoryFundingSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesHistoryFundingSymbol", args...)
+func (this *HitbtcCore) PublicGetPublicFuturesHistoryFundingSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesHistoryFundingSymbol", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicFuturesCandlesIndexPrice (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesIndexPrice", args...)
+func (this *HitbtcCore) PublicGetPublicFuturesCandlesIndexPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesIndexPrice", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicFuturesCandlesIndexPriceSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesIndexPriceSymbol", args...)
+func (this *HitbtcCore) PublicGetPublicFuturesCandlesIndexPriceSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesIndexPriceSymbol", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicFuturesCandlesMarkPrice (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesMarkPrice", args...)
+func (this *HitbtcCore) PublicGetPublicFuturesCandlesMarkPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesMarkPrice", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicFuturesCandlesMarkPriceSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesMarkPriceSymbol", args...)
+func (this *HitbtcCore) PublicGetPublicFuturesCandlesMarkPriceSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesMarkPriceSymbol", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicFuturesCandlesPremiumIndex (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesPremiumIndex", args...)
+func (this *HitbtcCore) PublicGetPublicFuturesCandlesPremiumIndex(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesPremiumIndex", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicFuturesCandlesPremiumIndexSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesPremiumIndexSymbol", args...)
+func (this *HitbtcCore) PublicGetPublicFuturesCandlesPremiumIndexSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesPremiumIndexSymbol", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicFuturesCandlesOpenInterest (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesOpenInterest", args...)
+func (this *HitbtcCore) PublicGetPublicFuturesCandlesOpenInterest(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesOpenInterest", args...)
 }
 
-func (this *HitbtcCore) PublicGetPublicFuturesCandlesOpenInterestSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesOpenInterestSymbol", args...)
+func (this *HitbtcCore) PublicGetPublicFuturesCandlesOpenInterestSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesOpenInterestSymbol", args...)
 }
 
-func (this *HitbtcCore) PrivateGetSpotBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotBalance", args...)
+func (this *HitbtcCore) PrivateGetSpotBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotBalance", args...)
 }
 
-func (this *HitbtcCore) PrivateGetSpotBalanceCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotBalanceCurrency", args...)
+func (this *HitbtcCore) PrivateGetSpotBalanceCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotBalanceCurrency", args...)
 }
 
-func (this *HitbtcCore) PrivateGetSpotOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotOrder", args...)
+func (this *HitbtcCore) PrivateGetSpotOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotOrder", args...)
 }
 
-func (this *HitbtcCore) PrivateGetSpotOrderClientOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotOrderClientOrderId", args...)
+func (this *HitbtcCore) PrivateGetSpotOrderClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotOrderClientOrderId", args...)
 }
 
-func (this *HitbtcCore) PrivateGetSpotFee (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotFee", args...)
+func (this *HitbtcCore) PrivateGetSpotFee(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotFee", args...)
 }
 
-func (this *HitbtcCore) PrivateGetSpotFeeSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotFeeSymbol", args...)
+func (this *HitbtcCore) PrivateGetSpotFeeSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotFeeSymbol", args...)
 }
 
-func (this *HitbtcCore) PrivateGetSpotHistoryOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotHistoryOrder", args...)
+func (this *HitbtcCore) PrivateGetSpotHistoryOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotHistoryOrder", args...)
 }
 
-func (this *HitbtcCore) PrivateGetSpotHistoryTrade (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotHistoryTrade", args...)
+func (this *HitbtcCore) PrivateGetSpotHistoryTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotHistoryTrade", args...)
 }
 
-func (this *HitbtcCore) PrivateGetMarginAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginAccount", args...)
+func (this *HitbtcCore) PrivateGetMarginAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginAccount", args...)
 }
 
-func (this *HitbtcCore) PrivateGetMarginAccountIsolatedSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginAccountIsolatedSymbol", args...)
+func (this *HitbtcCore) PrivateGetMarginAccountIsolatedSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginAccountIsolatedSymbol", args...)
 }
 
-func (this *HitbtcCore) PrivateGetMarginAccountCrossCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginAccountCrossCurrency", args...)
+func (this *HitbtcCore) PrivateGetMarginAccountCrossCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginAccountCrossCurrency", args...)
 }
 
-func (this *HitbtcCore) PrivateGetMarginOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginOrder", args...)
+func (this *HitbtcCore) PrivateGetMarginOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginOrder", args...)
 }
 
-func (this *HitbtcCore) PrivateGetMarginOrderClientOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginOrderClientOrderId", args...)
+func (this *HitbtcCore) PrivateGetMarginOrderClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginOrderClientOrderId", args...)
 }
 
-func (this *HitbtcCore) PrivateGetMarginConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginConfig", args...)
+func (this *HitbtcCore) PrivateGetMarginConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginConfig", args...)
 }
 
-func (this *HitbtcCore) PrivateGetMarginHistoryOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginHistoryOrder", args...)
+func (this *HitbtcCore) PrivateGetMarginHistoryOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginHistoryOrder", args...)
 }
 
-func (this *HitbtcCore) PrivateGetMarginHistoryTrade (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginHistoryTrade", args...)
+func (this *HitbtcCore) PrivateGetMarginHistoryTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginHistoryTrade", args...)
 }
 
-func (this *HitbtcCore) PrivateGetMarginHistoryPositions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginHistoryPositions", args...)
+func (this *HitbtcCore) PrivateGetMarginHistoryPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginHistoryPositions", args...)
 }
 
-func (this *HitbtcCore) PrivateGetMarginHistoryClearing (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginHistoryClearing", args...)
+func (this *HitbtcCore) PrivateGetMarginHistoryClearing(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginHistoryClearing", args...)
 }
 
-func (this *HitbtcCore) PrivateGetFuturesBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesBalance", args...)
+func (this *HitbtcCore) PrivateGetFuturesBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesBalance", args...)
 }
 
-func (this *HitbtcCore) PrivateGetFuturesBalanceCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesBalanceCurrency", args...)
+func (this *HitbtcCore) PrivateGetFuturesBalanceCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesBalanceCurrency", args...)
 }
 
-func (this *HitbtcCore) PrivateGetFuturesAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesAccount", args...)
+func (this *HitbtcCore) PrivateGetFuturesAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesAccount", args...)
 }
 
-func (this *HitbtcCore) PrivateGetFuturesAccountIsolatedSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesAccountIsolatedSymbol", args...)
+func (this *HitbtcCore) PrivateGetFuturesAccountIsolatedSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesAccountIsolatedSymbol", args...)
 }
 
-func (this *HitbtcCore) PrivateGetFuturesOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesOrder", args...)
+func (this *HitbtcCore) PrivateGetFuturesOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesOrder", args...)
 }
 
-func (this *HitbtcCore) PrivateGetFuturesOrderClientOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesOrderClientOrderId", args...)
+func (this *HitbtcCore) PrivateGetFuturesOrderClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesOrderClientOrderId", args...)
 }
 
-func (this *HitbtcCore) PrivateGetFuturesConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesConfig", args...)
+func (this *HitbtcCore) PrivateGetFuturesConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesConfig", args...)
 }
 
-func (this *HitbtcCore) PrivateGetFuturesFee (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesFee", args...)
+func (this *HitbtcCore) PrivateGetFuturesFee(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesFee", args...)
 }
 
-func (this *HitbtcCore) PrivateGetFuturesFeeSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesFeeSymbol", args...)
+func (this *HitbtcCore) PrivateGetFuturesFeeSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesFeeSymbol", args...)
 }
 
-func (this *HitbtcCore) PrivateGetFuturesHistoryOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesHistoryOrder", args...)
+func (this *HitbtcCore) PrivateGetFuturesHistoryOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesHistoryOrder", args...)
 }
 
-func (this *HitbtcCore) PrivateGetFuturesHistoryTrade (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesHistoryTrade", args...)
+func (this *HitbtcCore) PrivateGetFuturesHistoryTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesHistoryTrade", args...)
 }
 
-func (this *HitbtcCore) PrivateGetFuturesHistoryPositions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesHistoryPositions", args...)
+func (this *HitbtcCore) PrivateGetFuturesHistoryPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesHistoryPositions", args...)
 }
 
-func (this *HitbtcCore) PrivateGetFuturesHistoryClearing (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesHistoryClearing", args...)
+func (this *HitbtcCore) PrivateGetFuturesHistoryClearing(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesHistoryClearing", args...)
 }
 
-func (this *HitbtcCore) PrivateGetWalletBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletBalance", args...)
+func (this *HitbtcCore) PrivateGetWalletBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletBalance", args...)
 }
 
-func (this *HitbtcCore) PrivateGetWalletBalanceCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletBalanceCurrency", args...)
+func (this *HitbtcCore) PrivateGetWalletBalanceCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletBalanceCurrency", args...)
 }
 
-func (this *HitbtcCore) PrivateGetWalletCryptoAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletCryptoAddress", args...)
+func (this *HitbtcCore) PrivateGetWalletCryptoAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletCryptoAddress", args...)
 }
 
-func (this *HitbtcCore) PrivateGetWalletCryptoAddressRecentDeposit (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletCryptoAddressRecentDeposit", args...)
+func (this *HitbtcCore) PrivateGetWalletCryptoAddressRecentDeposit(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletCryptoAddressRecentDeposit", args...)
 }
 
-func (this *HitbtcCore) PrivateGetWalletCryptoAddressRecentWithdraw (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletCryptoAddressRecentWithdraw", args...)
+func (this *HitbtcCore) PrivateGetWalletCryptoAddressRecentWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletCryptoAddressRecentWithdraw", args...)
 }
 
-func (this *HitbtcCore) PrivateGetWalletCryptoAddressCheckMine (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletCryptoAddressCheckMine", args...)
+func (this *HitbtcCore) PrivateGetWalletCryptoAddressCheckMine(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletCryptoAddressCheckMine", args...)
 }
 
-func (this *HitbtcCore) PrivateGetWalletTransactions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletTransactions", args...)
+func (this *HitbtcCore) PrivateGetWalletTransactions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletTransactions", args...)
 }
 
-func (this *HitbtcCore) PrivateGetWalletTransactionsTxId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletTransactionsTxId", args...)
+func (this *HitbtcCore) PrivateGetWalletTransactionsTxId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletTransactionsTxId", args...)
 }
 
-func (this *HitbtcCore) PrivateGetWalletCryptoFeeEstimate (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletCryptoFeeEstimate", args...)
+func (this *HitbtcCore) PrivateGetWalletCryptoFeeEstimate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletCryptoFeeEstimate", args...)
 }
 
-func (this *HitbtcCore) PrivateGetWalletAirdrops (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletAirdrops", args...)
+func (this *HitbtcCore) PrivateGetWalletAirdrops(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletAirdrops", args...)
 }
 
-func (this *HitbtcCore) PrivateGetWalletAmountLocks (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletAmountLocks", args...)
+func (this *HitbtcCore) PrivateGetWalletAmountLocks(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletAmountLocks", args...)
 }
 
-func (this *HitbtcCore) PrivateGetSubAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSubAccount", args...)
+func (this *HitbtcCore) PrivateGetSubAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubAccount", args...)
 }
 
-func (this *HitbtcCore) PrivateGetSubAccountAcl (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSubAccountAcl", args...)
+func (this *HitbtcCore) PrivateGetSubAccountAcl(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubAccountAcl", args...)
 }
 
-func (this *HitbtcCore) PrivateGetSubAccountBalanceSubAccID (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSubAccountBalanceSubAccID", args...)
+func (this *HitbtcCore) PrivateGetSubAccountBalanceSubAccID(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubAccountBalanceSubAccID", args...)
 }
 
-func (this *HitbtcCore) PrivateGetSubAccountCryptoAddressSubAccIDCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSubAccountCryptoAddressSubAccIDCurrency", args...)
+func (this *HitbtcCore) PrivateGetSubAccountCryptoAddressSubAccIDCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubAccountCryptoAddressSubAccIDCurrency", args...)
 }
 
-func (this *HitbtcCore) PrivatePostSpotOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSpotOrder", args...)
+func (this *HitbtcCore) PrivatePostSpotOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSpotOrder", args...)
 }
 
-func (this *HitbtcCore) PrivatePostSpotOrderList (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSpotOrderList", args...)
+func (this *HitbtcCore) PrivatePostSpotOrderList(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSpotOrderList", args...)
 }
 
-func (this *HitbtcCore) PrivatePostMarginOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostMarginOrder", args...)
+func (this *HitbtcCore) PrivatePostMarginOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginOrder", args...)
 }
 
-func (this *HitbtcCore) PrivatePostMarginOrderList (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostMarginOrderList", args...)
+func (this *HitbtcCore) PrivatePostMarginOrderList(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginOrderList", args...)
 }
 
-func (this *HitbtcCore) PrivatePostFuturesOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostFuturesOrder", args...)
+func (this *HitbtcCore) PrivatePostFuturesOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFuturesOrder", args...)
 }
 
-func (this *HitbtcCore) PrivatePostFuturesOrderList (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostFuturesOrderList", args...)
+func (this *HitbtcCore) PrivatePostFuturesOrderList(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFuturesOrderList", args...)
 }
 
-func (this *HitbtcCore) PrivatePostWalletCryptoAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWalletCryptoAddress", args...)
+func (this *HitbtcCore) PrivatePostWalletCryptoAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletCryptoAddress", args...)
 }
 
-func (this *HitbtcCore) PrivatePostWalletCryptoWithdraw (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWalletCryptoWithdraw", args...)
+func (this *HitbtcCore) PrivatePostWalletCryptoWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletCryptoWithdraw", args...)
 }
 
-func (this *HitbtcCore) PrivatePostWalletConvert (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWalletConvert", args...)
+func (this *HitbtcCore) PrivatePostWalletConvert(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletConvert", args...)
 }
 
-func (this *HitbtcCore) PrivatePostWalletTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWalletTransfer", args...)
+func (this *HitbtcCore) PrivatePostWalletTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletTransfer", args...)
 }
 
-func (this *HitbtcCore) PrivatePostWalletInternalWithdraw (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWalletInternalWithdraw", args...)
+func (this *HitbtcCore) PrivatePostWalletInternalWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletInternalWithdraw", args...)
 }
 
-func (this *HitbtcCore) PrivatePostWalletCryptoCheckOffchainAvailable (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWalletCryptoCheckOffchainAvailable", args...)
+func (this *HitbtcCore) PrivatePostWalletCryptoCheckOffchainAvailable(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletCryptoCheckOffchainAvailable", args...)
 }
 
-func (this *HitbtcCore) PrivatePostWalletCryptoFeesEstimate (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWalletCryptoFeesEstimate", args...)
+func (this *HitbtcCore) PrivatePostWalletCryptoFeesEstimate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletCryptoFeesEstimate", args...)
 }
 
-func (this *HitbtcCore) PrivatePostWalletAirdropsIdClaim (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWalletAirdropsIdClaim", args...)
+func (this *HitbtcCore) PrivatePostWalletAirdropsIdClaim(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletAirdropsIdClaim", args...)
 }
 
-func (this *HitbtcCore) PrivatePostSubAccountFreeze (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSubAccountFreeze", args...)
+func (this *HitbtcCore) PrivatePostSubAccountFreeze(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubAccountFreeze", args...)
 }
 
-func (this *HitbtcCore) PrivatePostSubAccountActivate (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSubAccountActivate", args...)
+func (this *HitbtcCore) PrivatePostSubAccountActivate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubAccountActivate", args...)
 }
 
-func (this *HitbtcCore) PrivatePostSubAccountTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSubAccountTransfer", args...)
+func (this *HitbtcCore) PrivatePostSubAccountTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubAccountTransfer", args...)
 }
 
-func (this *HitbtcCore) PrivatePostSubAccountAcl (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSubAccountAcl", args...)
+func (this *HitbtcCore) PrivatePostSubAccountAcl(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubAccountAcl", args...)
 }
 
-func (this *HitbtcCore) PrivatePatchSpotOrderClientOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePatchSpotOrderClientOrderId", args...)
+func (this *HitbtcCore) PrivatePatchSpotOrderClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePatchSpotOrderClientOrderId", args...)
 }
 
-func (this *HitbtcCore) PrivatePatchMarginOrderClientOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePatchMarginOrderClientOrderId", args...)
+func (this *HitbtcCore) PrivatePatchMarginOrderClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePatchMarginOrderClientOrderId", args...)
 }
 
-func (this *HitbtcCore) PrivatePatchFuturesOrderClientOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePatchFuturesOrderClientOrderId", args...)
+func (this *HitbtcCore) PrivatePatchFuturesOrderClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePatchFuturesOrderClientOrderId", args...)
 }
 
-func (this *HitbtcCore) PrivateDeleteSpotOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteSpotOrder", args...)
+func (this *HitbtcCore) PrivateDeleteSpotOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteSpotOrder", args...)
 }
 
-func (this *HitbtcCore) PrivateDeleteSpotOrderClientOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteSpotOrderClientOrderId", args...)
+func (this *HitbtcCore) PrivateDeleteSpotOrderClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteSpotOrderClientOrderId", args...)
 }
 
-func (this *HitbtcCore) PrivateDeleteMarginPosition (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteMarginPosition", args...)
+func (this *HitbtcCore) PrivateDeleteMarginPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteMarginPosition", args...)
 }
 
-func (this *HitbtcCore) PrivateDeleteMarginPositionIsolatedSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteMarginPositionIsolatedSymbol", args...)
+func (this *HitbtcCore) PrivateDeleteMarginPositionIsolatedSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteMarginPositionIsolatedSymbol", args...)
 }
 
-func (this *HitbtcCore) PrivateDeleteMarginOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteMarginOrder", args...)
+func (this *HitbtcCore) PrivateDeleteMarginOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteMarginOrder", args...)
 }
 
-func (this *HitbtcCore) PrivateDeleteMarginOrderClientOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteMarginOrderClientOrderId", args...)
+func (this *HitbtcCore) PrivateDeleteMarginOrderClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteMarginOrderClientOrderId", args...)
 }
 
-func (this *HitbtcCore) PrivateDeleteFuturesPosition (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteFuturesPosition", args...)
+func (this *HitbtcCore) PrivateDeleteFuturesPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteFuturesPosition", args...)
 }
 
-func (this *HitbtcCore) PrivateDeleteFuturesPositionMarginModeSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteFuturesPositionMarginModeSymbol", args...)
+func (this *HitbtcCore) PrivateDeleteFuturesPositionMarginModeSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteFuturesPositionMarginModeSymbol", args...)
 }
 
-func (this *HitbtcCore) PrivateDeleteFuturesOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteFuturesOrder", args...)
+func (this *HitbtcCore) PrivateDeleteFuturesOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteFuturesOrder", args...)
 }
 
-func (this *HitbtcCore) PrivateDeleteFuturesOrderClientOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteFuturesOrderClientOrderId", args...)
+func (this *HitbtcCore) PrivateDeleteFuturesOrderClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteFuturesOrderClientOrderId", args...)
 }
 
-func (this *HitbtcCore) PrivateDeleteWalletCryptoWithdrawId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteWalletCryptoWithdrawId", args...)
+func (this *HitbtcCore) PrivateDeleteWalletCryptoWithdrawId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteWalletCryptoWithdrawId", args...)
 }
 
-func (this *HitbtcCore) PrivatePutMarginAccountIsolatedSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePutMarginAccountIsolatedSymbol", args...)
+func (this *HitbtcCore) PrivatePutMarginAccountIsolatedSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutMarginAccountIsolatedSymbol", args...)
 }
 
-func (this *HitbtcCore) PrivatePutFuturesAccountIsolatedSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePutFuturesAccountIsolatedSymbol", args...)
+func (this *HitbtcCore) PrivatePutFuturesAccountIsolatedSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutFuturesAccountIsolatedSymbol", args...)
 }
 
-func (this *HitbtcCore) PrivatePutWalletCryptoWithdrawId (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePutWalletCryptoWithdrawId", args...)
+func (this *HitbtcCore) PrivatePutWalletCryptoWithdrawId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutWalletCryptoWithdrawId", args...)
 }

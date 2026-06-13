@@ -7,2550 +7,2550 @@
 
 package ccxt
 
-func (this *BitgetCore) PublicCommonGetV2PublicAnnoucements (args ...any) <-chan any {
-   return this.callEndpointAsync("publicCommonGetV2PublicAnnoucements", args...)
+func (this *BitgetCore) PublicCommonGetV2PublicAnnoucements(args ...any) <-chan any {
+	return this.callEndpointAsync("publicCommonGetV2PublicAnnoucements", args...)
 }
 
-func (this *BitgetCore) PublicCommonGetV2PublicTime (args ...any) <-chan any {
-   return this.callEndpointAsync("publicCommonGetV2PublicTime", args...)
+func (this *BitgetCore) PublicCommonGetV2PublicTime(args ...any) <-chan any {
+	return this.callEndpointAsync("publicCommonGetV2PublicTime", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetSpotV1NoticeQueryAllNotices (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetSpotV1NoticeQueryAllNotices", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1NoticeQueryAllNotices(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetSpotV1NoticeQueryAllNotices", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetSpotV1PublicTime (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetSpotV1PublicTime", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1PublicTime(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetSpotV1PublicTime", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetSpotV1PublicCurrencies (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetSpotV1PublicCurrencies", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1PublicCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetSpotV1PublicCurrencies", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetSpotV1PublicProducts (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetSpotV1PublicProducts", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1PublicProducts(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetSpotV1PublicProducts", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetSpotV1PublicProduct (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetSpotV1PublicProduct", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1PublicProduct(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetSpotV1PublicProduct", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetSpotV1MarketTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetSpotV1MarketTicker", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1MarketTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetSpotV1MarketTicker", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetSpotV1MarketTickers (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetSpotV1MarketTickers", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1MarketTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetSpotV1MarketTickers", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetSpotV1MarketFills (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetSpotV1MarketFills", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1MarketFills(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetSpotV1MarketFills", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetSpotV1MarketFillsHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetSpotV1MarketFillsHistory", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1MarketFillsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetSpotV1MarketFillsHistory", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetSpotV1MarketCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetSpotV1MarketCandles", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1MarketCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetSpotV1MarketCandles", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetSpotV1MarketDepth (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetSpotV1MarketDepth", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1MarketDepth(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetSpotV1MarketDepth", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetSpotV1MarketSpotVipLevel (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetSpotV1MarketSpotVipLevel", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1MarketSpotVipLevel(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetSpotV1MarketSpotVipLevel", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetSpotV1MarketMergeDepth (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetSpotV1MarketMergeDepth", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1MarketMergeDepth(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetSpotV1MarketMergeDepth", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetSpotV1MarketHistoryCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetSpotV1MarketHistoryCandles", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1MarketHistoryCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetSpotV1MarketHistoryCandles", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetSpotV1PublicLoanCoinInfos (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetSpotV1PublicLoanCoinInfos", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1PublicLoanCoinInfos(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetSpotV1PublicLoanCoinInfos", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetSpotV1PublicLoanHourInterest (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetSpotV1PublicLoanHourInterest", args...)
+func (this *BitgetCore) PublicSpotGetSpotV1PublicLoanHourInterest(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetSpotV1PublicLoanHourInterest", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetV2SpotPublicCoins (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetV2SpotPublicCoins", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotPublicCoins(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetV2SpotPublicCoins", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetV2SpotPublicSymbols (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetV2SpotPublicSymbols", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotPublicSymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetV2SpotPublicSymbols", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetV2SpotMarketVipFeeRate (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetV2SpotMarketVipFeeRate", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotMarketVipFeeRate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetV2SpotMarketVipFeeRate", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetV2SpotMarketTickers (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetV2SpotMarketTickers", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotMarketTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetV2SpotMarketTickers", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetV2SpotMarketMergeDepth (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetV2SpotMarketMergeDepth", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotMarketMergeDepth(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetV2SpotMarketMergeDepth", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetV2SpotMarketOrderbook (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetV2SpotMarketOrderbook", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotMarketOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetV2SpotMarketOrderbook", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetV2SpotMarketCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetV2SpotMarketCandles", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotMarketCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetV2SpotMarketCandles", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetV2SpotMarketHistoryCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetV2SpotMarketHistoryCandles", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotMarketHistoryCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetV2SpotMarketHistoryCandles", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetV2SpotMarketFills (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetV2SpotMarketFills", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotMarketFills(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetV2SpotMarketFills", args...)
 }
 
-func (this *BitgetCore) PublicSpotGetV2SpotMarketFillsHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("publicSpotGetV2SpotMarketFillsHistory", args...)
+func (this *BitgetCore) PublicSpotGetV2SpotMarketFillsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicSpotGetV2SpotMarketFillsHistory", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketContracts (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketContracts", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketContracts(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketContracts", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketDepth (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketDepth", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketDepth(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketDepth", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketTicker", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketTicker", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketTickers (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketTickers", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketTickers", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketContractVipLevel (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketContractVipLevel", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketContractVipLevel(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketContractVipLevel", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketFills (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketFills", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketFills(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketFills", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketFillsHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketFillsHistory", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketFillsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketFillsHistory", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketCandles", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketCandles", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketIndex (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketIndex", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketIndex(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketIndex", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketFundingTime (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketFundingTime", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketFundingTime(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketFundingTime", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketHistoryFundRate (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketHistoryFundRate", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketHistoryFundRate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketHistoryFundRate", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketCurrentFundRate (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketCurrentFundRate", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketCurrentFundRate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketCurrentFundRate", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketOpenInterest (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketOpenInterest", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketOpenInterest(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketOpenInterest", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketMarkPrice (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketMarkPrice", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketMarkPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketMarkPrice", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketSymbolLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketSymbolLeverage", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketSymbolLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketSymbolLeverage", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketQueryPositionLever (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketQueryPositionLever", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketQueryPositionLever(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketQueryPositionLever", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketOpenLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketOpenLimit", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketOpenLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketOpenLimit", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketHistoryCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketHistoryCandles", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketHistoryCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketHistoryCandles", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketHistoryIndexCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketHistoryIndexCandles", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketHistoryIndexCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketHistoryIndexCandles", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketHistoryMarkCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketHistoryMarkCandles", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketHistoryMarkCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketHistoryMarkCandles", args...)
 }
 
-func (this *BitgetCore) PublicMixGetMixV1MarketMergeDepth (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetMixV1MarketMergeDepth", args...)
+func (this *BitgetCore) PublicMixGetMixV1MarketMergeDepth(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetMixV1MarketMergeDepth", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketVipFeeRate (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketVipFeeRate", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketVipFeeRate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketVipFeeRate", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketUnionInterestRateHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketUnionInterestRateHistory", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketUnionInterestRateHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketUnionInterestRateHistory", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketExchangeRate (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketExchangeRate", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketExchangeRate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketExchangeRate", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketDiscountRate (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketDiscountRate", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketDiscountRate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketDiscountRate", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketMergeDepth (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketMergeDepth", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketMergeDepth(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketMergeDepth", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketTicker", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketTicker", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketTickers (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketTickers", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketTickers", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketFills (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketFills", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketFills(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketFills", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketFillsHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketFillsHistory", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketFillsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketFillsHistory", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketCandles", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketCandles", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketHistoryCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketHistoryCandles", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketHistoryCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketHistoryCandles", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketHistoryIndexCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketHistoryIndexCandles", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketHistoryIndexCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketHistoryIndexCandles", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketHistoryMarkCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketHistoryMarkCandles", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketHistoryMarkCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketHistoryMarkCandles", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketOpenInterest (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketOpenInterest", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketOpenInterest(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketOpenInterest", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketFundingTime (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketFundingTime", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketFundingTime(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketFundingTime", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketSymbolPrice (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketSymbolPrice", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketSymbolPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketSymbolPrice", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketHistoryFundRate (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketHistoryFundRate", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketHistoryFundRate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketHistoryFundRate", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketCurrentFundRate (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketCurrentFundRate", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketCurrentFundRate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketCurrentFundRate", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketOiLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketOiLimit", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketOiLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketOiLimit", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketContracts (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketContracts", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketContracts(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketContracts", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketQueryPositionLever (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketQueryPositionLever", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketQueryPositionLever(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketQueryPositionLever", args...)
 }
 
-func (this *BitgetCore) PublicMixGetV2MixMarketAccountLongShort (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMixGetV2MixMarketAccountLongShort", args...)
+func (this *BitgetCore) PublicMixGetV2MixMarketAccountLongShort(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMixGetV2MixMarketAccountLongShort", args...)
 }
 
-func (this *BitgetCore) PublicMarginGetMarginV1CrossPublicInterestRateAndLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMarginGetMarginV1CrossPublicInterestRateAndLimit", args...)
+func (this *BitgetCore) PublicMarginGetMarginV1CrossPublicInterestRateAndLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMarginGetMarginV1CrossPublicInterestRateAndLimit", args...)
 }
 
-func (this *BitgetCore) PublicMarginGetMarginV1IsolatedPublicInterestRateAndLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMarginGetMarginV1IsolatedPublicInterestRateAndLimit", args...)
+func (this *BitgetCore) PublicMarginGetMarginV1IsolatedPublicInterestRateAndLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMarginGetMarginV1IsolatedPublicInterestRateAndLimit", args...)
 }
 
-func (this *BitgetCore) PublicMarginGetMarginV1CrossPublicTierData (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMarginGetMarginV1CrossPublicTierData", args...)
+func (this *BitgetCore) PublicMarginGetMarginV1CrossPublicTierData(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMarginGetMarginV1CrossPublicTierData", args...)
 }
 
-func (this *BitgetCore) PublicMarginGetMarginV1IsolatedPublicTierData (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMarginGetMarginV1IsolatedPublicTierData", args...)
+func (this *BitgetCore) PublicMarginGetMarginV1IsolatedPublicTierData(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMarginGetMarginV1IsolatedPublicTierData", args...)
 }
 
-func (this *BitgetCore) PublicMarginGetMarginV1PublicCurrencies (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMarginGetMarginV1PublicCurrencies", args...)
+func (this *BitgetCore) PublicMarginGetMarginV1PublicCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMarginGetMarginV1PublicCurrencies", args...)
 }
 
-func (this *BitgetCore) PublicMarginGetV2MarginCurrencies (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMarginGetV2MarginCurrencies", args...)
+func (this *BitgetCore) PublicMarginGetV2MarginCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMarginGetV2MarginCurrencies", args...)
 }
 
-func (this *BitgetCore) PublicMarginGetV2MarginMarketLongShortRatio (args ...any) <-chan any {
-   return this.callEndpointAsync("publicMarginGetV2MarginMarketLongShortRatio", args...)
+func (this *BitgetCore) PublicMarginGetV2MarginMarketLongShortRatio(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMarginGetV2MarginMarketLongShortRatio", args...)
 }
 
-func (this *BitgetCore) PublicEarnGetV2EarnLoanPublicCoinInfos (args ...any) <-chan any {
-   return this.callEndpointAsync("publicEarnGetV2EarnLoanPublicCoinInfos", args...)
+func (this *BitgetCore) PublicEarnGetV2EarnLoanPublicCoinInfos(args ...any) <-chan any {
+	return this.callEndpointAsync("publicEarnGetV2EarnLoanPublicCoinInfos", args...)
 }
 
-func (this *BitgetCore) PublicEarnGetV2EarnLoanPublicHourInterest (args ...any) <-chan any {
-   return this.callEndpointAsync("publicEarnGetV2EarnLoanPublicHourInterest", args...)
+func (this *BitgetCore) PublicEarnGetV2EarnLoanPublicHourInterest(args ...any) <-chan any {
+	return this.callEndpointAsync("publicEarnGetV2EarnLoanPublicHourInterest", args...)
 }
 
-func (this *BitgetCore) PublicUtaGetV3MarketInstruments (args ...any) <-chan any {
-   return this.callEndpointAsync("publicUtaGetV3MarketInstruments", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketInstruments(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketInstruments", args...)
 }
 
-func (this *BitgetCore) PublicUtaGetV3MarketTickers (args ...any) <-chan any {
-   return this.callEndpointAsync("publicUtaGetV3MarketTickers", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketTickers", args...)
 }
 
-func (this *BitgetCore) PublicUtaGetV3MarketOrderbook (args ...any) <-chan any {
-   return this.callEndpointAsync("publicUtaGetV3MarketOrderbook", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketOrderbook", args...)
 }
 
-func (this *BitgetCore) PublicUtaGetV3MarketFills (args ...any) <-chan any {
-   return this.callEndpointAsync("publicUtaGetV3MarketFills", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketFills(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketFills", args...)
 }
 
-func (this *BitgetCore) PublicUtaGetV3MarketProofOfReserves (args ...any) <-chan any {
-   return this.callEndpointAsync("publicUtaGetV3MarketProofOfReserves", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketProofOfReserves(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketProofOfReserves", args...)
 }
 
-func (this *BitgetCore) PublicUtaGetV3MarketOpenInterest (args ...any) <-chan any {
-   return this.callEndpointAsync("publicUtaGetV3MarketOpenInterest", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketOpenInterest(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketOpenInterest", args...)
 }
 
-func (this *BitgetCore) PublicUtaGetV3MarketCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicUtaGetV3MarketCandles", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketCandles", args...)
 }
 
-func (this *BitgetCore) PublicUtaGetV3MarketHistoryCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicUtaGetV3MarketHistoryCandles", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketHistoryCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketHistoryCandles", args...)
 }
 
-func (this *BitgetCore) PublicUtaGetV3MarketCurrentFundRate (args ...any) <-chan any {
-   return this.callEndpointAsync("publicUtaGetV3MarketCurrentFundRate", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketCurrentFundRate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketCurrentFundRate", args...)
 }
 
-func (this *BitgetCore) PublicUtaGetV3MarketHistoryFundRate (args ...any) <-chan any {
-   return this.callEndpointAsync("publicUtaGetV3MarketHistoryFundRate", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketHistoryFundRate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketHistoryFundRate", args...)
 }
 
-func (this *BitgetCore) PublicUtaGetV3MarketRiskReserve (args ...any) <-chan any {
-   return this.callEndpointAsync("publicUtaGetV3MarketRiskReserve", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketRiskReserve(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketRiskReserve", args...)
 }
 
-func (this *BitgetCore) PublicUtaGetV3MarketDiscountRate (args ...any) <-chan any {
-   return this.callEndpointAsync("publicUtaGetV3MarketDiscountRate", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketDiscountRate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketDiscountRate", args...)
 }
 
-func (this *BitgetCore) PublicUtaGetV3MarketMarginLoans (args ...any) <-chan any {
-   return this.callEndpointAsync("publicUtaGetV3MarketMarginLoans", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketMarginLoans(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketMarginLoans", args...)
 }
 
-func (this *BitgetCore) PublicUtaGetV3MarketPositionTier (args ...any) <-chan any {
-   return this.callEndpointAsync("publicUtaGetV3MarketPositionTier", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketPositionTier(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketPositionTier", args...)
 }
 
-func (this *BitgetCore) PublicUtaGetV3MarketOiLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("publicUtaGetV3MarketOiLimit", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketOiLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketOiLimit", args...)
 }
 
-func (this *BitgetCore) PublicUtaGetV3MarketIndexComponents (args ...any) <-chan any {
-   return this.callEndpointAsync("publicUtaGetV3MarketIndexComponents", args...)
+func (this *BitgetCore) PublicUtaGetV3MarketIndexComponents(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketIndexComponents", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetSpotV1WalletDepositAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetSpotV1WalletDepositAddress", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1WalletDepositAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetSpotV1WalletDepositAddress", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetSpotV1WalletWithdrawalList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetSpotV1WalletWithdrawalList", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1WalletWithdrawalList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetSpotV1WalletWithdrawalList", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetSpotV1WalletDepositList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetSpotV1WalletDepositList", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1WalletDepositList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetSpotV1WalletDepositList", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetSpotV1AccountGetInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetSpotV1AccountGetInfo", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1AccountGetInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetSpotV1AccountGetInfo", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetSpotV1AccountAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetSpotV1AccountAssets", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1AccountAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetSpotV1AccountAssets", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetSpotV1AccountAssetsLite (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetSpotV1AccountAssetsLite", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1AccountAssetsLite(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetSpotV1AccountAssetsLite", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetSpotV1AccountTransferRecords (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetSpotV1AccountTransferRecords", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1AccountTransferRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetSpotV1AccountTransferRecords", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetSpotV1ConvertCurrencies (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetSpotV1ConvertCurrencies", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1ConvertCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetSpotV1ConvertCurrencies", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetSpotV1ConvertConvertRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetSpotV1ConvertConvertRecord", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1ConvertConvertRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetSpotV1ConvertConvertRecord", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetSpotV1LoanOngoingOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetSpotV1LoanOngoingOrders", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1LoanOngoingOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetSpotV1LoanOngoingOrders", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetSpotV1LoanRepayHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetSpotV1LoanRepayHistory", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1LoanRepayHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetSpotV1LoanRepayHistory", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetSpotV1LoanReviseHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetSpotV1LoanReviseHistory", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1LoanReviseHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetSpotV1LoanReviseHistory", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetSpotV1LoanBorrowHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetSpotV1LoanBorrowHistory", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1LoanBorrowHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetSpotV1LoanBorrowHistory", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetSpotV1LoanDebts (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetSpotV1LoanDebts", args...)
+func (this *BitgetCore) PrivateSpotGetSpotV1LoanDebts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetSpotV1LoanDebts", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetV2SpotTradeOrderInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetV2SpotTradeOrderInfo", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotTradeOrderInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetV2SpotTradeOrderInfo", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetV2SpotTradeUnfilledOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetV2SpotTradeUnfilledOrders", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotTradeUnfilledOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetV2SpotTradeUnfilledOrders", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetV2SpotTradeHistoryOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetV2SpotTradeHistoryOrders", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotTradeHistoryOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetV2SpotTradeHistoryOrders", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetV2SpotTradeFills (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetV2SpotTradeFills", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotTradeFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetV2SpotTradeFills", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetV2SpotTradeCurrentPlanOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetV2SpotTradeCurrentPlanOrder", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotTradeCurrentPlanOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetV2SpotTradeCurrentPlanOrder", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetV2SpotTradeHistoryPlanOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetV2SpotTradeHistoryPlanOrder", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotTradeHistoryPlanOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetV2SpotTradeHistoryPlanOrder", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetV2SpotAccountInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetV2SpotAccountInfo", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotAccountInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetV2SpotAccountInfo", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetV2SpotAccountAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetV2SpotAccountAssets", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotAccountAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetV2SpotAccountAssets", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetV2SpotAccountSubaccountAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetV2SpotAccountSubaccountAssets", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotAccountSubaccountAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetV2SpotAccountSubaccountAssets", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetV2SpotAccountBills (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetV2SpotAccountBills", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotAccountBills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetV2SpotAccountBills", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetV2SpotAccountTransferRecords (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetV2SpotAccountTransferRecords", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotAccountTransferRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetV2SpotAccountTransferRecords", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetV2AccountFundingAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetV2AccountFundingAssets", args...)
+func (this *BitgetCore) PrivateSpotGetV2AccountFundingAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetV2AccountFundingAssets", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetV2AccountBotAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetV2AccountBotAssets", args...)
+func (this *BitgetCore) PrivateSpotGetV2AccountBotAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetV2AccountBotAssets", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetV2AccountAllAccountBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetV2AccountAllAccountBalance", args...)
+func (this *BitgetCore) PrivateSpotGetV2AccountAllAccountBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetV2AccountAllAccountBalance", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetV2SpotWalletDepositAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetV2SpotWalletDepositAddress", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotWalletDepositAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetV2SpotWalletDepositAddress", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetV2SpotWalletDepositRecords (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetV2SpotWalletDepositRecords", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotWalletDepositRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetV2SpotWalletDepositRecords", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetV2SpotWalletWithdrawalRecords (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetV2SpotWalletWithdrawalRecords", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotWalletWithdrawalRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetV2SpotWalletWithdrawalRecords", args...)
 }
 
-func (this *BitgetCore) PrivateSpotGetV2SpotAccountUpgradeStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotGetV2SpotAccountUpgradeStatus", args...)
+func (this *BitgetCore) PrivateSpotGetV2SpotAccountUpgradeStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetV2SpotAccountUpgradeStatus", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1WalletTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1WalletTransfer", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1WalletTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1WalletTransfer", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1WalletTransferV2 (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1WalletTransferV2", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1WalletTransferV2(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1WalletTransferV2", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1WalletSubTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1WalletSubTransfer", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1WalletSubTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1WalletSubTransfer", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1WalletWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawal", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1WalletWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawal", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1WalletWithdrawalV2 (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawalV2", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1WalletWithdrawalV2(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawalV2", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1WalletWithdrawalInner (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawalInner", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1WalletWithdrawalInner(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawalInner", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1WalletWithdrawalInnerV2 (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawalInnerV2", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1WalletWithdrawalInnerV2(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawalInnerV2", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1AccountSubAccountSpotAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1AccountSubAccountSpotAssets", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1AccountSubAccountSpotAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1AccountSubAccountSpotAssets", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1AccountBills (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1AccountBills", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1AccountBills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1AccountBills", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TradeOrders", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TradeOrders", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeBatchOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TradeBatchOrders", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeBatchOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TradeBatchOrders", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelOrder", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelOrder", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelOrderV2 (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelOrderV2", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelOrderV2(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelOrderV2", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelSymbolOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelSymbolOrder", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelSymbolOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelSymbolOrder", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelBatchOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelBatchOrders", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelBatchOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelBatchOrders", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelBatchOrdersV2 (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelBatchOrdersV2", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelBatchOrdersV2(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelBatchOrdersV2", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeOrderInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TradeOrderInfo", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeOrderInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TradeOrderInfo", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeOpenOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TradeOpenOrders", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TradeOpenOrders", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TradeHistory", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TradeHistory", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeFills (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TradeFills", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TradeFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TradeFills", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1PlanPlacePlan (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1PlanPlacePlan", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1PlanPlacePlan(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1PlanPlacePlan", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1PlanModifyPlan (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1PlanModifyPlan", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1PlanModifyPlan(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1PlanModifyPlan", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1PlanCancelPlan (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1PlanCancelPlan", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1PlanCancelPlan(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1PlanCancelPlan", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1PlanCurrentPlan (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1PlanCurrentPlan", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1PlanCurrentPlan(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1PlanCurrentPlan", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1PlanHistoryPlan (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1PlanHistoryPlan", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1PlanHistoryPlan(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1PlanHistoryPlan", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1PlanBatchCancelPlan (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1PlanBatchCancelPlan", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1PlanBatchCancelPlan(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1PlanBatchCancelPlan", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1ConvertQuotedPrice (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1ConvertQuotedPrice", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1ConvertQuotedPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1ConvertQuotedPrice", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1ConvertTrade (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1ConvertTrade", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1ConvertTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1ConvertTrade", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1LoanBorrow (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1LoanBorrow", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1LoanBorrow(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1LoanBorrow", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1LoanRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1LoanRepay", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1LoanRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1LoanRepay", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1LoanRevisePledge (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1LoanRevisePledge", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1LoanRevisePledge(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1LoanRevisePledge", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderOrderCurrentList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderOrderCurrentList", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderOrderCurrentList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderOrderCurrentList", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderOrderHistoryList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderOrderHistoryList", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderOrderHistoryList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderOrderHistoryList", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderCloseTrackingOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderCloseTrackingOrder", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderCloseTrackingOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderCloseTrackingOrder", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderUpdateTpsl (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderUpdateTpsl", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderUpdateTpsl(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderUpdateTpsl", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderFollowerEndOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderFollowerEndOrder", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderFollowerEndOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderFollowerEndOrder", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderSpotInfoList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderSpotInfoList", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderSpotInfoList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderSpotInfoList", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceConfigGetTraderSettings (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigGetTraderSettings", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceConfigGetTraderSettings(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigGetTraderSettings", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceConfigGetFollowerSettings (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigGetFollowerSettings", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceConfigGetFollowerSettings(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigGetFollowerSettings", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserMyTraders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceUserMyTraders", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserMyTraders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceUserMyTraders", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceConfigSetFollowerConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigSetFollowerConfig", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceConfigSetFollowerConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigSetFollowerConfig", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserMyFollowers (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceUserMyFollowers", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserMyFollowers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceUserMyFollowers", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceConfigSetProductCode (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigSetProductCode", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceConfigSetProductCode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigSetProductCode", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserRemoveTrader (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceUserRemoveTrader", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserRemoveTrader(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceUserRemoveTrader", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceGetRemovableFollower (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceGetRemovableFollower", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceGetRemovableFollower(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceGetRemovableFollower", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserRemoveFollower (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceUserRemoveFollower", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserRemoveFollower(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceUserRemoveFollower", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitTotalProfitInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitTotalProfitInfo", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitTotalProfitInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitTotalProfitInfo", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitTotalProfitList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitTotalProfitList", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitTotalProfitList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitTotalProfitList", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitProfitHisList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitProfitHisList", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitProfitHisList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitProfitHisList", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitProfitHisDetailList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitProfitHisDetailList", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitProfitHisDetailList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitProfitHisDetailList", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitWaitProfitDetailList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitWaitProfitDetailList", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitWaitProfitDetailList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitWaitProfitDetailList", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserGetTraderInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostSpotV1TraceUserGetTraderInfo", args...)
+func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserGetTraderInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostSpotV1TraceUserGetTraderInfo", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostV2SpotTradePlaceOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostV2SpotTradePlaceOrder", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradePlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostV2SpotTradePlaceOrder", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelOrder", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelOrder", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostV2SpotTradeBatchOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostV2SpotTradeBatchOrders", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradeBatchOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostV2SpotTradeBatchOrders", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostV2SpotTradeBatchCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostV2SpotTradeBatchCancelOrder", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradeBatchCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostV2SpotTradeBatchCancelOrder", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelSymbolOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelSymbolOrder", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelSymbolOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelSymbolOrder", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostV2SpotTradePlacePlanOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostV2SpotTradePlacePlanOrder", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradePlacePlanOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostV2SpotTradePlacePlanOrder", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostV2SpotTradeModifyPlanOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostV2SpotTradeModifyPlanOrder", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradeModifyPlanOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostV2SpotTradeModifyPlanOrder", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelPlanOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelPlanOrder", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelPlanOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelPlanOrder", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelReplaceOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelReplaceOrder", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelReplaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelReplaceOrder", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostV2SpotTradeBatchCancelPlanOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostV2SpotTradeBatchCancelPlanOrder", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotTradeBatchCancelPlanOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostV2SpotTradeBatchCancelPlanOrder", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostV2SpotWalletTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostV2SpotWalletTransfer", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotWalletTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostV2SpotWalletTransfer", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostV2SpotWalletSubaccountTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostV2SpotWalletSubaccountTransfer", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotWalletSubaccountTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostV2SpotWalletSubaccountTransfer", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostV2SpotWalletWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostV2SpotWalletWithdrawal", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotWalletWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostV2SpotWalletWithdrawal", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostV2SpotWalletCancelWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostV2SpotWalletCancelWithdrawal", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotWalletCancelWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostV2SpotWalletCancelWithdrawal", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostV2SpotWalletModifyDepositAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostV2SpotWalletModifyDepositAccount", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotWalletModifyDepositAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostV2SpotWalletModifyDepositAccount", args...)
 }
 
-func (this *BitgetCore) PrivateSpotPostV2SpotAccountUpgrade (args ...any) <-chan any {
-   return this.callEndpointAsync("privateSpotPostV2SpotAccountUpgrade", args...)
+func (this *BitgetCore) PrivateSpotPostV2SpotAccountUpgrade(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostV2SpotAccountUpgrade", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1AccountAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1AccountAccount", args...)
+func (this *BitgetCore) PrivateMixGetMixV1AccountAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1AccountAccount", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1AccountAccounts (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1AccountAccounts", args...)
+func (this *BitgetCore) PrivateMixGetMixV1AccountAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1AccountAccounts", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1PositionSinglePosition (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1PositionSinglePosition", args...)
+func (this *BitgetCore) PrivateMixGetMixV1PositionSinglePosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1PositionSinglePosition", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1PositionSinglePositionV2 (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1PositionSinglePositionV2", args...)
+func (this *BitgetCore) PrivateMixGetMixV1PositionSinglePositionV2(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1PositionSinglePositionV2", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1PositionAllPosition (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1PositionAllPosition", args...)
+func (this *BitgetCore) PrivateMixGetMixV1PositionAllPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1PositionAllPosition", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1PositionAllPositionV2 (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1PositionAllPositionV2", args...)
+func (this *BitgetCore) PrivateMixGetMixV1PositionAllPositionV2(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1PositionAllPositionV2", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1PositionHistoryPosition (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1PositionHistoryPosition", args...)
+func (this *BitgetCore) PrivateMixGetMixV1PositionHistoryPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1PositionHistoryPosition", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1AccountAccountBill (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1AccountAccountBill", args...)
+func (this *BitgetCore) PrivateMixGetMixV1AccountAccountBill(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1AccountAccountBill", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1AccountAccountBusinessBill (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1AccountAccountBusinessBill", args...)
+func (this *BitgetCore) PrivateMixGetMixV1AccountAccountBusinessBill(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1AccountAccountBusinessBill", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1OrderCurrent (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1OrderCurrent", args...)
+func (this *BitgetCore) PrivateMixGetMixV1OrderCurrent(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1OrderCurrent", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1OrderMarginCoinCurrent (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1OrderMarginCoinCurrent", args...)
+func (this *BitgetCore) PrivateMixGetMixV1OrderMarginCoinCurrent(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1OrderMarginCoinCurrent", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1OrderHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1OrderHistory", args...)
+func (this *BitgetCore) PrivateMixGetMixV1OrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1OrderHistory", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1OrderHistoryProductType (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1OrderHistoryProductType", args...)
+func (this *BitgetCore) PrivateMixGetMixV1OrderHistoryProductType(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1OrderHistoryProductType", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1OrderDetail (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1OrderDetail", args...)
+func (this *BitgetCore) PrivateMixGetMixV1OrderDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1OrderDetail", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1OrderFills (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1OrderFills", args...)
+func (this *BitgetCore) PrivateMixGetMixV1OrderFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1OrderFills", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1OrderAllFills (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1OrderAllFills", args...)
+func (this *BitgetCore) PrivateMixGetMixV1OrderAllFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1OrderAllFills", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1PlanCurrentPlan (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1PlanCurrentPlan", args...)
+func (this *BitgetCore) PrivateMixGetMixV1PlanCurrentPlan(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1PlanCurrentPlan", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1PlanHistoryPlan (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1PlanHistoryPlan", args...)
+func (this *BitgetCore) PrivateMixGetMixV1PlanHistoryPlan(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1PlanHistoryPlan", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1TraceCurrentTrack (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1TraceCurrentTrack", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceCurrentTrack(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1TraceCurrentTrack", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1TraceFollowerOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1TraceFollowerOrder", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceFollowerOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1TraceFollowerOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1TraceFollowerHistoryOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1TraceFollowerHistoryOrders", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceFollowerHistoryOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1TraceFollowerHistoryOrders", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1TraceHistoryTrack (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1TraceHistoryTrack", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceHistoryTrack(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1TraceHistoryTrack", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1TraceSummary (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1TraceSummary", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1TraceSummary", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1TraceProfitSettleTokenIdGroup (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1TraceProfitSettleTokenIdGroup", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceProfitSettleTokenIdGroup(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1TraceProfitSettleTokenIdGroup", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1TraceProfitDateGroupList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1TraceProfitDateGroupList", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceProfitDateGroupList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1TraceProfitDateGroupList", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1TradeProfitDateList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1TradeProfitDateList", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TradeProfitDateList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1TradeProfitDateList", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1TraceWaitProfitDateList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1TraceWaitProfitDateList", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceWaitProfitDateList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1TraceWaitProfitDateList", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1TraceTraderSymbols (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1TraceTraderSymbols", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceTraderSymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1TraceTraderSymbols", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1TraceTraderList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1TraceTraderList", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceTraderList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1TraceTraderList", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1TraceTraderDetail (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1TraceTraderDetail", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceTraderDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1TraceTraderDetail", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetMixV1TraceQueryTraceConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetMixV1TraceQueryTraceConfig", args...)
+func (this *BitgetCore) PrivateMixGetMixV1TraceQueryTraceConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetMixV1TraceQueryTraceConfig", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixAccountAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixAccountAccount", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixAccountAccount", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixAccountAccounts (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixAccountAccounts", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixAccountAccounts", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixAccountSubAccountAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixAccountSubAccountAssets", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountSubAccountAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixAccountSubAccountAssets", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixAccountInterestHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixAccountInterestHistory", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountInterestHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixAccountInterestHistory", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixAccountMaxOpen (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixAccountMaxOpen", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountMaxOpen(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixAccountMaxOpen", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixAccountLiqPrice (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixAccountLiqPrice", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountLiqPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixAccountLiqPrice", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixAccountOpenCount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixAccountOpenCount", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountOpenCount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixAccountOpenCount", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixAccountBill (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixAccountBill", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountBill(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixAccountBill", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixAccountTransferLimits (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixAccountTransferLimits", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountTransferLimits(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixAccountTransferLimits", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixAccountUnionConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixAccountUnionConfig", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountUnionConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixAccountUnionConfig", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixAccountSwitchUnionUsdt (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixAccountSwitchUnionUsdt", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountSwitchUnionUsdt(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixAccountSwitchUnionUsdt", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixAccountIsolatedSymbols (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixAccountIsolatedSymbols", args...)
+func (this *BitgetCore) PrivateMixGetV2MixAccountIsolatedSymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixAccountIsolatedSymbols", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixMarketQueryPositionLever (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixMarketQueryPositionLever", args...)
+func (this *BitgetCore) PrivateMixGetV2MixMarketQueryPositionLever(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixMarketQueryPositionLever", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixPositionSinglePosition (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixPositionSinglePosition", args...)
+func (this *BitgetCore) PrivateMixGetV2MixPositionSinglePosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixPositionSinglePosition", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixPositionAllPosition (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixPositionAllPosition", args...)
+func (this *BitgetCore) PrivateMixGetV2MixPositionAllPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixPositionAllPosition", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixPositionAdlRank (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixPositionAdlRank", args...)
+func (this *BitgetCore) PrivateMixGetV2MixPositionAdlRank(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixPositionAdlRank", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixPositionHistoryPosition (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixPositionHistoryPosition", args...)
+func (this *BitgetCore) PrivateMixGetV2MixPositionHistoryPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixPositionHistoryPosition", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixOrderDetail (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixOrderDetail", args...)
+func (this *BitgetCore) PrivateMixGetV2MixOrderDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixOrderDetail", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixOrderFills (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixOrderFills", args...)
+func (this *BitgetCore) PrivateMixGetV2MixOrderFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixOrderFills", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixOrderFillHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixOrderFillHistory", args...)
+func (this *BitgetCore) PrivateMixGetV2MixOrderFillHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixOrderFillHistory", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixOrderOrdersPending (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixOrderOrdersPending", args...)
+func (this *BitgetCore) PrivateMixGetV2MixOrderOrdersPending(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixOrderOrdersPending", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixOrderOrdersHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixOrderOrdersHistory", args...)
+func (this *BitgetCore) PrivateMixGetV2MixOrderOrdersHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixOrderOrdersHistory", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixOrderPlanSubOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixOrderPlanSubOrder", args...)
+func (this *BitgetCore) PrivateMixGetV2MixOrderPlanSubOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixOrderPlanSubOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixOrderOrdersPlanPending (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixOrderOrdersPlanPending", args...)
+func (this *BitgetCore) PrivateMixGetV2MixOrderOrdersPlanPending(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixOrderOrdersPlanPending", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixOrderOrdersPlanHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixOrderOrdersPlanHistory", args...)
+func (this *BitgetCore) PrivateMixGetV2MixOrderOrdersPlanHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixOrderOrdersPlanHistory", args...)
 }
 
-func (this *BitgetCore) PrivateMixGetV2MixMarketPositionLongShort (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixGetV2MixMarketPositionLongShort", args...)
+func (this *BitgetCore) PrivateMixGetV2MixMarketPositionLongShort(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixGetV2MixMarketPositionLongShort", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1AccountSubAccountContractAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1AccountSubAccountContractAssets", args...)
+func (this *BitgetCore) PrivateMixPostMixV1AccountSubAccountContractAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1AccountSubAccountContractAssets", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1AccountOpenCount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1AccountOpenCount", args...)
+func (this *BitgetCore) PrivateMixPostMixV1AccountOpenCount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1AccountOpenCount", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1AccountSetLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1AccountSetLeverage", args...)
+func (this *BitgetCore) PrivateMixPostMixV1AccountSetLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1AccountSetLeverage", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1AccountSetMargin (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1AccountSetMargin", args...)
+func (this *BitgetCore) PrivateMixPostMixV1AccountSetMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1AccountSetMargin", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1AccountSetMarginMode (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1AccountSetMarginMode", args...)
+func (this *BitgetCore) PrivateMixPostMixV1AccountSetMarginMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1AccountSetMarginMode", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1AccountSetPositionMode (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1AccountSetPositionMode", args...)
+func (this *BitgetCore) PrivateMixPostMixV1AccountSetPositionMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1AccountSetPositionMode", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1OrderPlaceOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1OrderPlaceOrder", args...)
+func (this *BitgetCore) PrivateMixPostMixV1OrderPlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1OrderPlaceOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1OrderBatchOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1OrderBatchOrders", args...)
+func (this *BitgetCore) PrivateMixPostMixV1OrderBatchOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1OrderBatchOrders", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1OrderCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1OrderCancelOrder", args...)
+func (this *BitgetCore) PrivateMixPostMixV1OrderCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1OrderCancelOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1OrderCancelBatchOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1OrderCancelBatchOrders", args...)
+func (this *BitgetCore) PrivateMixPostMixV1OrderCancelBatchOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1OrderCancelBatchOrders", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1OrderModifyOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1OrderModifyOrder", args...)
+func (this *BitgetCore) PrivateMixPostMixV1OrderModifyOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1OrderModifyOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1OrderCancelSymbolOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1OrderCancelSymbolOrders", args...)
+func (this *BitgetCore) PrivateMixPostMixV1OrderCancelSymbolOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1OrderCancelSymbolOrders", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1OrderCancelAllOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1OrderCancelAllOrders", args...)
+func (this *BitgetCore) PrivateMixPostMixV1OrderCancelAllOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1OrderCancelAllOrders", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1OrderCloseAllPositions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1OrderCloseAllPositions", args...)
+func (this *BitgetCore) PrivateMixPostMixV1OrderCloseAllPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1OrderCloseAllPositions", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1PlanPlacePlan (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1PlanPlacePlan", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanPlacePlan(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1PlanPlacePlan", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1PlanModifyPlan (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1PlanModifyPlan", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanModifyPlan(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1PlanModifyPlan", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1PlanModifyPlanPreset (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1PlanModifyPlanPreset", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanModifyPlanPreset(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1PlanModifyPlanPreset", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1PlanPlaceTPSL (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1PlanPlaceTPSL", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanPlaceTPSL(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1PlanPlaceTPSL", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1PlanPlaceTrailStop (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1PlanPlaceTrailStop", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanPlaceTrailStop(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1PlanPlaceTrailStop", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1PlanPlacePositionsTPSL (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1PlanPlacePositionsTPSL", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanPlacePositionsTPSL(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1PlanPlacePositionsTPSL", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1PlanModifyTPSLPlan (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1PlanModifyTPSLPlan", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanModifyTPSLPlan(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1PlanModifyTPSLPlan", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1PlanCancelPlan (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1PlanCancelPlan", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanCancelPlan(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1PlanCancelPlan", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1PlanCancelSymbolPlan (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1PlanCancelSymbolPlan", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanCancelSymbolPlan(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1PlanCancelSymbolPlan", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1PlanCancelAllPlan (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1PlanCancelAllPlan", args...)
+func (this *BitgetCore) PrivateMixPostMixV1PlanCancelAllPlan(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1PlanCancelAllPlan", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1TraceCloseTrackOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1TraceCloseTrackOrder", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceCloseTrackOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1TraceCloseTrackOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1TraceModifyTPSL (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1TraceModifyTPSL", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceModifyTPSL(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1TraceModifyTPSL", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1TraceCloseTrackOrderBySymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1TraceCloseTrackOrderBySymbol", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceCloseTrackOrderBySymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1TraceCloseTrackOrderBySymbol", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1TraceSetUpCopySymbols (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1TraceSetUpCopySymbols", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceSetUpCopySymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1TraceSetUpCopySymbols", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1TraceFollowerSetBatchTraceConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1TraceFollowerSetBatchTraceConfig", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceFollowerSetBatchTraceConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1TraceFollowerSetBatchTraceConfig", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1TraceFollowerCloseByTrackingNo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1TraceFollowerCloseByTrackingNo", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceFollowerCloseByTrackingNo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1TraceFollowerCloseByTrackingNo", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1TraceFollowerCloseByAll (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1TraceFollowerCloseByAll", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceFollowerCloseByAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1TraceFollowerCloseByAll", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1TraceFollowerSetTpsl (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1TraceFollowerSetTpsl", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceFollowerSetTpsl(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1TraceFollowerSetTpsl", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1TraceCancelCopyTrader (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1TraceCancelCopyTrader", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceCancelCopyTrader(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1TraceCancelCopyTrader", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1TraceTraderUpdateConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1TraceTraderUpdateConfig", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceTraderUpdateConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1TraceTraderUpdateConfig", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1TraceMyTraderList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1TraceMyTraderList", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceMyTraderList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1TraceMyTraderList", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1TraceMyFollowerList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1TraceMyFollowerList", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceMyFollowerList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1TraceMyFollowerList", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1TraceRemoveFollower (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1TraceRemoveFollower", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceRemoveFollower(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1TraceRemoveFollower", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1TracePublicGetFollowerConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1TracePublicGetFollowerConfig", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TracePublicGetFollowerConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1TracePublicGetFollowerConfig", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1TraceReportOrderHistoryList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1TraceReportOrderHistoryList", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceReportOrderHistoryList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1TraceReportOrderHistoryList", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1TraceReportOrderCurrentList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1TraceReportOrderCurrentList", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceReportOrderCurrentList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1TraceReportOrderCurrentList", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1TraceQueryTraderTpslRatioConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1TraceQueryTraderTpslRatioConfig", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceQueryTraderTpslRatioConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1TraceQueryTraderTpslRatioConfig", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostMixV1TraceTraderUpdateTpslRatioConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostMixV1TraceTraderUpdateTpslRatioConfig", args...)
+func (this *BitgetCore) PrivateMixPostMixV1TraceTraderUpdateTpslRatioConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostMixV1TraceTraderUpdateTpslRatioConfig", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixAccountSetAutoMargin (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixAccountSetAutoMargin", args...)
+func (this *BitgetCore) PrivateMixPostV2MixAccountSetAutoMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixAccountSetAutoMargin", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixAccountSetLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixAccountSetLeverage", args...)
+func (this *BitgetCore) PrivateMixPostV2MixAccountSetLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixAccountSetLeverage", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixAccountSetAllLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixAccountSetAllLeverage", args...)
+func (this *BitgetCore) PrivateMixPostV2MixAccountSetAllLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixAccountSetAllLeverage", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixAccountSetMargin (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixAccountSetMargin", args...)
+func (this *BitgetCore) PrivateMixPostV2MixAccountSetMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixAccountSetMargin", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixAccountSetAssetMode (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixAccountSetAssetMode", args...)
+func (this *BitgetCore) PrivateMixPostV2MixAccountSetAssetMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixAccountSetAssetMode", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixAccountSetMarginMode (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixAccountSetMarginMode", args...)
+func (this *BitgetCore) PrivateMixPostV2MixAccountSetMarginMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixAccountSetMarginMode", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixAccountUnionConvert (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixAccountUnionConvert", args...)
+func (this *BitgetCore) PrivateMixPostV2MixAccountUnionConvert(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixAccountUnionConvert", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixAccountSetPositionMode (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixAccountSetPositionMode", args...)
+func (this *BitgetCore) PrivateMixPostV2MixAccountSetPositionMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixAccountSetPositionMode", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixOrderPlaceOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixOrderPlaceOrder", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderPlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixOrderPlaceOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixOrderClickBackhand (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixOrderClickBackhand", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderClickBackhand(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixOrderClickBackhand", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixOrderBatchPlaceOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixOrderBatchPlaceOrder", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderBatchPlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixOrderBatchPlaceOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixOrderModifyOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixOrderModifyOrder", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderModifyOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixOrderModifyOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixOrderCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixOrderCancelOrder", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixOrderCancelOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixOrderBatchCancelOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixOrderBatchCancelOrders", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderBatchCancelOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixOrderBatchCancelOrders", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixOrderClosePositions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixOrderClosePositions", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderClosePositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixOrderClosePositions", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixOrderCancelAllOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixOrderCancelAllOrders", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderCancelAllOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixOrderCancelAllOrders", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixOrderPlaceTpslOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixOrderPlaceTpslOrder", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderPlaceTpslOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixOrderPlaceTpslOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixOrderPlacePosTpsl (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixOrderPlacePosTpsl", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderPlacePosTpsl(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixOrderPlacePosTpsl", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixOrderPlacePlanOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixOrderPlacePlanOrder", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderPlacePlanOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixOrderPlacePlanOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixOrderModifyTpslOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixOrderModifyTpslOrder", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderModifyTpslOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixOrderModifyTpslOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixOrderModifyPlanOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixOrderModifyPlanOrder", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderModifyPlanOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixOrderModifyPlanOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMixPostV2MixOrderCancelPlanOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMixPostV2MixOrderCancelPlanOrder", args...)
+func (this *BitgetCore) PrivateMixPostV2MixOrderCancelPlanOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMixPostV2MixOrderCancelPlanOrder", args...)
 }
 
-func (this *BitgetCore) PrivateUserGetUserV1FeeQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUserGetUserV1FeeQuery", args...)
+func (this *BitgetCore) PrivateUserGetUserV1FeeQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserGetUserV1FeeQuery", args...)
 }
 
-func (this *BitgetCore) PrivateUserGetUserV1SubVirtualList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUserGetUserV1SubVirtualList", args...)
+func (this *BitgetCore) PrivateUserGetUserV1SubVirtualList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserGetUserV1SubVirtualList", args...)
 }
 
-func (this *BitgetCore) PrivateUserGetUserV1SubVirtualApiList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUserGetUserV1SubVirtualApiList", args...)
+func (this *BitgetCore) PrivateUserGetUserV1SubVirtualApiList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserGetUserV1SubVirtualApiList", args...)
 }
 
-func (this *BitgetCore) PrivateUserGetUserV1TaxSpotRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUserGetUserV1TaxSpotRecord", args...)
+func (this *BitgetCore) PrivateUserGetUserV1TaxSpotRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserGetUserV1TaxSpotRecord", args...)
 }
 
-func (this *BitgetCore) PrivateUserGetUserV1TaxFutureRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUserGetUserV1TaxFutureRecord", args...)
+func (this *BitgetCore) PrivateUserGetUserV1TaxFutureRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserGetUserV1TaxFutureRecord", args...)
 }
 
-func (this *BitgetCore) PrivateUserGetUserV1TaxMarginRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUserGetUserV1TaxMarginRecord", args...)
+func (this *BitgetCore) PrivateUserGetUserV1TaxMarginRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserGetUserV1TaxMarginRecord", args...)
 }
 
-func (this *BitgetCore) PrivateUserGetUserV1TaxP2pRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUserGetUserV1TaxP2pRecord", args...)
+func (this *BitgetCore) PrivateUserGetUserV1TaxP2pRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserGetUserV1TaxP2pRecord", args...)
 }
 
-func (this *BitgetCore) PrivateUserGetV2UserVirtualSubaccountList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUserGetV2UserVirtualSubaccountList", args...)
+func (this *BitgetCore) PrivateUserGetV2UserVirtualSubaccountList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserGetV2UserVirtualSubaccountList", args...)
 }
 
-func (this *BitgetCore) PrivateUserGetV2UserVirtualSubaccountApikeyList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUserGetV2UserVirtualSubaccountApikeyList", args...)
+func (this *BitgetCore) PrivateUserGetV2UserVirtualSubaccountApikeyList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserGetV2UserVirtualSubaccountApikeyList", args...)
 }
 
-func (this *BitgetCore) PrivateUserPostUserV1SubVirtualCreate (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUserPostUserV1SubVirtualCreate", args...)
+func (this *BitgetCore) PrivateUserPostUserV1SubVirtualCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserPostUserV1SubVirtualCreate", args...)
 }
 
-func (this *BitgetCore) PrivateUserPostUserV1SubVirtualModify (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUserPostUserV1SubVirtualModify", args...)
+func (this *BitgetCore) PrivateUserPostUserV1SubVirtualModify(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserPostUserV1SubVirtualModify", args...)
 }
 
-func (this *BitgetCore) PrivateUserPostUserV1SubVirtualApiBatchCreate (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUserPostUserV1SubVirtualApiBatchCreate", args...)
+func (this *BitgetCore) PrivateUserPostUserV1SubVirtualApiBatchCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserPostUserV1SubVirtualApiBatchCreate", args...)
 }
 
-func (this *BitgetCore) PrivateUserPostUserV1SubVirtualApiCreate (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUserPostUserV1SubVirtualApiCreate", args...)
+func (this *BitgetCore) PrivateUserPostUserV1SubVirtualApiCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserPostUserV1SubVirtualApiCreate", args...)
 }
 
-func (this *BitgetCore) PrivateUserPostUserV1SubVirtualApiModify (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUserPostUserV1SubVirtualApiModify", args...)
+func (this *BitgetCore) PrivateUserPostUserV1SubVirtualApiModify(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserPostUserV1SubVirtualApiModify", args...)
 }
 
-func (this *BitgetCore) PrivateUserPostV2UserCreateVirtualSubaccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUserPostV2UserCreateVirtualSubaccount", args...)
+func (this *BitgetCore) PrivateUserPostV2UserCreateVirtualSubaccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserPostV2UserCreateVirtualSubaccount", args...)
 }
 
-func (this *BitgetCore) PrivateUserPostV2UserModifyVirtualSubaccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUserPostV2UserModifyVirtualSubaccount", args...)
+func (this *BitgetCore) PrivateUserPostV2UserModifyVirtualSubaccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserPostV2UserModifyVirtualSubaccount", args...)
 }
 
-func (this *BitgetCore) PrivateUserPostV2UserBatchCreateSubaccountAndApikey (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUserPostV2UserBatchCreateSubaccountAndApikey", args...)
+func (this *BitgetCore) PrivateUserPostV2UserBatchCreateSubaccountAndApikey(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserPostV2UserBatchCreateSubaccountAndApikey", args...)
 }
 
-func (this *BitgetCore) PrivateUserPostV2UserCreateVirtualSubaccountApikey (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUserPostV2UserCreateVirtualSubaccountApikey", args...)
+func (this *BitgetCore) PrivateUserPostV2UserCreateVirtualSubaccountApikey(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserPostV2UserCreateVirtualSubaccountApikey", args...)
 }
 
-func (this *BitgetCore) PrivateUserPostV2UserModifyVirtualSubaccountApikey (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUserPostV2UserModifyVirtualSubaccountApikey", args...)
+func (this *BitgetCore) PrivateUserPostV2UserModifyVirtualSubaccountApikey(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserPostV2UserModifyVirtualSubaccountApikey", args...)
 }
 
-func (this *BitgetCore) PrivateP2pGetP2pV1MerchantMerchantList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateP2pGetP2pV1MerchantMerchantList", args...)
+func (this *BitgetCore) PrivateP2pGetP2pV1MerchantMerchantList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateP2pGetP2pV1MerchantMerchantList", args...)
 }
 
-func (this *BitgetCore) PrivateP2pGetP2pV1MerchantMerchantInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateP2pGetP2pV1MerchantMerchantInfo", args...)
+func (this *BitgetCore) PrivateP2pGetP2pV1MerchantMerchantInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateP2pGetP2pV1MerchantMerchantInfo", args...)
 }
 
-func (this *BitgetCore) PrivateP2pGetP2pV1MerchantAdvList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateP2pGetP2pV1MerchantAdvList", args...)
+func (this *BitgetCore) PrivateP2pGetP2pV1MerchantAdvList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateP2pGetP2pV1MerchantAdvList", args...)
 }
 
-func (this *BitgetCore) PrivateP2pGetP2pV1MerchantOrderList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateP2pGetP2pV1MerchantOrderList", args...)
+func (this *BitgetCore) PrivateP2pGetP2pV1MerchantOrderList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateP2pGetP2pV1MerchantOrderList", args...)
 }
 
-func (this *BitgetCore) PrivateP2pGetV2P2pMerchantList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateP2pGetV2P2pMerchantList", args...)
+func (this *BitgetCore) PrivateP2pGetV2P2pMerchantList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateP2pGetV2P2pMerchantList", args...)
 }
 
-func (this *BitgetCore) PrivateP2pGetV2P2pMerchantInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateP2pGetV2P2pMerchantInfo", args...)
+func (this *BitgetCore) PrivateP2pGetV2P2pMerchantInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateP2pGetV2P2pMerchantInfo", args...)
 }
 
-func (this *BitgetCore) PrivateP2pGetV2P2pOrderList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateP2pGetV2P2pOrderList", args...)
+func (this *BitgetCore) PrivateP2pGetV2P2pOrderList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateP2pGetV2P2pOrderList", args...)
 }
 
-func (this *BitgetCore) PrivateP2pGetV2P2pAdvList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateP2pGetV2P2pAdvList", args...)
+func (this *BitgetCore) PrivateP2pGetV2P2pAdvList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateP2pGetV2P2pAdvList", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerGetBrokerV1AccountInfo", args...)
+func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountInfo", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubList", args...)
+func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubList", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubEmail (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubEmail", args...)
+func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubEmail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubEmail", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubSpotAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubSpotAssets", args...)
+func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubSpotAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubSpotAssets", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubFutureAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubFutureAssets", args...)
+func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubFutureAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubFutureAssets", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubaccountTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubaccountTransfer", args...)
+func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubaccountTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubaccountTransfer", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubaccountDeposit (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubaccountDeposit", args...)
+func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubaccountDeposit(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubaccountDeposit", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubaccountWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubaccountWithdrawal", args...)
+func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubaccountWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubaccountWithdrawal", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubApiList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubApiList", args...)
+func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubApiList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubApiList", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerGetV2BrokerAccountInfo", args...)
+func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetV2BrokerAccountInfo", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountSubaccountList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountList", args...)
+func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountSubaccountList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountList", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountSubaccountEmail (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountEmail", args...)
+func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountSubaccountEmail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountEmail", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountSubaccountSpotAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountSpotAssets", args...)
+func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountSubaccountSpotAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountSpotAssets", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountSubaccountFutureAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountFutureAssets", args...)
+func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountSubaccountFutureAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountFutureAssets", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerGetV2BrokerManageSubaccountApikeyList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerGetV2BrokerManageSubaccountApikeyList", args...)
+func (this *BitgetCore) PrivateBrokerGetV2BrokerManageSubaccountApikeyList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetV2BrokerManageSubaccountApikeyList", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubCreate (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubCreate", args...)
+func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubCreate", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubModify (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubModify", args...)
+func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubModify(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubModify", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubModifyEmail (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubModifyEmail", args...)
+func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubModifyEmail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubModifyEmail", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubAddress", args...)
+func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubAddress", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubWithdrawal", args...)
+func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubWithdrawal", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubAutoTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubAutoTransfer", args...)
+func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubAutoTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubAutoTransfer", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubApiCreate (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubApiCreate", args...)
+func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubApiCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubApiCreate", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubApiModify (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubApiModify", args...)
+func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubApiModify(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubApiModify", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountModifySubaccountEmail (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerPostV2BrokerAccountModifySubaccountEmail", args...)
+func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountModifySubaccountEmail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostV2BrokerAccountModifySubaccountEmail", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountCreateSubaccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerPostV2BrokerAccountCreateSubaccount", args...)
+func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountCreateSubaccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostV2BrokerAccountCreateSubaccount", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountModifySubaccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerPostV2BrokerAccountModifySubaccount", args...)
+func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountModifySubaccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostV2BrokerAccountModifySubaccount", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountSubaccountAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerPostV2BrokerAccountSubaccountAddress", args...)
+func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountSubaccountAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostV2BrokerAccountSubaccountAddress", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountSubaccountWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerPostV2BrokerAccountSubaccountWithdrawal", args...)
+func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountSubaccountWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostV2BrokerAccountSubaccountWithdrawal", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountSetSubaccountAutotransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerPostV2BrokerAccountSetSubaccountAutotransfer", args...)
+func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountSetSubaccountAutotransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostV2BrokerAccountSetSubaccountAutotransfer", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerPostV2BrokerManageCreateSubaccountApikey (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerPostV2BrokerManageCreateSubaccountApikey", args...)
+func (this *BitgetCore) PrivateBrokerPostV2BrokerManageCreateSubaccountApikey(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostV2BrokerManageCreateSubaccountApikey", args...)
 }
 
-func (this *BitgetCore) PrivateBrokerPostV2BrokerManageModifySubaccountApikey (args ...any) <-chan any {
-   return this.callEndpointAsync("privateBrokerPostV2BrokerManageModifySubaccountApikey", args...)
+func (this *BitgetCore) PrivateBrokerPostV2BrokerManageModifySubaccountApikey(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostV2BrokerManageModifySubaccountApikey", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossAccountRiskRate (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1CrossAccountRiskRate", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossAccountRiskRate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1CrossAccountRiskRate", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossAccountMaxTransferOutAmount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1CrossAccountMaxTransferOutAmount", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossAccountMaxTransferOutAmount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1CrossAccountMaxTransferOutAmount", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedAccountMaxTransferOutAmount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedAccountMaxTransferOutAmount", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedAccountMaxTransferOutAmount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedAccountMaxTransferOutAmount", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedOrderOpenOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedOrderOpenOrders", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedOrderOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedOrderOpenOrders", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedOrderHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedOrderHistory", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedOrderHistory", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedOrderFills (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedOrderFills", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedOrderFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedOrderFills", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedLoanList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedLoanList", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedLoanList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedLoanList", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedRepayList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedRepayList", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedRepayList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedRepayList", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedInterestList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedInterestList", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedInterestList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedInterestList", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedLiquidationList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedLiquidationList", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedLiquidationList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedLiquidationList", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedFinList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedFinList", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedFinList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedFinList", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossOrderOpenOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1CrossOrderOpenOrders", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossOrderOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1CrossOrderOpenOrders", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossOrderHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1CrossOrderHistory", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1CrossOrderHistory", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossOrderFills (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1CrossOrderFills", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossOrderFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1CrossOrderFills", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossLoanList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1CrossLoanList", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossLoanList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1CrossLoanList", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossRepayList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1CrossRepayList", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossRepayList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1CrossRepayList", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossInterestList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1CrossInterestList", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossInterestList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1CrossInterestList", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossLiquidationList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1CrossLiquidationList", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossLiquidationList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1CrossLiquidationList", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossFinList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1CrossFinList", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossFinList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1CrossFinList", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossAccountAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1CrossAccountAssets", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1CrossAccountAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1CrossAccountAssets", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedAccountAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetMarginV1IsolatedAccountAssets", args...)
+func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedAccountAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedAccountAssets", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedBorrowHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginCrossedBorrowHistory", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedBorrowHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginCrossedBorrowHistory", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedRepayHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginCrossedRepayHistory", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedRepayHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginCrossedRepayHistory", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedInterestHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginCrossedInterestHistory", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedInterestHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginCrossedInterestHistory", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedLiquidationHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginCrossedLiquidationHistory", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedLiquidationHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginCrossedLiquidationHistory", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedFinancialRecords (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginCrossedFinancialRecords", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedFinancialRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginCrossedFinancialRecords", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedAccountAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountAssets", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedAccountAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountAssets", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedAccountRiskRate (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountRiskRate", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedAccountRiskRate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountRiskRate", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedAccountMaxBorrowableAmount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountMaxBorrowableAmount", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedAccountMaxBorrowableAmount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountMaxBorrowableAmount", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedAccountMaxTransferOutAmount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountMaxTransferOutAmount", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedAccountMaxTransferOutAmount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountMaxTransferOutAmount", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedInterestRateAndLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginCrossedInterestRateAndLimit", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedInterestRateAndLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginCrossedInterestRateAndLimit", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedTierData (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginCrossedTierData", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedTierData(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginCrossedTierData", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedOpenOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginCrossedOpenOrders", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginCrossedOpenOrders", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedHistoryOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginCrossedHistoryOrders", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedHistoryOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginCrossedHistoryOrders", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedFills (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginCrossedFills", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginCrossedFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginCrossedFills", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedBorrowHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedBorrowHistory", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedBorrowHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedBorrowHistory", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedRepayHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedRepayHistory", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedRepayHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedRepayHistory", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedInterestHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedInterestHistory", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedInterestHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedInterestHistory", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedLiquidationHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedLiquidationHistory", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedLiquidationHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedLiquidationHistory", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedFinancialRecords (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedFinancialRecords", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedFinancialRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedFinancialRecords", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedAccountAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountAssets", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedAccountAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountAssets", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedAccountRiskRate (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountRiskRate", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedAccountRiskRate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountRiskRate", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedAccountMaxBorrowableAmount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountMaxBorrowableAmount", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedAccountMaxBorrowableAmount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountMaxBorrowableAmount", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedAccountMaxTransferOutAmount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountMaxTransferOutAmount", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedAccountMaxTransferOutAmount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountMaxTransferOutAmount", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedInterestRateAndLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedInterestRateAndLimit", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedInterestRateAndLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedInterestRateAndLimit", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedTierData (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedTierData", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedTierData(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedTierData", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedOpenOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedOpenOrders", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedOpenOrders", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedHistoryOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedHistoryOrders", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedHistoryOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedHistoryOrders", args...)
 }
 
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedFills (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginGetV2MarginIsolatedFills", args...)
+func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedFills", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountBorrow (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountBorrow", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountBorrow(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountBorrow", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountBorrow (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountBorrow", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountBorrow(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountBorrow", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountRepay", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountRepay", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountRepay", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountRepay", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountRiskRate (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountRiskRate", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountRiskRate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountRiskRate", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountMaxBorrowableAmount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountMaxBorrowableAmount", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountMaxBorrowableAmount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountMaxBorrowableAmount", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountMaxBorrowableAmount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountMaxBorrowableAmount", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountMaxBorrowableAmount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountMaxBorrowableAmount", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountFlashRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountFlashRepay", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountFlashRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountFlashRepay", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountQueryFlashRepayStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountQueryFlashRepayStatus", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountQueryFlashRepayStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountQueryFlashRepayStatus", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountFlashRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountFlashRepay", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountFlashRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountFlashRepay", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountQueryFlashRepayStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountQueryFlashRepayStatus", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountQueryFlashRepayStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountQueryFlashRepayStatus", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedOrderPlaceOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderPlaceOrder", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedOrderPlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderPlaceOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedOrderBatchPlaceOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderBatchPlaceOrder", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedOrderBatchPlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderBatchPlaceOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedOrderCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderCancelOrder", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedOrderCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderCancelOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedOrderBatchCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderBatchCancelOrder", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedOrderBatchCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderBatchCancelOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostMarginV1CrossOrderPlaceOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderPlaceOrder", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1CrossOrderPlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderPlaceOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostMarginV1CrossOrderBatchPlaceOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderBatchPlaceOrder", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1CrossOrderBatchPlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderBatchPlaceOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostMarginV1CrossOrderCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderCancelOrder", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1CrossOrderCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderCancelOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostMarginV1CrossOrderBatchCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderBatchCancelOrder", args...)
+func (this *BitgetCore) PrivateMarginPostMarginV1CrossOrderBatchCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderBatchCancelOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostV2MarginCrossedAccountBorrow (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountBorrow", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginCrossedAccountBorrow(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountBorrow", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostV2MarginCrossedAccountRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountRepay", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginCrossedAccountRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountRepay", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostV2MarginCrossedAccountFlashRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountFlashRepay", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginCrossedAccountFlashRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountFlashRepay", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostV2MarginCrossedAccountQueryFlashRepayStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountQueryFlashRepayStatus", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginCrossedAccountQueryFlashRepayStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountQueryFlashRepayStatus", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostV2MarginCrossedPlaceOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostV2MarginCrossedPlaceOrder", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginCrossedPlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostV2MarginCrossedPlaceOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostV2MarginCrossedBatchPlaceOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostV2MarginCrossedBatchPlaceOrder", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginCrossedBatchPlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostV2MarginCrossedBatchPlaceOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostV2MarginCrossedCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostV2MarginCrossedCancelOrder", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginCrossedCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostV2MarginCrossedCancelOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostV2MarginCrossedBatchCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostV2MarginCrossedBatchCancelOrder", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginCrossedBatchCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostV2MarginCrossedBatchCancelOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedAccountBorrow (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountBorrow", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedAccountBorrow(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountBorrow", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedAccountRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountRepay", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedAccountRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountRepay", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedAccountFlashRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountFlashRepay", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedAccountFlashRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountFlashRepay", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedAccountQueryFlashRepayStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountQueryFlashRepayStatus", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedAccountQueryFlashRepayStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountQueryFlashRepayStatus", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedPlaceOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostV2MarginIsolatedPlaceOrder", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedPlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedPlaceOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedBatchPlaceOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostV2MarginIsolatedBatchPlaceOrder", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedBatchPlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedBatchPlaceOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostV2MarginIsolatedCancelOrder", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedCancelOrder", args...)
 }
 
-func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedBatchCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateMarginPostV2MarginIsolatedBatchCancelOrder", args...)
+func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedBatchCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedBatchCancelOrder", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderOrderCurrentTrack (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopyMixTraderOrderCurrentTrack", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderOrderCurrentTrack(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderOrderCurrentTrack", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderOrderHistoryTrack (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopyMixTraderOrderHistoryTrack", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderOrderHistoryTrack(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderOrderHistoryTrack", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderOrderTotalDetail (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopyMixTraderOrderTotalDetail", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderOrderTotalDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderOrderTotalDetail", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderProfitHistorySummarys (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitHistorySummarys", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderProfitHistorySummarys(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitHistorySummarys", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderProfitHistoryDetails (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitHistoryDetails", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderProfitHistoryDetails(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitHistoryDetails", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderProfitDetails (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitDetails", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderProfitDetails(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitDetails", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderProfitsGroupCoinDate (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitsGroupCoinDate", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderProfitsGroupCoinDate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitsGroupCoinDate", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderConfigQuerySymbols (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopyMixTraderConfigQuerySymbols", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderConfigQuerySymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderConfigQuerySymbols", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderConfigQueryFollowers (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopyMixTraderConfigQueryFollowers", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderConfigQueryFollowers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderConfigQueryFollowers", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQueryCurrentOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryCurrentOrders", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQueryCurrentOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryCurrentOrders", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQueryHistoryOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryHistoryOrders", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQueryHistoryOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryHistoryOrders", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQuerySettings (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQuerySettings", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQuerySettings(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQuerySettings", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQueryTraders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryTraders", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQueryTraders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryTraders", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQueryQuantityLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryQuantityLimit", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQueryQuantityLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryQuantityLimit", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopyMixBrokerQueryTraders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopyMixBrokerQueryTraders", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixBrokerQueryTraders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopyMixBrokerQueryTraders", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopyMixBrokerQueryHistoryTraces (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopyMixBrokerQueryHistoryTraces", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixBrokerQueryHistoryTraces(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopyMixBrokerQueryHistoryTraces", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopyMixBrokerQueryCurrentTraces (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopyMixBrokerQueryCurrentTraces", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopyMixBrokerQueryCurrentTraces(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopyMixBrokerQueryCurrentTraces", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderProfitSummarys (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopySpotTraderProfitSummarys", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderProfitSummarys(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderProfitSummarys", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderProfitHistoryDetails (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopySpotTraderProfitHistoryDetails", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderProfitHistoryDetails(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderProfitHistoryDetails", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderProfitDetails (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopySpotTraderProfitDetails", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderProfitDetails(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderProfitDetails", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderOrderTotalDetail (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopySpotTraderOrderTotalDetail", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderOrderTotalDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderOrderTotalDetail", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderOrderHistoryTrack (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopySpotTraderOrderHistoryTrack", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderOrderHistoryTrack(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderOrderHistoryTrack", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderOrderCurrentTrack (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopySpotTraderOrderCurrentTrack", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderOrderCurrentTrack(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderOrderCurrentTrack", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderConfigQuerySettings (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopySpotTraderConfigQuerySettings", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderConfigQuerySettings(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderConfigQuerySettings", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderConfigQueryFollowers (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopySpotTraderConfigQueryFollowers", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderConfigQueryFollowers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderConfigQueryFollowers", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQueryTraders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryTraders", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQueryTraders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryTraders", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQueryTraderSymbols (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryTraderSymbols", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQueryTraderSymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryTraderSymbols", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQuerySettings (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQuerySettings", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQuerySettings(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQuerySettings", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQueryHistoryOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryHistoryOrders", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQueryHistoryOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryHistoryOrders", args...)
 }
 
-func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQueryCurrentOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryCurrentOrders", args...)
+func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQueryCurrentOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryCurrentOrders", args...)
 }
 
-func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderOrderModifyTpsl (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyPostV2CopyMixTraderOrderModifyTpsl", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderOrderModifyTpsl(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyPostV2CopyMixTraderOrderModifyTpsl", args...)
 }
 
-func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderOrderClosePositions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyPostV2CopyMixTraderOrderClosePositions", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderOrderClosePositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyPostV2CopyMixTraderOrderClosePositions", args...)
 }
 
-func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderConfigSettingSymbols (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyPostV2CopyMixTraderConfigSettingSymbols", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderConfigSettingSymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyPostV2CopyMixTraderConfigSettingSymbols", args...)
 }
 
-func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderConfigSettingBase (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyPostV2CopyMixTraderConfigSettingBase", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderConfigSettingBase(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyPostV2CopyMixTraderConfigSettingBase", args...)
 }
 
-func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderConfigRemoveFollower (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyPostV2CopyMixTraderConfigRemoveFollower", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderConfigRemoveFollower(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyPostV2CopyMixTraderConfigRemoveFollower", args...)
 }
 
-func (this *BitgetCore) PrivateCopyPostV2CopyMixFollowerSettingTpsl (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerSettingTpsl", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopyMixFollowerSettingTpsl(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerSettingTpsl", args...)
 }
 
-func (this *BitgetCore) PrivateCopyPostV2CopyMixFollowerSettings (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerSettings", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopyMixFollowerSettings(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerSettings", args...)
 }
 
-func (this *BitgetCore) PrivateCopyPostV2CopyMixFollowerClosePositions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerClosePositions", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopyMixFollowerClosePositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerClosePositions", args...)
 }
 
-func (this *BitgetCore) PrivateCopyPostV2CopyMixFollowerCancelTrader (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerCancelTrader", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopyMixFollowerCancelTrader(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerCancelTrader", args...)
 }
 
-func (this *BitgetCore) PrivateCopyPostV2CopySpotTraderOrderModifyTpsl (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyPostV2CopySpotTraderOrderModifyTpsl", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopySpotTraderOrderModifyTpsl(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyPostV2CopySpotTraderOrderModifyTpsl", args...)
 }
 
-func (this *BitgetCore) PrivateCopyPostV2CopySpotTraderOrderCloseTracking (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyPostV2CopySpotTraderOrderCloseTracking", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopySpotTraderOrderCloseTracking(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyPostV2CopySpotTraderOrderCloseTracking", args...)
 }
 
-func (this *BitgetCore) PrivateCopyPostV2CopySpotTraderConfigSettingSymbols (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyPostV2CopySpotTraderConfigSettingSymbols", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopySpotTraderConfigSettingSymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyPostV2CopySpotTraderConfigSettingSymbols", args...)
 }
 
-func (this *BitgetCore) PrivateCopyPostV2CopySpotTraderConfigRemoveFollower (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyPostV2CopySpotTraderConfigRemoveFollower", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopySpotTraderConfigRemoveFollower(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyPostV2CopySpotTraderConfigRemoveFollower", args...)
 }
 
-func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerStopOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerStopOrder", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerStopOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerStopOrder", args...)
 }
 
-func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerSettings (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerSettings", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerSettings(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerSettings", args...)
 }
 
-func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerSettingTpsl (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerSettingTpsl", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerSettingTpsl(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerSettingTpsl", args...)
 }
 
-func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerOrderCloseTracking (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerOrderCloseTracking", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerOrderCloseTracking(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerOrderCloseTracking", args...)
 }
 
-func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerCancelTrader (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerCancelTrader", args...)
+func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerCancelTrader(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerCancelTrader", args...)
 }
 
-func (this *BitgetCore) PrivateTaxGetV2TaxSpotRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateTaxGetV2TaxSpotRecord", args...)
+func (this *BitgetCore) PrivateTaxGetV2TaxSpotRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateTaxGetV2TaxSpotRecord", args...)
 }
 
-func (this *BitgetCore) PrivateTaxGetV2TaxFutureRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateTaxGetV2TaxFutureRecord", args...)
+func (this *BitgetCore) PrivateTaxGetV2TaxFutureRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateTaxGetV2TaxFutureRecord", args...)
 }
 
-func (this *BitgetCore) PrivateTaxGetV2TaxMarginRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateTaxGetV2TaxMarginRecord", args...)
+func (this *BitgetCore) PrivateTaxGetV2TaxMarginRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateTaxGetV2TaxMarginRecord", args...)
 }
 
-func (this *BitgetCore) PrivateTaxGetV2TaxP2pRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateTaxGetV2TaxP2pRecord", args...)
+func (this *BitgetCore) PrivateTaxGetV2TaxP2pRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateTaxGetV2TaxP2pRecord", args...)
 }
 
-func (this *BitgetCore) PrivateConvertGetV2ConvertCurrencies (args ...any) <-chan any {
-   return this.callEndpointAsync("privateConvertGetV2ConvertCurrencies", args...)
+func (this *BitgetCore) PrivateConvertGetV2ConvertCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("privateConvertGetV2ConvertCurrencies", args...)
 }
 
-func (this *BitgetCore) PrivateConvertGetV2ConvertQuotedPrice (args ...any) <-chan any {
-   return this.callEndpointAsync("privateConvertGetV2ConvertQuotedPrice", args...)
+func (this *BitgetCore) PrivateConvertGetV2ConvertQuotedPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("privateConvertGetV2ConvertQuotedPrice", args...)
 }
 
-func (this *BitgetCore) PrivateConvertGetV2ConvertConvertRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateConvertGetV2ConvertConvertRecord", args...)
+func (this *BitgetCore) PrivateConvertGetV2ConvertConvertRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateConvertGetV2ConvertConvertRecord", args...)
 }
 
-func (this *BitgetCore) PrivateConvertGetV2ConvertBgbConvertCoinList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateConvertGetV2ConvertBgbConvertCoinList", args...)
+func (this *BitgetCore) PrivateConvertGetV2ConvertBgbConvertCoinList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateConvertGetV2ConvertBgbConvertCoinList", args...)
 }
 
-func (this *BitgetCore) PrivateConvertGetV2ConvertBgbConvertRecords (args ...any) <-chan any {
-   return this.callEndpointAsync("privateConvertGetV2ConvertBgbConvertRecords", args...)
+func (this *BitgetCore) PrivateConvertGetV2ConvertBgbConvertRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateConvertGetV2ConvertBgbConvertRecords", args...)
 }
 
-func (this *BitgetCore) PrivateConvertPostV2ConvertTrade (args ...any) <-chan any {
-   return this.callEndpointAsync("privateConvertPostV2ConvertTrade", args...)
+func (this *BitgetCore) PrivateConvertPostV2ConvertTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("privateConvertPostV2ConvertTrade", args...)
 }
 
-func (this *BitgetCore) PrivateConvertPostV2ConvertBgbConvert (args ...any) <-chan any {
-   return this.callEndpointAsync("privateConvertPostV2ConvertBgbConvert", args...)
+func (this *BitgetCore) PrivateConvertPostV2ConvertBgbConvert(args ...any) <-chan any {
+	return this.callEndpointAsync("privateConvertPostV2ConvertBgbConvert", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnSavingsProduct (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnSavingsProduct", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSavingsProduct(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnSavingsProduct", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnSavingsAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnSavingsAccount", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSavingsAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnSavingsAccount", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnSavingsAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnSavingsAssets", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSavingsAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnSavingsAssets", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnSavingsRecords (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnSavingsRecords", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSavingsRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnSavingsRecords", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnSavingsSubscribeInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnSavingsSubscribeInfo", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSavingsSubscribeInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnSavingsSubscribeInfo", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnSavingsSubscribeResult (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnSavingsSubscribeResult", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSavingsSubscribeResult(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnSavingsSubscribeResult", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnSavingsRedeemResult (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnSavingsRedeemResult", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSavingsRedeemResult(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnSavingsRedeemResult", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinProduct (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnSharkfinProduct", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinProduct(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnSharkfinProduct", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnSharkfinAccount", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnSharkfinAccount", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnSharkfinAssets", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnSharkfinAssets", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinRecords (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnSharkfinRecords", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnSharkfinRecords", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinSubscribeInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnSharkfinSubscribeInfo", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinSubscribeInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnSharkfinSubscribeInfo", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinSubscribeResult (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnSharkfinSubscribeResult", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinSubscribeResult(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnSharkfinSubscribeResult", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnLoanOngoingOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnLoanOngoingOrders", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnLoanOngoingOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnLoanOngoingOrders", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnLoanRepayHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnLoanRepayHistory", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnLoanRepayHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnLoanRepayHistory", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnLoanReviseHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnLoanReviseHistory", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnLoanReviseHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnLoanReviseHistory", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnLoanBorrowHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnLoanBorrowHistory", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnLoanBorrowHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnLoanBorrowHistory", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnLoanDebts (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnLoanDebts", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnLoanDebts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnLoanDebts", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnLoanReduces (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnLoanReduces", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnLoanReduces(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnLoanReduces", args...)
 }
 
-func (this *BitgetCore) PrivateEarnGetV2EarnAccountAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnGetV2EarnAccountAssets", args...)
+func (this *BitgetCore) PrivateEarnGetV2EarnAccountAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnAccountAssets", args...)
 }
 
-func (this *BitgetCore) PrivateEarnPostV2EarnSavingsSubscribe (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnPostV2EarnSavingsSubscribe", args...)
+func (this *BitgetCore) PrivateEarnPostV2EarnSavingsSubscribe(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnPostV2EarnSavingsSubscribe", args...)
 }
 
-func (this *BitgetCore) PrivateEarnPostV2EarnSavingsRedeem (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnPostV2EarnSavingsRedeem", args...)
+func (this *BitgetCore) PrivateEarnPostV2EarnSavingsRedeem(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnPostV2EarnSavingsRedeem", args...)
 }
 
-func (this *BitgetCore) PrivateEarnPostV2EarnSharkfinSubscribe (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnPostV2EarnSharkfinSubscribe", args...)
+func (this *BitgetCore) PrivateEarnPostV2EarnSharkfinSubscribe(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnPostV2EarnSharkfinSubscribe", args...)
 }
 
-func (this *BitgetCore) PrivateEarnPostV2EarnLoanBorrow (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnPostV2EarnLoanBorrow", args...)
+func (this *BitgetCore) PrivateEarnPostV2EarnLoanBorrow(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnPostV2EarnLoanBorrow", args...)
 }
 
-func (this *BitgetCore) PrivateEarnPostV2EarnLoanRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnPostV2EarnLoanRepay", args...)
+func (this *BitgetCore) PrivateEarnPostV2EarnLoanRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnPostV2EarnLoanRepay", args...)
 }
 
-func (this *BitgetCore) PrivateEarnPostV2EarnLoanRevisePledge (args ...any) <-chan any {
-   return this.callEndpointAsync("privateEarnPostV2EarnLoanRevisePledge", args...)
+func (this *BitgetCore) PrivateEarnPostV2EarnLoanRevisePledge(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnPostV2EarnLoanRevisePledge", args...)
 }
 
-func (this *BitgetCore) PrivateCommonGetV2CommonTradeRate (args ...any) <-chan any {
-   return this.callEndpointAsync("privateCommonGetV2CommonTradeRate", args...)
+func (this *BitgetCore) PrivateCommonGetV2CommonTradeRate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateCommonGetV2CommonTradeRate", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountAssets", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountAssets", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountFundingAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountFundingAssets", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountFundingAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountFundingAssets", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountSettings (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountSettings", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountSettings(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountSettings", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountFinancialRecords (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountFinancialRecords", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountFinancialRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountFinancialRecords", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountRepayableCoins (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountRepayableCoins", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountRepayableCoins(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountRepayableCoins", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountPaymentCoins (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountPaymentCoins", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountPaymentCoins(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountPaymentCoins", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountConvertRecords (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountConvertRecords", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountConvertRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountConvertRecords", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountDeductInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountDeductInfo", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountDeductInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountDeductInfo", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountFeeRate (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountFeeRate", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountFeeRate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountFeeRate", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountSwitchStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountSwitchStatus", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountSwitchStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountSwitchStatus", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountMaxTransferable (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountMaxTransferable", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountMaxTransferable(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountMaxTransferable", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountOpenInterestLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountOpenInterestLimit", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountOpenInterestLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountOpenInterestLimit", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountSubUnifiedAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountSubUnifiedAssets", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountSubUnifiedAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountSubUnifiedAssets", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountTransferableCoins (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountTransferableCoins", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountTransferableCoins(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountTransferableCoins", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountSubTransferRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountSubTransferRecord", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountSubTransferRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountSubTransferRecord", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountDepositAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountDepositAddress", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountDepositAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountDepositAddress", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountSubDepositAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountSubDepositAddress", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountSubDepositAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountSubDepositAddress", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountDepositRecords (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountDepositRecords", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountDepositRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountDepositRecords", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountSubDepositRecords (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountSubDepositRecords", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountSubDepositRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountSubDepositRecords", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountWithdrawalRecords (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3AccountWithdrawalRecords", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountWithdrawalRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountWithdrawalRecords", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3BrokerSubList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3BrokerSubList", args...)
+func (this *BitgetCore) PrivateUtaGetV3BrokerSubList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3BrokerSubList", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3BrokerAllSubDepositWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3BrokerAllSubDepositWithdrawal", args...)
+func (this *BitgetCore) PrivateUtaGetV3BrokerAllSubDepositWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3BrokerAllSubDepositWithdrawal", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3BrokerCommission (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3BrokerCommission", args...)
+func (this *BitgetCore) PrivateUtaGetV3BrokerCommission(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3BrokerCommission", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3BrokerQuerySubApikey (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3BrokerQuerySubApikey", args...)
+func (this *BitgetCore) PrivateUtaGetV3BrokerQuerySubApikey(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3BrokerQuerySubApikey", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3InsLoanTransfered (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3InsLoanTransfered", args...)
+func (this *BitgetCore) PrivateUtaGetV3InsLoanTransfered(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3InsLoanTransfered", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3InsLoanSymbols (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3InsLoanSymbols", args...)
+func (this *BitgetCore) PrivateUtaGetV3InsLoanSymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3InsLoanSymbols", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3InsLoanRiskUnit (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3InsLoanRiskUnit", args...)
+func (this *BitgetCore) PrivateUtaGetV3InsLoanRiskUnit(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3InsLoanRiskUnit", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3InsLoanRepaidHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3InsLoanRepaidHistory", args...)
+func (this *BitgetCore) PrivateUtaGetV3InsLoanRepaidHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3InsLoanRepaidHistory", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3InsLoanProductInfos (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3InsLoanProductInfos", args...)
+func (this *BitgetCore) PrivateUtaGetV3InsLoanProductInfos(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3InsLoanProductInfos", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3InsLoanLoanOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3InsLoanLoanOrder", args...)
+func (this *BitgetCore) PrivateUtaGetV3InsLoanLoanOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3InsLoanLoanOrder", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3InsLoanLtvConvert (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3InsLoanLtvConvert", args...)
+func (this *BitgetCore) PrivateUtaGetV3InsLoanLtvConvert(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3InsLoanLtvConvert", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3InsLoanEnsureCoinsConvert (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3InsLoanEnsureCoinsConvert", args...)
+func (this *BitgetCore) PrivateUtaGetV3InsLoanEnsureCoinsConvert(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3InsLoanEnsureCoinsConvert", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3LoanCoins (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3LoanCoins", args...)
+func (this *BitgetCore) PrivateUtaGetV3LoanCoins(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3LoanCoins", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3LoanInterest (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3LoanInterest", args...)
+func (this *BitgetCore) PrivateUtaGetV3LoanInterest(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3LoanInterest", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3LoanBorrowOngoing (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3LoanBorrowOngoing", args...)
+func (this *BitgetCore) PrivateUtaGetV3LoanBorrowOngoing(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3LoanBorrowOngoing", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3LoanBorrowHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3LoanBorrowHistory", args...)
+func (this *BitgetCore) PrivateUtaGetV3LoanBorrowHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3LoanBorrowHistory", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3LoanRepayHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3LoanRepayHistory", args...)
+func (this *BitgetCore) PrivateUtaGetV3LoanRepayHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3LoanRepayHistory", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3LoanPledgeRateHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3LoanPledgeRateHistory", args...)
+func (this *BitgetCore) PrivateUtaGetV3LoanPledgeRateHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3LoanPledgeRateHistory", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3LoanDebts (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3LoanDebts", args...)
+func (this *BitgetCore) PrivateUtaGetV3LoanDebts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3LoanDebts", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3LoanReduces (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3LoanReduces", args...)
+func (this *BitgetCore) PrivateUtaGetV3LoanReduces(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3LoanReduces", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3PositionCurrentPosition (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3PositionCurrentPosition", args...)
+func (this *BitgetCore) PrivateUtaGetV3PositionCurrentPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3PositionCurrentPosition", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3PositionHistoryPosition (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3PositionHistoryPosition", args...)
+func (this *BitgetCore) PrivateUtaGetV3PositionHistoryPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3PositionHistoryPosition", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3PositionAdlRank (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3PositionAdlRank", args...)
+func (this *BitgetCore) PrivateUtaGetV3PositionAdlRank(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3PositionAdlRank", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3TaxRecords (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3TaxRecords", args...)
+func (this *BitgetCore) PrivateUtaGetV3TaxRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3TaxRecords", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3TradeOrderInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3TradeOrderInfo", args...)
+func (this *BitgetCore) PrivateUtaGetV3TradeOrderInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3TradeOrderInfo", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3TradeUnfilledOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3TradeUnfilledOrders", args...)
+func (this *BitgetCore) PrivateUtaGetV3TradeUnfilledOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3TradeUnfilledOrders", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3TradeUnfilledStrategyOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3TradeUnfilledStrategyOrders", args...)
+func (this *BitgetCore) PrivateUtaGetV3TradeUnfilledStrategyOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3TradeUnfilledStrategyOrders", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3TradeHistoryOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3TradeHistoryOrders", args...)
+func (this *BitgetCore) PrivateUtaGetV3TradeHistoryOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3TradeHistoryOrders", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3TradeHistoryStrategyOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3TradeHistoryStrategyOrders", args...)
+func (this *BitgetCore) PrivateUtaGetV3TradeHistoryStrategyOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3TradeHistoryStrategyOrders", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3TradeFills (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3TradeFills", args...)
+func (this *BitgetCore) PrivateUtaGetV3TradeFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3TradeFills", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3UserSubList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3UserSubList", args...)
+func (this *BitgetCore) PrivateUtaGetV3UserSubList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3UserSubList", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3UserSubApiList (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaGetV3UserSubApiList", args...)
+func (this *BitgetCore) PrivateUtaGetV3UserSubApiList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3UserSubApiList", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3AccountSetLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3AccountSetLeverage", args...)
+func (this *BitgetCore) PrivateUtaPostV3AccountSetLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3AccountSetLeverage", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3AccountSetHoldMode (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3AccountSetHoldMode", args...)
+func (this *BitgetCore) PrivateUtaPostV3AccountSetHoldMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3AccountSetHoldMode", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3AccountRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3AccountRepay", args...)
+func (this *BitgetCore) PrivateUtaPostV3AccountRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3AccountRepay", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3AccountSwitchDeduct (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3AccountSwitchDeduct", args...)
+func (this *BitgetCore) PrivateUtaPostV3AccountSwitchDeduct(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3AccountSwitchDeduct", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3AccountDepositAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3AccountDepositAccount", args...)
+func (this *BitgetCore) PrivateUtaPostV3AccountDepositAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3AccountDepositAccount", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3AccountSwitch (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3AccountSwitch", args...)
+func (this *BitgetCore) PrivateUtaPostV3AccountSwitch(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3AccountSwitch", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3AccountAdjustAccountMode (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3AccountAdjustAccountMode", args...)
+func (this *BitgetCore) PrivateUtaPostV3AccountAdjustAccountMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3AccountAdjustAccountMode", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3AccountTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3AccountTransfer", args...)
+func (this *BitgetCore) PrivateUtaPostV3AccountTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3AccountTransfer", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3AccountSubTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3AccountSubTransfer", args...)
+func (this *BitgetCore) PrivateUtaPostV3AccountSubTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3AccountSubTransfer", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3AccountSubMasterTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3AccountSubMasterTransfer", args...)
+func (this *BitgetCore) PrivateUtaPostV3AccountSubMasterTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3AccountSubMasterTransfer", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3AccountMaxOpenAvailable (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3AccountMaxOpenAvailable", args...)
+func (this *BitgetCore) PrivateUtaPostV3AccountMaxOpenAvailable(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3AccountMaxOpenAvailable", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3AccountWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3AccountWithdrawal", args...)
+func (this *BitgetCore) PrivateUtaPostV3AccountWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3AccountWithdrawal", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3BrokerCreateSub (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3BrokerCreateSub", args...)
+func (this *BitgetCore) PrivateUtaPostV3BrokerCreateSub(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3BrokerCreateSub", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3BrokerModifySub (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3BrokerModifySub", args...)
+func (this *BitgetCore) PrivateUtaPostV3BrokerModifySub(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3BrokerModifySub", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3BrokerSubWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3BrokerSubWithdrawal", args...)
+func (this *BitgetCore) PrivateUtaPostV3BrokerSubWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3BrokerSubWithdrawal", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3BrokerSubDepositAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3BrokerSubDepositAddress", args...)
+func (this *BitgetCore) PrivateUtaPostV3BrokerSubDepositAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3BrokerSubDepositAddress", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3BrokerCreateSubApikey (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3BrokerCreateSubApikey", args...)
+func (this *BitgetCore) PrivateUtaPostV3BrokerCreateSubApikey(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3BrokerCreateSubApikey", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3BrokerModifySubApikey (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3BrokerModifySubApikey", args...)
+func (this *BitgetCore) PrivateUtaPostV3BrokerModifySubApikey(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3BrokerModifySubApikey", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3BrokerDeleteSubApikey (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3BrokerDeleteSubApikey", args...)
+func (this *BitgetCore) PrivateUtaPostV3BrokerDeleteSubApikey(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3BrokerDeleteSubApikey", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3InsLoanBindUid (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3InsLoanBindUid", args...)
+func (this *BitgetCore) PrivateUtaPostV3InsLoanBindUid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3InsLoanBindUid", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3LoanBorrow (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3LoanBorrow", args...)
+func (this *BitgetCore) PrivateUtaPostV3LoanBorrow(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3LoanBorrow", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3LoanRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3LoanRepay", args...)
+func (this *BitgetCore) PrivateUtaPostV3LoanRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3LoanRepay", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3LoanRevisePledge (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3LoanRevisePledge", args...)
+func (this *BitgetCore) PrivateUtaPostV3LoanRevisePledge(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3LoanRevisePledge", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3TradePlaceOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3TradePlaceOrder", args...)
+func (this *BitgetCore) PrivateUtaPostV3TradePlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradePlaceOrder", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3TradePlaceStrategyOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3TradePlaceStrategyOrder", args...)
+func (this *BitgetCore) PrivateUtaPostV3TradePlaceStrategyOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradePlaceStrategyOrder", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3TradeModifyOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3TradeModifyOrder", args...)
+func (this *BitgetCore) PrivateUtaPostV3TradeModifyOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeModifyOrder", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3TradeModifyStrategyOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3TradeModifyStrategyOrder", args...)
+func (this *BitgetCore) PrivateUtaPostV3TradeModifyStrategyOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeModifyStrategyOrder", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3TradeCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3TradeCancelOrder", args...)
+func (this *BitgetCore) PrivateUtaPostV3TradeCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeCancelOrder", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3TradeCancelStrategyOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3TradeCancelStrategyOrder", args...)
+func (this *BitgetCore) PrivateUtaPostV3TradeCancelStrategyOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeCancelStrategyOrder", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3TradePlaceBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3TradePlaceBatch", args...)
+func (this *BitgetCore) PrivateUtaPostV3TradePlaceBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradePlaceBatch", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3TradeBatchModifyOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3TradeBatchModifyOrder", args...)
+func (this *BitgetCore) PrivateUtaPostV3TradeBatchModifyOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeBatchModifyOrder", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3TradeCancelBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3TradeCancelBatch", args...)
+func (this *BitgetCore) PrivateUtaPostV3TradeCancelBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeCancelBatch", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3TradeCancelSymbolOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3TradeCancelSymbolOrder", args...)
+func (this *BitgetCore) PrivateUtaPostV3TradeCancelSymbolOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeCancelSymbolOrder", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3TradeClosePositions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3TradeClosePositions", args...)
+func (this *BitgetCore) PrivateUtaPostV3TradeClosePositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeClosePositions", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3TradeCountdownCancelAll (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3TradeCountdownCancelAll", args...)
+func (this *BitgetCore) PrivateUtaPostV3TradeCountdownCancelAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeCountdownCancelAll", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3UserCreateSub (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3UserCreateSub", args...)
+func (this *BitgetCore) PrivateUtaPostV3UserCreateSub(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3UserCreateSub", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3UserFreezeSub (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3UserFreezeSub", args...)
+func (this *BitgetCore) PrivateUtaPostV3UserFreezeSub(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3UserFreezeSub", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3UserCreateSubApi (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3UserCreateSubApi", args...)
+func (this *BitgetCore) PrivateUtaPostV3UserCreateSubApi(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3UserCreateSubApi", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3UserUpdateSubApi (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3UserUpdateSubApi", args...)
+func (this *BitgetCore) PrivateUtaPostV3UserUpdateSubApi(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3UserUpdateSubApi", args...)
 }
 
-func (this *BitgetCore) PrivateUtaPostV3UserDeleteSubApi (args ...any) <-chan any {
-   return this.callEndpointAsync("privateUtaPostV3UserDeleteSubApi", args...)
+func (this *BitgetCore) PrivateUtaPostV3UserDeleteSubApi(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3UserDeleteSubApi", args...)
 }
