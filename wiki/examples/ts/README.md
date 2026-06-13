@@ -6,8 +6,6 @@
 
 - [Benchmark](./examples/ts/benchmark.md)
 
-- [Binance Https Proxy](./examples/ts/binance-https-proxy.md)
-
 - [Binance Watch Ohlcv Many Symbols Continuously](./examples/ts/binance-watch-ohlcv-many-symbols-continuously.md)
 
 - [Binance Watch Ohlcv Many Symbols](./examples/ts/binance-watch-ohlcv-many-symbols.md)
