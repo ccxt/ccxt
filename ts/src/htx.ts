@@ -584,7 +584,6 @@ export default class htx extends Exchange {
                             'linear-swap-api/v1/swap_index': 1,
                             'linear-swap-api/v1/swap_query_elements': 1,
                             'linear-swap-api/v1/swap_price_limit': 1,
-                            'linear-swap-api/v1/swap_open_interest': 1,
                             'linear-swap-ex/market/depth': 1,
                             'linear-swap-ex/market/bbo': 1,
                             'linear-swap-ex/market/history/kline': 1,
@@ -615,6 +614,7 @@ export default class htx extends Exchange {
                             'linear-swap-api/v1/swap_estimated_settlement_price': 1,
                             'v5/market/funding_rate': 1,
                             'v5/market/funding_rate_history': 1,
+                            'v5/market/open_interest': 1,
                         },
                     },
                     'private': {
@@ -8895,7 +8895,7 @@ export default class htx extends Exchange {
      * @description Retrieves the open interest of a currency
      * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97fb53f2
      * @param {string} symbol Unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -8919,35 +8919,28 @@ export default class htx extends Exchange {
             // COIN-M futures
             response = await this.contractPublicGetApiV1ContractOpenInterest (this.extend (request, params));
         } else if (market['linear']) {
-            request['contract_type'] = 'swap';
-            // USDT-M
-            response = await this.contractPublicGetLinearSwapApiV1SwapOpenInterest (this.extend (request, params));
+            // USDT-M swaps
+            response = await this.contractPublicGetV5MarketOpenInterest (this.extend (request, params));
         } else {
             // COIN-M swaps
             response = await this.contractPublicGetSwapApiV1SwapOpenInterest (this.extend (request, params));
         }
         //
-        // USDT-M contractPublicGetLinearSwapApiV1SwapOpenInterest
+        // USDT-M linear swap
         //
         //     {
-        //         "status": "ok",
-        //         "data": [
-        //             {
-        //                 "volume": 7192610.000000000000000000,
-        //                 "amount": 7192.610000000000000000,
-        //                 "symbol": "BTC",
-        //                 "value": 134654290.332000000000000000,
-        //                 "contract_code": "BTC-USDT",
-        //                 "trade_amount": 70692.804,
-        //                 "trade_volume": 70692804,
-        //                 "trade_turnover": 1379302592.9518,
-        //                 "business_type": "swap",
-        //                 "pair": "BTC-USDT",
-        //                 "contract_type": "swap",
-        //                 "trade_partition": "USDT"
-        //             }
-        //         ],
-        //         "ts": 1664336503144
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": {
+        //             "amount": "32476.092",
+        //             "volume": "32476092",
+        //             "value": "2063137924.9668",
+        //             "contract_code": "BTC-USDT",
+        //             "trade_amount": "11371.362",
+        //             "trade_volume": "11371362",
+        //             "trade_turnover": "723600792.7222"
+        //         },
+        //         "ts": 1781327941440
         //     }
         //
         // COIN-M Swap contractPublicGetSwapApiV1SwapOpenInterest
@@ -8987,6 +8980,10 @@ export default class htx extends Exchange {
         //         "ts": 1664337928805
         //     }
         //
+        if (market['linear']) {
+            const result = this.safeDict (response, 'data', {});
+            return this.parseOpenInterest (result, market);
+        }
         const data = this.safeValue (response, 'data', []);
         const openInterest = this.parseOpenInterest (data[0], market);
         const timestamp = this.safeInteger (response, 'ts');
@@ -9009,18 +9006,13 @@ export default class htx extends Exchange {
         // fetchOpenInterest: USDT-M
         //
         //     {
-        //         "volume": 7192610.000000000000000000,
-        //         "amount": 7192.610000000000000000,
-        //         "symbol": "BTC",
-        //         "value": 134654290.332000000000000000,
+        //         "amount": "32476.092",
+        //         "volume": "32476092",
+        //         "value": "2063137924.9668",
         //         "contract_code": "BTC-USDT",
-        //         "trade_amount": 70692.804,
-        //         "trade_volume": 70692804,
-        //         "trade_turnover": 1379302592.9518,
-        //         "business_type": "swap",
-        //         "pair": "BTC-USDT",
-        //         "contract_type": "swap",
-        //         "trade_partition": "USDT"
+        //         "trade_amount": "11371.362",
+        //         "trade_volume": "11371362",
+        //         "trade_turnover": "723600792.7222"
         //     }
         //
         // fetchOpenInterest: COIN-M Swap

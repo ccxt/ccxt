@@ -712,11 +712,11 @@
         ],
         "fetchOpenInterest": [
             {
-                "description": "fetch Open Interest - swap linear",
+                "description": "Linear swap fetchOpenInterest",
                 "method": "fetchOpenInterest",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_open_interest?contract_type=swap&contract_code=LTC-USDT",
+                "url": "https://api.hbdm.vn/v5/market/open_interest?contract_code=BTC-USDT",
                 "input": [
-                    "LTC/USDT:USDT"
+                    "BTC/USDT:USDT"
                 ]
             },
             {

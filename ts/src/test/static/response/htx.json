@@ -3044,53 +3044,42 @@
         ],
         "fetchOpenInterest": [
             {
-                "description": "linear swap fetch open interest",
+                "description": "Linear swap fetch open interest",
                 "method": "fetchOpenInterest",
                 "input": [
-                  "BTC/USDT:USDT"
+                    "BTC/USDT:USDT"
                 ],
                 "httpResponse": {
-                  "status": "ok",
-                  "data": [
-                    {
-                      "volume": "29162446",
-                      "amount": "29162.446000000000000000",
-                      "symbol": "BTC",
-                      "value": "2761301608.157400000000000000",
-                      "contract_code": "BTC-USDT",
-                      "trade_amount": "8142.478",
-                      "trade_volume": "8142478",
-                      "trade_turnover": "772388837.3592",
-                      "business_type": "swap",
-                      "pair": "BTC-USDT",
-                      "contract_type": "swap",
-                      "trade_partition": "USDT"
-                    }
-                  ],
-                  "ts": "1735383186448"
+                    "code": "200",
+                    "message": "Success",
+                    "data": {
+                        "amount": "32476.092",
+                        "volume": "32476092",
+                        "value": "2063137924.9668",
+                        "contract_code": "BTC-USDT",
+                        "trade_amount": "11371.362",
+                        "trade_volume": "11371362",
+                        "trade_turnover": "723600792.7222"
+                    },
+                    "ts": "1781327941440"
                 },
                 "parsedResponse": {
-                  "symbol": "BTC/USDT:USDT",
-                  "baseVolume": 29162446,
-                  "quoteVolume": 2761301608.1574,
-                  "openInterestAmount": 29162446,
-                  "openInterestValue": 2761301608.1574,
-                  "timestamp": 1735383186448,
-                  "datetime": "2024-12-28T10:53:06.448Z",
-                  "info": {
-                    "volume": "29162446",
-                    "amount": "29162.446000000000000000",
-                    "symbol": "BTC",
-                    "value": "2761301608.157400000000000000",
-                    "contract_code": "BTC-USDT",
-                    "trade_amount": "8142.478",
-                    "trade_volume": "8142478",
-                    "trade_turnover": "772388837.3592",
-                    "business_type": "swap",
-                    "pair": "BTC-USDT",
-                    "contract_type": "swap",
-                    "trade_partition": "USDT"
-                  }
+                    "symbol": "BTC/USDT:USDT",
+                    "baseVolume": 32476092,
+                    "quoteVolume": 2063137924.9668,
+                    "openInterestAmount": 32476092,
+                    "openInterestValue": 2063137924.9668,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                        "amount": "32476.092",
+                        "volume": "32476092",
+                        "value": "2063137924.9668",
+                        "contract_code": "BTC-USDT",
+                        "trade_amount": "11371.362",
+                        "trade_volume": "11371362",
+                        "trade_turnover": "723600792.7222"
+                    }
                 }
             },
             {
