@@ -2,9 +2,9 @@
 
 import { hmac as _hmac } from '@noble/hashes/hmac.js';
 import { hex as base16,  base64 } from '@scure/base';
-import { CHash, utf8ToBytes } from '@noble/hashes/utils.js';
-import { ECDSA as CurveFn } from '@noble/curves/abstract/weierstrass.js';
-import { EdDSA as CurveFnEDDSA } from '@noble/curves/abstract/edwards.js';
+import { type CHash, utf8ToBytes } from '@noble/hashes/utils.js';
+import type { ECDSA as CurveFn } from '@noble/curves/abstract/weierstrass.js';
+import type { EdDSA as CurveFnEDDSA } from '@noble/curves/abstract/edwards.js';
 import { Base64 } from '../../static_dependencies/jsencrypt/lib/asn1js/base64.js';
 import { ASN1 } from "../../static_dependencies/jsencrypt/lib/asn1js/asn1.js";
 import { secp256k1 } from '@noble/curves/secp256k1.js';
