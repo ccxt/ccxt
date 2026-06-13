@@ -6,6 +6,7 @@ import type {
     Int, Str, Num, Dict, Strings,
     Market, Ticker, Tickers, OrderBook, Trade, OHLCV,
     Order, Balances, Position,
+    PredictionEvent,
 } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -598,7 +599,7 @@ export default class kalshi extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': average,
-            'baseVolume': this.safeNumberN (raw, [ 'volume_24h_fp', 'volume_24h', 'volume' ]),
+            'baseVolume': this.safeNumberN (raw, [ 'volume_24h_fp', 'volume_24h', 'volume' ]), // 24h volume in contracts
             'quoteVolume': undefined,
             'info': raw,
         }, market);
@@ -1340,7 +1341,7 @@ export default class kalshi extends Exchange {
      * @param {int} [params.maxPages] maximum number of pages to scan, defaults to 5
      * @returns {object[]} an array of event structures
      */
-    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any[]> {
+    async fetchEvents (queries: Strings = undefined, params = {}): Promise<PredictionEvent[]> {
         queries = (queries === undefined) ? [] : queries;
         const status = this.safeString (params, 'status', this.safeString (this.options, 'defaultEventStatus', 'open'));
         const pageLimit = this.safeInteger (params, 'limit', 200);

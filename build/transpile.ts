@@ -877,6 +877,8 @@ class Transpiler {
             'FundingRateHistory': /-> (?:List\[)?FundingRateHistory/,
             'MarketInterface': /-> (?:List\[)?MarketInterface/,
             'TransferEntry': /-> TransferEntry:/,
+            'PredictionEvent': /-> (?:List\[)?PredictionEvent/,
+            'PredictionOutcome': /: (?:List\[)?PredictionOutcome/,
         }
         const matches: string[] = []
         let match

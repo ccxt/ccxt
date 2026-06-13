@@ -23,6 +23,7 @@ import type {
     Bool,
     Trade,
     Account,
+    PredictionEvent,
 } from '../base/types.js';
 import { ArgumentsRequired, BadRequest, InvalidAddress, InvalidOrder, OrderNotFound } from '../../ccxt.js';
 import { Precise } from '../base/Precise.js';
@@ -2557,7 +2558,7 @@ export default class limitless extends Exchange {
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @returns {object[]} an array of event structures
      */
-    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any[]> {
+    async fetchEvents (queries: Strings = undefined, params = {}): Promise<PredictionEvent[]> {
         queries = (queries === undefined) ? [] : queries;
         let result = [];
         const queriesLength = queries.length;

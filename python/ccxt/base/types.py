@@ -597,6 +597,55 @@ IsolatedBorrowRates = Dict[Str, IsolatedBorrowRate]
 CrossBorrowRates = Dict[Str, CrossBorrowRate]
 LeverageTiers = Dict[Str, List[LeverageTier]]
 
+class PredictionOutcome(TypedDict):
+    id: str
+    symbol: str
+    marketSymbol: str
+    marketId: str
+    label: str
+    price: Num
+    active: Bool
+    info: Any
+
+
+class PredictionMarket(TypedDict):
+    id: str
+    symbol: str
+    created: Num
+    description: str
+    active: Bool
+    price: Num
+    info: Any
+    resolutionSource: Str
+    image: Str
+    lastUpdatedAt: Num
+    end: Num
+    endDatetime: Str
+    outcomes: List[PredictionOutcome]
+
+
+class PredictionEvent(TypedDict):
+    id: str
+    symbol: str
+    title: str
+    description: str
+    slug: str
+    markets: List[PredictionMarket]
+    url: str
+    image: Str
+    active: Bool
+    resolved: Bool
+    category: Str
+    tags: List[str]
+    created: Num
+    end: Num
+    endDatetime: Str
+    createdDatetime: str
+    lastUpdatedAt: Num
+    resolutionSource: Str
+    info: Any
+
+
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]
 

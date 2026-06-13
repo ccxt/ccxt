@@ -5,6 +5,7 @@ import type {
     Market, Ticker, Tickers, OrderBook, Trade, OHLCV,
     Order, Balances, Position,
     Strings,
+    PredictionEvent,
 } from '../base/types.js';
 import { ArgumentsRequired, BadRequest } from '../../ccxt.js';
 
@@ -1397,7 +1398,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.limit] page size per search query, defaults to 50
      * @returns {object[]} an array of event structures
      */
-    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any[]> {
+    async fetchEvents (queries: Strings = undefined, params = {}): Promise<PredictionEvent[]> {
         queries = (queries === undefined) ? [] : queries;
         const queriesLength = queries.length;
         let rawEvents: any[] = [];

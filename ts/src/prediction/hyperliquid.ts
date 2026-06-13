@@ -8,6 +8,7 @@ import type {
     Market, Ticker, Tickers, OrderBook, Trade, OHLCV,
     Order, Balances, Position,
     Strings,
+    PredictionEvent,
 } from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, RateLimitExceeded } from '../../ccxt.js';
 
@@ -1775,7 +1776,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters
      * @returns {PredictionEvent[]} array of event structures
      */
-    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any[]> {
+    async fetchEvents (queries: Strings = undefined, params = {}): Promise<PredictionEvent[]> {
         queries = (queries === undefined) ? [] : queries;
         await this.loadMarkets ();
         const marketValues = Object.values (this.markets);

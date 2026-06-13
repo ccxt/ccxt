@@ -19,6 +19,7 @@ import type {
     Int, Str, Dict,
     Strings,
     Market, Ticker, Tickers, OrderBook, OHLCV, Trade,
+    PredictionEvent,
 } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 
@@ -608,8 +609,8 @@ export default class myriad extends Exchange {
             'change': change,
             'percentage': change,
             'average': price,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeNumber (raw, 'volume24h'),
+            'baseVolume': this.safeNumber (raw, 'volume24h'),          // 24h volume in outcome shares
+            'quoteVolume': this.safeNumber (raw, 'volumeNotional24h'), // 24h volume in USDC notional
             'info': raw,
         }, market);
     }
@@ -1140,7 +1141,7 @@ export default class myriad extends Exchange {
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to 'open'
      * @returns {object[]} an array of event structures
      */
-    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any[]> {
+    async fetchEvents (queries: Strings = undefined, params = {}): Promise<PredictionEvent[]> {
         queries = (queries === undefined) ? [] : queries;
         const queriesLength = queries.length;
         if (queriesLength === 0) {
