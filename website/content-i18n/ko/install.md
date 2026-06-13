@@ -27,7 +27,7 @@ git clone https://github.com/ccxt/ccxt.git
 
 ### JavaScript (NPM)
 
-ccxt의 JavaScript 버전은 Node와 웹 브라우저 모두에서 작동합니다. ES6와 `async/await` 구문 지원이 필요합니다(Node 15+). Webpack과 Babel로 컴파일할 때는 `babel-loader` 구성에서 [제외되지 않았는지](https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331582275) 확인하세요.
+ccxt의 JavaScript 버전은 Node와 웹 브라우저 모두에서 작동합니다. ES6와 `async/await` 구문 지원이 필요합니다(Node 15+). Rspack(또는 Webpack)과 Babel로 컴파일할 때는 `babel-loader` 구성에서 [제외되지 않았는지](https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331582275) 확인하세요.
 
 [npm의 ccxt 암호화폐 거래 라이브러리](http://npmjs.com/package/ccxt)
 
@@ -63,7 +63,7 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 ### 사용자 정의 JavaScript 빌드
 
-모든 스크립트와 리소스를 로드하는 데 시간이 걸립니다. 브라우저에서 사용할 때의 문제는 전체 CCXT 라이브러리가 몇 메가바이트에 달해 웹 애플리케이션에는 많은 용량입니다. Node 앱에서도 때때로 중요할 수 있습니다. 따라서 로딩 시간을 줄이기 위해 필요한 거래소만 포함된 CCXT의 사용자 정의 빌드를 만들 수 있습니다. CCXT는 패키지를 더 작게 만들기 위해 webpack을 사용하여 사용되지 않는 코드 경로를 제거합니다.
+모든 스크립트와 리소스를 로드하는 데 시간이 걸립니다. 브라우저에서 사용할 때의 문제는 전체 CCXT 라이브러리가 몇 메가바이트에 달해 웹 애플리케이션에는 많은 용량입니다. Node 앱에서도 때때로 중요할 수 있습니다. 따라서 로딩 시간을 줄이기 위해 필요한 거래소만 포함된 CCXT의 사용자 정의 빌드를 만들 수 있습니다. CCXT는 패키지를 더 작게 만들기 위해 rspack을 사용하여 사용되지 않는 코드 경로를 제거합니다.
 
 다음 단계를 따르세요:
 

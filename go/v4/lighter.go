@@ -157,7 +157,7 @@ func (this *LighterCore) Describe() any {
 			"doc":  "https://apidocs.lighter.xyz/",
 			"fees": "https://docs.lighter.xyz/perpetual-futures/fees",
 			"referral": map[string]any{
-				"url":      "app.lighter.xyz/?referral=715955W9",
+				"url":      "https://app.lighter.xyz/?referral=715955W9",
 				"discount": 0.1,
 			},
 		},

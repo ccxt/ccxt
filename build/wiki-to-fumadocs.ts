@@ -97,6 +97,15 @@ function headingSlugs (md: string): Set<string> {
 let MANUAL_ANCHORS = new Set<string>();
 let PRO_ANCHORS = new Set<string>();
 
+// The English exchanges table is generated from ts/src (by export-exchanges, between these
+// markers). Translations carry a frozen copy that drifts — stale referrals, removed
+// exchanges, bad domains (e.g. the malware-flagged htx.com.vc). We capture the current
+// English table while building the English guides and re-inject it into every translated
+// manual/pro-manual at build time, so all locales always show the live table.
+const EXCHANGE_TABLE_RE = /<!--- init list -->[\s\S]*?<!--- end list -->/;
+let EN_MANUAL_TABLE = '';
+let EN_PRO_TABLE = '';
+
 // ---------------------------------------------------------------------------
 // Text helpers
 // ---------------------------------------------------------------------------
@@ -175,6 +184,9 @@ function rewriteLinks (md: string): string {
             (m, text, ex) => (live.has(ex) ? m : text));
     }
 
+    // generator gap: methods with no exchange context emit /exchanges/<anonymous>.md — unlink.
+    s = s.replace(/\[([^\]]+)\]\(\/?(?:docs\/)?exchanges\/(?:&lt;anonymous&gt;|<anonymous>)\.md(?:#[\w-]+)?\)/g, '$1');
+
     // absolute exchange links: /exchanges/<ex>.md(#m)
     s = s.replace(/\/exchanges\/([\w]+)\.md(#[\w-]+)?/g,
         (_m, ex, frag) => `/docs/exchanges/${ex}${frag ?? ''}`);
@@ -187,6 +199,8 @@ function rewriteLinks (md: string): string {
     s = s.replace(/\]\((?:\.\/)?examples\/(js|py|ts|php|cs|go|java)\/([\w.\-]+)\.md\)/g, '](/docs/examples/$1/$2)');
     // example dir links: ./examples/<lang>/ -> /docs/examples/<lang>
     s = s.replace(/\]\((?:\.\/)?examples\/(js|py|ts|php|cs|go|java)\/?\)/g, '](/docs/examples/$1)');
+    // absolute example links missing the /docs prefix: /examples/<lang>(/file) -> /docs/examples/...
+    s = s.replace(/\]\(\/examples\/(js|py|ts|php|cs|go|java)((?:\/[^)]*)?)\)/g, '](/docs/examples/$1$2)');
 
     // relative guide query-anchor: ](Examples?id=js) / ](Manual?id=x) etc.
     s = s.replace(/\]\((?:\.\/)?([\w.\-]+)\?id=([\w-]+)\)/g, (_m, page, anchor) => {
@@ -390,6 +404,8 @@ function main () {
         const src = path.join(WIKI, file);
         if (!fs.existsSync(src)) { console.warn('  ⚠ missing guide', file); continue; }
         const body = transform(readWiki(file));
+        if (route === 'manual') EN_MANUAL_TABLE = (body.match(EXCHANGE_TABLE_RE) ?? [''])[0];
+        else if (route === 'pro-manual') EN_PRO_TABLE = (body.match(EXCHANGE_TABLE_RE) ?? [''])[0];
         const desc = ROUTE_DESC[route] || firstParagraph(body);
         write(path.join(OUT, `${route}.md`), frontmatter(title, desc) + body);
         count++;
@@ -470,7 +486,8 @@ function main () {
 
     // 5) translated guides: drop the committed per-locale markdown in as
     // content/docs/<name>.<locale>.md so Fumadocs i18n serves it (others fall back to
-    // English). These are already final, transformed markdown — copied verbatim.
+    // English). Copied verbatim, except the exchanges table — that's re-injected from the
+    // current English build (see EXCHANGE_TABLE_RE) so it never goes stale per locale.
     const I18N_DIR = path.join(ROOT, 'website', 'content-i18n');
     let i18nCount = 0;
     if (fs.existsSync(I18N_DIR)) {
@@ -479,7 +496,21 @@ function main () {
             if (!fs.statSync(dir).isDirectory()) continue;
             for (const f of fs.readdirSync(dir)) {
                 if (!f.endsWith('.md')) continue;
-                write(path.join(OUT, `${f.replace(/\.md$/, '')}.${locale}.md`), fs.readFileSync(path.join(dir, f), 'utf8'));
+                const base = f.replace(/\.md$/, '');
+                let content = fs.readFileSync(path.join(dir, f), 'utf8');
+                const enTable = (base === 'manual') ? EN_MANUAL_TABLE : (base === 'pro-manual') ? EN_PRO_TABLE : '';
+                if (enTable) {
+                    // keep the locale's translated intro sentence (just refresh its exchange
+                    // count) and swap in the current English table rows.
+                    const enIntro = (enTable.match(/^<!--- init list -->[^\n]*/) ?? [''])[0];
+                    const enCount = (enIntro.match(/\d+/) ?? [''])[0];
+                    const enBody = enTable.slice(enIntro.length);     // \n...rows...<!--- end list -->
+                    content = content.replace(EXCHANGE_TABLE_RE, (m) => {
+                        const localeIntro = (m.match(/^<!--- init list -->[^\n]*/) ?? [enIntro])[0];
+                        return (enCount ? localeIntro.replace(/\d+/, enCount) : localeIntro) + enBody;
+                    });
+                }
+                write(path.join(OUT, `${base}.${locale}.md`), content);
                 i18nCount++;
             }
         }

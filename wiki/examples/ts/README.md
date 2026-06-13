@@ -2,13 +2,7 @@
 
 # [<-](Examples?id=typescript)
 
-- [Apex Watch](./examples/ts/apex-watch.md)
-
 - [Benchmark](./examples/ts/benchmark.md)
-
-- [Binance Fetch Balance Snapshot Watch Balance Updates](./examples/ts/binance-fetch-balance-snapshot-watch-balance-updates.md)
-
-- [Binance Https Proxy](./examples/ts/binance-https-proxy.md)
 
 - [Binance Watch Ohlcv Many Symbols Continuously](./examples/ts/binance-watch-ohlcv-many-symbols-continuously.md)
 
@@ -45,6 +39,8 @@
 - [Exchange Rate Limiter RollingWindow](./examples/ts/exchange-rate-limiter-rollingWindow.md)
 
 - [Fetch Balance All Exchanges](./examples/ts/fetch-balance-all-exchanges.md)
+
+- [Fetch Balance Snapshot Watch Balance Updates](./examples/ts/fetch-balance-snapshot-watch-balance-updates.md)
 
 - [Fetch First Ohlcv Timestamp](./examples/ts/fetch-first-ohlcv-timestamp.md)
 

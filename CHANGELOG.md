@@ -1,3 +1,37 @@
+<a id="v4.5.58"></a>
+# [v4.5.58](https://github.com/ccxt/ccxt/releases/tag/v4.5.58) - 2026-06-11
+
+## What's Changed
+* add default allowSynchronousEvents = false by [@frosty00](https://github.com/frosty00) in [#28833](https://github.com/ccxt/ccxt/pull/28833)
+* fix(precise)!: stringAdd nullify by [@ttodua](https://github.com/ttodua) in [#28834](https://github.com/ccxt/ccxt/pull/28834)
+* Cleanup php static deps by [@frosty00](https://github.com/frosty00) in [#28835](https://github.com/ccxt/ccxt/pull/28835)
+* fix type error in ccxt pro handleErrorMessage by [@frosty00](https://github.com/frosty00) in [#28836](https://github.com/ccxt/ccxt/pull/28836)
+* fix(arkham)!: delist by [@ttodua](https://github.com/ttodua) in [#28000](https://github.com/ccxt/ccxt/pull/28000)
+* fix(build): java implicit API emitter must extend parent Core class for derived exchanges by [@pcriadoperez](https://github.com/pcriadoperez) in [#28832](https://github.com/ccxt/ccxt/pull/28832)
+* fix(hashkey): public watchTrades side & takerOrMaker by [@ttodua](https://github.com/ttodua) in [#28838](https://github.com/ccxt/ccxt/pull/28838)
+* fix(weex): fetchTrades' parseTrade by [@ttodua](https://github.com/ttodua) in [#28837](https://github.com/ccxt/ccxt/pull/28837)
+* chore(yobit): build fix for skip by [@ttodua](https://github.com/ttodua) in [#28824](https://github.com/ccxt/ccxt/pull/28824)
+* fix(aster): extra static tests by [@ttodua](https://github.com/ttodua) in [#28830](https://github.com/ccxt/ccxt/pull/28830)
+* fix(deepcoin): fetchTrades fix by [@ttodua](https://github.com/ttodua) in [#28815](https://github.com/ccxt/ccxt/pull/28815)
+* docs: add Fumadocs documentation site by [@pcriadoperez](https://github.com/pcriadoperez) in [#28726](https://github.com/ccxt/ccxt/pull/28726)
+* feat(playground): interactive multi-language CCXT playground by [@pcriadoperez](https://github.com/pcriadoperez) in [#28807](https://github.com/ccxt/ccxt/pull/28807)
+* delist waves.exchange by [@frosty00](https://github.com/frosty00) in [#28844](https://github.com/ccxt/ccxt/pull/28844)
+* chore(btcbox): skip further by [@ttodua](https://github.com/ttodua) in [#28814](https://github.com/ccxt/ccxt/pull/28814)
+* fix(backpack): trades fix by [@ttodua](https://github.com/ttodua) in [#28813](https://github.com/ccxt/ccxt/pull/28813)
+* fix(networks): add ADA & CARDANO to unified list by [@ttodua](https://github.com/ttodua) in [#28817](https://github.com/ccxt/ccxt/pull/28817)
+* fix(xt): remove non-unified networkcode by [@ttodua](https://github.com/ttodua) in [#28818](https://github.com/ccxt/ccxt/pull/28818)
+* delist yobit by [@frosty00](https://github.com/frosty00) in [#28845](https://github.com/ccxt/ccxt/pull/28845)
+* Php secure dependent packages  by [@frosty00](https://github.com/frosty00) in [#28841](https://github.com/ccxt/ccxt/pull/28841)
+* fix(docs): point Fumadocs deploy smoke test at root paths by [@pcriadoperez](https://github.com/pcriadoperez) in [#28846](https://github.com/ccxt/ccxt/pull/28846)
+* ci(docs): bump Fumadocs deploy actions to Node 24 runtimes by [@pcriadoperez](https://github.com/pcriadoperez) in [#28847](https://github.com/ccxt/ccxt/pull/28847)
+* fix(cryptocom): fetchCurrencies using a sub-account by [@carlosmiei](https://github.com/carlosmiei) in [#28849](https://github.com/ccxt/ccxt/pull/28849)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.57...v4.5.58
+
+[Changes][v4.5.58]
+
+
 <a id="v4.5.57"></a>
 # [v4.5.57](https://github.com/ccxt/ccxt/releases/tag/v4.5.57) - 2026-06-10
 
@@ -13296,6 +13330,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.58]: https://github.com/ccxt/ccxt/compare/v4.5.57...v4.5.58
 [v4.5.57]: https://github.com/ccxt/ccxt/compare/v4.5.56...v4.5.57
 [v4.5.56]: https://github.com/ccxt/ccxt/compare/v4.5.55...v4.5.56
 [v4.5.55]: https://github.com/ccxt/ccxt/compare/v4.5.54...v4.5.55

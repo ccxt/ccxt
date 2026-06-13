@@ -27,7 +27,7 @@ git clone https://github.com/ccxt/ccxt.git
 
 ### JavaScript (NPM)
 
-ccxt 的 JavaScript 版本可同时在 Node 和 Web 浏览器中使用。需要支持 ES6 和 `async/await` 语法（Node 15+）。使用 Webpack 和 Babel 编译时，请确保在 `babel-loader` 配置中[不排除](https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331582275)。
+ccxt 的 JavaScript 版本可同时在 Node 和 Web 浏览器中使用。需要支持 ES6 和 `async/await` 语法（Node 15+）。使用 Rspack（或 Webpack）和 Babel 编译时，请确保在 `babel-loader` 配置中[不排除](https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331582275)。
 
 [npm 中的 ccxt 加密交易库](http://npmjs.com/package/ccxt)
 
@@ -63,7 +63,7 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 ### 自定义 JavaScript 构建
 
-加载所有脚本和资源需要时间。浏览器使用的问题是整个 CCXT 库重达几兆字节，对于 Web 应用来说太大。有时对 Node 应用也是如此。因此，为了缩短加载时间，您可能希望为您的应用制作仅包含所需交易所的自定义 CCXT 构建。CCXT 使用 webpack 移除无效代码路径以使包更小。
+加载所有脚本和资源需要时间。浏览器使用的问题是整个 CCXT 库重达几兆字节，对于 Web 应用来说太大。有时对 Node 应用也是如此。因此，为了缩短加载时间，您可能希望为您的应用制作仅包含所需交易所的自定义 CCXT 构建。CCXT 使用 rspack 移除无效代码路径以使包更小。
 
 按照以下步骤：
 

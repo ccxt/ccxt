@@ -20,7 +20,7 @@ export async function initFileSystem() {
     if (isNode) {
         if (fsSyncModule === null) {
             try {
-                // Dynamic import with webpackIgnore to prevent bundling
+                // Dynamic import with rspackIgnore to prevent bundling
                 fsSyncModule = await import(/* webpackIgnore: true */ 'node:fs');
             }
             catch (e) { } // Silent fail in browser or if fs is unavailable
