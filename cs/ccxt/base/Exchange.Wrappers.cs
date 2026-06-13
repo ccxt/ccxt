@@ -1441,7 +1441,6 @@ public class  Hibachi: hibachi { public Hibachi(object args = null) : base(args)
 public class  Hitbtc: hitbtc { public Hitbtc(object args = null) : base(args) { } }
 public class  Hollaex: hollaex { public Hollaex(object args = null) : base(args) { } }
 public class  Htx: htx { public Htx(object args = null) : base(args) { } }
-public class  Huobi: huobi { public Huobi(object args = null) : base(args) { } }
 public class  Hyperliquid: hyperliquid { public Hyperliquid(object args = null) : base(args) { } }
 public class  Independentreserve: independentreserve { public Independentreserve(object args = null) : base(args) { } }
 public class  Indodax: indodax { public Indodax(object args = null) : base(args) { } }
