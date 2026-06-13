@@ -8798,7 +8798,6 @@ export default class htx extends Exchange {
      * @description Retrieves the open interest for a list of symbols
      * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
      * @param {string[]} [symbols] a list of unified CCXT market symbols
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -8860,30 +8859,7 @@ export default class htx extends Exchange {
             //     }
             //
         } else {
-            request['contract_type'] = 'swap';
-            response = await this.contractPublicGetLinearSwapApiV1SwapOpenInterest (this.extend (request, params));
-            //
-            //     {
-            //         "status": "ok",
-            //         "data": [
-            //             {
-            //                 "volume": 7192610.000000000000000000,
-            //                 "amount": 7192.610000000000000000,
-            //                 "symbol": "BTC",
-            //                 "value": 134654290.332000000000000000,
-            //                 "contract_code": "BTC-USDT",
-            //                 "trade_amount": 70692.804,
-            //                 "trade_volume": 70692804,
-            //                 "trade_turnover": 1379302592.9518,
-            //                 "business_type": "swap",
-            //                 "pair": "BTC-USDT",
-            //                 "contract_type": "swap",
-            //                 "trade_partition": "USDT"
-            //             }
-            //         ],
-            //         "ts": 1664336503144
-            //     }
-            //
+            throw new NotSupported (this.id + ' fetchOpenInterests() does not currently support linear markets');
         }
         const data = this.safeList (response, 'data', []);
         return this.parseOpenInterests (data, symbols) as OpenInterests;
