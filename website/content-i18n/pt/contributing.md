@@ -1076,8 +1076,8 @@ node run-tests --python-async kraken # test Kraken with Python async test, requi
 
 Siga estes passos para adicionar um teste:
 
-- Crie um arquivo em [ts/tests/Exchange](ts/test/Exchange/) seguindo a sintaxe que pode ser transpilada.
-- Adicione o teste em `runPrivateTests` ou `runPublicTests` em [ts/src/test/tests.ts](ts/src/test/tests.ts#L354) ou para endpoints do ccxt.pro em [ts/src/pro/test/tests.ts](ts/src/pro/test/tests.ts#L121)
+- Crie um arquivo em [ts/tests/Exchange](https://github.com/ccxt/ccxt/tree/master/ts/test/Exchange) seguindo a sintaxe que pode ser transpilada.
+- Adicione o teste em `runPrivateTests` ou `runPublicTests` em [ts/src/test/tests.ts](https://github.com/ccxt/ccxt/blob/master/ts/src/test/tests.ts#L354) ou para endpoints do ccxt.pro em [ts/src/pro/test/tests.ts](https://github.com/ccxt/ccxt/blob/master/ts/src/pro/test/tests.ts#L121)
 - execute `npm run transpile` para gerar o arquivo de teste em JavaScript, Python e PHP.
 - Execute os testes com `node run-tests`
 

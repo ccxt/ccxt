@@ -15,13 +15,13 @@ Para ejecutar los ejemplos de ccxt desde cualquier carpeta, escriba uno de los s
 
 ### Typescript
 
-[Ejemplos de Typescript](/examples/ts/)
+[Ejemplos de Typescript](/docs/examples/ts/)
 
 ---
 
 ### JavaScript
 
-[Ejemplos de JavaScript](/examples/js/)
+[Ejemplos de JavaScript](/docs/examples/js/)
 
 ```bash
 node path/to/example.js # sustituir por el nombre de archivo real
@@ -41,7 +41,7 @@ Todos los módulos anteriores se instalan automáticamente con las dependencias 
 
 ### PHP
 
-[Ejemplos de PHP](/examples/php/)
+[Ejemplos de PHP](/docs/examples/php/)
 
 ```bash
 php -f path/to/example.php # sustituir por el nombre de archivo real
@@ -51,7 +51,7 @@ php -f path/to/example.php # sustituir por el nombre de archivo real
 
 ### Python
 
-[Ejemplos de Python](/examples/py/)
+[Ejemplos de Python](/docs/examples/py/)
 
 ![basic-chart](https://user-images.githubusercontent.com/1294454/29979754-6d62354c-8f4f-11e7-9e0a-22e87b4a093b.jpg)
 

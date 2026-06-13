@@ -51,14 +51,13 @@ await example_httpProxy ();
 
 
 /*
-
 Note, in some languages you can also set your custom agent like, eg:
 
 
 ############################ JAVASCRIPT ############################
 
 const SocksProxyAgent = require ('socks-proxy-agent');
-const socks = 'socks://127.0.0.1:1080';
+const socks = 'socks5h://127.0.0.1:1080';
 const myAgent = new SocksProxyAgent (socks);
 const exchange = new ccxt.binance ({
     'httpsAgent': myAgent,

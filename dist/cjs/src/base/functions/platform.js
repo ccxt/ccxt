@@ -15,7 +15,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 // - properly detect isNode == true on server side and isNode == false in the browser (on client side)
 // - make sure create-react-app, react-starter-kit and other react frameworks work
 // - make sure it does not break the browserified version (when linked into a html from a cdn)
-// - make sure it does not break the webpacking and babel-transpiled scripts
+// - make sure it does not break the rspack bundling and babel-transpiled scripts
 // - make sure it works in Electron
 // - make sure it works with Angular.js
 // - make sure it does not break other possible usage scenarios

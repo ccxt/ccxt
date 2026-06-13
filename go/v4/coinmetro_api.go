@@ -7,122 +7,122 @@
 
 package ccxt
 
-func (this *CoinmetroCore) PublicGetDemoTemp (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetDemoTemp", args...)
+func (this *CoinmetroCore) PublicGetDemoTemp(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDemoTemp", args...)
 }
 
-func (this *CoinmetroCore) PublicGetExchangeCandlesPairTimeframeFromTo (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetExchangeCandlesPairTimeframeFromTo", args...)
+func (this *CoinmetroCore) PublicGetExchangeCandlesPairTimeframeFromTo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetExchangeCandlesPairTimeframeFromTo", args...)
 }
 
-func (this *CoinmetroCore) PublicGetExchangePrices (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetExchangePrices", args...)
+func (this *CoinmetroCore) PublicGetExchangePrices(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetExchangePrices", args...)
 }
 
-func (this *CoinmetroCore) PublicGetExchangeTicksPairFrom (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetExchangeTicksPairFrom", args...)
+func (this *CoinmetroCore) PublicGetExchangeTicksPairFrom(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetExchangeTicksPairFrom", args...)
 }
 
-func (this *CoinmetroCore) PublicGetAssets (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetAssets", args...)
+func (this *CoinmetroCore) PublicGetAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAssets", args...)
 }
 
-func (this *CoinmetroCore) PublicGetMarkets (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetMarkets", args...)
+func (this *CoinmetroCore) PublicGetMarkets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
-func (this *CoinmetroCore) PublicGetExchangeBookPair (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetExchangeBookPair", args...)
+func (this *CoinmetroCore) PublicGetExchangeBookPair(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetExchangeBookPair", args...)
 }
 
-func (this *CoinmetroCore) PublicGetExchangeBookUpdatesPairFrom (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetExchangeBookUpdatesPairFrom", args...)
+func (this *CoinmetroCore) PublicGetExchangeBookUpdatesPairFrom(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetExchangeBookUpdatesPairFrom", args...)
 }
 
-func (this *CoinmetroCore) PrivateGetUsersBalances (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUsersBalances", args...)
+func (this *CoinmetroCore) PrivateGetUsersBalances(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUsersBalances", args...)
 }
 
-func (this *CoinmetroCore) PrivateGetUsersWallets (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUsersWallets", args...)
+func (this *CoinmetroCore) PrivateGetUsersWallets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUsersWallets", args...)
 }
 
-func (this *CoinmetroCore) PrivateGetUsersWalletsHistorySince (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetUsersWalletsHistorySince", args...)
+func (this *CoinmetroCore) PrivateGetUsersWalletsHistorySince(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUsersWalletsHistorySince", args...)
 }
 
-func (this *CoinmetroCore) PrivateGetExchangeOrdersStatusOrderID (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetExchangeOrdersStatusOrderID", args...)
+func (this *CoinmetroCore) PrivateGetExchangeOrdersStatusOrderID(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExchangeOrdersStatusOrderID", args...)
 }
 
-func (this *CoinmetroCore) PrivateGetExchangeOrdersActive (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetExchangeOrdersActive", args...)
+func (this *CoinmetroCore) PrivateGetExchangeOrdersActive(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExchangeOrdersActive", args...)
 }
 
-func (this *CoinmetroCore) PrivateGetExchangeOrdersHistorySince (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetExchangeOrdersHistorySince", args...)
+func (this *CoinmetroCore) PrivateGetExchangeOrdersHistorySince(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExchangeOrdersHistorySince", args...)
 }
 
-func (this *CoinmetroCore) PrivateGetExchangeFillsSince (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetExchangeFillsSince", args...)
+func (this *CoinmetroCore) PrivateGetExchangeFillsSince(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExchangeFillsSince", args...)
 }
 
-func (this *CoinmetroCore) PrivateGetExchangeMargin (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetExchangeMargin", args...)
+func (this *CoinmetroCore) PrivateGetExchangeMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExchangeMargin", args...)
 }
 
-func (this *CoinmetroCore) PrivatePostJwt (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostJwt", args...)
+func (this *CoinmetroCore) PrivatePostJwt(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostJwt", args...)
 }
 
-func (this *CoinmetroCore) PrivatePostJwtDevice (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostJwtDevice", args...)
+func (this *CoinmetroCore) PrivatePostJwtDevice(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostJwtDevice", args...)
 }
 
-func (this *CoinmetroCore) PrivatePostDevices (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostDevices", args...)
+func (this *CoinmetroCore) PrivatePostDevices(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDevices", args...)
 }
 
-func (this *CoinmetroCore) PrivatePostJwtReadOnly (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostJwtReadOnly", args...)
+func (this *CoinmetroCore) PrivatePostJwtReadOnly(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostJwtReadOnly", args...)
 }
 
-func (this *CoinmetroCore) PrivatePostExchangeOrdersCreate (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostExchangeOrdersCreate", args...)
+func (this *CoinmetroCore) PrivatePostExchangeOrdersCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExchangeOrdersCreate", args...)
 }
 
-func (this *CoinmetroCore) PrivatePostExchangeOrdersModifyOrderID (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostExchangeOrdersModifyOrderID", args...)
+func (this *CoinmetroCore) PrivatePostExchangeOrdersModifyOrderID(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExchangeOrdersModifyOrderID", args...)
 }
 
-func (this *CoinmetroCore) PrivatePostExchangeSwap (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostExchangeSwap", args...)
+func (this *CoinmetroCore) PrivatePostExchangeSwap(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExchangeSwap", args...)
 }
 
-func (this *CoinmetroCore) PrivatePostExchangeSwapConfirmSwapId (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostExchangeSwapConfirmSwapId", args...)
+func (this *CoinmetroCore) PrivatePostExchangeSwapConfirmSwapId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExchangeSwapConfirmSwapId", args...)
 }
 
-func (this *CoinmetroCore) PrivatePostExchangeOrdersCloseOrderID (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostExchangeOrdersCloseOrderID", args...)
+func (this *CoinmetroCore) PrivatePostExchangeOrdersCloseOrderID(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExchangeOrdersCloseOrderID", args...)
 }
 
-func (this *CoinmetroCore) PrivatePostExchangeOrdersHedge (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostExchangeOrdersHedge", args...)
+func (this *CoinmetroCore) PrivatePostExchangeOrdersHedge(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExchangeOrdersHedge", args...)
 }
 
-func (this *CoinmetroCore) PrivatePutJwt (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePutJwt", args...)
+func (this *CoinmetroCore) PrivatePutJwt(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutJwt", args...)
 }
 
-func (this *CoinmetroCore) PrivatePutExchangeOrdersCancelOrderID (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePutExchangeOrdersCancelOrderID", args...)
+func (this *CoinmetroCore) PrivatePutExchangeOrdersCancelOrderID(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutExchangeOrdersCancelOrderID", args...)
 }
 
-func (this *CoinmetroCore) PrivatePutUsersMarginCollateral (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePutUsersMarginCollateral", args...)
+func (this *CoinmetroCore) PrivatePutUsersMarginCollateral(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutUsersMarginCollateral", args...)
 }
 
-func (this *CoinmetroCore) PrivatePutUsersMarginPrimaryCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePutUsersMarginPrimaryCurrency", args...)
+func (this *CoinmetroCore) PrivatePutUsersMarginPrimaryCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutUsersMarginPrimaryCurrency", args...)
 }

@@ -7,114 +7,114 @@
 
 package ccxt
 
-func (this *BithumbCore) PublicGetTickerALLQuoteId (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTickerALLQuoteId", args...)
+func (this *BithumbCore) PublicGetTickerALLQuoteId(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTickerALLQuoteId", args...)
 }
 
-func (this *BithumbCore) PublicGetTickerBaseIdQuoteId (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTickerBaseIdQuoteId", args...)
+func (this *BithumbCore) PublicGetTickerBaseIdQuoteId(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTickerBaseIdQuoteId", args...)
 }
 
-func (this *BithumbCore) PublicGetOrderbookALLQuoteId (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetOrderbookALLQuoteId", args...)
+func (this *BithumbCore) PublicGetOrderbookALLQuoteId(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrderbookALLQuoteId", args...)
 }
 
-func (this *BithumbCore) PublicGetOrderbookBaseIdQuoteId (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetOrderbookBaseIdQuoteId", args...)
+func (this *BithumbCore) PublicGetOrderbookBaseIdQuoteId(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrderbookBaseIdQuoteId", args...)
 }
 
-func (this *BithumbCore) PublicGetTransactionHistoryBaseIdQuoteId (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTransactionHistoryBaseIdQuoteId", args...)
+func (this *BithumbCore) PublicGetTransactionHistoryBaseIdQuoteId(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTransactionHistoryBaseIdQuoteId", args...)
 }
 
-func (this *BithumbCore) PublicGetNetworkInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetNetworkInfo", args...)
+func (this *BithumbCore) PublicGetNetworkInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetNetworkInfo", args...)
 }
 
-func (this *BithumbCore) PublicGetAssetsstatusMultichainALL (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetAssetsstatusMultichainALL", args...)
+func (this *BithumbCore) PublicGetAssetsstatusMultichainALL(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAssetsstatusMultichainALL", args...)
 }
 
-func (this *BithumbCore) PublicGetAssetsstatusMultichainCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetAssetsstatusMultichainCurrency", args...)
+func (this *BithumbCore) PublicGetAssetsstatusMultichainCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAssetsstatusMultichainCurrency", args...)
 }
 
-func (this *BithumbCore) PublicGetWithdrawMinimumALL (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetWithdrawMinimumALL", args...)
+func (this *BithumbCore) PublicGetWithdrawMinimumALL(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetWithdrawMinimumALL", args...)
 }
 
-func (this *BithumbCore) PublicGetWithdrawMinimumCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetWithdrawMinimumCurrency", args...)
+func (this *BithumbCore) PublicGetWithdrawMinimumCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetWithdrawMinimumCurrency", args...)
 }
 
-func (this *BithumbCore) PublicGetAssetsstatusALL (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetAssetsstatusALL", args...)
+func (this *BithumbCore) PublicGetAssetsstatusALL(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAssetsstatusALL", args...)
 }
 
-func (this *BithumbCore) PublicGetAssetsstatusBaseId (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetAssetsstatusBaseId", args...)
+func (this *BithumbCore) PublicGetAssetsstatusBaseId(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAssetsstatusBaseId", args...)
 }
 
-func (this *BithumbCore) PublicGetCandlestickBaseIdQuoteIdInterval (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetCandlestickBaseIdQuoteIdInterval", args...)
+func (this *BithumbCore) PublicGetCandlestickBaseIdQuoteIdInterval(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetCandlestickBaseIdQuoteIdInterval", args...)
 }
 
-func (this *BithumbCore) PrivatePostInfoAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostInfoAccount", args...)
+func (this *BithumbCore) PrivatePostInfoAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostInfoAccount", args...)
 }
 
-func (this *BithumbCore) PrivatePostInfoBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostInfoBalance", args...)
+func (this *BithumbCore) PrivatePostInfoBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostInfoBalance", args...)
 }
 
-func (this *BithumbCore) PrivatePostInfoWalletAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostInfoWalletAddress", args...)
+func (this *BithumbCore) PrivatePostInfoWalletAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostInfoWalletAddress", args...)
 }
 
-func (this *BithumbCore) PrivatePostInfoTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostInfoTicker", args...)
+func (this *BithumbCore) PrivatePostInfoTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostInfoTicker", args...)
 }
 
-func (this *BithumbCore) PrivatePostInfoOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostInfoOrders", args...)
+func (this *BithumbCore) PrivatePostInfoOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostInfoOrders", args...)
 }
 
-func (this *BithumbCore) PrivatePostInfoUserTransactions (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostInfoUserTransactions", args...)
+func (this *BithumbCore) PrivatePostInfoUserTransactions(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostInfoUserTransactions", args...)
 }
 
-func (this *BithumbCore) PrivatePostInfoOrderDetail (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostInfoOrderDetail", args...)
+func (this *BithumbCore) PrivatePostInfoOrderDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostInfoOrderDetail", args...)
 }
 
-func (this *BithumbCore) PrivatePostTradePlace (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTradePlace", args...)
+func (this *BithumbCore) PrivatePostTradePlace(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradePlace", args...)
 }
 
-func (this *BithumbCore) PrivatePostTradeCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTradeCancel", args...)
+func (this *BithumbCore) PrivatePostTradeCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeCancel", args...)
 }
 
-func (this *BithumbCore) PrivatePostTradeBtcWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTradeBtcWithdrawal", args...)
+func (this *BithumbCore) PrivatePostTradeBtcWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeBtcWithdrawal", args...)
 }
 
-func (this *BithumbCore) PrivatePostTradeKrwDeposit (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTradeKrwDeposit", args...)
+func (this *BithumbCore) PrivatePostTradeKrwDeposit(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeKrwDeposit", args...)
 }
 
-func (this *BithumbCore) PrivatePostTradeKrwWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTradeKrwWithdrawal", args...)
+func (this *BithumbCore) PrivatePostTradeKrwWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeKrwWithdrawal", args...)
 }
 
-func (this *BithumbCore) PrivatePostTradeMarketBuy (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTradeMarketBuy", args...)
+func (this *BithumbCore) PrivatePostTradeMarketBuy(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeMarketBuy", args...)
 }
 
-func (this *BithumbCore) PrivatePostTradeMarketSell (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTradeMarketSell", args...)
+func (this *BithumbCore) PrivatePostTradeMarketSell(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeMarketSell", args...)
 }
 
-func (this *BithumbCore) PrivatePostTradeStopLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTradeStopLimit", args...)
+func (this *BithumbCore) PrivatePostTradeStopLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeStopLimit", args...)
 }

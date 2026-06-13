@@ -162,7 +162,7 @@ public class LighterCore extends LighterApi
                 put( "doc", "https://apidocs.lighter.xyz/" );
                 put( "fees", "https://docs.lighter.xyz/perpetual-futures/fees" );
                 put( "referral", new java.util.HashMap<String, Object>() {{
-                    put( "url", "app.lighter.xyz/?referral=715955W9" );
+                    put( "url", "https://app.lighter.xyz/?referral=715955W9" );
                     put( "discount", 0.1 );
                 }} );
             }} );
