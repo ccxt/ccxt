@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var tokocrypto$1 = require('./abstract/tokocrypto.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -2542,7 +2542,7 @@ class tokocrypto extends tokocrypto$1["default"] {
             else {
                 query = this.urlencode(extendedParams);
             }
-            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha2_js.sha256);
             query += '&' + 'signature=' + signature;
             headers = {
                 'X-MBX-APIKEY': this.apiKey,

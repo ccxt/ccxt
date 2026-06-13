@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bigone$1 = require('./abstract/bigone.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var rsa = require('./base/functions/rsa.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var Precise = require('./base/Precise.js');
 
 // ----------------------------------------------------------------------------
@@ -1944,7 +1944,7 @@ class bigone extends bigone$1["default"] {
                 'nonce': nonce,
                 // 'recv_window': '30', // default 30
             };
-            const token = rsa.jwt(request, this.encode(this.secret), sha256.sha256);
+            const token = rsa.jwt(request, this.encode(this.secret), sha2_js.sha256);
             headers['Authorization'] = 'Bearer ' + token;
             if (method === 'GET') {
                 if (Object.keys(query).length) {

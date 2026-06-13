@@ -2,12 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var krakenfutures$1 = require('./abstract/krakenfutures.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -3137,9 +3136,9 @@ class krakenfutures extends krakenfutures$1["default"] {
                 auth += api + '/';
             }
             auth += endpoint; // 1
-            const hash = this.hash(this.encode(auth), sha256.sha256, 'binary'); // 2
+            const hash = this.hash(this.encode(auth), sha2_js.sha256, 'binary'); // 2
             const secret = this.base64ToBinary(this.secret); // 3
-            const signature = this.hmac(hash, secret, sha512.sha512, 'base64'); // 4-5
+            const signature = this.hmac(hash, secret, sha2_js.sha512, 'base64'); // 4-5
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Accept': 'application/json',

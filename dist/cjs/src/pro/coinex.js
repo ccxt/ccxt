@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinex$1 = require('../coinex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -1410,7 +1410,7 @@ class coinex extends coinex$1["default"] {
             'id': requestId,
             'future': messageHash,
         };
-        const hmac = this.hmac(this.encode(timestamp), this.encode(this.secret), sha256.sha256, 'hex');
+        const hmac = this.hmac(this.encode(timestamp), this.encode(this.secret), sha2_js.sha256, 'hex');
         const request = {
             'id': requestId,
             'method': 'server.sign',

@@ -251,7 +251,6 @@ function helperTestProperties() {
     assert(exchange.timeout === 10000, 'timeout should be 10000');
     assert(exchange.verbose === false, 'verbose should be false');
     // assert (testSharedMethods.exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); // todo WS
-    // assert (exchange.requiresEddsa === false);
     assert(!testSharedMethods.exchangeProp(exchange, 'reloadingMarkets'), 'reloadingMarkets should be false');
     assert(testSharedMethods.exchangeProp(exchange, 'marketsLoading') === undefined, 'marketsLoading should be undefined');
     // undefined or false

@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var p2b$1 = require('./abstract/p2b.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -1325,7 +1325,7 @@ class p2b extends p2b$1["default"] {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
                 'X-TXC-PAYLOAD': payload,
-                'X-TXC-SIGNATURE': this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha512),
+                'X-TXC-SIGNATURE': this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha512),
             };
             body = this.json(params);
         }

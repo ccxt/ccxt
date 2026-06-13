@@ -4,7 +4,7 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import { keccak } from '../../scure-starknet/index.js';
+import { keccak } from '@scure/starknet';
 import { MASK_250 } from '../constants.js';
 import { addHexPrefix, removeHexPrefix, utf8ToArray } from './encode.js';
 import { hexToBytes, isHex, isStringWholeNumber, toHex, toHexString } from './num.js';

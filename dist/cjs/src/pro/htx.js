@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var htx$1 = require('../htx.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -2539,7 +2539,7 @@ class htx extends htx$1["default"] {
             signatureParams = this.keysort(signatureParams);
             const auth = this.urlencode(signatureParams, true); // true required in go
             const payload = ['GET', hostname, relativePath, auth].join("\n"); // eslint-disable-line quotes
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'base64');
             let request = undefined;
             if (type === 'spot') {
                 const newParams = {

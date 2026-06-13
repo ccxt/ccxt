@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitget$1 = require('../bitget.js');
 var errors = require('../base/errors.js');
 var Precise = require('../base/Precise.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -2462,7 +2462,7 @@ class bitget extends bitget$1["default"] {
         if (authenticated === undefined) {
             const timestamp = this.seconds().toString();
             const auth = timestamp + 'GET' + '/user/verify';
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256, 'base64');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256, 'base64');
             const operation = 'login';
             const request = {
                 'op': operation,

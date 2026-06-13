@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var zebpay$1 = require('./abstract/zebpay.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var Precise = require('./base/Precise.js');
 
 // ----------------------------------------------------------------------------
@@ -1879,13 +1879,13 @@ class zebpay extends zebpay$1["default"] {
             if (method === 'GET' || (method === 'DELETE' && isSpot)) {
                 // For GET/DELETE: Append params to URL and sign the query string
                 const queryString = this.urlencode(params);
-                signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha256.sha256, 'hex');
+                signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha2_js.sha256, 'hex');
                 url += '?' + queryString;
             }
             else {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
                 body = this.json(params);
-                signature = this.hmac(this.encode(body), this.encode(this.secret), sha256.sha256, 'hex');
+                signature = this.hmac(this.encode(body), this.encode(this.secret), sha2_js.sha256, 'hex');
             }
             headers = {
                 'Referrer': 'ccxt',

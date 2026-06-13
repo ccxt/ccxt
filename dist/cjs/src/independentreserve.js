@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var independentreserve$1 = require('./abstract/independentreserve.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var errors = require('./base/errors.js');
 
 // ----------------------------------------------------------------------------
@@ -1109,7 +1109,7 @@ class independentreserve extends independentreserve$1["default"] {
                 auth.push(key + '=' + value);
             }
             const message = auth.join(',');
-            const signature = this.hmac(this.encode(message), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(message), this.encode(this.secret), sha2_js.sha256);
             const query = {};
             query['apiKey'] = this.apiKey;
             query['nonce'] = nonce;

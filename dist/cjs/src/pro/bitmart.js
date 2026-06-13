@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitmart$1 = require('../bitmart.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var OrderBookSide = require('../base/ws/OrderBookSide.js');
 
 // ----------------------------------------------------------------------------
@@ -1815,7 +1815,7 @@ class bitmart extends bitmart$1["default"] {
             const memo = this.uid;
             const path = 'bitmart.WebSocket';
             const auth = timestamp + '#' + memo + '#' + path;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             let request = undefined;
             if (type === 'spot') {
                 request = {

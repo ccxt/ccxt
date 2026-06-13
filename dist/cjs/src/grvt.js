@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha3_js = require('@noble/hashes/sha3.js');
+var secp256k1_js = require('@noble/curves/secp256k1.js');
 var grvt$1 = require('./abstract/grvt.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
-var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
-var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 var crypto = require('./base/functions/crypto.js');
 var number = require('./base/functions/number.js');
 
@@ -3168,11 +3168,11 @@ class grvt extends grvt$1["default"] {
         const domainData = this.eipDomainData();
         const definitions = this.eipDefinitions();
         const ethEncodedMessage = this.ethEncodeStructuredData(domainData, definitions[structureType], messageData);
-        const ethEncodedMessageHashed = '0x' + this.hash(ethEncodedMessage, sha3.keccak_256, 'hex');
+        const ethEncodedMessageHashed = '0x' + this.hash(ethEncodedMessage, sha3_js.keccak_256, 'hex');
         const usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         const secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         const privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
-        const signature = crypto.ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1.secp256k1, undefined);
+        const signature = crypto.ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1_js.secp256k1, undefined);
         request['signature']['r'] = this.formatSignatureRS(signature['r']);
         request['signature']['s'] = this.formatSignatureRS(signature['s']);
         request['signature']['v'] = this.sum(27, signature['v']);

@@ -2,12 +2,12 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
+var legacy_js = require('@noble/hashes/legacy.js');
 var novadax$1 = require('./abstract/novadax.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
-var md5 = require('./static_dependencies/noble-hashes/md5.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -1642,7 +1642,7 @@ class novadax extends novadax$1["default"] {
             let queryString = undefined;
             if (method === 'POST') {
                 body = this.json(query);
-                queryString = this.hash(this.encode(body), md5.md5);
+                queryString = this.hash(this.encode(body), legacy_js.md5);
                 headers['Content-Type'] = 'application/json';
             }
             else {
@@ -1652,7 +1652,7 @@ class novadax extends novadax$1["default"] {
                 queryString = this.urlencode(this.keysort(query));
             }
             const auth = method + "\n" + request + "\n" + queryString + "\n" + timestamp; // eslint-disable-line quotes
-            headers['X-Nova-Signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+            headers['X-Nova-Signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

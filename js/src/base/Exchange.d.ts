@@ -101,7 +101,6 @@ export default class Exchange {
         referral?: string;
     };
     requiresWeb3: boolean;
-    requiresEddsa: boolean;
     precision: {
         amount: Num;
         price: Num;
@@ -240,22 +239,12 @@ export default class Exchange {
     implodeParams: (string: string, params: any[] | Dictionary<any>) => string;
     extractParams: (string: string) => string[];
     json: (data: any, params?: any) => string;
-    binaryConcat: typeof import("../static_dependencies/noble-curves/abstract/utils.js").concatBytes;
-    hash: (request: import("../static_dependencies/noble-hashes/utils.js").Input, hash: {
-        (message: import("../static_dependencies/noble-hashes/utils.js").Input): Uint8Array;
-        outputLen: number;
-        blockLen: number;
-        create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
-    }, digest?: "hex" | "base64" | "binary") => any;
+    binaryConcat: (...arrays: import("@noble/curves/utils.js").TArg<Uint8Array[]>) => Uint8Array;
+    hash: (request: string | Uint8Array, hash: import("@noble/hashes/utils.js").CHash<import("@noble/hashes/utils.js").Hash<any>, undefined>, digest?: "binary" | "hex" | "base64") => any;
     arrayConcat: (a: any[], b: any[]) => any[];
     encode: (str: string) => Uint8Array;
     urlencode: (object: object, sort?: boolean) => string;
-    hmac: (request: import("../static_dependencies/noble-hashes/utils.js").Input, secret: import("../static_dependencies/noble-hashes/utils.js").Input, hash: {
-        (message: import("../static_dependencies/noble-hashes/utils.js").Input): Uint8Array;
-        outputLen: number;
-        blockLen: number;
-        create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
-    }, digest?: "hex" | "base64" | "binary") => any;
+    hmac: (request: string | Uint8Array, secret: string | Uint8Array, hash: import("@noble/hashes/utils.js").CHash<import("@noble/hashes/utils.js").Hash<any>, undefined>, digest?: "binary" | "hex" | "base64") => any;
     numberToString: typeof functions.numberToString;
     parseTimeframe: (timeframe: string) => number;
     safeInteger2: (o: any, k1: IndexType, k2: IndexType, $default?: number) => number;
@@ -383,7 +372,6 @@ export default class Exchange {
     getProperty(obj: any, property: any, defaultValue?: any): any;
     setProperty(obj: any, property: any, defaultValue?: any): void;
     exceptionMessage(exc: any, includeStack?: boolean): string;
-    axolotl(payload: any, hexKey: any, ed25519: any): string;
     fixStringifiedJsonMembers(content: string): string;
     ethAbiEncode(types: any, args: any): Uint8Array;
     ethEncodeStructuredData(domain: any, messageTypes: any, messageData: any): Uint8Array;

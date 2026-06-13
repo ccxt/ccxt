@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var ed25519_js = require('@noble/curves/ed25519.js');
 var aftermath$1 = require('./abstract/aftermath.js');
 var number = require('./base/functions/number.js');
 var crypto = require('./base/functions/crypto.js');
-var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 var errors = require('./base/errors.js');
 
 // ----------------------------------------------------------------------------
@@ -1283,7 +1283,7 @@ class aftermath extends aftermath$1["default"] {
         const signingDigest = this.safeString(tx, 'signingDigest');
         const digest = this.base64ToBinary(signingDigest);
         const privateKey = this.base16ToBinary(this.privateKey);
-        const signature = crypto.eddsa(digest, privateKey, ed25519.ed25519);
+        const signature = crypto.eddsa(digest, privateKey, ed25519_js.ed25519);
         const hexPublicKey = this.safeString(this.options, 'publicKey');
         if (hexPublicKey === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' requires hex encoding public key in options');

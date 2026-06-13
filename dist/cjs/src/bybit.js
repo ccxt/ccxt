@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bybit$1 = require('./abstract/bybit.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
 
 // ----------------------------------------------------------------------------
@@ -9646,7 +9646,7 @@ class bybit extends bybit$1["default"] {
                     body = '{}';
                 }
                 const payload = timestamp + this.apiKey + body;
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'hex');
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'hex');
                 headers = {
                     'Content-Type': 'application/json',
                     'X-BAPI-API-KEY': this.apiKey,
@@ -9678,10 +9678,10 @@ class bybit extends bybit$1["default"] {
                 }
                 let signature = undefined;
                 if (this.secret.indexOf('PRIVATE KEY') > -1) {
-                    signature = rsa.rsa(authFull, this.secret, sha256.sha256);
+                    signature = rsa.rsa(authFull, this.secret, sha2_js.sha256);
                 }
                 else {
-                    signature = this.hmac(this.encode(authFull), this.encode(this.secret), sha256.sha256);
+                    signature = this.hmac(this.encode(authFull), this.encode(this.secret), sha2_js.sha256);
                 }
                 headers['X-BAPI-SIGN'] = signature;
             }
@@ -9695,10 +9695,10 @@ class bybit extends bybit$1["default"] {
                 const auth = this.rawencode(sortedQuery, true);
                 let signature = undefined;
                 if (this.secret.indexOf('PRIVATE KEY') > -1) {
-                    signature = rsa.rsa(auth, this.secret, sha256.sha256);
+                    signature = rsa.rsa(auth, this.secret, sha2_js.sha256);
                 }
                 else {
-                    signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+                    signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
                 }
                 if (method === 'POST') {
                     const isSpot = url.indexOf('spot') >= 0;

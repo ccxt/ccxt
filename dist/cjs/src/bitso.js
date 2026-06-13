@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitso$1 = require('./abstract/bitso.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -1842,7 +1842,7 @@ class bitso extends bitso$1["default"] {
                     request += body;
                 }
             }
-            const signature = this.hmac(this.encode(request), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(request), this.encode(this.secret), sha2_js.sha256);
             const auth = this.apiKey + ':' + nonce + ':' + signature;
             headers = {
                 'Authorization': 'Bitso ' + auth,

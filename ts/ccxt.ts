@@ -116,7 +116,6 @@ import hibachi from  './src/hibachi.js'
 import hitbtc from  './src/hitbtc.js'
 import hollaex from  './src/hollaex.js'
 import htx from  './src/htx.js'
-import huobi from  './src/huobi.js'
 import hyperliquid from  './src/hyperliquid.js'
 import independentreserve from  './src/independentreserve.js'
 import indodax from  './src/indodax.js'
@@ -206,7 +205,6 @@ import hashkeyPro from  './src/pro/hashkey.js'
 import hitbtcPro from  './src/pro/hitbtc.js'
 import hollaexPro from  './src/pro/hollaex.js'
 import htxPro from  './src/pro/htx.js'
-import huobiPro from  './src/pro/huobi.js'
 import hyperliquidPro from  './src/pro/hyperliquid.js'
 import independentreservePro from  './src/pro/independentreserve.js'
 import krakenPro from  './src/pro/kraken.js'
@@ -307,7 +305,6 @@ const exchanges = {
     'hitbtc':                 hitbtc,
     'hollaex':                hollaex,
     'htx':                    htx,
-    'huobi':                  huobi,
     'hyperliquid':            hyperliquid,
     'independentreserve':     independentreserve,
     'indodax':                indodax,
@@ -397,7 +394,6 @@ const pro = {
     'hitbtc':                 hitbtcPro,
     'hollaex':                hollaexPro,
     'htx':                    htxPro,
-    'huobi':                  huobiPro,
     'hyperliquid':            hyperliquidPro,
     'independentreserve':     independentreservePro,
     'kraken':                 krakenPro,
@@ -641,7 +637,6 @@ export {
     hitbtc,
     hollaex,
     htx,
-    huobi,
     hyperliquid,
     independentreserve,
     indodax,

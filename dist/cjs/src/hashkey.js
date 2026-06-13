@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var hashkey$1 = require('./abstract/hashkey.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -4299,13 +4299,13 @@ class hashkey extends hashkey$1["default"] {
             if ((method === 'POST') && ((path === 'api/v1/spot/batchOrders') || (path === 'api/v1/futures/batchOrders'))) {
                 headers['Content-Type'] = 'application/json';
                 body = this.json(this.safeList(params, 'orders'));
-                signature = this.hmac(this.encode(this.customUrlencode(additionalParams)), this.encode(this.secret), sha256.sha256);
+                signature = this.hmac(this.encode(this.customUrlencode(additionalParams)), this.encode(this.secret), sha2_js.sha256);
                 query = this.customUrlencode(this.extend(additionalParams, { 'signature': signature }));
                 url += '?' + query;
             }
             else {
                 const totalParams = this.extend(additionalParams, params);
-                signature = this.hmac(this.encode(this.customUrlencode(totalParams)), this.encode(this.secret), sha256.sha256);
+                signature = this.hmac(this.encode(this.customUrlencode(totalParams)), this.encode(this.secret), sha2_js.sha256);
                 totalParams['signature'] = signature;
                 query = this.customUrlencode(totalParams);
                 if (method === 'GET') {

@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bybit$1 = require('../bybit.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -2295,7 +2295,7 @@ class bybit extends bybit$1["default"] {
             const expires = this.numberToString(expiresInt);
             const path = 'GET/realtime';
             const auth = path + expires;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256, 'hex');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256, 'hex');
             const request = {
                 'op': 'auth',
                 'args': [

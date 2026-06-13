@@ -2,12 +2,12 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
+var legacy_js = require('@noble/hashes/legacy.js');
 var coinex$1 = require('./abstract/coinex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
-var md5 = require('./static_dependencies/noble-hashes/md5.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -6109,7 +6109,7 @@ class coinex extends coinex$1["default"] {
             }, query);
             query = this.keysort(query);
             const urlencoded = this.rawencode(query);
-            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), sha256.sha256);
+            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), sha2_js.sha256);
             headers = {
                 'Authorization': signature.toLowerCase(),
                 'AccessId': this.apiKey,
@@ -6136,7 +6136,7 @@ class coinex extends coinex$1["default"] {
                 }, query);
                 query = this.keysort(query);
                 const urlencoded = this.rawencode(query);
-                const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), md5.md5);
+                const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), legacy_js.md5);
                 headers = {
                     'Authorization': signature.toUpperCase(),
                     'Content-Type': 'application/json',
@@ -6161,7 +6161,7 @@ class coinex extends coinex$1["default"] {
                     preparedString += '?' + urlencoded;
                 }
                 preparedString += nonce + this.secret;
-                const signature = this.hash(this.encode(preparedString), sha256.sha256);
+                const signature = this.hash(this.encode(preparedString), sha2_js.sha256);
                 headers = {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
