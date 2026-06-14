@@ -1502,7 +1502,7 @@
                         "fee": {"cost":"0.026804","currency":"USDT"},
                         "trades": [],
                         "fees": [
-                            {"cost":"0.026804","currency":"USDT"}
+                            {"cost":0.026804,"currency":"USDT"}
                         ],
                         "lastUpdateTimestamp": null,
                         "takeProfitPrice": null,
