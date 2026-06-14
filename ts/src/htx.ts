@@ -8991,7 +8991,7 @@ export default class htx extends Exchange {
         return openInterest as OpenInterest;
     }
 
-    parseOpenInterest (interest, market: Market = undefined) {
+    parseOpenInterest (interest, market: Market = undefined): OpenInterest {
         //
         // fetchOpenInterestHistory
         //
@@ -9052,7 +9052,7 @@ export default class htx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
-        }, market);
+        }, market) as OpenInterest;
     }
 
     /**
