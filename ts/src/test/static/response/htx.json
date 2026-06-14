@@ -2115,17 +2115,9 @@
                     "remaining": 1,
                     "status": "open",
                     "reduceOnly": false,
-                    "fee": {
-                        "cost": "0",
-                        "currency": "BTC"
-                    },
+                    "fee": null,
                     "trades": [],
-                    "fees": [
-                        {
-                            "cost": 0,
-                            "currency": "BTC"
-                        }
-                    ],
+                    "fees": [],
                     "lastUpdateTimestamp": null,
                     "stopPrice": null
                 }
