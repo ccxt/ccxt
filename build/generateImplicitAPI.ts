@@ -320,7 +320,7 @@ async function editAPIFilesCSharp(subdir = ''){
     const exchanges = Object.keys(storedCamelCaseMethods);
     fs.mkdirSync(CSHARP_PATH + subdir, { recursive: true });
     const files = exchanges.map(ex => CSHARP_PATH + subdir + ex + '.cs');
-    await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedCSharpMethods[exchanges[idx]].join ('\n'))))
+    await Promise.all(files.map((path, idx) => writeFile(path, storedCSharpMethods[exchanges[idx]].join ('\n'))))
 }
 
 // -------------------------------------------------------------------------
@@ -329,7 +329,7 @@ async function editAPIFilesGo(subdir = ''){
     const exchanges = Object.keys(storedCamelCaseMethods);
     fs.mkdirSync(GO_PATH + subdir, { recursive: true });
     const files = exchanges.map(ex => GO_PATH + subdir + ex + '_api.go');
-    await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedGoMethods[exchanges[idx]].join ('\n'))))
+    await Promise.all(files.map((path, idx) => writeFile(path, storedGoMethods[exchanges[idx]].join ('\n'))))
 }
 
 async function editAPIFilesJava(subdir = ''){
@@ -340,7 +340,7 @@ async function editAPIFilesJava(subdir = ''){
     // the dir is already populated (CI rebuild) or empty (first run).
     fs.mkdirSync(JAVA_PATH + subdir, { recursive: true });
     const files = exchanges.map(ex => JAVA_PATH + subdir + capitalize(ex) + 'Api.java');
-    await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedJavaMethods[exchanges[idx]].join ('\n'))))
+    await Promise.all(files.map((path, idx) => writeFile(path, storedJavaMethods[exchanges[idx]].join ('\n'))))
 }
 
 //-------------------------------------------------------------------------

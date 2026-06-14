@@ -428,12 +428,16 @@ class NewTranspiler {
         // Prediction-market REST exchanges live in their own package and extend
         // their own implicit-API class under io.github.ccxt.api.prediction.
         if (prediction) {
+            // prediction exchanges merge REST + WS in one class, so they also need
+            // the WS infrastructure imports (Client, ArrayCache, IOrderBookSide, ...)
             return [
                 'package io.github.ccxt.exchanges.prediction;',
                 `import io.github.ccxt.api.prediction.${this.capitalize(file)}Api;`,
                 'import io.github.ccxt.base.Precise;',
                 'import io.github.ccxt.errors.*;',
                 'import io.github.ccxt.Helpers;',
+                'import io.github.ccxt.ws.*;',
+                'import io.github.ccxt.Client;',
             ];
         }
         const values = [
@@ -941,6 +945,33 @@ class NewTranspiler {
         }
     }
 
+    transpilePredictionBaseMethods(predictionBaseFile = './ts/src/base/PredictionExchange.ts') {
+        // PredictionExchange is the base for prediction-market exchanges; it lives in
+        // io.github.ccxt (like Exchange) and is transpiled the same way as the base.
+        const javaPredictionBase = './java/lib/src/main/java/io/github/ccxt/PredictionExchange.java';
+        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
+        const baseFile: any = this.transpiler.transpileJavaByPath(predictionBaseFile);
+        let baseClass = baseFile.content as any;
+        baseClass = baseClass.replace(/(put\("\w+",\s*)(this\.\w+)/gm, "$1Exchange.$2");
+        baseClass = this.regexAll(baseClass, [
+            [/\(Object client, /g, '(Client client, '],
+            [/Object client = (.+)/g, 'Client client = (Client)$1'],
+            [/(\w+)(\.storeArray\(.+\))/gm, '((IOrderBookSide)$1)$2'],
+        ]);
+        baseClass = baseClass.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
+        baseClass = baseClass.replace(/\(\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)\)/g, 'Helpers.isArrayJs($1)');
+        baseClass = baseClass.replace(/throw ([^;]+) ;\n\s*return null;/g, 'throw $1 ;');
+        baseClass = this.removeUnreachableReturnNull(baseClass);
+        baseClass = this.addDeprecatedAnnotations(baseClass);
+        const javaDelimiter = '// ' + delimiter + '\n';
+        const restOfFile = '([^\n]*\n)+'
+        const parts = baseClass.split(javaDelimiter)
+        if (parts.length > 1) {
+            log.magenta('→', (javaPredictionBase as any).yellow)
+            replaceInFile(javaPredictionBase, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + parts[1].trim() + '\n')
+        }
+    }
+
     camelize(str: string) {
         var res = str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function (match, index) {
             if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
@@ -1029,20 +1060,20 @@ class NewTranspiler {
     }
 
     async transpilePrediction(force = false) {
-        // Prediction-market exchanges (ts/src/prediction/) transpile to Core
-        // classes under io.github.ccxt.exchanges.prediction. REST only — the
-        // (optional) WS pass for polymarket is gated on --ws, matching C#/Go.
-        const ws = process.argv.includes('--ws');
-        const tsFolder = ws ? './ts/src/prediction/pro/' : './ts/src/prediction/';
-        const outputFolder = ws ? './java/lib/src/main/java/io/github/ccxt/exchanges/prediction/pro/' : EXCHANGES_PREDICTION_FOLDER;
+        // Prediction-market exchanges (ts/src/prediction/) transpile to Core classes
+        // under io.github.ccxt.exchanges.prediction. REST + WS are merged into one
+        // class (no separate prediction/pro package).
+        this.transpilePredictionBaseMethods('./ts/src/base/PredictionExchange.ts');
+        const tsFolder = './ts/src/prediction/';
+        const outputFolder = EXCHANGES_PREDICTION_FOLDER;
 
         let inputExchanges: string[] = process.argv.slice (2).filter (x => !x.startsWith ('--'));
         if (!inputExchanges || inputExchanges.length === 0) {
-            inputExchanges = ws ? (exchanges as any).predictionWs : (exchanges as any).prediction;
+            inputExchanges = (exchanges as any).prediction;
         }
         createFolderRecursively(outputFolder);
         const options = { csharpFolder: outputFolder, exchanges: inputExchanges }
-        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), ws, true)
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), false, true)
     }
 
     async transpileEverything(force = false, child = false, baseOnly = false, examplesOnly = false) {
@@ -1252,6 +1283,14 @@ class NewTranspiler {
             content = content.replace(/extends\s(\w+)Rest/g, `extends io.github.ccxt.exchanges.$1`);
             content = content.replace(/extends\s(\w+)\b(?!\.)/, `extends ${restTypedFqn}`);
             content = this.postProcessWsJava(content, name);
+        } else if (prediction) {
+            // prediction merges REST + WS in one class — apply the WS regexes + post-processing
+            // (orderbook/side casts, watch(), resolve/append, ...) so the watch* methods compile,
+            // but keep the REST `extends <Id>Api` (which extends PredictionExchange) and skip the
+            // effectively-final pass (it conflicts with the REST parse* methods, which the
+            // ast-transpiler already handles).
+            content = this.regexAll (content, this.getJavaWsRegexes());
+            content = this.postProcessWsJava(content, name, true, true);
         }
         content = this.addDeprecatedAnnotations(content);
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
@@ -1706,7 +1745,7 @@ class NewTranspiler {
         return lines.join('\n');
     }
 
-    postProcessWsJava(content: string, name: string, isCore = true): string {
+    postProcessWsJava(content: string, name: string, isCore = true, skipEffectivelyFinal = false): string {
         const cap = this.capitalize(name) + (isCore ? 'Core' : ''); // WS classes are now named *Core
 
         // ── Fix broken method references: ClassName."methodName" → "methodName" ──
@@ -2033,13 +2072,18 @@ class NewTranspiler {
             '(java.util.List<String>)(java.util.List)new java.util.ArrayList<Object>');
 
         // ── Fix effectively final for anonymous inner class captures ──
-        content = this.fixEffectivelyFinal(content);
-
-        // ── Fix effectively final for lambda captures in spawn/delay ──
-        content = this.fixEffectivelyFinalLambda(content);
+        // (skipped for prediction REST+WS files: the ast-transpiler already handles
+        // effectively-final there, and this pass mis-scopes vars across the REST parse* methods)
+        if (!skipEffectivelyFinal) {
+            content = this.fixEffectivelyFinal(content);
+            // ── Fix effectively final for lambda captures in spawn/delay ──
+            content = this.fixEffectivelyFinalLambda(content);
+        }
 
         // ── Remove duplicate final variable declarations in same method ──
-        content = this.removeTrueDuplicateFinals(content);
+        if (!skipEffectivelyFinal) {
+            content = this.removeTrueDuplicateFinals(content);
+        }
 
         // ── Void supplyAsync return null insertion ──
         content = this.insertReturnNullInSupplyAsync(content);
@@ -3102,6 +3146,7 @@ async function runMain() {
     const transpiler = new NewTranspiler();
     if (baseClassOnly) {
         transpiler.transpileBaseMethods('./ts/src/base/Exchange.ts');
+        transpiler.transpilePredictionBaseMethods();
     } else if (prediction) {
         await transpiler.transpilePrediction(force)
     } else if (ws) {
