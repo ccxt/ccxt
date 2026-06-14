@@ -23,6 +23,8 @@ const allExchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 let exchanges = allExchanges;
 const exchangeIds = exchanges.ids;
 const exchangeIdsWs = exchanges.ws;
+const predictionIds = exchanges.prediction || [];
+const predictionWsIds = exchanges.predictionWs || [];
 let transpiledExchanges = exchangeIds;
 
 let __dirname = new URL('.', import.meta.url).pathname;
@@ -61,6 +63,11 @@ const ERRORS_FILE = './go/v4/exchange_errors.go';
 const BASE_METHODS_FILE = './go/v4/exchange_generated.go';
 const EXCHANGES_FOLDER = './go/v4';
 const EXCHANGES_WS_FOLDER = './go/v4/pro';
+const EXCHANGES_PREDICTION_FOLDER = './go/v4/prediction';
+const EXCHANGES_PREDICTION_WS_FOLDER = './go/v4/prediction/pro';
+const PREDICTION_PACKAGE = 'ccxtprediction';
+const PREDICTION_WS_PACKAGE = 'ccxtpredictionpro';
+const PREDICTION_IMPORT = 'import ccxtprediction "github.com/ccxt/ccxt/go/v4/prediction"';
 const BASE_TESTS_FOLDER = './go/tests/base';
 const BASE_TESTS_FILE =  './go/tests/base/tests.go';
 // const EXCHANGE_BASE_FOLDER = './go/tests/Generated/Exchange/Base';
@@ -463,6 +470,9 @@ class NewTranspiler {
     transpiler!: Transpiler;
     pythonStandardLibraries;
     oldTranspiler = new OldTranspiler();
+    // true while transpiling the prediction-market exchanges (ts/src/prediction/),
+    // which live in their own go packages (ccxtprediction / ccxtpredictionpro)
+    isPrediction = false;
     private _extendedExchanges: { [key: string]: string } | null = null;
     futuresExchanges = new Set<string>([  // futures exchanges that extend a spot exchange class
         // 'kucoinfutures'
@@ -640,7 +650,10 @@ class NewTranspiler {
     getTranspilerConfig(isWrapper: boolean = false) {
         const classNameMap = {};
         if (!isWrapper) {
-            exchangeIds.forEach((exchangeName: string) => {
+            // include the prediction-market exchange ids so their core classes also get
+            // the `Core` suffix (most live only in ts/src/prediction/, not in exchangeIds)
+            const allIds = exchangeIds.concat (predictionIds).concat (predictionWsIds);
+            allIds.forEach((exchangeName: string) => {
                 classNameMap[exchangeName] = capitalize(exchangeName) + 'Core';
                 classNameMap[`${exchangeName}Rest`] = capitalize(exchangeName) + 'Core';
             });
@@ -775,6 +788,14 @@ class NewTranspiler {
     }
 
     getGoImports(file: any, ws = false) {
+        if (this.isPrediction) {
+            const namespace = ws ? `package ${PREDICTION_WS_PACKAGE}` : `package ${PREDICTION_PACKAGE}`;
+            return [
+                namespace,
+                'import ccxt "github.com/ccxt/ccxt/go/v4"',
+                ws ? PREDICTION_IMPORT : '',
+            ];
+        }
         const namespace = ws ? 'package ccxtpro' : 'package ccxt';
         const values = [
             // "using ccxt;",
@@ -1400,7 +1421,11 @@ class NewTranspiler {
 
         const shouldCreateClassWrappers = exchange === 'Exchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
-        const namespace = `package ${ws ? 'ccxtpro' : 'ccxt'}`;
+        let packageName = ws ? 'ccxtpro' : 'ccxt';
+        if (this.isPrediction) {
+            packageName = ws ? PREDICTION_WS_PACKAGE : PREDICTION_PACKAGE;
+        }
+        const namespace = `package ${packageName}`;
         const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
         const coreName = capitalize(exchange) + 'Core';
         // const capitalizeStatement = ws ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
@@ -1419,12 +1444,13 @@ class NewTranspiler {
             let exchangeTyped = ''
             if (!ws) {
                 if (!isAlias) {
-                    exchangeTyped =  '*ExchangeTyped';
+                    exchangeTyped =  this.isPrediction ? '*ccxt.ExchangeTyped' : '*ExchangeTyped';
                 } else {
                     exchangeTyped = '*'+capitalize(this.getParentExchange(exchange));
                 }
             } else {
-                exchangeTyped = !this.isAlias(exchange) ? `*ccxt.${capitizedName}` : '*ccxt.' + capitalize(this.getParentExchange(exchange))
+                const restPackagePrefix = this.isPrediction ? `*${PREDICTION_PACKAGE}.` : '*ccxt.';
+                exchangeTyped = !this.isAlias(exchange) ? `${restPackagePrefix}${capitizedName}` : restPackagePrefix + capitalize(this.getParentExchange(exchange))
             }
             exchangeStruct = [
                 `type ${capitizedName} struct {`,
@@ -1460,13 +1486,14 @@ class NewTranspiler {
             let exTyped = '';
             if (!ws) {
                 if (!isAlias) {
-                    exTyped = 'NewExchangeTyped(&p.Exchange)';
+                    exTyped = this.isPrediction ? 'ccxt.NewExchangeTyped(&p.Exchange)' : 'NewExchangeTyped(&p.Exchange)';
                 } else {
                     const parent = this.isAlias(exchange) ? this.getParentExchange(exchange) : '';
                     exTyped = `New${capitalize(this.getParentExchange(exchange))}FromCore(&(p.${capitalize(parent)}Core))`;
                 }
             } else {
-                exTyped = `ccxt.New${capitizedName}FromCore(${baseEx})`
+                const restPackagePrefix = this.isPrediction ? `${PREDICTION_PACKAGE}.` : 'ccxt.';
+                exTyped = `${restPackagePrefix}New${capitizedName}FromCore(${baseEx})`
             }
 
             newMethod = [
@@ -1484,13 +1511,14 @@ class NewTranspiler {
 
             if (!ws) {
 
+                const exchangeTypedFactory = this.isPrediction ? 'ccxt.NewExchangeTyped' : 'NewExchangeTyped';
                 const coreExchange = !isAlias ? `${capitizedName}` : `${capitalize(this.getParentExchange(exchange))}`;
                 fromCoreMethod = [
                     `func New${capitizedName}FromCore(core *${coreExchange}Core) *${coreExchange} {`,
                     `   return &${coreExchange}{`,
                     `       ${coreExchange}Core: core,`,
                     `       Core:  core,`,
-                    `       exchangeTyped: NewExchangeTyped(&core.Exchange),`,
+                    `       exchangeTyped: ${exchangeTypedFactory}(&core.Exchange),`,
                     `   }`,
                     '}',
                 ].join('\n');
@@ -1498,9 +1526,13 @@ class NewTranspiler {
             }
         }
 
+        let importLines = ws ? imports.join('\n') : '';
+        if (this.isPrediction) {
+            importLines = ws ? [ ...imports, PREDICTION_IMPORT ].join('\n') : imports.join('\n');
+        }
         let file = [
             namespace,
-            ws ? imports.join('\n') : '',
+            importLines,
             exchangeStruct,
             '',
             newMethod,
@@ -1513,7 +1545,7 @@ class NewTranspiler {
             '//nolint',
             missingMethodsWrappers,
         ].join('\n');
-        if (ws) {
+        if (ws || this.isPrediction) {
             file = this.addPackagePrefix(file, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
         }
         log.magenta ('→', (path as any).yellow);
@@ -1690,6 +1722,68 @@ ${constStatements.join('\n')}
 
             const file = fileHeader + baseMethods + "\n";
             fs.writeFileSync (goExchangeBase, file);
+        }
+    }
+
+    transpilePredictionBaseMethods (predictionBaseFile = './ts/src/base/PredictionExchange.ts') {
+        // PredictionExchange is the base for prediction-market exchanges; it lives in
+        // package ccxt and embeds Exchange. Its methods are transpiled the same way as
+        // the base methods (with virtual dispatch through DerivedExchange).
+        // named exchange_prediction.go so extractTypeAndFuncNames() (which scans go/v4/exchange*.go)
+        // picks up PredictionExchange and the prediction package qualifies it as ccxt.PredictionExchange
+        const goPredictionBase = './go/v4/exchange_prediction.go';
+        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
+        const allVirtual = Object.keys(VIRTUAL_BASE_METHODS);
+        this.transpiler.goTranspiler.wrapCallMethods = allVirtual;
+        const baseFile: any = this.transpiler.transpileGoByPath(predictionBaseFile);
+        this.transpiler.goTranspiler.wrapCallMethods = [];
+        let baseClass = baseFile.content as any;
+        const syncMethods = allVirtual.filter (elem => !VIRTUAL_BASE_METHODS[elem]);
+        const asyncMethods = allVirtual.filter (elem => VIRTUAL_BASE_METHODS[elem]);
+        const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})", (.+)\\)`, 'gm');
+        baseClass = baseClass.replace(syncRegex, (_match: any, p1: string, p2: string) => `this.DerivedExchange.${capitalize(p1)}(${p2})`);
+        const asyncRegex = new RegExp(`<-this\\.callInternal\\("(${asyncMethods.join('|')})", (.+)\\)`, 'gm');
+        baseClass = baseClass.replace(asyncRegex, (_match: any, p1: string, p2: string) => `<-this.DerivedExchange.${capitalize(p1)}(${p2})`);
+        baseClass = this.regexAll (baseClass, [
+            [/\=\snew\s/gm, "= "],
+            [/callDynamically\(/gm, 'this.CallDynamically('],
+            [/throwDynamicException\(/gm, 'ThrowDynamicException('],
+            [/NewNotSupported/g, 'NotSupported'],
+            // super.method() in the outcome-stub overrides → the embedded Exchange
+            [/\bbase\./gm, 'this.Exchange.'],
+        ]);
+        const jsDelimiter = '// ' + delimiter;
+        const parts = baseClass.split (jsDelimiter);
+        if (parts.length > 1) {
+            const methods = parts[1];
+            const structDef = [
+                'type PredictionExchange struct {',
+                '   Exchange',
+                '   Outcomes any',
+                '   Outcomes_by_id any',
+                '   Events any',
+                '   Events_by_slug any',
+                '   ReloadingEvents bool',
+                '   EventsLoading any',
+                '}',
+                '',
+            ].join('\n');
+            const fileHeader = this.getGoImports(undefined).concat([
+                this.createGeneratedHeader().join('\n'),
+            ]).join("\n");
+            // prediction exchanges live in package ccxtprediction and can only reach exported
+            // members of the embedded base — expose the implicit-api dispatcher (called by the
+            // generated _api.go files) and the describe-deep-extend helper as exported shims
+            const shims = [
+                '',
+                'func (this *PredictionExchange) CallEndpointAsync(endpointName string, args ...any) <-chan any {',
+                '   return this.callEndpointAsync(endpointName, args...)',
+                '}',
+                '',
+            ].join('\n');
+            const file = fileHeader + '\n' + structDef + methods + shims + "\n";
+            fs.writeFileSync (goPredictionBase, file);
+            log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
 
@@ -1887,28 +1981,41 @@ ${caseStatements.join('\n')}
         }
     }
 
-    async transpileWS(force = false) {
-        const tsFolder = './ts/src/pro';
+    async transpileWS(force = false, prediction = false) {
+        const tsFolder = prediction ? './ts/src/prediction/pro' : './ts/src/pro';
 
         let inputExchanges =  process.argv.slice (2).filter (x => !x.startsWith ('--'));
         if (inputExchanges === undefined) {
             inputExchanges = exchanges.ws;
         }
-        const options = { goFolder: EXCHANGES_WS_FOLDER, exchanges:inputExchanges };
+        if (prediction && (!inputExchanges || !inputExchanges.length)) {
+            inputExchanges = predictionWsIds;
+        }
+        const wsFolder = prediction ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_WS_FOLDER;
+        const options = { goFolder: wsFolder, exchanges:inputExchanges };
         // const options = { goFolder: EXCHANGES_WS_FOLDER, exchanges:['bitget'] }
+        // base methods are always needed to populate the wrapper metadata (WRAPPER_METHODS)
         this.transpileBaseMethods(TS_BASE_FILE, true);
+        this.isPrediction = prediction;
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true );
+        this.isPrediction = false;
+        if (prediction) {
+            // the prediction ws package only emits the derived exchange classes,
+            // it reuses the dynamic-instance / typed-interface plumbing of package ccxtpro
+            log.bright.green ('Transpiled prediction ws exchanges successfully.');
+            return;
+        }
         this.createDynamicInstanceFile(true);
         this.transpileProTypes();
         this.createWsTypedInterfaceFile();
 
     }
 
-    async transpileEverything (force = false, child = false, baseOnly = false, examplesOnly = false) {
+    async transpileEverything (force = false, child = false, baseOnly = false, examplesOnly = false, prediction = false) {
 
-        const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
-            , goFolder = EXCHANGES_FOLDER
-            , tsFolder = './ts/src';
+        let exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'));
+        const goFolder = prediction ? EXCHANGES_PREDICTION_FOLDER : EXCHANGES_FOLDER
+            , tsFolder = prediction ? './ts/src/prediction' : './ts/src';
 
         if (!child) {
             createFolderRecursively (goFolder);
@@ -1917,16 +2024,29 @@ ${caseStatements.join('\n')}
         if (transpilingSingleExchange) {
             force = true; // when transpiling single exchange, we always force
         }
+        if (prediction && !exchanges.length) {
+            exchanges = predictionIds;
+        }
         const options = { goFolder, exchanges };
 
         this.transpileBaseMethods (TS_BASE_FILE); // now we always need the baseMethods info
-        if (!transpilingSingleExchange && !child) {
+        // the dynamic-instance / typed-interface files belong to package ccxt; the
+        // prediction package reuses them and must not regenerate them
+        if (!transpilingSingleExchange && !child && !prediction) {
+            this.transpilePredictionBaseMethods ();
             this.createDynamicInstanceFile();
             this.createTypedInterfaceFile();
         }
 
         if (!baseOnly && !examplesOnly) {
+            this.isPrediction = prediction;
             await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length));
+            this.isPrediction = false;
+        }
+
+        if (prediction) {
+            log.bright.green ('Transpiled prediction exchanges successfully.');
+            return;
         }
 
         if (child) {
@@ -1940,6 +2060,9 @@ ${caseStatements.join('\n')}
         if (transpilingSingleExchange) {
             return;
         }
+
+        // full builds also transpile the prediction-market exchanges (ts/src/prediction/)
+        await this.transpileEverything (force, child, false, false, true);
 
         this.transpileTests();
 
@@ -1970,8 +2093,30 @@ ${caseStatements.join('\n')}
     }
 
     safeOptionsStructFile(ws: boolean = false) {
-        const EXCHANGE_OPTIONS_FILE = ws 
-            ? './go/v4/pro/exchange_wrapper_structs.go' 
+        if (this.isPrediction) {
+            // the prediction packages reuse the option structs of package ccxt (the
+            // wrapper files reference them with the ccxt. qualifier through
+            // addPackagePrefix) — only the option structs of methods that do not
+            // exist in package ccxt (e.g. FetchEvents) are emitted locally
+            const ccxtNames = this.extractTypeAndFuncNames(EXCHANGES_FOLDER);
+            const file = [
+                ws ? `package ${PREDICTION_WS_PACKAGE}` : `package ${PREDICTION_PACKAGE}`,
+                this.createGeneratedHeader().join('\n'),
+                ''
+            ];
+            for (const key in goTypeOptions) {
+                if (ccxtNames.has(key + 'Options') || ccxtNames.has(key + 'OptionsStruct')) {
+                    continue;
+                }
+                file.push(goTypeOptions[key]);
+                file.push('');
+            }
+            const folder = ws ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_PREDICTION_FOLDER;
+            fs.writeFileSync (`${folder}/exchange_wrapper_structs.go`, file.join('\n'));
+            return;
+        }
+        const EXCHANGE_OPTIONS_FILE = ws
+            ? './go/v4/pro/exchange_wrapper_structs.go'
             : './go/v4/exchange_wrapper_structs.go';
 
         const file = [
@@ -2004,7 +2149,7 @@ ${caseStatements.join('\n')}
         // exchanges.json accounts for ids included in exchanges.cfg
         let ids: string[] = [];
         try {
-            ids = (exchanges as any).ids;
+            ids = this.isPrediction ? (ws ? predictionWsIds : predictionIds) : (exchanges as any).ids;
         } catch (e) {
         }
 
@@ -2016,12 +2161,15 @@ ${caseStatements.join('\n')}
         } else {
             exchanges = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))));
         }
-        
+
         // Only process exchanges that are in transpiledExchanges
-        exchanges = exchanges.filter (file => {
-            const exchangeName = basename (file, pattern);
-            return transpiledExchanges.includes (exchangeName);
-        });
+        // (the prediction exchanges have their own id list and skip this gate)
+        if (!this.isPrediction) {
+            exchanges = exchanges.filter (file => {
+                const exchangeName = basename (file, pattern);
+                return transpiledExchanges.includes (exchangeName);
+            });
+        }
 
         // exchanges = ['bitmart.ts']
         // transpile using webworker
@@ -2030,15 +2178,20 @@ ${caseStatements.join('\n')}
         log.blue('[go] Transpiling [', exchanges.join(', '), ']');
         const transpiledFiles =  allFilesPath.map((file: string) => this.transpiler.transpileGoByPath(file));
 
+        let wrapperFolder = ws ? EXCHANGES_WS_FOLDER : EXCHANGE_WRAPPER_FOLDER;
+        if (this.isPrediction) {
+            wrapperFolder = ws ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_PREDICTION_FOLDER;
+        }
         for (let i = 0; i < transpiledFiles.length; i++) {
             const transpiled = transpiledFiles[i];
             const exchangeName = exchanges[i].replace('.ts','');
-            const path = `${ws ? EXCHANGES_WS_FOLDER : EXCHANGE_WRAPPER_FOLDER}/${exchangeName}_wrapper.go`;
+            const path = `${wrapperFolder}/${exchangeName}_wrapper.go`;
 
             this.createGoWrappers(exchangeName, path, transpiled.methodsTypes, ws);
         }
         exchanges.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws));
-        if (exchanges.length > 1) {
+        // prediction packages always need their own option-structs file even with a single exchange
+        if (exchanges.length > 1 || this.isPrediction) {
             this.safeOptionsStructFile(ws);
         }
         const classes = {};
@@ -2162,8 +2315,18 @@ ${caseStatements.join('\n')}
                 [/toFixed/gm, 'ToFixed'],
                 [/throwDynamicException/gm, 'ThrowDynamicException'],
             ]);
+            if (this.isPrediction) {
+                // prediction cores embed PredictionExchange (which embeds Exchange) instead
+                // of Exchange directly, so they inherit the prediction methods + state
+                content = content.replace(/(type \w+ struct \{\s*\n\s*)Exchange\b/, '$1PredictionExchange');
+                // the prediction exchanges live outside of package ccxt, so all the
+                // package-level types/functions of go/v4 need the ccxt. qualifier
+                // (this also rewrites the embedded struct member into ccxt.PredictionExchange)
+                content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
+            }
         } else {
-            const inheritedClass = isAlias ? `${baseClass}` : `ccxt.${className}`;
+            const restPackagePrefix = this.isPrediction ? `${PREDICTION_PACKAGE}.` : 'ccxt.';
+            const inheritedClass = isAlias ? `${baseClass}` : `${restPackagePrefix}${className}`;
             const inheritedInstatiation = isAlias ? `New${baseClass}()` : `&${inheritedClass}{}`;
             const wsRegexes = this.getWsRegexes();
             content = this.regexAll (content, [
@@ -2179,11 +2342,12 @@ ${caseStatements.join('\n')}
             content = content.replace(/this.Exchange.Describe/gm, `this.${baseClass}.Describe`);
         }
 
+        const exchangeStructName = (this.isPrediction || ws) ? 'ccxt.Exchange' : 'Exchange';
         let initMethod = '';
         if (!isAlias && !ws) {
             initMethod = `
 func (this *${className}) Init(userConfig map[string]any) {
-    this.Exchange = ${ws ? `ccxt.Exchange` : `Exchange`}{}
+    this.Exchange = ${exchangeStructName}{}
     this.Exchange.DerivedExchange = this
     this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
 }\n`;
@@ -2724,16 +2888,29 @@ if (isMainEntry(import.meta.url)) {
     if (!child && !multiprocess) {
         log.bright.green ({ force });
     }
+    const prediction = process.argv.includes ('--prediction');
+    const inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'));
     const transpiler = new NewTranspiler (ws);
     if (baseClassOnly) {
         transpiler.transpileBaseMethods (TS_BASE_FILE)
+        transpiler.transpilePredictionBaseMethods ()
     } else if (ws) {
-        await transpiler.transpileWS (force);
+        if (prediction) {
+            await transpiler.transpileWS (force, true);
+        } else {
+            await transpiler.transpileWS (force);
+            if (!inputExchanges.length) {
+                // full ws builds also transpile the prediction ws exchanges
+                await transpiler.transpileWS (force, true);
+            }
+        }
     } else if (test) {
         transpiler.transpileTests ();
     } else if (multiprocess) {
         await parallelizeTranspiling (exchangeIds);
+        // the prediction exchanges are few — transpile them serially after the workers finish
+        await transpiler.transpileEverything (force, false, false, false, true);
     } else {
-        await transpiler.transpileEverything (force, child, baseOnly, examples);
+        await transpiler.transpileEverything (force, child, baseOnly, examples, prediction);
     }
 }

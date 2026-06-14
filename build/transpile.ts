@@ -717,6 +717,10 @@ class Transpiler {
 
     createPythonClassDeclaration (className: string, baseClass: string) {
         const mixin = (className === 'testMainClass') ? '' : ', ImplicitAPI'
+        // prediction-market exchanges extend PredictionExchange (itself extends Exchange)
+        if (this.isPrediction && baseClass === 'Exchange') {
+            baseClass = 'PredictionExchange'
+        }
         return 'class ' + className + '(' + baseClass + mixin + '):'
     }
 
@@ -738,6 +742,11 @@ class Transpiler {
     createPythonClassImports (baseClass: string, className: string, async = false) {
         const baseClasses = {
             'Exchange': 'base.exchange',
+            'PredictionExchange': 'base.prediction_exchange',
+        }
+        // prediction-market exchanges extend PredictionExchange (itself extends Exchange)
+        if (this.isPrediction && baseClass === 'Exchange') {
+            baseClass = 'PredictionExchange'
         }
         const asyncString = (async ? '.async_support' : '')
 
@@ -1009,7 +1018,9 @@ class Transpiler {
 
         let namespace = async ? 'ccxt\\async' : 'ccxt'
         if (this.isPrediction) {
-            namespace = async ? 'ccxt\\prediction\\async' : 'ccxt\\prediction'
+            // prediction-market exchanges are async-only and flattened in PHP:
+            // the async (ReactPHP) class lives in namespace ccxt\prediction
+            namespace = 'ccxt\\prediction'
         }
         let header = this.createPHPClassHeader (className, baseClass, bodyAsString, namespace)
 
@@ -1385,12 +1396,16 @@ class Transpiler {
                 let languagesFolders: any[] = [];
 
                 if (this.buildPython) {
-                    languagesFolders = languagesFolders.concat([ [python2Folder, pythonFilename, python2] ])
+                    if (python2Folder) {
+                        languagesFolders = languagesFolders.concat([ [python2Folder, pythonFilename, python2] ])
+                    }
                     languagesFolders = languagesFolders.concat([ [python3Folder, pythonFilename, python3] ])
                 }
 
                 if (this.buildPHP) {
-                    languagesFolders = languagesFolders.concat([ [phpFolder, phpFilename, php] ])
+                    if (phpFolder) {
+                        languagesFolders = languagesFolders.concat([ [phpFolder, phpFilename, php] ])
+                    }
                     languagesFolders = languagesFolders.concat([ [phpAsyncFolder, phpFilename, phpAsync] ])
                 }
 
@@ -1593,7 +1608,7 @@ class Transpiler {
             // example: async fetchTickers(): Promise<any> { ---> async fetchTickers() {
             // and remove parameters types
             // example: myFunc (name: string | number = undefined) ---> myFunc(name = undefined)
-            if (className === 'Exchange') {
+            if (className === 'Exchange' || className === 'PredictionExchange') {
                 signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
             }
 
@@ -1867,6 +1882,54 @@ class Transpiler {
                 log.magenta ('→', phpAsyncFile.yellow)
                 replaceInFile (phpAsyncFile, new RegExp (phpDelimiter + restOfFile),    phpDelimiter + phpAsync.join ('\n') + '\n}\n')
             }
+        }
+    }
+
+    // ========================================================================
+
+    transpilePredictionBaseMethods () {
+        // PredictionExchange is a base class for prediction-market exchanges. Like
+        // the base Exchange it has hand-written skeleton files per language with a
+        // delimiter; the methods below the delimiter are transpiled from
+        // ts/src/base/PredictionExchange.ts and injected here. Unlike the async base
+        // Exchange (which inherits the sync one), each async file is a standalone
+        // class extending the async Exchange, so it carries the full method set.
+        const predictionBaseFile = './ts/src/base/PredictionExchange.ts'
+        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
+        const contents = fs.readFileSync (predictionBaseFile, 'utf8')
+        const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents) as any
+        const jsDelimiter = '// ' + delimiter
+        const parts = classBody.split (jsDelimiter)
+        if (parts.length <= 1) {
+            return
+        }
+        log.magenta ('Transpiling from', predictionBaseFile.yellow)
+        const secondPart = parts[1]
+        const methods = secondPart.trim ().split (/\n\s*\n/)
+        const {
+            python2,
+            python3,
+            php,
+            phpAsync,
+        } = this.transpileMethodsToAllLanguages ('PredictionExchange', methods)
+
+        const pythonDelimiter = '# ' + delimiter + '\n'
+        const phpDelimiter = '// ' + delimiter + '\n'
+        const restOfFile = '([^\n]*\n)+'
+        // prediction-market exchanges are async-only and flattened, so only the async
+        // PredictionExchange base is generated (Python: ccxt.async_support.base; PHP:
+        // \ccxt\prediction\PredictionExchange extending the ReactPHP \ccxt\async\Exchange)
+        const python3File = './python/ccxt/async_support/base/prediction_exchange.py'
+        const phpAsyncFile = './php/prediction/PredictionExchange.php'
+
+        if (this.buildPython) {
+            log.magenta ('→', python3File.yellow)
+            replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python3.join ('\n') + '\n')
+        }
+
+        if (this.buildPHP) {
+            log.magenta ('→', phpAsyncFile.yellow)
+            replaceInFile (phpAsyncFile, new RegExp (phpDelimiter + restOfFile),    phpDelimiter + phpAsync.join ('\n') + '\n}\n')
         }
     }
 
@@ -3043,10 +3106,14 @@ class Transpiler {
 
         // default pattern is '.js'
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
-            , python2Folder  = prediction ? './python/ccxt/prediction/' : './python/ccxt/'
-            , python3Folder  = prediction ? './python/ccxt/prediction/async_support/' : './python/ccxt/async_support/'
-            , phpFolder      = prediction ? './php/prediction/' : './php/'
-            , phpAsyncFolder = prediction ? './php/prediction/async/' : './php/async/'
+            // prediction-market exchanges are async-only in Python and flattened so
+            // that `ccxt.prediction.<id>` IS the async class (no sync, no async_support nesting)
+            , python2Folder  = prediction ? undefined : './python/ccxt/'
+            , python3Folder  = prediction ? './python/ccxt/prediction/' : './python/ccxt/async_support/'
+            // prediction-market exchanges are async-only in PHP and flattened so that
+            // \ccxt\prediction\<id> IS the async (ReactPHP) class (no sync, no async/ nesting)
+            , phpFolder      = prediction ? undefined : './php/'
+            , phpAsyncFolder = prediction ? './php/prediction/' : './php/async/'
             , tsFolder = prediction ? './ts/src/prediction/' : './ts/src/'
             , jsFolder = prediction ? './js/src/prediction/' : './js/src/'
             // , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder }
@@ -3058,12 +3125,16 @@ class Transpiler {
         }
         if ((!transpilingSingleExchange && !child) || prediction) {
             if (this.buildPython) {
-                createFolderRecursively (python2Folder)
+                if (python2Folder) {
+                    createFolderRecursively (python2Folder)
+                }
                 createFolderRecursively (python3Folder)
             }
 
             if (this.buildPHP) {
-                createFolderRecursively (phpFolder)
+                if (phpFolder) {
+                    createFolderRecursively (phpFolder)
+                }
                 createFolderRecursively (phpAsyncFolder)
             }
         }
@@ -3094,6 +3165,8 @@ class Transpiler {
 
         if (!transpilingSingleExchange) {
             this.transpileBaseMethods ()
+
+            this.transpilePredictionBaseMethods ()
 
             //*/
 
@@ -3195,6 +3268,7 @@ if (isMainEntry(metaFileUrl)) {
 
     if (baseClassOnly) {
         transpiler.transpileBaseMethods ()
+        transpiler.transpilePredictionBaseMethods ()
     } else if (test) {
         (async () => {
             await transpiler.transpileTests ()

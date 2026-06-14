@@ -2416,29 +2416,3 @@ class Exchange(BaseExchange):
 
     async def is_uta_enabled(self, params={}):
         return False  # stub
-
-    async def load_markets_and_events(self, reload=False, params={}):
-        res = await asyncio.gather(*[self.load_markets(reload, params), self.load_events(reload, params)])
-        return {
-            'markets': res[0],
-            'events': res[1],
-        }
-
-    async def check_events_and_markets(self, outcome: Str = None):
-        if not self.events or self.is_empty(self.events):
-            raise ArgumentsRequired('Events are required to be loaded, please fetch them first using fetchEvents')
-        if outcome is not None:
-            if not (outcome in self.outcomes) and not (outcome in self.outcomes_by_id):
-                raise ArgumentsRequired('The specified outcome is not valid/available, please fetch events and outcomes first using fetchEvents')
-
-    async def fetch_events(self, queries: Strings = None, params={}):
-        raise NotSupported(self.id + ' fetchEvents() is not supported yet')
-
-    async def load_events_helper(self, reload=False, params={}):
-        if not reload and self.events:
-            return self.events
-        events = await self.fetch_events(None, params)
-        return self.set_events(events)
-
-    async def load_events(self, reload=False, params={}):
-        return await self.load_events_helper(reload, params)

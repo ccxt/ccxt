@@ -354,9 +354,16 @@ function createTypescriptHeader(instance: Exchange, parent: string){
     const exchange = instance.id;
     const basePath = isPrediction ? '../../' : '../';
     const importType = `import { implicitReturnType } from '${basePath}base/types.js';`
-    const importParent = (parent === 'Exchange') ?
-        `import { Exchange as _Exchange } from '${basePath}base/Exchange.js';` :
-        `import _${parent} from '${basePath}${parent}.js';`
+    let importParent: string;
+    if (parent === 'Exchange') {
+        // prediction-market exchanges extend PredictionExchange (which itself extends Exchange);
+        // the abstract class is still named "Exchange" so `import Exchange from abstract` works
+        importParent = isPrediction ?
+            `import { default as _Exchange } from '${basePath}base/PredictionExchange.js';` :
+            `import { Exchange as _Exchange } from '${basePath}base/Exchange.js';`
+    } else {
+        importParent = `import _${parent} from '${basePath}${parent}.js';`
+    }
     const typescriptHeader = `interface ${parent} {`
     const typescriptFooter = `abstract class ${parent} extends _${parent} {}\n\nexport default ${parent}` // hotswap later
     storedTypeScriptMethods[exchange] = [ getPreamble (), importType, importParent, '', typescriptHeader, typescriptFooter ];
@@ -366,7 +373,9 @@ function createTypescriptHeader(instance: Exchange, parent: string){
 
 function createPhpHeader(instance: Exchange, parent: string){
     const exchange = instance.id;
-    const phpParent = (parent === 'Exchange') ? '\\ccxt\\Exchange' : '\\ccxt\\' + parent;
+    // prediction-market exchanges are async-only and flattened: their abstract extends
+    // \ccxt\prediction\PredictionExchange (itself extends the ReactPHP \ccxt\async\Exchange)
+    const phpParent = (parent === 'Exchange' && isPrediction) ? '\\ccxt\\prediction\\PredictionExchange' : '\\ccxt\\' + parent;
     const phpHeader = `abstract class ${instance.id} extends ${phpParent} {`
     const phpNamespace = isPrediction ? 'ccxt\\abstract\\prediction' : 'ccxt\\abstract';
     const phpPreamble = `<?php
@@ -391,7 +400,9 @@ function createPyHeader(instance: Exchange, parent: string){
 
 function createCSharpHeader(exchange: Exchange, parent: string){
     const namespace = isPrediction ? 'namespace ccxt.prediction;' : 'namespace ccxt;'
-    const header = `public partial class ${exchange.id} : ${parent}\n{\n    public ${exchange.id} (object args = null): base(args) {}\n`;
+    // prediction-market exchanges extend PredictionExchange (itself extends Exchange)
+    const csParent = (parent === 'Exchange' && isPrediction) ? 'PredictionExchange' : parent;
+    const header = `public partial class ${exchange.id} : ${csParent}\n{\n    public ${exchange.id} (object args = null): base(args) {}\n`;
     storedCSharpMethods[exchange.id] = [ getPreamble(), namespace, '', header];
 }
 
@@ -489,13 +500,17 @@ async function generateImplicitAPIs (exchanges: string[], shouldGenerateAll: boo
         createImplicitMethodsPhp ()
         await editFiles (PHP_PATH + subdir, storedPhpMethods, '.php');
         log.bright.cyan ('PHP sync implicit api methods completed!')
-        // one more time for the async php
-        Object.values (storedPhpMethods).forEach (x => {
-            x[0] = x[0].replace (/ccxt\\abstract/, 'ccxt\\async\\abstract');
-            x[2] = x[2].replace (/ccxt\\/, 'ccxt\\async\\')
-        })
-        await editFiles (ASYNC_PHP_PATH + subdir, storedPhpMethods, '.php');
-        log.bright.cyan ('PHP async implicit api methods completed!')
+        // prediction is async-only and flattened — its single abstract (php/abstract/prediction/)
+        // already extends \ccxt\prediction\PredictionExchange, so skip the async-abstract derivation
+        if (!isPrediction) {
+            // one more time for the async php
+            Object.values (storedPhpMethods).forEach (x => {
+                x[0] = x[0].replace (/ccxt\\abstract/, 'ccxt\\async\\abstract');
+                x[2] = x[2].replace (/ccxt\\/, 'ccxt\\async\\')
+            })
+            await editFiles (ASYNC_PHP_PATH + subdir, storedPhpMethods, '.php');
+            log.bright.cyan ('PHP async implicit api methods completed!')
+        }
     }
 
     if (shouldGenerateAll || langKeys['--csharp']) {

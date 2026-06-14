@@ -23,6 +23,8 @@ const promisedWriteFile = promisify (fs.writeFile);
 
 let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds: string[] = exchanges.ids
+const predictionIds: string[] = exchanges.prediction || []
+const predictionWsIds: string[] = exchanges.predictionWs || []
 
 // @ts-expect-error
 const metaUrl = import.meta.url
@@ -51,6 +53,10 @@ if (platform === 'win32') {
 const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
 const EXCHANGE_WRAPPER_FOLDER = './cs/ccxt/wrappers/'
 const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
+const EXCHANGE_PREDICTION_WRAPPER_FOLDER = './cs/ccxt/wrappers/prediction/'
+const EXCHANGE_PREDICTION_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/prediction/pro/wrappers/'
+const EXCHANGES_PREDICTION_FOLDER = './cs/ccxt/exchanges/prediction/';
+const EXCHANGES_PREDICTION_WS_FOLDER = './cs/ccxt/exchanges/prediction/pro/';
 const ERRORS_FILE = './cs/ccxt/base/Exchange.Errors.cs';
 const BASE_METHODS_FILE = './cs/ccxt/base/Exchange.BaseMethods.cs';
 const EXCHANGES_FOLDER = './cs/ccxt/exchanges/';
@@ -69,6 +75,9 @@ class NewTranspiler {
     transpiler!: Transpiler;
     pythonStandardLibraries;
     oldTranspiler = new OldTranspiler();
+    // true while transpiling the prediction-market exchanges (ts/src/prediction/),
+    // which live in the ccxt.prediction / ccxt.prediction.pro namespaces
+    isPrediction = false;
 
     constructor() {
 
@@ -293,12 +302,24 @@ class NewTranspiler {
         ]
     }
 
+    getNamespace(ws = false) {
+        if (this.isPrediction) {
+            return ws ? 'namespace ccxt.prediction.pro;' : 'namespace ccxt.prediction;';
+        }
+        return ws ? 'namespace ccxt.pro;' : 'namespace ccxt;';
+    }
+
     getCsharpImports(file: any, ws = false) {
-        const namespace = ws ? 'namespace ccxt.pro;' : 'namespace ccxt;';
+        const namespace = this.getNamespace (ws);
         const values = [
             // "using ccxt;",
             namespace,
         ]
+        if (this.isPrediction && ws) {
+            // prediction ws exchanges live in ccxt.prediction.pro and need the ws
+            // infrastructure types (IOrderBook, ArrayCache, ...) from ccxt.pro
+            values.push ("using ccxt.pro;");
+        }
         // if (ws) {
         //     values.push("using System.Reflection;");
         // }
@@ -645,9 +666,12 @@ class NewTranspiler {
         const shouldCreateClassWrappers = exchange === 'Exchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
         // const exchangeName = ws ? exchange + 'Ws' : exchange;
-        const namespace = ws ? 'namespace ccxt.pro;' : 'namespace ccxt;';
+        const namespace = this.getNamespace (ws);
         const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
-        const capitalizeStatement = ws ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
+        // prediction REST exchanges are not part of createExchangesWrappers (Exchange.Wrappers.cs),
+        // so their Capitalized wrapper class is emitted into their own wrapper file
+        const needsCapitalizedClass = ws || this.isPrediction;
+        const capitalizeStatement = needsCapitalizedClass ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
         const file = [
             namespace,
             '',
@@ -786,6 +810,39 @@ class NewTranspiler {
         }
     }
 
+    transpilePredictionBaseMethods (predictionBaseFile = './ts/src/base/PredictionExchange.ts') {
+        // PredictionExchange is the base class for prediction-market exchanges; it lives
+        // in the ccxt namespace (like Exchange) and is transpiled the same way as the base
+        const predictionBase = './cs/ccxt/base/PredictionExchange.cs';
+        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
+        const baseFile: any = this.transpiler.transpileCSharpByPath(predictionBaseFile);
+        let baseClass = baseFile.content as any;
+        baseClass = baseClass.replaceAll(/(\w+)(\.storeArray\(.+\))/gm, '($1 as ccxt.pro.IOrderBookSide)$2');
+        const jsDelimiter = '// ' + delimiter
+        const parts = baseClass.split (jsDelimiter)
+        if (parts.length > 1) {
+            const baseMethods = parts[1]
+            const fields = [
+                '    public PredictionExchange(object args = null) : base(args) {}',
+                '',
+                '    public object outcomes { get; set; } = null;',
+                '    public object outcomes_by_id { get; set; } = null;',
+                '    public object events { get; set; } = null;',
+                '    public object events_by_slug { get; set; } = null;',
+                '    public bool reloadingEvents { get; set; } = false;',
+                '    public Task<object> eventsLoading { get; set; } = null;',
+                '',
+            ].join('\n')
+            const fileHeader = this.getCsharpImports(undefined).concat([
+                this.createGeneratedHeader().join('\n'),
+                "public partial class PredictionExchange : Exchange\n{\n\n"
+            ]).join("\n");
+            const file = fileHeader + fields + baseMethods + "\n";
+            fs.writeFileSync (predictionBase, file);
+            log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
+        }
+    }
+
     camelize(str: string) {
         var res =  str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
           if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
@@ -848,23 +905,29 @@ class NewTranspiler {
         }
     }
 
-    async transpileWS(force = false) {
-        const tsFolder = './ts/src/pro/';
+    async transpileWS(force = false, prediction = false) {
+        const tsFolder = prediction ? './ts/src/prediction/pro/' : './ts/src/pro/';
 
         let inputExchanges =  process.argv.slice (2).filter (x => !x.startsWith ('--'));
         if (inputExchanges === undefined) {
             inputExchanges = exchanges.ws;
         }
-        const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:inputExchanges }
+        if (prediction && (!inputExchanges || !inputExchanges.length)) {
+            inputExchanges = predictionWsIds;
+        }
+        const csharpFolder = prediction ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_WS_FOLDER;
+        const options = { csharpFolder, exchanges:inputExchanges }
         // const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:['bitget'] }
+        this.isPrediction = prediction
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true )
+        this.isPrediction = false
     }
 
-    async transpileEverything (force = false, child = false, baseOnly = false, examplesOnly = false) {
+    async transpileEverything (force = false, child = false, baseOnly = false, examplesOnly = false, prediction = false) {
 
-        const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
-            , csharpFolder = EXCHANGES_FOLDER
-            , tsFolder = './ts/src/'
+        let exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
+        const csharpFolder = prediction ? EXCHANGES_PREDICTION_FOLDER : EXCHANGES_FOLDER
+            , tsFolder = prediction ? './ts/src/prediction/' : './ts/src/'
             , exchangeBase = './ts/src/base/Exchange.ts'
 
         if (!child) {
@@ -874,10 +937,20 @@ class NewTranspiler {
         if (transpilingSingleExchange) {
             force = true; // when transpiling single exchange, we always force
         }
+        if (prediction && !exchanges.length) {
+            exchanges = predictionIds;
+        }
         const options = { csharpFolder, exchanges }
 
         if (!baseOnly && !examplesOnly) {
+            this.isPrediction = prediction
             await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+            this.isPrediction = false
+        }
+
+        if (prediction) {
+            log.bright.green ('Transpiled prediction exchanges successfully.')
+            return;
         }
 
         this.transpileExamples(); // disabled for now
@@ -893,7 +966,12 @@ class NewTranspiler {
             return;
         }
 
+        // full builds also transpile the prediction-market exchanges (ts/src/prediction/)
+        await this.transpileEverything (force, child, false, false, true)
+
         this.transpileBaseMethods (exchangeBase)
+
+        this.transpilePredictionBaseMethods ()
 
         if (baseOnly) {
             return;
@@ -955,18 +1033,20 @@ class NewTranspiler {
         const transpiledFiles =  allFilesPath.map((file: string) => this.transpiler.transpileCSharpByPath(file));
 
         if (!ws) {
+            const wrapperFolder = this.isPrediction ? EXCHANGE_PREDICTION_WRAPPER_FOLDER : EXCHANGE_WRAPPER_FOLDER;
             for (let i = 0; i < transpiledFiles.length; i++) {
                 const transpiled = transpiledFiles[i];
                 const exchangeName = exchanges[i].replace('.ts','');
-                const path = EXCHANGE_WRAPPER_FOLDER + exchangeName + '.cs';
+                const path = wrapperFolder + exchangeName + '.cs';
                 this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes)
             }
         } else {
             //
+            const wrapperFolder = this.isPrediction ? EXCHANGE_PREDICTION_WS_WRAPPER_FOLDER : EXCHANGE_WS_WRAPPER_FOLDER;
             for (let i = 0; i < transpiledFiles.length; i++) {
                 const transpiled = transpiledFiles[i];
                 const exchangeName = exchanges[i].replace('.ts','');
-                const path = EXCHANGE_WS_WRAPPER_FOLDER + exchangeName + '.cs';
+                const path = wrapperFolder + exchangeName + '.cs';
                 this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
             }
         }
@@ -984,10 +1064,13 @@ class NewTranspiler {
         const baseWsClassRegex = /class\s(\w+)\s+:\s(\w+)/;
         const baseWsClassExec = baseWsClassRegex.exec(content);
         const baseWsClass = baseWsClassExec ? baseWsClassExec[2] : '';
+        const restNamespacePrefix = this.isPrediction ? 'ccxt.prediction.' : 'ccxt.';
         if (!ws) {
-            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1 : $2");
+            // prediction exchanges extend PredictionExchange; both partial declarations
+            // (api/ abstract and exchanges/ file) must agree on the base class
+            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, (m, p1, p2) => `public partial class ${p1} : ${(this.isPrediction && p2 === 'Exchange') ? 'PredictionExchange' : p2}`);
         } else {
-            const wsParent =  baseWsClass.endsWith('Rest') ? 'ccxt.' + baseWsClass.replace('Rest', '') : baseWsClass;
+            const wsParent =  baseWsClass.endsWith('Rest') ? restNamespacePrefix + baseWsClass.replace('Rest', '') : baseWsClass;
             content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, `public partial class $1 : ${wsParent}`);
         }
         content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
@@ -1007,12 +1090,13 @@ class NewTranspiler {
     }
 
     replaceImportedRestClasses (content: string, imports: any[]) {
+        const restNamespacePrefix = this.isPrediction ? 'ccxt.prediction.' : 'ccxt.';
         for (const imp of imports) {
             // { name: "hitbtc", path: "./hitbtc.js", isDefault: true, }
             // { name: "bequantRest", path: "../bequant.js", isDefault: true, }
             const name = imp.name;
             if (name.endsWith('Rest')) {
-                content = content.replaceAll(name, 'ccxt.' + name.replace('Rest', ''));
+                content = content.replaceAll(name, restNamespacePrefix + name.replace('Rest', ''));
             }
         }
         return content;
@@ -1458,16 +1542,29 @@ async function runMain () {
         log.bright.green ({ force })
     }
     const transpiler = new NewTranspiler ();
+    const prediction = process.argv.includes ('--prediction')
+    const inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
     if (baseClassOnly) {
         transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
+        transpiler.transpilePredictionBaseMethods ()
     } else if (ws) {
-        await transpiler.transpileWS (force)
+        if (prediction) {
+            await transpiler.transpileWS (force, true)
+        } else {
+            await transpiler.transpileWS (force)
+            if (!inputExchanges.length) {
+                // full ws builds also transpile the prediction ws exchanges
+                await transpiler.transpileWS (force, true)
+            }
+        }
     } else if (test) {
         transpiler.transpileTests ()
     } else if (multiprocess) {
         await parallelizeTranspiling (exchangeIds)
+        // the prediction exchanges are few — transpile them serially after the workers finish
+        await transpiler.transpileEverything (force, false, false, false, true)
     } else {
-        await transpiler.transpileEverything (force, child, baseOnly, examples)
+        await transpiler.transpileEverything (force, child, baseOnly, examples, prediction)
     }
 }
 

@@ -31,7 +31,9 @@ class CCXTProTranspiler extends Transpiler {
     }
 
     createPythonClassDeclaration (className, baseClass) {
-        const asyncModule = this.isPrediction ? 'ccxt.prediction.async_support.' : 'ccxt.async_support.'
+        // prediction-market exchanges are async-only and flattened in Python:
+        // the async REST class IS ccxt.prediction.<id> (no async_support nesting)
+        const asyncModule = this.isPrediction ? 'ccxt.prediction.' : 'ccxt.async_support.'
         const baseClasses = (baseClass.indexOf ('Rest') >= 0) ?
             [ asyncModule + baseClass.replace('Rest', '') ] :
             [ baseClass ]
@@ -49,7 +51,7 @@ class CCXTProTranspiler extends Transpiler {
         if (baseClass.indexOf ('Rest') >= 0) {
             return [
                 // 'from ccxt.async_support' + ' import ' + baseClass,
-                this.isPrediction ? "import ccxt.prediction.async_support" : "import ccxt.async_support"
+                this.isPrediction ? "import ccxt.prediction" : "import ccxt.async_support"
             ]
         } else {
             const proModule = this.isPrediction ? 'ccxt.prediction.pro.' : 'ccxt.pro.'
@@ -92,7 +94,8 @@ class CCXTProTranspiler extends Transpiler {
 
     createPHPClassDeclaration (className, baseClass) {
         let lines: string[] = []
-        const asyncNamespace = this.isPrediction ? '\\ccxt\\prediction\\async\\' : '\\ccxt\\async\\'
+        // prediction is async-only and flattened: the async REST class is \ccxt\prediction\<id>
+        const asyncNamespace = this.isPrediction ? '\\ccxt\\prediction\\' : '\\ccxt\\async\\'
         const proNamespace = this.isPrediction ? '\\ccxt\\prediction\\pro\\' : '\\ccxt\\pro\\'
         if (baseClass.indexOf ('Rest') >= 0) {
             //     lines = lines.concat ([

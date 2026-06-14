@@ -8,10 +8,6 @@ import type {
 
 // ---------------------------------------------------------------------------
 
-const WS_URL = 'wss://ws-subscriptions-clob.polymarket.com/ws/market';
-
-// ---------------------------------------------------------------------------
-
 /**
  * @class polymarket
  * @augments polymarketRest
@@ -24,6 +20,11 @@ export default class polymarket extends polymarketRest {
                 'watchOrderBook': true,
                 'watchTrades': true,
                 'watchTicker': true,
+            },
+            'urls': {
+                'api': {
+                    'ws': 'wss://ws-subscriptions-clob.polymarket.com/ws/market',
+                },
             },
         });
     }
@@ -145,12 +146,14 @@ export default class polymarket extends polymarketRest {
         if (!this.trades) {
             this.trades = {};
         }
-        if (this.trades[symbol] === undefined) {
+        let stored = this.trades[symbol];
+        if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.trades[symbol] = new ArrayCache (limit);
+            stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
         }
-        this.trades[symbol].append (trade);
-        client.resolve (this.trades[symbol], 'trades::' + symbol);
+        stored.append (trade);
+        client.resolve (stored, 'trades::' + symbol);
     }
 
     /**
@@ -169,7 +172,8 @@ export default class polymarket extends polymarketRest {
         const messageHash = 'orderbook::' + symbol;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'operation': 'subscribe', 'assets_ids': [ tokenId ] };
-        const orderbook = await this.watch (WS_URL, messageHash, subscribeMsg, subscribeHash);
+        const url = this.urls['api']['ws'];
+        const orderbook = await this.watch (url, messageHash, subscribeMsg, subscribeHash);
         return orderbook.limit ();
     }
 
@@ -190,7 +194,8 @@ export default class polymarket extends polymarketRest {
         const messageHash = 'trades::' + symbol;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'operation': 'subscribe', 'assets_ids': [ tokenId ] };
-        const trades = await this.watch (WS_URL, messageHash, subscribeMsg, subscribeHash);
+        const url = this.urls['api']['ws'];
+        const trades = await this.watch (url, messageHash, subscribeMsg, subscribeHash);
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
@@ -212,7 +217,8 @@ export default class polymarket extends polymarketRest {
         if (this.orderbooks[symbol] === undefined) {
             this.orderbooks[symbol] = this.orderBook ([]);
         }
-        const orderbook = await this.watch (WS_URL, messageHash, subscribeMsg, subscribeHash);
+        const url = this.urls['api']['ws'];
+        const orderbook = await this.watch (url, messageHash, subscribeMsg, subscribeHash);
         const bids = orderbook['bids'] as any;
         const asks = orderbook['asks'] as any;
         let bestBid = undefined;

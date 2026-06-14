@@ -34,19 +34,6 @@ public partial class Exchange
 
     public Task<object> marketsLoading { get; set; } = null;
 
-    // prediction-market state (Polymarket, Kalshi, Limitless, Myriad, ...)
-    public object outcomes { get; set; } = null;
-
-    public object outcomes_by_id { get; set; } = null;
-
-    public object events { get; set; } = null;
-
-    public object events_by_slug { get; set; } = null;
-
-    public bool reloadingEvents { get; set; } = false;
-
-    public Task<object> eventsLoading { get; set; } = null;
-
     public IDictionary<string, object> quoteCurrencies { get; set; } = null;
 
     public dict api { get; set; } = new dict();
