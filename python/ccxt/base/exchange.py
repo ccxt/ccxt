@@ -392,6 +392,8 @@ class Exchange(object):
     last_request_body = None
     last_request_url = None
     last_request_headers = None
+    fetch_history_cache_size = 0
+    fetch_history_cache = collections.deque(maxlen=0)
 
     base58_encoder = None
     base58_decoder = None
@@ -550,6 +552,16 @@ class Exchange(object):
         if sanitized.startswith(self.get_temp_dir()) and sanitized.endswith('.ccxtfile'):
             return
         raise ValueError(f'invalid file path: {file_path}')
+
+    def add_fetch_cache(self, data):
+        if self.fetch_history_cache_size <= 0:
+            return
+        if self.fetch_history_cache.maxlen == 0:
+            self.fetch_history_cache = collections.deque(maxlen=self.fetch_history_cache_size)
+        self.fetch_history_cache.append(data)
+
+    def get_fetch_cache(self):
+        return self.fetch_history_cache
 
     @staticmethod
     def gzip_deflate(response, text):

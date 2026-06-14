@@ -131,6 +131,11 @@ public partial class Exchange
         }
     }
     public object last_request_url { get; set; }
+
+    public readonly System.Collections.Concurrent.ConcurrentQueue<Dictionary<string, object>> fetchHistoryCache = new ();
+
+    public int fetchHistoryCacheSize = 0;
+
     public float MAX_VALUE = float.MaxValue;
 
     public object name { get; set; }

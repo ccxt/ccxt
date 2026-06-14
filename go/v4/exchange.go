@@ -182,7 +182,8 @@ type Exchange struct {
 	// tests only
 	FetchResponse any
 
-	IsSandboxModeEnabled bool
+	IsSandboxModeEnabled  bool
+	FetchHistoryCacheSize int
 
 	// ws
 	WsClients   map[string]any // one websocket client per URL
@@ -2191,3 +2192,46 @@ func (this *Exchange) UnlockId() bool {
 	this.idMutex.Unlock()
 	return true
 }
+
+// ############ Requests data ############
+
+type ConcurrentListForRequests struct {
+	mu    sync.Mutex
+	items []any
+}
+
+func (cl *ConcurrentListForRequests) Lock()   { cl.mu.Lock() }
+func (cl *ConcurrentListForRequests) Unlock() { cl.mu.Unlock() }
+
+func (cl *ConcurrentListForRequests) Add(item any) {
+	cl.mu.Lock()
+	defer cl.mu.Unlock()
+	cl.items = append(cl.items, item)
+}
+
+func (cl *ConcurrentListForRequests) GetAll() []any {
+	cl.mu.Lock()
+	defer cl.mu.Unlock()
+	cp := make([]any, len(cl.items))
+	copy(cp, cl.items)
+	return cp
+}
+
+var FetchHistoryCache = &ConcurrentListForRequests{}
+
+func (e *Exchange) AddFetchCache(item any) {
+
+	FetchHistoryCache.Lock()
+	defer FetchHistoryCache.Unlock()
+
+	FetchHistoryCache.items = append(FetchHistoryCache.items, item)
+
+	if e.FetchHistoryCacheSize > 0 && len(FetchHistoryCache.items) > e.FetchHistoryCacheSize {
+		FetchHistoryCache.items = FetchHistoryCache.items[1:]
+	}
+}
+func (e *Exchange) GetFetchCache() []any {
+	return FetchHistoryCache.GetAll()
+}
+
+// #########################################

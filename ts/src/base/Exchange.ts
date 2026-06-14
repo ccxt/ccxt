@@ -308,6 +308,8 @@ export default class Exchange {
     last_request_body: any = undefined;
     last_request_url: string = undefined;
     last_request_path: string = undefined;
+    fetchHistoryCache: Dictionary<any>[] = [];
+    fetchHistoryCacheSize: number = 0;
 
     id: string = 'Exchange';
 
@@ -856,6 +858,20 @@ export default class Exchange {
             }
         }
         return undefined;
+    }
+
+    addFetchCache (data) {
+        if (this.fetchHistoryCacheSize <= 0) {
+            return;
+        }
+        if (this.fetchHistoryCache.length >= this.fetchHistoryCacheSize) {
+            this.fetchHistoryCache.shift ();
+        }
+        this.fetchHistoryCache.push (data);
+    }
+
+    getFetchCache () {
+        return this.fetchHistoryCache;
     }
 
     isBinaryMessage (msg) {
@@ -5817,15 +5833,32 @@ export default class Exchange {
         [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
         let retryDelay = undefined;
         [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
+        let fetchData: Dict = undefined;
+        const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
         for (let i = 0; i < retries + 1; i++) {
+            if (fetchDataCacheEnabled) {
+                fetchData = { 'request': undefined, 'response': { 'body': undefined }, 'error': undefined };
+            }
             try {
                 this.lastRestRequestTimestamp = this.milliseconds ();
                 const request = this.sign (path, api, method, params, headers, body);
+                if (fetchDataCacheEnabled) {
+                    fetchData['request'] = request;
+                }
                 this.last_request_headers = request['headers'];
                 this.last_request_body = request['body'];
                 this.last_request_url = request['url'];
-                return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
+                const response = await this.fetch (request['url'], request['method'], request['headers'], request['body']);
+                if (fetchDataCacheEnabled) {
+                    fetchData['response']['body'] = response;
+                    this.addFetchCache (fetchData);
+                }
+                return response;
             } catch (e) {
+                if (fetchDataCacheEnabled) {
+                    fetchData['error'] = e;
+                    this.addFetchCache (fetchData);
+                }
                 if (e instanceof OperationFailed) {
                     if (i < retries) {
                         if (this.verbose) {
