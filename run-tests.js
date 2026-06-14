@@ -36,6 +36,7 @@ const langKeys = {
 const debugKeys = {
     '--warnings': false,
     '--info': false,
+    '--show-timer': false,
 }
 
 const exchangeSpecificFlags = {
@@ -85,7 +86,15 @@ const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
 // hit the per-test timeout despite passing on their own.
 const timeoutSeconds = wsFlag ? (langKeys['--java'] ? 180 : 120) : 250;
 
+const secondsElapsedFrom = (startTime) => Math.floor((Date.now() - startTime) / 1000);
 
+const SHOW_TIMER = debugKeys['--show-timer'];
+if (SHOW_TIMER) {
+    const startTime = Date.now ();
+    setInterval (() => {
+        log.bright.yellow(`\t\t\t\t\t\t\t[RUNTESTS ELAPSED ${wsFlag}: ${secondsElapsedFrom(startTime)} s]`);
+    }, 20 * 1000); // every X seconds
+}
 //  --------------------------------------------------------------------------- //
 
 const exchangeOptions = []
@@ -185,14 +194,23 @@ const exec = (bin, ...args) => {
             }
     }
 
+    const startTime = Date.now ();
     return timeout (timeoutSeconds, new Promise (resolver => {
 
         const psSpawn = ps.spawn (bin, args)
 
-        psSpawn.stdout.on ('data', data => { output += data.toString () })
-        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString ().trim (); })
+        psSpawn.stdout.on ('data', data => {
+            output += data.toString ()
+        })
+        psSpawn.stderr.on ('data', data => {
+            output += data.toString ();
+            stderr += data.toString ().trim ();
+        })
 
         psSpawn.on ('exit', code => {
+            if (SHOW_TIMER) {
+                output += ` [elapsed: ${secondsElapsedFrom(startTime)} + 's']`;
+            }
             const result = generateResultFromOutput (output, stderr, code)
             return resolver (result) ;
         })
@@ -209,6 +227,9 @@ const exec = (bin, ...args) => {
             });
         }
     })).catch (e => {
+        if (SHOW_TIMER) {
+            output += ` [elapsed: ${secondsElapsedFrom(startTime)} + 's']`;
+        }
         const isTimeout = e.message === 'RUNTEST_TIMED_OUT';
         if (isTimeout) {
             // Tag the output so the FAIL path picks it up (generateResultFromOutput
