@@ -5284,7 +5284,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['spot']) {
@@ -5672,7 +5672,7 @@ export default class htx extends Exchange {
      * @param {string} [params.stopLoss.type] market is the default, limit, optimal_5, optimal_10, optimal_20
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'trigger_price' ]);
@@ -5804,7 +5804,7 @@ export default class htx extends Exchange {
                 'fee': undefined,
                 'clientOrderId': undefined,
                 'average': undefined,
-            }, market);
+            }, market) as Order;
         } else if (market['linear']) {
             if (isTrigger || isTrailingPercentOrder || isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                 data = this.safeList (response, 'data', []);
@@ -5817,7 +5817,7 @@ export default class htx extends Exchange {
                 'side': side,
                 'price': price,
                 'amount': amount,
-            });
+            }) as Order;
         } else if (isStopLossTriggerOrder) {
             data = this.safeValue (response, 'data', {});
             result = this.safeValue (data, 'sl_order', {});
@@ -5827,7 +5827,7 @@ export default class htx extends Exchange {
         } else {
             result = this.safeValue (response, 'data', {});
         }
-        return this.parseOrder (result, market);
+        return this.parseOrder (result, market) as Order;
     }
 
     /**
