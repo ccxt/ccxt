@@ -5808,6 +5808,12 @@ export default class htx extends Exchange {
         } else if (market['linear'] && (isTrigger || isTrailingPercentOrder || isStopLossTriggerOrder || isTakeProfitTriggerOrder)) {
             data = this.safeList (response, 'data', []);
             result = this.safeDict (data, 0, {});
+            return this.extend (this.parseOrder (result, market), {
+                'type': type,
+                'side': side,
+                'price': price,
+                'amount': amount,
+            });
         } else if (isStopLossTriggerOrder) {
             data = this.safeValue (response, 'data', {});
             result = this.safeValue (data, 'sl_order', {});
