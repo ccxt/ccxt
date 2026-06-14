@@ -3053,32 +3053,32 @@
                     "code": "200",
                     "message": "Success",
                     "data": {
-                        "amount": "32476.092",
-                        "volume": "32476092",
-                        "value": "2063137924.9668",
+                        "amount": "32469.73",
+                        "volume": "32469730",
+                        "value": "2090274585.453",
                         "contract_code": "BTC-USDT",
-                        "trade_amount": "11371.362",
-                        "trade_volume": "11371362",
-                        "trade_turnover": "723600792.7222"
+                        "trade_amount": "5962.764",
+                        "trade_volume": "5962764",
+                        "trade_turnover": "382492033.7158"
                     },
-                    "ts": "1781327941440"
+                    "ts": "1781412203224"
                 },
                 "parsedResponse": {
                     "symbol": "BTC/USDT:USDT",
-                    "baseVolume": 32476092,
-                    "quoteVolume": 2063137924.9668,
-                    "openInterestAmount": 32476092,
-                    "openInterestValue": 2063137924.9668,
-                    "timestamp": null,
-                    "datetime": null,
+                    "baseVolume": 32469730,
+                    "quoteVolume": 2090274585.453,
+                    "openInterestAmount": 32469730,
+                    "openInterestValue": 2090274585.453,
+                    "timestamp": 1781412203224,
+                    "datetime": "2026-06-14T04:43:23.224Z",
                     "info": {
-                        "amount": "32476.092",
-                        "volume": "32476092",
-                        "value": "2063137924.9668",
+                        "amount": "32469.73",
+                        "volume": "32469730",
+                        "value": "2090274585.453",
                         "contract_code": "BTC-USDT",
-                        "trade_amount": "11371.362",
-                        "trade_volume": "11371362",
-                        "trade_turnover": "723600792.7222"
+                        "trade_amount": "5962.764",
+                        "trade_volume": "5962764",
+                        "trade_turnover": "382492033.7158"
                     }
                 }
             },

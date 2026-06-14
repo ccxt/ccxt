@@ -8972,13 +8972,16 @@ export default class htx extends Exchange {
         //         "ts": 1664337928805
         //     }
         //
+        const timestamp = this.safeInteger (response, 'ts');
         if (market['linear']) {
             const result = this.safeDict (response, 'data', {});
-            return this.parseOpenInterest (result, market);
+            return this.extend (this.parseOpenInterest (result, market), {
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
         }
         const data = this.safeValue (response, 'data', []);
         const openInterest = this.parseOpenInterest (data[0], market);
-        const timestamp = this.safeInteger (response, 'ts');
         openInterest['timestamp'] = timestamp;
         openInterest['datetime'] = this.iso8601 (timestamp);
         return openInterest;
