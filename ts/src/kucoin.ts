@@ -1393,6 +1393,7 @@ export default class kucoin extends Exchange {
                     'fetchOHLCV': {
                         'limit': 1500,
                     },
+                    'rollingWindow': true,
                 },
                 'forDerivs': {
                     'sandbox': false,

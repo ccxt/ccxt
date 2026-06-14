@@ -293,6 +293,7 @@ export default class luno extends Exchange {
                     'fetchOHLCV': {
                         'limit': undefined,
                     },
+                    'rollingWindow': true,
                 },
                 'swap': {
                     'linear': undefined,
