@@ -1,0 +1,45 @@
+{
+  "raw": {
+    "id": "987654321",
+    "orderId": "123456789",
+    "orderListId": -1,
+    "price": "40150.00",
+    "qty": "0.5",
+    "quoteQty": "20075.00",
+    "commission": "0.0005",
+    "commissionAsset": "BTC",
+    "time": 1700086400000,
+    "isBuyer": true,
+    "isMaker": false,
+    "isBestMatch": true
+  },
+  "expected": {
+    "id": "987654321",
+    "order": "123456789",
+    "timestamp": 1700086400000,
+    "datetime": "2023-11-15T16:00:00.000Z",
+    "symbol": "BTC/USDT",
+    "type": null,
+    "side": "buy",
+    "takerOrMaker": "taker",
+    "price": 40150.0,
+    "amount": 0.5,
+    "cost": 20075.0,
+    "fee": 0.0005,
+    "feeCurrency": "BTC",
+    "info": {
+      "id": "987654321",
+      "orderId": "123456789",
+      "orderListId": -1,
+      "price": "40150.00",
+      "qty": "0.5",
+      "quoteQty": "20075.00",
+      "commission": "0.0005",
+      "commissionAsset": "BTC",
+      "time": 1700086400000,
+      "isBuyer": true,
+      "isMaker": false,
+      "isBestMatch": true
+    }
+  }
+}

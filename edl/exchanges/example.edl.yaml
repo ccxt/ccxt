@@ -1,0 +1,535 @@
+# Example Exchange Definition Language (EDL) File
+# This file demonstrates all EDL features and serves as documentation
+
+# ============================================================================
+# EXCHANGE METADATA
+# ============================================================================
+exchange:
+  id: example
+  name: Example Exchange
+  countries: [US, EU]
+  version: v1
+  rateLimit: 1000
+  certified: false
+  pro: false
+  alias: false
+  dex: false
+
+# ============================================================================
+# URL CONFIGURATION
+# ============================================================================
+urls:
+  logo: https://example.com/logo.svg
+  api:
+    public: https://api.example.com/v1
+    private: https://api.example.com/v1
+  test:
+    public: https://testnet.example.com/v1
+    private: https://testnet.example.com/v1
+  www: https://www.example.com
+  doc:
+    - https://docs.example.com/api
+    - https://docs.example.com/websocket
+  fees: https://www.example.com/fees
+
+# ============================================================================
+# CAPABILITIES ('has' object)
+# ============================================================================
+has:
+  # Market data
+  publicAPI: true
+  privateAPI: true
+  CORS: null
+  sandbox: true
+  spot: true
+  margin: false
+  swap: false
+  future: false
+  option: false
+
+  # Market data methods
+  fetchMarkets: true
+  fetchCurrencies: true
+  fetchTicker: true
+  fetchTickers: true
+  fetchOrderBook: true
+  fetchTrades: true
+  fetchOHLCV: true
+  fetchStatus: true
+  fetchTime: true
+
+  # Trading methods
+  createOrder: true
+  createLimitOrder: true
+  createMarketOrder: true
+  cancelOrder: true
+  cancelAllOrders: false
+  editOrder: false
+
+  # Account methods
+  fetchBalance: true
+  fetchOpenOrders: true
+  fetchClosedOrders: true
+  fetchOrders: true
+  fetchOrder: true
+  fetchMyTrades: true
+  fetchDeposits: true
+  fetchWithdrawals: true
+  fetchDepositAddress: true
+  withdraw: true
+
+# ============================================================================
+# TIMEFRAME MAPPING
+# ============================================================================
+timeframes:
+  1m: "1"
+  5m: "5"
+  15m: "15"
+  30m: "30"
+  1h: "60"
+  4h: "240"
+  1d: "1440"
+  1w: "10080"
+  1M: "43200"
+
+# ============================================================================
+# REQUIRED CREDENTIALS
+# ============================================================================
+requiredCredentials:
+  apiKey: true
+  secret: true
+  uid: false
+  login: false
+  password: false
+  twofa: false
+  privateKey: false
+  walletAddress: false
+  token: false
+
+# ============================================================================
+# AUTHENTICATION
+# ============================================================================
+auth:
+  type: hmac
+  algorithm: sha256
+  encoding: hex
+  timestampUnit: milliseconds
+  nonceType: timestamp
+  signatureFormat: "{timestamp}{method}{path}{body}"
+
+  signature:
+    components:
+      - timestamp
+      - method
+      - path
+      - body
+
+  headers:
+    X-API-KEY: "{apiKey}"
+    X-API-SIGN: "{signature}"
+    X-API-TIMESTAMP: "{timestamp}"
+
+  body: {}
+  query: {}
+
+# ============================================================================
+# API ENDPOINTS
+# ============================================================================
+api:
+  public:
+    get:
+      time:
+        cost: 0.1
+        params: {}
+      markets:
+        cost: 1
+        params: {}
+      ticker:
+        cost: 0.5
+        params:
+          symbol:
+            type: string
+            required: true
+            description: Trading pair symbol (e.g., BTC/USDT)
+      tickers:
+        cost: 2
+        params:
+          symbols:
+            type: string
+            required: false
+            description: Comma-separated symbols
+      orderbook:
+        cost: 1
+        params:
+          symbol:
+            type: string
+            required: true
+          limit:
+            type: int
+            required: false
+            default: "100"
+        byLimit:
+          - [100, 1]
+          - [500, 5]
+          - [1000, 10]
+      trades:
+        cost: 1
+        params:
+          symbol:
+            type: string
+            required: true
+          limit:
+            type: int
+            required: false
+            default: "100"
+      ohlcv:
+        cost: 1
+        params:
+          symbol:
+            type: string
+            required: true
+          interval:
+            type: string
+            required: true
+          start:
+            type: timestamp_ms
+            required: false
+          end:
+            type: timestamp_ms
+            required: false
+          limit:
+            type: int
+            required: false
+            default: "500"
+
+  private:
+    get:
+      account:
+        cost: 1
+        params: {}
+      balance:
+        cost: 1
+        params: {}
+      orders:
+        cost: 1
+        params:
+          symbol:
+            type: string
+            required: false
+          status:
+            type: string
+            required: false
+          limit:
+            type: int
+            required: false
+            default: "100"
+      order:
+        cost: 0.5
+        params:
+          id:
+            type: string
+            required: true
+      trades:
+        cost: 1
+        params:
+          symbol:
+            type: string
+            required: false
+          limit:
+            type: int
+            required: false
+            default: "100"
+
+    post:
+      order:
+        cost: 0.5
+        params:
+          symbol:
+            type: string
+            required: true
+          side:
+            type: string
+            required: true
+          type:
+            type: string
+            required: true
+          amount:
+            type: float
+            required: true
+          price:
+            type: float
+            required_if: "type == limit"
+
+    delete:
+      order:
+        cost: 0.5
+        params:
+          id:
+            type: string
+            required: true
+
+# ============================================================================
+# RESPONSE PARSERS
+# ============================================================================
+parsers:
+  ticker:
+    source: ticker
+    path: data
+    mapping:
+      symbol:
+        from_context: symbol
+      timestamp:
+        path: timestamp
+        transform: parse_timestamp_ms
+      datetime:
+        compute: "this.iso8601({timestamp})"
+      high:
+        path: high
+        transform: parse_number
+      low:
+        path: low
+        transform: parse_number
+      bid:
+        path: bid
+        transform: parse_number
+      bidVolume:
+        path: bidVolume
+        transform: parse_number
+      ask:
+        path: ask
+        transform: parse_number
+      askVolume:
+        path: askVolume
+        transform: parse_number
+      vwap:
+        path: vwap
+        transform: parse_number
+      open:
+        path: open
+        transform: parse_number
+      close:
+        path: close
+        transform: parse_number
+      last:
+        path: last
+        transform: parse_number
+      previousClose:
+        path: previousClose
+        transform: parse_number
+      change:
+        path: change
+        transform: parse_number
+      percentage:
+        path: percentage
+        transform: parse_number
+      average:
+        compute: "({open} + {close}) / 2"
+      baseVolume:
+        path: volume
+        transform: parse_number
+      quoteVolume:
+        path: quoteVolume
+        transform: parse_number
+      info:
+        from_context: rawData
+
+  order:
+    source: order
+    path: data
+    mapping:
+      id:
+        path: id
+        transform: parse_string
+      clientOrderId:
+        path: clientOrderId
+      timestamp:
+        path: createTime
+        transform: parse_timestamp_ms
+      datetime:
+        compute: "this.iso8601({timestamp})"
+      lastTradeTimestamp:
+        path: updateTime
+        transform: parse_timestamp_ms
+      symbol:
+        from_context: symbol
+      type:
+        path: type
+        transform: lowercase
+      timeInForce:
+        path: timeInForce
+      postOnly:
+        path: postOnly
+        transform: parse_boolean
+      side:
+        path: side
+        transform: lowercase
+      price:
+        path: price
+        transform: parse_number
+      stopPrice:
+        path: stopPrice
+        transform: parse_number
+      amount:
+        path: amount
+        transform: parse_number
+      cost:
+        path: cost
+        transform: parse_number
+      average:
+        path: avgPrice
+        transform: parse_number
+      filled:
+        path: filled
+        transform: parse_number
+      remaining:
+        compute: "{amount} - {filled}"
+      status:
+        path: status
+        transform: parse_order_status
+      fee:
+        path: fee
+      trades:
+        literal: "undefined"
+      info:
+        from_context: rawData
+
+  trade:
+    source: trades
+    path: data
+    iterator: array
+    mapping:
+      id:
+        path: id
+        transform: parse_string
+      order:
+        path: orderId
+        transform: parse_string
+      timestamp:
+        path: time
+        transform: parse_timestamp_ms
+      datetime:
+        compute: "this.iso8601({timestamp})"
+      symbol:
+        from_context: symbol
+      type:
+        path: type
+        transform: lowercase
+      side:
+        path: side
+        transform: lowercase
+      takerOrMaker:
+        path: isMaker
+        map:
+          "true": maker
+          "false": taker
+      price:
+        path: price
+        transform: parse_number
+      amount:
+        path: amount
+        transform: parse_number
+      cost:
+        compute: "{price} * {amount}"
+      fee:
+        path: fee
+      info:
+        from_context: rawData
+
+  balance:
+    source: balance
+    path: data.balances
+    iterator: array
+    mapping:
+      currency:
+        path: asset
+        transform: parse_currency_code
+      free:
+        path: free
+        transform: parse_number
+      used:
+        path: locked
+        transform: parse_number
+      total:
+        compute: "{free} + {used}"
+
+# ============================================================================
+# ERROR HANDLING
+# ============================================================================
+errors:
+  patterns:
+    - match: "Invalid API key"
+      type: AuthenticationError
+    - match: "Invalid signature"
+      type: AuthenticationError
+    - match: "API key expired"
+      type: AuthenticationError
+    - match: "Permission denied"
+      type: PermissionDenied
+    - match: "Insufficient funds"
+      type: InsufficientFunds
+    - match: "Insufficient balance"
+      type: InsufficientFunds
+    - match: "Order not found"
+      type: OrderNotFound
+    - match: "Invalid order"
+      type: InvalidOrder
+    - match: "Rate limit exceeded"
+      type: RateLimitExceeded
+      retry: exponential
+    - match: "Service unavailable"
+      type: ExchangeNotAvailable
+      retry: linear
+    - match: "Maintenance"
+      type: OnMaintenance
+    - match: "Invalid symbol"
+      type: BadSymbol
+    - match: "Invalid address"
+      type: InvalidAddress
+    - match: "Missing required"
+      type: ArgumentsRequired
+
+# ============================================================================
+# FEE CONFIGURATION
+# ============================================================================
+fees:
+  trading:
+    tierBased: false
+    percentage: true
+    taker: 0.001
+    maker: 0.001
+
+# ============================================================================
+# LIMITS
+# ============================================================================
+limits:
+  amount:
+    min: 0.00001
+    max: 100000
+  price:
+    min: 0.00000001
+    max: 1000000
+  cost:
+    min: 1
+    max: 10000000
+
+# ============================================================================
+# PRECISION
+# ============================================================================
+precision:
+  amount: 8
+  price: 8
+  base: 8
+  quote: 8
+
+# ============================================================================
+# OPTIONS
+# ============================================================================
+options:
+  adjustForTimeDifference: "true"
+  recvWindow: "5000"
+  defaultType: spot
+
+# ============================================================================
+# OVERRIDES (for complex methods requiring hand-written code)
+# ============================================================================
+overrides: []

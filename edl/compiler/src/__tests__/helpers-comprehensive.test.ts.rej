@@ -1,0 +1,15 @@
+@@ -1189,7 +1189,13 @@
+             const context = createContext({
+                 items: [[1, 2], [3, [4, 5]], [6]],
+             });
+-            context.evaluateExpression = (expr: any, vars: any) => vars.x;
++            const originalEval = context.evaluateExpression;
++            context.evaluateExpression = (expr: any, vars: any) => {
++                if (expr === 'x') {
++                    return vars.x;
++                }
++                return originalEval(expr, vars);
++            };
+ 
+             const result = evaluateFlatMapOperation(op, context);
+ 

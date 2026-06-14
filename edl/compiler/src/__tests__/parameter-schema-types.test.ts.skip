@@ -1,0 +1,193 @@
+/**
+ * Type tests for parameter schema system
+ * These tests verify the types compile correctly
+ */
+
+import {
+    ParameterSchema,
+    ParameterDependency,
+    ParameterTransform,
+    ParameterGroup,
+    EndpointParameters,
+    ParamType,
+    Expression
+} from '../types/edl-v2.js';
+
+// Test ParameterSchema with all fields
+const symbolParam: ParameterSchema = {
+    type: 'symbol',
+    required: true,
+    description: 'Trading pair symbol',
+    format: 'symbol',
+    pattern: '^[A-Z]+/[A-Z]+$'
+};
+
+const limitParam: ParameterSchema = {
+    type: 'integer',
+    default: 100,
+    min: 1,
+    max: 1000,
+    description: 'Number of records to return'
+};
+
+const orderTypeParam: ParameterSchema = {
+    type: 'string',
+    enum: ['market', 'limit', 'stop'],
+    enumMap: {
+        'market': 'MARKET',
+        'limit': 'LIMIT',
+        'stop': 'STOP_LOSS'
+    },
+    requiredIf: {
+        type: 'binary',
+        operator: '==',
+        left: { type: 'path', path: 'params.side' },
+        right: { type: 'literal', value: 'buy' }
+    }
+};
+
+// Test ParameterDependency
+const typeDependency: ParameterDependency = {
+    dependsOn: 'type',
+    condition: {
+        type: 'binary',
+        operator: '==',
+        left: { type: 'path', path: 'params.type' },
+        right: { type: 'literal', value: 'spot' }
+    },
+    action: 'require',
+    value: 'BTC/USDT'
+};
+
+// Test ParameterTransform
+const renameTransform: ParameterTransform = {
+    type: 'rename',
+    target: 'trading_pair'
+};
+
+const computeTransform: ParameterTransform = {
+    type: 'compute',
+    transform: {
+        type: 'call',
+        function: 'uppercase',
+        args: [{ type: 'path', path: 'params.symbol' }]
+    }
+};
+
+// Test ParameterGroup
+const orderGroup: ParameterGroup = {
+    name: 'orderParams',
+    params: ['price', 'stopPrice', 'trailingPercent'],
+    mutuallyExclusive: true,
+    atLeastOne: false
+};
+
+const accountGroup: ParameterGroup = {
+    name: 'accountIdentifiers',
+    params: ['accountId', 'accountName'],
+    mutuallyExclusive: true,
+    atLeastOne: true
+};
+
+// Test EndpointParameters - complete example
+const createOrderParams: EndpointParameters = {
+    path: {
+        marketId: {
+            type: 'string',
+            required: true,
+            description: 'Market identifier'
+        }
+    },
+    query: {
+        test: {
+            type: 'boolean',
+            default: false,
+            description: 'Test mode flag'
+        }
+    },
+    body: {
+        symbol: {
+            type: 'symbol',
+            required: true,
+            format: 'symbol'
+        },
+        side: {
+            type: 'string',
+            required: true,
+            enum: ['buy', 'sell']
+        },
+        type: {
+            type: 'string',
+            required: true,
+            enum: ['market', 'limit']
+        },
+        amount: {
+            type: 'number',
+            required: true,
+            min: 0
+        },
+        price: {
+            type: 'number',
+            requiredIf: {
+                type: 'binary',
+                operator: '==',
+                left: { type: 'path', path: 'params.type' },
+                right: { type: 'literal', value: 'limit' }
+            }
+        }
+    },
+    header: {
+        'X-Test-Mode': {
+            type: 'boolean',
+            default: false
+        }
+    },
+    dependencies: [
+        {
+            dependsOn: 'price',
+            condition: {
+                type: 'binary',
+                operator: '==',
+                left: { type: 'path', path: 'params.type' },
+                right: { type: 'literal', value: 'limit' }
+            },
+            action: 'require'
+        }
+    ],
+    groups: [
+        {
+            name: 'orderTypes',
+            params: ['type', 'stopType'],
+            mutuallyExclusive: true,
+            atLeastOne: true
+        }
+    ],
+    transforms: {
+        symbol: {
+            type: 'rename',
+            target: 'trading_pair'
+        },
+        amount: {
+            type: 'convert',
+            transform: {
+                type: 'binary',
+                operator: '*',
+                left: { type: 'path', path: 'params.amount' },
+                right: { type: 'literal', value: 100 }
+            }
+        }
+    }
+};
+
+// Export to prevent "unused" warnings
+export { 
+    symbolParam,
+    limitParam,
+    orderTypeParam,
+    typeDependency,
+    renameTransform,
+    computeTransform,
+    orderGroup,
+    accountGroup,
+    createOrderParams
+};

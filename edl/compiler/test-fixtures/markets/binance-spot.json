@@ -1,0 +1,188 @@
+[
+  {
+    "id": "BTCUSDT",
+    "symbol": "BTC/USDT",
+    "base": "BTC",
+    "quote": "USDT",
+    "baseId": "BTC",
+    "quoteId": "USDT",
+    "active": true,
+    "type": "spot",
+    "spot": true,
+    "margin": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "contract": false,
+    "settle": null,
+    "settleId": null,
+    "contractSize": null,
+    "linear": null,
+    "inverse": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "taker": 0.001,
+    "maker": 0.001,
+    "percentage": true,
+    "tierBased": false,
+    "feeSide": "get",
+    "precision": {
+      "amount": 0.00001,
+      "price": 0.01,
+      "cost": 0.00000001
+    },
+    "limits": {
+      "amount": {
+        "min": 0.00001,
+        "max": 9000
+      },
+      "price": {
+        "min": 0.01,
+        "max": 1000000
+      },
+      "cost": {
+        "min": 10,
+        "max": null
+      },
+      "leverage": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": 1502942400000,
+    "info": {
+      "symbol": "BTCUSDT",
+      "status": "TRADING",
+      "baseAsset": "BTC",
+      "quoteAsset": "USDT",
+      "isSpotTradingAllowed": true,
+      "isMarginTradingAllowed": true
+    }
+  },
+  {
+    "id": "ETHBTC",
+    "symbol": "ETH/BTC",
+    "base": "ETH",
+    "quote": "BTC",
+    "baseId": "ETH",
+    "quoteId": "BTC",
+    "active": true,
+    "type": "spot",
+    "spot": true,
+    "margin": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "contract": false,
+    "settle": null,
+    "settleId": null,
+    "contractSize": null,
+    "linear": null,
+    "inverse": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "taker": 0.001,
+    "maker": 0.001,
+    "percentage": true,
+    "tierBased": false,
+    "feeSide": "get",
+    "precision": {
+      "amount": 0.0001,
+      "price": 0.000001,
+      "cost": 0.00000001
+    },
+    "limits": {
+      "amount": {
+        "min": 0.0001,
+        "max": 100000
+      },
+      "price": {
+        "min": 0.000001,
+        "max": 922327
+      },
+      "cost": {
+        "min": 0.0001,
+        "max": null
+      },
+      "leverage": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": 1500004800000,
+    "info": {
+      "symbol": "ETHBTC",
+      "status": "TRADING",
+      "baseAsset": "ETH",
+      "quoteAsset": "BTC",
+      "isSpotTradingAllowed": true,
+      "isMarginTradingAllowed": true
+    }
+  },
+  {
+    "id": "BNBUSDT",
+    "symbol": "BNB/USDT",
+    "base": "BNB",
+    "quote": "USDT",
+    "baseId": "BNB",
+    "quoteId": "USDT",
+    "active": true,
+    "type": "spot",
+    "spot": true,
+    "margin": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "contract": false,
+    "settle": null,
+    "settleId": null,
+    "contractSize": null,
+    "linear": null,
+    "inverse": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "taker": 0.001,
+    "maker": 0.001,
+    "percentage": true,
+    "tierBased": false,
+    "feeSide": "get",
+    "precision": {
+      "amount": 0.01,
+      "price": 0.01,
+      "cost": 0.00000001
+    },
+    "limits": {
+      "amount": {
+        "min": 0.01,
+        "max": 90000000
+      },
+      "price": {
+        "min": 0.01,
+        "max": 100000
+      },
+      "cost": {
+        "min": 10,
+        "max": null
+      },
+      "leverage": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": 1509494400000,
+    "info": {
+      "symbol": "BNBUSDT",
+      "status": "TRADING",
+      "baseAsset": "BNB",
+      "quoteAsset": "USDT",
+      "isSpotTradingAllowed": true,
+      "isMarginTradingAllowed": true
+    }
+  }
+]
