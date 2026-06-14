@@ -1706,6 +1706,7 @@ class testMainClass {
             this.testModeTrade (),
             this.testBackpack (),
             this.testToobit (),
+            this.testBitbaby (),
             this.testWeex ()
         ];
         await Promise.all (promises);
@@ -2388,6 +2389,28 @@ class testMainClass {
         }
         clientOrderId = request['newClientOrderId'];
         assert (clientOrderId.startsWith (id), 'weex - newClientOrderId: ' + clientOrderId + ' for swap order does not start with id: ' + id);
+    }
+
+    async testBitbaby () {
+        const exchange = this.initOfflineExchange ('bitbaby');
+        const id = 'ccxt';
+        const prefix = id + '_';
+        assert (exchange.options['partner'] === id, 'bitbaby - id: ' + id + ' not in options');
+        let request = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        const clientOrderId = request['newClientOrderId'];
+        assert (clientOrderId.startsWith (prefix), 'bitbaby - clientOrderId: ' + clientOrderId + ' does not start with prefix: ' + prefix);
+        try {
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        const clientOrderIdSwap = request['clientOrderId'];
+        assert (clientOrderIdSwap.startsWith (prefix), 'bitbaby - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with prefix: ' + prefix);
     }
 }
 
