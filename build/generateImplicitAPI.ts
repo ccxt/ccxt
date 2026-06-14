@@ -414,8 +414,10 @@ function createJavaHeader(exchange: Exchange, parent: string){
     // When the parent is another exchange, extend its untyped Core class
     // (CompletableFuture<Object> methods) — extending the typed wrapper would
     // shadow the Core signatures and break the generated typed wrapper subclass.
-    const capParent = parent === 'Exchange' ? 'Exchange' : `${capitalize(parent)}Core`;
-    const parentImport = parent === 'Exchange' ? `import io.github.ccxt.${capParent}` : `import io.github.ccxt.exchanges.${capParent}` ;
+    // prediction-market exchanges extend PredictionExchange (itself extends Exchange)
+    const baseParent = (parent === 'Exchange' && isPrediction) ? 'PredictionExchange' : parent;
+    const capParent = (baseParent === 'Exchange' || baseParent === 'PredictionExchange') ? baseParent : `${capitalize(baseParent)}Core`;
+    const parentImport = (baseParent === 'Exchange' || baseParent === 'PredictionExchange') ? `import io.github.ccxt.${capParent}` : `import io.github.ccxt.exchanges.${capParent}` ;
     const javaPackage = isPrediction ? 'io.github.ccxt.api.prediction' : 'io.github.ccxt.api';
     const namespace = `package ${javaPackage};\n${parentImport};`;
     const constructor = [

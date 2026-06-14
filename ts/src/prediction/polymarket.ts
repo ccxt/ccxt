@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/polymarket.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { sha256 } from '@noble/hashes/sha2.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type {

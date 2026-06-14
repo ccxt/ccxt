@@ -27,9 +27,9 @@ import type {
 } from '../base/types.js';
 import { ArgumentsRequired, BadRequest, InvalidAddress, InvalidOrder, OrderNotFound } from '../../ccxt.js';
 import { Precise } from '../base/Precise.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { secp256k1 } from '../static_dependencies/noble-curves/secp256k1.js';
-import { keccak_256 as keccak } from '../static_dependencies/noble-hashes/sha3.js';
+import { sha256 } from '@noble/hashes/sha2.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { ecdsa } from '../base/functions.js';
 
 // ---------------------------------------------------------------------------

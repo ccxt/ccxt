@@ -1,7 +1,7 @@
 import Exchange from '../abstract/prediction/kalshi.js';
 import { Precise } from '../base/Precise.js';
 import { rsa } from '../base/functions/rsa.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { sha256 } from '@noble/hashes/sha2.js';
 import type {
     Int, Str, Num, Dict, Strings,
     Market, Ticker, Tickers, OrderBook, Trade, OHLCV,
