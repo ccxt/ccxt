@@ -709,7 +709,8 @@ async function exportEverything () {
 
     const predictionIds = getIncludedExchangeIds ('./ts/src/prediction')
 
-    const predictionWsIds = getIncludedExchangeIds ('./ts/src/prediction/pro')
+    // prediction WS methods now live in the REST prediction classes (no separate prediction/pro)
+    const predictionWsIds = []
 
     generateErrorsTs();
     const errorHierarchy = getErrorHierarchy()
@@ -747,11 +748,6 @@ async function exportEverything () {
         },
         {
             file: ccxtFileDir,
-            regex:  /(?:(import)\s(\w+)PredictionPro\sfrom\s+'.\/src\/prediction\/pro\/(\2).js'\n)+/g,
-            replacement: predictionWsIds.map (id => "import " + id + 'PredictionPro from ' + " './src/prediction/pro/" + id + ".js'").join("\n") + "\n"
-        },
-        {
-            file: ccxtFileDir,
             regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
             replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + id + ",") .join ("\n") + "\n}",
         },
@@ -769,11 +765,6 @@ async function exportEverything () {
             file: ccxtFileDir,
             regex:  /(?:const|var)\s+prediction\s+\=\s+\{[^\}]+\}/,
             replacement: "const prediction = {\n" + predictionIds.map (id => ("    '" + id + "':").padEnd (30) + id + "Prediction,") .join ("\n") + "\n}",
-        },
-        {
-            file: ccxtFileDir,
-            regex:  /(?:const|var)\s+predictionPro\s+\=\s+\{[^\}]+\}/,
-            replacement: "const predictionPro = {\n" + predictionWsIds.map (id => ("    '" + id + "':").padEnd (30) + id + "PredictionPro,") .join ("\n") + "\n}",
         },
         {
             file: './python/ccxt/__init__.py',
@@ -839,16 +830,6 @@ async function exportEverything () {
             file: './python/ccxt/prediction/__init__.py',
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + predictionIds.join ("',\n    '") + "'," + "\n]",
-        },
-        {
-            file: './python/ccxt/prediction/pro/__init__.py',
-            regex: /(?:from ccxt\.prediction\.pro\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
-            replacement: predictionWsIds.map (id => ('from ccxt.prediction.pro.' + id + ' import ' + id).padEnd (80) + '# noqa: F401').join ("\n") + "\n\nexchanges",
-        },
-        {
-            file: './python/ccxt/prediction/pro/__init__.py',
-            regex: /exchanges \= \[[^\]]+\]/,
-            replacement: "exchanges = [\n" + "    '" + predictionWsIds.join ("',\n    '") + "'," + "\n]",
         },
         {
             file: './cs/ccxt/base/Exchange.MetaData.cs',

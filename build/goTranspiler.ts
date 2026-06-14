@@ -1982,6 +1982,10 @@ ${caseStatements.join('\n')}
     }
 
     async transpileWS(force = false, prediction = false) {
+        // prediction WS methods now live in the REST prediction classes (no ts/src/prediction/pro)
+        if (prediction && !fs.existsSync ('./ts/src/prediction/pro')) {
+            return;
+        }
         const tsFolder = prediction ? './ts/src/prediction/pro' : './ts/src/pro';
 
         let inputExchanges =  process.argv.slice (2).filter (x => !x.startsWith ('--'));
@@ -2319,6 +2323,9 @@ ${caseStatements.join('\n')}
                 // prediction cores embed PredictionExchange (which embeds Exchange) instead
                 // of Exchange directly, so they inherit the prediction methods + state
                 content = content.replace(/(type \w+ struct \{\s*\n\s*)Exchange\b/, '$1PredictionExchange');
+                // prediction exchanges merge REST + WS in one class, so apply the WS transforms
+                // (orderbook/side casts, client/future resolve, append, limit, ...) here too
+                content = this.regexAll (content, this.getWsRegexes());
                 // the prediction exchanges live outside of package ccxt, so all the
                 // package-level types/functions of go/v4 need the ccxt. qualifier
                 // (this also rewrites the embedded struct member into ccxt.PredictionExchange)

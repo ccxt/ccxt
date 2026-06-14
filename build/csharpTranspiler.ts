@@ -315,8 +315,8 @@ class NewTranspiler {
             // "using ccxt;",
             namespace,
         ]
-        if (this.isPrediction && ws) {
-            // prediction ws exchanges live in ccxt.prediction.pro and need the ws
+        if (this.isPrediction) {
+            // prediction exchanges merge REST + WS in one class and need the ws
             // infrastructure types (IOrderBook, ArrayCache, ...) from ccxt.pro
             values.push ("using ccxt.pro;");
         }
@@ -906,6 +906,10 @@ class NewTranspiler {
     }
 
     async transpileWS(force = false, prediction = false) {
+        // prediction WS methods now live in the REST prediction classes (no ts/src/prediction/pro)
+        if (prediction && !fs.existsSync ('./ts/src/prediction/pro')) {
+            return;
+        }
         const tsFolder = prediction ? './ts/src/prediction/pro/' : './ts/src/pro/';
 
         let inputExchanges =  process.argv.slice (2).filter (x => !x.startsWith ('--'));
@@ -1084,6 +1088,10 @@ class NewTranspiler {
             const className = classNameExec ? classNameExec[1] : '';
             const constructorLine = `\npublic partial class ${className} { public ${className}(object args = null) : base(args) { } }\n`
             content = constructorLine  + content;
+        } else if (this.isPrediction) {
+            // prediction exchanges merge REST + WS in one class, so the WS transforms
+            // (client → WebSocketClient, orderbook casts, append/resolve, ...) apply here too
+            content = this.regexAll (content, this.getWsRegexes());
         }
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;

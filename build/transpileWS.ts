@@ -249,6 +249,11 @@ class CCXTProTranspiler extends Transpiler {
 
     async transpileEverything (force = false, child = false, prediction = false) {
 
+        // prediction WS methods now live in the REST prediction classes (no ts/src/prediction/pro)
+        if (prediction && !fs.existsSync ('./ts/src/prediction/pro')) {
+            return;
+        }
+
         // default pattern is '.js'
         // const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))

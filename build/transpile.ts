@@ -823,6 +823,19 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
+        // WS infrastructure imports (ArrayCache, order-book sides) needed when watch*
+        // methods live in the (async) exchange file — e.g. prediction exchanges merge REST+WS
+        const wsAsyncString = (async ? '.async_support' : '')
+        const wsCacheClasses = bodyAsString.match (/\bArrayCache(?:[A-Z][A-Za-z]+)?\b/g)
+        if (wsCacheClasses) {
+            const uniqueCacheClasses = unique (wsCacheClasses).sort ()
+            libraries.push ('from ccxt' + wsAsyncString + '.base.ws.cache import ' + uniqueCacheClasses.join (', '))
+        }
+        const wsOrderBookSides = bodyAsString.match (/\s(Asks|Bids|CountedAsks|CountedBids|IndexedAsks|IndexedBids)\(/g)
+        if (wsOrderBookSides) {
+            const uniqueSides = unique (wsOrderBookSides.map (m => m.trim ().replace ('(', ''))).sort ()
+            libraries.push ('from ccxt' + wsAsyncString + '.base.ws.order_book_side import ' + uniqueSides.join (', '))
+        }
         const matchObject = {
             'Account': /-> (?:List\[)?Account/,
             'Any': /(?:->|:) (?:List\[)?Any/,
@@ -1057,6 +1070,21 @@ class Transpiler {
             }
             if (bodyAsString.match (/: PromiseInterface/)) {
                 libraryImports.push ('use \\React\\Promise\\PromiseInterface;')
+            }
+        }
+
+        // WS infrastructure classes live in the ccxt\pro namespace; exchanges that reference
+        // them from another namespace (e.g. prediction REST+WS) need explicit use imports
+        const proInfraClasses = [
+            'ArrayCache', 'ArrayCacheBySymbolById', 'ArrayCacheBySymbolBySide', 'ArrayCacheByTimestamp',
+            'OrderBook', 'IndexedOrderBook', 'CountedOrderBook',
+            'Asks', 'Bids', 'CountedAsks', 'CountedBids', 'IndexedAsks', 'IndexedBids',
+        ]
+        for (let i = 0; i < proInfraClasses.length; i++) {
+            const infraClass = proInfraClasses[i]
+            const regex = new RegExp ('\\b(?:new\\s+|instanceof\\s+)' + infraClass + '\\b')
+            if (bodyAsString.match (regex)) {
+                libraryImports.push ('use ccxt\\pro\\' + infraClass + ';')
             }
         }
 
