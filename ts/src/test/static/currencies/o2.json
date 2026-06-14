@@ -1,0 +1,177 @@
+{
+    "FUEL": {
+        "info": {
+            "name": "Fuel Network",
+            "unified_cryptoasset_id": 24087,
+            "can_withdraw": true,
+            "can_deposit": true,
+            "min_withdraw": 0.0,
+            "min_deposit": 0.0,
+            "maker_fee": 0.01,
+            "taker_fee": 0.01
+        },
+        "id": "FUEL",
+        "code": "FUEL",
+        "name": "Fuel Network",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "precision": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.0,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.0,
+                "max": null
+            }
+        },
+        "networks": {}
+    },
+    "USDC": {
+        "info": {
+            "name": "USDC",
+            "unified_cryptoasset_id": 3408,
+            "can_withdraw": true,
+            "can_deposit": true,
+            "min_withdraw": 0.0,
+            "min_deposit": 0.0,
+            "maker_fee": 0.01,
+            "taker_fee": 0.01
+        },
+        "id": "USDC",
+        "code": "USDC",
+        "name": "USDC",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "precision": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.0,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.0,
+                "max": null
+            }
+        },
+        "networks": {}
+    },
+    "ETH": {
+        "info": {
+            "name": "Ethereum",
+            "unified_cryptoasset_id": 1027,
+            "can_withdraw": true,
+            "can_deposit": true,
+            "min_withdraw": 0.0,
+            "min_deposit": 0.0,
+            "maker_fee": 0.01,
+            "taker_fee": 0.01
+        },
+        "id": "ETH",
+        "code": "ETH",
+        "name": "Ethereum",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "precision": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.0,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.0,
+                "max": null
+            }
+        },
+        "networks": {}
+    },
+    "WBTC": {
+        "info": {
+            "name": "Wrapped Bitcoin",
+            "unified_cryptoasset_id": 3717,
+            "can_withdraw": true,
+            "can_deposit": true,
+            "min_withdraw": 0.0,
+            "min_deposit": 0.0,
+            "maker_fee": 0.01,
+            "taker_fee": 0.01
+        },
+        "id": "wBTC",
+        "code": "WBTC",
+        "name": "Wrapped Bitcoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "precision": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.0,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.0,
+                "max": null
+            }
+        },
+        "networks": {}
+    },
+    "USDT": {
+        "info": {
+            "name": "Tether USDt",
+            "unified_cryptoasset_id": 825,
+            "can_withdraw": true,
+            "can_deposit": true,
+            "min_withdraw": 0.0,
+            "min_deposit": 0.0,
+            "maker_fee": 0.01,
+            "taker_fee": 0.01
+        },
+        "id": "USDT",
+        "code": "USDT",
+        "name": "Tether USDt",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "precision": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.0,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.0,
+                "max": null
+            }
+        },
+        "networks": {}
+    }
+}

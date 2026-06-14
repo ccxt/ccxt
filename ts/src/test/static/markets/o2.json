@@ -1,0 +1,294 @@
+{
+    "FUEL/USDC": {
+        "id": "0x3074a3b0290306e78968896e1ea7f91f15bb13da1d2e06cc50d714deb75ea0d2",
+        "lowercaseId": null,
+        "symbol": "FUEL/USDC",
+        "base": "FUEL",
+        "quote": "USDC",
+        "settle": null,
+        "baseId": "FUEL",
+        "quoteId": "USDC",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.0001,
+        "maker": 0.0001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1.0,
+            "price": 1e-08
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "market_id": "0x3074a3b0290306e78968896e1ea7f91f15bb13da1d2e06cc50d714deb75ea0d2",
+            "contract_id": "0xdf873d85d8d81f2863cecd5026de76efd3d51a47736ad46d1110c56695ca2665",
+            "base": {
+                "symbol": "FUEL",
+                "asset": "0x27821a5432b60fb3e70c64d0a612c2c86218c1088dd0f0f1b0dd6ae5ae17bd5b",
+                "decimals": 9,
+                "max_precision": 0
+            },
+            "quote": {
+                "symbol": "USDC",
+                "asset": "0x6c91bc65f585da1a238f8ec5e410e62616d2b2c8f2cb4701e225deb51240add6",
+                "decimals": 9,
+                "max_precision": 8
+            },
+            "maker_fee": "100",
+            "taker_fee": "100",
+            "dust": "1000",
+            "min_order": "1000000000"
+        }
+    },
+    "ETH/USDC": {
+        "id": "0xfbf8e5c78071815183147bf8ed4275f43933941b792b7b6fd22f9f2810beb667",
+        "lowercaseId": null,
+        "symbol": "ETH/USDC",
+        "base": "ETH",
+        "quote": "USDC",
+        "settle": null,
+        "baseId": "ETH",
+        "quoteId": "USDC",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.0001,
+        "maker": 0.0001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "market_id": "0xfbf8e5c78071815183147bf8ed4275f43933941b792b7b6fd22f9f2810beb667",
+            "contract_id": "0x5a908a89f5caac1a76b199e71e44e42ffed125b2c4e64d0982e60a536a394f76",
+            "base": {
+                "symbol": "ETH",
+                "asset": "0xac2aabc1c48e634800a723b1372388ad1eb6a23d0e012cde4c603082fb1a140a",
+                "decimals": 9,
+                "max_precision": 3
+            },
+            "quote": {
+                "symbol": "USDC",
+                "asset": "0x6c91bc65f585da1a238f8ec5e410e62616d2b2c8f2cb4701e225deb51240add6",
+                "decimals": 9,
+                "max_precision": 2
+            },
+            "maker_fee": "100",
+            "taker_fee": "100",
+            "dust": "1000",
+            "min_order": "1000000000"
+        }
+    },
+    "WBTC/USDC": {
+        "id": "0x5f1d093bf36e2f16f57e410bbd3cd3c1aff031778eba679553916ae15d45e89a",
+        "lowercaseId": null,
+        "symbol": "WBTC/USDC",
+        "base": "WBTC",
+        "quote": "USDC",
+        "settle": null,
+        "baseId": "wBTC",
+        "quoteId": "USDC",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.0001,
+        "maker": 0.0001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-06,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "market_id": "0x5f1d093bf36e2f16f57e410bbd3cd3c1aff031778eba679553916ae15d45e89a",
+            "contract_id": "0x132ab8709aff3d228bbb07af7d2338d1e4f1fcb060135922495147849dd6b8fc",
+            "base": {
+                "symbol": "wBTC",
+                "asset": "0x1a48bde9b03ff7f6ab9d566c3f8968a532a782402976053cebfa113cbb9a03ef",
+                "decimals": 9,
+                "max_precision": 6
+            },
+            "quote": {
+                "symbol": "USDC",
+                "asset": "0x6c91bc65f585da1a238f8ec5e410e62616d2b2c8f2cb4701e225deb51240add6",
+                "decimals": 9,
+                "max_precision": 2
+            },
+            "maker_fee": "100",
+            "taker_fee": "100",
+            "dust": "1000",
+            "min_order": "1000000000"
+        }
+    },
+    "USDT/USDC": {
+        "id": "0x8d9ecf3b66659b67ab8fb82eccd5d80a34296431f16b5f9d21e32829797603fd",
+        "lowercaseId": null,
+        "symbol": "USDT/USDC",
+        "base": "USDT",
+        "quote": "USDC",
+        "settle": null,
+        "baseId": "USDT",
+        "quoteId": "USDC",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.0001,
+        "maker": 0.0001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "market_id": "0x8d9ecf3b66659b67ab8fb82eccd5d80a34296431f16b5f9d21e32829797603fd",
+            "contract_id": "0xca78cbd896cd09f104cd32448e0ef155dace8a0a9ea21ad5f4f9435800038b9b",
+            "base": {
+                "symbol": "USDT",
+                "asset": "0x2269aa41cf3982753d978a40e0f04618ff9d84b07d1ce10e99831e3217d3a9b0",
+                "decimals": 9,
+                "max_precision": 4
+            },
+            "quote": {
+                "symbol": "USDC",
+                "asset": "0x6c91bc65f585da1a238f8ec5e410e62616d2b2c8f2cb4701e225deb51240add6",
+                "decimals": 9,
+                "max_precision": 5
+            },
+            "maker_fee": "100",
+            "taker_fee": "100",
+            "dust": "1000",
+            "min_order": "1000000000"
+        }
+    }
+}

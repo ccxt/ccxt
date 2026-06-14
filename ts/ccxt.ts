@@ -133,6 +133,7 @@ import modetrade from  './src/modetrade.js'
 import myokx from  './src/myokx.js'
 import ndax from  './src/ndax.js'
 import novadax from  './src/novadax.js'
+import o2 from  './src/o2.js'
 import okx from  './src/okx.js'
 import okxus from  './src/okxus.js'
 import onetrading from  './src/onetrading.js'
@@ -218,6 +219,7 @@ import mexcPro from  './src/pro/mexc.js'
 import modetradePro from  './src/pro/modetrade.js'
 import myokxPro from  './src/pro/myokx.js'
 import ndaxPro from  './src/pro/ndax.js'
+import o2Pro from  './src/pro/o2.js'
 import okxPro from  './src/pro/okx.js'
 import okxusPro from  './src/pro/okxus.js'
 import onetradingPro from  './src/pro/onetrading.js'
@@ -322,6 +324,7 @@ const exchanges = {
     'myokx':                  myokx,
     'ndax':                   ndax,
     'novadax':                novadax,
+    'o2':                     o2,
     'okx':                    okx,
     'okxus':                  okxus,
     'onetrading':             onetrading,
@@ -407,6 +410,7 @@ const pro = {
     'modetrade':              modetradePro,
     'myokx':                  myokxPro,
     'ndax':                   ndaxPro,
+    'o2':                     o2Pro,
     'okx':                    okxPro,
     'okxus':                  okxusPro,
     'onetrading':             onetradingPro,
@@ -654,6 +658,7 @@ export {
     myokx,
     ndax,
     novadax,
+    o2,
     okx,
     okxus,
     onetrading,
