@@ -1,0 +1,21 @@
+{
+    "exchange": "cow",
+    "skipKeys": [],
+    "outputType": "json",
+    "options": {
+        "network": "mainnet",
+        "env": "prod"
+    },
+    "methods": {
+        "fetchOrder": [
+            {
+                "description": "fetch single order by UID (public endpoint)",
+                "method": "fetchOrder",
+                "url": "https://api.cow.fi/mainnet/api/v1/orders/0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12345678",
+                "input": [
+                    "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12345678"
+                ]
+            }
+        ]
+    }
+}
