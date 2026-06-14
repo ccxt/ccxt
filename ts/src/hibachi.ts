@@ -827,15 +827,13 @@ export default class hibachi extends Exchange {
         const feeRateInternal16 = this.intToBase16 (this.parseToInt (feeRateInternal));
         const feeRatePadded = feeRateInternal16.padStart (16, '0');
         const encodedFeeRate = this.base16ToBinary (feeRatePadded);
-        let encodedPrice;
+        let encodedPrice = this.binaryConcat ();
         if (type === 'limit') {
             const priceStr = this.priceToPrecision (this.safeString (market, 'symbol'), price);
             const priceInternal = Precise.stringDiv (Precise.stringDiv (Precise.stringMul (Precise.stringMul (priceStr, priceFactor), settlement), underlying), one, 0);
             const price16 = this.intToBase16 (this.parseToInt (priceInternal));
             const pricePadded = price16.padStart (16, '0');
             encodedPrice = this.base16ToBinary (pricePadded);
-        } else {
-            encodedPrice = this.binaryConcat ();
         }
         const message = this.binaryConcat (encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate);
         return message;
