@@ -190,6 +190,35 @@ export default class PredictionExchange extends Exchange {
         return this.slugToOutcomeSymbol (eventSlug, marketSlug, outcome);
     }
 
+    setMarkets (markets, currencies = undefined) {
+        const result = super.setMarkets (markets, currencies);
+        this.setOutcomesFromMarkets ();
+        return result;
+    }
+
+    setOutcomesFromMarkets () {
+        // prediction markets carry their outcome tokens under the outcomes key,
+        // rebuild the outcome lookup caches so cached market data works offline
+        this.outcomes = {};
+        this.outcomes_by_id = {};
+        const marketKeys = Object.keys (this.markets);
+        for (let i = 0; i < marketKeys.length; i++) {
+            const market = this.markets[marketKeys[i]];
+            const outcomesList = this.safeList (market, 'outcomes', []);
+            for (let j = 0; j < outcomesList.length; j++) {
+                const oc = outcomesList[j];
+                const ocSymbol = this.safeString (oc, 'symbol');
+                if (ocSymbol !== undefined) {
+                    this.outcomes[ocSymbol] = oc;
+                }
+                const ocId = this.safeString (oc, 'id');
+                if (ocId !== undefined) {
+                    this.outcomes_by_id[ocId] = oc;
+                }
+            }
+        }
+    }
+
     async fetchTicker (outcome: string, params = {}): Promise<Ticker> {
         return await super.fetchTicker (outcome, params);
     }
