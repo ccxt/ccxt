@@ -2842,7 +2842,7 @@
                         "symbol": "LTC/USDT:USDT",
                         "type": "limit",
                         "timeInForce": "GTC",
-                        "postOnly": null,
+                        "postOnly": false,
                         "side": "buy",
                         "price": 30,
                         "triggerPrice": null,
@@ -3656,7 +3656,7 @@
                     "1512871666507657216",
                     "BTC/USDT:USDT",
                     {
-                    "stopLossTakeProfit": true
+                        "stopLossTakeProfit": true
                     }
                 ],
                 "httpResponse": {
