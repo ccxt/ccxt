@@ -398,7 +398,6 @@ class Exchange {
         'hitbtc',
         'hollaex',
         'htx',
-        'huobi',
         'hyperliquid',
         'independentreserve',
         'indodax',
