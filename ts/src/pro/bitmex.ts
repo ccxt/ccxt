@@ -30,6 +30,7 @@ export default class bitmex extends bitmexRest {
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
+                'unWatchOHLCV': true,
             },
             'urls': {
                 'test': {
@@ -1373,6 +1374,13 @@ export default class bitmex extends bitmexRest {
             limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+        const request = {
+            'op': 'unsubscribe',
+        };
+        return await this.watchOHLCV (symbol, timeframe, undefined, undefined, this.extend (params, request));
     }
 
     /**
