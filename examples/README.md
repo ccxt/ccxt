@@ -249,7 +249,7 @@ This section includes links to friendly projects, tutorials, articles, videos, c
 
 [ccxt_라이브러리](https://www.youtube.com/watch?v=ifkJ5FtMpKY) – A quick short demo of CCXT on YouTube.
 
-https://www.youtube.com/watch?v=K-EZ9QXezZM
+[使用CCXT连接BINANCE交易所获取订单余额](https://www.youtube.com/watch?v=K-EZ9QXezZM) – Use CCXT to connect to an exchange and obtain order balances.
 
 [CCXTが便利な理由！CCXTライブラリをインストールしよう](https://ryota-trade.com/?p=476) – An article in Japanese on getting CCXT up and running.
 
