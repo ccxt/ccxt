@@ -9043,7 +9043,7 @@ export default class htx extends Exchange {
         const amount = this.safeNumber (interest, 'volume');
         const value = this.safeNumber (interest, 'value');
         const marketId = this.safeString (interest, 'contract_code');
-        return {
+        return this.safeOpenInterest ({
             'symbol': this.safeSymbol (marketId, market),
             'baseVolume': amount,  // deprecated
             'quoteVolume': value,  // deprecated
@@ -9052,7 +9052,7 @@ export default class htx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
-        } as OpenInterest;
+        }, market) as OpenInterest;
     }
 
     /**
