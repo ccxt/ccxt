@@ -3656,7 +3656,7 @@
                     "1512871666507657216",
                     "BTC/USDT:USDT",
                     {
-                    "stopLossTakeProfit": true
+                        "stopLossTakeProfit": true
                     }
                 ],
                 "httpResponse": {
