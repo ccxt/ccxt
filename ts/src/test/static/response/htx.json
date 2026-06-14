@@ -1499,17 +1499,9 @@
                         "remaining": 0,
                         "status": "closed",
                         "reduceOnly": null,
-                        "fee": {
-                            "cost": "0.026804",
-                            "currency": "USDT"
-                        },
+                        "fee": null,
                         "trades": [],
-                        "fees": [
-                            {
-                                "cost": 0.026804,
-                                "currency": "USDT"
-                            }
-                        ],
+                        "fees": [],
                         "lastUpdateTimestamp": null,
                         "takeProfitPrice": null,
                         "stopLossPrice": null
@@ -1987,17 +1979,9 @@
                   "remaining": 0.21,
                   "status": "open",
                   "reduceOnly": null,
-                  "fee": {
-                    "cost": "0",
-                    "currency": "LTC"
-                  },
+                  "fee": null,
                   "trades": [],
-                  "fees": [
-                    {
-                      "cost": 0,
-                      "currency": "LTC"
-                    }
-                  ],
+                  "fees": [],
                   "lastUpdateTimestamp": null,
                   "takeProfitPrice": null,
                   "stopLossPrice": null
@@ -2115,17 +2099,9 @@
                     "remaining": 1,
                     "status": "open",
                     "reduceOnly": false,
-                    "fee": {
-                        "cost": "0",
-                        "currency": "BTC"
-                    },
+                    "fee": null,
                     "trades": [],
-                    "fees": [
-                        {
-                            "cost": 0,
-                            "currency": "BTC"
-                        }
-                    ],
+                    "fees": [],
                     "lastUpdateTimestamp": null,
                     "stopPrice": null
                 }
@@ -2726,17 +2702,9 @@
                     "remaining": 0.21,
                     "status": "open",
                     "reduceOnly": null,
-                    "fee": {
-                      "cost": "0.0",
-                      "currency": "LTC"
-                    },
+                    "fee": null,
                     "trades": [],
-                    "fees": [
-                      {
-                        "cost": 0,
-                        "currency": "LTC"
-                      }
-                    ],
+                    "fees": [],
                     "lastUpdateTimestamp": null,
                     "takeProfitPrice": null,
                     "stopLossPrice": null
@@ -2853,17 +2821,9 @@
                         "remaining": 1,
                         "status": "open",
                         "reduceOnly": false,
-                        "fee": {
-                            "cost": "0",
-                            "currency": "LTC"
-                        },
+                        "fee": null,
                         "trades": [],
-                        "fees": [
-                            {
-                                "cost": 0,
-                                "currency": "LTC"
-                            }
-                        ],
+                        "fees": [],
                         "lastUpdateTimestamp": null,
                         "stopPrice": null,
                         "takeProfitPrice": null,
@@ -4475,17 +4435,9 @@
                         "remaining": 0.0001,
                         "status": "canceled",
                         "reduceOnly": null,
-                        "fee": {
-                            "cost": "0",
-                            "currency": "BTC"
-                        },
+                        "fee": null,
                         "trades": [],
-                        "fees": [
-                            {
-                                "cost": 0,
-                                "currency": "BTC"
-                            }
-                        ],
+                        "fees": [],
                         "lastUpdateTimestamp": null,
                         "stopPrice": null
                     }
@@ -4690,17 +4642,9 @@
                         "remaining": 1,
                         "status": "canceled",
                         "reduceOnly": false,
-                        "fee": {
-                            "cost": "0",
-                            "currency": "USDT"
-                        },
+                        "fee": null,
                         "trades": [],
-                        "fees": [
-                            {
-                                "cost": 0,
-                                "currency": "USDT"
-                            }
-                        ],
+                        "fees": [],
                         "lastUpdateTimestamp": null,
                         "stopPrice": null
                     }

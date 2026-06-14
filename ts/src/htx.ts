@@ -5222,7 +5222,7 @@ export default class htx extends Exchange {
         let feeCost = this.safeString2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled feeSide
         feeCost = this.safeString (order, 'fee', feeCost);
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if ((feeCost !== undefined) && (feeCost !== '0') && (feeCost !== '0.0')) {
             let feeCurrency = undefined;
             const feeCurrencyId = this.safeString2 (order, 'fee_asset', 'fee_currency');
             if (feeCurrencyId !== undefined) {
