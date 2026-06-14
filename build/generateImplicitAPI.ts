@@ -437,7 +437,9 @@ function createJavaHeader(exchange: Exchange, parent: string){
 
 function populateImplicitMethods(exchanges: string[]) {
     const container = isPrediction ? (ccxt as any).prediction : ccxt;
-    const proContainer = isPrediction ? (ccxt as any).prediction.pro : ccxt.pro;
+    // prediction exchanges merge REST + WS into one class (no separate prediction.pro),
+    // so their WS api (if any) is already on the REST instance
+    const proContainer = isPrediction ? ((ccxt as any).prediction.pro || {}) : ccxt.pro;
     for (const index in exchanges) {
         const exchange = exchanges[index];
         const exchangeClass = container[exchange]
