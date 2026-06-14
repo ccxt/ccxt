@@ -4110,7 +4110,27 @@ class Exchange(object):
         self.currencies_by_id = self.index_by_safe(self.currencies, 'id')
         currenciesSortedByCode = self.keysort(self.currencies)
         self.codes = list(currenciesSortedByCode.keys())
+        if self.is_prediction():
+            self.set_outcomes_from_markets()
         return self.markets
+
+    def set_outcomes_from_markets(self):
+        # prediction markets carry their outcome tokens under the outcomes key,
+        # rebuild the outcome lookup caches so cached market data works offline
+        self.outcomes = {}
+        self.outcomes_by_id = {}
+        marketKeys = list(self.markets.keys())
+        for i in range(0, len(marketKeys)):
+            market = self.markets[marketKeys[i]]
+            outcomesList = self.safe_list(market, 'outcomes', [])
+            for j in range(0, len(outcomesList)):
+                oc = outcomesList[j]
+                ocSymbol = self.safe_string(oc, 'symbol')
+                if ocSymbol is not None:
+                    self.outcomes[ocSymbol] = oc
+                ocId = self.safe_string(oc, 'id')
+                if ocId is not None:
+                    self.outcomes_by_id[ocId] = oc
 
     def set_markets_from_exchange(self, sourceExchange):
         # Validate that both exchanges are of the same type

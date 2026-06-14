@@ -153,6 +153,7 @@ const ERRORS_FOLDER = './java/lib/src/main/java/io/github/ccxt/errors/';
 const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
 const EXCHANGES_WS_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/pro/';
+const EXCHANGES_PREDICTION_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/prediction/';
 const GENERATED_TESTS_FOLDER = './java/tests/src/main/java/tests/exchange/';
 const BASE_TESTS_FOLDER = 'java/tests/src/main/java/tests/base/';
 const BASE_TESTS_FILE = './java/tests/src/main/java/tests/exchange/TestMain.java';
@@ -414,16 +415,27 @@ class NewTranspiler {
         ]
     }
 
-    getJavaImports(file: any, ws = false) {
+    getJavaImports(file: any, ws = false, prediction = false) {
         if (ws) {
             // For WS pro exchanges — no import of REST parent (use FQN to avoid name clash)
             return [
-                'package io.github.ccxt.exchanges.pro;',
+                prediction ? 'package io.github.ccxt.exchanges.prediction.pro;' : 'package io.github.ccxt.exchanges.pro;',
                 'import io.github.ccxt.base.Precise;',
                 'import io.github.ccxt.errors.*;',
                 'import io.github.ccxt.Helpers;',
                 'import io.github.ccxt.ws.*;',
                 'import io.github.ccxt.Client;',
+            ];
+        }
+        // Prediction-market REST exchanges live in their own package and extend
+        // their own implicit-API class under io.github.ccxt.api.prediction.
+        if (prediction) {
+            return [
+                'package io.github.ccxt.exchanges.prediction;',
+                `import io.github.ccxt.api.prediction.${this.capitalize(file)}Api;`,
+                'import io.github.ccxt.base.Precise;',
+                'import io.github.ccxt.errors.*;',
+                'import io.github.ccxt.Helpers;',
             ];
         }
         const values = [
@@ -1018,6 +1030,23 @@ class NewTranspiler {
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true)
     }
 
+    async transpilePrediction(force = false) {
+        // Prediction-market exchanges (ts/src/prediction/) transpile to Core
+        // classes under io.github.ccxt.exchanges.prediction. REST only — the
+        // (optional) WS pass for polymarket is gated on --ws, matching C#/Go.
+        const ws = process.argv.includes('--ws');
+        const tsFolder = ws ? './ts/src/prediction/pro/' : './ts/src/prediction/';
+        const outputFolder = ws ? './java/lib/src/main/java/io/github/ccxt/exchanges/prediction/pro/' : EXCHANGES_PREDICTION_FOLDER;
+
+        let inputExchanges: string[] = process.argv.slice (2).filter (x => !x.startsWith ('--'));
+        if (!inputExchanges || inputExchanges.length === 0) {
+            inputExchanges = ws ? (exchanges as any).predictionWs : (exchanges as any).prediction;
+        }
+        createFolderRecursively(outputFolder);
+        const options = { csharpFolder: outputFolder, exchanges: inputExchanges }
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), ws, true)
+    }
+
     async transpileEverything(force = false, child = false, baseOnly = false, examplesOnly = false) {
 
         const exchanges = process.argv.slice(2).filter(x => !x.startsWith('--'))
@@ -1083,14 +1112,14 @@ class NewTranspiler {
         return flatResult;
     }
 
-    async transpileDerivedExchangeFiles(jsFolder: string, options: any, pattern = '.ts', force = false, child = false, ws = false) {
+    async transpileDerivedExchangeFiles(jsFolder: string, options: any, pattern = '.ts', force = false, child = false, ws = false, prediction = false) {
 
         // todo normalize jsFolder and other arguments
 
         // exchanges.json accounts for ids included in exchanges.cfg
         let ids: string[] = []
         try {
-            ids = (exchanges as any).ids
+            ids = prediction ? (exchanges as any).prediction : (exchanges as any).ids
         } catch (e) {
         }
 
@@ -1126,15 +1155,15 @@ class NewTranspiler {
                 // this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
             }
         }
-        exchanges.map((file: string, idx: number) => this.transpileDerivedExchangeFile(jsFolder, file, options, transpiledFiles[idx], force, ws))
+        exchanges.map((file: string, idx: number) => this.transpileDerivedExchangeFile(jsFolder, file, options, transpiledFiles[idx], force, ws, prediction))
 
         const classes = {}
 
         return classes
     }
 
-    createJavaClass(name: string, javaVersion: any, ws = false) {
-        const javaImports = this.getJavaImports(name, ws).join("\n") + "\n\n";
+    createJavaClass(name: string, javaVersion: any, ws = false, prediction = false) {
+        const javaImports = this.getJavaImports(name, ws, prediction).join("\n") + "\n\n";
         let content = javaVersion.content;
 
         // Append "Core" suffix so the typed wrapper can take the clean name.
@@ -1167,6 +1196,18 @@ class NewTranspiler {
         content = content.replace(new RegExp(`${origName}\\.this`, 'g'), `${className}.this`);
         content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
         content = content.replace(/(\s+public Object describe\(\))/g, `${constructor}$1`)
+        // `for (var i = <ident>; Helpers.isLessThan(i, end); i++)` — when the loop
+        // initializer is a bare identifier (an Object-typed local, e.g. a running
+        // index reassigned from this.sum(...)), Java's `var` infers Object and
+        // `i++` fails ("bad operand type Object"). Declare such loop vars as a
+        // primitive `long` (coerced via Helpers.parseInt). Loops whose init is a
+        // numeric literal (`var i = 0`) are left untouched — `var` infers int and
+        // `i++` works. The boxed `long` still satisfies Helpers.isLessThan/GetValue
+        // via autoboxing.
+        content = content.replace(
+            /for \(var (\w+) = ([A-Za-z_]\w*); (Helpers\.isLessThan(?:OrEqual)?)\(\1,/g,
+            'for (long $1 = Helpers.toInt64($2); $3($1,'
+        );
         // cast callDynamically to CompletableFuture when .join() is called on the result
         content = content.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
         // Null-safe Array.isArray rewrite. ast-transpiler emits the bare
@@ -2472,7 +2513,7 @@ class NewTranspiler {
         return result;
     }
 
-    transpileDerivedExchangeFile(tsFolder: string, filename: string, options: any, csharpResult: any, force = false, ws = false) {
+    transpileDerivedExchangeFile(tsFolder: string, filename: string, options: any, csharpResult: any, force = false, ws = false, prediction = false) {
 
         const tsPath = tsFolder + filename
 
@@ -2484,7 +2525,7 @@ class NewTranspiler {
 
         const tsMtime = fs.statSync(tsPath).mtime.getTime()
 
-        let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws)
+        let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws, prediction)
         javaSource = routeWhitelistedInternalCallsToAsync(javaSource)
 
         if (javaFolder) {
@@ -3048,6 +3089,7 @@ class NewTranspiler {
 
 async function runMain() {
     const ws = process.argv.includes('--ws')
+    const prediction = process.argv.includes('--prediction')
     const baseOnly = process.argv.includes('--baseTests')
     const test = process.argv.includes('--test') || process.argv.includes('--tests')
     const examples = process.argv.includes('--examples');
@@ -3062,6 +3104,8 @@ async function runMain() {
     const transpiler = new NewTranspiler();
     if (baseClassOnly) {
         transpiler.transpileBaseMethods('./ts/src/base/Exchange.ts');
+    } else if (prediction) {
+        await transpiler.transpilePrediction(force)
     } else if (ws) {
         await transpiler.transpileWS(force)
     } else if (test) {

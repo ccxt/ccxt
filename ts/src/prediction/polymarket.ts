@@ -7,6 +7,7 @@ import type {
     Market, Ticker, Tickers, OrderBook, Trade, OHLCV,
     Order, Balances, Position,
     Strings,
+    PredictionEvent,
 } from '../base/types.js';
 import { ArgumentsRequired, BadRequest } from '../../ccxt.js';
 
@@ -49,6 +50,7 @@ export default class polymarket extends Exchange {
                 'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': false,
                 'prediction': true,         // Prediction market support
@@ -79,12 +81,50 @@ export default class polymarket extends Exchange {
                 'gamma': {
                     'public': {
                         'get': {
+                            'status': 1,
+                            'comments': 1,
+                            'comments/{id}': 1,
+                            'comments/user_address/{user_address}': 1,
                             'events': 1,
-                            'events/{id}': 1,
+                            'events/creators': 1,
+                            'events/creators/{id}': 1,
+                            'events/keyset': 1,
+                            'events/pagination': 1,
+                            'events/results': 1,
                             'events/slug/{slug}': 1,
+                            'events/{id}': 1,
+                            'events/{id}/comments/count': 1,
+                            'events/{id}/tags': 1,
+                            'events/{id}/tweet-count': 1,
                             'markets': 1,
+                            'markets/keyset': 1,
+                            'markets/slug/{slug}': 1,
                             'markets/{id}': 1,
+                            'markets/{id}/description': 1,
+                            'markets/{id}/tags': 1,
+                            'profiles/user_address/{user_address}': 1,
+                            'public-profile': 1,
                             'public-search': 1,
+                            'series': 1,
+                            'series-summary/slug/{slug}': 1,
+                            'series-summary/{id}': 1,
+                            'series/{id}': 1,
+                            'series/{id}/comments/count': 1,
+                            'sports': 1,
+                            'sports/market-types': 1,
+                            'tags': 1,
+                            'tags/slug/{slug}': 1,
+                            'tags/slug/{slug}/related-tags': 1,
+                            'tags/slug/{slug}/related-tags/tags': 1,
+                            'tags/{id}': 1,
+                            'tags/{id}/related-tags': 1,
+                            'tags/{id}/related-tags/tags': 1,
+                            'teams': 1,
+                            'teams/{id}': 1,
+                        },
+                        'post': {
+                            'markets/abridged': 1,
+                            'markets/information': 1,
                         },
                     },
                 },
@@ -92,22 +132,77 @@ export default class polymarket extends Exchange {
                     'public': {
                         'get': {
                             'book': 1,
-                            'prices-history': 1,
-                            'data/trades': 1,
-                            'price': 1,
+                            'books': 1,
+                            'builder/trades': 1,
+                            'clob-markets/{condition_id}': 1,
+                            'fee-rate': 1,
+                            'fee-rate/{token_id}': 1,
+                            'last-trade-price': 1,
+                            'last-trades-prices': 1,
+                            'markets-by-token/{token_id}': 1,
+                            'markets/live-activity/{condition_id}': 1,
                             'midpoint': 1,
+                            'midpoints': 1,
+                            'neg-risk': 1,
+                            'neg-risk/{token_id}': 1,
+                            'price': 1,
+                            'prices': 1,
+                            'prices-history': 1,
+                            'rebates/current': 1,
+                            'rewards/markets/current': 1,
+                            'rewards/markets/multi': 1,
+                            'rewards/markets/{condition_id}': 1,
+                            'sampling-markets': 1,
+                            'sampling-simplified-markets': 1,
+                            'simplified-markets': 1,
                             'spread': 1,
+                            'tick-size': 1,
+                            'tick-size/{token_id}': 1,
+                            'time': 1,
+                        },
+                        'post': {
+                            'batch-prices-history': 1,
+                            'books': 1,
+                            'last-trades-prices': 1,
+                            'markets/live-activity': 1,
+                            'midpoints': 1,
+                            'prices': 1,
+                            'spreads': 1,
                         },
                     },
                     'private': {
                         'get': {
-                            'data/orders': 1,
+                            'auth/api-keys': 1,
+                            'auth/ban-status/closed-only': 1,
+                            'auth/builder-api-key': 1,
+                            'auth/derive-api-key': 1,
+                            'balance-allowance': 1,
+                            'balance-allowance/update': 1,
                             'data/order/{id}': 1,
+                            'data/orders': 1,
+                            'data/trades': 1,
+                            'notifications': 1,
+                            'order-scoring': 1,
+                            'orders-scoring': 1,
+                            'rewards/user': 1,
+                            'rewards/user/markets': 1,
+                            'rewards/user/percentages': 1,
+                            'rewards/user/total': 1,
                         },
                         'post': {
+                            'auth/api-key': 1,
+                            'auth/builder-api-key': 1,
+                            'heartbeats': 1,
                             'order': 1,
+                            'orders': 1,
+                            'v1/heartbeats': 1,
                         },
                         'delete': {
+                            'auth/api-key': 1,
+                            'auth/builder-api-key': 1,
+                            'cancel-all': 1,
+                            'cancel-market-orders': 1,
+                            'notifications': 1,
                             'order': 1,
                             'orders': 1,
                         },
@@ -116,13 +211,38 @@ export default class polymarket extends Exchange {
                 'data': {
                     'public': {
                         'get': {
+                            'activity': 1,
+                            'closed-positions': 1,
+                            'holders': 1,
+                            'live-volume': 1,
+                            'oi': 1,
+                            'other': 1,
+                            'positions': 1,
+                            'revisions': 1,
+                            'traded': 1,
                             'trades': 1,
+                            'v1/accounting/snapshot': 1,
+                            'v1/activity/combos': 1,
+                            'v1/builders/leaderboard': 1,
+                            'v1/builders/volume': 1,
+                            'v1/leaderboard': 1,
+                            'v1/market-positions': 1,
+                            'v1/positions/combos': 1,
+                            'value': 1,
+                        },
+                    },
+                },
+                'combos': {
+                    'public': {
+                        'get': {
+                            'v1/rfq/combo-markets': 1,
                         },
                     },
                     'private': {
-                        'get': {
-                            'positions': 1,
-                            'value': 1,
+                        'post': {
+                            'v1/maker/confirmations': 1,
+                            'v1/maker/quotes': 1,
+                            'v1/maker/quotes/cancel': 1,
                         },
                     },
                 },
@@ -149,117 +269,31 @@ export default class polymarket extends Exchange {
         });
     }
 
+    /**
+     * @method
+     * @name polymarket#fetchMarkets
+     * @description retrieves data on all markets for polymarket, each prediction market becomes one market with its outcome tokens listed under the outcomes key
+     * @see https://docs.polymarket.com/api-reference/events/list-events
+     * @see https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {string[]} [params.queries] search terms used to filter the fetched events
+     * @param {string} [params.status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets (params = {}): Promise<Market[]> {
         const queries = this.safeList (params, 'queries', []) as any[];
-        const rest0 = this.omit (params, [ 'queries' ]);
-        let pageSize = 0;
+        const rest = this.omit (params, [ 'queries' ]);
+        const queriesLength = queries.length;
+        let rawEvents: any[] = [];
+        if (queriesLength > 0) {
+            rawEvents = await this.fetchRawEventsBySearch (queries, rest);
+        } else {
+            rawEvents = await this.fetchRawEventsList (rest);
+        }
         const flatMarkets: Market[] = [];
         const eventsDict: Dict = {};
-        const queriesLength = queries.length;
-        if (queries && queriesLength > 0) {
-            pageSize = this.safeInteger (rest0, 'limit', 50);
-            const searchRest = this.omit (rest0, [ 'limit' ]);
-            const seen: Dict = {};
-            const rawEvents: any[] = [];
-            for (let qi = 0; qi < queries.length; qi++) {
-                const q = queries[qi];
-                const baseRequest1: Dict = { 'q': q, 'limit_per_type': pageSize, 'events_status': 'active' };
-                let firstRequest: Dict = { 'page': 1 };
-                firstRequest = this.extend (this.extend (firstRequest, baseRequest1), searchRest);
-                const first = await this.gammaPublicGetPublicSearch (firstRequest);
-                const firstEvents = this.safeList (first, 'events', []) as any[];
-                const firstEventsLength = firstEvents.length;
-                const pagination = this.safeValue (first, 'pagination', {});
-                const totalResults = this.safeInteger (pagination, 'totalResults', firstEventsLength);
-                const totalPages = Math.ceil (totalResults / pageSize);
-                const remaining: number[] = [];
-                for (let p = 2; p <= totalPages; p++) {
-                    remaining.push (p);
-                }
-                const restPromises: any[] = [];
-                for (let pi = 0; pi < remaining.length; pi++) {
-                    let pageRequest: Dict = { 'page': remaining[pi] };
-                    pageRequest = this.extend (this.extend (pageRequest, baseRequest1), searchRest);
-                    restPromises.push (this.gammaPublicGetPublicSearch (pageRequest));
-                }
-                const restResponses = await Promise.all (restPromises);
-                const allEvents: any[] = [];
-                for (let fi = 0; fi < firstEvents.length; fi++) {
-                    allEvents.push (firstEvents[fi]);
-                }
-                for (let ri = 0; ri < restResponses.length; ri++) {
-                    const pageEvents = this.safeList (restResponses[ri], 'events', []) as any[];
-                    for (let ei = 0; ei < pageEvents.length; ei++) {
-                        allEvents.push (pageEvents[ei]);
-                    }
-                }
-                for (let ei = 0; ei < allEvents.length; ei++) {
-                    const rawEvent = allEvents[ei];
-                    const eventId = this.safeString (rawEvent, 'id');
-                    if (eventId && !(eventId in seen)) {
-                        seen[eventId] = true;
-                        rawEvents.push (rawEvent);
-                    }
-                }
-            }
-            for (let rei = 0; rei < rawEvents.length; rei++) {
-                const rawEvent = rawEvents[rei];
-                const ccxtMarkets = this.parseEventToMarkets (rawEvent);
-                for (let mi = 0; mi < ccxtMarkets.length; mi++) {
-                    flatMarkets.push (ccxtMarkets[mi]);
-                }
-                const parsedEvent = this.parseEvent (rawEvent);
-                const eventSlug = this.safeString (rawEvent, 'slug');
-                if (eventSlug) {
-                    const eventKey = this.shortenSlug (eventSlug);
-                    eventsDict[eventKey] = parsedEvent;
-                }
-            }
-            this.events = eventsDict;
-            return flatMarkets;
-        }
-        pageSize = this.safeInteger (this.options, 'maxFetchEventsLimit', 500);
-        const maxPages = 20;
-        const status = this.safeString (rest0, 'status', this.safeString (this.options, 'defaultEventStatus', 'active'));
-        const rest = this.omit (rest0, [ 'status' ]);
-        let baseRequest: Dict = { 'limit': pageSize, 'order': 'volume24hr', 'ascending': false };
-        baseRequest = this.extend (baseRequest, rest);
-        if (status === 'active') {
-            baseRequest['active'] = true;
-        } else if (status === 'closed') {
-            baseRequest['closed'] = true;
-        }
-        // Fetch page 1 first; if full, fire remaining pages in parallel
-        let firstPageRequest: Dict = { 'offset': 0 };
-        firstPageRequest = this.extend (firstPageRequest, baseRequest);
-        const firstPageResponse = await this.gammaPublicGetEvents (firstPageRequest);
-        const firstPage = (firstPageResponse !== undefined) ? firstPageResponse : [];
-        const firstPageLength = firstPage.length;
-        const allRawEvents: any[] = [];
-        for (let fi = 0; fi < firstPage.length; fi++) {
-            allRawEvents.push (firstPage[fi]);
-        }
-        if (firstPageLength >= pageSize) {
-            const offsets: number[] = [];
-            for (let p = 1; p < maxPages; p++) {
-                offsets.push (p * pageSize);
-            }
-            const restPromises2: any[] = [];
-            for (let oi = 0; oi < offsets.length; oi++) {
-                let pageRequest: Dict = { 'offset': offsets[oi] };
-                pageRequest = this.extend (pageRequest, baseRequest);
-                restPromises2.push (this.gammaPublicGetEvents (pageRequest));
-            }
-            const restPages = await Promise.all (restPromises2);
-            for (let ri2 = 0; ri2 < restPages.length; ri2++) {
-                const page = (restPages[ri2] !== undefined) ? restPages[ri2] : [];
-                for (let pi2 = 0; pi2 < page.length; pi2++) {
-                    allRawEvents.push (page[pi2]);
-                }
-            }
-        }
-        for (let rei = 0; rei < allRawEvents.length; rei++) {
-            const rawEvent = allRawEvents[rei];
+        for (let rei = 0; rei < rawEvents.length; rei++) {
+            const rawEvent = rawEvents[rei];
             const ccxtMarkets = this.parseEventToMarkets (rawEvent);
             for (let mi = 0; mi < ccxtMarkets.length; mi++) {
                 flatMarkets.push (ccxtMarkets[mi]);
@@ -273,6 +307,121 @@ export default class polymarket extends Exchange {
         }
         this.events = eventsDict;
         return flatMarkets;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#fetchRawEventsBySearch
+     * @description fetches raw gamma event objects matching the given search terms, paginating through all result pages
+     * @see https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles
+     * @param {string[]} queries search terms
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {int} [params.limit] page size per search query, defaults to 50
+     * @returns {object[]} an array of raw gamma event objects
+     */
+    async fetchRawEventsBySearch (queries: any[], params = {}): Promise<any[]> {
+        const pageSize = this.safeInteger (params, 'limit', 50);
+        const rest = this.omit (params, [ 'limit' ]);
+        const seen: Dict = {};
+        const rawEvents: any[] = [];
+        for (let qi = 0; qi < queries.length; qi++) {
+            const q = queries[qi];
+            const baseRequest: Dict = { 'q': q, 'limit_per_type': pageSize, 'events_status': 'active' };
+            let firstRequest: Dict = { 'page': 1 };
+            firstRequest = this.extend (this.extend (firstRequest, baseRequest), rest);
+            const first = await this.gammaPublicGetPublicSearch (firstRequest);
+            const firstEvents = this.safeList (first, 'events', []) as any[];
+            const firstEventsLength = firstEvents.length;
+            const pagination = this.safeDict (first, 'pagination', {});
+            const totalResults = this.safeInteger (pagination, 'totalResults', firstEventsLength);
+            const totalPages = Math.ceil (totalResults / pageSize);
+            const remainingPages: number[] = [];
+            for (let p = 2; p <= totalPages; p++) {
+                remainingPages.push (p);
+            }
+            const restPromises: any[] = [];
+            for (let pi = 0; pi < remainingPages.length; pi++) {
+                let pageRequest: Dict = { 'page': remainingPages[pi] };
+                pageRequest = this.extend (this.extend (pageRequest, baseRequest), rest);
+                restPromises.push (this.gammaPublicGetPublicSearch (pageRequest));
+            }
+            const restResponses = await Promise.all (restPromises);
+            const allEvents: any[] = [];
+            for (let fi = 0; fi < firstEvents.length; fi++) {
+                allEvents.push (firstEvents[fi]);
+            }
+            for (let ri = 0; ri < restResponses.length; ri++) {
+                const pageEvents = this.safeList (restResponses[ri], 'events', []) as any[];
+                for (let ei = 0; ei < pageEvents.length; ei++) {
+                    allEvents.push (pageEvents[ei]);
+                }
+            }
+            for (let ei = 0; ei < allEvents.length; ei++) {
+                const rawEvent = allEvents[ei];
+                const eventId = this.safeString (rawEvent, 'id');
+                if (eventId && !(eventId in seen)) {
+                    seen[eventId] = true;
+                    rawEvents.push (rawEvent);
+                }
+            }
+        }
+        return rawEvents;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#fetchRawEventsList
+     * @description fetches raw gamma event objects from the events listing endpoint, paginating in parallel
+     * @see https://docs.polymarket.com/api-reference/events/list-events
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {string} [params.status] 'active', 'closed' or 'all', defaults to options.defaultEventStatus
+     * @returns {object[]} an array of raw gamma event objects
+     */
+    async fetchRawEventsList (params = {}): Promise<any[]> {
+        const pageSize = this.safeInteger (this.options, 'maxFetchEventsLimit', 500);
+        const maxPages = 20;
+        const status = this.safeString (params, 'status', this.safeString (this.options, 'defaultEventStatus', 'active'));
+        const rest = this.omit (params, [ 'status' ]);
+        let baseRequest: Dict = { 'limit': pageSize, 'order': 'volume24hr', 'ascending': false };
+        baseRequest = this.extend (baseRequest, rest);
+        if (status === 'active') {
+            baseRequest['active'] = true;
+        } else if (status === 'closed') {
+            baseRequest['closed'] = true;
+        }
+        // fetch page 1 first; if full, fire remaining pages in parallel
+        let firstPageRequest: Dict = { 'offset': 0 };
+        firstPageRequest = this.extend (firstPageRequest, baseRequest);
+        const firstPageResponse = await this.gammaPublicGetEvents (firstPageRequest);
+        const firstPage = (firstPageResponse !== undefined) ? firstPageResponse : [];
+        const firstPageLength = firstPage.length;
+        const allRawEvents: any[] = [];
+        for (let fi = 0; fi < firstPageLength; fi++) {
+            allRawEvents.push (firstPage[fi]);
+        }
+        if (firstPageLength >= pageSize) {
+            const offsets: number[] = [];
+            for (let p = 1; p < maxPages; p++) {
+                offsets.push (p * pageSize);
+            }
+            const restPromises: any[] = [];
+            for (let oi = 0; oi < offsets.length; oi++) {
+                let pageRequest: Dict = { 'offset': offsets[oi] };
+                pageRequest = this.extend (pageRequest, baseRequest);
+                restPromises.push (this.gammaPublicGetEvents (pageRequest));
+            }
+            const restPages = await Promise.all (restPromises);
+            for (let ri = 0; ri < restPages.length; ri++) {
+                const page = (restPages[ri] !== undefined) ? restPages[ri] : [];
+                const pageLength = page.length;
+                for (let pi = 0; pi < pageLength; pi++) {
+                    allRawEvents.push (page[pi]);
+                }
+            }
+        }
+        return allRawEvents;
     }
 
     parseEventToMarkets (event: Dict): Market[] {
@@ -478,15 +627,18 @@ export default class polymarket extends Exchange {
     }
 
     /**
-     * Fetches the current mid-price and best bid/ask for a single outcome token.
-     * @param outcome the unified symbol like TRUMP_DANCE_TODAY_997:YES or outcomeId like 16718041887881762329859205887704087070587186248220606272297433440108449709696
-     * @param params
+     * @method
+     * @name polymarket#fetchTicker
+     * @description fetches the current mid-price and best bid/ask for a single outcome token
      * @see https://docs.polymarket.com/api-reference/data/get-midpoint-price
      * @see https://docs.polymarket.com/api-reference/market-data/get-order-book
+     * @param {string} symbol unified outcome symbol like TRUMP_DANCE_TODAY_997:YES or an outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         const outcome = symbol;
-        await this.checkEventsAndMarkets (outcome);
+        this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['id'];
         const promises = [
@@ -531,10 +683,14 @@ export default class polymarket extends Exchange {
     }
 
     /**
-     * Fetches tickers for multiple outcome tokens sequentially.
-     * @param outcomes
-     * @param params
-     * @see https://docs.polymarket.com/api-reference/data/get-midpoint-price
+     * @method
+     * @name polymarket#fetchTickers
+     * @description fetches tickers for multiple outcome tokens at once using the batched CLOB book and midpoint endpoints
+     * @see https://docs.polymarket.com/api-reference/market-data/get-order-books-request-body
+     * @see https://docs.polymarket.com/api-reference/market-data/get-midpoint-prices-request-body
+     * @param {string[]} [symbols] unified outcome symbols or outcome token ids, fetches all loaded outcomes when omitted
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         const outcomes = symbols;
@@ -544,10 +700,10 @@ export default class polymarket extends Exchange {
         }
         if (outcomesLength > 0) {
             for (let i = 0; i < outcomes.length; i++) {
-                await this.checkEventsAndMarkets (outcomes[i]);
+                this.checkEventsAndMarkets (outcomes[i]);
             }
         } else {
-            await this.checkEventsAndMarkets ();
+            this.checkEventsAndMarkets ();
         }
         const outcomesMap = (this.outcomes !== undefined) ? this.outcomes : {};
         const targets: any[] = [];
@@ -561,19 +717,63 @@ export default class polymarket extends Exchange {
                 targets.push (allOutcomeKeys[ki]);
             }
         }
-        const result: Tickers = {};
+        const outcomesByTokenId: Dict = {};
+        const tokenIds: any[] = [];
         for (let i = 0; i < targets.length; i++) {
-            const outcomeSymbol = targets[i];
-            const ticker = await this.fetchTicker (outcomeSymbol, params);
-            result[outcomeSymbol] = ticker;
+            const outcomeObj = this.outcome (targets[i]);
+            const tokenId = this.safeString (outcomeObj, 'id');
+            if ((tokenId !== undefined) && !(tokenId in outcomesByTokenId)) {
+                outcomesByTokenId[tokenId] = outcomeObj;
+                tokenIds.push (tokenId);
+            }
+        }
+        const chunkSize = this.safeInteger (this.options, 'fetchTickersBatchSize', 200);
+        const result: Tickers = {};
+        const tokenIdsLength = tokenIds.length;
+        let startIndex = 0;
+        while (startIndex < tokenIdsLength) {
+            let endIndex = this.sum (startIndex, chunkSize);
+            if (endIndex > tokenIdsLength) {
+                endIndex = tokenIdsLength;
+            }
+            const bookParams: any[] = [];
+            for (let i = startIndex; i < endIndex; i++) {
+                bookParams.push ({ 'token_id': tokenIds[i] });
+            }
+            const promises = [
+                this.clobPublicPostBooks (bookParams),
+                this.clobPublicPostMidpoints (bookParams),
+            ];
+            const responses = await Promise.all (promises);
+            const books = responses[0];
+            const midpoints = responses[1];
+            const booksLength = books.length;
+            for (let i = 0; i < booksLength; i++) {
+                const book = books[i];
+                const tokenId = this.safeString (book, 'asset_id');
+                if ((tokenId === undefined) || !(tokenId in outcomesByTokenId)) {
+                    continue;
+                }
+                const outcomeObj = outcomesByTokenId[tokenId];
+                const mid = this.safeString (midpoints, tokenId);
+                const tickerInput: Dict = { 'midpoint': { 'mid': mid }, 'book': book };
+                const ticker = this.parseTicker (tickerInput, outcomeObj);
+                const symbolKey = this.safeString (ticker, 'symbol', tokenId);
+                result[symbolKey] = ticker;
+            }
+            startIndex = this.sum (startIndex, chunkSize);
         }
         return result;
     }
 
     /**
-     * Parses a combined midpoint + order book response into a unified CCXT Ticker object.
-     * @param ticker
-     * @param market
+     * @ignore
+     * @method
+     * @name polymarket#parseTicker
+     * @description parses a combined midpoint + order book response into a unified ticker object
+     * @param {object} ticker a dict with midpoint and book entries
+     * @param {object} [market] the outcome object the ticker belongs to
+     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
@@ -605,51 +805,61 @@ export default class polymarket extends Exchange {
         //         }
         //     }
         //
-        const midpointData = this.safeValue (ticker, 'midpoint', {});
-        const bookData = this.safeValue (ticker, 'book', {});
+        const midpointData = this.safeDict (ticker, 'midpoint', {});
+        const bookData = this.safeDict (ticker, 'book', {});
         const mid = this.safeNumber (midpointData, 'mid');
         const bids = this.safeList (bookData, 'bids', []) as any[];
         const asks = this.safeList (bookData, 'asks', []) as any[];
         const bidsLength = bids.length;
         const asksLength = asks.length;
-        const bestBid = bidsLength ? this.safeNumber (bids[0], 'price') : undefined;
-        const bestAsk = asksLength ? this.safeNumber (asks[0], 'price') : undefined;
+        // the CLOB book endpoint returns levels sorted away from the touch (bids ascending, asks descending), so the best level is the last entry
+        const bestBid = (bidsLength > 0) ? bids[bidsLength - 1] : undefined;
+        const bestAsk = (asksLength > 0) ? asks[asksLength - 1] : undefined;
+        const lastTradePrice = this.safeNumber (bookData, 'last_trade_price');
+        const last = (lastTradePrice !== undefined) ? lastTradePrice : mid;
         const symbol = this.safeSymbol (undefined, market);
-        const now = this.milliseconds ();
+        const timestamp = this.safeInteger (bookData, 'timestamp', this.milliseconds ());
+        let quoteVolume = undefined;
+        if (market !== undefined) {
+            quoteVolume = this.safeNumber2 (market['info'], 'volume24hr', 'volume');
+        }
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': now,
-            'datetime': this.iso8601 (now),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': bestBid,
-            'bidVolume': bidsLength ? this.safeNumber (bids[0], 'size') : undefined,
-            'ask': bestAsk,
-            'askVolume': asksLength ? this.safeNumber (asks[0], 'size') : undefined,
+            'bid': this.safeNumber (bestBid, 'price'),
+            'bidVolume': this.safeNumber (bestBid, 'size'),
+            'ask': this.safeNumber (bestAsk, 'price'),
+            'askVolume': this.safeNumber (bestAsk, 'size'),
             'vwap': undefined,
             'open': undefined,
             'close': mid,
-            'last': mid,
+            'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': mid,
             'baseVolume': undefined,
-            'quoteVolume': market ? this.safeNumber (market['info'], 'volume24h') : undefined,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }, market);
     }
 
     /**
-     * Fetches the CLOB order book for a single outcome token.
-     * @param {string} outcome id or symbol
-     * @param {int} [limit] the maximum number of bids/asks to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @method
+     * @name polymarket#fetchOrderBook
+     * @description fetches the CLOB order book for a single outcome token
      * @see https://docs.polymarket.com/api-reference/market-data/get-order-book
+     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {int} [limit] not used by polymarket fetchOrderBook
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         const outcome = symbol;
-        await this.checkEventsAndMarkets (outcome);
+        this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['id'] as string;
         const request: Dict = {
@@ -681,19 +891,20 @@ export default class polymarket extends Exchange {
     }
 
     /**
-     * Fetches price history ticks for a single outcome token, buckets them client-side
-     * into true OHLCV candles (snapping tick timestamps to the candle boundary), and returns
-     * a sorted array of OHLCV tuples.
-     * @param outcome
-     * @param timeframe
-     * @param since
-     * @param limit
-     * @param params
+     * @method
+     * @name polymarket#fetchOHLCV
+     * @description fetches price history ticks for a single outcome token and buckets them client-side into OHLCV candles, snapping tick timestamps to the candle boundary
      * @see https://docs.polymarket.com/api-reference/markets/get-prices-history
+     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum number of candles to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         const outcome = symbol;
-        await this.checkEventsAndMarkets (outcome);
+        this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['id'] as string;
         const fidelityMin = this.safeInteger (this.timeframes, timeframe, 1); // fidelity in minutes
@@ -703,8 +914,8 @@ export default class polymarket extends Exchange {
         if (since !== undefined) {
             startS = this.parseToInt (since / 1000);
             if (limit !== undefined) {
-                const endBound = startS + limit * fidelityMin * 60;
-                endS = endBound < nowS ? endBound : nowS;
+                const endBound = this.sum (startS, limit * fidelityMin * 60);
+                endS = (endBound < nowS) ? endBound : nowS;
             }
         } else {
             const barCount = (limit !== undefined) ? limit : 100;
@@ -753,7 +964,8 @@ export default class polymarket extends Exchange {
                 candle[2] = Math.max (candle[2] as number, price); // high
                 candle[3] = Math.min (candle[3] as number, price); // low
                 candle[4] = price;                                  // close (last tick wins)
-                candle[5] = (candle[5] as number) + vol;           // volume
+                candle[5] = this.sum (candle[5] as number, vol);   // volume
+                buckets[bucketKey] = candle; // reassign after mutation, php arrays are value types
             }
         }
         const bucketKeys = Object.keys (buckets);
@@ -782,16 +994,35 @@ export default class polymarket extends Exchange {
     }
 
     /**
-     * Fetches public trade history for a single outcome token from the CLOB data endpoint.
-     * @param outcome
-     * @param since
-     * @param limit
-     * @param params
+     * @method
+     * @name polymarket#fetchTime
+     * @description fetches the current timestamp from the CLOB server
+     * @see https://docs.polymarket.com/api-reference/data/get-server-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current server time in milliseconds
+     */
+    async fetchTime (params = {}): Promise<Int> {
+        const response = await this.clobPublicGetTime (params);
+        //
+        //     1781273248
+        //
+        return this.parseToInt (response) * 1000;
+    }
+
+    /**
+     * @method
+     * @name polymarket#fetchTrades
+     * @description fetches public trade history for a single outcome token from the data API
      * @see https://docs.polymarket.com/api-reference/core/get-trades-for-a-user-or-markets
+     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {int} [since] not used by polymarket fetchTrades
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const outcome = symbol;
-        await this.checkEventsAndMarkets (outcome);
+        this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['id'] as string;
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
@@ -818,9 +1049,13 @@ export default class polymarket extends Exchange {
     }
 
     /**
-     * Parses a raw CLOB trade object into a unified CCXT Trade object.
-     * @param trade
-     * @param market
+     * @ignore
+     * @method
+     * @name polymarket#parseTrade
+     * @description parses a raw data API trade object into a unified trade object
+     * @param {object} trade the raw trade object
+     * @param {object} [market] the outcome object the trade belongs to
+     * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
     parseTrade (trade: Dict, market: Market = undefined): Trade {
         const id = this.safeString2 (trade, 'transactionHash', 'id');
@@ -850,22 +1085,31 @@ export default class polymarket extends Exchange {
     }
 
     /**
-     * Fetches the authenticated user's USDC portfolio value from the Data API.
-     * @param params
+     * @method
+     * @name polymarket#fetchBalance
+     * @description fetches the total USDC value of the wallet's positions from the data API
      * @see https://docs.polymarket.com/api-reference/core/get-total-value-of-a-users-positions
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.checkEventsAndMarkets ();
+        if (this.walletAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' walletAddress is required to fetchBalance');
+        }
         const request: Dict = {
             'user': this.walletAddress,
         };
-        const response = await this.dataPrivateGetValue (this.extend (request, params));
+        const response = await this.dataPublicGetValue (this.extend (request, params));
         return this.parseBalance (response);
     }
 
     /**
-     * Parses a portfolio value response into a CCXT Balances object with a USDC entry.
-     * @param response
+     * @ignore
+     * @method
+     * @name polymarket#parseBalance
+     * @description parses a portfolio value response into a balances object with a USDC entry
+     * @param {object} response the raw portfolio value response
+     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     parseBalance (response): Balances {
         const result: Dict = { 'info': response };
@@ -879,10 +1123,13 @@ export default class polymarket extends Exchange {
     }
 
     /**
-     * Fetches open outcome token positions for the authenticated user from the Data API.
-     * @param outcomes
-     * @param params
+     * @method
+     * @name polymarket#fetchPositions
+     * @description fetches open outcome token positions for the wallet from the data API
      * @see https://docs.polymarket.com/api-reference/core/get-current-positions-for-a-user
+     * @param {string[]} [symbols] unified outcome symbols to filter by
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         const outcomes = symbols;
@@ -892,10 +1139,10 @@ export default class polymarket extends Exchange {
         }
         if (outcomesLength > 0) {
             for (let i = 0; i < outcomes.length; i++) {
-                await this.checkEventsAndMarkets (outcomes[i]);
+                this.checkEventsAndMarkets (outcomes[i]);
             }
         } else {
-            await this.checkEventsAndMarkets ();
+            this.checkEventsAndMarkets ();
         }
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' walletAddress is required to fetchPositions');
@@ -903,15 +1150,19 @@ export default class polymarket extends Exchange {
         const request = {
             'user': this.walletAddress,
         };
-        const response = await this.dataPrivateGetPositions (this.extend (request, params));
+        const response = await this.dataPublicGetPositions (this.extend (request, params));
         const positions = this.safeList (response, 'data', []) as any[];
         return this.parsePositions (positions, outcomes);
     }
 
     /**
-     * Parses a raw Data API position object into a unified CCXT Position object.
-     * @param position
-     * @param market
+     * @ignore
+     * @method
+     * @name polymarket#parsePosition
+     * @description parses a raw data API position object into a unified position object
+     * @param {object} position the raw position object
+     * @param {object} [market] the outcome object the position belongs to
+     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
     parsePosition (position: Dict, market: Market = undefined): Position {
         const tokenId = this.safeString (position, 'asset');
@@ -956,19 +1207,22 @@ export default class polymarket extends Exchange {
     }
 
     /**
-     * Fetches open resting orders for the authenticated user, optionally filtered by outcome token.
-     * @param outcome
-     * @param since
-     * @param limit
-     * @param params
+     * @method
+     * @name polymarket#fetchOpenOrders
+     * @description fetches open resting orders for the authenticated user, optionally filtered by outcome token
      * @see https://docs.polymarket.com/api-reference/trade/get-user-orders
+     * @param {string} [symbol] unified outcome symbol or outcome token id
+     * @param {int} [since] not used by polymarket fetchOpenOrders
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const outcome = symbol;
         if (outcome !== undefined) {
-            await this.checkEventsAndMarkets (outcome);
+            this.checkEventsAndMarkets (outcome);
         } else {
-            await this.checkEventsAndMarkets ();
+            this.checkEventsAndMarkets ();
         }
         const request: Dict = {};
         let outcomeObj: any = undefined;
@@ -982,18 +1236,21 @@ export default class polymarket extends Exchange {
     }
 
     /**
-     * Fetches a single order by ID from the CLOB private data endpoint.
-     * @param id
-     * @param symbol
-     * @param params
+     * @method
+     * @name polymarket#fetchOrder
+     * @description fetches a single order by id from the CLOB private data endpoint
      * @see https://docs.polymarket.com/api-reference/trade/get-single-order-by-id
+     * @param {string} id the order id
+     * @param {string} [symbol] unified outcome symbol or outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
         const outcome = symbol;
         if (outcome !== undefined) {
-            await this.checkEventsAndMarkets (outcome);
+            this.checkEventsAndMarkets (outcome);
         } else {
-            await this.checkEventsAndMarkets ();
+            this.checkEventsAndMarkets ();
         }
         const request: Dict = { 'id': id };
         const response = await this.clobPrivateGetDataOrderId (this.extend (request, params));
@@ -1001,9 +1258,13 @@ export default class polymarket extends Exchange {
     }
 
     /**
-     * Parses a raw CLOB order object into a unified CCXT Order object.
-     * @param order
-     * @param market
+     * @ignore
+     * @method
+     * @name polymarket#parseOrder
+     * @description parses a raw CLOB order object into a unified order object
+     * @param {object} order the raw order object
+     * @param {object} [market] the outcome object the order belongs to
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     parseOrder (order: Dict, market: Market = undefined): Order {
         const id = this.safeString (order, 'id');
@@ -1042,8 +1303,12 @@ export default class polymarket extends Exchange {
     }
 
     /**
-     * Maps a Polymarket order status string to the CCXT unified status vocabulary.
-     * @param status
+     * @ignore
+     * @method
+     * @name polymarket#parseOrderStatus
+     * @description maps a polymarket order status string to the unified status vocabulary
+     * @param {string} status the raw polymarket order status
+     * @returns {string} a unified order status
      */
     parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
@@ -1056,18 +1321,21 @@ export default class polymarket extends Exchange {
     }
 
     /**
-     * Places a limit or market order on the Polymarket CLOB for the given outcome token.
-     * @param outcome
-     * @param type
-     * @param side
-     * @param amount
-     * @param price
-     * @param params
+     * @method
+     * @name polymarket#createOrder
+     * @description places a limit or market order on the CLOB for the given outcome token
      * @see https://docs.polymarket.com/api-reference/trade/post-a-new-order
+     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how many outcome tokens to trade
+     * @param {float} [price] the price per outcome token between 0 and 1
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async createOrder (symbol: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
         const outcome = symbol;
-        await this.checkEventsAndMarkets (outcome);
+        this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['id'] as string;
         const sideRaw = side as string;
@@ -1086,29 +1354,35 @@ export default class polymarket extends Exchange {
     }
 
     /**
-     * Cancels a single open order by ID on the Polymarket CLOB.
-     * @param id
-     * @param symbol
-     * @param params
+     * @method
+     * @name polymarket#cancelOrder
+     * @description cancels a single open order by id on the CLOB
      * @see https://docs.polymarket.com/api-reference/trade/cancel-single-order
+     * @param {string} id the order id
+     * @param {string} [symbol] unified outcome symbol or outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
         const outcome = symbol;
-        await this.checkEventsAndMarkets (outcome);
+        this.checkEventsAndMarkets (outcome);
         const request: Dict = { 'order_id': id };
         const response = await this.clobPrivateDeleteOrder (this.extend (request, params));
         return this.parseOrder (response);
     }
 
     /**
-     * Cancels all open orders on the Polymarket CLOB, optionally scoped to one outcome token.
-     * @param outcome
-     * @param params
+     * @method
+     * @name polymarket#cancelAllOrders
+     * @description cancels all open orders on the CLOB, optionally scoped to one outcome token
      * @see https://docs.polymarket.com/api-reference/trade/cancel-all-orders
+     * @param {string} [symbol] unified outcome symbol or outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         const outcome = symbol;
-        await this.checkEventsAndMarkets (outcome);
+        this.checkEventsAndMarkets (outcome);
         const request: Dict = {};
         if (outcome !== undefined) {
             const outcomeObj = this.outcome (outcome);
@@ -1119,55 +1393,24 @@ export default class polymarket extends Exchange {
     }
 
     /**
-     * Fetches events matching the given search terms via the Gamma public-search endpoint and
-     * merges them into this.events and this.markets; with no queries, fetches all active events.
-     * Returns the full this.events dict (all cached events, not just the newly fetched ones).
-     * @param queries
-     * @param params
+     * @method
+     * @name polymarket#fetchEvents
+     * @description fetches prediction-market events matching the given search terms (or all active events when omitted) and caches their markets and outcomes on the instance
      * @see https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles
+     * @see https://docs.polymarket.com/api-reference/events/list-events
+     * @param {string[]} [queries] search terms, fetches all active events when omitted
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {int} [params.limit] page size per search query, defaults to 50
+     * @returns {object[]} an array of event structures
      */
-    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any> {
+    async fetchEvents (queries: Strings = undefined, params = {}): Promise<PredictionEvent[]> {
         queries = (queries === undefined) ? [] : queries;
-        const pageSize = this.safeInteger (params, 'limit', 50);
-        const rest = this.omit (params, [ 'limit' ]);
-        // For each query: fetch page 1, then all remaining pages in parallel
-        const seen: Dict = {};
-        const rawEvents: any[] = [];
-        for (let qi = 0; qi < queries.length; qi++) {
-            const q = queries[qi];
-            const baseRequest: Dict = { 'q': q, 'limit_per_type': pageSize, 'events_status': 'active' };
-            const firstRequest: Dict = { 'page': 1 };
-            const first = await this.gammaPublicGetPublicSearch (this.extend (this.extend (firstRequest, baseRequest), rest));
-            const firstEvents = this.safeList (first, 'events', []) as any[];
-            const firstEventsLength = firstEvents.length;
-            const pagination = this.safeValue (first, 'pagination', {});
-            const totalResults = this.safeInteger (pagination, 'totalResults', firstEventsLength);
-            const totalPages = Math.ceil (totalResults / pageSize);
-            const remainingPages: number[] = [];
-            for (let p = 2; p <= totalPages; p++) {
-                remainingPages.push (p);
-            }
-            const restPromises3: any[] = [];
-            for (let pi3 = 0; pi3 < remainingPages.length; pi3++) {
-                const pageRequest: Dict = { 'page': remainingPages[pi3] };
-                restPromises3.push (this.gammaPublicGetPublicSearch (this.extend (this.extend (pageRequest, baseRequest), rest)));
-            }
-            const restResponses = await Promise.all (restPromises3);
-            const allEvents = this.arrayConcat ([], firstEvents);
-            for (let ri3 = 0; ri3 < restResponses.length; ri3++) {
-                const pageEvents3 = this.safeList (restResponses[ri3], 'events', []) as any[];
-                for (let ei3 = 0; ei3 < pageEvents3.length; ei3++) {
-                    allEvents.push (pageEvents3[ei3]);
-                }
-            }
-            for (let aei = 0; aei < allEvents.length; aei++) {
-                const rawEvent = allEvents[aei];
-                const eventId = this.safeString (rawEvent, 'id');
-                if (eventId && !(eventId in seen)) {
-                    seen[eventId] = true;
-                    rawEvents.push (rawEvent);
-                }
-            }
+        const queriesLength = queries.length;
+        let rawEvents: any[] = [];
+        if (queriesLength > 0) {
+            rawEvents = await this.fetchRawEventsBySearch (queries, params);
+        } else {
+            rawEvents = await this.fetchRawEventsList (params);
         }
         // Parse and merge into class-level caches
         if (!this.events) {
@@ -1176,12 +1419,14 @@ export default class polymarket extends Exchange {
         if (!this.markets) {
             this.markets = this.createSafeDictionary ();
         }
+        const result: any[] = [];
         for (let rei = 0; rei < rawEvents.length; rei++) {
             const rawEvent = rawEvents[rei];
             let eventForParsing = rawEvent;
             let ccxtMarkets = this.parseEventToMarkets (eventForParsing);
             const ccxtMarketsLength = ccxtMarkets.length;
             if (ccxtMarketsLength === 0) {
+                // search results may omit the nested markets, fall back to the detail endpoint
                 const eventId = this.safeString (rawEvent, 'id');
                 const rawEventSlug = this.safeString (rawEvent, 'slug');
                 let detailedEvent = undefined;
@@ -1205,6 +1450,7 @@ export default class polymarket extends Exchange {
                 const eventKey = this.shortenSlug (eventSlug);
                 this.events[eventKey] = parsedEvent;
             }
+            result.push (parsedEvent);
         }
         this.outcomes = {};
         this.outcomes_by_id = {};
@@ -1224,7 +1470,7 @@ export default class polymarket extends Exchange {
                 }
             }
         }
-        return this.events;
+        return result;
     }
 
     parseEvent (rawEvent: Dict): Dict {
@@ -1311,8 +1557,12 @@ export default class polymarket extends Exchange {
     }
 
     /**
-     * Parses an array of raw Gamma event objects into unified CCXT event objects.
-     * @param rawEvents
+     * @ignore
+     * @method
+     * @name polymarket#parseEvents
+     * @description parses an array of raw gamma event objects into unified event objects
+     * @param {object[]} rawEvents the raw gamma event objects
+     * @returns {object[]} a list of event structures
      */
     parseEvents (rawEvents: any[]): any[] {
         const result: any[] = [];
@@ -1324,13 +1574,17 @@ export default class polymarket extends Exchange {
     }
 
     /**
-     * Builds the request URL and attaches HMAC-SHA256 authentication headers for private endpoints.
-     * @param path
-     * @param api
-     * @param method
-     * @param params
-     * @param headers
-     * @param body
+     * @ignore
+     * @method
+     * @name polymarket#sign
+     * @description builds the request url and attaches HMAC-SHA256 authentication headers for private endpoints
+     * @param {string} path the endpoint path
+     * @param {string|string[]} api the api group and access level
+     * @param {string} method the http method
+     * @param {object} params the request parameters
+     * @param {object} [headers] request headers
+     * @param {string} [body] the request body
+     * @returns {object} a dict with url, method, body and headers
      */
     sign (path: any, api: any = 'gamma', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         // api is either a string ('gamma') or array (['gamma', 'public'])
@@ -1339,10 +1593,24 @@ export default class polymarket extends Exchange {
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['gamma'] as string);
         let url = baseUrl + '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
-        const querystring = this.urlencode (query);
-        if (method === 'GET' && querystring) {
-            url += '?' + querystring;
+        const isArrayBody = Array.isArray (params);
+        let query: Dict = {};
+        if (!isArrayBody) {
+            query = this.omit (params, this.extractParams (path));
+        }
+        if (method === 'GET') {
+            const querystring = this.urlencode (query);
+            if (querystring) {
+                url += '?' + querystring;
+            }
+        } else if (isArrayBody) {
+            body = this.json (params);
+        } else {
+            const queryKeys = Object.keys (query);
+            const queryKeysLength = queryKeys.length;
+            if (queryKeysLength > 0) {
+                body = this.json (query);
+            }
         }
         const headerDefaults = (headers !== undefined) ? headers : {};
         headers = this.extend ({
@@ -1352,8 +1620,12 @@ export default class polymarket extends Exchange {
         if (access === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.seconds ().toString ();
+            let auth = timestamp + method + '/' + path;
+            if (body !== undefined) {
+                auth = auth + body;
+            }
             const signature = this.hmac (
-                this.encode (timestamp + method + '/' + path),
+                this.encode (auth),
                 this.encode (this.secret),
                 sha256,
                 'base64'
@@ -1365,9 +1637,6 @@ export default class polymarket extends Exchange {
                 'POLY_SIGNATURE': signature,
                 'POLY_TIMESTAMP': timestamp,
             });
-            if (method !== 'GET' && querystring) {
-                body = query as any;
-            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

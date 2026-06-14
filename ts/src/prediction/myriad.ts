@@ -16,10 +16,12 @@
 
 import Exchange from '../abstract/prediction/myriad.js';
 import type {
-    Int, Dict,
+    Int, Str, Dict,
     Strings,
-    Market, Ticker, OrderBook, OHLCV,
+    Market, Ticker, Tickers, OrderBook, OHLCV, Trade,
+    PredictionEvent,
 } from '../base/types.js';
+import { Precise } from '../base/Precise.js';
 
 // ---------------------------------------------------------------------------
 
@@ -54,7 +56,8 @@ export default class myriad extends Exchange {
                 'fetchOrderBook': true,
                 'fetchPositions': false,
                 'fetchTicker': true,
-                'fetchTrades': false,
+                'fetchTickers': true,
+                'fetchTrades': true,
                 'prediction': true,
             },
             'timeframes': {
@@ -87,11 +90,37 @@ export default class myriad extends Exchange {
                             'markets/{id}': 1,
                             'markets/{networkId}/{id}': 1,
                             'markets/{id}/events': 1,
+                            'markets/{id}/orderbook': 1,
+                            'markets/{id}/trades': 1,
+                            'markets/{id}/holders': 1,
+                            'markets/{id}/referrals': 1,
+                            'events': 1,
+                            'orders/{hash}': 1,
+                            'users/{address}/events': 1,
+                            'users/{address}/referrals': 1,
+                            'users/{address}/portfolio': 1,
+                            'users/{address}/markets': 1,
+                            'tags': 1,
+                            'topics': 1,
+                        },
+                        'post': {
+                            'markets/quote': 1,
+                            'markets/claim': 1,
+                            'orders': 1,
+                            'positions/split': 1,
+                            'positions/merge': 1,
+                            'positions/redeem': 1,
+                            'positions/redeem-voided': 1,
+                            'positions/neg-risk/split': 1,
+                            'positions/neg-risk/merge': 1,
+                        },
+                        'delete': {
+                            'orders/{hash}': 1,
                         },
                     },
                     'private': {
                         'post': {
-                            'markets/quote': 1,
+                            'markets/quote_with_fee': 1,
                         },
                     },
                 },
@@ -121,131 +150,165 @@ export default class myriad extends Exchange {
     }
 
     /**
-     * Fetches all Myriad markets paginated and returns one CCXT market per raw market,
-     * each containing a list of outcome objects.
-     * @param params
-     * @see https://docs.myriad.markets/api-reference/markets/list-markets
+     * @method
+     * @name myriad#fetchMarkets
+     * @description retrieves data on all markets for myriad, each prediction market becomes one market with its outcome tokens listed under the outcomes key
+     * @see https://docs.myriad.markets/builders/myriad-api-reference
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {string[]} [params.queries] search terms used to filter the fetched markets
+     * @param {string} [params.state] 'open', 'closed' or 'resolved', the state of the markets to fetch, defaults to 'open'
+     * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
         const queries = this.safeList (params, 'queries', []) as any[];
-        const rest0 = this.omit (params, [ 'queries' ]);
+        const rest = this.omit (params, [ 'queries' ]);
         const queriesLength = queries.length;
-        if (queries && queriesLength > 0) {
-            const searchLimit = this.safeInteger (rest0, 'limit', this.safeInteger (this.options, 'defaultFetchMarketsLimit', 50));
-            const searchRest = this.omit (rest0, [ 'limit' ]);
-            const seen: Dict = {};
-            const rawEvents: any[] = [];
-            for (let i = 0; i < queries.length; i++) {
-                const q = queries[i];
-                const response = await this.myriadPublicGetQuestions (this.extend ({ 'keyword': q, 'limit': searchLimit }, searchRest));
-                const foundList = this.safeList (response, 'data', response as any);
-                const found = (foundList !== undefined) ? foundList : [];
-                for (let j = 0; j < found.length; j++) {
-                    const rawEvent = found[j];
-                    const eventId = this.safeString (rawEvent, 'id');
-                    if (eventId && !(eventId in seen)) {
-                        seen[eventId] = true;
-                        rawEvents.push (rawEvent);
-                    }
-                }
-            }
-            const qFlatMarkets: Market[] = [];
-            const qEventsDict: Dict = {};
-            for (let i = 0; i < rawEvents.length; i++) {
-                const rawEvent = rawEvents[i];
-                const questionSlug = this.safeString (rawEvent, 'slug', this.safeString (rawEvent, 'id'));
-                const eventKey = questionSlug ? this.shortenSlug (questionSlug) : undefined;
-                const parsed = this.parseEvent (rawEvent);
-                if (eventKey) {
-                    qEventsDict[eventKey] = parsed;
-                }
-                const parsedMarkets = parsed['markets'] as any[];
-                for (let j = 0; j < parsedMarkets.length; j++) {
-                    const m = parsedMarkets[j];
-                    qFlatMarkets.push (m);
-                }
-            }
-            this.events = qEventsDict;
-            return qFlatMarkets;
+        let rawMarkets: any[] = [];
+        if (queriesLength > 0) {
+            rawMarkets = await this.fetchRawMarketsBySearch (queries, rest);
+        } else {
+            rawMarkets = await this.fetchRawMarketsList (rest);
         }
         const flatMarkets: Market[] = [];
-        const networkGroups: Dict = {};
-        let page = 1;
-        const limit = this.safeInteger (this.options, 'defaultFetchMarketsLimit', 50);
-        const status = this.safeString (rest0, 'status', this.safeString (this.options, 'defaultMarketStatus', 'open'));
-        const rest = this.omit (rest0, [ 'status' ]);
-        while (true) {
-            const response = await this.myriadPublicGetMarkets (this.extend ({
-                'status': status,
-                'limit': limit,
-                'page': page,
-            }, rest));
-            const rawMarketsList = this.safeList (response, 'data', response as any);
-            const rawMarkets = (rawMarketsList !== undefined) ? rawMarketsList : [];
-            const rawMarketsLength = rawMarkets.length;
-            if (!rawMarkets || rawMarketsLength === 0) {
-                break;
-            }
-            for (let i = 0; i < rawMarkets.length; i++) {
-                const raw = rawMarkets[i];
-                const networkId = this.safeString (raw, 'networkId');
-                const eventKey = networkId ? this.shortenSlug (networkId) : undefined;
-                const m = this.parseMyriadMarket (raw);
-                flatMarkets.push (m);
-                if (eventKey) {
-                    if (!(eventKey in networkGroups)) {
-                        const optionsDict = this.options as Dict;
-                        const networksMap = optionsDict['networks'] as Dict;
-                        let networkName = networkId;
-                        if (networksMap) {
-                            const mappedName = networksMap[networkId];
-                            networkName = (mappedName !== undefined) ? mappedName : networkId;
-                        }
-                        networkGroups[eventKey] = { 'networkId': networkId, 'title': networkName, 'markets': [] };
-                    }
-                    const networkGroup = networkGroups[eventKey] as Dict;
-                    networkGroup['markets'].push (m);
-                }
-            }
-            page = this.sum (page, 1);
-            if (rawMarketsLength < limit) {
-                break;
-            }
-        }
         const eventsDict: Dict = {};
-        const networkGroupKeys = Object.keys (networkGroups);
-        for (let i = 0; i < networkGroupKeys.length; i++) {
-            const eventKey = networkGroupKeys[i];
-            const g = networkGroups[eventKey] as Dict;
-            const networkId = g['networkId'] as string;
-            eventsDict[eventKey] = this.extend ({
-                'id': networkId,
-                'slug': networkId,
-                'symbol': networkId,
-                'title': g['title'],
-                'description': undefined,
-                'markets': g['markets'],
-                'url': undefined,
-                'image': undefined,
-                'active': true,
-                'resolved': false,
-                'created': undefined,
-                'createdDatetime': undefined,
-                'end': undefined,
-                'endDatetime': undefined,
-                'lastUpdatedAt': undefined,
-                'resolutionSource': undefined,
-                'info': { 'networkId': networkId },
-            }) as any;
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const raw = rawMarkets[i];
+            const m = this.parseMyriadMarket (raw);
+            flatMarkets.push (m);
+            const ev = this.parseMarketToEvent (raw, m);
+            const evKey = this.safeString (ev, 'symbol');
+            if (evKey !== undefined) {
+                eventsDict[evKey] = ev;
+            }
         }
         this.events = eventsDict;
         return flatMarkets;
     }
 
     /**
-     * Converts a single raw Myriad market into one CCXT market with a list of outcome objects.
-     * @param raw
-     * @param eventSlug
+     * @ignore
+     * @method
+     * @name myriad#fetchRawMarketsBySearch
+     * @description fetches raw myriad market objects matching the given search terms via the markets keyword filter
+     * @see https://docs.myriad.markets/builders/myriad-api-reference
+     * @param {string[]} queries search terms
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {int} [params.limit] maximum number of markets per query, defaults to 50
+     * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to options.defaultMarketStatus
+     * @returns {object[]} an array of raw myriad market objects
+     */
+    async fetchRawMarketsBySearch (queries: any[], params = {}): Promise<any[]> {
+        const limit = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'defaultFetchEventsLimit', 50));
+        const state = this.safeString (params, 'state', this.safeString (this.options, 'defaultMarketStatus', 'open'));
+        const rest = this.omit (params, [ 'limit', 'state' ]);
+        const seen: Dict = {};
+        const rawMarkets: any[] = [];
+        for (let i = 0; i < queries.length; i++) {
+            const q = queries[i];
+            const response = await this.myriadPublicGetMarkets (this.extend ({
+                'keyword': q,
+                'state': state,
+                'limit': limit,
+            }, rest));
+            const foundList = this.safeList (response, 'data', response as any);
+            const found = (foundList !== undefined) ? foundList : [];
+            for (let j = 0; j < found.length; j++) {
+                const raw = found[j];
+                const networkId = this.safeString (raw, 'networkId');
+                const marketId = this.safeString (raw, 'id');
+                const key = networkId + ':' + marketId;
+                if (!(key in seen)) {
+                    seen[key] = true;
+                    rawMarkets.push (raw);
+                }
+            }
+        }
+        return rawMarkets;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name myriad#fetchRawMarketsList
+     * @description fetches raw myriad market objects from the paginated markets listing
+     * @see https://docs.myriad.markets/builders/myriad-api-reference
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to options.defaultMarketStatus
+     * @returns {object[]} an array of raw myriad market objects
+     */
+    async fetchRawMarketsList (params = {}): Promise<any[]> {
+        const limit = this.safeInteger (this.options, 'defaultFetchMarketsLimit', 50);
+        const state = this.safeString2 (params, 'state', 'status', this.safeString (this.options, 'defaultMarketStatus', 'open'));
+        const rest = this.omit (params, [ 'state', 'status' ]);
+        const allRawMarkets: any[] = [];
+        let page = 1;
+        while (true) {
+            const response = await this.myriadPublicGetMarkets (this.extend ({
+                'state': state,
+                'limit': limit,
+                'page': page,
+            }, rest));
+            const rawMarketsList = this.safeList (response, 'data', response as any);
+            const rawMarkets = (rawMarketsList !== undefined) ? rawMarketsList : [];
+            const rawMarketsLength = rawMarkets.length;
+            if (rawMarketsLength === 0) {
+                break;
+            }
+            for (let i = 0; i < rawMarketsLength; i++) {
+                allRawMarkets.push (rawMarkets[i]);
+            }
+            page = this.sum (page, 1);
+            if (rawMarketsLength < limit) {
+                break;
+            }
+        }
+        return allRawMarkets;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name myriad#parseMarketToEvent
+     * @description wraps a parsed myriad market into a unified event structure
+     * @param {object} raw the raw myriad market object
+     * @param {object} market the parsed ccxt market
+     * @returns {object} an event structure
+     */
+    parseMarketToEvent (raw: Dict, market: any): any {
+        const slug = this.safeString (raw, 'slug', this.safeString (raw, 'id'));
+        const state = this.safeString (raw, 'state', 'open');
+        const endDate = this.safeString (raw, 'expiresAt');
+        return {
+            'id': market['id'],
+            'slug': slug,
+            'symbol': market['symbol'],
+            'title': this.safeString2 (raw, 'title', 'shortName'),
+            'description': this.safeString (raw, 'description'),
+            'markets': [ market ],
+            'url': undefined,
+            'image': this.safeString (raw, 'imageUrl'),
+            'active': (state === 'open'),
+            'resolved': (state === 'resolved'),
+            'category': undefined,
+            'tags': this.safeList (raw, 'topics'),
+            'created': this.parse8601 (this.safeString (raw, 'publishedAt')),
+            'createdDatetime': this.safeString (raw, 'publishedAt'),
+            'end': (endDate !== undefined) ? this.parse8601 (endDate) : undefined,
+            'endDatetime': endDate,
+            'lastUpdatedAt': undefined,
+            'resolutionSource': this.safeString (raw, 'resolutionSource'),
+            'info': raw,
+        };
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name myriad#parseMyriadMarket
+     * @description converts a single raw myriad market into one ccxt market with a list of outcome objects
+     * @param {object} raw the raw myriad market object
+     * @param {string} [eventSlug] the slug of the parent event
+     * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
     parseMyriadMarket (raw: Dict, eventSlug: string = undefined): Market {
         const networkId = this.safeString (raw, 'networkId');
@@ -279,6 +342,7 @@ export default class myriad extends Exchange {
                     'outcomePrice': price,
                     'volume24h': volume24h,
                     'state': state,
+                    'tradingModel': this.safeString (raw, 'tradingModel', 'amm'),
                 },
             });
         }
@@ -335,14 +399,18 @@ export default class myriad extends Exchange {
     }
 
     /**
-     * Fetches the current price for a single Myriad outcome by loading the parent market.
-     * @param outcome outcomeId like 2741:756/0 or the symbol, e.g. "TRUMP_WIN:YES"
-     * @param params
-     * @see https://docs.myriad.markets/builders/myriad-api-reference#320c9e49da828116b12dec5bfeea306a
+     * @method
+     * @name myriad#fetchTicker
+     * @description fetches the current price for a single outcome by loading the parent market
+     * @see https://docs.myriad.markets/builders/myriad-api-reference
+     * @param {string} symbol unified outcome symbol like TRUMP_WIN:YES or an outcome id like 2741:756/0
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         const outcome = symbol;
         await this.loadMarkets ();
+        this.ensureOutcomesLoaded ();
         const outcomeObj = this.outcome (outcome);
         const networkId = this.safeString (outcomeObj['info'], 'networkId');
         const marketId = this.safeString (outcomeObj['info'], 'marketId');
@@ -428,9 +496,13 @@ export default class myriad extends Exchange {
     }
 
     /**
-     * Parses a raw Myriad market object into a unified CCXT Ticker for the specified outcome.
-     * @param raw
-     * @param market  outcome object
+     * @ignore
+     * @method
+     * @name myriad#parseTicker
+     * @description parses a raw myriad market object into a unified ticker for the specified outcome
+     * @param {object} raw the raw myriad market object
+     * @param {object} [market] the outcome object the ticker belongs to
+     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     parseTicker (raw: Dict, market: Market = undefined): Ticker {
         //
@@ -537,26 +609,46 @@ export default class myriad extends Exchange {
             'change': change,
             'percentage': change,
             'average': price,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeNumber (raw, 'volume24h'),
+            'baseVolume': this.safeNumber (raw, 'volume24h'),          // 24h volume in outcome shares
+            'quoteVolume': this.safeNumber (raw, 'volumeNotional24h'), // 24h volume in USDC notional
             'info': raw,
         }, market);
     }
 
     /**
-     * Fetches a synthesized AMM order book for a single Myriad outcome using the market price.
-     * @param outcome outcome id or symbol e.g. TRUMP_WIN:YES
-     * @param limit
-     * @param params
-     * @see https://docs.myriad.markets/builders/myriad-api-reference#320c9e49da828116b12dec5bfeea306a
+     * @method
+     * @name myriad#fetchOrderBook
+     * @description fetches the real order book for order-book markets, or synthesizes a one-level book from the AMM price otherwise
+     * @see https://docs.myriad.markets/builders/myriad-order-book
+     * @param {string} symbol unified outcome symbol like TRUMP_WIN:YES or an outcome id
+     * @param {int} [limit] not used by myriad fetchOrderBook
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         const outcome = symbol;
         await this.loadMarkets ();
+        this.ensureOutcomesLoaded ();
         const outcomeObj = this.outcome (outcome);
         const networkId = this.safeString (outcomeObj['info'], 'networkId');
         const marketId = this.safeString (outcomeObj['info'], 'marketId');
         const outcomeId = this.safeString (outcomeObj['info'], 'outcomeId');
+        const tradingModel = this.safeString (outcomeObj['info'], 'tradingModel', 'amm');
+        if (tradingModel === 'ob') {
+            const obRequest: Dict = {
+                'id': marketId,
+                'network_id': networkId,
+                'outcome': outcomeId,
+            };
+            const obResponse = await this.myriadPublicGetMarketsIdOrderbook (this.extend (obRequest, params));
+            //
+            //     {
+            //         "bids": [ [ "980000000000000000", "258412594752186597376" ] ],
+            //         "asks": [ [ "990000000000000000", "151975683890577539072" ] ]
+            //     }
+            //
+            return this.parseWeiOrderBook (obResponse, this.safeOutcomeSymbol (outcome, outcomeObj));
+        }
         const request: Dict = {
             'id': marketId,
             'network_id': networkId,
@@ -645,17 +737,31 @@ export default class myriad extends Exchange {
             }
         }
         const timestamp = this.milliseconds ();
-        // AMM: synthesize a single bid/ask pair at the current implied price
+        // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
         let bid = undefined;
         let ask = undefined;
         if (price !== undefined) {
-            bid = price - 0.001;
-            ask = price + 0.001;
+            if (price > 0.001) {
+                bid = this.parseNumber (Precise.stringSub (this.numberToString (price), '0.001'));
+            }
+            if (price < 0.999) {
+                ask = this.parseNumber (Precise.stringAdd (this.numberToString (price), '0.001'));
+            }
+        }
+        // the synthetic size must be a parsed float, an int literal breaks the typed go wrapper conversion
+        const synthSize = this.parseNumber ('9999');
+        const bids: any[] = [];
+        if (bid !== undefined) {
+            bids.push ([ bid, synthSize ]);
+        }
+        const asks: any[] = [];
+        if (ask !== undefined) {
+            asks.push ([ ask, synthSize ]);
         }
         return {
             'symbol': this.safeOutcomeSymbol (outcome, outcomeObj),
-            'bids': bid !== undefined ? [ [ bid, 9999 ] ] : [],
-            'asks': ask !== undefined ? [ [ ask, 9999 ] ] : [],
+            'bids': bids,
+            'asks': asks,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
@@ -663,16 +769,57 @@ export default class myriad extends Exchange {
     }
 
     /**
-     * Fetches OHLCV data for a Myriad outcome from the price_charts bucket embedded in the market response.
-     * @param symbol  outcome symbol, e.g. "TRUMP_WIN:YES"
-     * @param timeframe
-     * @param since
-     * @param limit
-     * @param params
-    * @see https://docs.myriad.markets/builders/myriad-api-reference#320c9e49da828116b12dec5bfeea306a
+     * @ignore
+     * @method
+     * @name myriad#parseWeiOrderBook
+     * @description parses an order book whose price and amount levels are 1e18-scaled integer strings
+     * @param {object} response the raw orderbook response with bids and asks arrays
+     * @param {string} symbol the unified outcome symbol of the order book
+     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     */
+    parseWeiOrderBook (response: Dict, symbol: Str): OrderBook {
+        const rawBids = this.safeList (response, 'bids', []) as any[];
+        const rawAsks = this.safeList (response, 'asks', []) as any[];
+        const bids: any[] = [];
+        for (let i = 0; i < rawBids.length; i++) {
+            const row = rawBids[i];
+            const rowPrice = Precise.stringDiv (this.safeString (row, 0), '1000000000000000000');
+            const rowAmount = Precise.stringDiv (this.safeString (row, 1), '1000000000000000000');
+            bids.push ([ this.parseNumber (rowPrice), this.parseNumber (rowAmount) ]);
+        }
+        const asks: any[] = [];
+        for (let i = 0; i < rawAsks.length; i++) {
+            const row = rawAsks[i];
+            const rowPrice = Precise.stringDiv (this.safeString (row, 0), '1000000000000000000');
+            const rowAmount = Precise.stringDiv (this.safeString (row, 1), '1000000000000000000');
+            asks.push ([ this.parseNumber (rowPrice), this.parseNumber (rowAmount) ]);
+        }
+        const timestamp = this.milliseconds ();
+        return {
+            'symbol': symbol,
+            'bids': this.sortBy (bids, 0, true),
+            'asks': this.sortBy (asks, 0),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        } as unknown as OrderBook;
+    }
+
+    /**
+     * @method
+     * @name myriad#fetchOHLCV
+     * @description fetches price history for an outcome from the price_charts bucket embedded in the market response
+     * @see https://docs.myriad.markets/builders/myriad-api-reference
+     * @param {string} symbol unified outcome symbol like TRUMP_WIN:YES or an outcome id
+     * @param {string} timeframe mapped to the closest available chart bucket (24h, 7d or 30d)
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum number of candles to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
+        this.ensureOutcomesLoaded ();
         const outcomeObj = this.outcome (symbol);
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
         const networkId = this.safeString (outcomeObj['info'], 'networkId');
@@ -735,18 +882,20 @@ export default class myriad extends Exchange {
                 selectedOutcome = outcome;
             }
         }
-        const outcomePriceCharts = this.safeDict (selectedOutcome, 'price_charts', {});
-        let chart = this.safeValue (outcomePriceCharts, bucketKey);
-        if (chart === undefined) {
-            const outcomePriceChartKeys = Object.keys (outcomePriceCharts);
-            for (let i = 0; i < outcomePriceChartKeys.length; i++) {
-                const key = outcomePriceChartKeys[i];
-                const chartObj = this.safeDict (outcomePriceCharts, key, {});
+        // price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments
+        let chart = undefined;
+        const chartsList = this.safeList (selectedOutcome, 'price_charts');
+        if (chartsList !== undefined) {
+            for (let i = 0; i < chartsList.length; i++) {
+                const chartObj = chartsList[i];
                 if (this.safeString (chartObj, 'timeframe') === bucketKey) {
                     chart = chartObj;
                     break;
                 }
             }
+        } else {
+            const chartsDict = this.safeDict (selectedOutcome, 'price_charts', {});
+            chart = this.safeValue (chartsDict, bucketKey);
         }
         const pointsList = this.safeList (chart, 'prices', this.safeList (chart, 'data', chart as any));
         let points = (pointsList !== undefined) ? pointsList : [];
@@ -770,9 +919,13 @@ export default class myriad extends Exchange {
     }
 
     /**
-     * Parses a single Myriad price chart data point into a CCXT OHLCV tuple.
-     * @param ohlcv
-     * @param market
+     * @ignore
+     * @method
+     * @name myriad#parseOHLCV
+     * @description parses a single myriad price chart data point into an ohlcv tuple
+     * @param {object} ohlcv the raw price chart data point
+     * @param {object} [market] the outcome object the candle belongs to
+     * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
      */
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
@@ -793,50 +946,210 @@ export default class myriad extends Exchange {
         const price = this.safeNumber (ohlcv, 'price', this.safeNumber (ohlcv, 'value'));  // fallback single-value tick
         return [
             this.safeTimestamp (ohlcv, 'timestamp'),
-            open !== undefined ? open : price,
-            high !== undefined ? high : price,
-            low !== undefined ? low : price,
-            close !== undefined ? close : price,
+            (open !== undefined) ? open : price,
+            (high !== undefined) ? high : price,
+            (low !== undefined) ? low : price,
+            (close !== undefined) ? close : price,
             0,   // price_charts endpoint has no volume
         ];
     }
 
     /**
-     * Fetches Myriad questions matching the given search terms and merges them into this.events and this.markets.
-     * With no queries, fetches all questions via loadMarkets() and returns this.events.
-     * @param queries
-     * @param params
-     * @see https://docs.myriad.markets/api-reference/questions/list-questions
+     * @method
+     * @name myriad#fetchTickers
+     * @description fetches tickers for multiple outcomes, grouping requested outcomes by their parent market to fetch each market only once
+     * @see https://docs.myriad.markets/builders/myriad-api-reference
+     * @param {string[]} [symbols] unified outcome symbols, refreshes the markets listing and returns tickers for all outcomes when omitted
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
      */
-    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        this.ensureOutcomesLoaded ();
+        const result: Tickers = {};
+        if (symbols === undefined) {
+            const rawMarkets = await this.fetchRawMarketsList (params);
+            for (let i = 0; i < rawMarkets.length; i++) {
+                const raw = rawMarkets[i];
+                const m = this.parseMyriadMarket (raw);
+                const outcomesList = this.safeList (m, 'outcomes', []) as any[];
+                for (let j = 0; j < outcomesList.length; j++) {
+                    const ticker = this.parseTicker (raw, outcomesList[j]);
+                    const symbolKey = this.safeString (ticker, 'symbol');
+                    if (symbolKey !== undefined) {
+                        result[symbolKey] = ticker;
+                    }
+                }
+            }
+            return result;
+        }
+        // group target outcomes by their parent market to fetch each market only once
+        const outcomesByMarket: Dict = {};
+        const marketKeys: any[] = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const outcomeObj = this.outcome (symbols[i]);
+            const info = this.safeDict (outcomeObj, 'info', {});
+            const networkId = this.safeString (info, 'networkId');
+            const marketId = this.safeString (info, 'marketId');
+            const key = networkId + ':' + marketId;
+            if (!(key in outcomesByMarket)) {
+                outcomesByMarket[key] = [];
+                marketKeys.push (key);
+            }
+            // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
+            const grouped = outcomesByMarket[key];
+            grouped.push (outcomeObj);
+            outcomesByMarket[key] = grouped;
+        }
+        const promises: any[] = [];
+        for (let i = 0; i < marketKeys.length; i++) {
+            const key = marketKeys[i];
+            const grouped = outcomesByMarket[key] as any[];
+            const firstOutcome = grouped[0];
+            const info = this.safeDict (firstOutcome, 'info', {});
+            promises.push (this.myriadPublicGetMarketsId (this.extend ({
+                'id': this.safeString (info, 'marketId'),
+                'network_id': this.safeString (info, 'networkId'),
+            }, params)));
+        }
+        const responses = await Promise.all (promises);
+        for (let i = 0; i < marketKeys.length; i++) {
+            const key = marketKeys[i];
+            const response = responses[i];
+            const grouped = outcomesByMarket[key] as any[];
+            for (let j = 0; j < grouped.length; j++) {
+                const outcomeObj = grouped[j];
+                const ticker = this.parseTicker (response, outcomeObj);
+                const symbolKey = this.safeString (ticker, 'symbol');
+                if (symbolKey !== undefined) {
+                    result[symbolKey] = ticker;
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name myriad#fetchTrades
+     * @description fetches recent public trades for a single outcome from the market action feed
+     * @see https://docs.myriad.markets/builders/myriad-api-reference
+     * @param {string} symbol unified outcome symbol like TRUMP_WIN:YES or an outcome id
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     */
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        this.ensureOutcomesLoaded ();
+        const outcomeObj = this.outcome (symbol);
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const networkId = this.safeString (info, 'networkId');
+        const marketId = this.safeString (info, 'marketId');
+        const outcomeId = this.safeString (info, 'outcomeId');
+        const request: Dict = {
+            'id': marketId,
+            'network_id': networkId,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.myriadPublicGetMarketsIdEvents (this.extend (request, params));
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "user": "0xAE7Bfff784EeEe7812D6527B72c77A7Ed773Ed9D",
+        //                 "action": "buy",
+        //                 "marketTitle": "BNB candles from 10:00 to 10:05 UTC",
+        //                 "marketSlug": "bnb-candles-from-10-00-to-10-05-utc",
+        //                 "marketId": 218,
+        //                 "networkId": 56,
+        //                 "outcomeTitle": "More Green",
+        //                 "outcomeId": 0,
+        //                 "shares": 500,
+        //                 "value": 500,
+        //                 "timestamp": 1761645928,
+        //                 "blockNumber": 66193433,
+        //                 "token": "0x55d398326f99059fF775485246999027B3197955",
+        //                 "txId": "0x3c81447bd6e5c4c80a6e1425383c0b044ddcb1525d09027c2b371ff84f9b9fa0"
+        //             }
+        //         ]
+        //     }
+        //
+        const rowsList = this.safeList (response, 'data', response as any);
+        const rows = (rowsList !== undefined) ? rowsList : [];
+        const trades: any[] = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const action = this.safeString (row, 'action');
+            if ((action !== 'buy') && (action !== 'sell')) {
+                continue;
+            }
+            const rowOutcomeId = this.safeString (row, 'outcomeId');
+            if ((outcomeId !== undefined) && (rowOutcomeId !== outcomeId)) {
+                continue;
+            }
+            trades.push (row);
+        }
+        return this.parseTrades (trades, outcomeObj as any, since, limit);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name myriad#parseTrade
+     * @description parses a raw market action feed row into a unified trade object
+     * @param {object} trade the raw action feed row
+     * @param {object} [market] the outcome object the trade belongs to
+     * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
+     */
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        const timestamp = this.safeTimestamp (trade, 'timestamp');
+        const amountStr = this.safeString (trade, 'shares');
+        const costStr = this.safeString (trade, 'value');
+        let priceStr = undefined;
+        if ((amountStr !== undefined) && (costStr !== undefined) && !Precise.stringEq (amountStr, '0')) {
+            priceStr = Precise.stringDiv (costStr, amountStr);
+        }
+        return this.safeTrade ({
+            'id': this.safeString (trade, 'txId'),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': this.safeSymbol (undefined, market),
+            'order': undefined,
+            'type': undefined,
+            'side': this.safeString (trade, 'action'),
+            'takerOrMaker': 'taker',
+            'price': this.parseNumber (priceStr),
+            'amount': this.parseNumber (amountStr),
+            'cost': this.parseNumber (costStr),
+            'fee': undefined,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name myriad#fetchEvents
+     * @description fetches prediction-market events matching the given search terms (or all open markets when omitted) and caches their markets and outcomes on the instance
+     * @see https://docs.myriad.markets/builders/myriad-api-reference
+     * @param {string[]} [queries] search terms, fetches all open markets when omitted
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {int} [params.limit] maximum number of markets per query, defaults to 50
+     * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to 'open'
+     * @returns {object[]} an array of event structures
+     */
+    async fetchEvents (queries: Strings = undefined, params = {}): Promise<PredictionEvent[]> {
         queries = (queries === undefined) ? [] : queries;
         const queriesLength = queries.length;
-        if (!queries || queriesLength === 0) {
+        if (queriesLength === 0) {
             await this.loadMarkets ();
             this.populateOutcomes ();
             return Object.values (this.events as Dict) as any[];
         }
-        const limit = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'defaultFetchEventsLimit', 50));
-        const rest = this.omit (params, [ 'limit' ]);
-        const seen: Dict = {};
-        const rawEvents: any[] = [];
-        for (let i = 0; i < queries.length; i++) {
-            const q = queries[i];
-            const response = await this.myriadPublicGetQuestions (this.extend ({
-                'keyword': q,
-                'limit': limit,
-            }, rest));
-            const foundList = this.safeList (response, 'data', response as any);
-            const found = (foundList !== undefined) ? foundList : [];
-            for (let j = 0; j < found.length; j++) {
-                const rawEvent = found[j];
-                const eventId = this.safeString (rawEvent, 'id');
-                if (eventId && !(eventId in seen)) {
-                    seen[eventId] = true;
-                    rawEvents.push (rawEvent);
-                }
-            }
-        }
+        const rawMarkets = await this.fetchRawMarketsBySearch (queries, params);
         if (!this.events) {
             this.events = {};
         }
@@ -844,28 +1157,40 @@ export default class myriad extends Exchange {
             this.markets = this.createSafeDictionary ();
         }
         const result: any[] = [];
-        for (let i = 0; i < rawEvents.length; i++) {
-            const rawEvent = rawEvents[i];
-            const questionSlug = this.safeString (rawEvent, 'slug', this.safeString (rawEvent, 'id'));
-            const eventKey = questionSlug ? this.shortenSlug (questionSlug) : undefined;
-            const parsedEvent = this.parseEvent (rawEvent);
-            if (eventKey) {
-                this.events[eventKey] = parsedEvent;
-                const parsedMarkets = parsedEvent['markets'] as any[];
-                for (let j = 0; j < parsedMarkets.length; j++) {
-                    const m = parsedMarkets[j];
-                    this.markets[m['symbol'] as string] = m;
-                }
-                result.push (parsedEvent);
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const raw = rawMarkets[i];
+            const m = this.parseMyriadMarket (raw);
+            this.markets[m['symbol'] as string] = m;
+            const ev = this.parseMarketToEvent (raw, m);
+            const evKey = this.safeString (ev, 'symbol');
+            if (evKey !== undefined) {
+                this.events[evKey] = ev;
+                result.push (ev);
             }
         }
         this.populateOutcomes ();
-        return this.events;
+        return result;
     }
 
     /**
      * @ignore
-     * Rebuilds this.outcomes and this.outcomes_by_id from the outcomes of every loaded market.
+     * @method
+     * @name myriad#ensureOutcomesLoaded
+     * @description rebuilds the outcome caches from the loaded markets when they are empty
+     * @returns {undefined}
+     */
+    ensureOutcomesLoaded () {
+        if ((this.outcomes === undefined) || this.isEmpty (this.outcomes)) {
+            this.populateOutcomes ();
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name myriad#populateOutcomes
+     * @description rebuilds this.outcomes and this.outcomes_by_id from the outcomes of every loaded market
+     * @returns {undefined}
      */
     populateOutcomes () {
         this.outcomes = {};
@@ -889,9 +1214,12 @@ export default class myriad extends Exchange {
     }
 
     /**
-     * Parses a raw Myriad question object into the unified CCXT event shape with a nested markets list.
-     * Each market in the list contains its own outcomes array.
-     * @param rawEvent
+     * @ignore
+     * @method
+     * @name myriad#parseEvent
+     * @description parses a raw myriad question object into the unified event shape with a nested markets list
+     * @param {object} rawEvent the raw myriad question object
+     * @returns {object} an event structure
      */
     parseEvent (rawEvent: Dict): any {
         const questionSlug = this.safeString (rawEvent, 'slug', this.safeString (rawEvent, 'id'));
@@ -926,13 +1254,17 @@ export default class myriad extends Exchange {
     }
 
     /**
-     * Builds the request URL and attaches the x-api-key header for private or authenticated endpoints.
-     * @param path
-     * @param api
-     * @param method
-     * @param params
-     * @param headers
-     * @param body
+     * @ignore
+     * @method
+     * @name myriad#sign
+     * @description builds the request url and attaches the x-api-key header for private endpoints
+     * @param {string} path the endpoint path
+     * @param {string|string[]} api the api group and access level
+     * @param {string} method the http method
+     * @param {object} params the request parameters
+     * @param {object} [headers] request headers
+     * @param {string} [body] the request body
+     * @returns {object} a dict with url, method, body and headers
      */
     sign (path: any, api: any = 'myriad', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];

@@ -19,6 +19,7 @@ import * as fs from 'fs';
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
 const WS_EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/pro/';
+const PREDICTION_EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/prediction/';
 
 // Known CCXT types that have Java equivalents in io.github.ccxt.types
 const KNOWN_TYPES = new Set([
@@ -420,14 +421,14 @@ function genMethod(m: MethodInfo, castToObject = false): string {
  *
  * e.g., Binance extends BinanceCore with typed overloads.
  */
-function generateTypedExchangeClass(exchangeId: string, methods: MethodInfo[]): string {
+function generateTypedExchangeClass(exchangeId: string, methods: MethodInfo[], javaPackage = 'io.github.ccxt.exchanges'): string {
     const className = capitalize(exchangeId);
     const coreClassName = className + 'Core';
 
     const lines: string[] = [];
 
     // Header
-    lines.push(`package io.github.ccxt.exchanges;`);
+    lines.push(`package ${javaPackage};`);
     lines.push(``);
     lines.push(`import io.github.ccxt.Helpers;`);
     lines.push(`import io.github.ccxt.types.*;`);
@@ -601,6 +602,23 @@ if (fs.existsSync(WS_EXCHANGES_FOLDER)) {
     }
 
     console.log(`Generated ${wsGenerated} WS typed wrappers`);
+}
+
+// Generate prediction REST typed wrappers (io.github.ccxt.exchanges.prediction).
+// Prediction exchanges extend their own <Cap>Api (which extends Exchange), so
+// they are NOT aliases — emit full typed wrappers, same as regular exchanges.
+if (fs.existsSync(PREDICTION_EXCHANGES_FOLDER)) {
+    const predCoreFiles = fs.readdirSync(PREDICTION_EXCHANGES_FOLDER).filter(f => f.endsWith('Core.java'));
+    let predGenerated = 0;
+    for (const coreFile of predCoreFiles) {
+        const exchangeId = coreFile.replace('Core.java', '').toLowerCase();
+        const className = capitalize(exchangeId);
+        const outputPath = `${PREDICTION_EXCHANGES_FOLDER}${className}.java`;
+        const content = generateTypedExchangeClass(exchangeId, restMethods, 'io.github.ccxt.exchanges.prediction');
+        fs.writeFileSync(outputPath, content, 'utf-8');
+        predGenerated++;
+    }
+    console.log(`Generated ${predGenerated} prediction REST typed wrappers`);
 }
 
 console.log(`\nGenerated ${generated} typed exchange wrappers in ${EXCHANGES_FOLDER}`);

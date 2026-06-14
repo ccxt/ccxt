@@ -1,0 +1,63 @@
+{
+    "exchange": "myriad",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetchTicker for an outcome",
+                "method": "fetchTicker",
+                "url": "https://api-v2.myriadprotocol.com/markets/549?network_id=2741",
+                "input": [
+                    "POLYMARKET_KALSHI:POLYMARKET"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers with two outcomes of the same market",
+                "method": "fetchTickers",
+                "url": "https://api-v2.myriadprotocol.com/markets/549?network_id=2741",
+                "input": [
+                    [
+                        "POLYMARKET_KALSHI:POLYMARKET",
+                        "POLYMARKET_KALSHI:KALSHI"
+                    ]
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook for an amm market",
+                "method": "fetchOrderBook",
+                "url": "https://api-v2.myriadprotocol.com/markets/549?network_id=2741",
+                "input": [
+                    "POLYMARKET_KALSHI:POLYMARKET"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades with limit",
+                "method": "fetchTrades",
+                "url": "https://api-v2.myriadprotocol.com/markets/549/events?network_id=2741&limit=5",
+                "input": [
+                    "POLYMARKET_KALSHI:POLYMARKET",
+                    null,
+                    5
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV daily",
+                "method": "fetchOHLCV",
+                "url": "https://api-v2.myriadprotocol.com/markets/449?network_id=2741",
+                "input": [
+                    "FEAR_GREED:FEAR",
+                    "1d"
+                ]
+            }
+        ]
+    }
+}

@@ -4,8 +4,9 @@ import { rsa } from '../base/functions/rsa.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type {
     Int, Str, Num, Dict, Strings,
-    Market, Ticker, OrderBook, Trade, OHLCV,
+    Market, Ticker, Tickers, OrderBook, Trade, OHLCV,
     Order, Balances, Position,
+    PredictionEvent,
 } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -43,7 +44,7 @@ export default class kalshi extends Exchange {
                 'fetchOrderBook': true,
                 'fetchPositions': true,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTrades': true,
                 'prediction': true,
             },
@@ -71,14 +72,42 @@ export default class kalshi extends Exchange {
                     'public': {
                         'get': {
                             'events': 1,
+                            'events/multivariate': 1,
+                            'events/fee_changes': 1,
                             'events/{event_ticker}': 1,
+                            'events/{event_ticker}/metadata': 1,
                             'series': 1,
+                            'series/fee_changes': 1,
                             'series/{series_ticker}': 1,
+                            'series/{series_ticker}/markets/{ticker}/candlesticks': 1,
+                            'series/{series_ticker}/events/{ticker}/candlesticks': 1,
+                            'series/{series_ticker}/events/{ticker}/forecast_percentile_history': 1,
                             'markets': 1,
+                            'markets/trades': 1,
+                            'markets/orderbooks': 1,
+                            'markets/candlesticks': 1,
                             'markets/{ticker}': 1,
                             'markets/{ticker}/orderbook': 1,
-                            'markets/trades': 1,
-                            'series/{series_ticker}/markets/{ticker}/candlesticks': 1,
+                            'exchange/status': 1,
+                            'exchange/schedule': 1,
+                            'exchange/announcements': 1,
+                            'exchange/user_data_timestamp': 1,
+                            'milestones': 1,
+                            'milestones/{milestone_id}': 1,
+                            'structured_targets': 1,
+                            'structured_targets/{structured_target_id}': 1,
+                            'search/filters_by_sport': 1,
+                            'search/tags_by_categories': 1,
+                            'live_data/batch': 1,
+                            'live_data/milestone/{milestone_id}': 1,
+                            'historical/markets': 1,
+                            'historical/markets/{ticker}/candlesticks': 1,
+                            'historical/trades': 1,
+                            'historical/cutoff_timestamps': 1,
+                            'multivariate_event_collections': 1,
+                            'multivariate_event_collections/{collection_ticker}': 1,
+                            'multivariate_event_collections/{collection_ticker}/lookup': 1,
+                            'incentive_programs': 1,
                         },
                     },
                     'private': {
@@ -86,15 +115,44 @@ export default class kalshi extends Exchange {
                             'portfolio/balance': 1,
                             'portfolio/orders': 1,
                             'portfolio/orders/{order_id}': 1,
+                            'portfolio/orders/{order_id}/queue_position': 1,
+                            'portfolio/orders/queue_positions': 1,
                             'portfolio/positions': 1,
                             'portfolio/fills': 1,
+                            'portfolio/settlements': 1,
+                            'portfolio/deposits': 1,
+                            'portfolio/withdrawals': 1,
+                            'portfolio/order_groups': 1,
+                            'portfolio/order_groups/{order_group_id}': 1,
+                            'portfolio/summary/total_resting_order_value': 1,
+                            'portfolio/subaccounts/balances': 1,
+                            'portfolio/subaccounts/netting': 1,
+                            'portfolio/subaccounts/transfers': 1,
+                            'historical/fills': 1,
+                            'historical/orders': 1,
                         },
                         'post': {
                             'portfolio/orders': 1,
+                            'portfolio/orders/batched': 1,
+                            'portfolio/orders/{order_id}/amend': 1,
+                            'portfolio/orders/{order_id}/decrease': 1,
+                            'portfolio/order_groups/create': 1,
+                            'portfolio/subaccounts': 1,
+                            'portfolio/subaccounts/transfer': 1,
+                            'multivariate_event_collections/{collection_ticker}': 1,
+                        },
+                        'put': {
+                            'portfolio/order_groups/{order_group_id}/reset': 1,
+                            'portfolio/order_groups/{order_group_id}/trigger': 1,
+                            'portfolio/order_groups/{order_group_id}/limit': 1,
+                            'portfolio/subaccounts/netting': 1,
+                            'multivariate_event_collections/{collection_ticker}/lookup': 1,
                         },
                         'delete': {
                             'portfolio/orders/{order_id}': 1,
                             'portfolio/orders': 1,
+                            'portfolio/orders/batched': 1,
+                            'portfolio/order_groups/{order_group_id}': 1,
                         },
                     },
                 },
@@ -120,9 +178,13 @@ export default class kalshi extends Exchange {
     }
 
     /**
-     * Fetches all Kalshi markets via cursor pagination and maps each binary market to YES and NO CCXT markets.
-     * @param params
+     * @method
+     * @name kalshi#fetchMarkets
+     * @description fetches all kalshi markets via cursor pagination and maps each binary market to YES and NO CCXT markets
      * @see https://trading-api.readme.io/reference/getmarkets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.queries] filter markets by these query strings (matches ticker/title)
+     * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
         const queries = this.safeList (params, 'queries', []) as any[];
@@ -151,7 +213,7 @@ export default class kalshi extends Exchange {
                     const title = this.safeString (raw, 'title', '').toLowerCase ();
                     let matches = false;
                     for (let mi = 0; mi < lowerQueries.length; mi++) {
-                        if (ticker.indexOf (lowerQueries[mi]) !== -1 || title.indexOf (lowerQueries[mi]) !== -1) {
+                        if (ticker.indexOf (lowerQueries[mi]) > -1 || title.indexOf (lowerQueries[mi]) > -1) {
                             matches = true;
                             break;
                         }
@@ -249,7 +311,9 @@ export default class kalshi extends Exchange {
         const ticker = this.safeString (raw, 'ticker');
         const eventTicker = this.safeString (raw, 'event_ticker');
         const subtitle = this.safeString (raw, 'subtitle', this.safeString (raw, 'title'));
-        const active = this.safeString (raw, 'status') === 'open';
+        // markets use status 'active' while events use 'open'
+        const status = this.safeString (raw, 'status');
+        const active = (status === 'active') || (status === 'open');
         const endDate = this.safeString (raw, 'expiration_time');
         const volume = this.safeNumber (raw, 'volume');
         const liquidity = this.safeNumber (raw, 'liquidity');
@@ -347,15 +411,18 @@ export default class kalshi extends Exchange {
     }
 
     /**
-     * Fetches the current market price and bid/ask for a single Kalshi outcome.
-     * @param outcome the unified symbol like TRUMP_BRING_BACK_MANUFACTURING:YES or outcomeId like KXGDPSHAREMANU-29
-     * @param params
+     * @method
+     * @name kalshi#fetchTicker
+     * @description fetches the current market price and bid/ask for a single kalshi outcome
      * @see https://docs.kalshi.com/api-reference/market/get-market
+     * @param {string} symbol the unified symbol like TRUMP_BRING_BACK_MANUFACTURING:YES or outcomeId like KXGDPSHAREMANU-29
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     async fetchTicker (symbol: Str, params = {}): Promise<Ticker> {
         const outcome = symbol;
         await this.loadMarkets ();
-        await this.checkEventsAndMarkets (outcome);
+        this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const request: Dict = {
@@ -394,7 +461,7 @@ export default class kalshi extends Exchange {
         //                     "start": "0.55",
         //                     "end": "0.56",
         //                     "step": "0.01"
-        //                 } 
+        //                 }
         //             ],
         //             "response_price_units": "usd_cent",
         //             "result": "",
@@ -422,9 +489,13 @@ export default class kalshi extends Exchange {
     }
 
     /**
-     * Parses a raw Kalshi market object into a unified CCXT Ticker
-     * @param raw
-     * @param market
+     * @ignore
+     * @method
+     * @name kalshi#parseTicker
+     * @description parses a raw kalshi market object into a unified ticker object
+     * @param {object} raw the raw market object
+     * @param {object} [market] the outcome object the ticker belongs to
+     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     parseTicker (raw: Dict, market: Market = undefined): Ticker {
         //
@@ -459,7 +530,7 @@ export default class kalshi extends Exchange {
         //                     "start": "0.55",
         //                     "end": "0.56",
         //                     "step": "0.01"
-        //                 } 
+        //                 }
         //             ],
         //             "response_price_units": "usd_cent",
         //             "result": "",
@@ -488,26 +559,27 @@ export default class kalshi extends Exchange {
         const symbol = this.safeSymbol (undefined, market);
         const yesAsk = this.safeNumber (raw, 'yes_ask_dollars');
         const yesBid = this.safeNumber (raw, 'yes_bid_dollars');
-        const noAsk  = this.safeNumber (raw, 'no_ask_dollars');
-        const noBid  = this.safeNumber (raw, 'no_bid_dollars');
-        const last   = this.safeNumber (raw, 'last_price_dollars');
+        const noAsk = this.safeNumber (raw, 'no_ask_dollars');
+        const noBid = this.safeNumber (raw, 'no_bid_dollars');
+        const last = this.safeNumber (raw, 'last_price_dollars');
         let bid: Num;
         let ask: Num;
         let close: Num;
         if (isNo) {
-            bid   = noBid;
-            ask   = noAsk;
+            bid = noBid;
+            ask = noAsk;
             close = (last !== undefined) ? this.parseNumber (Precise.stringSub ('1', this.numberToString (last))) : undefined;
         } else {
-            bid   = yesBid;
-            ask   = yesAsk;
+            bid = yesBid;
+            ask = yesAsk;
             close = last;
         }
-        const bidVolume = isNo ? undefined : this.safeNumber (raw, 'yes_bid_size_fp');
-        const askVolume = isNo ? undefined : this.safeNumber (raw, 'yes_ask_size_fp');
+        // the book is quoted in the yes token, the no side mirrors with sizes swapped
+        const bidVolume = (isNo) ? this.safeNumber (raw, 'yes_ask_size_fp') : this.safeNumber (raw, 'yes_bid_size_fp');
+        const askVolume = (isNo) ? this.safeNumber (raw, 'yes_bid_size_fp') : this.safeNumber (raw, 'yes_ask_size_fp');
         let average = undefined;
         if ((bid !== undefined) && (ask !== undefined)) {
-            average = (bid + ask) / 2;
+            average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (this.numberToString (bid), this.numberToString (ask)), '2'));
         }
         return this.safeTicker ({
             'symbol': symbol,
@@ -527,23 +599,107 @@ export default class kalshi extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': average,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeNumber (raw, 'volume'),
+            'baseVolume': this.safeNumberN (raw, [ 'volume_24h_fp', 'volume_24h', 'volume' ]), // 24h volume in contracts
+            'quoteVolume': undefined,
             'info': raw,
         }, market);
     }
 
     /**
-     * Fetches the order book for a single Kalshi outcome
-     * @param {string} outcome id or symbol
-     * @param {int} [limit] the maximum number of bids/asks to return (not enforced by Kalshis API reserved for future client-side trimming)
+     * @method
+     * @name kalshi#fetchTickers
+     * @description fetches tickers for multiple outcomes at once, batching their market tickers through the markets endpoint
+     * @see https://docs.kalshi.com/api-reference/market/get-markets
+     * @param {string[]} [symbols] unified outcome symbols, fetches tickers for all loaded outcomes when omitted
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
+     */
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        const targets: any[] = [];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                this.checkEventsAndMarkets (symbols[i]);
+                targets.push (symbols[i]);
+            }
+        } else {
+            this.checkEventsAndMarkets ();
+            const allKeys = Object.keys (this.outcomes);
+            for (let i = 0; i < allKeys.length; i++) {
+                targets.push (allKeys[i]);
+            }
+        }
+        // group requested outcomes by their market ticker, yes and no outcomes share one market
+        const outcomesByTicker: Dict = {};
+        const tickers: any[] = [];
+        for (let i = 0; i < targets.length; i++) {
+            const outcomeObj = this.outcome (targets[i]);
+            const ticker = this.safeString (outcomeObj['info'], 'ticker');
+            if (ticker === undefined) {
+                continue;
+            }
+            if (!(ticker in outcomesByTicker)) {
+                outcomesByTicker[ticker] = [];
+                tickers.push (ticker);
+            }
+            // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
+            const grouped = outcomesByTicker[ticker];
+            grouped.push (outcomeObj);
+            outcomesByTicker[ticker] = grouped;
+        }
+        const chunkSize = this.safeInteger (this.options, 'fetchTickersBatchSize', 100);
+        const result: Tickers = {};
+        const tickersLength = tickers.length;
+        let startIndex = 0;
+        while (startIndex < tickersLength) {
+            let endIndex = this.sum (startIndex, chunkSize);
+            if (endIndex > tickersLength) {
+                endIndex = tickersLength;
+            }
+            const chunk: any[] = [];
+            for (let i = startIndex; i < endIndex; i++) {
+                chunk.push (tickers[i]);
+            }
+            const request: Dict = {
+                'tickers': chunk.join (','),
+                'limit': chunkSize,
+            };
+            const response = await this.kalshiPublicGetMarkets (this.extend (request, params));
+            const rawMarkets = this.safeList (response, 'markets', []) as any[];
+            for (let i = 0; i < rawMarkets.length; i++) {
+                const raw = rawMarkets[i];
+                const marketTicker = this.safeString (raw, 'ticker');
+                if ((marketTicker === undefined) || !(marketTicker in outcomesByTicker)) {
+                    continue;
+                }
+                const grouped = outcomesByTicker[marketTicker] as any[];
+                for (let j = 0; j < grouped.length; j++) {
+                    const ticker = this.parseTicker (raw, grouped[j]);
+                    const symbolKey = this.safeString (ticker, 'symbol');
+                    if (symbolKey !== undefined) {
+                        result[symbolKey] = ticker;
+                    }
+                }
+            }
+            startIndex = this.sum (startIndex, chunkSize);
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name kalshi#fetchOrderBook
+     * @description fetches the order book for a single kalshi outcome
      * @see https://docs.kalshi.com/api-reference/market/get-market-orderbook
+     * @param {string} symbol unified outcome symbol or outcome id
+     * @param {int} [limit] the maximum number of bids/asks to return (not enforced by kalshis API, reserved for future client-side trimming)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
     async fetchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<OrderBook> {
         const outcome = symbol;
         await this.loadMarkets ();
-        await this.checkEventsAndMarkets (outcome);
+        this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const isNo = outcomeObj['label'] === 'NO';
@@ -557,7 +713,7 @@ export default class kalshi extends Exchange {
         //             "no_dollars": [
         //                 [ "0.1500", "100.00" ], [ "0.1600", "101.00" ]
         //             ],
-        //             "yes_dollars": [ 
+        //             "yes_dollars": [
         //                 [ "0.1500", "100.00" ], [ "0.1600", "101.00" ]
         //             ]
         //         }
@@ -598,11 +754,15 @@ export default class kalshi extends Exchange {
     }
 
     /**
-     * Sorts bids descending and asks ascending, then returns a CCXT-shaped OrderBook object.
-     * @param symbol
-     * @param timestamp
-     * @param bids
-     * @param asks
+     * @ignore
+     * @method
+     * @name kalshi#sortedOrders
+     * @description sorts bids descending and asks ascending, then returns a CCXT-shaped order book object
+     * @param {string} symbol unified outcome symbol
+     * @param {int} timestamp timestamp in ms
+     * @param {object[]} bids array of [price, size] bid levels
+     * @param {object[]} asks array of [price, size] ask levels
+     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
     sortedOrders (symbol: Str, timestamp: Int, bids: any[], asks: any[]): OrderBook {
         // Sort bids descending, asks ascending, match CCXT OrderBook shape
@@ -619,18 +779,21 @@ export default class kalshi extends Exchange {
     }
 
     /**
-     * Fetches OHLCV candlesticks for a single Kalshi outcome from the candlesticks endpoint.
-     * @param outcome
-     * @param timeframe
-     * @param since
-     * @param limit
-     * @param params
+     * @method
+     * @name kalshi#fetchOHLCV
+     * @description fetches OHLCV candlesticks for a single kalshi outcome from the candlesticks endpoint
      * @see https://docs.kalshi.com/api-reference/market/get-market-candlesticks
+     * @param {string} symbol unified outcome symbol
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum number of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: Str, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         const outcome = symbol;
         await this.loadMarkets ();
-        await this.checkEventsAndMarkets (outcome);
+        this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const seriesTicker = this.safeString (outcomeObj['info'], 'seriesTicker', ticker);
@@ -643,10 +806,11 @@ export default class kalshi extends Exchange {
         const now = this.seconds ();
         const tf = this.parseTimeframe (timeframe);
         if (since !== undefined) {
-            request['start_ts'] = this.parseToInt (since / 1000);
+            const sinceS = this.parseToInt (since / 1000);
+            request['start_ts'] = sinceS;
             if (limit !== undefined) {
-                const end = (since / 1000) + limit * tf;
-                request['end_ts'] = end < now ? end : now;
+                const end = this.sum (sinceS, limit * tf);
+                request['end_ts'] = (end < now) ? end : now;
             }
         } else {
             const defaultLimit = this.safeInteger (this.options, 'defaultFetchOHLCVLimit', 200);
@@ -706,9 +870,13 @@ export default class kalshi extends Exchange {
     }
 
     /**
-     * Parses a single Kalshi candlestick object into a CCXT OHLCV tuple, converting cent prices to decimals.
-     * @param ohlcv
-     * @param market
+     * @ignore
+     * @method
+     * @name kalshi#parseOHLCV
+     * @description parses a single kalshi candlestick object into a CCXT OHLCV tuple, converting cent prices to decimals
+     * @param {object} ohlcv the raw candlestick object
+     * @param {object} [market] the outcome object the candle belongs to
+     * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
      */
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
@@ -754,17 +922,20 @@ export default class kalshi extends Exchange {
     }
 
     /**
-     * Fetches public trade history for a single Kalshi market ticker.
-     * @param outcome
-     * @param since
-     * @param limit
-     * @param params
+     * @method
+     * @name kalshi#fetchTrades
+     * @description fetches public trade history for a single kalshi market ticker
      * @see https://docs.kalshi.com/api-reference/market/get-trades
+     * @param {string} symbol unified outcome symbol
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
     async fetchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const outcome = symbol;
         await this.loadMarkets ();
-        await this.checkEventsAndMarkets (outcome);
+        this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const request: Dict = { 'ticker': ticker };
@@ -785,9 +956,13 @@ export default class kalshi extends Exchange {
     }
 
     /**
-     * Parses a raw Kalshi trade object into a unified CCXT Trade object.
-     * @param trade
-     * @param market
+     * @ignore
+     * @method
+     * @name kalshi#parseTrade
+     * @description parses a raw kalshi trade object into a unified trade object
+     * @param {object} trade the raw trade object
+     * @param {object} [market] the outcome object the trade belongs to
+     * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
     parseTrade (trade: Dict, market: Market = undefined): Trade {
         const id = this.safeString (trade, 'trade_id');
@@ -840,19 +1015,26 @@ export default class kalshi extends Exchange {
     }
 
     /**
-     * Fetches the authenticated user's USD portfolio balance from Kalshi.
-     * @param params
+     * @method
+     * @name kalshi#fetchBalance
+     * @description fetches the authenticated user's USD portfolio balance from kalshi
      * @see https://trading-api.readme.io/reference/getbalance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.checkEventsAndMarkets ();
+        this.checkEventsAndMarkets ();
         const response = await this.kalshiPrivateGetPortfolioBalance (params);
         return this.parseBalance (response);
     }
 
     /**
-     * Parses a Kalshi balance response (cents) into a CCXT Balances object with a USD entry.
-     * @param response
+     * @ignore
+     * @method
+     * @name kalshi#parseBalance
+     * @description parses a kalshi balance response (cents) into a unified balances object with a USD entry
+     * @param {object} response the raw balance response
+     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     parseBalance (response): Balances {
         // Kalshi balance in cents → divide by 100
@@ -867,10 +1049,13 @@ export default class kalshi extends Exchange {
     }
 
     /**
-     * Fetches open market positions for the authenticated Kalshi user.
-     * @param outcomes
-     * @param params
+     * @method
+     * @name kalshi#fetchPositions
+     * @description fetches open market positions for the authenticated kalshi user
      * @see https://trading-api.readme.io/reference/getportfoliopositions
+     * @param {string[]} [symbols] filter by outcome ids or symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         const outcomes = symbols;
@@ -880,10 +1065,10 @@ export default class kalshi extends Exchange {
         }
         if (outcomesLength > 0) {
             for (let i = 0; i < outcomes.length; i++) {
-                await this.checkEventsAndMarkets (outcomes[i]);
+                this.checkEventsAndMarkets (outcomes[i]);
             }
         } else {
-            await this.checkEventsAndMarkets ();
+            this.checkEventsAndMarkets ();
         }
         const response = await this.kalshiPrivateGetPortfolioPositions (params);
         const positions = this.safeList (response, 'market_positions', []) as any[];
@@ -891,9 +1076,13 @@ export default class kalshi extends Exchange {
     }
 
     /**
-     * Parses a raw Kalshi portfolio position into a unified CCXT Position object.
-     * @param position
-     * @param market
+     * @ignore
+     * @method
+     * @name kalshi#parsePosition
+     * @description parses a raw kalshi portfolio position into a unified position object
+     * @param {object} position the raw position object
+     * @param {object} [market] the outcome object the position belongs to
+     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
     parsePosition (position: Dict, market: Market = undefined): Position {
         const ticker = this.safeString (position, 'ticker');
@@ -935,19 +1124,22 @@ export default class kalshi extends Exchange {
     }
 
     /**
-     * Fetches resting (open) orders for the authenticated Kalshi user, optionally filtered by ticker.
-     * @param outcome
-     * @param since
-     * @param limit
-     * @param params
+     * @method
+     * @name kalshi#fetchOpenOrders
+     * @description fetches resting (open) orders for the authenticated kalshi user, optionally filtered by ticker
      * @see https://trading-api.readme.io/reference/getorders
+     * @param {string} [symbol] filter by unified outcome symbol
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const outcome = symbol;
         if (outcome !== undefined) {
-            await this.checkEventsAndMarkets (outcome);
+            this.checkEventsAndMarkets (outcome);
         } else {
-            await this.checkEventsAndMarkets ();
+            this.checkEventsAndMarkets ();
         }
         const request: Dict = { 'status': 'resting' };
         let outcomeObj: any = undefined;
@@ -961,33 +1153,41 @@ export default class kalshi extends Exchange {
     }
 
     /**
-     * Fetches a single order by ID from the Kalshi portfolio endpoint.
-     * @param id
-     * @param symbol
-     * @param params
+     * @method
+     * @name kalshi#fetchOrder
+     * @description fetches a single order by id from the kalshi portfolio endpoint
      * @see https://trading-api.readme.io/reference/getorder
+     * @param {string} id order id
+     * @param {string} [symbol] unified outcome symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
         if (symbol !== undefined) {
-            await this.checkEventsAndMarkets (symbol);
+            this.checkEventsAndMarkets (symbol);
         } else {
-            await this.checkEventsAndMarkets ();
+            this.checkEventsAndMarkets ();
         }
         const response = await this.kalshiPrivateGetPortfolioOrdersOrderId (this.extend ({ 'order_id': id }, params));
         return this.parseOrder (this.safeValue (response, 'order', response));
     }
 
     /**
-     * Parses a raw Kalshi order object into a unified CCXT Order object.
-     * @param order
-     * @param market
+     * @ignore
+     * @method
+     * @name kalshi#parseOrder
+     * @description parses a raw kalshi order object into a unified order object
+     * @param {object} order the raw order object
+     * @param {object} [market] the outcome object the order belongs to
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     parseOrder (order: Dict, market: Market = undefined): Order {
         const id = this.safeString (order, 'order_id');
         const ticker = this.safeString (order, 'ticker');
         const mkt = this.safeOutcome (ticker, market as any);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const side = this.safeString (order, 'action') === 'buy' ? 'buy' : 'sell';
+        const action = this.safeString (order, 'action');
+        const side = (action === 'buy') ? 'buy' : 'sell';
         const priceCents = this.safeNumber (order, 'no_price', this.safeNumber (order, 'yes_price'));
         let price = undefined;
         if (priceCents !== undefined) {
@@ -1027,8 +1227,12 @@ export default class kalshi extends Exchange {
     }
 
     /**
-     * Maps a Kalshi order status string to the CCXT unified status vocabulary.
-     * @param status
+     * @ignore
+     * @method
+     * @name kalshi#parseOrderStatus
+     * @description maps a kalshi order status string to the CCXT unified status vocabulary
+     * @param {string} status the raw kalshi order status
+     * @returns {string} the unified order status
      */
     parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
@@ -1041,19 +1245,22 @@ export default class kalshi extends Exchange {
     }
 
     /**
-     * Places a limit or market order on Kalshi for the given outcome token.
-     * @param outcome
-     * @param type
-     * @param side
-     * @param amount
-     * @param price
-     * @param params
+     * @method
+     * @name kalshi#createOrder
+     * @description places a limit or market order on kalshi for the given outcome token
      * @see https://trading-api.readme.io/reference/createorder
+     * @param {string} symbol unified outcome symbol
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount number of contracts
+     * @param {float} [price] limit price in dollars (0–1 range)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async createOrder (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
         const outcome = symbol;
         await this.loadMarkets ();
-        await this.checkEventsAndMarkets (outcome);
+        this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const outcomeLabel = outcomeObj['label'];
@@ -1062,9 +1269,9 @@ export default class kalshi extends Exchange {
             priceCents = this.parseToInt (price * 100 + 0.5);
         }
         const request: Dict = {
-            'action': side === 'buy' ? 'buy' : 'sell',
+            'action': (side === 'buy') ? 'buy' : 'sell',
             'count': amount,
-            'side': outcomeLabel === 'NO' ? 'no' : 'yes',
+            'side': (outcomeLabel === 'NO') ? 'no' : 'yes',
             'ticker': ticker,
             'type': type,
         };
@@ -1077,34 +1284,40 @@ export default class kalshi extends Exchange {
     }
 
     /**
-     * Cancels a single open order by ID on Kalshi.
-     * @param id
-     * @param symbol
-     * @param params
+     * @method
+     * @name kalshi#cancelOrder
+     * @description cancels a single open order by id on kalshi
      * @see https://trading-api.readme.io/reference/cancelorder
+     * @param {string} id order id
+     * @param {string} [symbol] unified outcome symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
         if (symbol !== undefined) {
-            await this.checkEventsAndMarkets (symbol);
+            this.checkEventsAndMarkets (symbol);
         } else {
-            await this.checkEventsAndMarkets ();
+            this.checkEventsAndMarkets ();
         }
         const response = await this.kalshiPrivateDeletePortfolioOrdersOrderId (this.extend ({ 'order_id': id }, params));
         return this.parseOrder (this.safeValue (response, 'order', response));
     }
 
     /**
-     * Cancels all open orders on Kalshi, optionally scoped to one outcome ticker.
-     * @param outcome
-     * @param params
+     * @method
+     * @name kalshi#cancelAllOrders
+     * @description cancels all open orders on kalshi, optionally scoped to one outcome ticker
      * @see https://trading-api.readme.io/reference/cancelorders
+     * @param {string} [symbol] unified outcome symbol to scope the cancellation to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         const outcome = symbol;
         if (outcome !== undefined) {
-            await this.checkEventsAndMarkets (outcome);
+            this.checkEventsAndMarkets (outcome);
         } else {
-            await this.checkEventsAndMarkets ();
+            this.checkEventsAndMarkets ();
         }
         const request: Dict = {};
         if (outcome !== undefined) {
@@ -1117,17 +1330,22 @@ export default class kalshi extends Exchange {
     }
 
     /**
-     * Fetches Kalshi events via cursor-paginated /events, filters client-side by query strings,
-     * then fetches full event details with nested markets in parallel and caches in this.events.
-     * @param queries
-     * @param params
+     * @method
+     * @name kalshi#fetchEvents
+     * @description fetches kalshi events via cursor-paginated /events, filters client-side by query strings, then fetches full event details with nested markets in parallel and caches in this.events
      * @see https://trading-api.readme.io/reference/getevents
+     * @param {string[]} [queries] filter events by these query strings (matches event ticker/title)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.status] 'open' | 'closed' | 'settled', defaults to options.defaultEventStatus
+     * @param {int} [params.limit] page size per request, defaults to 200
+     * @param {int} [params.maxPages] maximum number of pages to scan, defaults to 5
+     * @returns {object[]} an array of event structures
      */
-    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any> {
+    async fetchEvents (queries: Strings = undefined, params = {}): Promise<PredictionEvent[]> {
         queries = (queries === undefined) ? [] : queries;
         const status = this.safeString (params, 'status', this.safeString (this.options, 'defaultEventStatus', 'open'));
         const pageLimit = this.safeInteger (params, 'limit', 200);
-        const maxPages = this.safeInteger (params, 'maxPages', 5);
+        const maxPages = this.safeInteger (params, 'maxPages', 50);
         const rest = this.omit (params, [ 'status', 'limit', 'maxPages' ]);
         if (!this.events) {
             this.events = {};
@@ -1140,12 +1358,12 @@ export default class kalshi extends Exchange {
             lowerQueries.push (queries[qi].toLowerCase ());
         }
         const lowerQueriesLength = lowerQueries.length;
-        // Phase 1: sequential cursor scan (lightweight — no nested markets) to collect matching tickers
-        const matchedTickers: string[] = [];
+        // sequential cursor scan with nested markets included, collecting the matching events directly
+        const matchedEvents: any[] = [];
         let cursor: string | undefined = undefined;
         let page = 0;
         while (page < maxPages) {
-            const request: Dict = { 'status': status, 'limit': pageLimit };
+            const request: Dict = { 'status': status, 'limit': pageLimit, 'with_nested_markets': true };
             if (cursor) {
                 request['cursor'] = cursor;
             }
@@ -1156,16 +1374,17 @@ export default class kalshi extends Exchange {
             for (let rei = 0; rei < rawEvents.length; rei++) {
                 const rawEvent = rawEvents[rei];
                 const ticker = this.safeString (rawEvent, 'event_ticker', '');
+                const tickerLower = ticker.toLowerCase ();
                 const title = this.safeString (rawEvent, 'title', '').toLowerCase ();
                 let matches = (lowerQueriesLength === 0);
                 for (let li = 0; li < lowerQueries.length; li++) {
-                    if (ticker.toLowerCase ().indexOf (lowerQueries[li]) !== -1 || title.indexOf (lowerQueries[li]) !== -1) {
+                    if (tickerLower.indexOf (lowerQueries[li]) > -1 || title.indexOf (lowerQueries[li]) > -1) {
                         matches = true;
                         break;
                     }
                 }
                 if (matches && ticker) {
-                    matchedTickers.push (ticker);
+                    matchedEvents.push (rawEvent);
                 }
             }
             page = this.sum (page, 1);
@@ -1173,16 +1392,9 @@ export default class kalshi extends Exchange {
                 break;
             }
         }
-        // Phase 2: fetch full event details (with nested markets) for all matched tickers in parallel
-        const detailPromises: any[] = [];
-        for (let ti = 0; ti < matchedTickers.length; ti++) {
-            detailPromises.push (this.kalshiPublicGetEventsEventTicker ({ 'event_ticker': matchedTickers[ti], 'with_nested_markets': true }));
-        }
-        const detailResponses = await Promise.all (detailPromises);
-        const result: Dict = {};
-        for (let di = 0; di < detailResponses.length; di++) {
-            const detail = detailResponses[di];
-            const fullEvent = this.safeValue (detail, 'event', detail) as Dict;
+        const result: any[] = [];
+        for (let di = 0; di < matchedEvents.length; di++) {
+            const fullEvent = matchedEvents[di];
             const rawNestedMarkets = this.safeList (fullEvent, 'markets', []) as any[];
             const rawNestedMarketsLength = rawNestedMarkets.length;
             if (rawNestedMarketsLength === 0) {
@@ -1219,7 +1431,7 @@ export default class kalshi extends Exchange {
             const eventKey = eventTitle ? this.shortenSlug (eventTitle) : undefined;
             if (eventKey) {
                 this.events[eventKey] = parsedEvent;
-                result[eventKey] = parsedEvent;
+                result.push (parsedEvent);
                 const parsedMarketsRaw = parsedEvent['markets'];
                 const parsedMarkets = (parsedMarketsRaw !== undefined) ? parsedMarketsRaw : [];
                 for (let mi = 0; mi < parsedMarkets.length; mi++) {
@@ -1246,12 +1458,16 @@ export default class kalshi extends Exchange {
                 }
             }
         }
-        return this.events;
+        return result;
     }
 
     /**
-     * Parses a raw Kalshi event object (with nested markets) into the unified CCXT event shape.
-     * @param rawEvent
+     * @ignore
+     * @method
+     * @name kalshi#parseEvent
+     * @description parses a raw kalshi event object (with nested markets) into the unified CCXT event shape
+     * @param {object} rawEvent the raw event object
+     * @returns {object} an event structure
      */
     parseEvent (rawEvent: Dict): any {
         // {
@@ -1349,13 +1565,17 @@ export default class kalshi extends Exchange {
     }
 
     /**
-     * Builds the request URL and attaches RSA-PSS SHA-256 authentication headers for private endpoints.
-     * @param path
-     * @param api
-     * @param method
-     * @param params
-     * @param headers
-     * @param body
+     * @ignore
+     * @method
+     * @name kalshi#sign
+     * @description builds the request URL and attaches RSA-PSS SHA-256 authentication headers for private endpoints
+     * @param {string} path the endpoint path
+     * @param {string|string[]} [api] the api group and access level
+     * @param {string} [method] HTTP method
+     * @param {object} [params] request parameters
+     * @param {object} [headers] request headers
+     * @param {object} [body] request body
+     * @returns {object} a dictionary with url, method, body and headers
      */
     sign (path: any, api: any = 'kalshi', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];

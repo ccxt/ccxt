@@ -6889,3 +6889,22 @@ func WithFetchTickersHelperParams(params map[string]any) FetchTickersHelperOptio
 		opts.Params = &params
 	}
 }
+
+type FetchEventsOptionsStruct struct {
+	Queries *[]string
+	Params  *map[string]any
+}
+
+type FetchEventsOptions func(opts *FetchEventsOptionsStruct)
+
+func WithFetchEventsQueries(queries []string) FetchEventsOptions {
+	return func(opts *FetchEventsOptionsStruct) {
+		opts.Queries = &queries
+	}
+}
+
+func WithFetchEventsParams(params map[string]any) FetchEventsOptions {
+	return func(opts *FetchEventsOptionsStruct) {
+		opts.Params = &params
+	}
+}
