@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -8910,7 +8910,7 @@ export default class htx extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    async fetchOpenInterest (symbol: string, params = {}) {
+    async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['contract']) {
@@ -8996,13 +8996,13 @@ export default class htx extends Exchange {
             return this.extend (this.parseOpenInterest (result, market), {
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
-            });
+            }) as OpenInterest;
         }
         const data = this.safeValue (response, 'data', []);
         const openInterest = this.parseOpenInterest (data[0], market);
         openInterest['timestamp'] = timestamp;
         openInterest['datetime'] = this.iso8601 (timestamp);
-        return openInterest;
+        return openInterest as OpenInterest;
     }
 
     parseOpenInterest (interest, market: Market = undefined) {
