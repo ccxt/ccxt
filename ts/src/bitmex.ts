@@ -420,6 +420,7 @@ export default class bitmex extends Exchange {
                 'LAMP': 'SOL',
                 'LAMp': 'SOL',
             },
+            'rollingWindowSize': 0.0,  // throws error at 1000.0, is 1000.0 for order and position endpoints, but 60000.0 for other endpoints according to docs
         });
     }
 
