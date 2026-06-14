@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var ed25519_js = require('@noble/curves/ed25519.js');
 var backpack$1 = require('./abstract/backpack.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
-var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 var crypto = require('./base/functions/crypto.js');
 
 // ----------------------------------------------------------------------------
@@ -542,7 +542,7 @@ class backpack extends backpack$1["default"] {
             const network = networks[j];
             const networkId = this.safeString(network, 'blockchain');
             const networkIdLowerCase = this.safeStringLower(network, 'blockchain');
-            const networkCode = this.networkIdToCode(networkIdLowerCase);
+            const networkCode = this.networkIdToCode(networkIdLowerCase, code);
             parsedNetworks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
@@ -1248,10 +1248,18 @@ class backpack extends backpack$1["default"] {
         market = this.safeMarket(marketId, market);
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'quantity');
+        const isBuyerMaker = this.safeBool(trade, 'isBuyerMaker');
+        let side = this.parseOrderSide(this.safeString(trade, 'side'));
         const isMaker = this.safeBool(trade, 'isMaker');
-        const takerOrMaker = isMaker ? 'maker' : 'taker';
+        let takerOrMaker = undefined;
+        if (isMaker !== undefined) {
+            takerOrMaker = isMaker ? 'maker' : 'taker';
+        }
+        else if (isBuyerMaker !== undefined) {
+            takerOrMaker = 'taker';
+            side = isBuyerMaker ? 'sell' : 'buy';
+        }
         const orderId = this.safeString(trade, 'orderId');
-        const side = this.parseOrderSide(this.safeString(trade, 'side'));
         let fee = undefined;
         const feeAmount = this.safeString(trade, 'fee');
         let timestamp = this.safeInteger(trade, 'timestamp');
@@ -1454,7 +1462,7 @@ class backpack extends backpack$1["default"] {
             request['clientId'] = tag; // memo or tag
         }
         const [networkCode, query] = this.handleNetworkCodeAndParams(params);
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, currency['code']);
         if (networkId === undefined) {
             throw new errors.BadRequest(this.id + ' withdraw() requires a network parameter');
         }
@@ -1543,7 +1551,7 @@ class backpack extends backpack$1["default"] {
         const timestamp = this.parse8601(this.safeString(transaction, 'createdAt'));
         const amount = this.safeNumber(transaction, 'quantity');
         const networkId = this.safeStringLower2(transaction, 'source', 'blockchain');
-        const network = this.networkIdToCode(networkId);
+        const network = this.networkIdToCode(networkId, code);
         const addressTo = this.safeString(transaction, 'toAddress');
         const addressFrom = this.safeString(transaction, 'fromAddress');
         const tag = this.safeString(transaction, 'platformMemo');
@@ -1611,7 +1619,7 @@ class backpack extends backpack$1["default"] {
         }
         const currency = this.currency(code);
         const request = {
-            'blockchain': this.networkCodeToId(networkCode),
+            'blockchain': this.networkCodeToId(networkCode, currency['code']),
         };
         const response = await this.privateGetWapiV1CapitalDepositAddress(this.extend(request, params));
         return this.parseDepositAddress(response, currency);
@@ -2242,7 +2250,7 @@ class backpack extends backpack$1["default"] {
             }
             const secretBytes = this.base64ToBinary(this.secret);
             const seed = this.arraySlice(secretBytes, 0, 32);
-            const signature = crypto.eddsa(this.encode(payload), seed, ed25519.ed25519);
+            const signature = crypto.eddsa(this.encode(payload), seed, ed25519_js.ed25519);
             headers = {
                 'X-Timestamp': ts,
                 'X-Window': recvWindow,

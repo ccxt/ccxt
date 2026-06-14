@@ -1,8 +1,5 @@
-- [Okx Position Takeprofit Stoploss](./examples/py/)
-
-
- ```python
- import os
+```python
+import os
 import re
 import sys
 from pprint import pprint
@@ -108,5 +105,5 @@ try:
     #     pprint(canceled_order)
 except Exception as e:
     print(type(e).__name__, str(e))
- 
+
 ```

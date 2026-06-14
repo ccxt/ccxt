@@ -847,62 +847,62 @@ class kraken(Exchange, ImplicitAPI):
         #         },
         #     }
         #
-        currencies = self.safe_value(response, 'result', {})
-        ids = list(currencies.keys())
-        result: dict = {}
-        for i in range(0, len(ids)):
-            id = ids[i]
-            currency = currencies[id]
-            # todo: will need to rethink the fees
-            # see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
-            # to add support for multiple withdrawal/deposit methods and
-            # differentiated fees for each particular method
+        currencies = self.safe_dict(response, 'result', {})
+        enhancedArray = self.add_key_in_array_items(currencies, '_coin_id')
+        return self.parse_currencies(enhancedArray)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        # todo: will need to rethink the fees
+        # see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
+        # to add support for multiple withdrawal/deposit methods and
+        # differentiated fees for each particular method
+        #
+        # Notes about abbreviations:
+        # Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
+        # S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
+        #
+        id = self.safe_string(rawCurrency, '_coin_id')
+        code = self.safe_currency_code(id)
+        # the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
+        if id.find('.') < 0:
+            altName = self.safe_string(rawCurrency, 'altname')
+            # handle cases like below:
             #
-            # Notes about abbreviations:
-            # Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
-            # S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
-            #
-            code = self.safe_currency_code(id)
-            # the below can not be reliable done in `safeCurrencyCode`, so we have to do it here
-            if id.find('.') < 0:
-                altName = self.safe_string(currency, 'altname')
-                # handle cases like below:
-                #
-                #  id   | altname
-                # ---------------
-                # XXBT  |  XBT
-                # ZUSD  |  USD
-                if id != altName and (id.startswith('X') or id.startswith('Z')):
-                    code = self.safe_currency_code(altName)
-                    # also, add map in commonCurrencies:
-                    self.commonCurrencies[id] = code
-                else:
-                    code = self.safe_currency_code(id)
-            isFiat = code.find('.HOLD') >= 0
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': self.safe_string(currency, 'altname'),
-                'active': self.safe_string(currency, 'status') == 'enabled',
-                'type': 'fiat' if isFiat else 'crypto',
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
+            #  id   | altname
+            # ---------------
+            # XXBT  |  XBT
+            # ZUSD  |  USD
+            if id != altName and (id.startswith('X') or id.startswith('Z')):
+                code = self.safe_currency_code(altName)
+                # also, add map in commonCurrencies:
+                self.commonCurrencies[id] = code
+            else:
+                code = self.safe_currency_code(id)
+        isFiat = code.find('.HOLD') >= 0
+        rawCurrency = self.omit(rawCurrency, '_coin_id')
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'name': self.safe_string(rawCurrency, 'altname'),
+            'active': self.safe_string(rawCurrency, 'status') == 'enabled',
+            'type': 'fiat' if isFiat else 'crypto',
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'decimals'))),
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
                 },
-                'networks': {},
-            })
-        return result
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': {},
+        })
 
     def safe_currency_code(self, currencyId: Str, currency: Currency = None) -> Str:
         if currencyId is None:
@@ -978,7 +978,7 @@ class kraken(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def parse_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+    def parse_order_book_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         price = self.safe_number(bidask, priceKey)
         amount = self.safe_number(bidask, amountKey)
         timestamp = self.safe_integer(bidask, 2)

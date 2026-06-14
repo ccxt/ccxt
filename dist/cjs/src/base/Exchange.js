@@ -2,13 +2,17 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var secp256k1_js = require('@noble/curves/secp256k1.js');
+var sha3_js = require('@noble/hashes/sha3.js');
+var starknet = require('@scure/starknet');
+var sha2_js = require('@noble/hashes/sha2.js');
+var legacy_js = require('@noble/hashes/legacy.js');
 var functions = require('./functions.js');
 var errors = require('./errors.js');
 var Precise = require('./Precise.js');
 var WsClient = require('./ws/WsClient.js');
 var Future = require('./ws/Future.js');
 var OrderBook = require('./ws/OrderBook.js');
-var crypto = require('./functions/crypto.js');
 var totp = require('./functions/totp.js');
 var index = require('../static_dependencies/ethers/index.js');
 require('../static_dependencies/ethers/utils/base58.js');
@@ -17,23 +21,18 @@ require('../static_dependencies/ethers/utils/events.js');
 require('../static_dependencies/ethers/utils/fixednumber.js');
 require('../static_dependencies/ethers/utils/maths.js');
 require('../static_dependencies/ethers/utils/utf8.js');
-var sha3 = require('../static_dependencies/noble-hashes/sha3.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 require('../static_dependencies/ethers/address/address.js');
 var typedData = require('../static_dependencies/ethers/hash/typed-data.js');
-var secp256k1 = require('../static_dependencies/noble-curves/secp256k1.js');
 var rng = require('../static_dependencies/jsencrypt/lib/jsbn/rng.js');
-var index$1 = require('../static_dependencies/scure-starknet/index.js');
 var zklinkSdkWeb = require('../static_dependencies/zklink/zklink-sdk-web.js');
-require('../static_dependencies/noble-curves/abstract/modular.js');
+require('@noble/curves/abstract/poseidon.js');
 var selector = require('../static_dependencies/starknet/utils/selector.js');
 var classHash = require('../static_dependencies/starknet/utils/hash/classHash.js');
-var index$2 = require('../static_dependencies/starknet/utils/calldata/index.js');
+var index$1 = require('../static_dependencies/starknet/utils/calldata/index.js');
 var typedData$1 = require('../static_dependencies/starknet/utils/typedData.js');
-var sha1 = require('../static_dependencies/noble-hashes/sha1.js');
 var onboarding = require('../static_dependencies/dydx-v4-client/onboarding.js');
 require('../static_dependencies/dydx-v4-client/helpers.js');
-var index$3 = require('../static_dependencies/dydx-v4-client/long/index.cjs.js');
+var index$2 = require('../static_dependencies/dydx-v4-client/long/index.cjs.js');
 var io = require('./functions/io.js');
 
 function _interopNamespace(e) {
@@ -57,7 +56,7 @@ function _interopNamespace(e) {
 // ----------------------------------------------------------------------------
 const { isNode, selfIsDefined, deepExtend, extend, clone, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, binaryConcat, hash, 
 // ecdsa,
-arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, readFile, writeFile, existsFile, getTempDir, } = functions;
+arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, readFile, writeFile, existsFile, getTempDir, filePathToFileUrlForWindows, } = functions;
 // ----------------------------------------------------------------------------
 let protobufMexc = undefined;
 let encodeAsAny = undefined;
@@ -118,7 +117,6 @@ class Exchange {
         this.transactions = {};
         this.myLiquidations = undefined;
         this.requiresWeb3 = false;
-        this.requiresEddsa = false;
         this.precision = undefined;
         this.enableLastJsonResponse = false;
         this.enableLastHttpResponse = true;
@@ -331,7 +329,6 @@ class Exchange {
         this.positions = undefined;
         // web3 and cryptography flags
         this.requiresWeb3 = false;
-        this.requiresEddsa = false;
         // response handling flags and properties
         this.lastRestRequestTimestamp = 0;
         this.enableLastJsonResponse = false;
@@ -404,7 +401,7 @@ class Exchange {
             .map((byte) => parseInt(byte, 16));
         const nameBytes = new TextEncoder().encode(name);
         const data = new Uint8Array([...nsBytes, ...nameBytes]);
-        const nsHash = sha1.sha1(data);
+        const nsHash = legacy_js.sha1(data);
         // eslint-disable-next-line
         nsHash[6] = (nsHash[6] & 0x0f) | 0x50;
         // eslint-disable-next-line
@@ -1331,9 +1328,6 @@ class Exchange {
         const length = Math.min(100000, message.length);
         return message.slice(0, length);
     }
-    axolotl(payload, hexKey, ed25519) {
-        return crypto.axolotl(payload, hexKey, ed25519);
-    }
     fixStringifiedJsonMembers(content) {
         // used for instance in bingx
         // when stringified json has members with their values also stringified, like:
@@ -1356,12 +1350,12 @@ class Exchange {
         // Removes the "0x" prefix if present
         const cleanPrivateKey = this.remove0xPrefix(privateKey);
         // Get the public key from the private key using secp256k1 curve
-        const publicKeyBytes = secp256k1.secp256k1.getPublicKey(cleanPrivateKey);
+        const publicKeyBytes = secp256k1_js.secp256k1.getPublicKey(this.base16ToBinary(cleanPrivateKey));
         // For Ethereum, we need to use the uncompressed public key (without the first byte which indicates compression)
         // secp256k1.getPublicKey returns compressed key, we need uncompressed
-        const publicKeyUncompressed = secp256k1.secp256k1.ProjectivePoint.fromHex(publicKeyBytes).toRawBytes(false).slice(1); // Remove 0x04 prefix
+        const publicKeyUncompressed = secp256k1_js.secp256k1.Point.fromBytes(publicKeyBytes).toBytes(false).slice(1); // Remove 0x04 prefix
         // Hash the public key with Keccak256
-        const publicKeyHash = sha3.keccak_256(publicKeyUncompressed);
+        const publicKeyHash = sha3_js.keccak_256(publicKeyUncompressed);
         // Take the last 20 bytes (40 hex chars)
         const addressBytes = publicKeyHash.slice(-20);
         // Convert to hex and add 0x prefix
@@ -1369,12 +1363,12 @@ class Exchange {
         return addressHex;
     }
     retrieveStarkAccount(signature, accountClassHash, accountProxyClassHash) {
-        const privateKey = index$1.ethSigToPrivate(signature);
-        const publicKey = index$1.getStarkKey(privateKey);
-        const callData = index$2.CallData.compile({
+        const privateKey = starknet.ethSigToPrivate(signature);
+        const publicKey = starknet.getStarkKey(privateKey);
+        const callData = index$1.CallData.compile({
             'implementation': accountClassHash,
             'selector': selector.getSelectorFromName('initialize'),
-            'calldata': index$2.CallData.compile({
+            'calldata': index$1.CallData.compile({
                 'signer': publicKey,
                 'guardian': '0',
             }),
@@ -1408,12 +1402,22 @@ class Exchange {
     }
     starknetSign(msgHash, pri) {
         // TODO: unify to ecdsa
-        const signature = index$1.sign(msgHash.replace('0x', ''), pri.replace('0x', ''));
+        const signature = starknet.sign(msgHash.replace('0x', ''), pri.replace('0x', ''));
         return this.json([signature.r.toString(), signature.s.toString()]);
     }
+    extendedStarknetSign(msgHash, pri) {
+        const signature = starknet.sign(msgHash.replace('0x', ''), pri.replace('0x', ''));
+        return this.json([signature.r.toString(), signature.s.toString()]);
+    }
+    extendedStarknetGetSelectorFromName(name) {
+        return selector.getSelectorFromName(name);
+    }
+    extendedStarknetComputePoseidonHashOnElements(data) {
+        return classHash.computePoseidonHashOnElements(data);
+    }
     async getZKContractSignatureObj(seed, params = {}) {
-        const formattedSlotId = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'slotId')), sha256.sha256, 'hex'))).toString();
-        const formattedNonce = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'nonce')), sha256.sha256, 'hex'))).toString();
+        const formattedSlotId = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'slotId')), sha2_js.sha256, 'hex'))).toString();
+        const formattedNonce = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'nonce')), sha2_js.sha256, 'hex'))).toString();
         const formattedUint64 = '18446744073709551615';
         const formattedUint32 = '4294967295';
         const accountId = parseInt(Precise["default"].stringMod(this.safeString(params, 'accountId'), formattedUint32), 10);
@@ -1438,7 +1442,7 @@ class Exchange {
         let nonce = this.safeString(params, 'nonce', '0');
         if (this.safeBool(params, 'isContract') === true) {
             const formattedUint32 = '4294967295';
-            const formattedNonce = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(nonce), sha256.sha256, 'hex'))).toString();
+            const formattedNonce = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(nonce), sha2_js.sha256, 'hex'))).toString();
             nonce = Precise["default"].stringMod(formattedNonce, formattedUint32);
         }
         const tx_builder = new zklinkSdkWeb.TransferBuilder(this.safeNumber(params, 'zkAccountId', 0), this.safeString(params, 'receiverAddress'), this.safeNumber(params, 'subAccountId', 0), this.safeNumber(params, 'receiverSubAccountId', 0), this.safeNumber(params, 'tokenId', 0), this.safeString(params, 'fee', '0'), this.safeString(params, 'amount', '0'), this.parseToInt(nonce), this.safeNumber(params, 'timestampSeconds', 0));
@@ -1467,7 +1471,7 @@ class Exchange {
         SignMode = modules[2].SignMode;
     }
     toDydxLong(numStr) {
-        return index$3["default"].fromString(numStr);
+        return index$2["default"].fromString(numStr);
     }
     retrieveDydxCredentials(entropy) {
         let credentials = undefined;
@@ -1559,7 +1563,7 @@ class Exchange {
             'bodyBytes': txBodyBytes,
             'chainId': chainId,
         });
-        const signingHash = this.hash(SignDoc.encode(signDoc).finish(), sha256.sha256, 'hex');
+        const signingHash = this.hash(SignDoc.encode(signDoc).finish(), sha2_js.sha256, 'hex');
         return [signingHash, signDoc];
     }
     encodeDydxTxRaw(signDoc, signature) {
@@ -1621,7 +1625,7 @@ class Exchange {
         if (wasmExecPath === undefined || wasmExecPath === '') {
             throw new Error('loadLighterLibrary() requires "wasmExecPath" that should point to `wasm_exec.js`. You can check the location of the file locally if you have GO installed or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["wasmExecPath"] = "/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js"');
         }
-        await (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(wasmExecPath);
+        await (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(filePathToFileUrlForWindows(wasmExecPath));
         const go = new globalThis.Go();
         // read wasm from disks
         const bytes = new Uint8Array(readFile(libraryPath, null)); // it should point to lighter.wasm
@@ -2286,7 +2290,7 @@ class Exchange {
     }
     handleDeltasWithKeys(bookSide, deltas, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         for (let i = 0; i < deltas.length; i++) {
-            const bidAsk = this.parseBidAsk(deltas[i], priceKey, amountKey, countOrIdKey);
+            const bidAsk = this.parseOrderBookBidAsk(deltas[i], priceKey, amountKey, countOrIdKey);
             bookSide.storeArray(bidAsk);
         }
     }
@@ -4120,6 +4124,21 @@ class Exchange {
         }
         return arr[length - 1];
     }
+    addKeyInArrayItems(obj, keyName) {
+        const result = [];
+        const keys = Object.keys(obj);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const item = obj[key];
+            if (item === undefined) {
+                continue;
+            }
+            const itemWithKey = this.extend({}, item);
+            itemWithKey[keyName] = key;
+            result.push(itemWithKey);
+        }
+        return result;
+    }
     invertFlatStringDictionary(dict) {
         const reversed = {};
         const keys = Object.keys(dict);
@@ -4546,11 +4565,11 @@ class Exchange {
         }
         return result;
     }
-    parseBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+    parseOrderBookBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         bidasks = this.toArray(bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
-            result.push(this.parseBidAsk(bidasks[i], priceKey, amountKey, countOrIdKey));
+            result.push(this.parseOrderBookBidAsk(bidasks[i], priceKey, amountKey, countOrIdKey));
         }
         return result;
     }
@@ -4800,8 +4819,8 @@ class Exchange {
         return this.parseNumber(value, d);
     }
     parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, countOrIdKey = 2) {
-        const bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
-        const asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
+        const bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy(bids, 0, true),
@@ -5359,7 +5378,7 @@ class Exchange {
     async fetchLedgerEntry(id, code = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchLedgerEntry() is not supported yet');
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+    parseOrderBookBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const price = this.safeFloat(bidask, priceKey);
         const amount = this.safeFloat(bidask, amountKey);
         const countOrId = this.safeInteger(bidask, countOrIdKey);

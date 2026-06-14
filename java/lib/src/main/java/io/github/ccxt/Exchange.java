@@ -20,6 +20,10 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.util.concurrent.ExecutionException;
 import java.security.SecureRandom;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 import io.github.ccxt.base.Crypto;
 import io.github.ccxt.base.Encode;
@@ -622,10 +626,6 @@ public class Exchange {
             return unsigned - 0x100000000L;
         }
         return unsigned;
-    }
-
-    public  Object axolotl(Object a, Object b, Object c) {
-        return Crypto.axolotl(a, b, c);
     }
 
     // public Object md5() {
@@ -2850,6 +2850,382 @@ public class Exchange {
         return ""; // to do later
     }
 
+    public Object extendedStarknetSign(Object msgHash, Object privateKey)
+    {
+        BigInteger hash = extendedParseStarknetBigInteger(msgHash);
+        BigInteger key = extendedParseStarknetBigInteger(privateKey);
+        BigInteger[] signature = extendedStarknetSignBigInteger(hash, key);
+        return this.json(new ArrayList<Object>(Arrays.asList(signature[0].toString(), signature[1].toString())));
+    }
+
+    public Object extendedStarknetGetSelectorFromName(Object name)
+    {
+        String functionName = name.toString();
+        if (functionName.equals("__default__") || functionName.equals("__l1_default__")) {
+            return "0";
+        }
+        byte[] digest = keccak256(functionName.getBytes(StandardCharsets.US_ASCII));
+        return extendedField(extendedBigIntegerFromUnsignedBytes(digest), EXTENDED_STARKNET_SELECTOR_MASK).toString();
+    }
+
+    public Object extendedStarknetComputePoseidonHashOnElements(Object data)
+    {
+        if (!(data instanceof Iterable<?>)) {
+            throw new RuntimeException("extendedStarknetComputePoseidonHashOnElements() requires an array");
+        }
+        ArrayList<BigInteger> padded = new ArrayList<>();
+        for (Object value : (Iterable<?>) data) {
+            padded.add(extendedParseStarknetBigInteger(value));
+        }
+        padded.add(BigInteger.ONE);
+        while ((padded.size() % EXTENDED_STARKNET_POSEIDON_RATE) != 0) {
+            padded.add(BigInteger.ZERO);
+        }
+        BigInteger[] state = new BigInteger[] { BigInteger.ZERO, BigInteger.ZERO, BigInteger.ZERO };
+        for (int i = 0; i < padded.size(); i += EXTENDED_STARKNET_POSEIDON_RATE) {
+            for (int j = 0; j < EXTENDED_STARKNET_POSEIDON_RATE; j++) {
+                state[j] = state[j].add(padded.get(i + j));
+            }
+            state = extendedPoseidonHash(state);
+        }
+        return state[0].toString();
+    }
+
+    private static final BigInteger EXTENDED_STARKNET_FIELD_PRIME = new BigInteger("3618502788666131213697322783095070105623107215331596699973092056135872020481");
+    private static final BigInteger EXTENDED_STARKNET_ALPHA = BigInteger.ONE;
+    private static final BigInteger EXTENDED_STARKNET_BETA = new BigInteger("3141592653589793238462643383279502884197169399375105820974944592307816406665");
+    private static final BigInteger EXTENDED_STARKNET_EC_ORDER = new BigInteger("3618502788666131213697322783095070105526743751716087489154079457884512865583");
+    private static final BigInteger EXTENDED_STARKNET_EC_GEN_X = new BigInteger("874739451078007766457464989774322083649278607533249481151382481072868806602");
+    private static final BigInteger EXTENDED_STARKNET_EC_GEN_Y = new BigInteger("152666792071518830868575557812948353041420400780739481342941381225525861407");
+    private static final BigInteger EXTENDED_STARKNET_SELECTOR_MASK = BigInteger.ONE.shiftLeft(250);
+    private static final int EXTENDED_STARKNET_ELEMENT_BITS_ECDSA = 251;
+    private static final int EXTENDED_STARKNET_POSEIDON_RATE = 2;
+    private static final int EXTENDED_STARKNET_POSEIDON_CAPACITY = 1;
+    private static final int EXTENDED_STARKNET_POSEIDON_ROUNDS_FULL = 8;
+    private static final int EXTENDED_STARKNET_POSEIDON_ROUNDS_PARTIAL = 83;
+    private static final BigInteger[][] EXTENDED_STARKNET_POSEIDON_ROUND_CONSTANTS = extendedBuildPoseidonRoundConstants();
+    private static final BigInteger[][] EXTENDED_STARKNET_POSEIDON_MDS = new BigInteger[][] {
+        new BigInteger[] { BigInteger.valueOf(3), BigInteger.ONE, BigInteger.ONE },
+        new BigInteger[] { BigInteger.ONE, BigInteger.valueOf(-1), BigInteger.ONE },
+        new BigInteger[] { BigInteger.ONE, BigInteger.ONE, BigInteger.valueOf(-2) },
+    };
+
+    private static BigInteger extendedParseStarknetBigInteger(Object value)
+    {
+        if (value == null) {
+            throw new RuntimeException("invalid starknet integer");
+        }
+        if (value instanceof BigInteger) {
+            return (BigInteger) value;
+        }
+        if (value instanceof Number) {
+            return BigInteger.valueOf(((Number) value).longValue());
+        }
+        String text = value.toString().trim();
+        if (text.startsWith("0x") || text.startsWith("0X")) {
+            return new BigInteger(text.substring(2), 16);
+        }
+        return new BigInteger(text, 10);
+    }
+
+    private static BigInteger extendedField(BigInteger value)
+    {
+        return extendedField(value, EXTENDED_STARKNET_FIELD_PRIME);
+    }
+
+    private static BigInteger extendedField(BigInteger value, BigInteger modulus)
+    {
+        BigInteger result = value.mod(modulus);
+        return (result.signum() < 0) ? result.add(modulus) : result;
+    }
+
+    private static BigInteger extendedBigIntegerFromUnsignedBytes(byte[] bytes)
+    {
+        return new BigInteger(1, bytes);
+    }
+
+    private static byte[] extendedUnsignedBytes(BigInteger value)
+    {
+        byte[] bytes = value.toByteArray();
+        if ((bytes.length > 1) && (bytes[0] == 0)) {
+            return Arrays.copyOfRange(bytes, 1, bytes.length);
+        }
+        return bytes;
+    }
+
+    private static byte[] extendedPrepareMessageHash(BigInteger msgHash)
+    {
+        if ((msgHash.bitLength() % 8 >= 1) && (msgHash.bitLength() % 8 <= 4) && (msgHash.bitLength() >= 248)) {
+            msgHash = msgHash.shiftLeft(4);
+        }
+        return extendedUnsignedBytes(msgHash);
+    }
+
+    private static BigInteger[] extendedStarknetSignBigInteger(BigInteger msgHash, BigInteger privateKey)
+    {
+        if ((msgHash.signum() < 0) || (msgHash.compareTo(BigInteger.ONE.shiftLeft(EXTENDED_STARKNET_ELEMENT_BITS_ECDSA)) >= 0)) {
+            throw new RuntimeException("Message not signable.");
+        }
+        BigInteger seed = BigInteger.valueOf(32);
+        while (true) {
+            BigInteger k = extendedGenerateKRFC6979(msgHash, privateKey, seed);
+            seed = seed.add(BigInteger.ONE);
+            BigInteger r = extendedEcMult(k, new ExtendedStarknetPoint(EXTENDED_STARKNET_EC_GEN_X, EXTENDED_STARKNET_EC_GEN_Y)).x;
+            if (extendedIsInvalidSignatureValue(r)) {
+                continue;
+            }
+            BigInteger temp = msgHash.add(r.multiply(privateKey)).mod(EXTENDED_STARKNET_EC_ORDER);
+            if (temp.equals(BigInteger.ZERO)) {
+                continue;
+            }
+            BigInteger w = extendedDivMod(k, temp, EXTENDED_STARKNET_EC_ORDER);
+            BigInteger s = extendedDivMod(BigInteger.ONE, w, EXTENDED_STARKNET_EC_ORDER);
+            if (extendedIsInvalidSignatureValue(s)) {
+                continue;
+            }
+            return new BigInteger[] { r, s };
+        }
+    }
+
+    private static BigInteger extendedGenerateKRFC6979(BigInteger msgHash, BigInteger privateKey, BigInteger seed)
+    {
+        return extendedGenerateKRFC6979(EXTENDED_STARKNET_EC_ORDER, privateKey, extendedPrepareMessageHash(msgHash), extendedUnsignedBytes(seed));
+    }
+
+    private static BigInteger extendedGenerateKRFC6979(BigInteger order, BigInteger secretExponent, byte[] data, byte[] extraEntropy)
+    {
+        int qlen = order.bitLength();
+        int holen = 32;
+        int rolen = (qlen + 7) / 8;
+        byte[] bx = extendedBytesConcat(extendedNumberToString(secretExponent, order), extendedBits2Octets(data, order), extraEntropy);
+        byte[] v = new byte[holen];
+        Arrays.fill(v, (byte) 1);
+        byte[] k = new byte[holen];
+        k = extendedHmacSha256(k, extendedBytesConcat(v, new byte[] { 0 }, bx));
+        v = extendedHmacSha256(k, v);
+        k = extendedHmacSha256(k, extendedBytesConcat(v, new byte[] { 1 }, bx));
+        v = extendedHmacSha256(k, v);
+        while (true) {
+            java.io.ByteArrayOutputStream t = new java.io.ByteArrayOutputStream();
+            while (t.size() < rolen) {
+                v = extendedHmacSha256(k, v);
+                try {
+                    t.write(v);
+                } catch (java.io.IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            BigInteger secret = extendedBits2Int(t.toByteArray(), qlen);
+            if ((secret.compareTo(BigInteger.ONE) >= 0) && (secret.compareTo(order) < 0)) {
+                return secret;
+            }
+            k = extendedHmacSha256(k, extendedBytesConcat(v, new byte[] { 0 }));
+            v = extendedHmacSha256(k, v);
+        }
+    }
+
+    private static byte[] extendedHmacSha256(byte[] key, byte[] data)
+    {
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(key, "HmacSHA256"));
+            return mac.doFinal(data);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static byte[] extendedBytesConcat(byte[]... arrays)
+    {
+        int length = 0;
+        for (byte[] array : arrays) {
+            length += array.length;
+        }
+        byte[] result = new byte[length];
+        int offset = 0;
+        for (byte[] array : arrays) {
+            System.arraycopy(array, 0, result, offset, array.length);
+            offset += array.length;
+        }
+        return result;
+    }
+
+    private static int extendedOrderLength(BigInteger order)
+    {
+        return (1 + order.toString(16).length()) / 2;
+    }
+
+    private static byte[] extendedNumberToString(BigInteger value, BigInteger order)
+    {
+        int length = extendedOrderLength(order);
+        byte[] bytes = extendedUnsignedBytes(value);
+        if (bytes.length == length) {
+            return bytes;
+        }
+        byte[] result = new byte[length];
+        if (bytes.length > length) {
+            System.arraycopy(bytes, bytes.length - length, result, 0, length);
+        } else {
+            System.arraycopy(bytes, 0, result, length - bytes.length, bytes.length);
+        }
+        return result;
+    }
+
+    private static byte[] extendedNumberToStringCrop(BigInteger value, BigInteger order)
+    {
+        byte[] bytes = extendedNumberToString(value, order);
+        int length = extendedOrderLength(order);
+        return (bytes.length == length) ? bytes : Arrays.copyOf(bytes, length);
+    }
+
+    private static BigInteger extendedBits2Int(byte[] data, int qlen)
+    {
+        BigInteger x = extendedBigIntegerFromUnsignedBytes(data);
+        int bitLength = data.length * 8;
+        if (bitLength > qlen) {
+            return x.shiftRight(bitLength - qlen);
+        }
+        return x;
+    }
+
+    private static byte[] extendedBits2Octets(byte[] data, BigInteger order)
+    {
+        BigInteger z1 = extendedBits2Int(data, order.bitLength());
+        BigInteger z2 = z1.subtract(order);
+        if (z2.signum() < 0) {
+            z2 = z1;
+        }
+        return extendedNumberToStringCrop(z2, order);
+    }
+
+    private static boolean extendedIsInvalidSignatureValue(BigInteger value)
+    {
+        return (value.signum() <= 0) || (value.compareTo(BigInteger.ONE.shiftLeft(EXTENDED_STARKNET_ELEMENT_BITS_ECDSA)) >= 0);
+    }
+
+    private static BigInteger extendedDivMod(BigInteger n, BigInteger m, BigInteger p)
+    {
+        return extendedField(n.multiply(m.modInverse(p)), p);
+    }
+
+    private static ExtendedStarknetPoint extendedEcAdd(ExtendedStarknetPoint point1, ExtendedStarknetPoint point2)
+    {
+        if (point1.x.subtract(point2.x).mod(EXTENDED_STARKNET_FIELD_PRIME).equals(BigInteger.ZERO)) {
+            throw new RuntimeException("Points must have different x coordinates.");
+        }
+        BigInteger slope = extendedDivMod(point1.y.subtract(point2.y), point1.x.subtract(point2.x), EXTENDED_STARKNET_FIELD_PRIME);
+        BigInteger x = extendedField(slope.multiply(slope).subtract(point1.x).subtract(point2.x));
+        BigInteger y = extendedField(slope.multiply(point1.x.subtract(x)).subtract(point1.y));
+        return new ExtendedStarknetPoint(x, y);
+    }
+
+    private static ExtendedStarknetPoint extendedEcDouble(ExtendedStarknetPoint point)
+    {
+        if (point.y.mod(EXTENDED_STARKNET_FIELD_PRIME).equals(BigInteger.ZERO)) {
+            throw new RuntimeException("Point y coordinate cannot be zero.");
+        }
+        BigInteger slope = extendedDivMod(BigInteger.valueOf(3).multiply(point.x).multiply(point.x).add(EXTENDED_STARKNET_ALPHA), BigInteger.valueOf(2).multiply(point.y), EXTENDED_STARKNET_FIELD_PRIME);
+        BigInteger x = extendedField(slope.multiply(slope).subtract(BigInteger.valueOf(2).multiply(point.x)));
+        BigInteger y = extendedField(slope.multiply(point.x.subtract(x)).subtract(point.y));
+        return new ExtendedStarknetPoint(x, y);
+    }
+
+    private static ExtendedStarknetPoint extendedEcMult(BigInteger scalar, ExtendedStarknetPoint point)
+    {
+        if (scalar.equals(BigInteger.ONE)) {
+            return point;
+        }
+        if (scalar.mod(BigInteger.valueOf(2)).equals(BigInteger.ZERO)) {
+            return extendedEcMult(scalar.divide(BigInteger.valueOf(2)), extendedEcDouble(point));
+        }
+        return extendedEcAdd(extendedEcMult(scalar.subtract(BigInteger.ONE), point), point);
+    }
+
+    private static class ExtendedStarknetPoint {
+        BigInteger x;
+        BigInteger y;
+        ExtendedStarknetPoint(BigInteger x, BigInteger y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    private static BigInteger[][] extendedBuildPoseidonRoundConstants()
+    {
+        int rounds = EXTENDED_STARKNET_POSEIDON_ROUNDS_FULL + EXTENDED_STARKNET_POSEIDON_ROUNDS_PARTIAL;
+        int width = EXTENDED_STARKNET_POSEIDON_RATE + EXTENDED_STARKNET_POSEIDON_CAPACITY;
+        BigInteger[][] constants = new BigInteger[rounds][width];
+        for (int i = 0; i < rounds; i++) {
+            for (int j = 0; j < width; j++) {
+                constants[i][j] = extendedPoseidonRoundConstant("Hades", width * i + j);
+            }
+        }
+        return constants;
+    }
+
+    private static BigInteger extendedPoseidonRoundConstant(String name, int index)
+    {
+        try {
+            java.security.MessageDigest sha256 = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] digest = sha256.digest((name + Integer.toString(index)).getBytes(StandardCharsets.UTF_8));
+            return extendedField(extendedBigIntegerFromUnsignedBytes(digest));
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static BigInteger extendedPoseidonSbox(BigInteger value)
+    {
+        return value.modPow(BigInteger.valueOf(3), EXTENDED_STARKNET_FIELD_PRIME);
+    }
+
+    private static BigInteger[] extendedPoseidonRound(BigInteger[] values, boolean isFull, int index)
+    {
+        BigInteger[] current = new BigInteger[values.length];
+        for (int i = 0; i < values.length; i++) {
+            current[i] = extendedField(values[i].add(EXTENDED_STARKNET_POSEIDON_ROUND_CONSTANTS[index][i]));
+        }
+        if (isFull) {
+            for (int i = 0; i < current.length; i++) {
+                current[i] = extendedPoseidonSbox(current[i]);
+            }
+        } else {
+            current[current.length - 1] = extendedPoseidonSbox(current[current.length - 1]);
+        }
+        BigInteger[] result = new BigInteger[EXTENDED_STARKNET_POSEIDON_MDS.length];
+        for (int row = 0; row < EXTENDED_STARKNET_POSEIDON_MDS.length; row++) {
+            BigInteger acc = BigInteger.ZERO;
+            for (int i = 0; i < current.length; i++) {
+                acc = acc.add(EXTENDED_STARKNET_POSEIDON_MDS[row][i].multiply(current[i]));
+            }
+            result[row] = extendedField(acc);
+        }
+        return result;
+    }
+
+    private static BigInteger[] extendedPoseidonHash(BigInteger[] values)
+    {
+        if (values.length != (EXTENDED_STARKNET_POSEIDON_RATE + EXTENDED_STARKNET_POSEIDON_CAPACITY)) {
+            throw new RuntimeException("Poseidon: wrong values length");
+        }
+        BigInteger[] current = new BigInteger[values.length];
+        for (int i = 0; i < values.length; i++) {
+            current[i] = extendedField(values[i]);
+        }
+        int roundIndex = 0;
+        int halfRoundsFull = EXTENDED_STARKNET_POSEIDON_ROUNDS_FULL / 2;
+        for (int i = 0; i < halfRoundsFull; i++) {
+            current = extendedPoseidonRound(current, true, roundIndex++);
+        }
+        for (int i = 0; i < EXTENDED_STARKNET_POSEIDON_ROUNDS_PARTIAL; i++) {
+            current = extendedPoseidonRound(current, false, roundIndex++);
+        }
+        for (int i = 0; i < halfRoundsFull; i++) {
+            current = extendedPoseidonRound(current, true, roundIndex++);
+        }
+        return current;
+    }
+
     // public Object starknetEncodeStructuredData(Object domain2, Object messageTypes2, Object messageData2, Object address)
     // {
     //     throw new RuntimeException("Not implemented");
@@ -3843,7 +4219,7 @@ public Object describe()
         Object countOrIdKey = Helpers.getArg(optionalArgs, 2, 2);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
         {
-            Object bidAsk = this.parseBidAsk(Helpers.GetValue(deltas, i), priceKey, amountKey, countOrIdKey);
+            Object bidAsk = this.parseOrderBookBidAsk(Helpers.GetValue(deltas, i), priceKey, amountKey, countOrIdKey);
             ((IOrderBookSide)bookSide).storeArray(bidAsk);
         }
     }
@@ -6716,6 +7092,25 @@ public Object describe()
         return Helpers.GetValue(arr, Helpers.subtract(length, 1));
     }
 
+    public Object addKeyInArrayItems(Object obj, Object keyName)
+    {
+        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object keys = Helpers.objectKeys(obj);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
+        {
+            Object key = Helpers.GetValue(keys, i);
+            Object item = Helpers.GetValue(obj, key);
+            if (Helpers.isTrue(Helpers.isEqual(item, null)))
+            {
+                continue;
+            }
+            Object itemWithKey = this.extend(new java.util.HashMap<String, Object>() {{}}, item);
+            Helpers.addElementToObject(itemWithKey, keyName, key);
+            ((java.util.List<Object>)result).add(itemWithKey);
+        }
+        return result;
+    }
+
     public Object invertFlatStringDictionary(Object dict)
     {
         Object reversed = new java.util.HashMap<String, Object>() {{}};
@@ -7367,7 +7762,7 @@ public Object describe()
         return result;
     }
 
-    public Object parseBidsAsks(Object bidasks, Object... optionalArgs)
+    public Object parseOrderBookBidsAsks(Object bidasks, Object... optionalArgs)
     {
         Object priceKey = Helpers.getArg(optionalArgs, 0, 0);
         Object amountKey = Helpers.getArg(optionalArgs, 1, 1);
@@ -7376,7 +7771,7 @@ public Object describe()
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidasks)); i++)
         {
-            ((java.util.List<Object>)result).add(this.parseBidAsk(Helpers.GetValue(bidasks, i), priceKey, amountKey, countOrIdKey));
+            ((java.util.List<Object>)result).add(this.parseOrderBookBidAsk(Helpers.GetValue(bidasks, i), priceKey, amountKey, countOrIdKey));
         }
         return result;
     }
@@ -7699,8 +8094,8 @@ public Object describe()
         Object priceKey = Helpers.getArg(optionalArgs, 3, 0);
         Object amountKey = Helpers.getArg(optionalArgs, 4, 1);
         Object countOrIdKey = Helpers.getArg(optionalArgs, 5, 2);
-        Object bids = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, new java.util.ArrayList<Object>(java.util.Arrays.asList())), priceKey, amountKey, countOrIdKey);
-        Object asks = this.parseBidsAsks(this.safeValue(orderbook, asksKey, new java.util.ArrayList<Object>(java.util.Arrays.asList())), priceKey, amountKey, countOrIdKey);
+        Object bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, new java.util.ArrayList<Object>(java.util.Arrays.asList())), priceKey, amountKey, countOrIdKey);
+        Object asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, new java.util.ArrayList<Object>(java.util.Arrays.asList())), priceKey, amountKey, countOrIdKey);
         return new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "bids", Exchange.this.sortBy(bids, 0, true) );
@@ -8660,7 +9055,7 @@ public Object describe()
 
     }
 
-    public Object parseBidAsk(Object bidask, Object... optionalArgs)
+    public Object parseOrderBookBidAsk(Object bidask, Object... optionalArgs)
     {
         Object priceKey = Helpers.getArg(optionalArgs, 0, 0);
         Object amountKey = Helpers.getArg(optionalArgs, 1, 1);

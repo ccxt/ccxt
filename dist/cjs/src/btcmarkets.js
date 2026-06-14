@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var btcmarkets$1 = require('./abstract/btcmarkets.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -1380,7 +1380,7 @@ class btcmarkets extends btcmarkets$1["default"] {
                 body = this.json(query);
                 auth += body;
             }
-            const signature = this.hmac(this.encode(auth), secret, sha512.sha512, 'base64');
+            const signature = this.hmac(this.encode(auth), secret, sha2_js.sha512, 'base64');
             headers = {
                 'Accept': 'application/json',
                 'Accept-Charset': 'UTF-8',

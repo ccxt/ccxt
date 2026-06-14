@@ -2173,8 +2173,10 @@ public partial class aster : Exchange
         //        }
         //
         object info = order;
+        object positionSide = this.safeString(order, "positionSide");
+        object defaultType = ((bool) isTrue((!isEqual(positionSide, null)))) ? "swap" : "spot";
         object marketId = this.safeString(order, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, null, defaultType);
         object side = this.safeStringLower(order, "side");
         object timestamp = this.safeInteger(order, "time");
         object statusId = this.safeStringUpper(order, "status");
@@ -3182,7 +3184,7 @@ public partial class aster : Exchange
         //     }
         //
         object marketId = this.safeString(marginMode, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, null, "swap");
         return new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", getValue(market, "symbol") },
@@ -4402,7 +4404,8 @@ public partial class aster : Exchange
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             object zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
             object v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);
-            object signerAddress = this.safeString(this.options, "signerAddress");
+            object walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+            object signerAddress = this.safeString(this.options, "signerAddress", walletAddress); // default to user's wallet
             if (isTrue(isEqual(signerAddress, null)))
             {
                 throw new ArgumentsRequired ((string)add(this.id, " requires signerAddress in options when use v3 api")) ;
@@ -4423,7 +4426,7 @@ public partial class aster : Exchange
             // Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
             object finalParams = this.extend(new Dictionary<string, object>() {
                 { "nonce", ((object)nonce).ToString() },
-                { "user", this.walletAddress },
+                { "user", walletAddress },
                 { "signer", signerAddress },
             }, parameters);
             object paramString = null;

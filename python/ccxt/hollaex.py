@@ -512,7 +512,7 @@ class hollaex(Exchange, ImplicitAPI):
         for j in range(0, len(networkIds)):
             networkId = networkIds[j]
             networkEntry = self.safe_dict(rawNetworks, networkId)
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,

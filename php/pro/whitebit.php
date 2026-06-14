@@ -941,7 +941,7 @@ class whitebit extends \ccxt\async\whitebit {
                 return false;
             }
         }
-        return $message;
+        return true;
     }
 
     public function handle_message(Client $client, $message) {

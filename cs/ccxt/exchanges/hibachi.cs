@@ -122,7 +122,7 @@ public partial class hibachi : Exchange
                 } },
                 { "www", "https://www.hibachi.xyz/" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "hibachi.xyz/r/ZBL2YFWIHU" },
+                    { "url", "https://hibachi.xyz/r/ZBL2YFWIHU" },
                 } },
             } },
             { "api", new Dictionary<string, object>() {

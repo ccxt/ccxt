@@ -5,14 +5,14 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
+import { ed25519 } from '@noble/curves/ed25519.js';
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/woofipro.js';
 import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder, InsufficientFunds, ArgumentsRequired, NetworkError, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { ecdsa, eddsa } from './base/functions/crypto.js';
-import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 // ---------------------------------------------------------------------------
 /**
  * @class woofipro
@@ -691,61 +691,67 @@ export default class woofipro extends Exchange {
         const indexedChains = this.indexBy(chainRows, 'chain_id');
         for (let i = 0; i < tokenRows.length; i++) {
             const token = tokenRows[i];
-            const currencyId = this.safeString(token, 'token');
-            const networks = this.safeList(token, 'chain_details');
-            const code = this.safeCurrencyCode(currencyId);
-            const resultingNetworks = {};
-            for (let j = 0; j < networks.length; j++) {
-                const networkEntry = networks[j];
-                const networkId = this.safeString(networkEntry, 'chain_id');
-                const networkRow = this.safeDict(indexedChains, networkId);
-                const networkName = this.safeString(networkRow, 'name');
-                const networkCode = this.networkIdToCode(networkName, code);
-                resultingNetworks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': this.safeNumber(networkEntry, 'withdrawal_fee'),
-                    'precision': this.parseNumber(this.parsePrecision(this.safeString(networkEntry, 'decimals'))),
-                    'info': [networkEntry, networkRow],
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': currencyId,
-                'name': undefined,
-                'code': code,
-                'precision': undefined,
-                'active': undefined,
-                'fee': undefined,
-                'networks': resultingNetworks,
-                'deposit': undefined,
-                'withdraw': undefined,
+            const parsed = this.parseCurrency({ '_token': token, '_indexedChains': indexedChains });
+            result[parsed['code']] = parsed;
+        }
+        return result;
+    }
+    parseCurrency(rawCurrency) {
+        const token = this.safeDict(rawCurrency, '_token', {});
+        const currencyId = this.safeString(token, 'token');
+        const networks = this.safeList(token, 'chain_details');
+        const code = this.safeCurrencyCode(currencyId);
+        const indexedChains = this.safeDict(rawCurrency, '_indexedChains', {});
+        const resultingNetworks = {};
+        for (let j = 0; j < networks.length; j++) {
+            const networkEntry = networks[j];
+            const networkId = this.safeString(networkEntry, 'chain_id');
+            const networkRow = this.safeDict(indexedChains, networkId);
+            const networkName = this.safeString(networkRow, 'name');
+            const networkCode = this.networkIdToCode(networkName, code);
+            resultingNetworks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'limits': {
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'deposit': {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'withdraw': {
-                        'min': this.safeNumber(token, 'minimum_withdraw_amount'),
-                        'max': undefined,
-                    },
                 },
-                'info': token,
-            });
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': this.safeNumber(networkEntry, 'withdrawal_fee'),
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(networkEntry, 'decimals'))),
+                'info': { 'network': networkEntry, 'networkRow': networkRow },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'name': undefined,
+            'code': code,
+            'precision': undefined,
+            'active': undefined,
+            'fee': undefined,
+            'networks': resultingNetworks,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber(token, 'minimum_withdraw_amount'),
+                    'max': undefined,
+                },
+            },
+            'info': token,
+        });
     }
     parseTokenAndFeeTemp(item, feeTokenKey, feeAmountKey) {
         const feeCost = this.safeString(item, feeAmountKey);

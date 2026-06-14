@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitget$1 = require('./abstract/bitget.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -2896,7 +2896,7 @@ class bitget extends bitget$1["default"] {
         }
         await this.loadMarkets();
         const currency = this.currency(code);
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, code);
         const request = {
             'coin': currency['id'],
             'address': address,
@@ -3065,7 +3065,7 @@ class bitget extends bitget$1["default"] {
             'txid': this.safeString(transaction, 'tradeId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'addressFrom': this.safeString(transaction, 'fromAddress'),
             'address': this.safeString(transaction, 'toAddress'),
             'addressTo': this.safeString(transaction, 'toAddress'),
@@ -11256,7 +11256,7 @@ class bitget extends bitget$1["default"] {
                     auth += queryInner;
                 }
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256, 'base64');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256, 'base64');
             const broker = this.safeString(this.options, 'broker');
             headers = {
                 'ACCESS-KEY': this.apiKey,

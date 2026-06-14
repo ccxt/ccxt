@@ -1,8 +1,5 @@
-- [Apex Watch](./examples/ts/)
-
-
- ```javascript
- // AUTO-TRANSPILE //
+```javascript
+// AUTO-TRANSPILE //
 
 'use strict';
 
@@ -52,5 +49,5 @@ async function main () {
 }
 
 main ();
- 
+
 ```

@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinsph$1 = require('./abstract/coinsph.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 /**
@@ -629,7 +629,7 @@ class coinsph extends coinsph$1["default"] {
         for (let j = 0; j < networkList.length; j++) {
             const networkItem = networkList[j];
             const network = this.safeString(networkItem, 'network');
-            const networkCode = this.networkIdToCode(network);
+            const networkCode = this.networkIdToCode(network, code);
             networks[networkCode] = {
                 'info': networkItem,
                 'id': network,
@@ -2201,7 +2201,7 @@ class coinsph extends coinsph$1["default"] {
                 }
             }
             query = this.urlEncodeQuery(query);
-            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha2_js.sha256);
             url = url + '?' + query + '&signature=' + signature;
             headers = {
                 'X-COINS-APIKEY': this.apiKey,

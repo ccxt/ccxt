@@ -286,7 +286,7 @@ class alpaca extends \ccxt\async\alpaca {
     }
 
     public function handle_delta($bookside, $delta) {
-        $bidAsk = $this->parse_bid_ask($delta, 'p', 's');
+        $bidAsk = $this->parse_order_book_bid_ask($delta, 'p', 's');
         $bookside->storeArray ($bidAsk);
     }
 

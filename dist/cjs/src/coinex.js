@@ -2,12 +2,12 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
+var legacy_js = require('@noble/hashes/legacy.js');
 var coinex$1 = require('./abstract/coinex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
-var md5 = require('./static_dependencies/noble-hashes/md5.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -3996,7 +3996,7 @@ class coinex extends coinex$1["default"] {
         if (networkCode === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddress() requires a "network" parameter');
         }
-        request['chain'] = this.networkCodeToId(networkCode); // required for on-chain, not required for inter-user transfer
+        request['chain'] = this.networkCodeToId(networkCode, currency['code']); // required for on-chain, not required for inter-user transfer
         const response = await this.v2PrivateGetAssetsDepositAddress(this.extend(request, params));
         //
         //     {
@@ -4922,7 +4922,7 @@ class coinex extends coinex$1["default"] {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId(networkCode); // required for on-chain, not required for inter-user transfer
+            request['chain'] = this.networkCodeToId(networkCode, currency['code']); // required for on-chain, not required for inter-user transfer
         }
         const response = await this.v2PrivatePostAssetsWithdraw(this.extend(request, params));
         //
@@ -5129,7 +5129,7 @@ class coinex extends coinex$1["default"] {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -5832,7 +5832,9 @@ class coinex extends coinex$1["default"] {
                 result['withdraw']['percentage'] = false;
                 const networkId = this.safeString(entry, 'chain');
                 if (networkId) {
-                    const networkCode = this.networkIdToCode(networkId, this.safeString(asset, 'ccy'));
+                    const currencyId = this.safeString(asset, 'ccy');
+                    const feeCode = this.safeCurrencyCode(currencyId, currency);
+                    const networkCode = this.networkIdToCode(networkId, feeCode);
                     result['networks'][networkCode] = {
                         'withdraw': {
                             'fee': this.safeNumber(entry, 'withdrawal_fee'),
@@ -6107,7 +6109,7 @@ class coinex extends coinex$1["default"] {
             }, query);
             query = this.keysort(query);
             const urlencoded = this.rawencode(query);
-            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), sha256.sha256);
+            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), sha2_js.sha256);
             headers = {
                 'Authorization': signature.toLowerCase(),
                 'AccessId': this.apiKey,
@@ -6134,7 +6136,7 @@ class coinex extends coinex$1["default"] {
                 }, query);
                 query = this.keysort(query);
                 const urlencoded = this.rawencode(query);
-                const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), md5.md5);
+                const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), legacy_js.md5);
                 headers = {
                     'Authorization': signature.toUpperCase(),
                     'Content-Type': 'application/json',
@@ -6159,7 +6161,7 @@ class coinex extends coinex$1["default"] {
                     preparedString += '?' + urlencoded;
                 }
                 preparedString += nonce + this.secret;
-                const signature = this.hash(this.encode(preparedString), sha256.sha256);
+                const signature = this.hash(this.encode(preparedString), sha2_js.sha256);
                 headers = {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',

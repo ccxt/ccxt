@@ -1,8 +1,5 @@
-- [Fetch First Ohlcv Timestamp](./examples/ts/)
-
-
- ```javascript
- // eslint-disable-next-line no-unused-vars
+```javascript
+// eslint-disable-next-line no-unused-vars
 import ccxt from '../../js/ccxt.js';
 
 // AUTO-TRANSPILE //
@@ -90,5 +87,5 @@ if (runExample) {
 
 
 export default fetchFirstBarTimestamp;
- 
+
 ```

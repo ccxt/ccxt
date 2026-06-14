@@ -304,7 +304,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
             Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
         } else
         {
-            Object bidAsk = this.parseBidAsk(delta, "price", "size");
+            Object bidAsk = this.parseOrderBookBidAsk(delta, "price", "size");
             Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
         }
     }

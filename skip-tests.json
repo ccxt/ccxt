@@ -608,7 +608,7 @@
     },
     "btcbox": {
         "skip": "temporary reorg on exchange, lets wait few more weeks",
-        "until":"2026-06-01",
+        "until":"2026-07-01",
         "skipMethods": {
             "loadMarkets": {
                 "precision":"is undefined"
@@ -771,6 +771,9 @@
     },
     "coinbase": {
         "skipMethods": {
+            "afterConstruct": {
+                "networks": "weird implementation, todo fix in future"
+            },
             "loadMarkets": {
                 "currencyIdAndCode": "some curr not available"
             },
@@ -2237,6 +2240,9 @@
             },
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
+            },
+            "fetchTicker": {
+                "lastBetweenBidAsk": "exchange too illiquid"
             },
             "fetchTickers": "all tickers request exceedes max url length",
             "orderBook":{

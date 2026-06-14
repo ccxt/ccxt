@@ -1,8 +1,5 @@
-- [Exchange Rate Limiter Rollingwindow](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 // AUTO-TRANSPILE //
 async function example() {
     const myex = new ccxt.okx({
@@ -13,5 +10,5 @@ async function example() {
     console.log(trades);
 }
 await example();
- 
+
 ```

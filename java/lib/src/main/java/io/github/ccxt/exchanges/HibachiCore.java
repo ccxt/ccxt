@@ -134,7 +134,7 @@ public class HibachiCore extends HibachiApi
                 }} );
                 put( "www", "https://www.hibachi.xyz/" );
                 put( "referral", new java.util.HashMap<String, Object>() {{
-                    put( "url", "hibachi.xyz/r/ZBL2YFWIHU" );
+                    put( "url", "https://hibachi.xyz/r/ZBL2YFWIHU" );
                 }} );
             }} );
             put( "api", new java.util.HashMap<String, Object>() {{

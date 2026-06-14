@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var ndax$1 = require('./abstract/ndax.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var totp = require('./base/functions/totp.js');
 
 // ----------------------------------------------------------------------------
@@ -480,43 +480,41 @@ class ndax extends ndax$1["default"] {
         //        },
         //        ...
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString(currency, 'ProductId');
-            const code = this.safeCurrencyCode(this.safeString(currency, 'Product'));
-            const ProductType = this.safeString(currency, 'ProductType');
-            let type = (ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
-            if (ProductType === 'Unknown') {
-                // such currency is just a blanket entry
-                type = 'other';
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'name': this.safeString(currency, 'ProductFullName'),
-                'code': code,
-                'type': type,
-                'precision': this.safeNumber(currency, 'TickSize'),
-                'info': currency,
-                'active': !this.safeBool(currency, 'IsDisabled'),
-                'deposit': this.safeBool(currency, 'DepositEnabled'),
-                'withdraw': this.safeBool(currency, 'WithdrawEnabled'),
-                'fee': undefined,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': {},
-                'margin': this.safeBool(currency, 'MarginEnabled'),
-            });
+        return this.parseCurrencies(response);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'ProductId');
+        const code = this.safeCurrencyCode(this.safeString(rawCurrency, 'Product'));
+        const ProductType = this.safeString(rawCurrency, 'ProductType');
+        let type = (ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
+        if (ProductType === 'Unknown') {
+            // such currency is just a blanket entry
+            type = 'other';
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'name': this.safeString(rawCurrency, 'ProductFullName'),
+            'code': code,
+            'type': type,
+            'precision': this.safeNumber(rawCurrency, 'TickSize'),
+            'info': rawCurrency,
+            'active': !this.safeBool(rawCurrency, 'IsDisabled'),
+            'deposit': this.safeBool(rawCurrency, 'DepositEnabled'),
+            'withdraw': this.safeBool(rawCurrency, 'WithdrawEnabled'),
+            'fee': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': {},
+            'margin': this.safeBool(rawCurrency, 'MarginEnabled'),
+        });
     }
     /**
      * @method
@@ -666,7 +664,7 @@ class ndax extends ndax$1["default"] {
                 const newNonce = this.safeInteger(level, 0);
                 nonce = Math.max(nonce, newNonce);
             }
-            const bidask = this.parseBidAsk(level, priceKey, amountKey);
+            const bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             const levelSide = this.safeInteger(level, 9);
             const side = levelSide ? asksKey : bidsKey;
             const resultSide = result[side];
@@ -2549,7 +2547,7 @@ class ndax extends ndax$1["default"] {
             if (sessionToken === undefined) {
                 const nonce = this.nonce().toString();
                 const auth = nonce + this.uid + this.apiKey;
-                const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+                const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
                 headers = {
                     'Nonce': nonce,
                     'APIKey': this.apiKey,

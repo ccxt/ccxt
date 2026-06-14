@@ -320,7 +320,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = this.parseBidAsk(delta, "p", "s");
+        Object bidAsk = this.parseOrderBookBidAsk(delta, "p", "s");
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 

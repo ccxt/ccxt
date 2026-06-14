@@ -881,7 +881,7 @@ public partial class bingx : Exchange
         {
             object rawNetwork = getValue(networkList, j);
             object network = this.safeString(rawNetwork, "network");
-            object networkCode = this.networkIdToCode(network);
+            object networkCode = this.networkIdToCode(network, code);
             object limits = new Dictionary<string, object>() {
                 { "withdraw", new Dictionary<string, object>() {
                     { "min", this.safeNumber(rawNetwork, "withdrawMin") },
@@ -5232,7 +5232,7 @@ public partial class bingx : Exchange
             { "txid", this.safeString(transaction, "txId") },
             { "type", type },
             { "currency", code },
-            { "network", this.networkIdToCode(network) },
+            { "network", this.networkIdToCode(network, code) },
             { "amount", this.safeNumber(transaction, "amount") },
             { "status", this.parseTransactionStatus(this.safeString(transaction, "status")) },
             { "timestamp", timestamp },
@@ -5719,7 +5719,7 @@ public partial class bingx : Exchange
         object network = this.safeStringUpper(parameters, "network");
         if (isTrue(!isEqual(network, null)))
         {
-            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(network);
+            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(network, getValue(currency, "code"));
         }
         if (isTrue(!isEqual(tag, null)))
         {

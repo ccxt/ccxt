@@ -14,6 +14,7 @@
   "rules": {
     "no-console": "off",
     "import/no-unresolved":"off", // tmp until typescript decides to properly resolve names
+    "import/no-named-as-default-member": "off", // avoid same warning across all examples
     "import/named": "off",
     "strict": "off",
     "semi": "error",

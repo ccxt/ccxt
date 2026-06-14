@@ -1,6 +1,6 @@
 import ccxt, { Dict, Exchange } from '../ts/ccxt.js';
-import { promisify } from 'util';
 import fs from 'fs';
+import { writeFile, unlink } from 'fs/promises';
 import log from 'ololog'
 
 // const JS_PATH = './js/src/abstract/';
@@ -12,7 +12,6 @@ const PY_PATH = './python/ccxt/abstract/'
 const GO_PATH = './go/v4/'
 const JAVA_PATH = './java/lib/src/main/java/io/github/ccxt/api/'
 const IDEN = '    ';
-
 
 let storedCamelCaseMethods: Dict = {};
 let storedUnderscoreMethods: Dict = {};
@@ -52,10 +51,6 @@ const langKeys = {
     '--go': false,
     '--java': false,
 }
-
-
-const promisedWriteFile = promisify (fs.writeFile);
-const promisedUnlinkFile = promisify (fs.unlink)
 
 function isHttpMethod(method: string): boolean {
     return ['get', 'post', 'put', 'delete', 'patch'].includes (method);
@@ -308,7 +303,7 @@ async function editFiles (path: string, methods: Dict, extension: string) {
     const exchanges = Object.keys (storedCamelCaseMethods);
     fs.mkdirSync (path, { recursive: true });
     const files = exchanges.map (ex => path + ex + extension)
-    await Promise.all (files.map ((path, idx) => promisedWriteFile (path, methods[exchanges[idx]].join ('\n') + '\n')))
+    await Promise.all (files.map ((path, idx) => writeFile (path, methods[exchanges[idx]].join ('\n') + '\n')))
     // await unlinkFiles (path, extension)
 }
 
@@ -316,7 +311,7 @@ async function unlinkFiles (path: string, extension: string) {
     const exchanges = Object.keys (storedCamelCaseMethods);
     const abstract = fs.readdirSync (path)
     const ext = new RegExp (extension + '$')
-    await Promise.all (abstract.filter (file => file !== '__init__.py' && file.match (ext) && !exchanges.includes (file.replace (ext, ''))).map (basename => promisedUnlinkFile (path + basename)))
+    await Promise.all (abstract.filter (file => file !== '__init__.py' && file.match (ext) && !exchanges.includes (file.replace (ext, ''))).map (basename => unlink (path + basename)))
 }
 
 // -------------------------------------------------------------------------
@@ -416,7 +411,10 @@ function createGoHeader(exchange: Exchange, parent: string){
 // -------------------------------------------------------------------------
 
 function createJavaHeader(exchange: Exchange, parent: string){
-    const capParent = capitalize(parent);
+    // When the parent is another exchange, extend its untyped Core class
+    // (CompletableFuture<Object> methods) — extending the typed wrapper would
+    // shadow the Core signatures and break the generated typed wrapper subclass.
+    const capParent = parent === 'Exchange' ? 'Exchange' : `${capitalize(parent)}Core`;
     const parentImport = parent === 'Exchange' ? `import io.github.ccxt.${capParent}` : `import io.github.ccxt.exchanges.${capParent}` ;
     const javaPackage = isPrediction ? 'io.github.ccxt.api.prediction' : 'io.github.ccxt.api';
     const namespace = `package ${javaPackage};\n${parentImport};`;
@@ -429,7 +427,7 @@ function createJavaHeader(exchange: Exchange, parent: string){
         `${IDEN}${IDEN}super(options);`,
         `${IDEN}}`,
     ].join('\n');
-    const header = `public class ${capitalize(exchange.id)}Api extends ${capitalize(parent)}\n{\n`;
+    const header = `public class ${capitalize(exchange.id)}Api extends ${capParent}\n{\n`;
     storedJavaMethods[exchange.id] = [ getPreamble(), namespace, '', header, constructor, ''];
 }
 

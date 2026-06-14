@@ -1,8 +1,5 @@
-- [Watch Many Exchanges Many Symbols](./examples/ts/)
+```javascript
 
-
- ```javascript
- 
 'use strict';
 
 import ccxt from '../../js/ccxt.js';
@@ -42,5 +39,5 @@ async function main () {
 }
 
 main ();
- 
+
 ```

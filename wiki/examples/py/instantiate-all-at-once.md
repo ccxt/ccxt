@@ -1,8 +1,5 @@
-- [Instantiate All At Once](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -18,5 +15,5 @@ for id in ccxt.exchanges:
 
 # now exchanges dictionary contains all exchange instances...
 exchanges['bittrex'].fetch_order_book('ETH/BTC')
- 
+
 ```

@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var mexc$1 = require('../mexc.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -530,7 +530,7 @@ class mexc extends mexc$1["default"] {
         const url = this.urls['api']['ws']['swap'];
         const timestamp = this.milliseconds().toString();
         const payload = this.apiKey + timestamp;
-        const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256);
+        const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256);
         const request = {
             'method': channel,
             'param': {

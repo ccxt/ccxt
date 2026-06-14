@@ -653,74 +653,73 @@ class whitebit(Exchange, ImplicitAPI):
         #   }
         # }
         #
-        ids = list(response.keys())
-        result: dict = {}
-        for i in range(0, len(ids)):
-            id = ids[i]
-            currency = response[id]
-            # name = self.safe_string(currency, 'name')  # breaks down in Python due to utf8 encoding issues on the exchange side
-            code = self.safe_currency_code(id)
-            hasProvider = ('providers' in currency)
-            networks = {}
-            rawNetworks = self.safe_dict(currency, 'networks', {})
-            depositsNetworks = self.safe_list(rawNetworks, 'deposits', [])
-            withdrawsNetworks = self.safe_list(rawNetworks, 'withdraws', [])
-            networkLimits = self.safe_dict(currency, 'limits', {})
-            depositLimits = self.safe_dict(networkLimits, 'deposit', {})
-            withdrawLimits = self.safe_dict(networkLimits, 'withdraw', {})
-            allNetworks = self.array_concat(depositsNetworks, withdrawsNetworks)
-            for j in range(0, len(allNetworks)):
-                networkId = allNetworks[j]
-                networkCode = self.network_id_to_code(networkId)
-                networkDepositLimits = self.safe_dict(depositLimits, networkId, {})
-                networkWithdrawLimits = self.safe_dict(withdrawLimits, networkId, {})
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': None,
-                    'deposit': self.in_array(networkId, depositsNetworks),
-                    'withdraw': self.in_array(networkId, withdrawsNetworks),
-                    'fee': None,
-                    'precision': None,
-                    'limits': {
-                        'deposit': {
-                            'min': self.safe_number(networkDepositLimits, 'min'),
-                            'max': self.safe_number(networkDepositLimits, 'max'),
-                        },
-                        'withdraw': {
-                            'min': self.safe_number(networkWithdrawLimits, 'min'),
-                            'max': self.safe_number(networkWithdrawLimits, 'max'),
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'info': currency,  # the original payload
-                'name': None,  # see the comment above
+        enhancedArray = self.add_key_in_array_items(response, '_coin_id')
+        return self.parse_currencies(enhancedArray)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        # name = self.safe_string(currency, 'name')  # breaks down in Python due to utf8 encoding issues on the exchange side
+        id = self.safe_string(rawCurrency, '_coin_id')
+        code = self.safe_currency_code(id)
+        hasProvider = ('providers' in rawCurrency)
+        networks = {}
+        rawNetworks = self.safe_dict(rawCurrency, 'networks', {})
+        depositsNetworks = self.safe_list(rawNetworks, 'deposits', [])
+        withdrawsNetworks = self.safe_list(rawNetworks, 'withdraws', [])
+        networkLimits = self.safe_dict(rawCurrency, 'limits', {})
+        depositLimits = self.safe_dict(networkLimits, 'deposit', {})
+        withdrawLimits = self.safe_dict(networkLimits, 'withdraw', {})
+        allNetworks = self.array_concat(depositsNetworks, withdrawsNetworks)
+        for j in range(0, len(allNetworks)):
+            networkId = allNetworks[j]
+            networkCode = self.network_id_to_code(networkId, code)
+            networkDepositLimits = self.safe_dict(depositLimits, networkId, {})
+            networkWithdrawLimits = self.safe_dict(withdrawLimits, networkId, {})
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'active': None,
-                'deposit': self.safe_bool(currency, 'can_deposit'),
-                'withdraw': self.safe_bool(currency, 'can_withdraw'),
+                'deposit': self.in_array(networkId, depositsNetworks),
+                'withdraw': self.in_array(networkId, withdrawsNetworks),
                 'fee': None,
-                'networks': networks,
-                'type': 'fiat' if hasProvider else 'crypto',
-                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'currency_precision'))),
+                'precision': None,
                 'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
+                    'deposit': {
+                        'min': self.safe_number(networkDepositLimits, 'min'),
+                        'max': self.safe_number(networkDepositLimits, 'max'),
                     },
                     'withdraw': {
-                        'min': self.safe_number(currency, 'min_withdraw'),
-                        'max': self.safe_number(currency, 'max_withdraw'),
-                    },
-                    'deposit': {
-                        'min': self.safe_number(currency, 'min_deposit'),
-                        'max': self.safe_number(currency, 'max_deposit'),
+                        'min': self.safe_number(networkWithdrawLimits, 'min'),
+                        'max': self.safe_number(networkWithdrawLimits, 'max'),
                     },
                 },
-            })
-        return result
+            }
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,  # the original payload
+            'name': None,  # see the comment above
+            'active': None,
+            'deposit': self.safe_bool(rawCurrency, 'can_deposit'),
+            'withdraw': self.safe_bool(rawCurrency, 'can_withdraw'),
+            'fee': None,
+            'networks': networks,
+            'type': 'fiat' if hasProvider else 'crypto',
+            'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'currency_precision'))),
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': self.safe_number(rawCurrency, 'min_withdraw'),
+                    'max': self.safe_number(rawCurrency, 'max_withdraw'),
+                },
+                'deposit': {
+                    'min': self.safe_number(rawCurrency, 'min_deposit'),
+                    'max': self.safe_number(rawCurrency, 'max_deposit'),
+                },
+            },
+        })
 
     def fetch_transaction_fees(self, codes: Strings = None, params={}):
         """
@@ -906,7 +905,7 @@ class whitebit(Exchange, ImplicitAPI):
                 if networkId is not None:
                     networkLength = len(networkId)
                     networkId = networkId[1:networkLength - 1]
-                    networkCode = self.network_id_to_code(networkId)
+                    networkCode = self.network_id_to_code(networkId, code)
                     depositWithdrawFees[code]['networks'][networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult,

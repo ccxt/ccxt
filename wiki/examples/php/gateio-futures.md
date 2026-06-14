@@ -1,14 +1,11 @@
-- [Gateio Futures](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
 date_default_timezone_set('UTC');
 
-$exchange = new \ccxt\gateio(array(
+$exchange = new \ccxt\gate(array(
     'apiKey' => 'YOUR_API_KEY', // ←------------ replace with your keys
     'secret' => 'YOUR_SECRET_KEY',
     'options' => array(
@@ -50,5 +47,5 @@ try {
 }
 
 ?>
- 
+
 ```

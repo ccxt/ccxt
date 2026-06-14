@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitmex$1 = require('./abstract/bitmex.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var totp = require('./base/functions/totp.js');
 
 // ----------------------------------------------------------------------------
@@ -482,7 +482,7 @@ class bitmex extends bitmex$1["default"] {
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'asset');
-            const network = this.networkIdToCode(networkId);
+            const network = this.networkIdToCode(networkId, code);
             const withdrawalFeeRaw = this.safeString(chain, 'withdrawalFee');
             const withdrawalFee = this.parseNumber(Precise["default"].stringMul(withdrawalFeeRaw, precisionString));
             const isDepositEnabled = this.safeBool(chain, 'depositEnabled', false);
@@ -3583,7 +3583,7 @@ class bitmex extends bitmex$1["default"] {
                     auth += body;
                 }
             }
-            headers['api-signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+            headers['api-signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

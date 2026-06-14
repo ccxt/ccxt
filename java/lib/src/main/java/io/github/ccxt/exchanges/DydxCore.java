@@ -145,7 +145,7 @@ public class DydxCore extends DydxApi
                 put( "www", "https://www.dydx.xyz" );
                 put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://docs.dydx.xyz")) );
                 put( "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://docs.dydx.exchange/introduction-trading_fees")) );
-                put( "referral", "dydx.trade?ref=ccxt" );
+                put( "referral", "https://dydx.trade?ref=ccxt" );
             }} );
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "indexer", new java.util.HashMap<String, Object>() {{

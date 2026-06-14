@@ -520,7 +520,7 @@ public partial class apex : Exchange
                 if (isTrue(isEqual(tokenName, currencyId)))
                 {
                     object networkId = this.safeString(chain, "chainId");
-                    object networkCode = this.networkIdToCode(networkId);
+                    object networkCode = this.networkIdToCode(networkId, code);
                     ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                         { "info", chain },
                         { "id", networkId },

@@ -1169,7 +1169,7 @@ class mexc(Exchange, ImplicitAPI):
         for j in range(0, len(chains)):
             chain = chains[j]
             networkId = self.safe_string_2(chain, 'netWork', 'network')
-            network = self.network_id_to_code(networkId)
+            network = self.network_id_to_code(networkId, code)
             networks[network] = {
                 'info': chain,
                 'id': networkId,
@@ -1536,7 +1536,7 @@ class mexc(Exchange, ImplicitAPI):
             orderbook['nonce'] = self.safe_integer(data, 'version')
         return orderbook
 
-    def parse_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+    def parse_order_book_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         countKey = 2
         price = self.safe_number(bidask, priceKey)
         amount = self.safe_number(bidask, amountKey)
@@ -4550,11 +4550,12 @@ class mexc(Exchange, ImplicitAPI):
         #
         address = self.safe_string(depositAddress, 'address')
         currencyId = self.safe_string(depositAddress, 'coin')
+        code = self.safe_currency_code(currencyId, currency)
         networkId = self.safe_string(depositAddress, 'netWork')
         return {
             'info': depositAddress,
-            'currency': self.safe_currency_code(currencyId, currency),
-            'network': self.network_id_to_code(networkId, currencyId),
+            'currency': code,
+            'network': self.network_id_to_code(networkId, code),
             'address': address,
             'tag': self.safe_string(depositAddress, 'memo'),
         }
@@ -4850,11 +4851,11 @@ class mexc(Exchange, ImplicitAPI):
         currencyWithNetwork = self.safe_string(transaction, 'coin')
         if currencyWithNetwork is not None:
             currencyId = currencyWithNetwork.split('-')[0]
+        code = self.safe_currency_code(currencyId, currency)
         network = None
         rawNetwork = self.safe_string(transaction, 'network')
         if rawNetwork is not None:
-            network = self.network_id_to_code(rawNetwork)
-        code = self.safe_currency_code(currencyId, currency)
+            network = self.network_id_to_code(rawNetwork, code)
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amountString = self.safe_string(transaction, 'amount')
         address = self.safe_string(transaction, 'address')

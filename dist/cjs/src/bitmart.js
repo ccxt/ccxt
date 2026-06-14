@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitmart$1 = require('./abstract/bitmart.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -1261,7 +1261,7 @@ class bitmart extends bitmart$1["default"] {
                     'type': isNtf ? 'other' : 'crypto',
                 };
             }
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, currencyCode);
             const withdraw = this.safeBool(currency, 'withdraw_enabled');
             const deposit = this.safeBool(currency, 'deposit_enabled');
             entry['networks'][networkCode] = {
@@ -2979,8 +2979,10 @@ class bitmart extends bitmart$1["default"] {
         }
         const request = {
             'symbol': market['id'],
-            'size': parseInt(this.amountToPrecision(symbol, amount)),
         };
+        if (amount !== undefined) {
+            request['size'] = parseInt(this.amountToPrecision(symbol, amount));
+        }
         const timeInForce = this.safeString(params, 'timeInForce');
         const mode = this.safeInteger(params, 'mode'); // only for swap
         const isMarketOrder = type === 'market';
@@ -3044,7 +3046,11 @@ class bitmart extends bitmart$1["default"] {
         if (isStopLoss || isTakeProfit) {
             reduceOnly = true;
             request['price_type'] = this.safeInteger(params, 'price_type', 1);
-            request['executive_price'] = this.priceToPrecision(symbol, price);
+            if (price !== undefined) {
+                request['executive_price'] = this.priceToPrecision(symbol, price);
+            }
+            const marketOrLimitStr = isLimitOrder ? 'limit' : 'market';
+            request['category'] = this.safeString(params, 'category', marketOrLimitStr);
             if (isStopLoss) {
                 request['trigger_price'] = this.priceToPrecision(symbol, stopLossPrice);
             }
@@ -3926,11 +3932,12 @@ class bitmart extends bitmart$1["default"] {
         }
         const address = this.safeString(depositAddress, 'address');
         currency = this.safeCurrency(currencyId, currency);
+        const code = this.safeString(currency, 'code');
         this.checkAddress(address);
         return {
             'info': depositAddress,
-            'currency': this.safeString(currency, 'code'),
-            'network': this.networkIdToCode(network),
+            'currency': code,
+            'network': this.networkIdToCode(network, code),
             'address': address,
             'tag': this.safeString2(depositAddress, 'address_memo', 'memo'),
         };
@@ -4222,7 +4229,7 @@ class bitmart extends bitmart$1["default"] {
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'addressFrom': undefined,
             'addressTo': undefined,
@@ -5745,7 +5752,7 @@ class bitmart extends bitmart$1["default"] {
                 queryString = body;
             }
             const auth = timestamp + '#' + this.uid + '#' + queryString;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             headers['X-BM-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

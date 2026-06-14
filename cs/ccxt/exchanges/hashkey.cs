@@ -1161,7 +1161,7 @@ public partial class hashkey : Exchange
         {
             object network = getValue(networks, j);
             object networkId = this.safeString(network, "chainType");
-            object networkCode = this.networkCodeToId(networkId);
+            object networkCode = this.networkCodeToId(networkId, code);
             ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "id", networkId },
                 { "network", networkCode },
@@ -2090,7 +2090,7 @@ public partial class hashkey : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["chainType"] = this.networkCodeToId(networkCode);
+            ((IDictionary<string,object>)request)["chainType"] = this.networkCodeToId(networkCode, getValue(currency, "code"));
         }
         object response = await this.privatePostApiV1AccountWithdraw(this.extend(request, parameters));
         //

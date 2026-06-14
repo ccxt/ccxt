@@ -141,7 +141,7 @@ class bitstamp extends \ccxt\async\bitstamp {
 
     public function handle_bid_asks($bookSide, $bidAsks) {
         for ($i = 0; $i < count($bidAsks); $i++) {
-            $bidAsk = $this->parse_bid_ask($bidAsks[$i]);
+            $bidAsk = $this->parse_order_book_bid_ask($bidAsks[$i]);
             $bookSide->storeArray ($bidAsk);
         }
     }

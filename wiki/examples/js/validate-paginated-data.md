@@ -1,8 +1,5 @@
-- [Validate Paginated Data](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import ololog from 'ololog'
@@ -62,5 +59,5 @@ async function main () {
     await Promise.all(promises)
 }
 
-main() 
+main()
 ```

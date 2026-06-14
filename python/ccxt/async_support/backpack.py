@@ -552,7 +552,7 @@ class backpack(Exchange, ImplicitAPI):
             network = networks[j]
             networkId = self.safe_string(network, 'blockchain')
             networkIdLowerCase = self.safe_string_lower(network, 'blockchain')
-            networkCode = self.network_id_to_code(networkIdLowerCase)
+            networkCode = self.network_id_to_code(networkIdLowerCase, code)
             parsedNetworks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
@@ -1235,10 +1235,16 @@ class backpack(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'quantity')
-        isMaker = self.safe_bool(trade, 'isMaker')
-        takerOrMaker = 'maker' if isMaker else 'taker'
-        orderId = self.safe_string(trade, 'orderId')
+        isBuyerMaker = self.safe_bool(trade, 'isBuyerMaker')
         side = self.parse_order_side(self.safe_string(trade, 'side'))
+        isMaker = self.safe_bool(trade, 'isMaker')
+        takerOrMaker: Str = None
+        if isMaker is not None:
+            takerOrMaker = 'maker' if isMaker else 'taker'
+        elif isBuyerMaker is not None:
+            takerOrMaker = 'taker'
+            side = 'sell' if isBuyerMaker else 'buy'
+        orderId = self.safe_string(trade, 'orderId')
         fee = None
         feeAmount = self.safe_string(trade, 'fee')
         timestamp = self.safe_integer(trade, 'timestamp')
@@ -1430,7 +1436,7 @@ class backpack(Exchange, ImplicitAPI):
         if tag is not None:
             request['clientId'] = tag  # memo or tag
         networkCode, query = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode)
+        networkId = self.network_code_to_id(networkCode, currency['code'])
         if networkId is None:
             raise BadRequest(self.id + ' withdraw() requires a network parameter')
         request['blockchain'] = networkId
@@ -1518,7 +1524,7 @@ class backpack(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(transaction, 'createdAt'))
         amount = self.safe_number(transaction, 'quantity')
         networkId = self.safe_string_lower_2(transaction, 'source', 'blockchain')
-        network = self.network_id_to_code(networkId)
+        network = self.network_id_to_code(networkId, code)
         addressTo = self.safe_string(transaction, 'toAddress')
         addressFrom = self.safe_string(transaction, 'fromAddress')
         tag = self.safe_string(transaction, 'platformMemo')
@@ -1584,7 +1590,7 @@ class backpack(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes')
         currency = self.currency(code)
         request: dict = {
-            'blockchain': self.network_code_to_id(networkCode),
+            'blockchain': self.network_code_to_id(networkCode, currency['code']),
         }
         response = await self.privateGetWapiV1CapitalDepositAddress(self.extend(request, params))
         return self.parse_deposit_address(response, currency)

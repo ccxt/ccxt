@@ -1,8 +1,5 @@
-- [Asciichart](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 # This file is a copied implementation from my asciichart repository on GitHub
 # https://github.com/kroitor/asciichart
@@ -66,5 +63,5 @@ if __name__ == '__main__':
     width = 180
     series = [15 * cos(i * ((pi * 4) / width)) for i in range(width)]
     print(plot(series))
- 
+
 ```

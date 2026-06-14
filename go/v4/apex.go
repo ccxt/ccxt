@@ -566,7 +566,7 @@ func (this *ApexCore) ParseCurrency(currency any) any {
 			var tokenName any = this.SafeString(token, "token")
 			if IsTrue(IsEqual(tokenName, currencyId)) {
 				var networkId any = this.SafeString(chain, "chainId")
-				var networkCode any = this.NetworkIdToCode(networkId)
+				var networkCode any = this.NetworkIdToCode(networkId, code)
 				AddElementToObject(networks, networkCode, map[string]any{
 					"info":      chain,
 					"id":        networkId,

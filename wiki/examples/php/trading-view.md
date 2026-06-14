@@ -1,8 +1,5 @@
-- [Trading View](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -29,5 +26,5 @@ $restored_ohlcvs = $exchange->convert_trading_view_to_ohlcv($trading_view);
 
 print_r($restored_ohlcvs);
 
-?> 
+?>
 ```

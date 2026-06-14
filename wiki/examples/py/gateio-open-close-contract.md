@@ -1,8 +1,5 @@
-- [Gateio Open Close Contract](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 from random import randint
@@ -15,7 +12,7 @@ import ccxt  # noqa: E402
 
 print('CCXT Version:', ccxt.__version__)
 
-exchange = ccxt.gateio({
+exchange = ccxt.gate({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
     'options': {
@@ -55,5 +52,5 @@ try:
     print(opositeOrder)
 except Exception as e:
     print(type(e).__name__, str(e))
- 
+
 ```

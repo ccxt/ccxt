@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinbaseexchange$1 = require('../coinbaseexchange.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
@@ -49,7 +49,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         const path = '/users/self/verify';
         const nonce = this.nonce();
         const payload = nonce.toString() + 'GET' + path;
-        const signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256.sha256, 'base64');
+        const signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha2_js.sha256, 'base64');
         return {
             'timestamp': nonce,
             'key': this.apiKey,

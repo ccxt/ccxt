@@ -1,8 +1,5 @@
-- [Basic Error Handling](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -27,5 +24,5 @@ try {
 }
 
 ?>
- 
+
 ```

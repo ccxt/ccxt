@@ -2309,7 +2309,7 @@ class bitteam(Exchange, ImplicitAPI):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'addressFrom': addressFrom,
             'address': None,
             'addressTo': addressTo,

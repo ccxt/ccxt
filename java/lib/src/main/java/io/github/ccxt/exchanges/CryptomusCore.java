@@ -445,7 +445,7 @@ public class CryptomusCore extends CryptomusApi
                 code = this.safeCurrencyCode(id);
             }
             Object networkId = this.safeString(networkEntry, "network_code");
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", networkCode );

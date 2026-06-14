@@ -388,7 +388,7 @@ class onetrading(ccxt.async_support.onetrading):
         #
         #   ['BUY', "0.053595", "0"]
         #
-        bidAsk = self.parse_bid_ask(delta, 1, 2)
+        bidAsk = self.parse_order_book_bid_ask(delta, 1, 2)
         type = self.safe_string(delta, 0)
         if type == 'BUY':
             bids = orderbook['bids']

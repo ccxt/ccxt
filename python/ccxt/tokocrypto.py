@@ -2404,7 +2404,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         if tag is not None:
             request['addressTag'] = tag
         networkCode, query = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode)
+        networkId = self.network_code_to_id(networkCode, code)
         if networkId is not None:
             request['network'] = networkId.upper()
         response = self.privatePostOpenV1Withdraws(self.extend(request, query))

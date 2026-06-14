@@ -537,7 +537,7 @@ func (this *Exchange) HandleDeltasWithKeys(bookSide any, deltas any, optionalArg
 	countOrIdKey := GetArg(optionalArgs, 2, 2)
 	_ = countOrIdKey
 	for i := 0; IsLessThan(i, GetArrayLength(deltas)); i++ {
-		var bidAsk any = this.ParseBidAsk(GetValue(deltas, i), priceKey, amountKey, countOrIdKey)
+		var bidAsk any = this.ParseOrderBookBidAsk(GetValue(deltas, i), priceKey, amountKey, countOrIdKey)
 		(bookSide.(*OrderBookSide)).StoreArray(bidAsk)
 	}
 }
@@ -3225,6 +3225,21 @@ func (this *Exchange) FindNearestCeiling(arr any, providedValue any) any {
 	}
 	return GetValue(arr, Subtract(length, 1))
 }
+func (this *Exchange) AddKeyInArrayItems(obj any, keyName any) any {
+	var result any = []any{}
+	var keys any = ObjectKeys(obj)
+	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
+		var key any = GetValue(keys, i)
+		var item any = GetValue(obj, key)
+		if IsTrue(IsEqual(item, nil)) {
+			continue
+		}
+		var itemWithKey any = this.Extend(map[string]any{}, item)
+		AddElementToObject(itemWithKey, keyName, key)
+		AppendToArray(&result, itemWithKey)
+	}
+	return result
+}
 func (this *Exchange) InvertFlatStringDictionary(dict any) any {
 	var reversed any = map[string]any{}
 	var keys any = ObjectKeys(dict)
@@ -3877,7 +3892,7 @@ func (this *Exchange) MarketCodes(optionalArgs ...any) any {
 	}
 	return result
 }
-func (this *Exchange) ParseBidsAsks(bidasks any, optionalArgs ...any) any {
+func (this *Exchange) ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) any {
 	priceKey := GetArg(optionalArgs, 0, 0)
 	_ = priceKey
 	amountKey := GetArg(optionalArgs, 1, 1)
@@ -3887,7 +3902,7 @@ func (this *Exchange) ParseBidsAsks(bidasks any, optionalArgs ...any) any {
 	bidasks = this.ToArray(bidasks)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(bidasks)); i++ {
-		AppendToArray(&result, this.ParseBidAsk(GetValue(bidasks, i), priceKey, amountKey, countOrIdKey))
+		AppendToArray(&result, this.ParseOrderBookBidAsk(GetValue(bidasks, i), priceKey, amountKey, countOrIdKey))
 	}
 	return result
 }
@@ -4173,10 +4188,10 @@ func (this *Exchange) ParseOrderBook(orderbook any, symbol any, optionalArgs ...
 	countOrIdKey := GetArg(optionalArgs, 5, 2)
 	_ = countOrIdKey
 
-	var bids any = this.DerivedExchange.ParseBidsAsks(this.SafeValue(orderbook, bidsKey, []any{}), priceKey, amountKey, countOrIdKey)
+	var bids any = this.DerivedExchange.ParseOrderBookBidsAsks(this.SafeValue(orderbook, bidsKey, []any{}), priceKey, amountKey, countOrIdKey)
 	PanicOnError(bids)
 
-	var asks any = this.DerivedExchange.ParseBidsAsks(this.SafeValue(orderbook, asksKey, []any{}), priceKey, amountKey, countOrIdKey)
+	var asks any = this.DerivedExchange.ParseOrderBookBidsAsks(this.SafeValue(orderbook, asksKey, []any{}), priceKey, amountKey, countOrIdKey)
 	PanicOnError(asks)
 	return map[string]any{
 		"symbol":    symbol,
@@ -5212,7 +5227,7 @@ func (this *Exchange) FetchLedgerEntry(id any, optionalArgs ...any) <-chan any {
 	}()
 	return ch
 }
-func (this *Exchange) ParseBidAsk(bidask any, optionalArgs ...any) any {
+func (this *Exchange) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) any {
 	priceKey := GetArg(optionalArgs, 0, 0)
 	_ = priceKey
 	amountKey := GetArg(optionalArgs, 1, 1)

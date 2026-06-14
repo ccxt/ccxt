@@ -57,7 +57,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-apex.fetchTime ([params])
+apex.fetchTime (params?)
 ```
 
 
@@ -77,7 +77,7 @@ query for account info
 
 
 ```javascript
-apex.fetchBalance ([params])
+apex.fetchBalance (params?)
 ```
 
 
@@ -97,7 +97,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-apex.fetchAccount ([params])
+apex.fetchAccount (params?)
 ```
 
 
@@ -117,7 +117,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-apex.fetchCurrencies ([params])
+apex.fetchCurrencies (params?)
 ```
 
 
@@ -137,7 +137,7 @@ retrieves data on all markets for apex
 
 
 ```javascript
-apex.fetchMarkets ([params])
+apex.fetchMarkets (params?)
 ```
 
 
@@ -158,7 +158,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-apex.fetchTicker (symbol[, params])
+apex.fetchTicker (symbol, params?)
 ```
 
 
@@ -179,7 +179,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-apex.fetchTickers (symbols[, params])
+apex.fetchTickers (symbols, params?)
 ```
 
 
@@ -204,7 +204,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-apex.fetchOHLCV (symbol, timeframe[, since, limit, params])
+apex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -226,7 +226,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-apex.fetchOrderBook (symbol[, limit, params])
+apex.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -251,7 +251,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-apex.fetchTrades (symbol[, since, limit, params])
+apex.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -272,7 +272,7 @@ retrieves the open interest of a contract trading pair
 
 
 ```javascript
-apex.fetchOpenInterest (symbol[, params])
+apex.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -297,7 +297,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-apex.fetchFundingRateHistory (symbol[, since, limit, params])
+apex.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -329,7 +329,7 @@ create a trade order
 
 
 ```javascript
-apex.createOrder (symbol, type, side, amount[, price, params])
+apex.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -353,7 +353,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-apex.transfer (code, amount, fromAccount, toAccount[, params])
+apex.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -374,7 +374,7 @@ cancel all open orders in a market
 
 
 ```javascript
-apex.cancelAllOrders (symbol[, params])
+apex.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -396,7 +396,7 @@ cancels an open order
 
 
 ```javascript
-apex.cancelOrder (id[, symbol, params])
+apex.cancelOrder (id, symbol?, params?)
 ```
 
 
@@ -423,7 +423,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-apex.fetchOrder (id, symbol[, params])
+apex.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -446,7 +446,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-apex.fetchOpenOrders (symbol[, since, limit, params])
+apex.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -475,7 +475,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 
 
 ```javascript
-apex.fetchOrders (symbol[, since, limit, params])
+apex.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -499,7 +499,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-apex.fetchOrderTrades (id, symbol[, since, limit, params])
+apex.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -526,7 +526,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 
 
 ```javascript
-apex.fetchMyTrades (symbol[, since, limit, params])
+apex.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -552,7 +552,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 
 
 ```javascript
-apex.fetchFundingHistory (symbol[, since, limit, params])
+apex.fetchFundingHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -574,7 +574,7 @@ set the level of leverage for a market
 
 
 ```javascript
-apex.setLeverage (leverage, symbol[, params])
+apex.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -595,7 +595,7 @@ fetch all open positions
 
 
 ```javascript
-apex.fetchPositions ([symbols, params])
+apex.fetchPositions (symbols?, params?)
 ```
 
 
@@ -618,7 +618,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-apex.watchTrades (symbol[, since, limit, params])
+apex.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -641,7 +641,7 @@ get the list of most recent trades for a list of symbols
 
 
 ```javascript
-apex.watchTradesForSymbols (symbols[, since, limit, params])
+apex.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -663,7 +663,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-apex.watchOrderBook (symbol[, limit, params])
+apex.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -685,7 +685,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-apex.watchOrderBookForSymbols (symbols[, limit, params])
+apex.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -706,7 +706,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-apex.watchTicker (symbol[, params])
+apex.watchTicker (symbol, params?)
 ```
 
 
@@ -727,7 +727,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-apex.watchTickers (symbols[, params])
+apex.watchTickers (symbols, params?)
 ```
 
 
@@ -751,7 +751,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-apex.watchOHLCV (symbol, timeframe[, since, limit, params])
+apex.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -774,7 +774,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-apex.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
+apex.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
 ```
 
 
@@ -798,7 +798,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-apex.watchMyTrades (symbol[, since, limit, params])
+apex.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -821,7 +821,7 @@ watch all open positions
 
 
 ```javascript
-apex.watchPositions ([symbols, since, limit, params])
+apex.watchPositions (symbols?, since?, limit?, params)
 ```
 
 
@@ -844,6 +844,6 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-apex.watchOrders (symbol[, since, limit, params])
+apex.watchOrders (symbol, since?, limit?, params?)
 ```
 

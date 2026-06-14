@@ -1,8 +1,5 @@
-- [Exchanges By Volume](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 
@@ -61,5 +58,5 @@ import ccxt from '../../js/ccxt.js';
         }))
     )
 
-}) () 
+}) ()
 ```

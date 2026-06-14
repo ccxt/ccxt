@@ -1,8 +1,8 @@
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/hitbtc.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dict, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, MarginModes, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Dictionary, int, FundingRate, FundingRates, DepositAddress, OrderBooks, OpenInterests } from './base/types.js';
 
 /**
@@ -973,7 +973,7 @@ export default class hitbtc extends Exchange {
         for (let j = 0; j < rawNetworks.length; j++) {
             const rawNetwork = rawNetworks[j];
             const networkId = this.safeString2 (rawNetwork, 'protocol', 'network');
-            let networkCode = this.networkIdToCode (networkId);
+            let networkCode = this.networkIdToCode (networkId, code);
             networkCode = (networkCode !== undefined) ? networkCode.toUpperCase () : code; // as hitbtc is white label, ensure we safeguard from possible bugs
             networks[networkCode] = {
                 'info': rawNetwork,
@@ -1011,18 +1011,6 @@ export default class hitbtc extends Exchange {
             },
             'type': undefined, // 'crypto' field emits incorrect values
         });
-    }
-
-    addKeyInArrayItems (obj, keyName) {
-        const result = [];
-        const keys = Object.keys (obj);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const item = obj[key];
-            item[keyName] = key;
-            result.push (item);
-        }
-        return result;
     }
 
     /**
@@ -3703,7 +3691,8 @@ export default class hitbtc extends Exchange {
         for (let j = 0; j < networks.length; j++) {
             const networkEntry = networks[j];
             const networkId = this.safeString (networkEntry, 'network');
-            let networkCode = this.networkIdToCode (networkId);
+            const code = this.safeString (currency, 'code');
+            let networkCode = this.networkIdToCode (networkId, code);
             networkCode = (networkCode !== undefined) ? networkCode.toUpperCase () : undefined;
             const withdrawFee = this.safeNumber (networkEntry, 'payout_fee');
             const isDefault = this.safeValue (networkEntry, 'default');

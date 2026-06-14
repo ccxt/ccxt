@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var apex$1 = require('../apex.js');
 var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -341,7 +341,7 @@ class apex extends apex$1["default"] {
         client.resolve(orderbook, messageHash);
     }
     handleDelta(bookside, delta) {
-        const bidAsk = this.parseBidAsk(delta, 0, 1);
+        const bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         bookside.storeArray(bidAsk);
     }
     handleDeltas(bookside, deltas) {
@@ -854,7 +854,7 @@ class apex extends apex$1["default"] {
         const request_path = '/ws/accounts';
         const http_method = 'GET';
         const messageString = (timestamp + http_method + request_path);
-        const signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256.sha256, 'base64');
+        const signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha2_js.sha256, 'base64');
         const messageHash = 'authenticated';
         const client = this.client(url);
         const future = client.reusableFuture(messageHash);

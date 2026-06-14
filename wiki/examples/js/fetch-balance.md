@@ -1,8 +1,5 @@
-- [Fetch Balance](./examples/js/)
-
-
- ```javascript
- "use strict";
+```javascript
+"use strict";
 
 const ccxt      = require ('../../ccxt.js');
 
@@ -29,5 +26,5 @@ async function checkMyBalance() {
     }
 }
 
-checkMyBalance(); 
+checkMyBalance();
 ```

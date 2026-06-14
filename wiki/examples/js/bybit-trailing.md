@@ -1,8 +1,5 @@
-- [Bybit Trailing](./examples/js/)
-
-
- ```javascript
- 'use strict';
+```javascript
+'use strict';
 
 const ccxt = require ('../../ccxt');
 
@@ -63,5 +60,5 @@ async function main () {
     await example1 ();
 }
 
-main (); 
+main ();
 ```

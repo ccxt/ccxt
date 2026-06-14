@@ -1,8 +1,5 @@
-- [Fetch Okex Futures](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -16,5 +13,5 @@ for symbol in exchange.markets:
         print('----------------------------------------------------')
         print(symbol, exchange.fetchTicker(symbol))
         time.sleep(exchange.rateLimit / 1000)
- 
+
 ```

@@ -1199,7 +1199,7 @@ func (this *HashkeyCore) ParseCurrency(rawCurrency any) any {
 	for j := 0; IsLessThan(j, GetArrayLength(networks)); j++ {
 		var network any = GetValue(networks, j)
 		var networkId any = this.SafeString(network, "chainType")
-		var networkCode any = this.NetworkCodeToId(networkId)
+		var networkCode any = this.NetworkCodeToId(networkId, code)
 		AddElementToObject(parsedNetworks, networkCode, map[string]any{
 			"id":      networkId,
 			"network": networkCode,
@@ -2280,7 +2280,7 @@ func (this *HashkeyCore) Withdraw(code any, amount any, address any, optionalArg
 		networkCode = GetValue(networkCodeparamsVariable, 0)
 		params = GetValue(networkCodeparamsVariable, 1)
 		if IsTrue(!IsEqual(networkCode, nil)) {
-			AddElementToObject(request, "chainType", this.NetworkCodeToId(networkCode))
+			AddElementToObject(request, "chainType", this.NetworkCodeToId(networkCode, GetValue(currency, "code")))
 		}
 
 		response := (<-this.PrivatePostApiV1AccountWithdraw(this.Extend(request, params)))

@@ -1,8 +1,5 @@
-- [Async Generator Multiple Tickers](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import ccxt.async_support as ccxt
@@ -24,5 +21,5 @@ async def main():
 
 
 asyncio.run(main())
- 
+
 ```

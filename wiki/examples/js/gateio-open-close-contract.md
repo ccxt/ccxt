@@ -1,11 +1,8 @@
-- [Gateio Open Close Contract](./examples/js/)
+```javascript
+const ccxt = require ('../../ccxt');
 
 
- ```javascript
- const ccxt = require ('../../ccxt');
-
-
-const exchange = new ccxt.gateio ({
+const exchange = new ccxt.gate ({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
     'options': {
@@ -51,5 +48,5 @@ const exchange = new ccxt.gateio ({
         console.log (e.constructor.name, e.message)
     }
 }) ()
- 
+
 ```

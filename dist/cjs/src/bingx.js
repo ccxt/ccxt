@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bingx$1 = require('./abstract/bingx.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var number = require('./base/functions/number.js');
 
 // ----------------------------------------------------------------------------
@@ -880,7 +880,7 @@ class bingx extends bingx$1["default"] {
         for (let j = 0; j < networkList.length; j++) {
             const rawNetwork = networkList[j];
             const network = this.safeString(rawNetwork, 'network');
-            const networkCode = this.networkIdToCode(network);
+            const networkCode = this.networkIdToCode(network, code);
             const limits = {
                 'withdraw': {
                     'min': this.safeNumber(rawNetwork, 'withdrawMin'),
@@ -5507,7 +5507,7 @@ class bingx extends bingx$1["default"] {
             'txid': this.safeString(transaction, 'txId'),
             'type': type,
             'currency': code,
-            'network': this.networkIdToCode(network),
+            'network': this.networkIdToCode(network, code),
             'amount': this.safeNumber(transaction, 'amount'),
             'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
             'timestamp': timestamp,
@@ -6058,7 +6058,7 @@ class bingx extends bingx$1["default"] {
         };
         const network = this.safeStringUpper(params, 'network');
         if (network !== undefined) {
-            request['network'] = this.networkCodeToId(network);
+            request['network'] = this.networkCodeToId(network, currency['code']);
         }
         if (tag !== undefined) {
             request['addressTag'] = tag;
@@ -6884,7 +6884,7 @@ class bingx extends bingx$1["default"] {
                 parsedParams = this.parseParams(params);
                 encodeRequest = this.rawencode(parsedParams, true);
             }
-            const signature = this.hmac(this.encode(encodeRequest), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(encodeRequest), this.encode(this.secret), sha2_js.sha256);
             headers = {
                 'X-BX-APIKEY': this.apiKey,
                 'X-SOURCE-KEY': this.safeString(this.options, 'broker', 'CCXT'),

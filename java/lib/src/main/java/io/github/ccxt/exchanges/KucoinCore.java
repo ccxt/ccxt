@@ -3618,7 +3618,7 @@ public class KucoinCore extends KucoinApi
                 parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
                 if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
                 {
-                    Helpers.addElementToObject(request, "chain", ((String)this.networkCodeToId(networkCode)).toLowerCase());
+                    Helpers.addElementToObject(request, "chain", ((String)this.networkCodeToId(networkCode, code)).toLowerCase());
                 }
                 //
                 //     {

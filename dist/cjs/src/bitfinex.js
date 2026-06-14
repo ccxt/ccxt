@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var bitfinex$1 = require('./abstract/bitfinex.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -2500,14 +2500,14 @@ class bitfinex extends bitfinex$1["default"] {
             tag = this.safeString(data, 3);
             type = 'withdrawal';
             const networkId = this.safeString(data, 2);
-            network = this.networkIdToCode(networkId.toUpperCase()); // withdraw returns in lowercase
+            network = this.networkIdToCode(networkId.toUpperCase(), code); // withdraw returns in lowercase
         }
         else if (transactionLength === 22) {
             id = this.safeString(transaction, 0);
             const currencyId = this.safeString(transaction, 1);
             code = this.safeCurrencyCode(currencyId, currency);
             const networkId = this.safeString(transaction, 2);
-            network = this.networkIdToCode(networkId);
+            network = this.networkIdToCode(networkId, code);
             timestamp = this.safeInteger(transaction, 5);
             updated = this.safeInteger(transaction, 6);
             status = this.parseTransactionStatus(this.safeString(transaction, 9));
@@ -2964,7 +2964,7 @@ class bitfinex extends bitfinex$1["default"] {
             const nonce = this.nonce().toString();
             body = this.json(query);
             const auth = '/api/' + request + nonce + body;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512.sha384);
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha384);
             headers = {
                 'bfx-nonce': nonce,
                 'bfx-apikey': this.apiKey,

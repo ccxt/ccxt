@@ -1,8 +1,5 @@
-- [Async With Threads](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import threading
@@ -38,5 +35,5 @@ thread.start()
 thread2.start()
 thread.join()
 thread2.join()
- 
+
 ```
