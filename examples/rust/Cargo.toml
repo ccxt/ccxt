@@ -1,0 +1,36 @@
+[package]
+name = "ccxt-examples"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+ccxt = { path = "../../rust/ccxt", features = ["transpiled-base"] }
+tokio = { version = "1", features = ["full"] }
+futures = "0.3"
+async-trait = "0.1"
+
+[[bin]]
+name = "binance_basics"
+path = "src/binance_basics.rs"
+
+[[bin]]
+name = "exchanges_smoke"
+path = "src/exchanges_smoke.rs"
+
+[[bin]]
+name = "cli"
+path = "src/cli.rs"
+
+[[bin]]
+name = "bench_parse_markets"
+path = "src/bench_parse_markets.rs"
+
+[[bin]]
+name = "binance_typed"
+path = "src/binance_typed.rs"
+
+# Keep debug symbols in release so `sample`/Instruments can attribute
+# hot frames. Negligible perf impact, larger binary.
+[profile.release]
+debug = true

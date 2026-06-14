@@ -2679,7 +2679,8 @@ export default class ascendex extends Exchange {
         const request: Dict = {
             'txType': 'deposit',
         };
-        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
+        const extendedRequest = this.extend (request, params);
+        return await this.fetchTransactions (code, since, limit, extendedRequest);
     }
 
     /**
@@ -2696,7 +2697,8 @@ export default class ascendex extends Exchange {
         const request: Dict = {
             'txType': 'withdrawal',
         };
-        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
+        const extendedRequest = this.extend (request, params);
+        return await this.fetchTransactions (code, since, limit, extendedRequest);
     }
 
     /**

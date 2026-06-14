@@ -1995,11 +1995,13 @@ export default class coinmetro extends Exchange {
         }
         headers['CCXT'] = 'true';
         if (api === 'private') {
-            if ((this.uid === undefined) && (this.apiKey !== undefined)) {
-                this.uid = this.apiKey;
+            let uid = this.uid;
+            let token = this.token;
+            if ((uid === undefined) && (this.apiKey !== undefined)) {
+                uid = this.apiKey;
             }
-            if ((this.token === undefined) && (this.secret !== undefined)) {
-                this.token = this.secret;
+            if ((token === undefined) && (this.secret !== undefined)) {
+                token = this.secret;
             }
             if (url === 'https://api.coinmetro.com/jwt') { // handle with headers for login endpoint
                 headers['X-Device-Id'] = 'bypass';
@@ -2007,15 +2009,15 @@ export default class coinmetro extends Exchange {
                     headers['X-OTP'] = this.twofa;
                 }
             } else if (url === 'https://api.coinmetro.com/jwtDevice') { // handle with headers for long lived token login endpoint
-                headers['X-Device-Id'] = this.uid;
+                headers['X-Device-Id'] = uid;
                 if (this.twofa !== undefined) {
                     headers['X-OTP'] = this.twofa;
                 }
             } else {
-                headers['Authorization'] = 'Bearer ' + this.token;
+                headers['Authorization'] = 'Bearer ' + token;
                 if (!url.startsWith ('https://api.coinmetro.com/open')) { // if not sandbox endpoint
                     this.checkRequiredCredentials ();
-                    headers['X-Device-Id'] = this.uid;
+                    headers['X-Device-Id'] = uid;
                 }
             }
             if ((method === 'POST') || (method === 'PUT')) {

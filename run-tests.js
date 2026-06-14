@@ -31,6 +31,7 @@ const langKeys = {
     '--php-async': false,    // run php async tests only,
     '--go': false,      // run GO tests only
     '--java': false,    // run Java tests only
+    '--rust': false,
 }
 
 const debugKeys = {
@@ -319,6 +320,7 @@ const testExchange = async (exchange) => {
         { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/tests_init.php', '--', '--sync',  ...args] },
         { key: '--go',           language: 'GO',           exec: [ 'go', 'run', '-C', 'go', './tests/main.go',          ...args] },
         { key: '--java',         language: 'Java',         exec: [ './java/gradlew', '-p', 'java', 'tests:run', getJavaArgs(args)] },
+        { key: '--rust',         language: 'Rust',         exec: ['cargo', 'run', '--quiet', '--manifest-path', 'rust/tests/Cargo.toml', '--bin', 'ti-rust', '--', ...args] },
     ];
 
     // select tests based on cli arguments
