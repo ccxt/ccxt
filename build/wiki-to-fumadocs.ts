@@ -452,6 +452,20 @@ function main () {
             JSON.stringify({ title: `${LANGS[lang]} Examples`, pages: ['index', ...pages] }, null, 2));
         count += files.length;
     }
+    // examples/README.md (repo root) — the curated CCXT citations (papers/theses) and
+    // "See Also" (tutorials, articles, projects). Auto-sync that section into the docs so
+    // it stays current with the README. The Examples index at the top of the README is
+    // dropped (the per-language chooser below already covers it).
+    let citationsPage = false;
+    const examplesReadme = path.join(ROOT, 'examples', 'README.md');
+    if (fs.existsSync(examplesReadme)) {
+        const raw = fs.readFileSync(examplesReadme, 'utf8');
+        const i = raw.search(/^##\s+CCXT Citations/im);
+        write(path.join(OUT, 'examples', 'citations.md'),
+            frontmatter('Citations & Articles', 'Academic papers, theses, tutorials, articles and projects that cite or build on CCXT.') +
+            transform(i >= 0 ? raw.slice(i) : raw));
+        citationsPage = true;
+    }
     // examples landing page: a language chooser (the Examples nav link points here)
     const langBlurb: Record<string, string> = {
         js: 'Node.js and the browser', py: 'sync and async (asyncio)', ts: 'typed, for Node and bundlers',
@@ -463,10 +477,11 @@ function main () {
     write(path.join(OUT, 'examples', 'index.md'),
         frontmatter('Examples', 'Runnable CCXT code examples — pick your language.') +
         'Hundreds of runnable CCXT examples. Pick a language to browse its ready-to-run scripts:\n\n' +
-        chooser + '\n');
+        chooser + '\n' +
+        (citationsPage ? '\nSee also [Citations & Articles](/docs/examples/citations) — papers, theses, tutorials and projects that cite or build on CCXT.\n' : ''));
     // root:true -> renders as a sidebar tab (keeps /docs/examples/* URLs unchanged)
     write(path.join(OUT, 'examples', 'meta.json'),
-        JSON.stringify({ title: 'Examples', icon: 'Code', description: 'Runnable code samples', root: true, pages: ['index', ...exampleLangs] }, null, 2));
+        JSON.stringify({ title: 'Examples', icon: 'Code', description: 'Runnable code samples', root: true, pages: ['index', ...exampleLangs, ...(citationsPage ? ['citations'] : [])] }, null, 2));
 
     // 4) top-level (Guides) nav meta.json. exchanges/examples are their own root tabs.
     const topPages = [

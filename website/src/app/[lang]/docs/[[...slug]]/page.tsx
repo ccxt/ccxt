@@ -8,12 +8,14 @@ import {
   ViewOptionsPopover,
 } from 'fumadocs-ui/layouts/docs/page';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import { getMDXComponents } from '@/components/mdx';
 import { ExamplesGrid } from '@/components/examples-grid';
 import { InstallCommands } from '@/components/install-commands';
 import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
 import { gitConfig } from '@/lib/shared';
+import { i18n } from '@/lib/i18n';
 
 // Render on demand, then cache (no build-time prebake of ~700 pages -> small image).
 export const revalidate = false;
@@ -32,6 +34,8 @@ const GUIDE_WIKI: Record<string, string> = {
 function wikiSourcePath(slugs: string[]): string | undefined {
   if (slugs[0] === 'exchanges' && slugs[1]) return `wiki/exchanges/${slugs[1]}.md`;
   if (slugs[0] === 'examples') {
+    // citations page is synced from the repo-root examples README, not the wiki tree
+    if (slugs[1] === 'citations') return 'examples/README.md';
     const lang = slugs[1];
     const name = slugs[2];
     if (lang && name) return `wiki/examples/${lang}/${name}.md`;
@@ -49,11 +53,22 @@ export default async function Page(props: PageProps<'/[lang]/docs/[[...slug]]'>)
   // /docs/examples — render the language chooser as a card grid (with brand logos)
   // instead of the generated markdown bullet list.
   if (params.slug?.length === 1 && params.slug[0] === 'examples') {
+    const prefix = params.lang === i18n.defaultLanguage ? '' : `/${params.lang}`;
     return (
       <DocsPage toc={[]}>
         <DocsTitle>{page.data.title}</DocsTitle>
         <DocsDescription>{page.data.description}</DocsDescription>
         <ExamplesGrid />
+        <p className="mt-8 text-sm text-fd-muted-foreground">
+          See also{' '}
+          <Link
+            href={`${prefix}/docs/examples/citations`}
+            className="font-medium text-fd-foreground underline underline-offset-2"
+          >
+            Citations &amp; Articles
+          </Link>{' '}
+          — papers, theses, tutorials and projects that cite or build on CCXT.
+        </p>
       </DocsPage>
     );
   }
