@@ -1,10 +1,10 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import cryptocomRest from '../cryptocom.js';
 import { AuthenticationError, ChecksumError, ExchangeError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict, Tickers, Market, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -1072,7 +1072,9 @@ export default class cryptocom extends cryptocomRest {
         }
         client.resolve (this.balance, messageHash);
         const messageHashRequest = this.safeString (message, 'id');
-        client.resolve (this.balance, messageHashRequest);
+        if (messageHashRequest !== undefined) {
+            client.resolve (this.balance, messageHashRequest);
+        }
     }
 
     /**

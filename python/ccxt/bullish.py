@@ -2046,7 +2046,7 @@ class bullish(Exchange, ImplicitAPI):
         networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['network'] = self.network_code_to_id(networkCode)
+            request['network'] = self.network_code_to_id(networkCode, code)
         else:
             raise ArgumentsRequired(self.id + ' withdraw() requires a network parameter')
         response = self.privatePostV1WalletsWithdrawal(self.extend(request, params))
@@ -2117,7 +2117,7 @@ class bullish(Exchange, ImplicitAPI):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.network_id_to_code(network),
+            'network': self.network_id_to_code(network, code),
             'addressFrom': sourceAddress,
             'address': address,
             'addressTo': address,
@@ -2309,7 +2309,7 @@ class bullish(Exchange, ImplicitAPI):
                 for i in range(0, len(safeResponse)):
                     entry = self.safe_dict(safeResponse, i, {})
                     networkId = self.safe_string(entry, 'network')
-                    networkCode = self.network_id_to_code(networkId)
+                    networkCode = self.network_id_to_code(networkId, code)
                     if network == networkCode:
                         data = entry
                         break
@@ -2320,10 +2320,11 @@ class bullish(Exchange, ImplicitAPI):
     def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         id = self.safe_string(depositAddress, 'symbol')
         network = self.safe_string(depositAddress, 'network')
+        code = self.safe_currency_code(id, currency)
         return {
             'info': depositAddress,
-            'currency': self.safe_currency_code(id, currency),
-            'network': self.network_id_to_code(network),
+            'currency': code,
+            'network': self.network_id_to_code(network, code),
             'address': self.safe_string(depositAddress, 'address'),
             'tag': None,
         }

@@ -1,8 +1,5 @@
-- [Create Trailing Percent Order](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 // AUTO-TRANSPILE //
 async function example() {
     const exchange = new ccxt.bingx({
@@ -38,5 +35,5 @@ async function example() {
     }
 }
 await example();
- 
+
 ```

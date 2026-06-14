@@ -1,8 +1,5 @@
-- [Okx Create Futures Order](./examples/ts/)
-
-
- ```javascript
- 'use strict';
+```javascript
+'use strict';
 
 import ccxt from '../../js/ccxt.js';
 
@@ -47,5 +44,5 @@ async function main () {
 }
 
 main ();
- 
+
 ```

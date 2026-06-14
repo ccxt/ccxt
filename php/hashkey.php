@@ -1180,7 +1180,7 @@ class hashkey extends Exchange {
         for ($j = 0; $j < count($networks); $j++) {
             $network = $networks[$j];
             $networkId = $this->safe_string($network, 'chainType');
-            $networkCode = $this->network_code_to_id($networkId);
+            $networkCode = $this->network_code_to_id($networkId, $code);
             $parsedNetworks[$networkCode] = array(
                 'id' => $networkId,
                 'network' => $networkCode,
@@ -2066,7 +2066,7 @@ class hashkey extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['chainType'] = $this->network_code_to_id($networkCode);
+            $request['chainType'] = $this->network_code_to_id($networkCode, $currency['code']);
         }
         $response = $this->privatePostApiV1AccountWithdraw ($this->extend($request, $params));
         //

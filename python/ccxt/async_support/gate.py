@@ -1965,7 +1965,7 @@ class gate(Exchange, ImplicitAPI):
         for j in range(0, len(chains)):
             chain = chains[j]
             networkId = self.safe_string(chain, 'name')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             networks[networkCode] = {
                 'info': chain,
                 'id': networkId,
@@ -2298,12 +2298,13 @@ class gate(Exchange, ImplicitAPI):
         #
         address = self.safe_string(depositAddress, 'address')
         self.check_address(address)
+        code = self.safe_string(currency, 'code')
         return {
             'info': depositAddress,
-            'currency': self.safe_string(currency, 'code'),
+            'currency': code,
             'address': address,
             'tag': self.safe_string(depositAddress, 'payment_id'),
-            'network': self.network_id_to_code(self.safe_string(depositAddress, 'chain')),
+            'network': self.network_id_to_code(self.safe_string(depositAddress, 'chain'), code),
         }
 
     async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
@@ -2449,7 +2450,7 @@ class gate(Exchange, ImplicitAPI):
                 networkIds = list(withdrawFixOnChains.keys())
                 for j in range(0, len(networkIds)):
                     networkId = networkIds[j]
-                    networkCode = self.network_id_to_code(networkId)
+                    networkCode = self.network_id_to_code(networkId, code)
                     withdrawFees[networkCode] = self.parse_number(withdrawFixOnChains[networkId])
             result[code] = {
                 'withdraw': withdrawFees,
@@ -2526,7 +2527,9 @@ class gate(Exchange, ImplicitAPI):
             chainKeys = list(withdrawFixOnChains.keys())
             for i in range(0, len(chainKeys)):
                 chainKey = chainKeys[i]
-                networkCode = self.network_id_to_code(chainKey, self.safe_string(fee, 'currency'))
+                currencyId = self.safe_string(fee, 'currency')
+                code = self.safe_currency_code(currencyId, currency)
+                networkCode = self.network_id_to_code(chainKey, code)
                 result['networks'][networkCode] = {
                     'withdraw': {
                         'fee': self.parse_number(withdrawFixOnChains[chainKey]),
@@ -3933,7 +3936,7 @@ class gate(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode)
+            request['chain'] = self.network_code_to_id(networkCode, code)
         response = await self.privateWithdrawalsPostWithdrawals(self.extend(request, params))
         #
         #    {
@@ -4060,7 +4063,7 @@ class gate(Exchange, ImplicitAPI):
             'txid': txid,
             'currency': code,
             'amount': self.parse_number(amountString),
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'address': address,
             'addressTo': None,
             'addressFrom': None,

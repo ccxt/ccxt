@@ -1,8 +1,5 @@
-- [Watchpositions](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -36,5 +33,5 @@ function example() {
 
 
 \React\Async\await(example());
- 
+
 ```

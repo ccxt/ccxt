@@ -608,7 +608,10 @@ public partial class exmo : Exchange
             object provider = getValue(fee, i);
             object type = this.safeString(provider, "type");
             object networkId = this.safeString(provider, "name");
-            object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
+            object currencyId = this.safeString(provider, "currency_name");
+            currency = this.safeCurrency(currencyId, currency);
+            object code = this.safeString(currency, "code");
+            object networkCode = this.networkIdToCode(networkId, code);
             object commissionDesc = this.safeString(provider, "commission_desc");
             object splitCommissionDesc = new List<object>() {};
             object percentage = null;
@@ -727,7 +730,7 @@ public partial class exmo : Exchange
                 networkId = ((string)networkId).Replace((string)"(", (string)"");
                 object replaceChar = ")"; // transpiler trick
                 networkId = ((string)networkId).Replace((string)replaceChar, (string)"");
-                object networkCode = this.networkIdToCode(networkId);
+                object networkCode = this.networkIdToCode(networkId, code);
                 if (!isTrue((inOp(networks, networkCode))))
                 {
                     ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {

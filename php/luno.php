@@ -338,7 +338,7 @@ class luno extends Exchange {
         for ($i = 0; $i < count($rawCurrency); $i++) {
             $networkEntry = $rawCurrency[$i];
             $networkId = $this->safe_string($networkEntry, 'name');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'id' => $networkId,
                 'network' => $networkCode,

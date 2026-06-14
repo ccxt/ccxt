@@ -1,8 +1,5 @@
-- [Calculate Ohlcvs From Trades](./examples/js/)
-
-
- ```javascript
- 'use strict';
+```javascript
+'use strict';
 import ccxt from '../../js/ccxt.js';
 console.log('CCXT Version:', ccxt.version); // eslint-disable-line import/no-named-as-default-member
 async function main() {
@@ -58,5 +55,5 @@ async function main() {
     }
 }
 main();
- 
+
 ```

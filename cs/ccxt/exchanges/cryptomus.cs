@@ -422,7 +422,7 @@ public partial class cryptomus : Exchange
                 code = this.safeCurrencyCode(id);
             }
             object networkId = this.safeString(networkEntry, "network_code");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "id", networkId },
                 { "network", networkCode },

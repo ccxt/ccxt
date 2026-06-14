@@ -1,8 +1,5 @@
-- [Tickers](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -130,5 +127,5 @@ except Exception as e:
 
     print(type(e).__name__, e.args, str(e))
     print_usage()
- 
+
 ```

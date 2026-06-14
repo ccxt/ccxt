@@ -1,8 +1,5 @@
-- [Async Basic Callchain](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import os
@@ -77,5 +74,5 @@ if __name__ == '__main__':
     exchanges = []
     results = asyncio.run(run_all_exchanges(exchange_ids))
     print([(exchange_id, ticker) for exchange_id, ticker in results.items()])
- 
+
 ```

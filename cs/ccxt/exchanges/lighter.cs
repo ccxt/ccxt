@@ -150,7 +150,7 @@ public partial class lighter : Exchange
                 { "doc", "https://apidocs.lighter.xyz/" },
                 { "fees", "https://docs.lighter.xyz/perpetual-futures/fees" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "app.lighter.xyz/?referral=715955W9" },
+                    { "url", "https://app.lighter.xyz/?referral=715955W9" },
                     { "discount", 0.1 },
                 } },
             } },
@@ -1999,10 +1999,12 @@ public partial class lighter : Exchange
             } else
             {
                 object perpBalance = this.safeDict(result, "USDC", this.account());
-                object perpUSDCTotal = this.safeString(account, "collateral");
-                object perpUSDCFree = this.safeString(account, "available_balance");
-                ((IDictionary<string,object>)perpBalance)["total"] = Precise.stringAdd(getValue(perpBalance, "total"), perpUSDCTotal);
-                ((IDictionary<string,object>)perpBalance)["free"] = Precise.stringAdd(getValue(perpBalance, "free"), perpUSDCFree);
+                object perpTotal = this.safeString(perpBalance, "total", "0");
+                object perpFree = this.safeString(perpBalance, "free", "0");
+                object perpUSDCTotal = this.safeString(account, "collateral", "0");
+                object perpUSDCFree = this.safeString(account, "available_balance", "0");
+                ((IDictionary<string,object>)perpBalance)["total"] = Precise.stringAdd(perpTotal, perpUSDCTotal);
+                ((IDictionary<string,object>)perpBalance)["free"] = Precise.stringAdd(perpFree, perpUSDCFree);
                 ((IDictionary<string,object>)result)["USDC"] = perpBalance;
             }
         }

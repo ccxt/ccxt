@@ -1460,7 +1460,19 @@ public class OkxCore extends OkxApi
         Object market = Helpers.getArg(optionalArgs, 1, null);
         Object delimiter = Helpers.getArg(optionalArgs, 2, null);
         Object marketType = Helpers.getArg(optionalArgs, 3, null);
-        Object isOption = Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-C"), Helpers.opNeg(1)))) || Helpers.isTrue((Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-P"), Helpers.opNeg(1))))));
+        Object isOption = false;
+        if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
+        {
+            Object parts = Helpers.split(marketId, "-");
+            Object partsLength = Helpers.getArrayLength(parts);
+            // a valid OKX option ends with the call/put flag and carries expiry+strike segments,
+            // e.g. the market id BTC-USD-220325-194000-P (5 parts) or the unified symbol
+            // BTC/USD:USD-260611-54000-C (4 parts). Requiring more than 3 dash-separated parts avoids
+            // misclassifying ordinary ids that merely contain "-C"/"-P" (such as a SPOT id like
+            // "PERFTESTA-PERFTESTB") as expired options, which would crash createExpiredOptionMarket
+            // on the missing expiry.
+            isOption = Helpers.isTrue((Helpers.isGreaterThan(partsLength, 3))) && Helpers.isTrue((Helpers.isTrue(((String)marketId).endsWith(((String)"-C"))) || Helpers.isTrue(((String)marketId).endsWith(((String)"-P")))));
+        }
         if (Helpers.isTrue(Helpers.isTrue(isOption) && !Helpers.isTrue((Helpers.inOp(this.markets_by_id, marketId)))))
         {
             // handle expired option contracts
@@ -1960,6 +1972,11 @@ public class OkxCore extends OkxApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(dataResponse)); i++)
             {
                 Object data = Helpers.GetValue(dataResponse, i);
+                Object instId = this.safeString(data, "instId", "");
+                if (Helpers.isTrue(Helpers.isEqual(instId, "")))
+                {
+                    continue;
+                }
                 if (Helpers.isTrue(this.isSandboxModeEnabled))
                 {
                     Object instFamily = this.safeString(data, "instFamily", "");
@@ -10392,7 +10409,7 @@ public class OkxCore extends OkxApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(timeframe, null)))
             {
-                Helpers.addElementToObject(request, "period", timeframe);
+                Helpers.addElementToObject(request, "period", this.safeString(this.timeframes, timeframe, timeframe));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {

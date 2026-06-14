@@ -1,8 +1,5 @@
-- [Fetch Orders](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -21,5 +18,5 @@ print(orders)
 
 order = exchange.fetch_order(orders[0]['id'])
 print(order)
- 
+
 ```

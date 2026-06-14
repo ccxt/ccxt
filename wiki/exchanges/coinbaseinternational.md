@@ -47,7 +47,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-coinbaseinternational.fetchAccounts ([params])
+coinbaseinternational.fetchAccounts (params?)
 ```
 
 
@@ -73,7 +73,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-coinbaseinternational.fetchOHLCV (symbol, timeframe[, since, limit, params])
+coinbaseinternational.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -97,7 +97,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-coinbaseinternational.fetchFundingRateHistory (symbol[, since, limit, params])
+coinbaseinternational.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -120,7 +120,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-coinbaseinternational.fetchFundingHistory ([symbol, since, limit, params])
+coinbaseinternational.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 
@@ -143,7 +143,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-coinbaseinternational.fetchTransfers (code[, since, limit, params])
+coinbaseinternational.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -170,7 +170,7 @@ create a currency deposit address
 
 
 ```javascript
-coinbaseinternational.createDepositAddress (code[, params])
+coinbaseinternational.createDepositAddress (code, params?)
 ```
 
 
@@ -192,7 +192,7 @@ Either adds or reduces margin in order to set the margin to a specific value
 
 
 ```javascript
-coinbaseinternational.setMargin (symbol, amount[, params])
+coinbaseinternational.setMargin (symbol, amount, params?)
 ```
 
 
@@ -213,7 +213,7 @@ fetch data on an open position
 
 
 ```javascript
-coinbaseinternational.fetchPosition (symbol[, params])
+coinbaseinternational.fetchPosition (symbol, params?)
 ```
 
 
@@ -234,7 +234,7 @@ fetch all open positions
 
 
 ```javascript
-coinbaseinternational.fetchPositions ([symbols, params])
+coinbaseinternational.fetchPositions (symbols?, params?)
 ```
 
 
@@ -262,7 +262,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-coinbaseinternational.fetchWithdrawals (code[, since, limit, params])
+coinbaseinternational.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -289,7 +289,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-coinbaseinternational.fetchDeposits (code[, since, limit, params])
+coinbaseinternational.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -309,7 +309,7 @@ retrieves data on all markets for coinbaseinternational
 
 
 ```javascript
-coinbaseinternational.fetchMarkets ([params])
+coinbaseinternational.fetchMarkets (params?)
 ```
 
 
@@ -329,7 +329,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-coinbaseinternational.fetchCurrencies ([params])
+coinbaseinternational.fetchCurrencies (params?)
 ```
 
 
@@ -350,7 +350,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-coinbaseinternational.fetchTickers (symbols[, params])
+coinbaseinternational.fetchTickers (symbols, params?)
 ```
 
 
@@ -371,7 +371,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-coinbaseinternational.fetchTicker (symbol[, params])
+coinbaseinternational.fetchTicker (symbol, params?)
 ```
 
 
@@ -392,7 +392,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-coinbaseinternational.fetchBalance ([params])
+coinbaseinternational.fetchBalance (params?)
 ```
 
 
@@ -416,7 +416,7 @@ Transfer an amount of asset from one portfolio to another.
 
 
 ```javascript
-coinbaseinternational.transfer (code, amount, fromAccount, toAccount[, params])
+coinbaseinternational.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -448,7 +448,7 @@ create a trade order
 
 
 ```javascript
-coinbaseinternational.createOrder (symbol, type, side, amount[, price, params])
+coinbaseinternational.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -470,7 +470,7 @@ cancels an open order
 
 
 ```javascript
-coinbaseinternational.cancelOrder (id, symbol[, params])
+coinbaseinternational.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -490,7 +490,7 @@ cancel all open orders
 
 
 ```javascript
-coinbaseinternational.cancelAllOrders (symbol[, params])
+coinbaseinternational.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -517,7 +517,7 @@ edit a trade order
 
 
 ```javascript
-coinbaseinternational.editOrder (id, symbol, type, side, amount[, price, params])
+coinbaseinternational.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -539,7 +539,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-coinbaseinternational.fetchOrder (id, symbol[, params])
+coinbaseinternational.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -565,7 +565,7 @@ fetches information on all currently open orders
 
 
 ```javascript
-coinbaseinternational.fetchOpenOrders (symbol[, since, limit, params])
+coinbaseinternational.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -590,7 +590,7 @@ fetch all trades made by the user
 
 
 ```javascript
-coinbaseinternational.fetchMyTrades (symbol[, since, limit, params])
+coinbaseinternational.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -621,6 +621,6 @@ make a withdrawal
 
 
 ```javascript
-coinbaseinternational.withdraw (code, amount, address[, tag, params])
+coinbaseinternational.withdraw (code, amount, address, tag?, params?)
 ```
 

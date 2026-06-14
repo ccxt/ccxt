@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitrue$1 = require('./abstract/bitrue.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -447,7 +447,6 @@ class bitrue extends bitrue$1["default"] {
                     'XML': 'Stellar Lumens',
                     'XYM': 'Symbol',
                     'XTZ': 'Tezos',
-                    'theta': 'theta',
                     'THETA': 'THETA',
                     'VECHAIN': 'VeChain',
                     'WANCHAIN': 'Wanchain',
@@ -2908,7 +2907,7 @@ class bitrue extends bitrue$1["default"] {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['chainName'] = this.networkCodeToId(networkCode);
+            request['chainName'] = this.networkCodeToId(networkCode, currency['code']);
         }
         if (tag !== undefined) {
             request['tag'] = tag;
@@ -3233,7 +3232,7 @@ class bitrue extends bitrue$1["default"] {
                     'timestamp': this.nonce(),
                     'recvWindow': recvWindow,
                 }, params));
-                const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
+                const signature = this.hmac(this.encode(query), this.encode(this.secret), sha2_js.sha256);
                 query += '&' + 'signature=' + signature;
                 headers = {
                     'X-MBX-APIKEY': this.apiKey,
@@ -3263,7 +3262,7 @@ class bitrue extends bitrue$1["default"] {
                     if (keysLength > 0) {
                         signMessage += '?' + this.urlencode(params);
                     }
-                    const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256.sha256);
+                    const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha2_js.sha256);
                     headers = {
                         'X-CH-APIKEY': this.apiKey,
                         'X-CH-SIGN': signature,
@@ -3277,7 +3276,7 @@ class bitrue extends bitrue$1["default"] {
                     }, params);
                     body = this.json(query);
                     signMessage += body;
-                    const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256.sha256);
+                    const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha2_js.sha256);
                     headers = {
                         'Content-Type': 'application/json',
                         'X-CH-APIKEY': this.apiKey,

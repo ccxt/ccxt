@@ -1113,68 +1113,84 @@ public class WooCore extends WooApi
             Object currencyIds = Helpers.objectKeys(tokensById);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
             {
-                Object currencyId = Helpers.GetValue(currencyIds, i);
-                Object code = this.safeCurrencyCode(currencyId);
-                Object tokensByNetworkId = this.indexBy(Helpers.GetValue(tokensById, currencyId), "network");
-                Object chainsByNetworkId = this.indexBy(Helpers.GetValue(networksById, currencyId), "network");
-                Object keys = Helpers.objectKeys(chainsByNetworkId);
-                Object resultingNetworks = new java.util.HashMap<String, Object>() {{}};
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(keys)); j++)
-                {
-                    Object networkId = Helpers.GetValue(keys, j);
-                    Object tokenEntry = this.safeDict(tokensByNetworkId, networkId, new java.util.HashMap<String, Object>() {{}});
-                    Object networkEntry = this.safeDict(chainsByNetworkId, networkId, new java.util.HashMap<String, Object>() {{}});
-                    Object networkCode = this.networkIdToCode(networkId, code);
-                    Object specialNetworkId = this.safeString(tokenEntry, "token");
-                    Helpers.addElementToObject(resultingNetworks, networkCode, new java.util.HashMap<String, Object>() {{
-        put( "id", networkId );
-        put( "currencyNetworkId", specialNetworkId );
-        put( "network", networkCode );
-        put( "active", null );
-        put( "deposit", Helpers.isEqual(WooCore.this.safeString(networkEntry, "allow_deposit"), "1") );
-        put( "withdraw", Helpers.isEqual(WooCore.this.safeString(networkEntry, "allow_withdraw"), "1") );
-        put( "fee", WooCore.this.safeNumber(networkEntry, "withdrawal_fee") );
-        put( "precision", WooCore.this.parseNumber(WooCore.this.parsePrecision(WooCore.this.safeString(tokenEntry, "decimals"))) );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", WooCore.this.safeNumber(networkEntry, "minimum_withdrawal") );
-                put( "max", null );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "info", new java.util.ArrayList<Object>(java.util.Arrays.asList(networkEntry, tokenEntry)) );
-    }});
-                }
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", currencyId );
-        put( "name", null );
-        put( "code", code );
-        put( "precision", null );
-        put( "active", null );
-        put( "fee", null );
-        put( "networks", resultingNetworks );
-        put( "deposit", null );
-        put( "withdraw", null );
-        put( "type", "crypto" );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "info", new java.util.ArrayList<Object>(java.util.Arrays.asList(tokensByNetworkId, chainsByNetworkId)) );
-    }}));
+                Object id = Helpers.GetValue(currencyIds, i);
+                Object customCurrency = new java.util.HashMap<String, Object>() {{
+                    put( "_coin_id", id );
+                    put( "_tokens_by_id", Helpers.GetValue(tokensById, id) );
+                    put( "_networks_by_id", Helpers.GetValue(networksById, id) );
+                }};
+                Object parsed = this.parseCurrency(customCurrency);
+                Object code = Helpers.GetValue(parsed, "code");
+                Helpers.addElementToObject(result, code, parsed);
             }
             return result;
         });
 
+    }
+
+    public Object parseCurrency(Object rawCurrency)
+    {
+        Object currencyId = this.safeString(rawCurrency, "_coin_id");
+        Object code = this.safeCurrencyCode(currencyId);
+        Object tokensByNetworkId = this.indexBy(Helpers.GetValue(rawCurrency, "_tokens_by_id"), "network");
+        Object chainsByNetworkId = this.indexBy(Helpers.GetValue(rawCurrency, "_networks_by_id"), "network");
+        Object keys = Helpers.objectKeys(chainsByNetworkId);
+        Object resultingNetworks = new java.util.HashMap<String, Object>() {{}};
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(keys)); j++)
+        {
+            Object networkId = Helpers.GetValue(keys, j);
+            Object tokenEntry = this.safeDict(tokensByNetworkId, networkId, new java.util.HashMap<String, Object>() {{}});
+            Object networkEntry = this.safeDict(chainsByNetworkId, networkId, new java.util.HashMap<String, Object>() {{}});
+            Object networkCode = this.networkIdToCode(networkId, code);
+            Object specialNetworkId = this.safeString(tokenEntry, "token");
+            Helpers.addElementToObject(resultingNetworks, networkCode, new java.util.HashMap<String, Object>() {{
+    put( "id", networkId );
+    put( "currencyNetworkId", specialNetworkId );
+    put( "network", networkCode );
+    put( "active", null );
+    put( "deposit", Helpers.isEqual(WooCore.this.safeString(networkEntry, "allow_deposit"), "1") );
+    put( "withdraw", Helpers.isEqual(WooCore.this.safeString(networkEntry, "allow_withdraw"), "1") );
+    put( "fee", WooCore.this.safeNumber(networkEntry, "withdrawal_fee") );
+    put( "precision", WooCore.this.parseNumber(WooCore.this.parsePrecision(WooCore.this.safeString(tokenEntry, "decimals"))) );
+    put( "limits", new java.util.HashMap<String, Object>() {{
+        put( "withdraw", new java.util.HashMap<String, Object>() {{
+            put( "min", WooCore.this.safeNumber(networkEntry, "minimum_withdrawal") );
+            put( "max", null );
+        }} );
+        put( "deposit", new java.util.HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", null );
+        }} );
+    }} );
+    put( "info", new java.util.HashMap<String, Object>() {{
+        put( "network", networkEntry );
+        put( "token", tokenEntry );
+    }} );
+}});
+        }
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", currencyId );
+            put( "name", null );
+            put( "code", code );
+            put( "precision", null );
+            put( "active", null );
+            put( "fee", null );
+            put( "networks", resultingNetworks );
+            put( "deposit", null );
+            put( "withdraw", null );
+            put( "type", "crypto" );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "deposit", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "info", rawCurrency );
+        }});
     }
 
     /**
@@ -2673,7 +2689,7 @@ public class WooCore extends WooApi
             final Object finalNetworkCode = networkCode;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "token", Helpers.GetValue(currency, "id") );
-                put( "network", WooCore.this.networkCodeToId(finalNetworkCode) );
+                put( "network", WooCore.this.networkCodeToId(finalNetworkCode, Helpers.GetValue(currency, "code")) );
             }};
             Object response = (this.v3PrivateGetAssetWalletDeposit(this.extend(request, parameters))).join();
             //
@@ -2746,7 +2762,7 @@ public class WooCore extends WooApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
-                Helpers.addElementToObject(request, "network", this.networkCodeToId(networkCode));
+                Helpers.addElementToObject(request, "network", this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code")));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -3058,7 +3074,7 @@ public class WooCore extends WooApi
             put( "comment", null );
             put( "internal", null );
             put( "fee", fee );
-            put( "network", WooCore.this.networkIdToCode(WooCore.this.safeString(transaction, "network")) );
+            put( "network", WooCore.this.networkIdToCode(WooCore.this.safeString(transaction, "network"), code) );
         }};
     }
 
@@ -3325,7 +3341,7 @@ public class WooCore extends WooApi
             }
             parameters = this.omit(parameters, "network");
             Helpers.addElementToObject(request, "token", Helpers.GetValue(currency, "id"));
-            Helpers.addElementToObject(request, "network", this.networkCodeToId(network));
+            Helpers.addElementToObject(request, "network", this.networkCodeToId(network, Helpers.GetValue(currency, "code")));
             Object response = (this.v3PrivatePostAssetWalletWithdraw(this.extend(request, parameters))).join();
             //
             //     {

@@ -1,8 +1,5 @@
-- [Kraken Conditional Close Order](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -44,5 +41,5 @@ pprint(fetched_order)
 
 canceled_order = exchange.cancel_order(order['id'])
 print('Canceled order:')
-pprint(canceled_order) 
+pprint(canceled_order)
 ```

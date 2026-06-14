@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var delta$1 = require('./abstract/delta.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -576,7 +576,7 @@ class delta extends delta$1["default"] {
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'network');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
@@ -2606,11 +2606,12 @@ class delta extends delta$1["default"] {
         const address = this.safeString(depositAddress, 'address');
         const marketId = this.safeString(depositAddress, 'asset_symbol');
         const networkId = this.safeString(depositAddress, 'network');
+        const code = this.safeCurrencyCode(marketId, currency);
         this.checkAddress(address);
         return {
             'info': depositAddress,
-            'currency': this.safeCurrencyCode(marketId, currency),
-            'network': this.networkIdToCode(networkId),
+            'currency': code,
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'tag': this.safeString(depositAddress, 'memo'),
         };
@@ -4090,7 +4091,7 @@ class delta extends delta$1["default"] {
                 auth += body;
                 headers['Content-Type'] = 'application/json';
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             headers['signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

@@ -1,8 +1,5 @@
-- [Builtin Rate Limiting Rest Poller](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import log from 'ololog';
@@ -26,5 +23,5 @@ const concurrent = [
     test ('ETH/USD')
 ]
 
-Promise.all (concurrent) 
+Promise.all (concurrent)
 ```

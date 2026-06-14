@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var phemex$1 = require('./abstract/phemex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -1144,50 +1144,48 @@ class phemex extends phemex$1["default"] {
         //     }
         const data = this.safeValue(response, 'data', {});
         const currencies = this.safeValue(data, 'currencies', []);
-        const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = this.safeString(currency, 'currency');
-            const code = this.safeCurrencyCode(id);
-            const valueScaleString = this.safeString(currency, 'valueScale');
-            const valueScale = parseInt(valueScaleString);
-            const minValueEv = this.safeString(currency, 'minValueEv');
-            const maxValueEv = this.safeString(currency, 'maxValueEv');
-            let minAmount = undefined;
-            let maxAmount = undefined;
-            let precision = undefined;
-            if (valueScale !== undefined) {
-                const precisionString = this.parsePrecision(valueScaleString);
-                precision = this.parseNumber(precisionString);
-                minAmount = this.parseNumber(Precise["default"].stringMul(minValueEv, precisionString));
-                maxAmount = this.parseNumber(Precise["default"].stringMul(maxValueEv, precisionString));
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'info': currency,
-                'code': code,
-                'name': this.safeString(currency, 'name'),
-                'active': this.safeString(currency, 'status') === 'Listed',
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': minAmount,
-                        'max': maxAmount,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'valueScale': valueScale,
-                'networks': undefined,
-                'type': 'crypto',
-            });
+        return this.parseCurrencies(currencies);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'currency');
+        const code = this.safeCurrencyCode(id);
+        const valueScaleString = this.safeString(rawCurrency, 'valueScale');
+        const valueScale = parseInt(valueScaleString);
+        const minValueEv = this.safeString(rawCurrency, 'minValueEv');
+        const maxValueEv = this.safeString(rawCurrency, 'maxValueEv');
+        let minAmount = undefined;
+        let maxAmount = undefined;
+        let precision = undefined;
+        if (valueScale !== undefined) {
+            const precisionString = this.parsePrecision(valueScaleString);
+            precision = this.parseNumber(precisionString);
+            minAmount = this.parseNumber(Precise["default"].stringMul(minValueEv, precisionString));
+            maxAmount = this.parseNumber(Precise["default"].stringMul(maxValueEv, precisionString));
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'info': rawCurrency,
+            'code': code,
+            'name': this.safeString(rawCurrency, 'name'),
+            'active': this.safeString(rawCurrency, 'status') === 'Listed',
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': minAmount,
+                    'max': maxAmount,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'valueScale': valueScale,
+            'networks': undefined,
+            'type': 'crypto',
+        });
     }
     customParseBidAsk(bidask, priceKey = 0, amountKey = 1, market = undefined) {
         if (market === undefined) {
@@ -3811,7 +3809,7 @@ class phemex extends phemex$1["default"] {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -4718,7 +4716,7 @@ class phemex extends phemex$1["default"] {
                 headers['Content-Type'] = 'application/json';
             }
             const auth = requestPath + queryString + expiryString + payload;
-            headers['x-phemex-request-signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+            headers['x-phemex-request-signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
         }
         url = this.implodeHostname(this.urls['api'][api]) + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -5084,7 +5082,7 @@ class phemex extends phemex$1["default"] {
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         let networkId = undefined;
         if (networkCode !== undefined) {
-            networkId = this.networkCodeToId(networkCode);
+            networkId = this.networkCodeToId(networkCode, code);
         }
         const stableCoins = this.safeValue(this.options, 'stableCoins');
         if (networkId === undefined) {

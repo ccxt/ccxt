@@ -561,7 +561,7 @@ class cryptocom extends Exchange {
             $response = $this->v1PrivatePostPrivateGetCurrencyNetworks ($params);
         } catch (Exception $e) {
             $erString = $this->exception_message($e);
-            if (mb_strpos($erString, '"msg":"SYS_ERROR"') !== false) {
+            if (mb_strpos($erString, 'SYS_ERROR') !== false) {
                 // sub-accounts can't access this endpoint
                 // array("code":"10001","msg":"SYS_ERROR")
                 return array();
@@ -663,18 +663,6 @@ class cryptocom extends Exchange {
             'type' => 'crypto', // only crypto now
             'networks' => $networks,
         ));
-    }
-
-    public function add_key_in_array_items($obj, $keyName) {
-        $result = array();
-        $keys = is_array($obj) ? array_keys($obj) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            $item = $obj[$key];
-            $item[$keyName] = $key;
-            $result[] = $item;
-        }
-        return $result;
     }
 
     public function fetch_markets($params = array ()): array {
@@ -2008,7 +1996,7 @@ class cryptocom extends Exchange {
         }
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
-        $networkId = $this->network_code_to_id($networkCode);
+        $networkId = $this->network_code_to_id($networkCode, $code);
         if ($networkId !== null) {
             $request['network_id'] = $networkId;
         }

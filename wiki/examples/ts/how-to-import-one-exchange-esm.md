@@ -1,8 +1,5 @@
-- [How To Import One Exchange Esm](./examples/ts/)
-
-
- ```javascript
- import { binance } from '../../js/ccxt.js';
+```javascript
+import { binance } from '../../js/ccxt.js';
 
 async function example () {
     const exchange = new binance ({});
@@ -13,5 +10,5 @@ async function example () {
     console.log (bids);
 }
 example ();
- 
+
 ```

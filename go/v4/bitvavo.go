@@ -660,7 +660,7 @@ func (this *BitvavoCore) ParseCurrency(rawCurrency any) any {
 	// btw, absolutely all of them have 1 network atm
 	for j := 0; IsLessThan(j, GetArrayLength(networksArray)); j++ {
 		var networkId any = GetValue(networksArray, j)
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		AddElementToObject(networks, networkCode, map[string]any{
 			"info":      rawCurrency,
 			"id":        networkId,

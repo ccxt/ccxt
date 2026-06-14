@@ -1,8 +1,5 @@
-- [Proxy Usage](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -73,5 +70,5 @@ function example_web_sockets() {
 
 // await example_proxyUrl ();
 \React\Async\await(example_http_proxy());
- 
+
 ```

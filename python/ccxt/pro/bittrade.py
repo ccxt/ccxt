@@ -553,7 +553,7 @@ class bittrade(ccxt.async_support.bittrade):
                     if id in client.subscriptions:
                         del client.subscriptions[id]
             return False
-        return message
+        return True
 
     def handle_message(self, client: Client, message):
         if self.handle_error_message(client, message):

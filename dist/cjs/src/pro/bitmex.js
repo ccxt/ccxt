@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitmex$1 = require('../bitmex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -690,7 +690,7 @@ class bitmex extends bitmex$1["default"] {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds();
             const payload = 'GET' + '/realtime' + timestamp.toString();
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256);
             const request = {
                 'op': 'authKeyExpires',
                 'args': [

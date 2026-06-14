@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
+var secp256k1_js = require('@noble/curves/secp256k1.js');
 var hibachi$1 = require('./abstract/hibachi.js');
 var number = require('./base/functions/number.js');
 var crypto = require('./base/functions/crypto.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
-var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
 
@@ -133,7 +133,7 @@ class hibachi extends hibachi$1["default"] {
                 },
                 'www': 'https://www.hibachi.xyz/',
                 'referral': {
-                    'url': 'hibachi.xyz/r/ZBL2YFWIHU',
+                    'url': 'https://hibachi.xyz/r/ZBL2YFWIHU',
                 },
             },
             'api': {
@@ -1244,12 +1244,12 @@ class hibachi extends hibachi$1["default"] {
     signMessage(message, privateKey) {
         if (privateKey.length === 44) {
             // For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
-            return this.hmac(message, this.encode(privateKey), sha256.sha256, 'hex');
+            return this.hmac(message, this.encode(privateKey), sha2_js.sha256, 'hex');
         }
         else {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
-            const hash = this.hash(message, sha256.sha256, 'hex');
-            const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1.secp256k1, undefined);
+            const hash = this.hash(message, sha2_js.sha256, 'hex');
+            const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
             const r = signature['r'];
             const s = signature['s'];
             const v = this.intToBase16(signature['v']);

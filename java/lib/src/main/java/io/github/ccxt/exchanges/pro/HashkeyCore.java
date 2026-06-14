@@ -687,18 +687,19 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         market = this.safeMarket(marketId, market);
         Object timestamp = this.safeInteger(trade, "t");
         Object isBuyerMaker = this.safeBool(trade, "m");
+        Object isPublicTrade = Helpers.isEqual(this.safeString(trade, "e"), null);
         Object side = null;
         Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isBuyerMaker, null)))
         {
-            if (Helpers.isTrue(isBuyerMaker))
+            if (Helpers.isTrue(isPublicTrade))
             {
-                side = "sell";
-                takerOrMaker = "maker";
+                takerOrMaker = "taker";
+                side = ((Helpers.isTrue(isBuyerMaker))) ? "sell" : "buy";
             } else
             {
-                side = "buy";
-                takerOrMaker = "taker";
+                takerOrMaker = ((Helpers.isTrue(isBuyerMaker))) ? "maker" : "taker";
+                side = this.safeStringLower(trade, "S");
             }
         }
         final Object finalMarket = market;
@@ -709,7 +710,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
             put( "timestamp", timestamp );
             put( "datetime", HashkeyCore.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "side", HashkeyCore.this.safeStringLower(trade, "S", finalSide) );
+            put( "side", finalSide );
             put( "price", HashkeyCore.this.safeString(trade, "p") );
             put( "amount", HashkeyCore.this.safeString(trade, "q") );
             put( "cost", null );

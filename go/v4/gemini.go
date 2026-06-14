@@ -463,7 +463,7 @@ func (this *GeminiCore) ParseCurrency(rawCurrency any) any {
 	var networkId any = this.SafeString(rawCurrency, 9)
 	var networkCode any = nil
 	if IsTrue(!IsEqual(networkId, nil)) {
-		networkCode = this.NetworkIdToCode(networkId)
+		networkCode = this.NetworkIdToCode(networkId, code)
 		AddElementToObject(networks, networkCode, map[string]any{
 			"info":      rawCurrency,
 			"id":        networkId,
@@ -2289,7 +2289,7 @@ func (this *GeminiCore) FetchDepositAddressesByNetwork(code any, optionalArgs ..
 		if IsTrue(IsEqual(networkCode, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchDepositAddresses() requires a network parameter")))
 		}
-		var networkId any = this.NetworkCodeToId(networkCode)
+		var networkId any = this.NetworkCodeToId(networkCode, GetValue(currency, "code"))
 		var request any = map[string]any{
 			"network": networkId,
 		}

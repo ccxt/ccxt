@@ -582,7 +582,7 @@ export default class bittrade extends bittradeRest {
             }
             return false;
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
         if (this.handleErrorMessage(client, message)) {

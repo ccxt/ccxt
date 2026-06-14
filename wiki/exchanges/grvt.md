@@ -58,7 +58,7 @@ sign in, must be called prior to using other authenticated methods
 
 
 ```javascript
-grvt.signIn ([params])
+grvt.signIn (params?)
 ```
 
 
@@ -78,7 +78,7 @@ retrieves data on all markets
 
 
 ```javascript
-grvt.fetchMarkets ([params])
+grvt.fetchMarkets (params?)
 ```
 
 
@@ -98,7 +98,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-grvt.fetchCurrencies ([params])
+grvt.fetchCurrencies (params?)
 ```
 
 
@@ -119,7 +119,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-grvt.fetchTicker (symbol[, params])
+grvt.fetchTicker (symbol, params?)
 ```
 
 
@@ -142,7 +142,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-grvt.fetchOrderBook (symbol[, limit, params])
+grvt.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -166,7 +166,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-grvt.fetchTrades (symbol[, since, limit, params])
+grvt.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -192,7 +192,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-grvt.fetchOHLCV (symbol, timeframe[, since, limit, params])
+grvt.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -217,7 +217,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-grvt.fetchFundingRateHistory (symbol[, since, limit, params])
+grvt.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -237,7 +237,7 @@ query for account info
 
 
 ```javascript
-grvt.fetchBalance ([params])
+grvt.fetchBalance (params?)
 ```
 
 
@@ -261,7 +261,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-grvt.fetchDeposits ([code, since, limit, params])
+grvt.fetchDeposits (code?, since?, limit?, params?)
 ```
 
 
@@ -285,7 +285,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-grvt.fetchTransfers (code[, since, limit, params])
+grvt.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -309,7 +309,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-grvt.transfer (code, amount, fromAccount, toAccount[, params])
+grvt.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -334,7 +334,7 @@ make a withdrawal
 
 
 ```javascript
-grvt.withdraw (code, amount, address, tag[, params])
+grvt.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -366,7 +366,7 @@ create a trade order
 
 
 ```javascript
-grvt.createOrder (symbol, type, side, amount[, price, params])
+grvt.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -391,7 +391,7 @@ fetch all trades made by the user
 
 
 ```javascript
-grvt.fetchMyTrades ([symbol, since, limit, params])
+grvt.fetchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -412,7 +412,7 @@ fetch all open positions
 
 
 ```javascript
-grvt.fetchPositions (symbols[, params])
+grvt.fetchPositions (symbols, params?)
 ```
 
 
@@ -433,7 +433,7 @@ fetch the set leverage for all contract markets
 
 
 ```javascript
-grvt.fetchLeverages ([symbols, params])
+grvt.fetchLeverages (symbols?, params?)
 ```
 
 
@@ -455,7 +455,7 @@ set the level of leverage for a market
 
 
 ```javascript
-grvt.setLeverage (leverage, symbol[, params])
+grvt.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -476,7 +476,7 @@ fetches margin mode of the user
 
 
 ```javascript
-grvt.fetchMarginModes (symbols[, params])
+grvt.fetchMarginModes (symbols, params?)
 ```
 
 
@@ -501,7 +501,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-grvt.fetchFundingHistory ([symbol, since, limit, params])
+grvt.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 
@@ -525,7 +525,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-grvt.fetchOrders (symbol[, since, limit, params])
+grvt.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -548,7 +548,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-grvt.fetchOpenOrders ([symbol, since, limit, params])
+grvt.fetchOpenOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -571,7 +571,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-grvt.fetchOrder (id, symbol[, params])
+grvt.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -592,7 +592,7 @@ cancel all open orders in a market
 
 
 ```javascript
-grvt.cancelAllOrders (symbol[, params])
+grvt.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -615,7 +615,7 @@ cancels an open order
 
 
 ```javascript
-grvt.cancelOrder (id[, symbol, params])
+grvt.cancelOrder (id, symbol?, params?)
 ```
 
 
@@ -636,7 +636,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-grvt.watchTicker (symbol[, params])
+grvt.watchTicker (symbol, params?)
 ```
 
 
@@ -657,7 +657,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-grvt.watchTickers (symbols[, params])
+grvt.watchTickers (symbols, params?)
 ```
 
 
@@ -680,7 +680,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-grvt.watchTrades (symbol[, since, limit, params])
+grvt.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -704,7 +704,7 @@ get the list of most recent trades for a list of symbols
 
 
 ```javascript
-grvt.watchTradesForSymbols (symbols[, since, limit, params])
+grvt.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -728,7 +728,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-grvt.watchOHLCV (symbol, timeframe[, since, limit, params])
+grvt.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -751,7 +751,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-grvt.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
+grvt.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
 ```
 
 
@@ -777,7 +777,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-grvt.watchOrderBook (symbol[, limit, params])
+grvt.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -803,7 +803,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-grvt.watchOrderBookForSymbols (symbols[, limit, params])
+grvt.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -827,7 +827,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-grvt.watchMyTrades (symbol[, since, limit, params])
+grvt.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -850,7 +850,7 @@ watch all open positions
 
 
 ```javascript
-grvt.watchPositions ([symbols, since, limit, params])
+grvt.watchPositions (symbols?, since?, limit?, params)
 ```
 
 
@@ -873,6 +873,6 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-grvt.watchOrders (symbol[, since, limit, params])
+grvt.watchOrders (symbol, since?, limit?, params?)
 ```
 

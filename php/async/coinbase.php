@@ -1199,13 +1199,14 @@ class coinbase extends Exchange {
         $toObject = $this->safe_dict($transaction, 'to');
         $addressTo = $this->safe_string($toObject, 'address');
         $networkId = $this->safe_string($network, 'network_name');
+        $code = $this->safe_currency_code($currencyId, $currency);
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $this->safe_string($network, 'hash', $id),
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $addressTo,
             'addressTo' => $addressTo,
             'addressFrom' => null,
@@ -1214,7 +1215,7 @@ class coinbase extends Exchange {
             'tagFrom' => null,
             'type' => $type,
             'amount' => $this->parse_number($amountStringAbs),
-            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'currency' => $code,
             'status' => $status,
             'updated' => $this->parse8601($this->safe_string($transaction, 'updated_at')),
             'fee' => array(
@@ -3767,7 +3768,7 @@ class coinbase extends Exchange {
             //                     }
             //                 ),
             //                 "side" => "BUY",
-            //                 "client_order_id" => "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+            //                 "client_order_id" => "18eb9947-db49-4874-8e7b-39b8fe5f4314",
             //                 "status" => "FILLED",
             //                 "time_in_force" => "IMMEDIATE_OR_CANCEL",
             //                 "created_time" => "2023-01-18T01:37:37.975552Z",

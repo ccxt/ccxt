@@ -1,8 +1,5 @@
-- [Fetch Balance All Exchanges](./examples/ts/)
-
-
- ```javascript
- import * as fs from 'fs';
+```javascript
+import * as fs from 'fs';
 import ccxt from '../../js/ccxt.js';
 
 // Fetch balances for all exchanges, all accounts, asynchronously and output a consolidated balance object
@@ -202,5 +199,5 @@ try {
 } catch (error) {
     console.error (error);
 }
- 
+
 ```

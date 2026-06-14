@@ -184,7 +184,7 @@ public class HtxCore extends HtxApi
                 }} );
                 put( "www", "https://www.huobi.com" );
                 put( "referral", new java.util.HashMap<String, Object>() {{
-                    put( "url", "https://www.htx.com.vc/invite/en-us/1h?invite_code=6rmm2223" );
+                    put( "url", "https://www.htx.com/invite/en-us/1h?invite_code=6rmm2223" );
                     put( "discount", 0.15 );
                 }} );
                 put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://huobiapi.github.io/docs/spot/v1/en/", "https://huobiapi.github.io/docs/dm/v1/en/", "https://huobiapi.github.io/docs/coin_margined_swap/v1/en/", "https://huobiapi.github.io/docs/usdt_swap/v1/en/", "https://www.huobi.com/en-us/opend/newApiPages/")) );
@@ -3686,7 +3686,7 @@ public class HtxCore extends HtxApi
             Object title = this.safeString2(chainEntry, "baseChain", "displayName"); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(this.options, "networkChainIdsByNames"), code), title, uniqueChainId);
             Helpers.addElementToObject(Helpers.GetValue(this.options, "networkNamesByChainIds"), uniqueChainId, title);
-            Object networkCode = this.networkIdToCode(uniqueChainId);
+            Object networkCode = this.networkIdToCode(uniqueChainId, code);
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "info", chainEntry );
     put( "id", uniqueChainId );
@@ -3749,7 +3749,7 @@ public class HtxCore extends HtxApi
             throw new ExchangeError((String)Helpers.add(this.id, " networkIdToCode() - markets need to be loaded at first")) ;
         }
         Object networkTitle = this.safeValue(Helpers.GetValue(this.options, "networkNamesByChainIds"), networkId, networkId);
-        return super.networkIdToCode(networkTitle);
+        return super.networkIdToCode(networkTitle, currencyCode);
     }
 
     public Object networkCodeToId(Object networkCode, Object... optionalArgs)
@@ -3771,7 +3771,7 @@ public class HtxCore extends HtxApi
             return Helpers.GetValue(uniqueNetworkIds, networkCode);
         } else
         {
-            Object networkTitle = super.networkCodeToId(networkCode);
+            Object networkTitle = super.networkCodeToId(networkCode, currencyCode);
             return this.safeValue(uniqueNetworkIds, networkTitle, networkTitle);
         }
     }
@@ -7160,7 +7160,7 @@ public class HtxCore extends HtxApi
             put( "currency", code );
             put( "address", address );
             put( "tag", tag );
-            put( "network", HtxCore.this.networkIdToCode(networkId) );
+            put( "network", HtxCore.this.networkIdToCode(networkId, code) );
             put( "note", note );
             put( "info", depositAddress );
         }};
@@ -7511,7 +7511,7 @@ public class HtxCore extends HtxApi
             put( "txid", finalTxHash );
             put( "timestamp", timestamp );
             put( "datetime", HtxCore.this.iso8601(timestamp) );
-            put( "network", HtxCore.this.networkIdToCode(finalNetworkId) );
+            put( "network", HtxCore.this.networkIdToCode(finalNetworkId, code) );
             put( "address", HtxCore.this.safeString(transaction, "address") );
             put( "addressTo", null );
             put( "addressFrom", null );
@@ -10085,13 +10085,14 @@ public class HtxCore extends HtxApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object chains = this.safeValue(fee, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object code = this.safeString(currency, "code");
         Object result = this.depositWithdrawFee(fee);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
             Object chainEntry = Helpers.GetValue(chains, j);
             Object networkId = this.safeString(chainEntry, "chain");
             Object withdrawFeeType = this.safeString(chainEntry, "withdrawFeeType");
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             Object withdrawFee = null;
             Object withdrawResult = null;
             if (Helpers.isTrue(Helpers.isEqual(withdrawFeeType, "fixed")))

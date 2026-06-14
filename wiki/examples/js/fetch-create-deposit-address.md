@@ -1,8 +1,5 @@
-- [Fetch Create Deposit Address](./examples/js/)
-
-
- ```javascript
- // ----------------------------------------------------------------------------
+```javascript
+// ----------------------------------------------------------------------------
 // setup
 
 import ccxt from '../../js/ccxt.js';
@@ -102,5 +99,5 @@ if (!exchange.has['fetchDepositAddress']) {
         }
     }
 
-}) () 
+}) ()
 ```

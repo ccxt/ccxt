@@ -1,8 +1,5 @@
-- [Gateio Swap Watch Many Orderbooks](./examples/js/)
-
-
- ```javascript
- 'use strict';
+```javascript
+'use strict';
 import ccxt from '../../js/ccxt.js';
 console.log('CCXT Version:', ccxt.version); // eslint-disable-line import/no-named-as-default-member
 async function loop(exchange, method, symbol) {
@@ -17,7 +14,7 @@ async function loop(exchange, method, symbol) {
     }
 }
 async function main() {
-    const exchange = new ccxt.pro.gateio({
+    const exchange = new ccxt.pro.gate({
         'options': { 'defaultType': 'swap' },
     });
     await exchange.loadMarkets();
@@ -28,5 +25,5 @@ async function main() {
     await Promise.all(symbols.map((symbol) => loop(exchange, 'fetchOrderBook', symbol)));
 }
 main();
- 
+
 ```

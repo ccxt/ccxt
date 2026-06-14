@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bullish$1 = require('./abstract/bullish.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -2099,7 +2099,7 @@ class bullish extends bullish$1["default"] {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['network'] = this.networkCodeToId(networkCode);
+            request['network'] = this.networkCodeToId(networkCode, code);
         }
         else {
             throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a network parameter');
@@ -2173,7 +2173,7 @@ class bullish extends bullish$1["default"] {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(network),
+            'network': this.networkIdToCode(network, code),
             'addressFrom': sourceAddress,
             'address': address,
             'addressTo': address,
@@ -2370,7 +2370,7 @@ class bullish extends bullish$1["default"] {
                 for (let i = 0; i < safeResponse.length; i++) {
                     const entry = this.safeDict(safeResponse, i, {});
                     const networkId = this.safeString(entry, 'network');
-                    const networkCode = this.networkIdToCode(networkId);
+                    const networkCode = this.networkIdToCode(networkId, code);
                     if (network === networkCode) {
                         data = entry;
                         break;
@@ -2386,10 +2386,11 @@ class bullish extends bullish$1["default"] {
     parseDepositAddress(depositAddress, currency = undefined) {
         const id = this.safeString(depositAddress, 'symbol');
         const network = this.safeString(depositAddress, 'network');
+        const code = this.safeCurrencyCode(id, currency);
         return {
             'info': depositAddress,
-            'currency': this.safeCurrencyCode(id, currency),
-            'network': this.networkIdToCode(network),
+            'currency': code,
+            'network': this.networkIdToCode(network, code),
             'address': this.safeString(depositAddress, 'address'),
             'tag': undefined,
         };
@@ -2907,7 +2908,7 @@ class bullish extends bullish$1["default"] {
             const timestamp = this.getTimestamp().toString();
             if (method === 'GET') {
                 const payload = timestamp + nonce + method + '/trading-api/' + path;
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'hex');
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'hex');
                 headers = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,
@@ -2917,8 +2918,8 @@ class bullish extends bullish$1["default"] {
             else if (method === 'POST') {
                 body = this.json(params);
                 const payload = timestamp + nonce + method + '/trading-api/' + path + body;
-                const digest = this.hash(this.encode(payload), sha256.sha256, 'hex');
-                const signature = this.hmac(this.encode(digest), this.encode(this.secret), sha256.sha256, 'hex');
+                const digest = this.hash(this.encode(payload), sha2_js.sha256, 'hex');
+                const signature = this.hmac(this.encode(digest), this.encode(this.secret), sha2_js.sha256, 'hex');
                 headers = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,

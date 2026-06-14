@@ -476,43 +476,42 @@ class ndax extends Exchange {
         //        ),
         //        ...
         //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $currency = $response[$i];
-            $id = $this->safe_string($currency, 'ProductId');
-            $code = $this->safe_currency_code($this->safe_string($currency, 'Product'));
-            $ProductType = $this->safe_string($currency, 'ProductType');
-            $type = ($ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
-            if ($ProductType === 'Unknown') {
-                // such $currency is just a blanket entry
-                $type = 'other';
-            }
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $id,
-                'name' => $this->safe_string($currency, 'ProductFullName'),
-                'code' => $code,
-                'type' => $type,
-                'precision' => $this->safe_number($currency, 'TickSize'),
-                'info' => $currency,
-                'active' => !$this->safe_bool($currency, 'IsDisabled'),
-                'deposit' => $this->safe_bool($currency, 'DepositEnabled'),
-                'withdraw' => $this->safe_bool($currency, 'WithdrawEnabled'),
-                'fee' => null,
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'networks' => array(),
-                'margin' => $this->safe_bool($currency, 'MarginEnabled'),
-            ));
+        return $this->parse_currencies($response);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'ProductId');
+        $code = $this->safe_currency_code($this->safe_string($rawCurrency, 'Product'));
+        $ProductType = $this->safe_string($rawCurrency, 'ProductType');
+        $type = ($ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
+        if ($ProductType === 'Unknown') {
+            // such currency is just a blanket entry
+            $type = 'other';
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'name' => $this->safe_string($rawCurrency, 'ProductFullName'),
+            'code' => $code,
+            'type' => $type,
+            'precision' => $this->safe_number($rawCurrency, 'TickSize'),
+            'info' => $rawCurrency,
+            'active' => !$this->safe_bool($rawCurrency, 'IsDisabled'),
+            'deposit' => $this->safe_bool($rawCurrency, 'DepositEnabled'),
+            'withdraw' => $this->safe_bool($rawCurrency, 'WithdrawEnabled'),
+            'fee' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => array(),
+            'margin' => $this->safe_bool($rawCurrency, 'MarginEnabled'),
+        ));
     }
 
     public function fetch_markets($params = array ()): array {
@@ -663,7 +662,7 @@ class ndax extends Exchange {
                 $newNonce = $this->safe_integer($level, 0);
                 $nonce = max ($nonce, $newNonce);
             }
-            $bidask = $this->parse_bid_ask($level, $priceKey, $amountKey);
+            $bidask = $this->parse_order_book_bid_ask($level, $priceKey, $amountKey);
             $levelSide = $this->safe_integer($level, 9);
             $side = $levelSide ? $asksKey : $bidsKey;
             $resultSide = $result[$side];

@@ -1,12 +1,12 @@
 //  ---------------------------------------------------------------------------
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, NotSupported, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
 import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction, Trade, Account, MarginModification } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -159,7 +159,7 @@ export default class lighter extends Exchange {
                 'doc': 'https://apidocs.lighter.xyz/',
                 'fees': 'https://docs.lighter.xyz/perpetual-futures/fees',
                 'referral': {
-                    'url': 'app.lighter.xyz/?referral=715955W9',
+                    'url': 'https://app.lighter.xyz/?referral=715955W9',
                     'discount': 0.1, // user gets 10% of the points
                 },
             },
@@ -1825,10 +1825,12 @@ export default class lighter extends Exchange {
                 }
             } else {
                 const perpBalance = this.safeDict (result, 'USDC', this.account ());
-                const perpUSDCTotal = this.safeString (account, 'collateral');
-                const perpUSDCFree = this.safeString (account, 'available_balance');
-                perpBalance['total'] = Precise.stringAdd (perpBalance['total'], perpUSDCTotal);
-                perpBalance['free'] = Precise.stringAdd (perpBalance['free'], perpUSDCFree);
+                const perpTotal = this.safeString (perpBalance, 'total', '0');
+                const perpFree = this.safeString (perpBalance, 'free', '0');
+                const perpUSDCTotal = this.safeString (account, 'collateral', '0');
+                const perpUSDCFree = this.safeString (account, 'available_balance', '0');
+                perpBalance['total'] = Precise.stringAdd (perpTotal, perpUSDCTotal);
+                perpBalance['free'] = Precise.stringAdd (perpFree, perpUSDCFree);
                 result['USDC'] = perpBalance;
             }
         }

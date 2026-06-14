@@ -626,7 +626,7 @@ public partial class bitvavo : Exchange
         for (object j = 0; isLessThan(j, getArrayLength(networksArray)); postFixIncrement(ref j))
         {
             object networkId = getValue(networksArray, j);
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "info", rawCurrency },
                 { "id", networkId },
@@ -1023,7 +1023,7 @@ public partial class bitvavo : Exchange
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        object response = await ((Task<object>)callDynamically(this, "privateGetAccountFees", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateGetAccountFees(this.extend(request, parameters));
         //
         //     {
         //         "tier": "0",
@@ -1895,7 +1895,7 @@ public partial class bitvavo : Exchange
             { "codGroupId", codGroupId },
             { "expiryAfterSeconds", ((bool) isTrue((isGreaterThan(timeout, 0)))) ? this.parseToInt(divide(timeout, 1000)) : 0 },
         };
-        object response = await ((Task<object>)callDynamically(this, "privatePostCancelOrdersAfter", new object[] { this.extend(request, parameters) }));
+        object response = await this.privatePostCancelOrdersAfter(this.extend(request, parameters));
         //
         //     {
         //         "codGroupId": 1,
@@ -2357,7 +2357,7 @@ public partial class bitvavo : Exchange
         var requestparametersVariable = this.handleUntilOption("toDate", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = await ((Task<object>)callDynamically(this, "privateGetAccountHistory", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateGetAccountHistory(this.extend(request, parameters));
         //
         //     {
         //         "items": [

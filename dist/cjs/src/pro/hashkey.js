@@ -557,16 +557,17 @@ class hashkey extends hashkey$1["default"] {
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(trade, 't');
         const isBuyerMaker = this.safeBool(trade, 'm');
+        const isPublicTrade = this.safeString(trade, 'e') === undefined;
         let side = undefined;
         let takerOrMaker = undefined;
         if (isBuyerMaker !== undefined) {
-            if (isBuyerMaker) {
-                side = 'sell';
-                takerOrMaker = 'maker';
+            if (isPublicTrade) {
+                takerOrMaker = 'taker';
+                side = isBuyerMaker ? 'sell' : 'buy';
             }
             else {
-                side = 'buy';
-                takerOrMaker = 'taker';
+                takerOrMaker = isBuyerMaker ? 'maker' : 'taker';
+                side = this.safeStringLower(trade, 'S');
             }
         }
         return this.safeTrade({
@@ -574,7 +575,7 @@ class hashkey extends hashkey$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': market['symbol'],
-            'side': this.safeStringLower(trade, 'S', side),
+            'side': side,
             'price': this.safeString(trade, 'p'),
             'amount': this.safeString(trade, 'q'),
             'cost': undefined,

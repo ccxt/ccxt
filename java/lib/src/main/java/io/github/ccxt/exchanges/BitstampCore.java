@@ -1695,11 +1695,12 @@ public class BitstampCore extends BitstampApi
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object result = this.depositWithdrawFee(fee);
+        Object code = this.safeString(currency, "code");
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(fee)); j++)
         {
             Object networkEntry = Helpers.GetValue(fee, j);
             Object networkId = this.safeString(networkEntry, "network");
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             Object withdrawFee = this.safeNumber(networkEntry, "fee");
             Helpers.addElementToObject(result, "withdraw", new java.util.HashMap<String, Object>() {{
     put( "fee", withdrawFee );

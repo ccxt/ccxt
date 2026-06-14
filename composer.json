@@ -207,27 +207,33 @@
     ],
     "homepage": "https://github.com/ccxt/ccxt",
     "license": "MIT",
-    "authors": [{
-        "name": "Igor Kroitor",
-        "email": "igor.kroitor@gmail.com",
-        "homepage": "https://github.com/kroitor",
-        "role": "Developer"
-    }, {
-        "name": "Carlo Revelli",
-        "email": "carlo.revelli@berkeley.edu",
-        "homepage": "https://github.com/frosty00",
-        "role": "Junior Developer"
-    }],
+    "authors": [
+        {
+            "name": "Igor Kroitor",
+            "email": "igor.kroitor@gmail.com",
+            "homepage": "https://github.com/kroitor",
+            "role": "Developer"
+        },
+        {
+            "name": "Carlo Revelli",
+            "email": "carlo.revelli@berkeley.edu",
+            "homepage": "https://github.com/frosty00",
+            "role": "Junior Developer"
+        }
+    ],
     "autoload": {
         "psr-4": {
-            "ccxt\\" : "php/",
+            "ccxt\\": "php/",
             "ccxt\\async\\": "php/async/",
-            "ccxt\\pro\\" : "php/pro/"
+            "ccxt\\pro\\": "php/pro/"
         },
         "classmap": [
             "php/protobuf/mexc/"
         ],
-        "files": [ "ccxt.php", "php/pro/base/functions.php" ]
+        "files": [
+            "ccxt.php",
+            "php/pro/base/functions.php"
+        ]
     },
     "require": {
         "php": ">=8.1.0",
@@ -238,22 +244,32 @@
         "ext-json": "*",
         "ext-openssl": "*",
         "ext-gmp": "*",
-        "symfony/polyfill-mbstring": "^1.7",
+        "clue/http-proxy-react": "1.9.0",
+        "evenement/evenement": "3.0.2",
+        "fig/http-message-util": "1.1.5",
+        "guzzlehttp/psr7": "2.11.0",
+        "kornrunner/keccak": "1.1.0",
         "pear/console_table": "1.3.1",
-        "react/http": ">=1.11.0",
-        "react/async": "^4.3.0",
-        "react/promise": "^3.2.0",
-        "react/promise-timer": "^1.11",
-        "evenement/evenement": "^3.0",
-        "guzzlehttp/psr7": "^2.0"
-    },
-    "suggest": {
-        "recoil/recoil": "Required for asynchronous API calls to exchanges with PHP",
-        "recoil/react": "Required for asynchronous API calls to exchanges with PHP",
-        "react/http": "Required for asynchronous API calls to exchanges with PHP",
-        "clue/buzz-react": "Required for asynchronous API calls to exchanges with PHP",
-        "react/event-loop": "Required for asynchronous API calls to exchanges with PHP",
-        "clue/http-proxy-react": "Required for using a proxy when doing asynchronous API calls to exchanges with PHP"
+        "phpseclib/phpseclib": "2.0.54",
+        "psr/http-factory": "1.1.0",
+        "psr/http-factory-implementation": "1.0.0",
+        "psr/http-message": "1.1",
+        "ralouphie/getallheaders": "3.0.3",
+        "ratchet/pawl": "0.4.3",
+        "ratchet/rfc6455": "0.4.1",
+        "react/async": "4.3.0",
+        "react/cache": "1.2.0",
+        "react/dns": "1.14.0",
+        "react/event-loop": "1.6.0",
+        "react/http": "1.11.0",
+        "react/promise": "3.3.0",
+        "react/promise-timer": "1.11.0",
+        "react/socket": "1.17.0",
+        "react/stream": "1.4.0",
+        "ringcentral/psr7": "1.3.0",
+        "symfony/deprecation-contracts": "3.7.0",
+        "symfony/polyfill-mbstring": "1.38.2",
+        "symfony/polyfill-php80": "1.37.0"
     },
     "archive": {
         "exclude": [

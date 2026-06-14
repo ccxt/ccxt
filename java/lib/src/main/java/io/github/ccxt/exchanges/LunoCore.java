@@ -345,7 +345,7 @@ public class LunoCore extends LunoApi
         {
             Object networkEntry = Helpers.GetValue(rawCurrency, i);
             Object networkId = this.safeString(networkEntry, "name");
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", networkCode );

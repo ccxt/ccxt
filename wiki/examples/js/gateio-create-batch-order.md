@@ -1,14 +1,11 @@
-- [Gateio Create Batch Order](./examples/js/)
-
-
- ```javascript
- const ccxt = require ('../../ccxt');
+```javascript
+const ccxt = require ('../../ccxt');
 
 console.log ('CCXT Version:', ccxt.version);
 
 async function main () {
 
-    const exchange = new ccxt.gateio ({
+    const exchange = new ccxt.gate ({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_API_SECRET',
     });
@@ -44,5 +41,5 @@ async function main () {
 
 };
 
-main (); 
+main ();
 ```

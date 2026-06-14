@@ -400,7 +400,7 @@ public partial class coinbaseexchange : Exchange
         {
             object network = getValue(supportedNetworks, j);
             object networkId = this.safeString(network, "id");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "id", networkId },
                 { "name", this.safeString(network, "name") },
@@ -2049,7 +2049,7 @@ public partial class coinbaseexchange : Exchange
             { "txid", this.safeString(details, "crypto_transaction_hash") },
             { "type", type },
             { "currency", code },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "amount", amount },
             { "status", this.parseTransactionStatus(transaction) },
             { "timestamp", timestamp },

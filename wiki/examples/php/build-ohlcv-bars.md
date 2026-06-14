@@ -1,8 +1,5 @@
-- [Build Ohlcv Bars](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -76,5 +73,5 @@ function example_with_watch_trades() {
 
 
 \React\Async\await(example_with_watch_trades());
- 
+
 ```

@@ -1,11 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/ascendex.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, AccountSuspended, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate, FundingRates, DepositAddress, Position, OpenInterests } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -541,7 +541,7 @@ export default class ascendex extends Exchange {
         for (let j = 0; j < chains.length; j++) {
             const networkEtnry = chains[j];
             const networkId = this.safeString (networkEtnry, 'chainName');
-            const networkCode = this.networkCodeToId (networkId);
+            const networkCode = this.networkCodeToId (networkId, code);
             networks[networkCode] = {
                 'fee': this.safeNumber (networkEtnry, 'withdrawFee'),
                 'active': undefined,
@@ -2603,7 +2603,7 @@ export default class ascendex extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const networkCode = this.safeString2 (params, 'network', 'chainName');
-        const networkId = this.networkCodeToId (networkCode);
+        const networkId = this.networkCodeToId (networkCode, currency['code']);
         params = this.omit (params, [ 'chainName' ]);
         const request: Dict = {
             'asset': currency['id'],

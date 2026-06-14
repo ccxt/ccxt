@@ -1,8 +1,5 @@
-- [Live Ticker](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import asTable from 'as-table';
 import ololog from 'ololog';
@@ -81,5 +78,5 @@ let printTicker = async (id, symbol, rateLimit = undefined) => {
 
     process.exit ()
 
-}) () 
+}) ()
 ```

@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/woo.js';
 import { AuthenticationError, RateLimitExceeded, BadRequest, OperationFailed, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ---------------------------------------------------------------------------
 /**
  * @class woo
@@ -1025,65 +1025,76 @@ export default class woo extends Exchange {
         const tokensById = this.groupBy(tokenRows, 'balance_token');
         const currencyIds = Object.keys(tokensById);
         for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode(currencyId);
-            const tokensByNetworkId = this.indexBy(tokensById[currencyId], 'network');
-            const chainsByNetworkId = this.indexBy(networksById[currencyId], 'network');
-            const keys = Object.keys(chainsByNetworkId);
-            const resultingNetworks = {};
-            for (let j = 0; j < keys.length; j++) {
-                const networkId = keys[j];
-                const tokenEntry = this.safeDict(tokensByNetworkId, networkId, {});
-                const networkEntry = this.safeDict(chainsByNetworkId, networkId, {});
-                const networkCode = this.networkIdToCode(networkId, code);
-                const specialNetworkId = this.safeString(tokenEntry, 'token');
-                resultingNetworks[networkCode] = {
-                    'id': networkId,
-                    'currencyNetworkId': specialNetworkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.safeString(networkEntry, 'allow_deposit') === '1',
-                    'withdraw': this.safeString(networkEntry, 'allow_withdraw') === '1',
-                    'fee': this.safeNumber(networkEntry, 'withdrawal_fee'),
-                    'precision': this.parseNumber(this.parsePrecision(this.safeString(tokenEntry, 'decimals'))),
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(networkEntry, 'minimum_withdrawal'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                    'info': [networkEntry, tokenEntry],
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': currencyId,
-                'name': undefined,
-                'code': code,
-                'precision': undefined,
+            const id = currencyIds[i];
+            const customCurrency = {
+                '_coin_id': id,
+                '_tokens_by_id': tokensById[id],
+                '_networks_by_id': networksById[id],
+            };
+            const parsed = this.parseCurrency(customCurrency);
+            const code = parsed['code'];
+            result[code] = parsed;
+        }
+        return result;
+    }
+    parseCurrency(rawCurrency) {
+        const currencyId = this.safeString(rawCurrency, '_coin_id');
+        const code = this.safeCurrencyCode(currencyId);
+        const tokensByNetworkId = this.indexBy(rawCurrency['_tokens_by_id'], 'network');
+        const chainsByNetworkId = this.indexBy(rawCurrency['_networks_by_id'], 'network');
+        const keys = Object.keys(chainsByNetworkId);
+        const resultingNetworks = {};
+        for (let j = 0; j < keys.length; j++) {
+            const networkId = keys[j];
+            const tokenEntry = this.safeDict(tokensByNetworkId, networkId, {});
+            const networkEntry = this.safeDict(chainsByNetworkId, networkId, {});
+            const networkCode = this.networkIdToCode(networkId, code);
+            const specialNetworkId = this.safeString(tokenEntry, 'token');
+            resultingNetworks[networkCode] = {
+                'id': networkId,
+                'currencyNetworkId': specialNetworkId,
+                'network': networkCode,
                 'active': undefined,
-                'fee': undefined,
-                'networks': resultingNetworks,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'type': 'crypto',
+                'deposit': this.safeString(networkEntry, 'allow_deposit') === '1',
+                'withdraw': this.safeString(networkEntry, 'allow_withdraw') === '1',
+                'fee': this.safeNumber(networkEntry, 'withdrawal_fee'),
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(tokenEntry, 'decimals'))),
                 'limits': {
+                    'withdraw': {
+                        'min': this.safeNumber(networkEntry, 'minimum_withdrawal'),
+                        'max': undefined,
+                    },
                     'deposit': {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                 },
-                'info': [tokensByNetworkId, chainsByNetworkId],
-            });
+                'info': { 'network': networkEntry, 'token': tokenEntry },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'name': undefined,
+            'code': code,
+            'precision': undefined,
+            'active': undefined,
+            'fee': undefined,
+            'networks': resultingNetworks,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'type': 'crypto',
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': rawCurrency,
+        });
     }
     /**
      * @method
@@ -2483,7 +2494,7 @@ export default class woo extends Exchange {
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         const request = {
             'token': currency['id'],
-            'network': this.networkCodeToId(networkCode),
+            'network': this.networkCodeToId(networkCode, currency['code']),
         };
         const response = await this.v3PrivateGetAssetWalletDeposit(this.extend(request, params));
         //
@@ -2533,7 +2544,7 @@ export default class woo extends Exchange {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['network'] = this.networkCodeToId(networkCode);
+            request['network'] = this.networkCodeToId(networkCode, currency['code']);
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2782,7 +2793,7 @@ export default class woo extends Exchange {
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
-            'network': this.networkIdToCode(this.safeString(transaction, 'network')),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network'), code),
         };
     }
     parseTransactionStatus(status) {
@@ -3005,7 +3016,7 @@ export default class woo extends Exchange {
         }
         params = this.omit(params, 'network');
         request['token'] = currency['id'];
-        request['network'] = this.networkCodeToId(network);
+        request['network'] = this.networkCodeToId(network, currency['code']);
         const response = await this.v3PrivatePostAssetWalletWithdraw(this.extend(request, params));
         //
         //     {

@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinbaseinternational$1 = require('./abstract/coinbaseinternational.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -1189,13 +1189,14 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const addressFrom = this.safeStringN(transaction, ['from_address', 'from_cb_account', this.safeStringN(fromPorfolio, ['id', 'uuid', 'name']), 'from_counterparty_id']);
         const toPorfolio = this.safeDict(transaction, 'from_portfolio', {});
         const addressTo = this.safeStringN(transaction, ['to_address', 'to_cb_account', this.safeStringN(toPorfolio, ['id', 'uuid', 'name']), 'to_counterparty_id']);
+        const code = this.safeString(currency, 'code');
         return {
             'info': transaction,
             'id': this.safeString(transaction, 'transfer_uuid'),
             'txid': this.safeString(transaction, 'transaction_uuid'),
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
-            'network': this.networkIdToCode(this.safeString(transaction, 'network_name')),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network_name'), code),
             'address': undefined,
             'addressTo': addressTo,
             'addressFrom': addressFrom,
@@ -2272,7 +2273,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 }
             }
             const auth = nonce + method + savedPath + payload;
-            const signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256.sha256, 'base64');
+            const signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha2_js.sha256, 'base64');
             headers = {
                 'CB-ACCESS-TIMESTAMP': nonce,
                 'CB-ACCESS-SIGN': signature,

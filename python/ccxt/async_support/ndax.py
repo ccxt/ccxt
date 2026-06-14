@@ -480,41 +480,40 @@ class ndax(Exchange, ImplicitAPI):
         #        },
         #        ...
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currency = response[i]
-            id = self.safe_string(currency, 'ProductId')
-            code = self.safe_currency_code(self.safe_string(currency, 'Product'))
-            ProductType = self.safe_string(currency, 'ProductType')
-            type = 'fiat' if (ProductType == 'NationalCurrency') else 'crypto'
-            if ProductType == 'Unknown':
-                # such currency is just a blanket entry
-                type = 'other'
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'name': self.safe_string(currency, 'ProductFullName'),
-                'code': code,
-                'type': type,
-                'precision': self.safe_number(currency, 'TickSize'),
-                'info': currency,
-                'active': not self.safe_bool(currency, 'IsDisabled'),
-                'deposit': self.safe_bool(currency, 'DepositEnabled'),
-                'withdraw': self.safe_bool(currency, 'WithdrawEnabled'),
-                'fee': None,
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
+        return self.parse_currencies(response)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'ProductId')
+        code = self.safe_currency_code(self.safe_string(rawCurrency, 'Product'))
+        ProductType = self.safe_string(rawCurrency, 'ProductType')
+        type = 'fiat' if (ProductType == 'NationalCurrency') else 'crypto'
+        if ProductType == 'Unknown':
+            # such currency is just a blanket entry
+            type = 'other'
+        return self.safe_currency_structure({
+            'id': id,
+            'name': self.safe_string(rawCurrency, 'ProductFullName'),
+            'code': code,
+            'type': type,
+            'precision': self.safe_number(rawCurrency, 'TickSize'),
+            'info': rawCurrency,
+            'active': not self.safe_bool(rawCurrency, 'IsDisabled'),
+            'deposit': self.safe_bool(rawCurrency, 'DepositEnabled'),
+            'withdraw': self.safe_bool(rawCurrency, 'WithdrawEnabled'),
+            'fee': None,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
                 },
-                'networks': {},
-                'margin': self.safe_bool(currency, 'MarginEnabled'),
-            })
-        return result
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': {},
+            'margin': self.safe_bool(rawCurrency, 'MarginEnabled'),
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -660,7 +659,7 @@ class ndax(Exchange, ImplicitAPI):
             else:
                 newNonce = self.safe_integer(level, 0)
                 nonce = max(nonce, newNonce)
-            bidask = self.parse_bid_ask(level, priceKey, amountKey)
+            bidask = self.parse_order_book_bid_ask(level, priceKey, amountKey)
             levelSide = self.safe_integer(level, 9)
             side = asksKey if levelSide else bidsKey
             resultSide = result[side]

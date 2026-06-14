@@ -8,7 +8,7 @@ import { RequestTimeout, NetworkError, NotSupported, BaseError, ExchangeClosedBy
 import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
 import { Future } from './Future.js';
 import { isNode, isJsonEncodedObject, deepExtend, milliseconds, } from '../../base/functions.js';
-import { utf8 } from '../../static_dependencies/scure-base/index.js';
+import { utf8 } from '@scure/base';
 export default class Client {
     constructor(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         this.verbose = false;

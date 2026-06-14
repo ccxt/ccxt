@@ -527,7 +527,7 @@ public class HollaexCore extends HollaexApi
         {
             Object networkId = Helpers.GetValue(networkIds, j);
             Object networkEntry = this.safeDict(rawNetworks, networkId);
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", networkCode );

@@ -1,8 +1,5 @@
-- [Theocean](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -42,5 +39,5 @@ if place_result['remaining'] > 0:
 # cancel all open user orders
 cancel_all_orders_result = ocean.cancel_all_orders()
 print('cancel all orders result: ', cancel_all_orders_result)
- 
+
 ```

@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ----------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/phemex.js';
 import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
 /**
  * @class phemex
@@ -1145,50 +1145,48 @@ export default class phemex extends Exchange {
         //     }
         const data = this.safeValue(response, 'data', {});
         const currencies = this.safeValue(data, 'currencies', []);
-        const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = this.safeString(currency, 'currency');
-            const code = this.safeCurrencyCode(id);
-            const valueScaleString = this.safeString(currency, 'valueScale');
-            const valueScale = parseInt(valueScaleString);
-            const minValueEv = this.safeString(currency, 'minValueEv');
-            const maxValueEv = this.safeString(currency, 'maxValueEv');
-            let minAmount = undefined;
-            let maxAmount = undefined;
-            let precision = undefined;
-            if (valueScale !== undefined) {
-                const precisionString = this.parsePrecision(valueScaleString);
-                precision = this.parseNumber(precisionString);
-                minAmount = this.parseNumber(Precise.stringMul(minValueEv, precisionString));
-                maxAmount = this.parseNumber(Precise.stringMul(maxValueEv, precisionString));
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'info': currency,
-                'code': code,
-                'name': this.safeString(currency, 'name'),
-                'active': this.safeString(currency, 'status') === 'Listed',
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': minAmount,
-                        'max': maxAmount,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'valueScale': valueScale,
-                'networks': undefined,
-                'type': 'crypto',
-            });
+        return this.parseCurrencies(currencies);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'currency');
+        const code = this.safeCurrencyCode(id);
+        const valueScaleString = this.safeString(rawCurrency, 'valueScale');
+        const valueScale = parseInt(valueScaleString);
+        const minValueEv = this.safeString(rawCurrency, 'minValueEv');
+        const maxValueEv = this.safeString(rawCurrency, 'maxValueEv');
+        let minAmount = undefined;
+        let maxAmount = undefined;
+        let precision = undefined;
+        if (valueScale !== undefined) {
+            const precisionString = this.parsePrecision(valueScaleString);
+            precision = this.parseNumber(precisionString);
+            minAmount = this.parseNumber(Precise.stringMul(minValueEv, precisionString));
+            maxAmount = this.parseNumber(Precise.stringMul(maxValueEv, precisionString));
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'info': rawCurrency,
+            'code': code,
+            'name': this.safeString(rawCurrency, 'name'),
+            'active': this.safeString(rawCurrency, 'status') === 'Listed',
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': minAmount,
+                    'max': maxAmount,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'valueScale': valueScale,
+            'networks': undefined,
+            'type': 'crypto',
+        });
     }
     customParseBidAsk(bidask, priceKey = 0, amountKey = 1, market = undefined) {
         if (market === undefined) {
@@ -3812,7 +3810,7 @@ export default class phemex extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -5085,7 +5083,7 @@ export default class phemex extends Exchange {
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         let networkId = undefined;
         if (networkCode !== undefined) {
-            networkId = this.networkCodeToId(networkCode);
+            networkId = this.networkCodeToId(networkCode, code);
         }
         const stableCoins = this.safeValue(this.options, 'stableCoins');
         if (networkId === undefined) {

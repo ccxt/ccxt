@@ -1,9 +1,13 @@
 {
   "name": "ccxt",
-  "version": "4.5.56",
+  "version": "4.5.58",
   "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
+  "sideEffects": [
+    "./js/ccxt.js",
+    "./dist/ccxt.cjs"
+  ],
   "exports": {
     ".": {
       "import": {
@@ -17,7 +21,7 @@
     }
   },
   "engines": {
-    "node": ">=15.0.0"
+    "node": ">=18.0.0"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org",
@@ -36,7 +40,7 @@
     "docker": "docker-compose run --rm ccxt",
     "fixTSBug": "node build/fixTSBug",
     "transpileCsSingle": "tsx build/csharpTranspiler.ts",
-    "transpileJavaSingle": "tsx build/javaTranspiler.ts && tsx build/javaTranspiler.ts --ws && tsx build/generateJavaWrappers.ts",
+    "transpileJavaSingle": "tsx build/javaTranspiler.ts",
     "transpileCS": "tsx build/csharpTranspiler.ts --multi",
     "transpileJava": "tsx build/javaTranspiler.ts --multi && tsx build/javaTranspiler.ts --ws && tsx build/generateJavaWrappers.ts",
     "transpileJavaWs": "tsx build/javaTranspiler.ts --ws",
@@ -60,6 +64,11 @@
     "//TMPCommentforce-build": "npm run pre-transpile && npm run force-transpile-fast && npm run csharp && npm run go && npm run post-transpile && npm run update-badges",
     "build-docs": "node jsdoc2md.js && node examples2md.js",
     "serve-docs": "docsify serve ./wiki",
+    "fumadocs-content": "tsx build/wiki-to-fumadocs.ts",
+    "fumadocs-regen": "npm run build-docs && tsx build/wiki-to-fumadocs.ts",
+    "fumadocs-build": "npm run fumadocs-content && cd website && npm run build",
+    "fumadocs-dev": "npm run fumadocs-content && cd website && npm run dev",
+    "fumadocs-linkcheck": "tsx build/check-fumadocs-links.ts",
     "tsBuildFile": "tsc --skipLibCheck --strictNullChecks false --strict --noImplicitAny false --esModuleInterop --isolatedModules false --forceConsistentCasingInFileNames --removeComments false --target ES2021 --declaration --allowJs --checkJs false --moduleResolution Node --module ES2022 --outDir ./js/src --lib ES2020.BigInt,dom,ES2021 ",
     "addJsHeaders": "tsx build/transpile.ts --js-headers",
     "tsBuild": "tsc && npm run addJsHeaders || echo \"\"",
@@ -166,10 +175,9 @@
     "request-php": "npm run request-php-sync && npm run request-php-async",
     "request-cs": "npm run ti-cs  -- --requestTests",
     "request-java": "./java/gradlew -p java :tests:run -- --args=\"--requestTests\"",
-    "response-java": "./java/gradlew -p java :tests:run -- --args=\"--responseTests\"",
     "request-go": "npm run ti-go -- --requestTests",
     "request-tests//withoutGo": "npm run request-js && npm run request-py && npm run request-php && npm run request-cs",
-    "request-tests": "npm run request-js && npm run request-py && npm run request-php && npm run request-cs && npm run request-go",
+    "request-tests": "npm run request-js && npm run request-py && npm run request-php && npm run request-cs && npm run request-go && npm run request-java",
     "response-ts": "npm run ti-ts  -- --responseTests",
     "response-js": "npm run ti-js  -- --responseTests",
     "response-py-sync": "npm run ti-py  -- --responseTests --sync",
@@ -177,10 +185,11 @@
     "response-py": "npm run response-py-sync && npm run response-py-async",
     "response-cs": "npm run ti-cs  -- --responseTests",
     "response-go": "npm run ti-go  -- --responseTests",
+    "response-java": "./java/gradlew -p java :tests:run -- --args=\"--responseTests\"",
     "response-php-async": "npm run ti-php -- --responseTests",
     "response-php-sync": "npm run ti-php -- --responseTests --sync",
     "response-php": "npm run response-php-sync && npm run response-php-async",
-    "response-tests": "npm run response-js && npm run response-py && npm run response-php && npm run response-cs && npm run response-go",
+    "response-tests": "npm run response-js && npm run response-py && npm run response-php && npm run response-cs && npm run response-go && npm run response-java",
     "response-tests//withoutGo": "npm run response-js && npm run response-py && npm run response-php && npm run response-cs",
     "static-updater": "tsx ./utils/update-static-json --update",
     "id-tests-js": "npm run ti-js  -- --idTests",
@@ -189,7 +198,7 @@
     "id-tests-cs": "npm run ti-cs  -- --idTests",
     "id-tests-go": "npm run ti-go  -- --idTests",
     "id-tests-java": "cd java/ &&  ./gradlew :tests:run -- --args=\"--idTests\" && cd ../",
-    "id-tests": "npm run id-tests-js && npm run id-tests-py && npm run id-tests-php && npm run id-tests-cs",
+    "id-tests": "npm run id-tests-js && npm run id-tests-py && npm run id-tests-php && npm run id-tests-cs && npm run id-tests-go && npm run id-tests-java",
     "id-tests//withGO": "npm run id-tests-js && npm run id-tests-py && npm run id-tests-php && npm run id-tests-cs && npm run id-tests-go",
     "test-base-rest-ts": "npm run ti-ts  -- --baseTests",
     "test-base-rest-js": "npm run ti-js  -- --baseTests",
@@ -204,7 +213,7 @@
     "test-base-ws-php": "npm run ti-php -- --baseTests --ws",
     "test-base-ws-cs": "npm run ti-cs  -- --baseTests --ws",
     "test-base-ws-go": "npm run ti-go  -- --baseTests --ws",
-    "test-base-rest": "npm run test-base-rest-js && npm run test-base-rest-py && npm run test-base-rest-php && npm run test-base-rest-cs",
+    "test-base-rest": "npm run test-base-rest-js && npm run test-base-rest-py && npm run test-base-rest-php && npm run test-base-rest-cs && npm run test-base-rest-go && npm run test-base-rest-java",
     "test-base-ws": "npm run test-base-ws-js   && npm run test-base-ws-py   && npm run test-base-ws-php   && npm run test-base-ws-cs && npm run test-base-ws-go",
     "test": "npm run build && npm run commonjs-test && npm run id-tests && npm run request-tests && npm run response-tests && npm run live-tests",
     "commonjs-test": "node ./utils/test-commonjs.cjs",
@@ -350,6 +359,9 @@
   },
   "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd",
   "dependencies": {
-    "ws": "^8.8.1"
+    "ws": "8.21.0"
+  },
+  "optionalDependencies": {
+    "bufferutil": "4.1.0"
   }
 }

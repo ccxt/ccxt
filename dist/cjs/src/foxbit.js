@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var Precise = require('./base/Precise.js');
 var foxbit$1 = require('./abstract/foxbit.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -1534,7 +1534,7 @@ class foxbit extends foxbit$1["default"] {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['network_code'] = this.networkCodeToId(networkCode);
+            request['network_code'] = this.networkCodeToId(networkCode, code);
         }
         const response = await this.v3PrivatePostWithdrawals(this.extend(request, params));
         // {
@@ -1978,7 +1978,7 @@ class foxbit extends foxbit$1["default"] {
         if (urlPath === 'private') {
             this.checkRequiredCredentials();
             const preHash = this.numberToString(timestamp) + method + fullPath + signatureQuery + bodyToSignature;
-            const signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256.sha256, 'hex');
+            const signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha2_js.sha256, 'hex');
             headers['X-FB-ACCESS-KEY'] = this.apiKey;
             headers['X-FB-ACCESS-TIMESTAMP'] = this.numberToString(timestamp);
             headers['X-FB-ACCESS-SIGNATURE'] = signature;

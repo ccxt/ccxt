@@ -157,6 +157,7 @@ public class TestMain extends BaseTest
 
             Object properties = Helpers.objectKeys(exchange.has);
             ((java.util.List<Object>)properties).add("loadMarkets");
+            ((java.util.List<Object>)properties).add("afterConstruct");
             if (Helpers.isTrue(isSync()))
             {
                 this.testFiles = getTestFilesSync(properties, this.wsTests);
@@ -294,6 +295,7 @@ public class TestMain extends BaseTest
             Object isLoadMarkets = (Helpers.isEqual(methodName, "loadMarkets"));
             Object isFetchCurrencies = (Helpers.isEqual(methodName, "fetchCurrencies"));
             Object isProxyTest = (Helpers.isEqual(methodName, this.proxyTestFileName));
+            Object isConstructorTest = (Helpers.isEqual(methodName, "afterConstruct"));
             Object isFeatureTest = (Helpers.isEqual(methodName, "features"));
             // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(isPublic) && Helpers.isTrue((Helpers.inOp(this.checkedPublicTests, methodName)))) && !Helpers.isTrue(isFetchCurrencies)))
@@ -305,7 +307,7 @@ public class TestMain extends BaseTest
             if (Helpers.isTrue(!Helpers.isTrue(isLoadMarkets) && Helpers.isTrue((Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(this.onlySpecificTests), 0)) && !Helpers.isTrue(exchange.inArray(methodName, this.onlySpecificTests))))))
             {
                 skipMessage = "[INFO] IGNORED_TEST";
-            } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(isLoadMarkets) && !Helpers.isTrue(supportedByExchange)) && !Helpers.isTrue(isProxyTest)) && !Helpers.isTrue(isFeatureTest)))
+            } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(isLoadMarkets) && !Helpers.isTrue(supportedByExchange)) && !Helpers.isTrue(isProxyTest)) && !Helpers.isTrue(isFeatureTest)) && !Helpers.isTrue(isConstructorTest)))
             {
                 skipMessage = "[INFO] UNSUPPORTED_TEST"; // keep it aligned with the longest message
             } else if (Helpers.isTrue((skippedPropertiesForMethod instanceof String)))
@@ -541,6 +543,7 @@ public class TestMain extends BaseTest
             Object primarySymbol = Helpers.GetValue(symbols, 0);
             Object tests = new java.util.HashMap<String, Object>() {{
                 put( "features", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
+                put( "afterConstruct", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "fetchCurrencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "fetchTicker", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)) );
                 put( "fetchTickers", new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol)) );
@@ -1970,7 +1973,7 @@ public class TestMain extends BaseTest
             //  -----------------------------------------------------------------------------
             //  --- Init of brokerId tests functions-----------------------------------------
             //  -----------------------------------------------------------------------------
-            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex()));
+            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex()));
             (Helpers.promiseAll(promises)).join();
             Object successMessage = Helpers.add(Helpers.add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
             dump(Helpers.add("[INFO]", successMessage));
@@ -2651,32 +2654,6 @@ public class TestMain extends BaseTest
             {
                 (close(exchange)).join();
             }
-            return true;
-        });
-
-    }
-
-    public java.util.concurrent.CompletableFuture<Object> testOxfun()
-    {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Exchange exchange = this.initOfflineExchange("oxfun");
-            exchange.secret = "secretsecretsecretsecretsecretsecretsecrets";
-            Object id = 1000;
-            (exchange.loadMarkets()).join();
-            Object request = null;
-            try
-            {
-                (exchange.createOrder("BTC/USD:OX", "limit", "buy", 1, 20000)).join();
-            } catch(Exception e)
-            {
-                request = jsonParse(exchange.last_request_body);
-            }
-            Object orders = Helpers.GetValue(request, "orders");
-            Object first = Helpers.GetValue(orders, 0);
-            Object brokerId = Helpers.GetValue(first, "source");
-            Assert(Helpers.isEqual(brokerId, id), Helpers.add(Helpers.add(Helpers.add("oxfun - id: ", String.valueOf(id)), " different from  broker_id: "), String.valueOf(brokerId)));
             return true;
         });
 

@@ -59,7 +59,7 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Async Binance Fetch Margin Balance With Params](./examples/py/async-binance-fetch-margin-balance-with-params.md)
 
-- [Async Binance Fetch Option Ohlcv](./examples/py/async-binance-fetch-option-OHLCV.md)
+- [Async Binance Fetch Option OHLCV](./examples/py/async-binance-fetch-option-OHLCV.md)
 
 - [Async Binance Fetch Option Details](./examples/py/async-binance-fetch-option-details.md)
 
@@ -177,6 +177,8 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Binance Create Oco Order With Implicit Methods](./examples/py/binance-create-oco-order-with-implicit-methods.md)
 
+- [Binance Create Order Cancel Order](./examples/py/binance-create-order-cancel-order.md)
+
 - [Binance Ema](./examples/py/binance-ema.md)
 
 - [Binance Fetch All My Trades Paginate By Id](./examples/py/binance-fetch-all-my-trades-paginate-by-id.md)
@@ -209,6 +211,12 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Binance Futures Set Leverage](./examples/py/binance-futures-set-leverage.md)
 
+- [Binance Futures Watch Balance](./examples/py/binance-futures-watch-balance.md)
+
+- [Binance Futures Watch Order Book](./examples/py/binance-futures-watch-order-book.md)
+
+- [Binance Futures](./examples/py/binance-futures.md)
+
 - [Binance Https Proxy](./examples/py/binance-https-proxy.md)
 
 - [Binance Market Order Quote Usdt](./examples/py/binance-market-order-quote-usdt.md)
@@ -217,7 +225,11 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Binance Poll Positions](./examples/py/binance-poll-positions.md)
 
+- [Binance Reload Markets](./examples/py/binance-reload-markets.md)
+
 - [Binance Savings Endpoints](./examples/py/binance-savings-endpoints.md)
+
+- [Binance Spot And Futures](./examples/py/binance-spot-and-futures.md)
 
 - [Binance Spot Trailing](./examples/py/binance-spot-trailing.md)
 
@@ -228,6 +240,20 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 - [Binance Universal Transfer](./examples/py/binance-universal-transfer.md)
 
 - [Binance Usdm Fetch Continuous Klines Ohlcv](./examples/py/binance-usdm-fetch-continuous-klines-ohlcv.md)
+
+- [Binance Watch Many Orderbooks](./examples/py/binance-watch-many-orderbooks.md)
+
+- [Binance Watch Margin Balance](./examples/py/binance-watch-margin-balance.md)
+
+- [Binance Watch Ohlcv](./examples/py/binance-watch-ohlcv.md)
+
+- [Binance Watch Order Book Individual Updates](./examples/py/binance-watch-order-book-individual-updates.md)
+
+- [Binance Watch Orderbook Watch Balance](./examples/py/binance-watch-orderbook-watch-balance.md)
+
+- [Binance Watch Orders Being Placed](./examples/py/binance-watch-orders-being-placed.md)
+
+- [Binance Watch Spot Futures Balances Continuously](./examples/py/binance-watch-spot-futures-balances-continuously.md)
 
 - [Bitfinex Rate Limiting](./examples/py/bitfinex-rate-limiting.md)
 
@@ -243,13 +269,21 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Bitmex Order Value](./examples/py/bitmex-order-value.md)
 
+- [Bitmex Watch Ohlcv](./examples/py/bitmex_watch_ohlcv.md)
+
+- [Bitmex Watch Ticker And Ohlcv](./examples/py/bitmex_watch_ticker_and_ohlcv.md)
+
 - [Bittrex Fetch Closed Orders History](./examples/py/bittrex-fetch-closed-orders-history.md)
+
+- [Bitvavo Watch Order Book](./examples/py/bitvavo-watch-order-book.md)
 
 - [Build Ohlcv Bars](./examples/py/build-ohlcv-bars.md)
 
+- [Build Ohlcv Many Symbols](./examples/py/build-ohlcv-many-symbols.md)
+
 - [Builtin Rate Limiting Long Poller](./examples/py/builtin-rate-limiting-long-poller.md)
 
-- [Bybit Usdc Create Option Order](./examples/py/bybit-USDC-create-option-order.md)
+- [Bybit USDC Create Option Order](./examples/py/bybit-USDC-create-option-order.md)
 
 - [Bybit Conditional Orders](./examples/py/bybit-conditional-orders.md)
 
@@ -265,13 +299,17 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Coinbase Create Order](./examples/py/coinbase-create-order.md)
 
-- [Coinbase Fetch Ohlcv](./examples/py/coinbase-fetch-OHLCV.md)
+- [Coinbase Fetch OHLCV](./examples/py/coinbase-fetch-OHLCV.md)
 
 - [Coinbase Fetch Order](./examples/py/coinbase-fetch-order.md)
 
 - [Coinbase Fetch Ticker](./examples/py/coinbase-fetch-ticker.md)
 
 - [Coinbase Fetch Trades](./examples/py/coinbase-fetch-trades.md)
+
+- [Coinbase Watch All Trades](./examples/py/coinbase-watch-all-trades.md)
+
+- [Coinbase Watch Trades](./examples/py/coinbase-watch-trades.md)
 
 - [Coinbasepro Fetch My Trades Pagination](./examples/py/coinbasepro-fetch-my-trades-pagination.md)
 
@@ -283,6 +321,8 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Compare Two Exchanges Capabilities](./examples/py/compare-two-exchanges-capabilities.md)
 
+- [Consume All Trades](./examples/py/consume-all-trades.md)
+
 - [Create Order Position With Takeprofit Stoploss](./examples/py/create-order-position-with-takeprofit-stoploss.md)
 
 - [Create Order Ws Example](./examples/py/create-order-ws-example.md)
@@ -293,7 +333,7 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Create Trailing Percent Order](./examples/py/create-trailing-percent-order.md)
 
-- [Exchange Rate Limiter Rollingwindow](./examples/py/exchange-rate-limiter-rollingWindow.md)
+- [Exchange Rate Limiter RollingWindow](./examples/py/exchange-rate-limiter-rollingWindow.md)
 
 - [Exchange Save Load Markets Cache](./examples/py/exchange-save-load-markets-cache.md)
 
@@ -341,7 +381,7 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Fetch Ticker Many Exchanges Many Symbols](./examples/py/fetch-ticker-many-exchanges-many-symbols.md)
 
-- [Fetch_longer_ohlcv_through_multiple_calls_and_save_to_csv](./examples/py/fetch_longer_ohlcv_through_multiple_calls_and_save_to_csv.md)
+- [Fetch Longer Ohlcv Through Multiple Calls And Save To Csv](./examples/py/fetch_longer_ohlcv_through_multiple_calls_and_save_to_csv.md)
 
 - [Gateio Fetch Ohlcv Pagination](./examples/py/gateio-fetch-ohlcv-pagination.md)
 
@@ -352,6 +392,8 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 - [Gateio Swaps](./examples/py/gateio-swaps.md)
 
 - [Gateio Watch Balance](./examples/py/gateio-watch-balance.md)
+
+- [Gateio Watch Trades](./examples/py/gateio-watch-trades.md)
 
 - [Gdax Fetch My Trades Pagination](./examples/py/gdax-fetch-my-trades-pagination.md)
 
@@ -371,6 +413,8 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Instantiate All At Once](./examples/py/instantiate-all-at-once.md)
 
+- [Intercept Original Ohlcv Updates](./examples/py/intercept-original-ohlcv-updates.md)
+
 - [Kraken Conditional Close Order](./examples/py/kraken-conditional-close-order.md)
 
 - [Kraken Create And Close Position](./examples/py/kraken-create-and-close-position.md)
@@ -387,6 +431,8 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Kucoin Rate Limit](./examples/py/kucoin-rate-limit.md)
 
+- [Kucoin Watch Multiple Orderbooks](./examples/py/kucoin-watch-multiple-orderbooks.md)
+
 - [Kucoin Withdraw Chain](./examples/py/kucoin-withdraw-chain.md)
 
 - [Kucoinfutures Create Stop Order](./examples/py/kucoinfutures-create-stop-order.md)
@@ -397,6 +443,20 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Manual Rate Limiting Long Poller](./examples/py/manual-rate-limiting-long-poller.md)
 
+- [Many Exchanges Many Different Streams](./examples/py/many-exchanges-many-different-streams.md)
+
+- [Many Exchanges Many Orderbooks Synchronized](./examples/py/many-exchanges-many-orderbooks-synchronized.md)
+
+- [Many Exchanges Many Orderbooks Throttled](./examples/py/many-exchanges-many-orderbooks-throttled.md)
+
+- [Many Exchanges Many Streams With Keys](./examples/py/many-exchanges-many-streams-with-keys.md)
+
+- [Many Exchanges Many Streams](./examples/py/many-exchanges-many-streams.md)
+
+- [Many Exchanges Many Symbols Watch Trades](./examples/py/many-exchanges-many-symbols-watch-trades.md)
+
+- [Many Exchanges](./examples/py/many-exchanges.md)
+
 - [Margin Leverage Order Kraken](./examples/py/margin-leverage-order-kraken.md)
 
 - [Margin Loan Borrow Buy Sell Repay](./examples/py/margin-loan-borrow-buy-sell-repay.md)
@@ -405,9 +465,19 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Minimal 2 Lines](./examples/py/minimal-2-lines.md)
 
-- [Multiple Subscriptions Watchxforsymbols](./examples/py/multiple-subscriptions-watchXForSymbols.md)
+- [Multiple Exchanges Watch Orderbook Continuously](./examples/py/multiple-exchanges-watch-orderbook-continuously.md)
+
+- [Multiple Subscriptions WatchXForSymbols](./examples/py/multiple-subscriptions-watchXForSymbols.md)
 
 - [Normalize Sparse Candle Timestamps](./examples/py/normalize-sparse-candle-timestamps.md)
+
+- [Okex Create Swap Order](./examples/py/okex-create-swap-order.md)
+
+- [Okex Watch Margin Balance With Params](./examples/py/okex-watch-margin-balance-with-params.md)
+
+- [Okex Watch Margin Balance](./examples/py/okex-watch-margin-balance.md)
+
+- [Okx Bbo Tbt](./examples/py/okx-bbo-tbt.md)
 
 - [Okx Fetch All My Trades](./examples/py/okx-fetch-all-my-trades.md)
 
@@ -417,7 +487,15 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Okx Transfer](./examples/py/okx-transfer.md)
 
+- [On Connected User Hook](./examples/py/on-connected-user-hook.md)
+
+- [One Exchange Different Streams](./examples/py/one-exchange-different-streams.md)
+
+- [One Exchange Many Streams](./examples/py/one-exchange-many-streams.md)
+
 - [Order Book Extra Level Depth Param](./examples/py/order-book-extra-level-depth-param.md)
+
+- [Phemex Cancel All Orders](./examples/py/phemex-cancel-all-orders.md)
 
 - [Phemex Create Order Position With Takeprofit Stoploss](./examples/py/phemex-create-order-position-with-takeprofit-stoploss.md)
 
@@ -433,7 +511,7 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Phemex Transfer](./examples/py/phemex-transfer.md)
 
-- [Playing_with_ccxt_example](./examples/py/playing_with_ccxt_example.md)
+- [Playing With Ccxt Example](./examples/py/playing_with_ccxt_example.md)
 
 - [Poloniex Fetch Ohlcv Continuously](./examples/py/poloniex-fetch-ohlcv-continuously.md)
 
@@ -457,13 +535,15 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Sample Local Proxy Server With Cors](./examples/py/sample-local-proxy-server-with-cors.md)
 
-- [Set_markets_from_exchange](./examples/py/set_markets_from_exchange.md)
+- [Set Markets From Exchange](./examples/py/set_markets_from_exchange.md)
 
 - [Sign In](./examples/py/sign-in.md)
 
 - [Sort Swap Markets By Hourly Price Change](./examples/py/sort-swap-markets-by-hourly-price-change.md)
 
 - [Source Ip Address](./examples/py/source-ip-address.md)
+
+- [Spot Vs Future Arbitrage Bitmart](./examples/py/spot-vs-future-arbitrage-bitmart.md)
 
 - [Symbols](./examples/py/symbols.md)
 
@@ -473,27 +553,35 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Tickers](./examples/py/tickers.md)
 
-- [Watch Ohlcv For Symbols](./examples/py/watch-OHLCV-For-Symbols.md)
+- [Watch OHLCV For Symbols](./examples/py/watch-OHLCV-For-Symbols.md)
 
-- [Watch Ohlcv](./examples/py/watch-OHLCV.md)
+- [Watch OHLCV](./examples/py/watch-OHLCV.md)
 
-- [Watch Orderbook For Symbols](./examples/py/watch-OrderBook-For-Symbols.md)
+- [Watch OrderBook For Symbols](./examples/py/watch-OrderBook-For-Symbols.md)
 
 - [Watch Trades For Symbols](./examples/py/watch-Trades-For-Symbols.md)
 
+- [Watch All Symbols](./examples/py/watch-all-symbols.md)
+
+- [Watch Custom Exchange Specific Streams](./examples/py/watch-custom-exchange-specific-streams.md)
+
+- [Watch Many Exchanges Many Tickers](./examples/py/watch-many-exchanges-many-tickers.md)
+
+- [Watch Ticker To Csv](./examples/py/watch-ticker-to-csv.md)
+
 - [Watch Tickers](./examples/py/watch-tickers.md)
 
-- [Watchpositions Many Exchanges Continuosly](./examples/py/watchPositions-many-exchanges-continuosly.md)
+- [WatchPositions Many Exchanges Continuosly](./examples/py/watchPositions-many-exchanges-continuosly.md)
 
-- [Watchpositions](./examples/py/watchPositions.md)
+- [WatchPositions](./examples/py/watchPositions.md)
 
-- [Watchpositionsforsymbols](./examples/py/watchPositionsForSymbols.md)
+- [WatchPositionsForSymbols](./examples/py/watchPositionsForSymbols.md)
 
-- [Watchtradesforsymbols](./examples/py/watchTradesForSymbols.md)
+- [WatchTradesForSymbols](./examples/py/watchTradesForSymbols.md)
 
 - [Wazirx Create Cancel Orders](./examples/py/wazirx-create-cancel-orders.md)
 
 - [Withdraw From One Exchange To Another](./examples/py/withdraw-from-one-exchange-to-another.md)
 
-- [Ws_test_load](./examples/py/ws_test_load.md)
+- [Ws Test Load](./examples/py/ws_test_load.md)
 

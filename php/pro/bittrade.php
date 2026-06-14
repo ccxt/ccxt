@@ -606,7 +606,7 @@ class bittrade extends \ccxt\async\bittrade {
             }
             return false;
         }
-        return $message;
+        return true;
     }
 
     public function handle_message(Client $client, $message) {

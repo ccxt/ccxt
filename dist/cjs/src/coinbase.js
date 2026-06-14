@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinbase$1 = require('./abstract/coinbase.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
 
 // ----------------------------------------------------------------------------
@@ -1160,13 +1160,14 @@ class coinbase extends coinbase$1["default"] {
         const toObject = this.safeDict(transaction, 'to');
         const addressTo = this.safeString(toObject, 'address');
         const networkId = this.safeString(network, 'network_name');
+        const code = this.safeCurrencyCode(currencyId, currency);
         return {
             'info': transaction,
             'id': id,
             'txid': this.safeString(network, 'hash', id),
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'address': addressTo,
             'addressTo': addressTo,
             'addressFrom': undefined,
@@ -1175,7 +1176,7 @@ class coinbase extends coinbase$1["default"] {
             'tagFrom': undefined,
             'type': type,
             'amount': this.parseNumber(amountStringAbs),
-            'currency': this.safeCurrencyCode(currencyId, currency),
+            'currency': code,
             'status': status,
             'updated': this.parse8601(this.safeString(transaction, 'updated_at')),
             'fee': {
@@ -3682,7 +3683,7 @@ class coinbase extends coinbase$1["default"] {
         //                     }
         //                 },
         //                 "side": "BUY",
-        //                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+        //                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4314",
         //                 "status": "FILLED",
         //                 "time_in_force": "IMMEDIATE_OR_CANCEL",
         //                 "created_time": "2023-01-18T01:37:37.975552Z",
@@ -5089,11 +5090,11 @@ class coinbase extends coinbase$1["default"] {
         if (useEddsa) {
             const byteArray = this.base64ToBinary(this.secret);
             const seed = this.arraySlice(byteArray, 0, 32);
-            return rsa.jwt(request, seed, sha256.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'EdDSA' });
+            return rsa.jwt(request, seed, sha2_js.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'EdDSA' });
         }
         else {
             // ecdsa with p256
-            return rsa.jwt(request, this.encode(this.secret), sha256.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+            return rsa.jwt(request, this.encode(this.secret), sha2_js.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
         }
     }
     nonce() {
@@ -5177,7 +5178,7 @@ class coinbase extends coinbase$1["default"] {
                     const timestamp = this.parseToInt(nonce / 1000);
                     const timestampString = timestamp.toString();
                     const auth = timestampString + method + savedPath + payload;
-                    const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+                    const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
                     headers = {
                         'CB-ACCESS-KEY': this.apiKey,
                         'CB-ACCESS-SIGN': signature,

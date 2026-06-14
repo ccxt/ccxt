@@ -1,8 +1,5 @@
-- [Bitfinex2 Fetch Trades Since](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -22,5 +19,5 @@ foreach ($trades as $trade) {
 }
 echo count ($trades) . " trades\n";
 
-?> 
+?>
 ```

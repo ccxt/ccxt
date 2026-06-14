@@ -410,7 +410,7 @@ class digifinex extends Exchange {
                     'OTC' => '3',
                 ),
                 'networks' => array(
-                    'ARBITRUM' => 'Arbitrum',
+                    'ARBONE' => 'Arbitrum',
                     'AVALANCEC' => 'AVAX-CCHAIN',
                     'AVALANCEX' => 'AVAX-XCHAIN',
                     'BEP20' => 'BEP20',
@@ -427,20 +427,19 @@ class digifinex extends Exchange {
                     'ETHW' => 'ETHW',
                     'IOTA' => 'MIOTA',
                     'KLAYTN' => 'KLAY',
-                    'MATIC' => 'Polygon',
                     'METIS' => 'MetisDAO',
                     'MOONBEAM' => 'GLMR',
                     'MOONRIVER' => 'Moonriver',
                     'OPTIMISM' => 'OPETH',
                     'POLYGON' => 'Polygon',
+                    'MATIC' => 'Polygon',
                     'RIPPLE' => 'XRP',
-                    'SOLANA' => 'SOL', // SOL & SPL
-                    'STELLAR' => 'Stella', // XLM
+                    'SOL' => 'SOL', // SOL & SPL
+                    'XLM' => 'Stella', // STELLAR
                     'TERRACLASSIC' => 'TerraClassic',
                     'TERRA' => 'Terra',
                     'TON' => 'Ton',
                     'TRC20' => 'TRC20',
-                    'TRON' => 'TRC20',
                     'TRX' => 'TRC20',
                     'VECHAIN' => 'Vechain', // VET
                 ),
@@ -527,7 +526,7 @@ class digifinex extends Exchange {
         for ($j = 0; $j < count($networkEntries); $j++) {
             $networkEntry = $networkEntries[$j];
             $networkId = $this->safe_string_2($networkEntry, 'chain', 'currency');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'id' => $networkId,
                 'network' => $networkCode,
@@ -4132,7 +4131,7 @@ class digifinex extends Exchange {
                     'percentage' => null,
                 );
                 if ($networkId !== null) {
-                    $networkCode = $this->network_id_to_code($networkId);
+                    $networkCode = $this->network_id_to_code($networkId, $code);
                     $depositWithdrawFees[$code]['networks'][$networkCode] = array(
                         'withdraw' => $withdrawResult,
                         'deposit' => $depositResult,

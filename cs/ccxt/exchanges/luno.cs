@@ -328,7 +328,7 @@ public partial class luno : Exchange
         {
             object networkEntry = getValue(rawCurrency, i);
             object networkId = this.safeString(networkEntry, "name");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "id", networkId },
                 { "network", networkCode },

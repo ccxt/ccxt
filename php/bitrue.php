@@ -442,7 +442,6 @@ class bitrue extends Exchange {
                     'XML' => 'Stellar Lumens',
                     'XYM' => 'Symbol',
                     'XTZ' => 'Tezos',
-                    'theta' => 'theta',
                     'THETA' => 'THETA',
                     'VECHAIN' => 'VeChain',
                     'WANCHAIN' => 'Wanchain',
@@ -2881,7 +2880,7 @@ class bitrue extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['chainName'] = $this->network_code_to_id($networkCode);
+            $request['chainName'] = $this->network_code_to_id($networkCode, $currency['code']);
         }
         if ($tag !== null) {
             $request['tag'] = $tag;

@@ -897,7 +897,7 @@ class whitebit extends whitebit$1["default"] {
                 return false;
             }
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
         //

@@ -479,7 +479,7 @@ func (this *BitmexCore) ParseCurrency(currency any) any {
 	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
 		var chain any = GetValue(chains, j)
 		var networkId any = this.SafeString(chain, "asset")
-		var network any = this.NetworkIdToCode(networkId)
+		var network any = this.NetworkIdToCode(networkId, code)
 		var withdrawalFeeRaw any = this.SafeString(chain, "withdrawalFee")
 		var withdrawalFee any = this.ParseNumber(Precise.StringMul(withdrawalFeeRaw, precisionString))
 		var isDepositEnabled any = this.SafeBool(chain, "depositEnabled", false)

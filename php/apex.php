@@ -515,7 +515,7 @@ class apex extends Exchange {
                 $tokenName = $this->safe_string($token, 'token');
                 if ($tokenName === $currencyId) {
                     $networkId = $this->safe_string($chain, 'chainId');
-                    $networkCode = $this->network_id_to_code($networkId);
+                    $networkCode = $this->network_id_to_code($networkId, $code);
                     $networks[$networkCode] = array(
                         'info' => $chain,
                         'id' => $networkId,
