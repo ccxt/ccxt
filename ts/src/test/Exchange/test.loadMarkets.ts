@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 import testMarket from './base/test.market.js';
 
 async function testLoadMarkets (exchange: Exchange, skippedProperties: object) {

@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 import testMarket from './base/test.market.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
