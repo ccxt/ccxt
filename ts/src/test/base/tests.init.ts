@@ -46,6 +46,7 @@ import testStrip from './test.strip.js';
 import testArrayConcat from './test.arrayConcat.js';
 import testArraysConcat from './test.arraysConcat.js';
 import testSetMarketsFromExchange from './test.setMarketsFromExchange.js';
+import testSetRateLimit from './test.setRateLimit.js';
 import testSleep from './test.sleep.js';
 import testEthMethods from './test.ethMethods.js';
 import testTimeframes from './test.timeframes.js';
@@ -119,6 +120,7 @@ async function baseTestsInit () {
     testUnique ();
     testUrlencodeNested ();
     await testSleep ();
+    await testSetRateLimit ();
     testIo ();
     testIsJsonEncodedObject ();
     testEncodeDecode ();

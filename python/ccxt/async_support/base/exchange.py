@@ -100,6 +100,10 @@ class Exchange(BaseExchange):
     async def throttle(self, cost=None):
         return await self.throttler(cost)
 
+    def set_rate_limit(self, rateLimit: float):
+        self.rateLimit = rateLimit
+        self.throttler.set_rate_limit(rateLimit)
+
     def get_session(self):
         return self.session
 
