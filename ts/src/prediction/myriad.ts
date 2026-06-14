@@ -18,7 +18,7 @@ import Exchange from '../abstract/prediction/myriad.js';
 import type {
     Int, Str, Dict,
     Strings,
-    Market, Ticker, Tickers, OrderBook, OHLCV, Trade,
+    Market, Ticker, Tickers, OrderBook, OHLCV, Trade, TradingFeeInterface,
     PredictionEvent,
 } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
@@ -58,6 +58,7 @@ export default class myriad extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
                 'prediction': true,
             },
             'timeframes': {
@@ -493,6 +494,47 @@ export default class myriad extends Exchange {
         //     }
         //
         return this.parseTicker (response, outcomeObj);
+    }
+
+    /**
+     * @method
+     * @name myriad#fetchTradingFee
+     * @description fetches the buy/sell fee rates for a market outcome
+     * @see https://docs.myriad.markets/builders/myriad-api-reference
+     * @param {string} symbol unified outcome symbol or outcome id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+     */
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+        const outcome = symbol;
+        await this.loadMarkets ();
+        this.ensureOutcomesLoaded ();
+        const outcomeObj = this.outcome (outcome);
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const request: Dict = {
+            'id': this.safeString (info, 'marketId'),
+            'network_id': this.safeString (info, 'networkId'),
+        };
+        const response = await this.myriadPublicGetMarketsId (this.extend (request, params));
+        //
+        //     {
+        //         "fees": {
+        //             "buy": { "fee": "0.02", "treasury_fee": "0.01", "distributor_fee": "0.01" },
+        //             "sell": { "fee": "0", "treasury_fee": "0", "distributor_fee": "0" }
+        //         }
+        //     }
+        //
+        const fees = this.safeDict (response, 'fees', {});
+        const buy = this.safeDict (fees, 'buy', {});
+        const sell = this.safeDict (fees, 'sell', {});
+        return {
+            'info': response,
+            'symbol': this.safeSymbol (undefined, outcomeObj as any),
+            'maker': this.safeNumber (sell, 'fee'),
+            'taker': this.safeNumber (buy, 'fee'),
+            'percentage': true,
+            'tierBased': false,
+        };
     }
 
     /**
