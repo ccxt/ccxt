@@ -5805,15 +5805,33 @@ export default class htx extends Exchange {
                 'clientOrderId': undefined,
                 'average': undefined,
             }, market);
-        } else if (market['linear'] && (isTrigger || isTrailingPercentOrder || isStopLossTriggerOrder || isTakeProfitTriggerOrder)) {
-            data = this.safeList (response, 'data', []);
-            result = this.safeDict (data, 0, {});
-            return this.extend (this.parseOrder (result, market), {
+        } else if (market['linear']) {
+            if (isTrigger || isTrailingPercentOrder || isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+                data = this.safeList (response, 'data', []);
+                result = this.safeDict (data, 0, {});
+            } else {
+                result = this.safeDict (response, 'data', {});
+            }
+            return this.safeOrder ({
+                'info': result,
+                'id': this.safeString2 (result, 'order_id', 'algo_id'),
+                'timestamp': undefined,
+                'datetime': undefined,
+                'lastTradeTimestamp': undefined,
+                'status': undefined,
+                'symbol': undefined,
                 'type': type,
                 'side': side,
                 'price': price,
                 'amount': amount,
-            });
+                'filled': undefined,
+                'remaining': undefined,
+                'cost': undefined,
+                'trades': undefined,
+                'fee': undefined,
+                'clientOrderId': this.safeString2 (result, 'client_order_id', 'algo_client_order_id'),
+                'average': undefined,
+            }, market);
         } else if (isStopLossTriggerOrder) {
             data = this.safeValue (response, 'data', {});
             result = this.safeValue (data, 'sl_order', {});

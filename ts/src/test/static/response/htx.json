@@ -1499,9 +1499,11 @@
                         "remaining": 0,
                         "status": "closed",
                         "reduceOnly": null,
-                        "fee": null,
+                        "fee": {"cost":"0.026804","currency":"USDT"},
                         "trades": [],
-                        "fees": [],
+                        "fees": [
+                            {"cost":"0.026804","currency":"USDT"}
+                        ],
                         "lastUpdateTimestamp": null,
                         "takeProfitPrice": null,
                         "stopLossPrice": null
