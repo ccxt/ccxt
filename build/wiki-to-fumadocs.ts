@@ -31,7 +31,7 @@ const GUIDES: Record<string, { route: string; title: string }> = {
     'Examples.md':                     { route: 'examples-overview',           title: 'Examples Overview' },
     'FAQ.md':                          { route: 'faq',                         title: 'FAQ' },
     'Requirements.md':                 { route: 'requirements',                title: 'Requirements' },
-    'Awesome.md':                      { route: 'awesome',                     title: 'Awesome CCXT' },
+    'Awesome.md':                      { route: 'examples/awesome',            title: 'Awesome CCXT' },
     'AI-Skills.md':                    { route: 'ai-skills',                   title: 'AI Skills' },
     'Stats.md':                        { route: 'stats',                       title: 'Statistics' },
     'Certification.md':                { route: 'certification',               title: 'Certification' },
@@ -474,21 +474,28 @@ function main () {
     const chooser = exampleLangs
         .map((l) => `- [${LANGS[l]} Examples](/docs/examples/${l}) — ${langBlurb[l] ?? ''}`)
         .join('\n');
+    // "Awesome CCXT" (projects/integrations/showcases) is written by the guides loop at
+    // examples/awesome.md (its GUIDES route moved under examples) — surface it here too.
+    const awesomePage = fs.existsSync(path.join(OUT, 'examples', 'awesome.md'));
+    const extras = [
+        ...(awesomePage ? ['\nShowcases — see [Awesome CCXT](/docs/examples/awesome), a curated list of projects and integrations built with CCXT.\n'] : []),
+        ...(citationsPage ? ['\nSee also [Citations & Articles](/docs/examples/citations) — papers, theses, tutorials and projects that cite or build on CCXT.\n'] : []),
+    ].join('');
     write(path.join(OUT, 'examples', 'index.md'),
         frontmatter('Examples', 'Runnable CCXT code examples — pick your language.') +
         'Hundreds of runnable CCXT examples. Pick a language to browse its ready-to-run scripts:\n\n' +
-        chooser + '\n' +
-        (citationsPage ? '\nSee also [Citations & Articles](/docs/examples/citations) — papers, theses, tutorials and projects that cite or build on CCXT.\n' : ''));
+        chooser + '\n' + extras);
     // root:true -> renders as a sidebar tab (keeps /docs/examples/* URLs unchanged)
+    const examplePages = ['index', ...exampleLangs, ...(awesomePage ? ['awesome'] : []), ...(citationsPage ? ['citations'] : [])];
     write(path.join(OUT, 'examples', 'meta.json'),
-        JSON.stringify({ title: 'Examples', icon: 'Code', description: 'Runnable code samples', root: true, pages: ['index', ...exampleLangs, ...(citationsPage ? ['citations'] : [])] }, null, 2));
+        JSON.stringify({ title: 'Examples', icon: 'Code', description: 'Examples, guides & showcases', root: true, pages: examplePages }, null, 2));
 
     // 4) top-level (Guides) nav meta.json. exchanges/examples are their own root tabs.
     const topPages = [
         'index', 'install', 'manual', 'pro-manual', 'pro', 'cli', 'examples-overview',
         'faq', 'requirements', 'contributing',
         '---Reference---', 'base-spec', 'exchange-markets', 'exchange-markets-by-country',
-        'awesome', 'ai-skills', 'stats', 'certification', 'changelog',
+        'ai-skills', 'stats', 'certification', 'changelog',
     ];
     write(path.join(OUT, 'meta.json'),
         JSON.stringify({ title: 'Guide', icon: 'BookOpen', description: 'Install, manual & reference', root: true, pages: topPages }, null, 2));
@@ -512,6 +519,9 @@ function main () {
             for (const f of fs.readdirSync(dir)) {
                 if (!f.endsWith('.md')) continue;
                 const base = f.replace(/\.md$/, '');
+                // guides relocated under another section keep their translations alongside
+                // the English page (awesome moved under examples).
+                const target = (base === 'awesome') ? 'examples/awesome' : base;
                 let content = fs.readFileSync(path.join(dir, f), 'utf8');
                 const enTable = (base === 'manual') ? EN_MANUAL_TABLE : (base === 'pro-manual') ? EN_PRO_TABLE : '';
                 if (enTable) {
@@ -525,7 +535,7 @@ function main () {
                         return (enCount ? localeIntro.replace(/\d+/, enCount) : localeIntro) + enBody;
                     });
                 }
-                write(path.join(OUT, `${base}.${locale}.md`), content);
+                write(path.join(OUT, `${target}.${locale}.md`), content);
                 i18nCount++;
             }
         }

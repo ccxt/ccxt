@@ -28,7 +28,6 @@ const HEADINGS_ONLY = new Set([
   '/docs/changelog',
   '/docs/exchange-markets',
   '/docs/exchange-markets-by-country',
-  '/docs/awesome',
   '/docs/stats',
 ]);
 
