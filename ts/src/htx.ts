@@ -9052,7 +9052,7 @@ export default class htx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
-        }, market) as OpenInterest;
+        }, market);
     }
 
     /**
