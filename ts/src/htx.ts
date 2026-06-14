@@ -5819,7 +5819,7 @@ export default class htx extends Exchange {
                 'datetime': undefined,
                 'lastTradeTimestamp': undefined,
                 'status': undefined,
-                'symbol': undefined,
+                'symbol': market['symbol'],
                 'type': type,
                 'side': side,
                 'price': price,
