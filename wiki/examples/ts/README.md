@@ -4,8 +4,6 @@
 
 - [Benchmark](./examples/ts/benchmark.md)
 
-- [Binance Watch Ohlcv Many Symbols Continuously](./examples/ts/binance-watch-ohlcv-many-symbols-continuously.md)
-
 - [Binance Watch Ohlcv Many Symbols](./examples/ts/binance-watch-ohlcv-many-symbols.md)
 
 - [Binance Watch Ticker Many Symbols](./examples/ts/binance-watch-ticker-many-symbols.md)
