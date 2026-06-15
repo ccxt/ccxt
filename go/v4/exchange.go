@@ -184,6 +184,7 @@ type Exchange struct {
 
 	IsSandboxModeEnabled  bool
 	FetchHistoryCacheSize int
+	FetchHistoryCache     *ConcurrentListForRequests
 
 	// ws
 	WsClients   map[string]any // one websocket client per URL
@@ -215,6 +216,7 @@ const (
 
 func (this *Exchange) InitParent(userConfig map[string]any, exchangeConfig map[string]any, itf any) {
 	// this = &Exchange{}
+	this.FetchHistoryCache = &ConcurrentListForRequests{}
 	if this.Options == nil {
 		this.Options = &sync.Map{} // by default sync.map is nil
 	}
@@ -280,6 +282,9 @@ func (this *Exchange) InitParent(userConfig map[string]any, exchangeConfig map[s
 }
 
 func (this *Exchange) Init(userConfig map[string]any) {
+	if this.FetchHistoryCache == nil {
+		this.FetchHistoryCache = &ConcurrentListForRequests{}
+	}
 	if this.Options == nil {
 		this.Options = &sync.Map{} // by default sync.map is nil
 	}
@@ -2217,21 +2222,19 @@ func (cl *ConcurrentListForRequests) GetAll() []any {
 	return cp
 }
 
-var FetchHistoryCache = &ConcurrentListForRequests{}
-
 func (e *Exchange) AddFetchCache(item any) {
 
-	FetchHistoryCache.Lock()
-	defer FetchHistoryCache.Unlock()
+	e.FetchHistoryCache.Lock()
+	defer e.FetchHistoryCache.Unlock()
 
-	FetchHistoryCache.items = append(FetchHistoryCache.items, item)
+	e.FetchHistoryCache.items = append(e.FetchHistoryCache.items, item)
 
-	if e.FetchHistoryCacheSize > 0 && len(FetchHistoryCache.items) > e.FetchHistoryCacheSize {
-		FetchHistoryCache.items = FetchHistoryCache.items[1:]
+	if e.FetchHistoryCacheSize > 0 && len(e.FetchHistoryCache.items) > e.FetchHistoryCacheSize {
+		e.FetchHistoryCache.items = e.FetchHistoryCache.items[1:]
 	}
 }
 func (e *Exchange) GetFetchCache() []any {
-	return FetchHistoryCache.GetAll()
+	return e.FetchHistoryCache.GetAll()
 }
 
 // #########################################
