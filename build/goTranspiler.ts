@@ -894,6 +894,7 @@ class NewTranspiler {
         const goReplacements: dict = {
             'OrderType': 'string',
             'OrderSide': 'string', // tmp
+            'PredictionEvent': 'map[string]any', // no concrete Go struct; surface as a map
         };
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {

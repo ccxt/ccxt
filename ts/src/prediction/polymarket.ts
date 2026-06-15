@@ -39,6 +39,7 @@ export default class polymarket extends Exchange {
                 'fetchBalance': true,
                 'fetchCurrencies': false,
                 'fetchDeposits': false,
+                'fetchEvent': true,         // Custom: fetch a single Polymarket event by id/slug
                 'fetchEvents': true,        // Custom: fetch Polymarket events
                 'fetchLedger': false,
                 'fetchMarkets': true,       // Each outcome token = one market
@@ -1572,6 +1573,28 @@ export default class polymarket extends Exchange {
             }
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name polymarket#fetchEvent
+     * @description fetches a single prediction-market event by its id or slug
+     * @see https://docs.polymarket.com/api-reference/events/get-event-by-id
+     * @see https://docs.polymarket.com/api-reference/events/get-event-by-slug
+     * @param {string} id the event id (numeric) or slug
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
+     */
+    async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
+        let response = undefined;
+        if (id.indexOf ('-') >= 0) {
+            response = await this.gammaPublicGetEventsSlugSlug (this.extend ({ 'slug': id }, params));
+        } else {
+            response = await this.gammaPublicGetEventsId (this.extend ({ 'id': id }, params));
+        }
+        const eventForParsing = this.safeDict (response, 'event', response);
+        const event: any = this.parseEvent (eventForParsing);
+        return event;
     }
 
     parseEvent (rawEvent: Dict): Dict {

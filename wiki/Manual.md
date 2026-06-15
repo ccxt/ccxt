@@ -4784,6 +4784,23 @@ const candles = await exchange.fetchOHLCV (outcome['symbol'], '1h')
 
 Calling a price method for an outcome that has not been loaded yet throws `ArgumentsRequired` — fetch the events (or `loadMarkets()`) first.
 
+### fetchEvent
+
+```javascript
+fetchEvent (id, params = {})
+```
+
+- `id` — the identifier of a single event. Polymarket accepts the numeric event id or its slug, Kalshi the event ticker, Myriad the `networkId:marketId` market id, and Limitless the market slug or address
+- returns a single **event structure** (same shape as the entries returned by `fetchEvents`)
+
+```javascript
+const exchange = new ccxt.prediction.polymarket ()
+const events = await exchange.fetchEvents ([ 'Trump' ])
+const event = await exchange.fetchEvent (events[0]['id'])
+```
+
+Supported by `polymarket`, `kalshi`, `myriad` and `limitless` (check `exchange.has['fetchEvent']`); Hyperliquid has no single-event endpoint.
+
 ## Authentication
 
 Authentication with all exchanges is handled automatically if provided with proper API keys. The process of authentication usually goes through the following pattern:

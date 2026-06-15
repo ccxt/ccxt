@@ -499,6 +499,7 @@ class NewTranspiler {
         const javaReplacements: dict = {
             'OrderType': 'String',
             'OrderSide': 'String', // tmp
+            'PredictionEvent': 'Object', // no concrete Java class; surface as Object
         };
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {

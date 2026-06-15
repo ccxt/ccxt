@@ -49,6 +49,7 @@ export default class myriad extends Exchange {
                 'createOrder': false,
                 'fetchBalance': false,
                 'fetchCurrencies': false,
+                'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
@@ -264,6 +265,32 @@ export default class myriad extends Exchange {
             }
         }
         return allRawMarkets;
+    }
+
+    /**
+     * @method
+     * @name myriad#fetchEvent
+     * @description fetches a single prediction-market event by its market id
+     * @see https://docs.myriad.markets/builders/myriad-api-reference
+     * @param {string} id the market id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
+     */
+    async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
+        // the unified event id is a composite networkId:marketId
+        const parts = id.split (':');
+        const partsLength = parts.length;
+        const request: Dict = {};
+        if (partsLength > 1) {
+            request['network_id'] = this.safeString (parts, 0);
+            request['id'] = this.safeString (parts, 1);
+        } else {
+            request['id'] = id;
+        }
+        const response = await this.myriadPublicGetMarketsId (this.extend (request, params));
+        const market = this.parseMyriadMarket (response);
+        const event: any = this.parseMarketToEvent (response, market);
+        return event;
     }
 
     /**

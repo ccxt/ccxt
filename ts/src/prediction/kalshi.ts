@@ -36,6 +36,7 @@ export default class kalshi extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': false,
+                'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
@@ -1522,6 +1523,27 @@ export default class kalshi extends Exchange {
             }
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name kalshi#fetchEvent
+     * @description fetches a single prediction-market event by its event ticker
+     * @see https://trading-api.readme.io/reference/getevent
+     * @param {string} id the event ticker
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
+     */
+    async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
+        const request: Dict = { 'event_ticker': id, 'with_nested_markets': true };
+        const response = await this.kalshiPublicGetEventsEventTicker (this.extend (request, params));
+        const fullEvent = this.safeDict (response, 'event', response);
+        const nestedMarkets = this.safeList (fullEvent, 'markets');
+        if (nestedMarkets === undefined) {
+            fullEvent['markets'] = this.safeList (response, 'markets', []);
+        }
+        const event: any = this.parseEvent (fullEvent);
+        return event;
     }
 
     /**

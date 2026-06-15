@@ -50,6 +50,10 @@ export default class PredictionExchange extends Exchange {
         throw new NotSupported (this.id + ' fetchEvents() is not supported yet');
     }
 
+    async fetchEvent (id: string, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchEvent() is not supported yet');
+    }
+
     setEvents (events: any[]): Dictionary<any> {
         this.events = {};
         this.events_by_slug = {};
