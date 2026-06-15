@@ -6482,7 +6482,7 @@ please use fetchDepositWithdrawFees instead
 fetch history of deposits, withdrawals, and transfers
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Transaction&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;Transaction&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -6507,7 +6507,7 @@ fetch history of deposits, withdrawals, and transfers
 fetches a transfer
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 
 | Param | Type | Required | Description |
