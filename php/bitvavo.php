@@ -1199,7 +1199,7 @@ class bitvavo extends Exchange {
          *
          * fetch all the $accounts associated with a profile
          * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=account-structure account structures~
          */
         $this->load_markets();
         $response = $this->privateGetSubaccounts ($params);
@@ -1244,7 +1244,7 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
          * @param {string} [$params->subaccountId] the unique identifier for the subaccount
          * @param {string} [$params->clientRequestId] client defined unique id
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1303,7 +1303,7 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
          * @param {string} [$params->subaccountId] the unique identifier for the subaccount
          * @param {int} [$params->until] the latest time in ms to fetch transfers for
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
         $this->load_markets();
         $request = array();
@@ -1356,7 +1356,7 @@ class bitvavo extends Exchange {
          * @param {string} $id transfer $id
          * @param {string} [$code] unified $currency $code of the $currency transferred
          * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transfer-structure transfer structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?$id=transfer-structure transfer structure~
          */
         $this->load_markets();
         $currency = null;
