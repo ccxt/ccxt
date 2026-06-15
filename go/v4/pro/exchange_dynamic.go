@@ -127,10 +127,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         coinbaseItf := NewCoinbaseCore()
         coinbaseItf.Init(exchangeArgs)
         return coinbaseItf, true
-    case "coinbaseadvanced":
-        coinbaseadvancedItf := NewCoinbaseadvancedCore()
-        coinbaseadvancedItf.Init(exchangeArgs)
-        return coinbaseadvancedItf, true
     case "coinbaseexchange":
         coinbaseexchangeItf := NewCoinbaseexchangeCore()
         coinbaseexchangeItf.Init(exchangeArgs)
