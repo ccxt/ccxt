@@ -313,5 +313,6 @@ public partial class Exchange
         this.rollingWindowSize = (int)(SafeInteger(extendedProperties, "rollingWindowSize") ?? 0.0);
         this.rateLimiterAlgorithm = SafeString(extendedProperties, "rateLimiterAlgorithm", "leakyBucket");
         this.returnResponseHeaders = (bool)SafeValue(extendedProperties, "returnResponseHeaders", false);
+        this.fetchHistoryCacheSize = (int)(SafeInteger(extendedProperties, "fetchHistoryCacheSize") ?? 0.0);
     }
 }
