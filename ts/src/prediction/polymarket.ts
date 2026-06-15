@@ -1,5 +1,8 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from '../abstract/prediction/polymarket.js';
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { ecdsa } from '../base/functions/crypto.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type {
@@ -9,7 +12,7 @@ import type {
     Strings, OpenInterest, TradingFeeInterface,
     PredictionEvent,
 } from '../base/types.js';
-import { ArgumentsRequired, BadRequest } from '../../ccxt.js';
+import { ArgumentsRequired, BadRequest, AuthenticationError } from '../../ccxt.js';
 
 // ---------------------------------------------------------------------------
 
@@ -252,10 +255,15 @@ export default class polymarket extends Exchange {
                 },
             },
             'requiredCredentials': {
-                'apiKey': true,   // POLY_API_KEY
-                'secret': true,   // POLY_API_SECRET
-                'password': true,   // POLY_PASSPHRASE
-                'walletAddress': true,   // Ethereum wallet address
+                // dual auth: either pass the L2 api credentials directly
+                // (apiKey=POLY_API_KEY, secret=POLY_API_SECRET, password=POLY_PASSPHRASE)
+                // or a privateKey to derive them (see loadApiCredentials); none are
+                // individually required, so validation happens in loadApiCredentials
+                'apiKey': false,
+                'secret': false,
+                'password': false,
+                'privateKey': false,   // EOA private key, used to derive L2 creds + sign orders
+                'walletAddress': false,   // Ethereum wallet address (POLY_ADDRESS)
             },
             'fees': {
                 'trading': {
@@ -1329,6 +1337,7 @@ export default class polymarket extends Exchange {
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadApiCredentials ();
         const outcome = symbol;
         if (outcome !== undefined) {
             this.checkEventsAndMarkets (outcome);
@@ -1357,6 +1366,7 @@ export default class polymarket extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async fetchOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
+        await this.loadApiCredentials ();
         const outcome = symbol;
         if (outcome !== undefined) {
             this.checkEventsAndMarkets (outcome);
@@ -1445,6 +1455,7 @@ export default class polymarket extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async createOrder (symbol: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
+        await this.loadApiCredentials ();
         const outcome = symbol;
         this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
@@ -1475,6 +1486,7 @@ export default class polymarket extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
+        await this.loadApiCredentials ();
         const outcome = symbol;
         this.checkEventsAndMarkets (outcome);
         const request: Dict = { 'order_id': id };
@@ -1492,6 +1504,7 @@ export default class polymarket extends Exchange {
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+        await this.loadApiCredentials ();
         const outcome = symbol;
         this.checkEventsAndMarkets (outcome);
         const request: Dict = {};
@@ -1753,27 +1766,181 @@ export default class polymarket extends Exchange {
             'Content-Type': 'application/json',
         }, headerDefaults);
         if (access === 'private') {
-            this.checkRequiredCredentials ();
-            const timestamp = this.seconds ().toString ();
-            let auth = timestamp + method + '/' + path;
-            if (body !== undefined) {
-                auth = auth + body;
+            const isL1Auth = (path === 'auth/api-key') || (path === 'auth/derive-api-key') || (path === 'auth/api-keys');
+            if (isL1Auth) {
+                // L1 (private-key / EIP-712) auth used to create or derive the L2 api credentials
+                if (this.privateKey === undefined) {
+                    throw new ArgumentsRequired (this.id + ' ' + path + ' requires a privateKey');
+                }
+                const address = (this.walletAddress !== undefined) ? this.walletAddress : this.ethGetAddressFromPrivateKey (this.privateKey);
+                const timestamp = this.seconds ().toString ();
+                const nonce = this.safeInteger (params, 'nonce', 0);
+                const l1signature = this.signClobAuth (address, timestamp, nonce);
+                headers = this.extend (headers, {
+                    'POLY_ADDRESS': address,
+                    'POLY_SIGNATURE': l1signature,
+                    'POLY_TIMESTAMP': timestamp,
+                    'POLY_NONCE': this.numberToString (nonce),
+                });
+            } else {
+                // L2 credentials: provided directly (apiKey/secret/password) or derived from
+                // the privateKey and cached in options (see setApiCredentials/loadApiCredentials)
+                const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString (this.options, 'l2ApiKey');
+                const secret = (this.secret !== undefined) ? this.secret : this.safeString (this.options, 'l2Secret');
+                const passphrase = (this.password !== undefined) ? this.password : this.safeString (this.options, 'l2Passphrase');
+                const address = (this.walletAddress !== undefined) ? this.walletAddress : this.ethGetAddressFromPrivateKey (this.privateKey);
+                const timestamp = this.seconds ().toString ();
+                // the L2 HMAC signs only the request path (no query string), matching
+                // @polymarket/clob-client — query params are sent separately, not signed
+                const requestPath = '/' + this.implodeParams (path, params);
+                let auth = timestamp + method + requestPath;
+                if (body !== undefined) {
+                    auth = auth + body;
+                }
+                // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key
+                const secretBytes = this.base64ToBinary ((secret as string).replaceAll ('-', '+').replaceAll ('_', '/'));
+                let signature = this.hmac (this.encode (auth), secretBytes, sha256, 'base64');
+                // url-safe base64, preserving '=' padding (matches the reference client)
+                signature = signature.replaceAll ('+', '-').replaceAll ('/', '_');
+                headers = this.extend (headers, {
+                    'POLY_ADDRESS': address,
+                    'POLY_API_KEY': apiKey,
+                    'POLY_PASSPHRASE': passphrase,
+                    'POLY_SIGNATURE': signature,
+                    'POLY_TIMESTAMP': timestamp,
+                });
             }
-            const signature = this.hmac (
-                this.encode (auth),
-                this.encode (this.secret),
-                sha256,
-                'base64'
-            );
-            headers = this.extend (headers, {
-                'POLY_ADDRESS': this.walletAddress,
-                'POLY_API_KEY': this.apiKey,
-                'POLY_PASSPHRASE': this.password,
-                'POLY_SIGNATURE': signature,
-                'POLY_TIMESTAMP': timestamp,
-            });
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    hashMessage (message: any): string {
+        return '0x' + this.hash (message, keccak, 'hex');
+    }
+
+    signHash (hash: string, privateKey: string): Dict {
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        const r = signature['r'].padStart (64, '0');
+        const s = signature['s'].padStart (64, '0');
+        return {
+            'r': '0x' + r,
+            's': '0x' + s,
+            'v': this.sum (27, signature['v']), // ecrecover needs v in {27,28}, ecdsa returns the raw {0,1} recovery id
+        };
+    }
+
+    signMessage (message: any, privateKey: string): Dict {
+        return this.signHash (this.hashMessage (message), privateKey.slice (-64));
+    }
+
+    signClobAuth (address: string, timestamp: string, nonce: number): string {
+        // EIP-712 ClobAuth signature used for L1 auth (creating/deriving L2 api credentials)
+        const domain: Dict = {
+            'name': 'ClobAuthDomain',
+            'version': '1',
+            'chainId': 137,
+        };
+        const messageTypes: Dict = {
+            'ClobAuth': [
+                { 'name': 'address', 'type': 'address' },
+                { 'name': 'timestamp', 'type': 'string' },
+                { 'name': 'nonce', 'type': 'uint256' },
+                { 'name': 'message', 'type': 'string' },
+            ],
+        };
+        const messageData: Dict = {
+            'address': address,
+            'timestamp': timestamp,
+            'nonce': nonce,
+            'message': 'This message attests that I control the given wallet',
+        };
+        const encoded = this.ethEncodeStructuredData (domain, messageTypes, messageData);
+        const sig = this.signMessage (encoded, this.privateKey);
+        return '0x' + this.remove0xPrefix (sig['r']) + this.remove0xPrefix (sig['s']) + this.intToBase16 (sig['v']);
+    }
+
+    /**
+     * @method
+     * @name polymarket#deriveApiKey
+     * @description derives the L2 api credentials (apiKey, secret, passphrase) deterministically from the wallet private key
+     * @see https://docs.polymarket.com/developers/CLOB/authentication
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.nonce] the nonce used to derive the credentials, defaults to 0
+     * @returns {object} the api credentials { apiKey, secret, passphrase }
+     */
+    async deriveApiKey (params = {}): Promise<Dict> {
+        const response = await this.clobPrivateGetAuthDeriveApiKey (params);
+        return this.setApiCredentials (response);
+    }
+
+    /**
+     * @method
+     * @name polymarket#createApiKey
+     * @description creates new L2 api credentials (apiKey, secret, passphrase) for the wallet private key
+     * @see https://docs.polymarket.com/developers/CLOB/authentication
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.nonce] the nonce used to create the credentials, defaults to 0
+     * @returns {object} the api credentials { apiKey, secret, passphrase }
+     */
+    async createApiKey (params = {}): Promise<Dict> {
+        const response = await this.clobPrivatePostAuthApiKey (params);
+        return this.setApiCredentials (response);
+    }
+
+    /**
+     * @method
+     * @name polymarket#createOrDeriveApiKey
+     * @description derives the existing L2 api credentials for the wallet private key, creating them if none exist yet
+     * @see https://docs.polymarket.com/developers/CLOB/authentication
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api credentials { apiKey, secret, passphrase }
+     */
+    async createOrDeriveApiKey (params = {}): Promise<Dict> {
+        let creds = undefined;
+        try {
+            creds = await this.deriveApiKey (params);
+        } catch (e) {
+            creds = await this.createApiKey (params);
+        }
+        return creds;
+    }
+
+    setApiCredentials (response: Dict): Dict {
+        //
+        //     { "apiKey": "...", "secret": "...", "passphrase": "..." }
+        //
+        const creds: Dict = {
+            'apiKey': this.safeString2 (response, 'apiKey', 'key'),
+            'secret': this.safeString (response, 'secret'),
+            'passphrase': this.safeString (response, 'passphrase'),
+        };
+        // cache in options rather than the typed apiKey/secret/password fields so the
+        // assignment is valid in the struct-based languages (C#/Go/Java)
+        this.options['l2ApiKey'] = creds['apiKey'];
+        this.options['l2Secret'] = creds['secret'];
+        this.options['l2Passphrase'] = creds['passphrase'];
+        return creds;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name polymarket#loadApiCredentials
+     * @description ensures L2 api credentials are available for private requests — uses the provided apiKey/secret/password when present, otherwise derives them from the privateKey
+     */
+    async loadApiCredentials () {
+        const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString (this.options, 'l2ApiKey');
+        const secret = (this.secret !== undefined) ? this.secret : this.safeString (this.options, 'l2Secret');
+        const passphrase = (this.password !== undefined) ? this.password : this.safeString (this.options, 'l2Passphrase');
+        const hasL2 = (apiKey !== undefined) && (secret !== undefined) && (passphrase !== undefined);
+        if (hasL2) {
+            return;
+        }
+        if (this.privateKey !== undefined) {
+            await this.createOrDeriveApiKey ();
+            return;
+        }
+        throw new AuthenticationError (this.id + ' requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them');
     }
 
     handleMessage (client: any, message: any) {
