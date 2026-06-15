@@ -1389,7 +1389,8 @@ export default class polymarket extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     parseOrder (order: Dict, market: Market = undefined): Order {
-        const id = this.safeString (order, 'id');
+        // fetchOrder/fetchOpenOrders return 'id'; the createOrder POST response returns 'orderID'
+        const id = this.safeString2 (order, 'id', 'orderID');
         const tokenId = this.safeString (order, 'asset_id');
         const mkt = this.safeOutcome (tokenId, market as any);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -1448,11 +1449,14 @@ export default class polymarket extends Exchange {
      * @description places a limit or market order on the CLOB for the given outcome token
      * @see https://docs.polymarket.com/api-reference/trade/post-a-new-order
      * @param {string} symbol unified outcome symbol or outcome token id
-     * @param {string} type 'market' or 'limit'
+     * @param {string} type 'market' or 'limit'; market orders default to FOK and, when no price is given, sweep the top of the opposing book
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how many outcome tokens to trade
-     * @param {float} [price] the price per outcome token between 0 and 1
+     * @param {float} [price] the price per outcome token between 0 and 1; required for limit orders, optional for market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.orderType] time-in-force override: 'GTC' (default for limit), 'FOK' (default for market), 'GTD' or 'FAK'
+     * @param {int} [params.signatureType] 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); defaults to options.signatureType
+     * @param {string} [params.funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async createOrder (symbol: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
@@ -1461,11 +1465,27 @@ export default class polymarket extends Exchange {
         this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['id'] as string;
-        if (price === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a price (market orders are not supported yet)');
-        }
         const sideStr = (side as string).toUpperCase ();
-        const orderTypeStr = (type !== undefined) ? (type as string).toUpperCase () : 'GTC';
+        const isMarket = (type === 'market');
+        // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
+        // callers can override with params.orderType (GTC, GTD, FOK or FAK)
+        let orderTypeStr = this.safeStringUpper (params, 'orderType');
+        if (orderTypeStr === undefined) {
+            orderTypeStr = isMarket ? 'FOK' : 'GTC';
+        }
+        if (price === undefined) {
+            if (!isMarket) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price for limit orders');
+            }
+            // market order without an explicit price: sweep the top of the opposing book
+            const orderbook = await this.fetchOrderBook (outcome);
+            const levels = (sideStr === 'BUY') ? this.safeList (orderbook, 'asks', []) : this.safeList (orderbook, 'bids', []);
+            const best = this.safeList (levels, 0);
+            if (best === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() could not determine a market price; pass an explicit price');
+            }
+            price = this.safeNumber (best, 0);
+        }
         // tick size + neg-risk flag drive the rounding and the verifying contract
         const clobMarket = await this.clobPublicGetMarketsByTokenTokenId ({ 'token_id': tokenId });
         const tickSize = this.safeString (clobMarket, 'minimum_tick_size', '0.01');
@@ -1474,7 +1494,7 @@ export default class polymarket extends Exchange {
         const signatureType = this.safeInteger2 (params, 'signatureType', 'signature_type', this.safeInteger (this.options, 'signatureType', 0));
         const eoa = (this.walletAddress !== undefined) ? this.walletAddress : this.ethGetAddressFromPrivateKey (this.privateKey);
         const funder = this.safeString2 (params, 'funder', 'maker', this.safeString (this.options, 'funder', eoa));
-        const rest = this.omit (params, [ 'signatureType', 'signature_type', 'funder', 'maker' ]);
+        const rest = this.omit (params, [ 'signatureType', 'signature_type', 'funder', 'maker', 'orderType' ]);
         const amounts = this.polymarketOrderRawAmounts (sideStr, amount, price, tickSize);
         const makerAmount = this.safeString (amounts, 'makerAmount');
         const takerAmount = this.safeString (amounts, 'takerAmount');
@@ -1651,7 +1671,8 @@ export default class polymarket extends Exchange {
      * @name polymarket#cancelAllOrders
      * @description cancels all open orders on the CLOB, optionally scoped to one outcome token
      * @see https://docs.polymarket.com/api-reference/trade/cancel-all-orders
-     * @param {string} [symbol] unified outcome symbol or outcome token id
+     * @see https://docs.polymarket.com/api-reference/trade/cancel-market-orders
+     * @param {string} [symbol] unified outcome symbol or outcome token id; when given only that outcome's orders are cancelled
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
@@ -1659,13 +1680,22 @@ export default class polymarket extends Exchange {
         await this.loadApiCredentials ();
         const outcome = symbol;
         this.checkEventsAndMarkets (outcome);
-        const request: Dict = {};
+        let response = undefined;
         if (outcome !== undefined) {
+            // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
             const outcomeObj = this.outcome (outcome);
-            request['asset_id'] = outcomeObj['id'];
+            const request: Dict = { 'asset_id': outcomeObj['id'] };
+            response = await this.clobPrivateDeleteCancelMarketOrders (this.extend (request, params));
+        } else {
+            // cancel every open order via DELETE /cancel-all (no body)
+            response = await this.clobPrivateDeleteCancelAll (params);
         }
-        const response = await this.clobPrivateDeleteOrders (this.extend (request, params));
-        return this.parseOrders (response);
+        const canceled = this.safeList (response, 'canceled', []);
+        const orders = [];
+        for (let i = 0; i < canceled.length; i++) {
+            orders.push (this.safeOrder ({ 'id': this.safeString (canceled, i), 'status': 'canceled', 'info': response }));
+        }
+        return orders as Order[];
     }
 
     /**
