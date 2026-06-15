@@ -4096,12 +4096,12 @@ public Object describe()
         */
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
         Object value = this.safeValue(dictionaryOrList, key1);
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue(((value instanceof java.util.Map)))) && !Helpers.isTrue(Helpers.isArray(value))))
+        if (Helpers.isTrue(this.isDictionary(value)))
         {
             return value;
         }
         Object value2 = this.safeValue(dictionaryOrList, key2);
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value2, null))) && Helpers.isTrue(((value2 instanceof java.util.Map)))) && !Helpers.isTrue(Helpers.isArray(value2))))
+        if (Helpers.isTrue(this.isDictionary(value2)))
         {
             return value2;
         }
