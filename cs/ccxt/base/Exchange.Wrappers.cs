@@ -1411,7 +1411,6 @@ public class  Bybiteu: bybiteu { public Bybiteu(object args = null) : base(args)
 public class  Bydfi: bydfi { public Bydfi(object args = null) : base(args) { } }
 public class  Cex: cex { public Cex(object args = null) : base(args) { } }
 public class  Coinbase: coinbase { public Coinbase(object args = null) : base(args) { } }
-public class  Coinbaseadvanced: coinbaseadvanced { public Coinbaseadvanced(object args = null) : base(args) { } }
 public class  Coinbaseexchange: coinbaseexchange { public Coinbaseexchange(object args = null) : base(args) { } }
 public class  Coinbaseinternational: coinbaseinternational { public Coinbaseinternational(object args = null) : base(args) { } }
 public class  Coincheck: coincheck { public Coincheck(object args = null) : base(args) { } }
