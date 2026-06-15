@@ -1,7 +1,7 @@
-import Exchange from '../abstract/prediction/hyperliquid.js';
-import { Precise } from '../base/Precise.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
+import Exchange from '../abstract/prediction/hyperliquid.js';
+import { Precise } from '../base/Precise.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import type {
     Int, int, Str, Num, Dict,
@@ -1772,12 +1772,13 @@ export default class hyperliquid extends Exchange {
      * @method
      * @name hyperliquid#fetchEvents
      * @description Groups outcome markets by their underlying (e.g. BTC-ABOVE-78213) into event structures. Each event contains both the YES and NO markets.
-     * @param {string[]} [queries] filter by query strings (matches description/symbol)
      * @param {object} [params] extra parameters
+     * @param {string} [params.query] a single query string to filter by (matches description/symbol)
+     * @param {string[]} [params.queries] multiple query strings (alternative to query)
      * @returns {PredictionEvent[]} array of event structures
      */
-    async fetchEvents (queries: Strings = undefined, params = {}): Promise<PredictionEvent[]> {
-        queries = (queries === undefined) ? [] : queries;
+    async fetchEvents (params = {}): Promise<PredictionEvent[]> {
+        const queries = this.parseSearchQueries (params);
         await this.loadMarkets ();
         const marketValues = Object.values (this.markets);
         // Group markets by parentSymbol

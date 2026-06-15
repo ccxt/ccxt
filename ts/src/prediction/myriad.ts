@@ -155,13 +155,15 @@ export default class myriad extends Exchange {
      * @description retrieves data on all markets for myriad, each prediction market becomes one market with its outcome tokens listed under the outcomes key
      * @see https://docs.myriad.markets/builders/myriad-api-reference
      * @param {object} [params] extra exchange-specific parameters
-     * @param {string[]} [params.queries] search terms used to filter the fetched markets
+     * @param {string} [params.query] a single search term used to filter the fetched markets
+     * @param {string[]} [params.queries] multiple search terms (alternative to query)
      * @param {string} [params.state] 'open', 'closed' or 'resolved', the state of the markets to fetch, defaults to 'open'
+     * @param {int} [params.limit] max number of markets to collect (defaults to options.fetchMarketsLimit, 1000); stops the pagination once reached
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const queries = this.safeList (params, 'queries', []) as any[];
-        const rest = this.omit (params, [ 'queries' ]);
+        const queries = this.parseSearchQueries (params) as any[];
+        const rest = this.omit (params, [ 'query', 'queries' ]);
         const queriesLength = queries.length;
         let rawMarkets: any[] = [];
         if (queriesLength > 0) {
@@ -238,8 +240,11 @@ export default class myriad extends Exchange {
      */
     async fetchRawMarketsList (params = {}): Promise<any[]> {
         const limit = this.safeInteger (this.options, 'defaultFetchMarketsLimit', 50);
+        // scope the listing: without a search query loadMarkets would otherwise page through
+        // every open myriad market. Cap the total number of markets collected.
+        const maxMarkets = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchMarketsLimit', 1000));
         const state = this.safeString2 (params, 'state', 'status', this.safeString (this.options, 'defaultMarketStatus', 'open'));
-        const rest = this.omit (params, [ 'state', 'status' ]);
+        const rest = this.omit (params, [ 'state', 'status', 'limit' ]);
         const allRawMarkets: any[] = [];
         let page = 1;
         while (true) {
@@ -258,9 +263,12 @@ export default class myriad extends Exchange {
                 allRawMarkets.push (rawMarkets[i]);
             }
             page = this.sum (page, 1);
-            if (rawMarketsLength < limit) {
+            if (rawMarketsLength < limit || allRawMarkets.length >= maxMarkets) {
                 break;
             }
+        }
+        if (allRawMarkets.length > maxMarkets) {
+            return allRawMarkets.slice (0, maxMarkets);
         }
         return allRawMarkets;
     }
@@ -1135,21 +1143,23 @@ export default class myriad extends Exchange {
      * @name myriad#fetchEvents
      * @description fetches prediction-market events matching the given search terms (or all open markets when omitted) and caches their markets and outcomes on the instance
      * @see https://docs.myriad.markets/builders/myriad-api-reference
-     * @param {string[]} [queries] search terms, fetches all open markets when omitted
      * @param {object} [params] extra exchange-specific parameters
+     * @param {string} [params.query] a single search term; when omitted (and no queries) returns the events cached by loadMarkets (capped by options.fetchMarketsLimit)
+     * @param {string[]} [params.queries] multiple search terms (alternative to query)
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to 'open'
      * @returns {object[]} an array of event structures
      */
-    async fetchEvents (queries: Strings = undefined, params = {}): Promise<PredictionEvent[]> {
-        queries = (queries === undefined) ? [] : queries;
+    async fetchEvents (params = {}): Promise<PredictionEvent[]> {
+        const queries = this.parseSearchQueries (params);
+        const rest = this.omit (params, [ 'query', 'queries' ]);
         const queriesLength = queries.length;
         if (queriesLength === 0) {
             await this.loadMarkets ();
             this.populateOutcomes ();
             return Object.values (this.events as Dict) as any[];
         }
-        const rawMarkets = await this.fetchRawMarketsBySearch (queries, params);
+        const rawMarkets = await this.fetchRawMarketsBySearch (queries, rest);
         if (!this.events) {
             this.events = {};
         }

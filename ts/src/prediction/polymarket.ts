@@ -1,5 +1,5 @@
-import Exchange from '../abstract/prediction/polymarket.js';
 import { sha256 } from '@noble/hashes/sha2.js';
+import Exchange from '../abstract/prediction/polymarket.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type {
@@ -276,13 +276,15 @@ export default class polymarket extends Exchange {
      * @see https://docs.polymarket.com/api-reference/events/list-events
      * @see https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles
      * @param {object} [params] extra exchange-specific parameters
-     * @param {string[]} [params.queries] search terms used to filter the fetched events
+     * @param {string} [params.query] a single search term used to filter the fetched events
+     * @param {string[]} [params.queries] multiple search terms (alternative to query)
      * @param {string} [params.status] 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
+     * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 1000); the listing is ordered by 24h volume so the most active markets come first
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const queries = this.safeList (params, 'queries', []) as any[];
-        const rest = this.omit (params, [ 'queries' ]);
+        const queries = this.parseSearchQueries (params) as any[];
+        const rest = this.omit (params, [ 'query', 'queries' ]);
         const queriesLength = queries.length;
         let rawEvents: any[] = [];
         if (queriesLength > 0) {
@@ -377,13 +379,17 @@ export default class polymarket extends Exchange {
      * @see https://docs.polymarket.com/api-reference/events/list-events
      * @param {object} [params] extra exchange-specific parameters
      * @param {string} [params.status] 'active', 'closed' or 'all', defaults to options.defaultEventStatus
+     * @param {int} [params.limit] max number of events to fetch (default options.fetchMarketsLimit); the listing is ordered by 24h volume so the most active markets come first
      * @returns {object[]} an array of raw gamma event objects
      */
     async fetchRawEventsList (params = {}): Promise<any[]> {
         const pageSize = this.safeInteger (this.options, 'maxFetchEventsLimit', 500);
-        const maxPages = 20;
+        // scope the listing: without a search query loadMarkets would otherwise dump every
+        // active event (tens of thousands of markets). Cap to `limit` events (most-traded first).
+        const limit = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchMarketsLimit', 1000));
+        const maxPages = Math.ceil (limit / pageSize);
         const status = this.safeString (params, 'status', this.safeString (this.options, 'defaultEventStatus', 'active'));
-        const rest = this.omit (params, [ 'status' ]);
+        const rest = this.omit (params, [ 'status', 'limit' ]);
         let baseRequest: Dict = { 'limit': pageSize, 'order': 'volume24hr', 'ascending': false };
         baseRequest = this.extend (baseRequest, rest);
         if (status === 'active') {
@@ -420,6 +426,9 @@ export default class polymarket extends Exchange {
                     allRawEvents.push (page[pi]);
                 }
             }
+        }
+        if (allRawEvents.length > limit) {
+            return allRawEvents.slice (0, limit);
         }
         return allRawEvents;
     }
@@ -1398,19 +1407,21 @@ export default class polymarket extends Exchange {
      * @description fetches prediction-market events matching the given search terms (or all active events when omitted) and caches their markets and outcomes on the instance
      * @see https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles
      * @see https://docs.polymarket.com/api-reference/events/list-events
-     * @param {string[]} [queries] search terms, fetches all active events when omitted
      * @param {object} [params] extra exchange-specific parameters
-     * @param {int} [params.limit] page size per search query, defaults to 50
+     * @param {string} [params.query] a single search term; when omitted (and no queries) the most active events are returned (capped)
+     * @param {string[]} [params.queries] multiple search terms (alternative to query)
+     * @param {int} [params.limit] when searching, page size per query (default 50); when omitted, max events to fetch (default options.fetchMarketsLimit, 1000), ordered by 24h volume
      * @returns {object[]} an array of event structures
      */
-    async fetchEvents (queries: Strings = undefined, params = {}): Promise<PredictionEvent[]> {
-        queries = (queries === undefined) ? [] : queries;
+    async fetchEvents (params = {}): Promise<PredictionEvent[]> {
+        const queries = this.parseSearchQueries (params);
+        const rest = this.omit (params, [ 'query', 'queries' ]);
         const queriesLength = queries.length;
         let rawEvents: any[] = [];
         if (queriesLength > 0) {
-            rawEvents = await this.fetchRawEventsBySearch (queries, params);
+            rawEvents = await this.fetchRawEventsBySearch (queries, rest);
         } else {
-            rawEvents = await this.fetchRawEventsList (params);
+            rawEvents = await this.fetchRawEventsList (rest);
         }
         // Parse and merge into class-level caches
         if (!this.events) {

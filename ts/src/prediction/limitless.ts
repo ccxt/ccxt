@@ -14,6 +14,9 @@
 //
 // ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import Exchange from '../abstract/prediction/limitless.js';
 import type {
     Int, Str, Num, Dict,
@@ -27,9 +30,6 @@ import type {
 } from '../base/types.js';
 import { ArgumentsRequired, BadRequest, InvalidAddress, InvalidOrder, OrderNotFound } from '../../ccxt.js';
 import { Precise } from '../base/Precise.js';
-import { sha256 } from '@noble/hashes/sha2.js';
-import { secp256k1 } from '@noble/curves/secp256k1.js';
-import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { ecdsa } from '../base/functions.js';
 
 // ---------------------------------------------------------------------------
@@ -200,12 +200,17 @@ export default class limitless extends Exchange {
      * @description fetches all active limitless markets paginated and returns one CCXT market per child market, each containing a list of outcome objects (YES/NO)
      * @see https://docs.limitless.exchange/api-reference/markets/get-active-markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string[]} [params.queries] filter markets by these search query strings
+     * @param {string} [params.query] a single search query string to filter markets by
+     * @param {string[]} [params.queries] multiple search query strings (alternative to query)
+     * @param {int} [params.limit] max number of markets to collect (defaults to options.fetchMarketsLimit, 1000); caps the pages fetched
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const queries = this.safeList (params, 'queries', []) as any[];
-        const rest = this.omit (params, [ 'queries' ]);
+        const queries = this.parseSearchQueries (params) as any[];
+        const rest = this.omit (params, [ 'query', 'queries', 'limit' ]);
+        // scope the listing: without a search query loadMarkets would otherwise page through
+        // every active limitless market. Cap the total number of markets collected.
+        const maxMarkets = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchMarketsLimit', 1000));
         let allRaw: any[] = [];
         const queriesLength = queries.length;
         if (queries && queriesLength > 0) {
@@ -237,7 +242,9 @@ export default class limitless extends Exchange {
             const firstData = this.safeList (firstPageResponse, 'data', []);
             allRaw = this.arrayConcat (allRaw, firstData);
             const promises = [];
-            const totalPages = Math.ceil (totalMarketsCount / pageSize);
+            const cappedPages = Math.ceil (maxMarkets / pageSize);
+            const allPages = Math.ceil (totalMarketsCount / pageSize);
+            const totalPages = Math.min (allPages, cappedPages);
             for (let i = 2; i <= totalPages; i++) {
                 page = i;
                 request['page'] = page;
@@ -253,7 +260,7 @@ export default class limitless extends Exchange {
             const lastPageResponse = this.safeDict (responses, length - 1);
             const lastPageData = this.safeList (lastPageResponse, 'data', []);
             const lastPageLength = lastPageData.length;
-            if (lastPageLength >= pageSize) {
+            if (lastPageLength >= pageSize && allRaw.length < maxMarkets) {
                 while (true) {
                     page = this.sum (page, 1);
                     request['page'] = page;
@@ -268,7 +275,7 @@ export default class limitless extends Exchange {
                         const raw = page_markets[i];
                         allRaw.push (raw);
                     }
-                    if (pageMarketsLength < pageSize) {
+                    if (pageMarketsLength < pageSize || allRaw.length >= maxMarkets) {
                         break;
                     }
                 }
@@ -298,6 +305,9 @@ export default class limitless extends Exchange {
             eventsDict[eventKey] = this.parseEvent (g);
         }
         this.events = eventsDict;
+        if (markets.length > maxMarkets) {
+            return markets.slice (0, maxMarkets);
+        }
         return markets;
     }
 
@@ -2551,15 +2561,16 @@ export default class limitless extends Exchange {
     /**
      * @method
      * @name limitless#fetchEvents
-     * @description fetches prediction-market events matching the given search terms (or all active markets when omitted) and caches their markets and outcomes on the instance
+     * @description fetches prediction-market events matching the given search terms (or the most active markets, capped, when omitted) and caches their markets and outcomes on the instance
      * @see https://docs.limitless.exchange/api-reference/markets/search
-     * @param {string[]} [queries] search terms, fetches all active markets when omitted
      * @param {object} [params] extra exchange-specific parameters
+     * @param {string} [params.query] a single search term; when omitted (and no queries) returns the events cached by loadMarkets (capped by options.fetchMarketsLimit)
+     * @param {string[]} [params.queries] multiple search terms (alternative to query)
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @returns {object[]} an array of event structures
      */
-    async fetchEvents (queries: Strings = undefined, params = {}): Promise<PredictionEvent[]> {
-        queries = (queries === undefined) ? [] : queries;
+    async fetchEvents (params = {}): Promise<PredictionEvent[]> {
+        const queries = this.parseSearchQueries (params);
         let result = [];
         const queriesLength = queries.length;
         if (!queries || queriesLength === 0) {
@@ -2567,7 +2578,7 @@ export default class limitless extends Exchange {
             result = Object.values (this.events as Dict) as any[];
         } else {
             const limit = this.safeInteger (params, 'limit', 50);
-            const rest = this.omit (params, [ 'limit' ]);
+            const rest = this.omit (params, [ 'query', 'queries', 'limit' ]);
             const seen: Dict = {};
             const rawMarkets: any[] = [];
             for (let i = 0; i < queries.length; i++) {

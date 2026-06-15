@@ -46,7 +46,16 @@ export default class PredictionExchange extends Exchange {
         }
     }
 
-    async fetchEvents (queries: Strings = undefined, params = {}): Promise<any[]> {
+    parseSearchQueries (params = {}): Strings {
+        // accepts either `query` (a single search string) or `queries` (a list of strings)
+        const singleQuery = this.safeString (params, 'query');
+        if (singleQuery !== undefined) {
+            return [ singleQuery ];
+        }
+        return this.safeList (params, 'queries', []);
+    }
+
+    async fetchEvents (params = {}): Promise<any[]> {
         throw new NotSupported (this.id + ' fetchEvents() is not supported yet');
     }
 
@@ -71,7 +80,7 @@ export default class PredictionExchange extends Exchange {
         if (!reload && this.events) {
             return this.events;
         }
-        const events = await this.fetchEvents (undefined, params);
+        const events = await this.fetchEvents (params);
         return this.setEvents (events);
     }
 

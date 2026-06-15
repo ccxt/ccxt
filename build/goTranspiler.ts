@@ -24,6 +24,7 @@ const exchangeIds = exchanges.ids;
 const exchangeIdsWs = exchanges.ws;
 const predictionIds = exchanges.prediction || [];
 const predictionWsIds = exchanges.predictionWs || [];
+const exchangeIdsPrediction = predictionIds; // alias used by the runMain/base-method paths
 let transpiledExchanges = exchangeIds;
 
 let __dirname = new URL('.', import.meta.url).pathname;
@@ -105,7 +106,6 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "fetchDeposits": true,
     "fetchDepositsWithdrawals": true,
     "fetchDepositWithdrawFees": true,
-    "fetchEvents": true,
     "fetchFundingInterval": true,
     "fetchFundingIntervals": true,
     "fetchFundingRates": true,
@@ -808,7 +808,7 @@ class NewTranspiler {
         const values = [
             // "using ccxt;",
             namespace,
-            (ws || prediction) ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : '',
+            (ws || this.isPrediction) ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : '',
             // 'import "helpers"'
         ]
         return values;
@@ -2942,7 +2942,6 @@ if (isMainEntry(import.meta.url)) {
     if (!child && !multiprocess) {
         log.bright.green ({ force });
     }
-    const prediction = process.argv.includes ('--prediction');
     const inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'));
     const transpiler = new NewTranspiler (ws);
     if (baseClassOnly) {

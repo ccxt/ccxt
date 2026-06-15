@@ -1,7 +1,7 @@
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from '../abstract/prediction/kalshi.js';
 import { Precise } from '../base/Precise.js';
 import { rsa } from '../base/functions/rsa.js';
-import { sha256 } from '@noble/hashes/sha2.js';
 import type {
     Int, Str, Num, Dict, Strings,
     Market, Ticker, Tickers, OrderBook, Trade, OHLCV,
@@ -183,12 +183,17 @@ export default class kalshi extends Exchange {
      * @description fetches all kalshi markets via cursor pagination and maps each binary market to YES and NO CCXT markets
      * @see https://trading-api.readme.io/reference/getmarkets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string[]} [params.queries] filter markets by these query strings (matches ticker/title)
+     * @param {string} [params.query] a single query string to filter markets by (matches ticker/title)
+     * @param {string[]} [params.queries] multiple query strings (alternative to query)
+     * @param {int} [params.limit] max number of markets to collect (defaults to options.fetchMarketsLimit, 1000); stops the cursor pagination once reached
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const queries = this.safeList (params, 'queries', []) as any[];
-        const rest = this.omit (params, [ 'queries' ]);
+        const queries = this.parseSearchQueries (params) as any[];
+        const rest = this.omit (params, [ 'query', 'queries', 'limit' ]);
+        // scope the listing: without a search query loadMarkets would otherwise page through
+        // every kalshi market via the cursor. Cap the total number of markets collected.
+        const maxMarkets = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchMarketsLimit', 1000));
         const lowerQueries: string[] = [];
         for (let qi = 0; qi < queries.length; qi++) {
             lowerQueries.push (queries[qi].toLowerCase ());
@@ -245,11 +250,14 @@ export default class kalshi extends Exchange {
                 }
             }
             cursor = this.safeString (response, 'cursor');
-            if (!cursor || rawMarketsLength < limit) {
+            if (!cursor || rawMarketsLength < limit || flatMarkets.length >= maxMarkets) {
                 break;
             }
         }
         this.events = eventsDict;
+        if (flatMarkets.length > maxMarkets) {
+            return flatMarkets.slice (0, maxMarkets);
+        }
         return flatMarkets;
     }
 
@@ -1334,15 +1342,17 @@ export default class kalshi extends Exchange {
      * @name kalshi#fetchEvents
      * @description fetches kalshi events via cursor-paginated /events, filters client-side by query strings, then fetches full event details with nested markets in parallel and caches in this.events
      * @see https://trading-api.readme.io/reference/getevents
-     * @param {string[]} [queries] filter events by these query strings (matches event ticker/title)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.query] a single query string to filter events by (matches event ticker/title)
+     * @param {string[]} [params.queries] multiple query strings (alternative to query)
      * @param {string} [params.status] 'open' | 'closed' | 'settled', defaults to options.defaultEventStatus
      * @param {int} [params.limit] page size per request, defaults to 200
      * @param {int} [params.maxPages] maximum number of pages to scan, defaults to 5
      * @returns {object[]} an array of event structures
      */
-    async fetchEvents (queries: Strings = undefined, params = {}): Promise<PredictionEvent[]> {
-        queries = (queries === undefined) ? [] : queries;
+    async fetchEvents (params = {}): Promise<PredictionEvent[]> {
+        const queries = this.parseSearchQueries (params);
+        params = this.omit (params, [ 'query', 'queries' ]);
         const status = this.safeString (params, 'status', this.safeString (this.options, 'defaultEventStatus', 'open'));
         const pageLimit = this.safeInteger (params, 'limit', 200);
         const maxPages = this.safeInteger (params, 'maxPages', 50);
