@@ -781,8 +781,6 @@ export default class htx extends Exchange {
                             'linear-swap-api/v1/swap_lever_position_limit': 1,
                             'linear-swap-api/v1/swap_cross_lever_position_limit': 1,
                             'linear-swap-api/v1/swap_balance_valuation': 1,
-                            'linear-swap-api/v1/swap_account_info': 1,
-                            'linear-swap-api/v1/swap_cross_account_info': 1,
                             'linear-swap-api/v1/swap_sub_auth': 1,
                             'linear-swap-api/v1/swap_sub_account_list': 1,
                             'linear-swap-api/v1/swap_cross_sub_account_list': 1,
@@ -3561,8 +3559,6 @@ export default class htx extends Exchange {
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
      * @see https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] linear or future
@@ -3606,14 +3602,10 @@ export default class htx extends Exchange {
                 request['account-id'] = accountId;
                 response = await this.spotPrivateGetV1AccountAccountsAccountIdBalance (this.extend (request, params));
             }
+        } else if (linear) {
+            response = await this.contractPrivateGetV5AccountBalance (this.extend (request, params));
         } else if (isUnifiedAccount) {
             response = await this.contractPrivateGetLinearSwapApiV3UnifiedAccountInfo (this.extend (request, params));
-        } else if (linear) {
-            if (isolated) {
-                response = await this.contractPrivatePostLinearSwapApiV1SwapAccountInfo (this.extend (request, params));
-            } else {
-                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo (this.extend (request, params));
-            }
         } else if (inverse) {
             if (future) {
                 response = await this.contractPrivatePostApiV1ContractAccountInfo (this.extend (request, params));
@@ -3722,63 +3714,7 @@ export default class htx extends Exchange {
         //         "ts": 1637644827566
         //     }
         //
-        // linear cross futures and linear cross swap
-        //
-        //     {
-        //         "status": "ok",
-        //         "data": [
-        //             {
-        //                 "futures_contract_detail": [
-        //                     {
-        //                         "symbol": "ETH",
-        //                         "contract_code": "ETH-USDT-220325",
-        //                         "margin_position": 0,
-        //                         "margin_frozen": 0,
-        //                         "margin_available": 200.000000000000000000,
-        //                         "profit_unreal": 0E-18,
-        //                         "liquidation_price": null,
-        //                         "lever_rate": 5,
-        //                         "adjust_factor": 0.060000000000000000,
-        //                         "contract_type": "quarter",
-        //                         "pair": "ETH-USDT",
-        //                         "business_type": "futures"
-        //                     },
-        //                 ],
-        //                 "margin_mode": "cross",
-        //                 "margin_account": "USDT",
-        //                 "margin_asset": "USDT",
-        //                 "margin_balance": 49.874186030200000000,
-        //                 "money_in": 50,
-        //                 "money_out": 0,
-        //                 "margin_static": 49.872786030200000000,
-        //                 "margin_position": 6.180000000000000000,
-        //                 "margin_frozen": 6.000000000000000000,
-        //                 "profit_unreal": 0.001400000000000000,
-        //                 "withdraw_available": 37.6927860302,
-        //                 "risk_rate": 271.984050521072796934,
-        //                 "new_risk_rate": 0.001858676950514399,
-        //                 "contract_detail": [
-        //                     {
-        //                         "symbol": "MANA",
-        //                         "contract_code": "MANA-USDT",
-        //                         "margin_position": 0,
-        //                         "margin_frozen": 0,
-        //                         "margin_available": 200.000000000000000000,
-        //                         "profit_unreal": 0E-18,
-        //                         "liquidation_price": null,
-        //                         "lever_rate": 5,
-        //                         "adjust_factor": 0.100000000000000000,
-        //                         "contract_type": "swap",
-        //                         "pair": "MANA-USDT",
-        //                         "business_type": "swap"
-        //                     },
-        //                 ]
-        //             }
-        //         ],
-        //         "ts": 1640915104870
-        //     }
-        //
-        // multi asset mode
+        // linear swap and multi asset mode
         //
         //     {
         //         "code": 200,
@@ -3857,6 +3793,17 @@ export default class htx extends Exchange {
                 }
                 result = this.safeBalance (result);
             }
+        } else if (linear) {
+            const details = this.safeList (data, 'details', []);
+            for (let i = 0; i < details.length; i++) {
+                const balance = details[i];
+                const currencyId = this.safeString (balance, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'withdraw_available');
+                result[code] = account;
+            }
+            result = this.safeBalance (result);
         } else if (isUnifiedAccount) {
             for (let i = 0; i < data.length; i++) {
                 const entry = data[i];
@@ -3882,38 +3829,6 @@ export default class htx extends Exchange {
                     result[currencyCode] = account;
                     result = this.safeBalance (result);
                 }
-            }
-        } else if (linear) {
-            const first = this.safeValue (data, 0, {});
-            if (isolated) {
-                for (let i = 0; i < data.length; i++) {
-                    const balance = data[i];
-                    const marketId = this.safeString2 (balance, 'contract_code', 'margin_account');
-                    const market = this.safeMarket (marketId);
-                    const currencyId = this.safeString (balance, 'margin_asset');
-                    const currency = this.safeCurrency (currencyId);
-                    const code = this.safeString (market, 'settle', currency['code']);
-                    // the exchange outputs positions for delisted markets
-                    // https://www.huobi.com/support/en-us/detail/74882968522337
-                    // we skip it if the market was delisted
-                    if (code !== undefined) {
-                        const account = this.account ();
-                        account['free'] = this.safeString (balance, 'margin_balance');
-                        account['used'] = this.safeString (balance, 'margin_frozen');
-                        const accountsByCode: Dict = {};
-                        accountsByCode[code] = account;
-                        const symbol = market['symbol'];
-                        result[symbol] = this.safeBalance (accountsByCode);
-                    }
-                }
-            } else {
-                const account = this.account ();
-                account['free'] = this.safeString (first, 'withdraw_available');
-                account['total'] = this.safeString (first, 'margin_balance');
-                const currencyId = this.safeString2 (first, 'margin_asset', 'symbol');
-                const code = this.safeCurrencyCode (currencyId);
-                result[code] = account;
-                result = this.safeBalance (result);
             }
         } else if (inverse) {
             for (let i = 0; i < data.length; i++) {
