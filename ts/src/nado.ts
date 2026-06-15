@@ -7,7 +7,7 @@ import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OnMaintenance, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
-import type { Currencies, Currency, Dict, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ export default class nado extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchFundingRate': true,
                 'fetchFundingRates': true,
@@ -153,6 +153,9 @@ export default class nado extends Exchange {
                     'subaccount': 'default',
                 },
                 'fetchOpenOrders': {
+                    'subaccount': 'default',
+                },
+                'fetchBalance': {
                     'subaccount': 'default',
                 },
             },
@@ -635,6 +638,51 @@ export default class nado extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const orders = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit, { 'status': 'open' });
+    }
+
+    /**
+     * @method
+     * @name nado#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/queries/subaccount-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        if (this.walletAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBalance() requires walletAddress');
+        }
+        await this.loadMarkets ();
+        const fetchBalanceOptions = this.safeDict (this.options, 'fetchBalance', {});
+        let subaccount = undefined;
+        [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'subaccount', this.safeString (fetchBalanceOptions, 'subaccount', 'default'));
+        const request: Dict = {
+            'type': 'subaccount_info',
+            'subaccount': this.createSubaccount (this.walletAddress, subaccount),
+        };
+        const response = await this.gatewayPublicGetQuery (this.extend (request, params));
+        //
+        //     {
+        //         "status": "success",
+        //         "data": {
+        //             "subaccount": "0x8d7d64d6cf1d4f018dd101482ac71ad49e30c56064656661756c740000000000",
+        //             "exists": true,
+        //             "spot_balances": [
+        //                 {
+        //                     "product_id": 0,
+        //                     "balance": {
+        //                         "amount": "456895621098158389211471"
+        //                     }
+        //                 }
+        //             ],
+        //             "perp_balances": []
+        //         },
+        //         "request_type": "query_subaccount_info"
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseBalance (data);
     }
 
     /**
@@ -1381,6 +1429,47 @@ export default class nado extends Exchange {
             },
             'info': rawCurrency,
         });
+    }
+
+    parseBalance (response): Balances {
+        //
+        //     {
+        //         "subaccount": "0x8d7d64d6cf1d4f018dd101482ac71ad49e30c56064656661756c740000000000",
+        //         "exists": true,
+        //         "spot_balances": [
+        //             {
+        //                 "product_id": 0,
+        //                 "balance": {
+        //                     "amount": "456895621098158389211471"
+        //                 }
+        //             }
+        //         ],
+        //         "perp_balances": []
+        //     }
+        //
+        const result: Dict = {
+            'info': response,
+        };
+        const balances = this.safeList (response, 'spot_balances', []);
+        for (let i = 0; i < balances.length; i++) {
+            const rawBalance = balances[i];
+            const currencyId = this.safeString (rawBalance, 'product_id');
+            let code = this.safeCurrencyCode (currencyId);
+            if (code === '0') {
+                code = 'USDT0';
+            } else if (code === currencyId) {
+                const market = this.safeMarket (currencyId, undefined, undefined, 'spot');
+                if (this.safeBool (market, 'spot')) {
+                    code = this.safeString (market, 'base', code);
+                }
+            }
+            const balance = this.safeDict (rawBalance, 'balance', {});
+            const amount = Precise.stringDiv (this.safeString (balance, 'amount'), '1000000000000000000');
+            const account = this.account ();
+            account['total'] = amount;
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

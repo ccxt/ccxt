@@ -21,6 +21,14 @@
                 "input": []
             }
         ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://gateway.test.nado.xyz/v1/query?type=subaccount_info&subaccount=0x123000000000000000000000000000000000012364656661756c740000000000",
+                "input": []
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "fetchTicker",

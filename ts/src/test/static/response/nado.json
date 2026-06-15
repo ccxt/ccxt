@@ -41,6 +41,91 @@
                 }
             }
         ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "subaccount": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                        "exists": true,
+                        "healths": [],
+                        "health_contributions": [],
+                        "spot_count": 2,
+                        "perp_count": 0,
+                        "spot_balances": [
+                            {
+                                "product_id": 0,
+                                "balance": {
+                                    "amount": "123450000000000000000"
+                                }
+                            },
+                            {
+                                "product_id": 5,
+                                "balance": {
+                                    "amount": "25000000000000000000"
+                                }
+                            }
+                        ],
+                        "perp_balances": [],
+                        "spot_products": [],
+                        "perp_products": []
+                    },
+                    "request_type": "query_subaccount_info"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "subaccount": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                        "exists": true,
+                        "healths": [],
+                        "health_contributions": [],
+                        "spot_count": 2,
+                        "perp_count": 0,
+                        "spot_balances": [
+                            {
+                                "product_id": 0,
+                                "balance": {
+                                    "amount": "123450000000000000000"
+                                }
+                            },
+                            {
+                                "product_id": 5,
+                                "balance": {
+                                    "amount": "25000000000000000000"
+                                }
+                            }
+                        ],
+                        "perp_balances": [],
+                        "spot_products": [],
+                        "perp_products": []
+                    },
+                    "USDT0": {
+                        "free": null,
+                        "used": null,
+                        "total": 123.45
+                    },
+                    "USDC": {
+                        "free": null,
+                        "used": null,
+                        "total": 25
+                    },
+                    "free": {
+                        "USDT0": null,
+                        "USDC": null
+                    },
+                    "used": {
+                        "USDT0": null,
+                        "USDC": null
+                    },
+                    "total": {
+                        "USDT0": 123.45,
+                        "USDC": 25
+                    }
+                }
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "fetchTicker",
