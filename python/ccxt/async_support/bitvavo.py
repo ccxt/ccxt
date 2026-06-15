@@ -1183,7 +1183,7 @@ class bitvavo(Exchange, ImplicitAPI):
 
         fetch all the accounts associated with a profile
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
-        :returns dict[]: a list of `account structures <https://docs.ccxt.com/#/?id=account-structure>`
+        :returns dict[]: a list of `account structures <https://docs.ccxt.com/?id=account-structure>`
         """
         await self.load_markets()
         response = await self.privateGetSubaccounts(params)
@@ -1226,7 +1226,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :param str [params.subaccountId]: the unique identifier for the subaccount
         :param str [params.clientRequestId]: client defined unique id
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1280,7 +1280,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :param str [params.subaccountId]: the unique identifier for the subaccount
         :param int [params.until]: the latest time in ms to fetch transfers for
-        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         await self.load_markets()
         request: dict = {}
@@ -1328,7 +1328,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :param str id: transfer id
         :param str [code]: unified currency code of the currency transferred
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = None
