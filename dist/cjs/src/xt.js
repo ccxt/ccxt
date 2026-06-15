@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var xt$1 = require('./abstract/xt.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -5188,7 +5188,7 @@ class xt extends xt$1["default"] {
                     payloadString += '#' + payload + '#' + body;
                 }
             }
-            const signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha2_js.sha256);
             headers['xt-validate-appkey'] = this.apiKey;
             headers['xt-validate-timestamp'] = timestamp;
             headers['xt-validate-signature'] = signature;

@@ -207,10 +207,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         htxItf := NewHtxCore()
         htxItf.Init(exchangeArgs)
         return htxItf, true
-    case "huobi":
-        huobiItf := NewHuobiCore()
-        huobiItf.Init(exchangeArgs)
-        return huobiItf, true
     case "hyperliquid":
         hyperliquidItf := NewHyperliquidCore()
         hyperliquidItf.Init(exchangeArgs)

@@ -11,7 +11,7 @@ var encode = require('../functions/encode.js');
 require('../functions/crypto.js');
 var time = require('../functions/time.js');
 require('../functions/io.js');
-var index = require('../../static_dependencies/scure-base/index.js');
+var base = require('@scure/base');
 
 // ----------------------------------------------------------------------------
 class Client {
@@ -285,7 +285,7 @@ class Client {
                 else if (this.inflate) {
                     arrayBuffer = browser.inflateSync(arrayBuffer);
                 }
-                message = index.utf8.encode(arrayBuffer);
+                message = base.utf8.encode(arrayBuffer);
             }
             else {
                 if (this.decompressBinary) {

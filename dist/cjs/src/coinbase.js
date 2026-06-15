@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinbase$1 = require('./abstract/coinbase.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
 
 // ----------------------------------------------------------------------------
@@ -5090,11 +5090,11 @@ class coinbase extends coinbase$1["default"] {
         if (useEddsa) {
             const byteArray = this.base64ToBinary(this.secret);
             const seed = this.arraySlice(byteArray, 0, 32);
-            return rsa.jwt(request, seed, sha256.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'EdDSA' });
+            return rsa.jwt(request, seed, sha2_js.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'EdDSA' });
         }
         else {
             // ecdsa with p256
-            return rsa.jwt(request, this.encode(this.secret), sha256.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+            return rsa.jwt(request, this.encode(this.secret), sha2_js.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
         }
     }
     nonce() {
@@ -5178,7 +5178,7 @@ class coinbase extends coinbase$1["default"] {
                     const timestamp = this.parseToInt(nonce / 1000);
                     const timestampString = timestamp.toString();
                     const auth = timestampString + method + savedPath + payload;
-                    const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+                    const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
                     headers = {
                         'CB-ACCESS-KEY': this.apiKey,
                         'CB-ACCESS-SIGN': signature,

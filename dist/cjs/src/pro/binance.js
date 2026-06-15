@@ -2,14 +2,14 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
+var ed25519_js = require('@noble/curves/ed25519.js');
 var binance$1 = require('../binance.js');
 var Precise = require('../base/Precise.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var rsa = require('../base/functions/rsa.js');
 var crypto = require('../base/functions/crypto.js');
-var ed25519 = require('../static_dependencies/noble-curves/ed25519.js');
 
 // ----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -2392,14 +2392,14 @@ class binance extends binance$1["default"] {
         let signature = undefined;
         if (this.secret.indexOf('PRIVATE KEY') > -1) {
             if (this.secret.length > 120) {
-                signature = rsa.rsa(query, this.secret, sha256.sha256);
+                signature = rsa.rsa(query, this.secret, sha2_js.sha256);
             }
             else {
-                signature = crypto.eddsa(this.encode(query), this.secret, ed25519.ed25519);
+                signature = crypto.eddsa(this.encode(query), this.secret, ed25519_js.ed25519);
             }
         }
         else {
-            signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
+            signature = this.hmac(this.encode(query), this.encode(this.secret), sha2_js.sha256);
         }
         extendedParams['signature'] = signature;
         return extendedParams;

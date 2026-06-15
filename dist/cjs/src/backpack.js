@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var ed25519_js = require('@noble/curves/ed25519.js');
 var backpack$1 = require('./abstract/backpack.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
-var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 var crypto = require('./base/functions/crypto.js');
 
 // ----------------------------------------------------------------------------
@@ -2250,7 +2250,7 @@ class backpack extends backpack$1["default"] {
             }
             const secretBytes = this.base64ToBinary(this.secret);
             const seed = this.arraySlice(secretBytes, 0, 32);
-            const signature = crypto.eddsa(this.encode(payload), seed, ed25519.ed25519);
+            const signature = crypto.eddsa(this.encode(payload), seed, ed25519_js.ed25519);
             headers = {
                 'X-Timestamp': ts,
                 'X-Window': recvWindow,

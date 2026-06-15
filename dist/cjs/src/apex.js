@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var Precise = require('./base/Precise.js');
 var apex$1 = require('./abstract/apex.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var errors = require('./base/errors.js');
 
 // ----------------------------------------------------------------------------
@@ -1948,7 +1948,7 @@ class apex extends apex$1["default"] {
             if (signBody !== undefined) {
                 messageString = messageString + signBody;
             }
-            const signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256.sha256, 'base64');
+            const signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha2_js.sha256, 'base64');
             headers['APEX-SIGNATURE'] = signature;
             headers['APEX-API-KEY'] = this.apiKey;
             headers['APEX-TIMESTAMP'] = timestamp;

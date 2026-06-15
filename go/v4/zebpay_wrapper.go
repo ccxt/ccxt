@@ -42,6 +42,16 @@ func (this *Zebpay) FetchStatus(params ...any) (map[string]any, error) {
 	}
 	return res.(map[string]any), nil
 }
+
+/**
+ * @method
+ * @name zebpay#fetchTime
+ * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
+ * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-time
+ * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-time
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {int} the current integer timestamp in milliseconds from the poloniexfutures server
+ */
 func (this *Zebpay) FetchTime(params ...any) (int64, error) {
 	res := <-this.Core.FetchTime(params...)
 	if IsError(res) {
@@ -112,6 +122,15 @@ func (this *Zebpay) FetchTradingFee(symbol string, options ...FetchTradingFeeOpt
 	}
 	return NewTradingFeeInterface(res), nil
 }
+
+/**
+ * @method
+ * @name zebpay#fetchTradingFees
+ * @description fetch the trading fees for multiple markets
+ * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+ */
 func (this *Zebpay) FetchTradingFees(params ...any) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
 	if IsError(res) {

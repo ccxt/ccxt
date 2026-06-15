@@ -2,12 +2,12 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var legacy_js = require('@noble/hashes/legacy.js');
+var sha2_js = require('@noble/hashes/sha2.js');
 var lbank$1 = require('./abstract/lbank.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
-var md5 = require('./static_dependencies/noble-hashes/md5.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
 
 // ----------------------------------------------------------------------------
@@ -2988,7 +2988,7 @@ class lbank extends lbank$1["default"] {
                 'timestamp': timestamp,
             }, query)));
             const encoded = this.encode(auth);
-            const hash = this.hash(encoded, md5.md5);
+            const hash = this.hash(encoded, legacy_js.md5);
             const uppercaseHash = hash.toUpperCase();
             let sign = undefined;
             if (signatureMethod === 'RSA') {
@@ -3004,10 +3004,10 @@ class lbank extends lbank$1["default"] {
                 else {
                     pem = this.convertSecretToPem(this.encode(this.secret));
                 }
-                sign = rsa.rsa(uppercaseHash, pem, sha256.sha256);
+                sign = rsa.rsa(uppercaseHash, pem, sha2_js.sha256);
             }
             else if (signatureMethod === 'HmacSHA256') {
-                sign = this.hmac(this.encode(uppercaseHash), this.encode(this.secret), sha256.sha256);
+                sign = this.hmac(this.encode(uppercaseHash), this.encode(this.secret), sha2_js.sha256);
             }
             query['sign'] = sign;
             body = this.urlencode(this.keysort(query));

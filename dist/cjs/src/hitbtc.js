@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var hitbtc$1 = require('./abstract/hitbtc.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 /**
@@ -3839,7 +3839,7 @@ class hitbtc extends hitbtc$1["default"] {
             }
             payload.push(timestamp);
             const payloadString = payload.join('');
-            const signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256.sha256, 'hex');
+            const signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha2_js.sha256, 'hex');
             const secondPayload = this.apiKey + ':' + signature + ':' + timestamp;
             const encoded = this.stringToBase64(secondPayload);
             headers['Authorization'] = 'HS256 ' + encoded;

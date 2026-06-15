@@ -2,8 +2,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var cex$1 = require('../cex.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var errors = require('../base/errors.js');
 var Precise = require('../base/Precise.js');
 var Cache = require('../base/ws/Cache.js');
@@ -1517,7 +1517,7 @@ class cex extends cex$1["default"] {
             this.checkRequiredCredentials();
             const nonce = this.seconds().toString();
             const auth = nonce + this.apiKey;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             const request = {
                 'e': 'auth',
                 'auth': {

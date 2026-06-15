@@ -2,12 +2,12 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha3_js = require('@noble/hashes/sha3.js');
+var secp256k1_js = require('@noble/curves/secp256k1.js');
 var derive$1 = require('./abstract/derive.js');
 var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
 var crypto = require('./base/functions/crypto.js');
-var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
-var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 var number = require('./base/functions/number.js');
 
 // ----------------------------------------------------------------------------
@@ -1124,12 +1124,12 @@ class derive extends derive$1["default"] {
     hashOrderMessage(order) {
         const accountHash = this.hash(this.ethAbiEncode([
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
-        ], order), sha3.keccak_256, 'binary');
+        ], order), sha3_js.keccak_256, 'binary');
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const DOMAIN_SEPARATOR = (sandboxMode) ? '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' : 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
         const binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
         const prefix = this.base16ToBinary('1901');
-        return this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), sha3.keccak_256, 'hex');
+        return this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), sha3_js.keccak_256, 'hex');
     }
     signOrder(order, privateKey) {
         const hashOrder = this.hashOrderMessage(order);
@@ -1141,11 +1141,11 @@ class derive extends derive$1["default"] {
         const x19 = this.base16ToBinary('19');
         const newline = this.base16ToBinary('0a');
         const prefix = this.binaryConcat(x19, this.encode('Ethereum Signed Message:'), newline, this.encode(this.numberToString(binaryMessageLength)));
-        return '0x' + this.hash(this.binaryConcat(prefix, binaryMessage), sha3.keccak_256, 'hex');
+        return '0x' + this.hash(this.binaryConcat(prefix, binaryMessage), sha3_js.keccak_256, 'hex');
     }
     signHash(hash, privateKey) {
         this.checkRequiredCredentials();
-        const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1.secp256k1, undefined);
+        const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
         const v = this.intToBase16(this.sum(27, signature['v']));
@@ -1215,7 +1215,7 @@ class derive extends derive$1["default"] {
             this.convertToBigInt(this.parseUnits(maxFeeString)),
             subaccountId,
             orderSide === 'buy',
-        ]), sha3.keccak_256, 'binary');
+        ]), sha3_js.keccak_256, 'binary');
         let deriveWalletAddress = undefined;
         [deriveWalletAddress, params] = this.handleDeriveWalletAddress('createOrder', params);
         const signature = this.signOrder([
@@ -1401,7 +1401,7 @@ class derive extends derive$1["default"] {
             this.convertToBigInt(this.parseUnits(maxFeeString)),
             subaccountId,
             orderSide === 'buy',
-        ]), sha3.keccak_256, 'binary');
+        ]), sha3_js.keccak_256, 'binary');
         let deriveWalletAddress = undefined;
         [deriveWalletAddress, params] = this.handleDeriveWalletAddress('editOrder', params);
         const signature = this.signOrder([

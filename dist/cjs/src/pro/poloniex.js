@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var poloniex$1 = require('../poloniex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var Precise = require('../base/Precise.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -93,7 +93,7 @@ class poloniex extends poloniex$1["default"] {
         if (future === undefined) {
             const accessPath = '/ws';
             const requestString = 'GET\n' + accessPath + '\nsignTimestamp=' + timestamp;
-            const signature = this.hmac(this.encode(requestString), this.encode(this.secret), sha256.sha256, 'base64');
+            const signature = this.hmac(this.encode(requestString), this.encode(this.secret), sha2_js.sha256, 'base64');
             const request = {
                 'event': 'subscribe',
                 'channel': ['auth'],

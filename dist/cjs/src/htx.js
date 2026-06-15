@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var htx$1 = require('./abstract/htx.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -7597,7 +7597,7 @@ class htx extends htx$1["default"] {
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const content = [method, this.hostname, url, auth];
                 const payload = content.join("\n"); // eslint-disable-line quotes
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'base64');
                 auth += '&' + this.urlencode({ 'Signature': signature });
                 url += '?' + auth;
                 if (method === 'POST') {
@@ -7680,7 +7680,7 @@ class htx extends htx$1["default"] {
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const content2 = [method, hostname, url, auth];
                 const payload = content2.join("\n"); // eslint-disable-line quotes
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'base64');
                 auth += '&' + this.urlencode({ 'Signature': signature });
                 url += '?' + auth;
                 if (method === 'POST') {

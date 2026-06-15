@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var legacy_js = require('@noble/hashes/legacy.js');
 var cryptomus$1 = require('./abstract/cryptomus.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var md5 = require('./static_dependencies/noble-hashes/md5.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -1136,7 +1136,7 @@ class cryptomus extends cryptomus$1["default"] {
             }
             const jsonParamsBase64 = this.stringToBase64(jsonParams);
             const stringToSign = jsonParamsBase64 + this.secret;
-            const signature = this.hash(this.encode(stringToSign), md5.md5);
+            const signature = this.hash(this.encode(stringToSign), legacy_js.md5);
             headers['sign'] = signature;
         }
         else {

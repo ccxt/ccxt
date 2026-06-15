@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var cryptocom$1 = require('./abstract/cryptocom.js');
 var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 /**
@@ -3527,7 +3527,7 @@ class cryptocom extends cryptocom$1["default"] {
             const paramsKeys = Object.keys(requestParams);
             const strSortKey = this.paramsToString(requestParams, 0);
             const payload = path + nonce + this.apiKey + strSortKey + nonce;
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256);
             const paramsKeysLength = paramsKeys.length;
             body = this.json({
                 'id': nonce,

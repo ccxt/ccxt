@@ -69,7 +69,6 @@ Exchange::$exchanges = array(
     'hitbtc',
     'hollaex',
     'htx',
-    'huobi',
     'hyperliquid',
     'independentreserve',
     'kraken',

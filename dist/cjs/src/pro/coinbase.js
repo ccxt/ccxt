@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinbase$1 = require('../coinbase.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -248,7 +248,7 @@ class coinbase extends coinbase$1["default"] {
         if (!isCloudAPiKey) {
             subscribe['api_key'] = this.apiKey;
             subscribe['timestamp'] = timestamp;
-            subscribe['signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+            subscribe['signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
         }
         else {
             if (this.apiKey.startsWith('-----BEGIN')) {

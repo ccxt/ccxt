@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bullish$1 = require('./abstract/bullish.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -2908,7 +2908,7 @@ class bullish extends bullish$1["default"] {
             const timestamp = this.getTimestamp().toString();
             if (method === 'GET') {
                 const payload = timestamp + nonce + method + '/trading-api/' + path;
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'hex');
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'hex');
                 headers = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,
@@ -2918,8 +2918,8 @@ class bullish extends bullish$1["default"] {
             else if (method === 'POST') {
                 body = this.json(params);
                 const payload = timestamp + nonce + method + '/trading-api/' + path + body;
-                const digest = this.hash(this.encode(payload), sha256.sha256, 'hex');
-                const signature = this.hmac(this.encode(digest), this.encode(this.secret), sha256.sha256, 'hex');
+                const digest = this.hash(this.encode(payload), sha2_js.sha256, 'hex');
+                const signature = this.hmac(this.encode(digest), this.encode(this.secret), sha2_js.sha256, 'hex');
                 headers = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,

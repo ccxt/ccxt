@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var gate$1 = require('./abstract/gate.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 /**
@@ -7044,7 +7044,7 @@ class gate extends gate$1["default"] {
                 body = this.json(query);
             }
             const bodyPayload = (body === undefined) ? '' : body;
-            const bodySignature = this.hash(this.encode(bodyPayload), sha512.sha512);
+            const bodySignature = this.hash(this.encode(bodyPayload), sha2_js.sha512);
             const nonce = this.nonce();
             const timestamp = this.parseToInt(nonce / 1000);
             const timestampString = timestamp.toString();
@@ -7052,7 +7052,7 @@ class gate extends gate$1["default"] {
             const payloadArray = [method.toUpperCase(), signaturePath, rawQueryString, bodySignature, timestampString];
             // eslint-disable-next-line quotes
             const payload = payloadArray.join("\n");
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha512);
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha512);
             headers = {
                 'KEY': this.apiKey,
                 'Timestamp': timestampString,

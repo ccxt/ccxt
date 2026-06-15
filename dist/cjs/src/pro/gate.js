@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var gate$1 = require('../gate.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
@@ -2150,7 +2150,7 @@ class gate extends gate$1["default"] {
         const time = this.seconds();
         // unfortunately, PHP demands double quotes for the escaped newline symbol
         const signatureString = [event, channel, this.json(reqParams), time.toString()].join("\n"); // eslint-disable-line quotes
-        const signature = this.hmac(this.encode(signatureString), this.encode(this.secret), sha512.sha512, 'hex');
+        const signature = this.hmac(this.encode(signatureString), this.encode(this.secret), sha2_js.sha512, 'hex');
         const payload = {
             'req_id': requestId,
             'timestamp': time.toString(),
@@ -2190,7 +2190,7 @@ class gate extends gate$1["default"] {
         const time = this.seconds();
         const event = 'subscribe';
         const signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + time.toString();
-        const signature = this.hmac(this.encode(signaturePayload), this.encode(this.secret), sha512.sha512, 'hex');
+        const signature = this.hmac(this.encode(signaturePayload), this.encode(this.secret), sha2_js.sha512, 'hex');
         const auth = {
             'method': 'api_key',
             'KEY': this.apiKey,

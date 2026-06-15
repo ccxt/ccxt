@@ -78,7 +78,6 @@ var hibachi = require('./src/hibachi.js');
 var hitbtc = require('./src/hitbtc.js');
 var hollaex = require('./src/hollaex.js');
 var htx = require('./src/htx.js');
-var huobi = require('./src/huobi.js');
 var hyperliquid = require('./src/hyperliquid.js');
 var independentreserve = require('./src/independentreserve.js');
 var indodax = require('./src/indodax.js');
@@ -165,7 +164,6 @@ var hashkey$1 = require('./src/pro/hashkey.js');
 var hitbtc$1 = require('./src/pro/hitbtc.js');
 var hollaex$1 = require('./src/pro/hollaex.js');
 var htx$1 = require('./src/pro/htx.js');
-var huobi$1 = require('./src/pro/huobi.js');
 var hyperliquid$1 = require('./src/pro/hyperliquid.js');
 var independentreserve$1 = require('./src/pro/independentreserve.js');
 var kraken$1 = require('./src/pro/kraken.js');
@@ -270,7 +268,6 @@ const exchanges = {
     'hitbtc': hitbtc["default"],
     'hollaex': hollaex["default"],
     'htx': htx["default"],
-    'huobi': huobi["default"],
     'hyperliquid': hyperliquid["default"],
     'independentreserve': independentreserve["default"],
     'indodax': indodax["default"],
@@ -359,7 +356,6 @@ const pro = {
     'hitbtc': hitbtc$1["default"],
     'hollaex': hollaex$1["default"],
     'htx': htx$1["default"],
-    'huobi': huobi$1["default"],
     'hyperliquid': hyperliquid$1["default"],
     'independentreserve': independentreserve$1["default"],
     'kraken': kraken$1["default"],
@@ -510,7 +506,6 @@ exports.hibachi = hibachi["default"];
 exports.hitbtc = hitbtc["default"];
 exports.hollaex = hollaex["default"];
 exports.htx = htx["default"];
-exports.huobi = huobi["default"];
 exports.hyperliquid = hyperliquid["default"];
 exports.independentreserve = independentreserve["default"];
 exports.indodax = indodax["default"];

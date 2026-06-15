@@ -2,19 +2,19 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var index = require('../../../scure-starknet/index.js');
+var starknet = require('@scure/starknet');
 var constants = require('../../constants.js');
-var index$1 = require('../calldata/index.js');
+var index = require('../calldata/index.js');
 var cairo = require('../calldata/cairo.js');
-require('../../../scure-base/index.js');
+require('@scure/base');
 var num = require('../num.js');
 
 // ----------------------------------------------------------------------------
 function computePedersenHash(a, b) {
-    return index.pedersen(BigInt(a), BigInt(b));
+    return starknet.pedersen(BigInt(a), BigInt(b));
 }
 function computePoseidonHash(a, b) {
-    return num.toHex(index.poseidonHash(BigInt(a), BigInt(b)));
+    return num.toHex(starknet.poseidonHash(BigInt(a), BigInt(b)));
 }
 /**
  * Compute pedersen hash from data
@@ -22,19 +22,19 @@ function computePoseidonHash(a, b) {
  */
 function computeHashOnElements(data) {
     return [...data, data.length]
-        .reduce((x, y) => index.pedersen(BigInt(x), BigInt(y)), 0)
+        .reduce((x, y) => starknet.pedersen(BigInt(x), BigInt(y)), 0)
         .toString();
 }
 const computePedersenHashOnElements = computeHashOnElements;
 function computePoseidonHashOnElements(data) {
-    return num.toHex(index.poseidonHashMany(data.map((x) => BigInt(x))));
+    return num.toHex(starknet.poseidonHashMany(data.map((x) => BigInt(x))));
 }
 /**
  * Calculate contract address from class hash
  * @returns format: hex-string
  */
 function calculateContractAddressFromHash(salt, classHash, constructorCalldata, deployerAddress) {
-    const compiledCalldata = index$1.CallData.compile(constructorCalldata);
+    const compiledCalldata = index.CallData.compile(constructorCalldata);
     const constructorCalldataHash = computeHashOnElements(compiledCalldata);
     const CONTRACT_ADDRESS_PREFIX = cairo.felt('0x535441524b4e45545f434f4e54524143545f41444452455353'); // Equivalent to 'STARKNET_CONTRACT_ADDRESS'
     const hash = computeHashOnElements([

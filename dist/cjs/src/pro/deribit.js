@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var deribit$1 = require('../deribit.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -1042,7 +1042,7 @@ class deribit extends deribit$1["default"] {
             this.checkRequiredCredentials();
             const requestId = this.requestId();
             const lineBreak = "\n"; // eslint-disable-line quotes
-            const signature = this.hmac(this.encode(timeString + lineBreak + nonce + lineBreak), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(timeString + lineBreak + nonce + lineBreak), this.encode(this.secret), sha2_js.sha256);
             const request = {
                 'jsonrpc': '2.0',
                 'id': requestId,

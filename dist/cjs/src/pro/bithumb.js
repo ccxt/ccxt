@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bithumb$1 = require('../bithumb.js');
 var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var rsa = require('../base/functions/rsa.js');
 
 // ----------------------------------------------------------------------------
@@ -448,7 +448,7 @@ class bithumb extends bithumb$1["default"] {
                 'nonce': this.uuid(),
                 'timestamp': this.milliseconds(),
             };
-            const jwtToken = rsa.jwt(payload, this.encode(this.secret), sha256.sha256);
+            const jwtToken = rsa.jwt(payload, this.encode(this.secret), sha2_js.sha256);
             wsOptions['token'] = jwtToken;
             wsOptions['options'] = {
                 'headers': {
