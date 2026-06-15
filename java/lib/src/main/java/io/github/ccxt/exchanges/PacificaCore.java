@@ -3900,7 +3900,7 @@ public class PacificaCore extends PacificaApi
 
     public Object sortJsonKeys(Object value)
     {
-        if (Helpers.isTrue((value instanceof java.util.Map)))
+        if (Helpers.isTrue(this.isDictionary(value)))
         {
             Object result = new java.util.HashMap<String, Object>() {{}};
             Object keys = Helpers.objectKeys(value);
