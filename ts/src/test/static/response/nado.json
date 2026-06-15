@@ -561,6 +561,149 @@
                 ]
             }
         ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "input": [
+                    "0x0000000000000000000000000000000000000000000000000000000000000000",
+                    "BTC/USDT0:USDT0"
+                ],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "product_id": 2,
+                        "sender": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                        "price_x18": "67777000000000000000000",
+                        "amount": "-10000000000000000",
+                        "expiration": "4294967295",
+                        "nonce": "1781144769000000000",
+                        "unfilled_amount": "-10000000000000000",
+                        "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                        "placed_at": 1781144769,
+                        "appendix": "1537",
+                        "order_type": "post_only"
+                    },
+                    "request_type": "query_order"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "product_id": 2,
+                        "sender": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                        "price_x18": "67777000000000000000000",
+                        "amount": "-10000000000000000",
+                        "expiration": "4294967295",
+                        "nonce": "1781144769000000000",
+                        "unfilled_amount": "-10000000000000000",
+                        "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                        "placed_at": 1781144769,
+                        "appendix": "1537",
+                        "order_type": "post_only"
+                    },
+                    "id": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                    "clientOrderId": null,
+                    "timestamp": 1781144769000,
+                    "datetime": "2026-06-11T02:26:09.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT0:USDT0",
+                    "type": "limit",
+                    "timeInForce": "PO",
+                    "postOnly": true,
+                    "side": "sell",
+                    "price": 67777,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "amount": 0.01,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.01,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/USDT0:USDT0"
+                ],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "sender": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                        "product_id": 2,
+                        "orders": [
+                            {
+                                "product_id": 2,
+                                "sender": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                                "price_x18": "67777000000000000000000",
+                                "amount": "-10000000000000000",
+                                "expiration": "4294967295",
+                                "nonce": "1781144769000000000",
+                                "unfilled_amount": "-10000000000000000",
+                                "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                                "placed_at": 1781144769,
+                                "appendix": "1537",
+                                "order_type": "post_only"
+                            }
+                        ]
+                    },
+                    "request_type": "query_subaccount_orders"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "product_id": 2,
+                            "sender": "0x123000000000000000000000000000000000012364656661756c740000000000",
+                            "price_x18": "67777000000000000000000",
+                            "amount": "-10000000000000000",
+                            "expiration": "4294967295",
+                            "nonce": "1781144769000000000",
+                            "unfilled_amount": "-10000000000000000",
+                            "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                            "placed_at": 1781144769,
+                            "appendix": "1537",
+                            "order_type": "post_only"
+                        },
+                        "id": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                        "clientOrderId": null,
+                        "timestamp": 1781144769000,
+                        "datetime": "2026-06-11T02:26:09.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "BTC/USDT0:USDT0",
+                        "type": "limit",
+                        "timeInForce": "PO",
+                        "postOnly": true,
+                        "side": "sell",
+                        "price": 67777,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "amount": 0.01,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.01,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetchOHLCV",

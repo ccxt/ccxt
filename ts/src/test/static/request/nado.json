@@ -106,6 +106,27 @@
                 ]
             }
         ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://gateway.test.nado.xyz/v1/query?type=order&product_id=2&digest=0x0000000000000000000000000000000000000000000000000000000000000000",
+                "input": [
+                    "0x0000000000000000000000000000000000000000000000000000000000000000",
+                    "BTC/USDT0:USDT0"
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://gateway.test.nado.xyz/v1/query?sender=0x123000000000000000000000000000000000012364656661756c740000000000&type=subaccount_orders&product_id=2",
+                "input": [
+                    "BTC/USDT0:USDT0"
+                ]
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetchOHLCV",

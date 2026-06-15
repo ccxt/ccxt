@@ -46,8 +46,8 @@ export default class nado extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenInterests': true,
-                'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchPositions': false,
@@ -150,6 +150,9 @@ export default class nado extends Exchange {
                 },
                 'cancelOrders': {
                     'recvWindow': 5000,
+                    'subaccount': 'default',
+                },
+                'fetchOpenOrders': {
                     'subaccount': 'default',
                 },
             },
@@ -381,9 +384,117 @@ export default class nado extends Exchange {
         const cancelledOrders = this.safeList (data, 'cancelled_orders', []);
         const result = [];
         for (let i = 0; i < cancelledOrders.length; i++) {
-            result.push (this.parseOrder (cancelledOrders[i], market));
+            result.push (this.parseOrder (this.extend ({ 'status': 'canceled' }, cancelledOrders[i]), market));
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name nado#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/queries/order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'type': 'order',
+            'product_id': this.parseToInt (market['id']),
+            'digest': id,
+        };
+        const response = await this.gatewayPublicGetQuery (this.extend (request, params));
+        //
+        //     {
+        //         "status": "success",
+        //         "data": {
+        //             "product_id": 1,
+        //             "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
+        //             "price_x18": "1000000000000000000",
+        //             "amount": "1000000000000000000",
+        //             "expiration": "2000000000",
+        //             "nonce": "1",
+        //             "unfilled_amount": "1000000000000000000",
+        //             "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        //             "placed_at": 1681951347,
+        //             "appendix": "1537",
+        //             "order_type": "ioc"
+        //         },
+        //         "request_type": "query_order"
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
+    /**
+     * @method
+     * @name nado#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/queries/orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.walletAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires walletAddress');
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const fetchOpenOrdersOptions = this.safeDict (this.options, 'fetchOpenOrders', {});
+        let subaccount = undefined;
+        [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'subaccount', this.safeString (fetchOpenOrdersOptions, 'subaccount', 'default'));
+        const sender = this.createSubaccount (this.walletAddress, subaccount);
+        const request: Dict = {
+            'sender': sender,
+            'type': 'subaccount_orders',
+            'product_id': this.parseToInt (market['id']),
+        };
+        const response = await this.gatewayPublicGetQuery (this.extend (request, params));
+        //
+        // single product
+        //
+        //     {
+        //         "status": "success",
+        //         "data": {
+        //             "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
+        //             "product_id": 1,
+        //             "orders": [
+        //                 {
+        //                     "product_id": 1,
+        //                     "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
+        //                     "price_x18": "1000000000000000000",
+        //                     "amount": "1000000000000000000",
+        //                     "expiration": "2000000000",
+        //                     "nonce": "1",
+        //                     "unfilled_amount": "1000000000000000000",
+        //                     "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        //                     "placed_at": 1682437739,
+        //                     "appendix": "1537",
+        //                     "order_type": "ioc"
+        //                 }
+        //             ]
+        //         },
+        //         "request_type": "query_subaccount_orders"
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const orders = this.safeList (data, 'orders', []);
+        return this.parseOrders (orders, market, since, limit, { 'status': 'open' });
     }
 
     /**
@@ -1158,7 +1269,7 @@ export default class nado extends Exchange {
         //         }
         //     }
         //
-        // cancel order
+        // open/cancel order
         //
         //     {
         //         "product_id": 2,
@@ -1203,7 +1314,7 @@ export default class nado extends Exchange {
             timeInForce = this.parseOrderTimeInForce (orderType);
             postOnly = orderType === 'post_only';
             price = this.parseX18 (this.safeString (order, 'price_x18'));
-            status = 'canceled';
+            status = this.safeString (order, 'status', 'open');
         } else {
             const placeOrder = this.safeDict (order, 'place_order', {});
             const rawOrder = this.safeDict (placeOrder, 'order', {});
