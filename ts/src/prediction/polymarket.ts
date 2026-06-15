@@ -1,8 +1,9 @@
 import { sha256 } from '@noble/hashes/sha2.js';
-import Exchange from '../abstract/prediction/polymarket.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
+import Exchange from '../abstract/prediction/polymarket.js';
 import { ecdsa } from '../base/functions/crypto.js';
+import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type {
@@ -1460,19 +1461,170 @@ export default class polymarket extends Exchange {
         this.checkEventsAndMarkets (outcome);
         const outcomeObj = this.outcome (outcome);
         const tokenId = outcomeObj['id'] as string;
-        const sideRaw = side as string;
-        const typeRaw = type as string;
-        const sideStr = sideRaw.toUpperCase ();
-        const typeStr = typeRaw.toUpperCase ();
-        const request: Dict = {
-            'token_id': tokenId,
-            'price': price,
-            'size': amount,
-            'side': sideStr,
-            'type': typeStr,
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price (market orders are not supported yet)');
+        }
+        const sideStr = (side as string).toUpperCase ();
+        const orderTypeStr = (type !== undefined) ? (type as string).toUpperCase () : 'GTC';
+        // tick size + neg-risk flag drive the rounding and the verifying contract
+        const clobMarket = await this.clobPublicGetMarketsByTokenTokenId ({ 'token_id': tokenId });
+        const tickSize = this.safeString (clobMarket, 'minimum_tick_size', '0.01');
+        const negRisk = this.safeBool (clobMarket, 'neg_risk', false);
+        // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); funder holds the USDC
+        const signatureType = this.safeInteger2 (params, 'signatureType', 'signature_type', this.safeInteger (this.options, 'signatureType', 0));
+        const eoa = (this.walletAddress !== undefined) ? this.walletAddress : this.ethGetAddressFromPrivateKey (this.privateKey);
+        const funder = this.safeString2 (params, 'funder', 'maker', this.safeString (this.options, 'funder', eoa));
+        const rest = this.omit (params, [ 'signatureType', 'signature_type', 'funder', 'maker' ]);
+        const amounts = this.polymarketOrderRawAmounts (sideStr, amount, price, tickSize);
+        const makerAmount = this.safeString (amounts, 'makerAmount');
+        const takerAmount = this.safeString (amounts, 'takerAmount');
+        const sideInt = (sideStr === 'BUY') ? 0 : 1;
+        const salt = this.numberToString (this.milliseconds ());
+        const timestamp = this.numberToString (this.milliseconds ());
+        const bytes32Zero = '0x0000000000000000000000000000000000000000000000000000000000000000';
+        // POLY_1271: maker and signer are both the deposit-wallet (validated on-chain via ERC-1271)
+        const maker = funder;
+        const signer = (signatureType === 3) ? funder : eoa;
+        const message: Dict = {
+            'salt': salt,
+            'maker': maker,
+            'signer': signer,
+            'tokenId': tokenId,
+            'makerAmount': makerAmount,
+            'takerAmount': takerAmount,
+            'side': sideInt,
+            'signatureType': signatureType,
+            'timestamp': timestamp,
+            'metadata': bytes32Zero,
+            'builder': bytes32Zero,
         };
-        const response = await this.clobPrivatePostOrder (this.extend (request, params));
+        const exchangeV2 = '0xE111180000d2663C0091e4f400237545B87B996B';
+        const negRiskExchangeV2 = '0xe2222d279d744050d28e00520010520000310F59';
+        const exchangeAddress = negRisk ? negRiskExchangeV2 : exchangeV2;
+        const signature = this.signClobOrder (message, exchangeAddress, '2', signatureType);
+        const owner = this.safeString (this.options, 'l2ApiKey', this.apiKey);
+        const orderBody: Dict = {
+            'deferExec': false,
+            'postOnly': false,
+            'order': {
+                'salt': this.parseToInt (salt),
+                'maker': maker,
+                'signer': signer,
+                'taker': '0x0000000000000000000000000000000000000000',
+                'tokenId': tokenId,
+                'makerAmount': makerAmount,
+                'takerAmount': takerAmount,
+                'side': sideStr,
+                'signatureType': signatureType,
+                'timestamp': timestamp,
+                'expiration': '0',
+                'metadata': bytes32Zero,
+                'builder': bytes32Zero,
+                'signature': signature,
+            },
+            'owner': owner,
+            'orderType': orderTypeStr,
+        };
+        const response = await this.clobPrivatePostOrder (this.extend (orderBody, rest));
         return this.parseOrder (response, outcomeObj as any);
+    }
+
+    polymarketOrderRawAmounts (side: string, size: number, price: number, tickSize: string): Dict {
+        const configs: Dict = {
+            '0.1': { 'price': 1, 'size': 2, 'amount': 3 },
+            '0.01': { 'price': 2, 'size': 2, 'amount': 4 },
+            '0.001': { 'price': 3, 'size': 2, 'amount': 5 },
+            '0.0001': { 'price': 4, 'size': 2, 'amount': 6 },
+        };
+        const cfg = this.safeDict (configs, tickSize, this.safeDict (configs, '0.01'));
+        const priceDecimals = this.safeInteger (cfg, 'price');
+        const sizeDecimals = this.safeInteger (cfg, 'size');
+        const amountDecimals = this.safeInteger (cfg, 'amount');
+        const sizeStr = this.numberToString (size);
+        const priceStr = this.numberToString (price);
+        const rawPrice = this.decimalToPrecision (priceStr, ROUND, priceDecimals, DECIMAL_PLACES);
+        let makerRaw = undefined;
+        let takerRaw = undefined;
+        if (side === 'BUY') {
+            takerRaw = this.decimalToPrecision (sizeStr, TRUNCATE, sizeDecimals, DECIMAL_PLACES);
+            makerRaw = this.decimalToPrecision (Precise.stringMul (takerRaw, rawPrice), ROUND, amountDecimals, DECIMAL_PLACES);
+        } else {
+            makerRaw = this.decimalToPrecision (sizeStr, TRUNCATE, sizeDecimals, DECIMAL_PLACES);
+            takerRaw = this.decimalToPrecision (Precise.stringMul (makerRaw, rawPrice), ROUND, amountDecimals, DECIMAL_PLACES);
+        }
+        // scale to collateral units (USDC has 6 decimals; shares are also scaled by 1e6)
+        const makerAmount = this.decimalToPrecision (Precise.stringMul (makerRaw, '1000000'), TRUNCATE, 0, DECIMAL_PLACES);
+        const takerAmount = this.decimalToPrecision (Precise.stringMul (takerRaw, '1000000'), TRUNCATE, 0, DECIMAL_PLACES);
+        return {
+            'makerAmount': makerAmount,
+            'takerAmount': takerAmount,
+        };
+    }
+
+    signClobOrder (message: Dict, exchangeAddress: string, domainVersion: string, signatureType: number): string {
+        const chainId = 137;
+        const domainName = 'Polymarket CTF Exchange';
+        const orderTypeString = 'Order(uint256 salt,address maker,address signer,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint8 side,uint8 signatureType,uint256 timestamp,bytes32 metadata,bytes32 builder)';
+        const orderStruct = [
+            { 'name': 'salt', 'type': 'uint256' },
+            { 'name': 'maker', 'type': 'address' },
+            { 'name': 'signer', 'type': 'address' },
+            { 'name': 'tokenId', 'type': 'uint256' },
+            { 'name': 'makerAmount', 'type': 'uint256' },
+            { 'name': 'takerAmount', 'type': 'uint256' },
+            { 'name': 'side', 'type': 'uint8' },
+            { 'name': 'signatureType', 'type': 'uint8' },
+            { 'name': 'timestamp', 'type': 'uint256' },
+            { 'name': 'metadata', 'type': 'bytes32' },
+            { 'name': 'builder', 'type': 'bytes32' },
+        ];
+        const orderDomain: Dict = { 'name': domainName, 'version': domainVersion, 'chainId': chainId, 'verifyingContract': exchangeAddress };
+        if (signatureType !== 3) {
+            // standard EOA EIP-712 order signature
+            const encoded = this.ethEncodeStructuredData (orderDomain, { 'Order': orderStruct }, message);
+            const eoaSig = this.signMessage (encoded, this.privateKey);
+            return '0x' + this.remove0xPrefix (eoaSig['r']) + this.remove0xPrefix (eoaSig['s']) + this.intToBase16 (eoaSig['v']);
+        }
+        // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet
+        const orderTypeHash = '0x' + this.hash (this.encode (orderTypeString), keccak, 'hex');
+        const contentsData = this.ethAbiEncode (
+            [ { 'type': 'bytes32' }, { 'type': 'uint256' }, { 'type': 'address' }, { 'type': 'address' }, { 'type': 'uint256' }, { 'type': 'uint256' }, { 'type': 'uint256' }, { 'type': 'uint8' }, { 'type': 'uint8' }, { 'type': 'uint256' }, { 'type': 'bytes32' }, { 'type': 'bytes32' } ],
+            [ orderTypeHash, message['salt'], message['maker'], message['signer'], message['tokenId'], message['makerAmount'], message['takerAmount'], message['side'], message['signatureType'], message['timestamp'], message['metadata'], message['builder'] ]
+        );
+        const contentsHash = '0x' + this.hash (contentsData, keccak, 'hex');
+        const domainTypeHash = '0x' + this.hash (this.encode ('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'), keccak, 'hex');
+        const nameHash = '0x' + this.hash (this.encode (domainName), keccak, 'hex');
+        const versionHash = '0x' + this.hash (this.encode (domainVersion), keccak, 'hex');
+        const appDomainData = this.ethAbiEncode (
+            [ { 'type': 'bytes32' }, { 'type': 'bytes32' }, { 'type': 'bytes32' }, { 'type': 'uint256' }, { 'type': 'address' } ],
+            [ domainTypeHash, nameHash, versionHash, chainId, exchangeAddress ]
+        );
+        const appDomainSep = '0x' + this.hash (appDomainData, keccak, 'hex');
+        const typedDataSignStruct = [
+            { 'name': 'contents', 'type': 'Order' },
+            { 'name': 'name', 'type': 'string' },
+            { 'name': 'version', 'type': 'string' },
+            { 'name': 'chainId', 'type': 'uint256' },
+            { 'name': 'verifyingContract', 'type': 'address' },
+            { 'name': 'salt', 'type': 'bytes32' },
+        ];
+        const bytes32Zero = '0x0000000000000000000000000000000000000000000000000000000000000000';
+        const innerValue: Dict = {
+            'contents': message,
+            'name': 'DepositWallet',
+            'version': '1',
+            'chainId': chainId,
+            'verifyingContract': message['signer'],
+            'salt': bytes32Zero,
+        };
+        const innerEncoded = this.ethEncodeStructuredData (orderDomain, { 'TypedDataSign': typedDataSignStruct, 'Order': orderStruct }, innerValue);
+        const innerSigObj = this.signMessage (innerEncoded, this.privateKey);
+        const innerSig = this.remove0xPrefix (innerSigObj['r']) + this.remove0xPrefix (innerSigObj['s']) + this.intToBase16 (innerSigObj['v']);
+        // innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
+        const ctLen = orderTypeString.length;
+        const lenHex = this.intToBase16 (ctLen).padStart (4, '0');
+        const orderTypeStringHex = this.binaryToBase16 (this.encode (orderTypeString));
+        return '0x' + innerSig + this.remove0xPrefix (appDomainSep) + this.remove0xPrefix (contentsHash) + orderTypeStringHex + lenHex;
     }
 
     /**
@@ -1489,7 +1641,7 @@ export default class polymarket extends Exchange {
         await this.loadApiCredentials ();
         const outcome = symbol;
         this.checkEventsAndMarkets (outcome);
-        const request: Dict = { 'order_id': id };
+        const request: Dict = { 'orderID': id };
         const response = await this.clobPrivateDeleteOrder (this.extend (request, params));
         return this.parseOrder (response);
     }
