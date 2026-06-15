@@ -1,0 +1,161 @@
+{
+    "exchange": "nado",
+    "skipKeys": [],
+    "outputType": "json",
+    "walletAddress": "0x1230000000000000000000000000000000000123",
+    "privateKey": "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771",
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://gateway.test.nado.xyz/v1/edge/query?type=time",
+                "input": []
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "url": "https://gateway.test.nado.xyz/v1/query?type=status",
+                "input": []
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://gateway.test.nado.xyz/v1/query?type=subaccount_info&subaccount=0x123000000000000000000000000000000000012364656661756c740000000000",
+                "input": []
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://archive.test.nado.xyz/v2/tickers",
+                "input": [
+                    "BTC/USDT0:USDT0"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://archive.test.nado.xyz/v2/tickers",
+                "input": []
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://archive.test.nado.xyz/v2/contracts",
+                "input": [
+                    "BTC/USDT0:USDT0"
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates",
+                "method": "fetchFundingRates",
+                "url": "https://archive.test.nado.xyz/v2/contracts",
+                "input": [
+                    [
+                        "BTC/USDT0:USDT0"
+                    ]
+                ]
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "url": "https://archive.test.nado.xyz/v2/contracts",
+                "input": [
+                    "BTC/USDT0:USDT0"
+                ]
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "fetchOpenInterests",
+                "method": "fetchOpenInterests",
+                "url": "https://archive.test.nado.xyz/v2/contracts",
+                "input": [
+                    [
+                        "BTC/USDT0:USDT0"
+                    ]
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://gateway.test.nado.xyz/v2/orderbook?ticker_id=BTC-PERP_USDT0&depth=2",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    2
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://archive.test.nado.xyz/v2/trades?ticker_id=BTC-PERP_USDT0&limit=2",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    null,
+                    2
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://gateway.test.nado.xyz/v1/query?type=order&product_id=2&digest=0x0000000000000000000000000000000000000000000000000000000000000000",
+                "input": [
+                    "0x0000000000000000000000000000000000000000000000000000000000000000",
+                    "BTC/USDT0:USDT0"
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://gateway.test.nado.xyz/v1/query?sender=0x123000000000000000000000000000000000012364656661756c740000000000&type=subaccount_orders&product_id=2",
+                "input": [
+                    "BTC/USDT0:USDT0"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://archive.test.nado.xyz/v1",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    "1m",
+                    null,
+                    2
+                ],
+                "output": "{\"candlesticks\":{\"product_id\":2,\"granularity\":60,\"limit\":2}}"
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://gateway.test.nado.xyz/v2/assets",
+                "input": []
+            }
+        ]
+    }
+}
