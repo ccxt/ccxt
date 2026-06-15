@@ -4145,7 +4145,7 @@ func (this *PacificaCore) CalculateRateLimiterCost(api any, method any, path any
 	return costNumber
 }
 func (this *PacificaCore) SortJsonKeys(value any) any {
-	if IsTrue(IsObject(value)) {
+	if IsTrue(this.IsDictionary(value)) {
 		var result any = map[string]any{}
 		var keys any = ObjectKeys(value)
 		var sortedKeys any = this.Sort(keys)
