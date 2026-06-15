@@ -1936,7 +1936,7 @@ export default class hyperliquid extends Exchange {
         return {
             'r': '0x' + r,
             's': '0x' + s,
-            'v': signature['v'],
+            'v': this.sum (27, signature['v']), // ecrecover needs v in {27,28}, ecdsa returns the raw {0,1} recovery id
         };
     }
 
