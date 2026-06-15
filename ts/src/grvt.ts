@@ -6,7 +6,7 @@ import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/grvt.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, OperationFailed, OperationRejected } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currencies, Currency, Dict, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type{ Balances, Currencies, Currency, Dict, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int, Fee } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
@@ -1077,7 +1077,7 @@ export default class grvt extends Exchange {
         const marketId = this.safeString (trade, 'instrument');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeIntegerProduct (trade, 'event_time', 0.000001);
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str;
         const isTakerBuyer = this.safeBool (trade, 'is_taker_buyer');
         let side: Str = undefined;
         if (isTakerBuyer !== undefined) {
@@ -1087,7 +1087,7 @@ export default class grvt extends Exchange {
             takerOrMaker = this.safeBool (trade, 'is_taker') ? 'taker' : 'maker';
             side = this.safeBool (trade, 'is_buyer') ? 'buy' : 'sell';
         }
-        let fee = undefined;
+        let fee: Fee;
         const feeString = this.safeString (trade, 'fee');
         if (feeString !== undefined) {
             fee = {
@@ -1281,7 +1281,7 @@ export default class grvt extends Exchange {
     }
 
     getSubAccountId (params) {
-        let subAccountId = undefined;
+        let subAccountId: Str;
         [ subAccountId, params ] = this.handleOptionAndParams (params, 'getSubAccountId', 'accountId');
         if (subAccountId === undefined) {
             throw new ArgumentsRequired (this.id + ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page');
@@ -1397,7 +1397,7 @@ export default class grvt extends Exchange {
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarketsAndSignIn ();
         let request: Dict = {};
-        let currency = undefined;
+        let currency: Currency;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = [ currency['code'] ];
@@ -1452,7 +1452,7 @@ export default class grvt extends Exchange {
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarketsAndSignIn ();
         let request: Dict = {};
-        let currency = undefined;
+        let currency: Currency;
         if (code === undefined) {
             request['currency'] = null;
         } else {
@@ -2243,7 +2243,7 @@ export default class grvt extends Exchange {
         let request = {
             'sub_account_id': this.getSubAccountId (params),
         };
-        let market = undefined;
+        let market: Market;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['base'] = [];
@@ -2573,7 +2573,7 @@ export default class grvt extends Exchange {
         let request = {
             'sub_account_id': this.getSubAccountId (params),
         };
-        let market = undefined;
+        let market: Market;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['base'] = [];
@@ -2652,7 +2652,7 @@ export default class grvt extends Exchange {
         let request = {
             'sub_account_id': subAccountId,
         };
-        let market = undefined;
+        let market: Market;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['base'] = [];
@@ -2982,7 +2982,7 @@ export default class grvt extends Exchange {
         const timeInForceRaw = this.safeString (order, 'time_in_force');
         const timeInForce = isPostOnly ? 'PO' : this.parseTimeInForce (timeInForceRaw);
         let size = undefined;
-        let side = undefined;
+        let side: Str;
         let price = undefined;
         let filled = undefined;
         let avgPrice = undefined;
@@ -3153,7 +3153,7 @@ export default class grvt extends Exchange {
     }
 
     createSignedRequest (request: any, structureType: string, currencyObj = undefined, signerAddress: Str = undefined): Dict {
-        let messageData = undefined;
+        let messageData: Dict;
         if (structureType === 'EIP712_TRANSFER_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom ('1000000');
             const amountInt = request['num_tokens'] * amountMultiplier;

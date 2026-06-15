@@ -2,7 +2,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import cexRest from '../cex.js';
-import type { Int, OrderSide, OrderType, Strings, Str, OrderBook, Trade, Ticker, Tickers, OHLCV, Order, Balances, Num, Dict, Bool } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, BadRequest } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
@@ -837,7 +837,7 @@ export default class cex extends cexRest {
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        let symbol = undefined;
+        let symbol: Str = undefined;
         if (base !== undefined && quote !== undefined) {
             symbol = base + '/' + quote;
         }
@@ -1237,7 +1237,7 @@ export default class cex extends cexRest {
     async fetchOrderWs (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         await this.authenticate ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1380,7 +1380,7 @@ export default class cex extends cexRest {
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         await this.authenticate ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }

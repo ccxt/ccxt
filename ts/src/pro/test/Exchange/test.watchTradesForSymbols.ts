@@ -1,3 +1,4 @@
+import type { Dict, Str } from './../../../base/types.js';
 
 import assert from 'assert';
 import testTrade from '../../../test/Exchange/base/test.trade.js';
@@ -10,7 +11,7 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
     const ends = now + 15000;
     const returnedSymbols = [];
     while (now < ends || returnedSymbols.length < symbols.length) {
-        let response = undefined;
+        let response: Dict
         const success = true;
         try {
             response = await exchange.watchTradesForSymbols (symbols);
@@ -24,7 +25,7 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
         if (success === true) {
             assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + exchange.json (symbols) + ' must return an array. ' + exchange.json (response));
             now = exchange.milliseconds ();
-            let symbol = undefined;
+            let symbol: Str
             for (let i = 0; i < response.length; i++) {
                 const trade = response[i];
                 symbol = trade['symbol'];

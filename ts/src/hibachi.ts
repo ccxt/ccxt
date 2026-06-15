@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest } from './base/types.js';
+import type{ Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, Fee } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { Precise } from './base/Precise.js';
 import { BadRequest, ExchangeError, OrderNotFound } from './base/errors.js';
@@ -541,11 +541,11 @@ export default class hibachi extends Exchange {
         const amount = this.safeString (trade, 'quantity');
         const timestamp = this.safeIntegerProduct (trade, 'timestamp', 1000);
         const cost = Precise.stringMul (price, amount);
-        let side = undefined;
+        let side: Str;
         let fee = undefined;
-        let orderType = undefined;
-        let orderId = undefined;
-        let takerOrMaker = undefined;
+        let orderType: Str;
+        let orderId: Str;
+        let takerOrMaker: Str;
         if (id === undefined) {
             // public trades
             side = this.safeStringLower (trade, 'takerSide');
@@ -680,7 +680,7 @@ export default class hibachi extends Exchange {
         const type = this.safeStringLower (order, 'orderType');
         const price = this.safeString (order, 'price');
         const rawSide = this.safeString (order, 'side');
-        let side = undefined;
+        let side: Str;
         if (rawSide === 'BID') {
             side = 'buy';
         } else if (rawSide === 'ASK') {
@@ -745,7 +745,7 @@ export default class hibachi extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1420,7 +1420,7 @@ export default class hibachi extends Exchange {
      */
     async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1680,14 +1680,14 @@ export default class hibachi extends Exchange {
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         const transactionType = this.safeString (item, 'transactionType');
-        let timestamp = undefined;
-        let type = undefined;
-        let direction = undefined;
-        let amount = undefined;
-        let fee = undefined;
-        let referenceId = undefined;
-        let referenceAccount = undefined;
-        let status = undefined;
+        let timestamp: Int;
+        let type: Str;
+        let direction: Str;
+        let amount: Num;
+        let fee: Fee;
+        let referenceId: Str;
+        let referenceAccount: Str;
+        let status: Str;
         if (transactionType === undefined) {
             // response from TradeAccountTradingHistory
             timestamp = this.safeIntegerProduct (item, 'timestamp', 1000);

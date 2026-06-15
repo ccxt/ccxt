@@ -921,7 +921,7 @@ export default class derive extends Exchange {
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
@@ -1221,7 +1221,7 @@ export default class derive extends Exchange {
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const TRADE_MODULE_ADDRESS = (sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
         const priceString = this.numberToString (price);
-        let maxFee = undefined;
+        let maxFee: Num;
         [ maxFee, params ] = this.handleOptionAndParams (params, 'createOrder', 'max_fee');
         if (maxFee === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a max_fee argument in params');
@@ -1295,7 +1295,7 @@ export default class derive extends Exchange {
         }
         request['signature'] = signature;
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type' ]);
-        let response = undefined;
+        let response: Dict;
         if (test) {
             response = await this.privatePostOrderDebug (this.extend (request, params));
         } else {
@@ -1575,7 +1575,7 @@ export default class derive extends Exchange {
         const clientOrderIdUnified = this.safeString (params, 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString (params, 'label', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let response = undefined;
+        let response: Dict;
         if (isByClientOrder) {
             request['label'] = clientOrderIdExchangeSpecific;
             params = this.omit (params, [ 'clientOrderId', 'label' ]);
@@ -1661,7 +1661,7 @@ export default class derive extends Exchange {
         const request: Dict = {
             'subaccount_id': subaccountId,
         };
-        let response = undefined;
+        let response: Dict;
         if (market !== undefined) {
             request['instrument_name'] = market['id'];
             response = await this.privatePostCancelByInstrument (this.extend (request, params));

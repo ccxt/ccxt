@@ -1305,7 +1305,7 @@ export default class bitmex extends bitmexRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        let table = undefined;
+        let table: Str = undefined;
         if (limit === undefined) {
             table = this.safeString (this.options, 'watchOrderBookLevel', 'orderBookL2');
         } else if (limit === 25) {
@@ -1696,7 +1696,7 @@ export default class bitmex extends bitmexRest {
                 const messageHash = args[0];
                 const broad = this.exceptions['ws']['broad'];
                 const broadKey = this.findBroadlyMatchedKey (broad, error);
-                let exception = undefined;
+                let exception: any = undefined;
                 if (broadKey === undefined) {
                     exception = new ExchangeError ((error as string)); // c# requirement for now
                 } else {

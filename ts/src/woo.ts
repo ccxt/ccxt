@@ -6,7 +6,7 @@ import Exchange from './abstract/woo.js';
 import { AuthenticationError, RateLimitExceeded, BadRequest, OperationFailed, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, TradingFeeInterface, ADL } from './base/types.js';
+import type { ADL, Account, Balances, Bool, Conversion, Currencies, Currency, DepositAddress, Dict, Fee, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -775,7 +775,7 @@ export default class woo extends Exchange {
         //
         const isFromFetchOrder = ('id' in trade);
         const timestampString = this.safeString2 (trade, 'executed_timestamp', 'executedTimestamp');
-        let timestamp = undefined;
+        let timestamp: Int = undefined;
         if (timestampString !== undefined) {
             if (timestampString.indexOf ('.') > -1) {
                 timestamp = this.safeTimestamp2 (trade, 'executed_timestamp', 'executedTimestamp');
@@ -1349,7 +1349,7 @@ export default class woo extends Exchange {
             request['childOrders'] = [ outterOrder ];
         }
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice' ]);
-        let response = undefined;
+        let response: Dict | undefined = undefined;
         if (isConditional) {
             response = await this.v3PrivatePostTradeAlgoOrder (this.extend (request, params));
             //
@@ -1462,7 +1462,7 @@ export default class woo extends Exchange {
         }
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
         const isConditional = isTrailing || (triggerPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
-        let response = undefined;
+        let response: Dict | undefined = undefined;
         if (isByClientOrder) {
             request['client_order_id'] = clientOrderIdExchangeSpecific;
             if (isConditional) {
@@ -1522,7 +1522,7 @@ export default class woo extends Exchange {
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let response = undefined;
+        let response: Dict | undefined = undefined;
         if (isTrigger) {
             if (isByClientOrder) {
                 request['clientAlgoOrderId'] = clientOrderIdExchangeSpecific;
@@ -1578,7 +1578,7 @@ export default class woo extends Exchange {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let response = undefined;
+        let response: Dict | undefined = undefined;
         if (trigger) {
             response = await this.v3PrivateDeleteTradeAlgoOrders (params);
         } else {
@@ -1638,7 +1638,7 @@ export default class woo extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1646,7 +1646,7 @@ export default class woo extends Exchange {
         params = this.omit (params, [ 'stop', 'trigger' ]);
         const request: Dict = {};
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
-        let response = undefined;
+        let response: Dict | undefined = undefined;
         if (trigger) {
             if (clientOrderId !== undefined) {
                 request['clientAlgoOrderId'] = id;
@@ -1775,7 +1775,7 @@ export default class woo extends Exchange {
         if (limit !== undefined) {
             request['size'] = Math.min (limit, 500);
         }
-        let response = undefined;
+        let response: Dict | undefined = undefined;
         if (trigger) {
             response = await this.v3PrivateGetTradeAlgoOrders (this.extend (request, params));
             //
@@ -2008,7 +2008,7 @@ export default class woo extends Exchange {
         //         "positionSide": "BOTH"
         //     }
         //
-        let timestamp = undefined;
+        let timestamp: Int = undefined;
         const timestrampString = this.safeString (order, 'createdTime');
         if (timestrampString !== undefined) {
             if (timestrampString.indexOf ('.') >= 0) {
@@ -2500,7 +2500,7 @@ export default class woo extends Exchange {
         // this method is TODO because of networks unification
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
             'token': currency['id'],
@@ -2522,7 +2522,7 @@ export default class woo extends Exchange {
     }
 
     getDedicatedNetworkId (currency, params: Dict): any {
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         networkCode = this.networkIdToCode (networkCode, currency['code']);
         const networkEntry = this.safeDict (currency['networks'], networkCode);
@@ -2554,7 +2554,7 @@ export default class woo extends Exchange {
             currency = this.currency (code);
             request['token'] = currency['id'];
         }
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
             request['network'] = this.networkCodeToId (networkCode, currency['code']);
@@ -2889,7 +2889,7 @@ export default class woo extends Exchange {
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         const request: Dict = {};
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -3940,7 +3940,7 @@ export default class woo extends Exchange {
         const contractSize = this.safeString (market, 'contractSize');
         const markPrice = this.safeString2 (position, 'markPrice', 'mark_price');
         const timestampString = this.safeString (position, 'timestamp');
-        let timestamp = undefined;
+        let timestamp: Int = undefined;
         if (timestampString !== undefined) {
             if (timestampString.indexOf ('.') > -1) {
                 timestamp = this.safeTimestamp (position, 'timestamp');

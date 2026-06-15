@@ -6,7 +6,7 @@ import Exchange from './abstract/cryptomus.js';
 import { ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, Currency } from './base/types.js';
+import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, Currency, Fee } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -719,7 +719,7 @@ export default class cryptomus extends Exchange {
         const priceToString = this.numberToString (price);
         let cost = undefined;
         [ cost, params ] = this.handleParamString (params, 'cost');
-        let response = undefined;
+        let response: Dict;
         if (type === 'market') {
             if (sideBuy) {
                 let createMarketBuyOrderRequiresPrice = true;
@@ -798,7 +798,7 @@ export default class cryptomus extends Exchange {
     async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
@@ -873,7 +873,7 @@ export default class cryptomus extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -974,7 +974,7 @@ export default class cryptomus extends Exchange {
         const side = this.safeString (order, 'direction');
         let price = this.safeNumber (order, 'price');
         const transaction = this.safeList (deal, 'transactions', []);
-        let fee = undefined;
+        let fee: Fee;
         const firstTx = this.safeDict (transaction, 0);
         const feeCurrency = this.safeString (firstTx, 'feeCurrency');
         if (feeCurrency !== undefined) {

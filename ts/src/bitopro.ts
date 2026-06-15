@@ -6,7 +6,7 @@ import Exchange from './abstract/bitopro.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, InvalidOrder, InsufficientFunds, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, Bool} from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -672,7 +672,7 @@ export default class bitopro extends Exchange {
         //
         const id = this.safeString (trade, 'tradeId');
         const orderId = this.safeString (trade, 'orderId');
-        let timestamp = undefined;
+        let timestamp: Int
         if (id === undefined) {
             timestamp = this.safeTimestamp (trade, 'timestamp');
         } else {
@@ -696,7 +696,7 @@ export default class bitopro extends Exchange {
         if (amount === undefined) {
             amount = this.safeString (trade, 'baseAmount');
         }
-        let fee = undefined;
+        let fee: Dict
         const feeAmount = this.safeString (trade, 'fee');
         const feeSymbol = this.safeCurrencyCode (this.safeString (trade, 'feeSymbol'));
         if (feeAmount !== undefined) {
@@ -707,7 +707,7 @@ export default class bitopro extends Exchange {
             };
         }
         const isTaker = this.safeBool (trade, 'isTaker');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str
         if (isTaker !== undefined) {
             if (isTaker) {
                 takerOrMaker = 'taker';
@@ -895,7 +895,7 @@ export default class bitopro extends Exchange {
             limit = Math.min (limit, 75000); // supports slightly more than 75k candles atm, but limit here to avoid errors
         }
         const timeframeInSeconds = this.parseTimeframe (timeframe);
-        let alignedSince = undefined;
+        let alignedSince: Int
         if (since === undefined) {
             request['to'] = this.seconds ();
             request['from'] = request['to'] - (limit * timeframeInSeconds);
@@ -934,7 +934,7 @@ export default class bitopro extends Exchange {
         }
         const result = [];
         let copyFrom = candles[0];
-        let timestamp = undefined;
+        let timestamp: Int
         if (since === undefined) {
             timestamp = copyFrom[0];
         } else {
@@ -1085,11 +1085,11 @@ export default class bitopro extends Exchange {
         const filled = this.safeString (order, 'executedAmount');
         const remaining = this.safeString (order, 'remainingAmount');
         const timeInForce = this.safeString (order, 'timeInForce');
-        let postOnly = undefined;
+        let postOnly: Bool
         if (timeInForce === 'POST_ONLY') {
             postOnly = true;
         }
-        let fee = undefined;
+        let fee: Dict
         const feeAmount = this.safeString (order, 'fee');
         const feeSymbol = this.safeCurrencyCode (this.safeString (order, 'feeSymbol'));
         if (Precise.stringGt (feeAmount, '0')) {
@@ -1283,7 +1283,7 @@ export default class bitopro extends Exchange {
         const request: Dict = {
             // 'pair': market['id'], // optional
         };
-        let response = undefined;
+        let response: Dict
         if (symbol !== undefined) {
             const market = this.market (symbol);
             request['pair'] = market['id'];
@@ -1430,7 +1430,7 @@ export default class bitopro extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];

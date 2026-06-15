@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import bybitRest from '../bybit.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, Bool } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -183,10 +183,10 @@ export default class bybit extends bybitRest {
 
     async getUrlByMarketType (symbol: Str = undefined, isPrivate = false, method: Str = undefined, params = {}) {
         const accessibility = isPrivate ? 'private' : 'public';
-        let isUsdcSettled = undefined;
-        let isSpot = undefined;
-        let type = undefined;
-        let market = undefined;
+        let isUsdcSettled: Bool = undefined;
+        let isSpot: Bool = undefined;
+        let type: Str = undefined;
+        let market: Market = undefined;
         let url = this.urls['api']['ws'];
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -212,7 +212,7 @@ export default class bybit extends bybitRest {
             if (isSpot) {
                 url = url[accessibility]['spot'];
             } else if ((type === 'swap') || (type === 'future')) {
-                let subType = undefined;
+                let subType: Str = undefined;
                 [ subType, params ] = this.handleSubTypeAndParams (method, market, params, 'linear');
                 url = url[accessibility][subType];
             } else {
@@ -590,8 +590,8 @@ export default class bybit extends bybitRest {
         const data = this.safeDict (message, 'data', {});
         const isSpot = this.safeString (data, 'usdIndexPrice') !== undefined;
         const type = isSpot ? 'spot' : 'contract';
-        let symbol = undefined;
-        let parsed = undefined;
+        let symbol: Str = undefined;
+        let parsed: Ticker = undefined;
         if ((updateType === 'snapshot')) {
             parsed = this.parseTicker (data);
             symbol = parsed['symbol'];
@@ -1234,7 +1234,7 @@ export default class bybit extends bybitRest {
         const symbol = market['symbol'];
         const timestamp = this.safeInteger2 (trade, 't', 'T');
         let side = this.safeStringLower (trade, 'S');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         const m = this.safeValue (trade, 'm');
         if (side === undefined) {
             side = m ? 'buy' : 'sell';
@@ -1451,7 +1451,7 @@ export default class bybit extends bybitRest {
         const filterExecTypes = this.handleOption ('watchMyTrades', 'filterExecTypes', []);
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
-            let parsed = undefined;
+            let parsed: Trade = undefined;
             if (spot && !executionFast) {
                 parsed = this.parseWsTrade (rawTrade);
             } else {
@@ -1680,7 +1680,7 @@ export default class bybit extends bybitRest {
         symbol = market['symbol'];
         const url = await this.getUrlByMarketType (symbol, false, 'watchLiquidations', params);
         params = this.cleanParams (params);
-        let method = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'watchLiquidations', 'method', 'allLiquidation');
         const messageHash = 'liquidations::' + symbol;
         const topic = method + '.' + market['id'];
@@ -2009,9 +2009,9 @@ export default class bybit extends bybitRest {
         await this.loadMarkets ();
         const method = 'watchBalance';
         let messageHash = 'balances';
-        let type = undefined;
+        let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
-        let subType = undefined;
+        let subType: Str = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
         const unified = await this.isUnifiedEnabled ();
         const isUnifiedMargin = this.safeBool (unified, 0, false);
@@ -2202,9 +2202,9 @@ export default class bybit extends bybitRest {
         }
         let messageHash = 'balance';
         const topic = this.safeValue (message, 'topic');
-        let info = undefined;
+        let info: any = undefined;
         let rawBalances = [];
-        let account = undefined;
+        let account: Str = undefined;
         if (topic === 'outboundAccountInfo') {
             account = 'spot';
             const data = this.safeValue (message, 'data', []);

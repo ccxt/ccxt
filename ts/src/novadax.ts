@@ -666,7 +666,7 @@ export default class novadax extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '_');
         const takerOrMaker = this.safeStringLower (trade, 'role');
         const feeString = this.safeString (trade, 'fee');
-        let fee = undefined;
+        let fee: Dict
         if (feeString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -1052,7 +1052,7 @@ export default class novadax extends Exchange {
             // 'toTimestamp': this.milliseconds (),
             // 'limit': limit, // default 100, max 100
         };
-        let market = undefined;
+        let market: Market
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1145,7 +1145,7 @@ export default class novadax extends Exchange {
             'id': id,
         };
         const response = await this.privateGetOrdersFill (this.extend (request, params));
-        let market = undefined;
+        let market: Market
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1225,7 +1225,7 @@ export default class novadax extends Exchange {
         const timestamp = this.safeInteger (order, 'timestamp');
         const average = this.safeString (order, 'averagePrice');
         const filled = this.safeString (order, 'filledAmount');
-        let fee = undefined;
+        let fee: Dict
         const feeCost = this.safeNumber (order, 'filledFee');
         if (feeCost !== undefined) {
             fee = {
@@ -1468,7 +1468,7 @@ export default class novadax extends Exchange {
             // 'size': limit, // default 100
             // 'start': id, // offset id
         };
-        let currency = undefined;
+        let currency: Currency
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -1612,7 +1612,7 @@ export default class novadax extends Exchange {
             //  'limit': limit, // The number of fills to return, default 100, max 100, string
             //  'accountId': subaccountId, // Sub account ID, if not informed, the fills will be return under master account, string
         };
-        let market = undefined;
+        let market: Market
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1664,7 +1664,7 @@ export default class novadax extends Exchange {
                 'X-Nova-Access-Key': this.apiKey,
                 'X-Nova-Timestamp': timestamp,
             };
-            let queryString = undefined;
+            let queryString: Str
             if (method === 'POST') {
                 body = this.json (query);
                 queryString = this.hash (this.encode (body), md5);

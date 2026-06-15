@@ -6,7 +6,7 @@ import { AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { eddsa } from '../base/functions/crypto.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Bool } from '../base/types.js';
+import type { Balances, Bool, Dict, Fee, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -552,7 +552,7 @@ export default class modetrade extends modetradeRest {
         const cost = Precise.stringMul (price, amount);
         const side = this.safeStringLower (trade, 'side');
         const timestamp = this.safeInteger (trade, 'timestamp');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         const maker = this.safeBool (trade, 'maker');
         if (maker !== undefined) {
             takerOrMaker = maker ? 'maker' : 'taker';

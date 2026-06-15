@@ -645,10 +645,10 @@ export default class bittrade extends Exchange {
         //
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.safeInteger (ticker, 'ts');
-        let bid = undefined;
-        let bidVolume = undefined;
-        let ask = undefined;
-        let askVolume = undefined;
+        let bid: Str = undefined;
+        let bidVolume: Str = undefined;
+        let ask: Str = undefined;
+        let askVolume: Str = undefined;
         if ('bid' in ticker) {
             if (Array.isArray (ticker['bid'])) {
                 bid = this.safeString (ticker['bid'], 0);
@@ -863,7 +863,7 @@ export default class bittrade extends Exchange {
         const price = this.safeString (trade, 'price');
         const amount = this.safeString2 (trade, 'filled-amount', 'amount');
         const cost = Precise.stringMul (price, amount);
-        let fee = undefined;
+        let fee: Dict = undefined;
         let feeCost = this.safeString (trade, 'filled-fees');
         let feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'fee-currency'));
         const filledPoints = this.safeString (trade, 'filled-points');
@@ -930,7 +930,7 @@ export default class bittrade extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1184,7 +1184,7 @@ export default class bittrade extends Exchange {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            let account = undefined;
+            let account: any = undefined;
             if (code in result) {
                 account = result[code];
             } else {
@@ -1224,7 +1224,7 @@ export default class bittrade extends Exchange {
         const request: Dict = {
             'states': states,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1323,7 +1323,7 @@ export default class bittrade extends Exchange {
     async fetchOpenOrdersV2 (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1417,9 +1417,9 @@ export default class bittrade extends Exchange {
         //             "canceled-at":  0                      }
         //
         const id = this.safeString (order, 'id');
-        let side = undefined;
-        let type = undefined;
-        let status = undefined;
+        let side: Str = undefined;
+        let type: Str = undefined;
+        let status: Str = undefined;
         if ('type' in order) {
             const orderType = order['type'].split ('-');
             side = orderType[0];
@@ -1435,7 +1435,7 @@ export default class bittrade extends Exchange {
         const price = this.safeString (order, 'price');
         const cost = this.safeString2 (order, 'filled-cash-amount', 'field-cash-amount'); // same typo
         const feeCost = this.safeString2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
-        let fee = undefined;
+        let fee: Dict = undefined;
         if (feeCost !== undefined) {
             const feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
             fee = {
@@ -1518,7 +1518,7 @@ export default class bittrade extends Exchange {
         }
         params = this.omit (params, [ 'clientOrderId', 'client-order-id' ]);
         if ((type === 'market') && (side === 'buy')) {
-            let quoteAmount = undefined;
+            let quoteAmount: Str = undefined;
             let createMarketBuyOrderRequiresPrice = true;
             [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             const cost = this.safeNumber (params, 'cost');
@@ -1682,7 +1682,7 @@ export default class bittrade extends Exchange {
         //    }
         //
         const successes = this.safeString (orders, 'successes');
-        let success = undefined;
+        let success: Strings = undefined;
         if (successes !== undefined) {
             success = successes.split (',');
         } else {
@@ -1727,7 +1727,7 @@ export default class bittrade extends Exchange {
             // 'side': 'buy', // or 'sell'
             // 'size': 100, // the number of orders to cancel 1-100
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1795,7 +1795,7 @@ export default class bittrade extends Exchange {
             limit = 100;
         }
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: any = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1829,7 +1829,7 @@ export default class bittrade extends Exchange {
             limit = 100;
         }
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: any = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }

@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, OperationRejected, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest } from './base/types.js';
+import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, Bool} from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 //  ---------------------------------------------------------------------------
 
@@ -1481,7 +1481,7 @@ export default class paradex extends Exchange {
         const remaining = this.omitZero (this.safeString (order, 'remaining_size'));
         const lastUpdateTimestamp = this.safeInteger (order, 'last_updated_at');
         const flags = this.safeList (order, 'flags', []);
-        let reduceOnly = undefined;
+        let reduceOnly: Bool
         if ('REDUCE_ONLY' in flags) {
             reduceOnly = true;
         }
@@ -1884,7 +1884,7 @@ export default class paradex extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-        let response = undefined;
+        let response: Dict
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
             response = await this.privateDeleteOrdersByClientIdClientId (this.extend (request, params));
@@ -1958,7 +1958,7 @@ export default class paradex extends Exchange {
             const marketId = this.safeString (result, 'market');
             const market = this.safeMarket (marketId, undefined);
             const status = this.safeString (result, 'status');
-            let orderStatus = undefined;
+            let orderStatus: Str
             if (status === 'QUEUED_FOR_CANCELLATION') {
                 orderStatus = 'canceled';
             } else if (status === 'ALREADY_CLOSED') {
@@ -2021,7 +2021,7 @@ export default class paradex extends Exchange {
         const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-        let response = undefined;
+        let response: Dict
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
             response = await this.privateGetOrdersByClientIdClientId (this.extend (request, params));
@@ -2440,7 +2440,7 @@ export default class paradex extends Exchange {
         } else {
             request['from'] = 1;
         }
-        let market = undefined;
+        let market: Market
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2628,7 +2628,7 @@ export default class paradex extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchTransfers', code, since, limit, params, 'next', 'cursor', undefined, 100) as TransferEntry[];
         }
         let request: Dict = {};
-        let currency = undefined;
+        let currency: Currency
         if (code !== undefined) {
             currency = this.safeCurrency (code);
         }
@@ -2685,8 +2685,8 @@ export default class paradex extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const timestamp = this.safeInteger (transfer, 'created_at');
         const kind = this.safeString (transfer, 'kind');
-        let fromAccount = undefined;
-        let toAccount = undefined;
+        let fromAccount: Str
+        let toAccount: Str
         if (kind === 'DEPOSIT') {
             fromAccount = 'external';
             toAccount = 'account';

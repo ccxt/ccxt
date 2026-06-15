@@ -552,12 +552,12 @@ export default class woofipro extends woofiproRest {
         const cost = Precise.stringMul (price, amount);
         const side = this.safeStringLower (trade, 'side');
         const timestamp = this.safeInteger (trade, 'timestamp');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         const maker = this.safeBool (trade, 'maker');
         if (maker !== undefined) {
             takerOrMaker = maker ? 'maker' : 'taker';
         }
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeValue = this.safeString (trade, 'fee');
         if (feeValue !== undefined) {
             fee = {

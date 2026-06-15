@@ -455,7 +455,7 @@ export default class bitbank extends Exchange {
         const amountString = this.safeString (trade, 'amount');
         const id = this.safeString2 (trade, 'transaction_id', 'trade_id');
         const takerOrMaker = this.safeString (trade, 'maker_taker');
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCostString = this.safeString (trade, 'fee_amount_quote');
         if (feeCostString !== undefined) {
             fee = {
@@ -918,7 +918,7 @@ export default class bitbank extends Exchange {
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];

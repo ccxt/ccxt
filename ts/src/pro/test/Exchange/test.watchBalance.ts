@@ -1,13 +1,14 @@
 
 import testBalance from '../../../test/Exchange/base/test.balance.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+import type { Dict } from '../../../base/types.js';
 
 async function testWatchBalance (exchange, skippedProperties, code) {
     const method = 'watchBalance';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
-        let response = undefined;
+        let response: Dict = undefined;
         let success = true;
         try {
             response = await exchange.watchBalance ();

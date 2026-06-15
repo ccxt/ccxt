@@ -6,7 +6,7 @@ import Exchange from './abstract/blofin.js';
 import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -905,11 +905,11 @@ export default class blofin extends Exchange {
         const request: Dict = {
             'instId': market['id'],
         };
-        let response = undefined;
+        let response: Dict = undefined;
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        let method = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'method', 'publicGetMarketTrades');
         if (method === 'publicGetMarketTrades') {
             response = await this.publicGetMarketTrades (this.extend (request, params));
@@ -977,7 +977,7 @@ export default class blofin extends Exchange {
             request['after'] = until;
             params = this.omit (params, 'until');
         }
-        let response = undefined;
+        let response: Dict = undefined;
         response = await this.publicGetMarketCandles (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
@@ -1232,11 +1232,11 @@ export default class blofin extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let accountType = undefined;
+        let accountType: Str = undefined;
         [ accountType, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'accountType', 'type');
         const request: Dict = {
         };
-        let response = undefined;
+        let response: Dict = undefined;
         if (accountType !== undefined && accountType !== 'swap') {
             const options = this.safeDict (this.options, 'accountsByType', {});
             const parsedAccountType = this.safeString (options, accountType, accountType);
@@ -1257,7 +1257,7 @@ export default class blofin extends Exchange {
             'size': this.amountToPrecision (symbol, amount),
             'brokerId': this.safeString (this.options, 'brokerId', 'ec6dd3a7dd982d0b'),
         };
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, 'cross');
         request['marginMode'] = marginMode;
         const triggerPriceAny = this.safeStringN (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
@@ -1368,8 +1368,8 @@ export default class blofin extends Exchange {
         const lastTradeTimestamp = this.safeInteger (order, 'fillTime');
         const side = this.safeString (order, 'side');
         let type = this.safeString (order, 'orderType');
-        let postOnly = undefined;
-        let timeInForce = undefined;
+        let postOnly: Bool = undefined;
+        let timeInForce: Str = undefined;
         if (type === 'post_only') {
             postOnly = true;
             type = 'limit';
@@ -1400,7 +1400,7 @@ export default class blofin extends Exchange {
             cost = Precise.stringDiv (cost, leverage);
         }
         // spot market buy: "sz" can refer either to base currency units or to quote currency units
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (feeCostString !== undefined) {
             const feeCostSigned = Precise.stringAbs (feeCostString);
             const feeCurrencyId = this.safeString (order, 'feeCcy', 'USDT');
@@ -1490,7 +1490,7 @@ export default class blofin extends Exchange {
         [ isTpslEndpoint, params ] = this.handleOptionAndParams (params, 'createOrder', 'tpsl', false);
         const isCombinedSlTp = (isStopLossPriceDefined && isTakeProfitPriceDefined) || isTpslEndpoint;
         const isSlOrTp = isStopLossPriceDefined || isTakeProfitPriceDefined;
-        let response = undefined;
+        let response: Dict = undefined;
         const reduceOnly = this.safeBool (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             params['reduceOnly'] = reduceOnly ? 'true' : 'false';
@@ -1676,7 +1676,7 @@ export default class blofin extends Exchange {
         }
         const request: Dict = {
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instId'] = market['id'];
@@ -1689,7 +1689,7 @@ export default class blofin extends Exchange {
         let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         const query = this.omit (params, [ 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ]);
-        let response = undefined;
+        let response: Dict = undefined;
         if (isTpSl || (method === 'privateGetTradeOrdersTpslPending')) {
             response = await this.privateGetTradeOrdersTpslPending (this.extend (request, query));
         } else if (isTrigger || (method === 'privateGetTradeOrdersAlgoPending')) {
@@ -1726,7 +1726,7 @@ export default class blofin extends Exchange {
         }
         let request: Dict = {
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instId'] = market['id'];
@@ -1737,7 +1737,7 @@ export default class blofin extends Exchange {
         }
         let type = 'swap';
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params, type);
-        let response = undefined;
+        let response: Dict = undefined;
         if (type === 'spot') {
             request['instType'] = 'SPOT';
             //
@@ -1791,7 +1791,7 @@ export default class blofin extends Exchange {
         }
         let request: Dict = {
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -1830,7 +1830,7 @@ export default class blofin extends Exchange {
         }
         let request: Dict = {
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -1873,13 +1873,13 @@ export default class blofin extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
         [ request, params ] = this.handleUntilOption ('end', request, params);
-        let response = undefined;
+        let response: Dict = undefined;
         response = await this.privateGetAssetBills (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
         return this.parseLedger (data, currency, since, limit);
@@ -1921,9 +1921,9 @@ export default class blofin extends Exchange {
         //        "withdrawId": "e0768698cfdf4aee8e54654c3775914b"
         //    }
         //
-        let type = undefined;
-        let id = undefined;
-        let status = undefined;
+        let type: Str = undefined;
+        let id: Str = undefined;
+        let status: Str = undefined;
         const withdrawalId = this.safeString (transaction, 'withdrawId');
         const depositId = this.safeString (transaction, 'depositId');
         const addressTo = this.safeString (transaction, 'address');
@@ -2110,7 +2110,7 @@ export default class blofin extends Exchange {
                 });
             }
         }
-        let response = undefined;
+        let response: Dict = undefined;
         if (method === 'privatePostTradeCancelTpsl') {
             response = await this.privatePostTradeCancelTpsl (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         } else {
@@ -2225,7 +2225,7 @@ export default class blofin extends Exchange {
     async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         let request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength === 0) {
@@ -2351,12 +2351,12 @@ export default class blofin extends Exchange {
         }
         const notional = this.parseNumber (notionalString);
         const marginMode = this.safeString (position, 'marginMode');
-        let initialMarginString = undefined;
+        let initialMarginString: Str = undefined;
         const entryPriceString = this.safeString2 (position, 'averagePrice', 'openAveragePrice');
         const unrealizedPnlString = this.safeString (position, 'unrealizedPnl');
         const leverageString = this.safeString (position, 'leverage');
         let initialMarginPercentage = undefined;
-        let collateralString = undefined;
+        let collateralString: Str = undefined;
         if (marginMode === 'cross') {
             initialMarginString = this.safeString (position, 'initialMargin');
             collateralString = Precise.stringAdd (initialMarginString, unrealizedPnlString);
@@ -2427,7 +2427,7 @@ export default class blofin extends Exchange {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchLeverages() requires a symbols argument');
         }
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverages', params);
         if (marginMode === undefined) {
             marginMode = this.safeString (params, 'marginMode', 'cross'); // cross as default marginMode
@@ -2480,7 +2480,7 @@ export default class blofin extends Exchange {
      */
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         await this.loadMarkets ();
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params);
         if (marginMode === undefined) {
             marginMode = this.safeString (params, 'marginMode', 'cross'); // cross as default marginMode
@@ -2544,7 +2544,7 @@ export default class blofin extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest (this.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated');
@@ -2579,7 +2579,7 @@ export default class blofin extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', params, 'cross');
         const request: Dict = {
             'instId': market['id'],
@@ -2615,7 +2615,7 @@ export default class blofin extends Exchange {
         }
         const request: Dict = {
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instId'] = market['id'];
@@ -2630,7 +2630,7 @@ export default class blofin extends Exchange {
         let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
         const query = this.omit (params, [ 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ]);
-        let response = undefined;
+        let response: Dict = undefined;
         if ((isTrigger) || (method === 'privateGetTradeOrdersTpslHistory')) {
             response = await this.privateGetTradeOrdersTpslHistory (this.extend (request, query));
         } else {
@@ -2687,7 +2687,7 @@ export default class blofin extends Exchange {
     async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         this.checkRequiredArgument ('setMarginMode', marginMode, 'marginMode', [ 'cross', 'isolated' ]);
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }

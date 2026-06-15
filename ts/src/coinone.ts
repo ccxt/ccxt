@@ -6,7 +6,7 @@ import Exchange from './abstract/coinone.js';
 import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, DepositAddress, Currency } from './base/types.js';
+import type { Balances, Currencies, Currency, DepositAddress, Dict, Fee, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -570,8 +570,8 @@ export default class coinone extends Exchange {
         const request: Dict = {
             'quote_currency': 'KRW',
         };
-        let market = undefined;
-        let response = undefined;
+        let market: Market = undefined;
+        let response: Dict | undefined = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
             market = this.market (first);
@@ -759,7 +759,7 @@ export default class coinone extends Exchange {
         const timestamp = this.safeInteger (trade, 'timestamp');
         market = this.safeMarket (undefined, market);
         const isSellerMaker = this.safeBool (trade, 'is_seller_maker');
-        let side = undefined;
+        let side: Str = undefined;
         if (isSellerMaker !== undefined) {
             side = isSellerMaker ? 'sell' : 'buy';
         }
@@ -987,7 +987,7 @@ export default class coinone extends Exchange {
         if (quoteId !== undefined) {
             quote = this.safeCurrencyCode (quoteId);
         }
-        let symbol = undefined;
+        let symbol: Str = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
             market = this.safeMarket (symbol, market, '/');

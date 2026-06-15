@@ -2,6 +2,8 @@ import assert from 'assert';
 import { Exchange } from "../../../../ccxt.js";
 import { NetworkError } from '../../../base/errors.js';
 import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
+import type { Dict } from '../../../base/types.js';
+
 
 
 async function testWatchLiquidationsForSymbols (exchange: Exchange, skippedProperties: object, symbol: string) {
@@ -23,7 +25,7 @@ async function testWatchLiquidationsForSymbols (exchange: Exchange, skippedPrope
         return false;
     }
 
-    let response = undefined;
+    let response: Dict | undefined = undefined;
 
     let now = Date.now ();
     const ends = now + 10000;
