@@ -3,6 +3,131 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchMarkets": [
+            {
+                "description": "skip instruments without instId",
+                "method": "fetchMarkets",
+                "options": {
+                    "fetchMarkets": {
+                        "types": [
+                            "future"
+                        ]
+                    }
+                },
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "alias": "",
+                            "instId": "",
+                            "instType": "FUTURES",
+                            "state": "preopen"
+                        },
+                        {
+                            "alias": "quarter",
+                            "baseCcy": "",
+                            "category": "1",
+                            "ctMult": "1",
+                            "ctType": "inverse",
+                            "ctVal": "100",
+                            "ctValCcy": "USD",
+                            "expTime": "1806019200000",
+                            "instId": "BTC-USD-270326",
+                            "instType": "FUTURES",
+                            "lever": "20",
+                            "listTime": "1774483200000",
+                            "lotSz": "1",
+                            "minSz": "1",
+                            "optType": "",
+                            "quoteCcy": "",
+                            "settleCcy": "BTC",
+                            "state": "live",
+                            "stk": "",
+                            "tickSz": "0.1",
+                            "uly": "BTC-USD"
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": [
+                    {
+                        "taker": 0.0005,
+                        "maker": 0.0002,
+                        "id": "BTC-USD-270326",
+                        "instIdCode": null,
+                        "symbol": "BTC/USD:BTC-270326",
+                        "base": "BTC",
+                        "quote": "USD",
+                        "settle": "BTC",
+                        "baseId": "BTC",
+                        "quoteId": "USD",
+                        "settleId": "BTC",
+                        "type": "future",
+                        "spot": false,
+                        "margin": false,
+                        "swap": false,
+                        "future": true,
+                        "option": false,
+                        "active": true,
+                        "contract": true,
+                        "linear": false,
+                        "inverse": true,
+                        "contractSize": 100.0,
+                        "expiry": 1806019200000,
+                        "expiryDatetime": "2027-03-26T00:00:00.000Z",
+                        "strike": null,
+                        "optionType": null,
+                        "created": 1774483200000,
+                        "precision": {
+                            "amount": 1.0,
+                            "price": 0.1
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": 1.0,
+                                "max": 20.0
+                            },
+                            "amount": {
+                                "min": 1.0,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "info": {
+                            "alias": "quarter",
+                            "baseCcy": "",
+                            "category": "1",
+                            "ctMult": "1",
+                            "ctType": "inverse",
+                            "ctVal": "100",
+                            "ctValCcy": "USD",
+                            "expTime": "1806019200000",
+                            "instId": "BTC-USD-270326",
+                            "instType": "FUTURES",
+                            "lever": "20",
+                            "listTime": "1774483200000",
+                            "lotSz": "1",
+                            "minSz": "1",
+                            "optType": "",
+                            "quoteCcy": "",
+                            "settleCcy": "BTC",
+                            "state": "live",
+                            "stk": "",
+                            "tickSz": "0.1",
+                            "uly": "BTC-USD"
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",
