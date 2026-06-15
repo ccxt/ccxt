@@ -368,7 +368,6 @@ class Exchange {
         'bydfi',
         'cex',
         'coinbase',
-        'coinbaseadvanced',
         'coinbaseexchange',
         'coinbaseinternational',
         'coincheck',
