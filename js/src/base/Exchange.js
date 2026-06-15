@@ -2206,11 +2206,11 @@ export default class Exchange {
          * @returns {object | undefined}
          */
         const value = this.safeValue(dictionaryOrList, key1);
-        if ((value !== undefined) && (typeof value === 'object') && !Array.isArray(value)) {
+        if (this.isDictionary(value)) {
             return value;
         }
         const value2 = this.safeValue(dictionaryOrList, key2);
-        if ((value2 !== undefined) && (typeof value2 === 'object') && !Array.isArray(value2)) {
+        if (this.isDictionary(value2)) {
             return value2;
         }
         return defaultValue;

@@ -15,6 +15,7 @@
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchBalance](#fetchbalance)
 * [fetchDeposits](#fetchdeposits)
+* [fetchWithdrawals](#fetchwithdrawals)
 * [fetchTransfers](#fetchtransfers)
 * [transfer](#transfer)
 * [withdraw](#withdraw)
@@ -262,6 +263,30 @@ fetch all deposits made to an account
 
 ```javascript
 grvt.fetchDeposits (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchWithdrawals" id="fetchwithdrawals"></a>
+
+### fetchWithdrawals{docsify-ignore}
+fetch all withdrawals made from an account
+
+**Kind**: instance method of [<code>grvt</code>](#grvt)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code of the currency transferred |
+| since | <code>int</code> | No | the earliest time in ms to fetch transfers for (default 24 hours ago) |
+| limit | <code>int</code> | No | the maximum number of transfer structures to retrieve (default 50, max 200) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest item |
+
+
+```javascript
+grvt.fetchWithdrawals (code?, since?, limit?, params?)
 ```
 
 

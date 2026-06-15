@@ -103,6 +103,7 @@
 * [fetchOpenInterestHistory](#fetchopeninteresthistory)
 * [isUTAEnabled](#isutaenabled)
 * [fetchTransfers](#fetchtransfers)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [watchTicker](#watchticker)
 * [unWatchTicker](#unwatchticker)
 * [watchTickers](#watchtickers)
@@ -2839,6 +2840,27 @@ fetch a history of internal transfers made on an account
 
 ```javascript
 kucoin.fetchTransfers (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoin.fetchPositionsADLRank (symbols?, params?)
 ```
 
 

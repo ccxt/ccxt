@@ -1419,7 +1419,7 @@ class grvt extends grvt$1["default"] {
     }
     /**
      * @method
-     * @name grvrt#fetchWithdrawals
+     * @name grvt#fetchWithdrawals
      * @description fetch all withdrawals made from an account
      * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
      * @param {string} [code] unified currency code of the currency transferred
