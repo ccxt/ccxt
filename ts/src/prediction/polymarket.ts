@@ -1207,19 +1207,22 @@ export default class polymarket extends Exchange {
     /**
      * @method
      * @name polymarket#fetchBalance
-     * @description fetches the total USDC value of the wallet's positions from the data API
-     * @see https://docs.polymarket.com/api-reference/core/get-total-value-of-a-users-positions
+     * @description fetches the USDC collateral balance available for trading on the CLOB
+     * @see https://docs.polymarket.com/api-reference/trade/get-balance-allowance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.signatureType] 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); defaults to options.signatureType
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        if (this.walletAddress === undefined) {
-            throw new ArgumentsRequired (this.id + ' walletAddress is required to fetchBalance');
-        }
+        await this.loadApiCredentials ();
+        // the collateral balance is tied to the signature type / funder that holds the USDC
+        const signatureType = this.safeInteger2 (params, 'signatureType', 'signature_type', this.safeInteger (this.options, 'signatureType', 0));
+        const rest = this.omit (params, [ 'signatureType', 'signature_type' ]);
         const request: Dict = {
-            'user': this.walletAddress,
+            'asset_type': 'COLLATERAL',
+            'signature_type': signatureType,
         };
-        const response = await this.dataPublicGetValue (this.extend (request, params));
+        const response = await this.clobPrivateGetBalanceAllowance (this.extend (request, rest));
         return this.parseBalance (response);
     }
 
@@ -1227,19 +1230,24 @@ export default class polymarket extends Exchange {
      * @ignore
      * @method
      * @name polymarket#parseBalance
-     * @description parses a portfolio value response into a balances object with a USDC entry
-     * @param {object} response the raw portfolio value response
+     * @description parses a balance-allowance response into a balances object with a USDC entry
+     * @param {object} response the raw balance-allowance response
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     parseBalance (response): Balances {
         const result: Dict = { 'info': response };
-        const total = this.safeNumber (response, 'value', this.safeNumber (response, 'total'));
+        // 'balance' is the raw USDC collateral in 6-decimal units (e.g. "8992211" = 8.992211 USDC)
+        const raw = this.safeString (response, 'balance');
+        let total = undefined;
+        if (raw !== undefined) {
+            total = this.parseNumber (Precise.stringDiv (raw, '1000000'));
+        }
         result['USDC'] = {
             'free': total,
-            'used': 0,
+            'used': undefined,
             'total': total,
         };
-        return result as Balances;
+        return this.safeBalance (result);
     }
 
     /**
