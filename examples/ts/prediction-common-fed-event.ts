@@ -9,7 +9,7 @@
 // Usage:
 //   npx tsx examples/ts/prediction-common-fed-event.ts
 
-import ccxt from '../../ts/ccxt.js';
+import ccxt from '../../js/ccxt.js';
 
 const STOP_WORDS = [
     'will', 'the', 'a', 'an', 'in', 'on', 'of', 'to', 'be', 'by', 'at', 'or', 'and',

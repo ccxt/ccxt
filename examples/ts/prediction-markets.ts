@@ -4,7 +4,7 @@
 // (Polymarket, Kalshi, Limitless, Myriad, Hyperliquid) live under `ccxt.prediction`
 // and extend PredictionExchange, which adds events/outcomes helpers on top of Exchange.
 
-import ccxt from '../../ts/ccxt.js';
+import ccxt from '../../js/ccxt.js';
 
 async function main () {
     const exchange = new ccxt.prediction.polymarket ();
