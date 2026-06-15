@@ -3,6 +3,7 @@
 
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
+import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
 async function testFetchHistory () {
 
@@ -10,7 +11,7 @@ async function testFetchHistory () {
         'id': 'sampleexchange',
         'fetchHistoryCacheSize': 2,
     });
-    const trueClause = exchange.fetchHistoryCacheSize === 2;
+    const trueClause = testSharedMethods.exchangeProp (exchange, 'fetchHistoryCacheSize') === 2;
     assert (trueClause);
     // try 3 times
     try {
