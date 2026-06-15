@@ -150,6 +150,14 @@ function initExchange (exchangeId, args, isWs = false): Exchange {
     if (isWs) {
         return new (ccxt.pro)[exchangeId] (args);
     }
+    if (!(exchangeId in ccxt)) {
+        // fall back to the prediction-markets namespace (ccxt.prediction.<id>)
+        // regular ccxt ids always win for ids present in both (e.g. hyperliquid)
+        const prediction = (ccxt as any).prediction;
+        if ((prediction !== undefined) && (exchangeId in prediction)) {
+            return new (prediction)[exchangeId] (args);
+        }
+    }
     return new (ccxt)[exchangeId] (args);
 }
 

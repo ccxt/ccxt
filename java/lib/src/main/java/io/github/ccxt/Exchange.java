@@ -505,7 +505,7 @@ public class Exchange {
     }
 
     public static Exchange dynamicallyCreateInstance(String className, Object args, Boolean isWs) {
-        return dynamicallyCreateInstance(className, args, isWs);
+        return dynamicallyCreateInstance(className, args, isWs != null && isWs.booleanValue());
     }
 
     private double toDoubleSafe(Object val, double defaultValue) {
@@ -3434,6 +3434,14 @@ public class Exchange {
 
         String EXCHANGES_PKG_PRO = "io.github.ccxt.exchanges.pro.";
 
+        // prediction-market exchanges (Polymarket, Kalshi, Limitless, Myriad, ...)
+        // live in their own package; resolved as a fallback when no regular class
+        // of the same id exists. `hyperliquid` exists in both packages — the
+        // regular class wins for the bare id since this fallback only runs when
+        // Class.forName on the regular fqcn throws ClassNotFoundException.
+        String EXCHANGES_PKG_PREDICTION = "io.github.ccxt.exchanges.prediction.";
+        String EXCHANGES_PKG_PREDICTION_PRO = "io.github.ccxt.exchanges.prediction.pro.";
+
         String name = className.trim();
 
         name = name.substring(0, 1).toUpperCase() + name.substring(1);
@@ -3443,7 +3451,14 @@ public class Exchange {
         if (args == null) args = new HashMap<String, Object>();
 
         try {
-            Class<?> clazz = Class.forName(fqcn);
+            Class<?> clazz;
+            try {
+                clazz = Class.forName(fqcn);
+            } catch (ClassNotFoundException primaryMiss) {
+                String predictionFqcn = (isWs ? EXCHANGES_PKG_PREDICTION_PRO : EXCHANGES_PKG_PREDICTION) + name;
+                clazz = Class.forName(predictionFqcn);
+                fqcn = predictionFqcn;
+            }
 
             if (!Exchange.class.isAssignableFrom(clazz)) return null;
 

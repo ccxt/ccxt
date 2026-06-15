@@ -78,6 +78,12 @@ type Exchange struct {
 	QuoteCurrencies        *sync.Map
 	ReloadingMarkets       bool
 	MarketsLoading         bool
+	Outcomes               any
+	Outcomes_by_id         any
+	Events                 any
+	Events_by_slug         any
+	ReloadingEvents        bool
+	EventsLoading          any
 	Symbols                []string
 	Codes                  []string
 	Ids                    []string
@@ -1582,6 +1588,13 @@ func (this *Exchange) callEndpointAsync(endpointName string, args ...any) <-chan
 	return ch
 }
 
+// CallEndpointAsync is the exported pass-through used by implicit-API files that are
+// generated into sibling packages (e.g. go/v4/prediction) and therefore cannot reach
+// the unexported callEndpointAsync
+func (this *Exchange) CallEndpointAsync(endpointName string, args ...any) <-chan any {
+	return this.callEndpointAsync(endpointName, args...)
+}
+
 // returns a future (implemented as a channel) that will be resolved by client.Resolve(data, messageHash)
 //
 // Signature in the generated code varies (2-5 parameters), therefore the variadic form is used and parsed internally
@@ -2190,4 +2203,20 @@ func (this *Exchange) LockId() bool {
 func (this *Exchange) UnlockId() bool {
 	this.idMutex.Unlock()
 	return true
+}
+
+// FetchEvents is a default stub so every exchange satisfies IDerivedExchange.
+// Prediction exchanges (PredictionExchange and its derivatives) override it.
+func (this *Exchange) FetchEvents(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		queries := GetArg(optionalArgs, 0, nil)
+		_ = queries
+		params := GetArg(optionalArgs, 1, map[string]any{})
+		_ = params
+		panic(NotSupported(Add(this.Id, " fetchEvents() is not supported yet")))
+	}()
+	return ch
 }

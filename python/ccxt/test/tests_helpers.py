@@ -21,6 +21,8 @@ sys.path.append(root)
 import ccxt.async_support as ccxt  # noqa: E402
 import ccxt as ccxt_sync  # noqa: E402
 import ccxt.pro as ccxtpro  # noqa: E402
+import ccxt.prediction as ccxt_prediction_sync  # noqa: E402
+import ccxt.prediction.async_support as ccxt_prediction  # noqa: E402
 
 # ------------------------------------------------------------------------------
 # from typing import Optional
@@ -219,9 +221,14 @@ def set_exchange_prop(exchange, prop, value):
 
 def init_exchange(exchangeId, args, is_ws=False):
     if IS_SYNCHRONOUS:
+        # regular ccxt ids always win for ids present in both (e.g. hyperliquid)
+        if not hasattr(ccxt_sync, exchangeId) and hasattr(ccxt_prediction_sync, exchangeId):
+            return getattr(ccxt_prediction_sync, exchangeId)(args)
         return getattr(ccxt_sync, exchangeId)(args)
     if (is_ws):
         return getattr(ccxtpro, exchangeId)(args)
+    if not hasattr(ccxt, exchangeId) and hasattr(ccxt_prediction, exchangeId):
+        return getattr(ccxt_prediction, exchangeId)(args)
     return getattr(ccxt, exchangeId)(args)
 
 

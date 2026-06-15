@@ -4692,6 +4692,7 @@ Returns
 - [Funding History](#funding-history)
 - [Conversion](#conversion)
 - [Auto De Leverage](#auto-de-leverage)
+- [Prediction Markets](#prediction-markets)
 
 In order to be able to access your user account, perform algorithmic trading by placing market and limit orders, query balances, deposit and withdraw funds and so on, you need to obtain your API keys for authentication from each exchange you want to trade with. They usually have it available on a separate tab or page within your user account settings. API keys are exchange-specific and cannnot be interchanged under any circumstances.
 
@@ -4703,6 +4704,85 @@ The exchanges' private APIs will usually allow the following types of interactio
 - the user can query their positions with `fetchPositions()` and `fetchPosition()` as described in the [Positions](#positions) section
 - the user can fetch the history of their transactions (on-chain _transactions_ which are either _deposits_ to the exchange account or _withdrawals_ from the exchange account) with `fetchTransactions()`, or with `fetchDeposit()`, `fetchDeposits()` `fetchWithdrawal()`, and `fetchWithdrawals()` separately, depending on what is available from the exchange API
 - if the exchange API provides a ledger endpoint, the user can fetch a history of all money movements that somehow affected the balance, with `fetchLedger` that will return all accounting ledger entries such as trades, deposits, withdrawals, internal transfers between accounts, rebates, bonuses, fees, staking profits and so on, as described in the [Ledger](#ledger) section.
+
+## Prediction Markets
+
+CCXT supports prediction-market exchanges (Polymarket, Kalshi, Limitless, Myriad, and Hyperliquid prediction markets) through a dedicated `prediction` namespace. Prediction exchanges implement the same unified API as regular exchanges, with prices quoted between 0 and 1 USDC per outcome share.
+
+```javascript
+// JavaScript / TypeScript
+const exchange = new ccxt.prediction.polymarket ()
+```
+
+```python
+# Python (sync / async)
+import ccxt.prediction
+import ccxt.prediction.async_support
+exchange = ccxt.prediction.polymarket()
+```
+
+```php
+// PHP (sync / async)
+$exchange = new \ccxt\prediction\polymarket();
+$exchange = new \ccxt\prediction\async\polymarket();
+```
+
+```csharp
+// C#
+var exchange = new ccxt.prediction.polymarket();
+```
+
+```go
+// Go
+import ccxtprediction "github.com/ccxt/ccxt/go/v4/prediction"
+exchange := ccxtprediction.NewPolymarket()
+```
+
+Prediction exchanges are flagged with `exchange.has['prediction']`. Their data model has three levels:
+
+- **events** — a question or grouping, like *"Will X happen by July?"*
+- **markets** — each event contains one or more markets, returned by `fetchMarkets()` / `loadMarkets()` with `market['type'] === 'prediction'`
+- **outcomes** — each market carries an `outcomes` list (for example YES and NO tokens); each outcome has its own `symbol` like `TRUMP_OUT_PRESIDENT_2027:YES` and exchange-specific `id`
+
+All price-related unified methods (`fetchTicker`, `fetchTickers`, `fetchOrderBook`, `fetchOHLCV`, `fetchTrades`, `createOrder`, ...) accept an **outcome symbol or outcome id** instead of a regular market symbol.
+
+### fetchEvents
+
+```javascript
+fetchEvents (queries = undefined, params = {})
+```
+
+- `queries` — an optional array of free-text search terms; when omitted, the active events listing is fetched
+- returns an **array of event structures** and caches the discovered markets and outcomes on the instance (`exchange.events`, `exchange.outcomes`)
+
+```javascript
+// event structure
+{
+    'id': '903193',                       // exchange-specific event id
+    'slug': 'will-x-happen-by-july',      // url slug of the event
+    'symbol': 'WILL_X_HAPPEN_JULY',       // shortened unified event key
+    'title': 'Will X happen by July?',    // human-readable title
+    'markets': [ ... ],                   // a list of market structures, each with an outcomes list
+    'active': true,                       // whether the event is still tradable
+    'resolved': false,                    // whether the event has been resolved
+    'end': 1781234567890,                 // resolution deadline timestamp in ms
+    'endDatetime': '2026-07-01T00:00:00Z',
+    'info': { ... },                      // the raw exchange response
+}
+```
+
+A typical workflow:
+
+```javascript
+const exchange = new ccxt.prediction.polymarket ()
+const events = await exchange.fetchEvents ([ 'Trump' ])
+const outcome = events[0]['markets'][0]['outcomes'][0]
+const ticker = await exchange.fetchTicker (outcome['symbol'])
+const orderbook = await exchange.fetchOrderBook (outcome['symbol'])
+const candles = await exchange.fetchOHLCV (outcome['symbol'], '1h')
+```
+
+Calling a price method for an outcome that has not been loaded yet throws `ArgumentsRequired` — fetch the events (or `loadMarkets()`) first.
 
 ## Authentication
 

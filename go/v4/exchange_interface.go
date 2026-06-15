@@ -383,6 +383,7 @@ type IDerivedExchange interface {
 	FetchOrders(optionalArgs ...any) <-chan any
 	CreateExpiredOptionMarket(symbol any) any
 	FetchTime(optionalArgs ...any) <-chan any
+	FetchEvents(optionalArgs ...any) <-chan any
 	FetchLeverageTiers(optionalArgs ...any) <-chan any
 	ParseDepositAddresses(addresses any, optionalArgs ...any) any
 	FetchTradingFees(optionalArgs ...any) <-chan any

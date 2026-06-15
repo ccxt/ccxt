@@ -8,7 +8,7 @@ export type Bool = boolean | undefined;
 export type IndexType = number | string;
 export type OrderSide = 'buy' | 'sell' | string | undefined;
 export type OrderType = 'limit' | 'market' | string;
-export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index';
+export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index' | 'prediction';
 export type SubType = 'linear' | 'inverse' | undefined;
 
 export interface Dictionary<T> {
@@ -69,6 +69,7 @@ export interface MarketInterface {
     swap: boolean;
     future: boolean;
     option: boolean;
+    prediction?: boolean;
     contract: boolean;
     settle: Str;
     settleId: Str;
@@ -100,6 +101,56 @@ export interface MarketInterface {
     };
     created: Int;
     info: any;
+    outcomes?: PredictionOutcome[];
+}
+
+export interface PredictionEvent {
+    id: string;
+    symbol: string;
+    title: string;
+    description: string;
+    slug: string;
+    markets: PredictionMarket[];
+    url: string;
+    image?: string;
+    active?: boolean;
+    resolved?: boolean;
+    category?: string;
+    tags?: string[];
+    created: number;
+    end?: number;
+    endDatetime?: string;
+    createdDatetime: string;
+    lastUpdatedAt: number;
+    resolutionSource?: string;
+    info: any;
+}
+
+export interface PredictionOutcome {
+    id: string;
+    symbol: string;
+    marketSymbol: string;
+    marketId: string;
+    label: string;
+    price?: number;
+    active?: boolean;
+    info?: any;
+}
+
+export interface PredictionMarket {
+    id: string;
+    symbol: string;
+    created: number;
+    description: string;
+    active: boolean;
+    price: number;
+    info: any;
+    resolutionSource?: string;
+    image?: string;
+    lastUpdatedAt: number;
+    end?: number;
+    endDatetime?: string;
+    outcomes: PredictionOutcome[];
 }
 
 export interface Trade {

@@ -564,9 +564,9 @@ function exportBuilderCodeExchanges(exchangePath, exchanges) {
 
 // ----------------------------------------------------------------------------
 
-function exportExchangeIdsToExchangesJson (ids, ws) {
+function exportExchangeIdsToExchangesJson (ids, ws, prediction = [], predictionWs = []) {
     log.bright ('Exporting exchange ids to'.cyan, 'exchanges.json'.yellow)
-    fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids, ws }, null, 4))
+    fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids, ws, prediction, predictionWs }, null, 4))
 }
 
 // ----------------------------------------------------------------------------
@@ -707,6 +707,11 @@ async function exportEverything () {
 
     const wsIds = getIncludedExchangeIds ('./ts/src/pro')
 
+    const predictionIds = getIncludedExchangeIds ('./ts/src/prediction')
+
+    // prediction WS methods now live in the REST prediction classes (no separate prediction/pro)
+    const predictionWsIds = []
+
     generateErrorsTs();
     const errorHierarchy = getErrorHierarchy()
     const flat = flatten (errorHierarchy);
@@ -714,7 +719,7 @@ async function exportEverything () {
     flat.push ('error_hierarchy')
 
     const typeExports = getTypesExports();
-    const staticExports = ['version', 'Exchange', 'exchanges', 'pro', 'Precise', 'functions', 'errors'].concat(errorsExports).concat(typeExports)
+    const staticExports = ['version', 'Exchange', 'exchanges', 'pro', 'prediction', 'Precise', 'functions', 'errors'].concat(errorsExports).concat(typeExports)
 
     const fullExports  = staticExports.concat(ids)
 
@@ -738,6 +743,11 @@ async function exportEverything () {
         },
         {
             file: ccxtFileDir,
+            regex:  /(?:(import)\s(\w+)Prediction\sfrom\s+'.\/src\/prediction\/(\2).js'\n)+/g,
+            replacement: predictionIds.map (id => "import " + id + 'Prediction from ' + " './src/prediction/" + id + ".js'").join("\n") + "\n"
+        },
+        {
+            file: ccxtFileDir,
             regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
             replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + id + ",") .join ("\n") + "\n}",
         },
@@ -750,6 +760,11 @@ async function exportEverything () {
             file: ccxtFileDir,
             regex:  /(?:const|var)\s+pro\s+\=\s+\{[^\}]+\}/,
             replacement: "const pro = {\n" + wsIds.map (id => ("    '" + id + "':").padEnd (30) + id + "Pro,") .join ("\n") + "\n}",
+        },
+        {
+            file: ccxtFileDir,
+            regex:  /(?:const|var)\s+prediction\s+\=\s+\{[^\}]+\}/,
+            replacement: "const prediction = {\n" + predictionIds.map (id => ("    '" + id + "':").padEnd (30) + id + "Prediction,") .join ("\n") + "\n}",
         },
         {
             file: './python/ccxt/__init__.py',
@@ -805,6 +820,16 @@ async function exportEverything () {
             file: './python/ccxt/pro/__init__.py',
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + wsIds.join ("',\n    '") + "'," + "\n]",
+        },
+        {
+            file: './python/ccxt/prediction/__init__.py',
+            regex: /(?:from ccxt\.prediction\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+            replacement: predictionIds.map (id => ('from ccxt.prediction.' + id + ' import ' + id).padEnd (80) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+        },
+        {
+            file: './python/ccxt/prediction/__init__.py',
+            regex: /exchanges \= \[[^\]]+\]/,
+            replacement: "exchanges = [\n" + "    '" + predictionIds.join ("',\n    '") + "'," + "\n]",
         },
         {
             file: './cs/ccxt/base/Exchange.MetaData.cs',
@@ -865,7 +890,7 @@ async function exportEverything () {
         ],
     }, unlimitedLog)
 
-    exportExchangeIdsToExchangesJson (keys(exchanges), wsIds)
+    exportExchangeIdsToExchangesJson (keys(exchanges), wsIds, predictionIds, predictionWsIds)
     exportWikiToGitHub (wikiPath, gitWikiPath)
     // skip this step to reduce the size of the package metadata
     // exportKeywordsToPackageJson (exchanges)

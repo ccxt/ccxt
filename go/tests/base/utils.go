@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
+	ccxtPrediction "github.com/ccxt/ccxt/go/v4/prediction"
 	ccxtPro "github.com/ccxt/ccxt/go/v4/pro"
 )
 
@@ -462,6 +463,11 @@ func InitExchange(exchangeId any, options ...any) ccxt.ICoreExchange {
 		instance, success = ccxtPro.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
 	} else {
 		instance, success = ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
+		if !success {
+			// fall back to the prediction-markets package (go/v4/prediction)
+			// regular ccxt ids always win for ids present in both (e.g. hyperliquid)
+			instance, success = ccxtPrediction.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
+		}
 	}
 	// instance, success := ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
 	if !success {

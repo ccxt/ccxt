@@ -1,0 +1,2701 @@
+/// <reference lib="es2015" />
+// ---------------------------------------------------------------------------
+//
+// Limitless CCXT Exchange adapter  (https://limitless.exchange)
+//
+// Hierarchy:  Group markets (events) → Child markets → YES/NO outcomes
+//
+// Each child market becomes one CCXT market with an outcomes list:
+//   market.id:     slug
+//   market.symbol: SLUG_SHORT
+//   outcomes[i].symbol: SLUG_SHORT:YES  /  SLUG_SHORT:NO
+//
+// Sizes in the order book are in USDC micro-units (6 decimals) → ÷ 1_000_000.
+//
+// ---------------------------------------------------------------------------
+
+import Exchange from '../abstract/prediction/limitless.js';
+import type {
+    Int, Str, Num, Dict,
+    Strings,
+    Market, Ticker, Tickers, OrderBook, OHLCV,
+    Order, Position,
+    Bool,
+    Trade,
+    Account,
+    PredictionEvent,
+} from '../base/types.js';
+import { ArgumentsRequired, BadRequest, InvalidAddress, InvalidOrder, OrderNotFound } from '../../ccxt.js';
+import { Precise } from '../base/Precise.js';
+import { sha256 } from '@noble/hashes/sha2.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { ecdsa } from '../base/functions.js';
+
+// ---------------------------------------------------------------------------
+
+/**
+ * @class limitless
+ * @augments Exchange
+ */
+export default class limitless extends Exchange {
+    describe (): any {
+        return this.deepExtend (super.describe (), {
+            'id': 'limitless',
+            'name': 'Limitless',
+            'countries': [],
+            'rateLimit': 200,
+            'certified': false,
+            'pro': false,
+            'has': {
+                'CORS': undefined,
+                'spot': false,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
+                'cancelOrders': true,
+                'createOrder': true,
+                'fetchBalance': false,
+                'fetchClosedOrders': true,
+                'fetchCurrencies': false,
+                'fetchEvents': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchOrdersByIds': true,
+                'fetchPositions': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+                'prediction': true,
+            },
+            'timeframes': {
+                '1h': '1h',
+                '6h': '6h',
+                '1d': '1d',
+                '1w': '1w',
+                '1M': '1m',
+            },
+            'urls': {
+                'logo': 'https://limitless.exchange/favicon.ico',
+                'api': {
+                    'limitless': 'https://api.limitless.exchange',
+                },
+                'www': 'https://limitless.exchange',
+                'doc': [ 'https://docs.limitless.exchange' ],
+            },
+            'api': {
+                'limitless': {
+                    'public': {
+                        'get': {
+                            'markets/active': 1,
+                            'markets/active/{categoryId}': 1,
+                            'markets/{addressOrSlug}': 1,
+                            'markets/categories/count': 1,
+                            'markets/active/slugs': 1,
+                            'markets/search': 1,
+                            'markets/{slug}/orderbook': 1,
+                            'markets/{slug}/historical-price': 1,
+                            'auth/signing-message': 1,
+                            'markets/{addressOrSlug}/oracle-candles': 1,
+                            'markets/{slug}/get-feed-events': 1,
+                            'markets/{slug}/events': 1,
+                            'markets/timeline': 1,
+                            'markets/{slug}/timeline': 1,
+                            'navigation': 1,
+                            'market-pages/by-path': 1,
+                            'market-pages/{id}/markets': 1,
+                            'property-keys': 1,
+                            'property-keys/{id}': 1,
+                            'property-keys/{id}/options': 1,
+                            'portfolio/{account}/traded-volume': 1,
+                            'portfolio/{account}/positions': 1,
+                            'portfolio/{account}/pnl-chart': 1,
+                        },
+                    },
+                    'private': {
+                        'get': {
+                            'auth/api-keys': 1,
+                            'profiles/partner-accounts': 1,
+                            'markets/{slug}/user-orders': 1,
+                            'portfolio/positions': 1,
+                            'portfolio/trades': 1,
+                            'markets/{slug}/locked-balance': 1,
+                            'profiles/me': 1,
+                            'profiles/{account}': 1,
+                            'portfolio/pnl-chart': 1,
+                            'portfolio/history': 1,
+                            'portfolio/points': 1,
+                            'portfolio/trading/allowance': 1,
+                            'auth/api-tokens/capabilities': 1,
+                            'auth/api-tokens': 1,
+                            'profiles/partner-accounts/{profileId}/allowances': 1,
+                        },
+                        'post': {
+                            'auth/logout': 1,
+                            'auth/api-keys': 1,
+                            'auth/login': 1,
+                            'orders': 1,
+                            'orders/cancel': 1,
+                            'orders/cancel-batch': 1,
+                            'orders/batch-cancel': 1,
+                            'orders/status/batch': 1,
+                            'portfolio/redeem': 1,
+                            'portfolio/withdraw': 1,
+                            'portfolio/withdrawal-addresses': 1,
+                            'auth/api-tokens/derive': 1,
+                            'profiles/partner-accounts': 1,
+                            'profiles/partner-accounts/{profileId}/allowances/retry': 1,
+                        },
+                        'delete': {
+                            'auth/api-keys': 1,
+                            'orders/{order_id}': 1,
+                            'orders/all/{slug}': 1,
+                            'auth/api-tokens/{tokenId}': 1,
+                            'portfolio/withdrawal-addresses/{address}': 1,
+                        },
+                    },
+                },
+            },
+            'requiredCredentials': {
+                'apiKey': true,   // Limitless API key
+                'secret': true,
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.02,
+                    'taker': 0.02,
+                },
+            },
+            'options': {
+                'defaultFetchMarketsPages': 5,
+                'marketsPageSize': 25,
+                'usdcDecimals': 6,  // Limitless sizes are 6-decimal USDC
+                'warnOnCancelAllOrdersWithOutcome': true, // cancelAllOrders with an outcome symbol will cancel all orders for the entire slug (both YES and NO outcomes), so we warn by default to prevent mistakes. Set this option to false to suppress the warning.
+                'zeroAddress': '0x0000000000000000000000000000000000000000',
+                'createMarketBuyOrderRequiresPrice': true,
+            },
+            'exceptions': {
+                'exact': {
+                    // {"statusCode":400,"message":"Body is not valid JSON but content-type is set to 'application/json'"}
+                    // 400 Bad Request {"message":"Order not found or already canceled"}
+                },
+                'broad': {},
+            },
+        });
+    }
+
+    /**
+     * @method
+     * @name limitless#fetchMarkets
+     * @description fetches all active limitless markets paginated and returns one CCXT market per child market, each containing a list of outcome objects (YES/NO)
+     * @see https://docs.limitless.exchange/api-reference/markets/get-active-markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.queries] filter markets by these search query strings
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        const queries = this.safeList (params, 'queries', []) as any[];
+        const rest = this.omit (params, [ 'queries' ]);
+        let allRaw: any[] = [];
+        const queriesLength = queries.length;
+        if (queries && queriesLength > 0) {
+            const limit = this.safeInteger (rest, 'limit', 50);
+            const searchRest = this.omit (rest, [ 'limit' ]);
+            const seen: Dict = {};
+            for (let i = 0; i < queries.length; i++) {
+                const q = queries[i];
+                const response = await this.limitlessPublicGetMarketsSearch (this.extend ({ 'query': q, 'limit': limit }, searchRest));
+                const found = this.safeList (response, 'markets', []) as any[];
+                for (let j = 0; j < found.length; j++) {
+                    const raw = found[j];
+                    const slug = this.safeString (raw, 'slug');
+                    if (slug && !(slug in seen)) {
+                        seen[slug] = true;
+                        allRaw.push (raw);
+                    }
+                }
+            }
+        } else {
+            let page = 1;
+            const pageSize = this.safeInteger (this.options, 'marketsPageSize', 25);
+            const request: Dict = {
+                'page': page,
+                'limit': pageSize,
+            };
+            const firstPageResponse = await this.limitlessPublicGetMarketsActive (this.extend (request, rest));
+            const totalMarketsCount = this.safeInteger (firstPageResponse, 'totalMarketsCount');
+            const firstData = this.safeList (firstPageResponse, 'data', []);
+            allRaw = this.arrayConcat (allRaw, firstData);
+            const promises = [];
+            const totalPages = Math.ceil (totalMarketsCount / pageSize);
+            for (let i = 2; i <= totalPages; i++) {
+                page = i;
+                request['page'] = page;
+                promises.push (this.limitlessPublicGetMarketsActive (this.extend (request, rest)));
+            }
+            const responses = await Promise.all (promises);
+            const length = responses.length;
+            for (let j = 0; j < length; j++) {
+                const response = this.safeDict (responses, j);
+                const data = this.safeList (response, 'data', []);
+                allRaw = this.arrayConcat (allRaw, data);
+            }
+            const lastPageResponse = this.safeDict (responses, length - 1);
+            const lastPageData = this.safeList (lastPageResponse, 'data', []);
+            const lastPageLength = lastPageData.length;
+            if (lastPageLength >= pageSize) {
+                while (true) {
+                    page = this.sum (page, 1);
+                    request['page'] = page;
+                    const response = await this.limitlessPublicGetMarketsActive (this.extend (request, rest));
+                    const rawPageMarkets = this.safeList (response, 'data', response as any);
+                    const page_markets = (rawPageMarkets !== undefined) ? rawPageMarkets : [];
+                    const pageMarketsLength = page_markets.length;
+                    if (!page_markets || pageMarketsLength === 0) {
+                        break;
+                    }
+                    for (let i = 0; i < page_markets.length; i++) {
+                        const raw = page_markets[i];
+                        allRaw.push (raw);
+                    }
+                    if (pageMarketsLength < pageSize) {
+                        break;
+                    }
+                }
+            }
+        }
+        const markets: Market[] = [];
+        const eventGroups: Dict = {};
+        for (let i = 0; i < allRaw.length; i++) {
+            const raw = allRaw[i];
+            const groupId = this.safeString (raw, 'groupId', this.safeString (raw, 'slug'));
+            const eventKey = groupId ? this.shortenSlug (groupId) : undefined;
+            const m = this.parseMarket (raw);
+            markets.push (m);
+            if (eventKey) {
+                if (!(eventKey in eventGroups)) {
+                    eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString (raw, 'title', groupId), 'raw': raw, 'markets': [] };
+                }
+                const eventGroup = eventGroups[eventKey] as Dict;
+                eventGroup['markets'].push (m);
+            }
+        }
+        const eventsDict: Dict = {};
+        const eventKeys = Object.keys (eventGroups);
+        for (let i = 0; i < eventKeys.length; i++) {
+            const eventKey = eventKeys[i];
+            const g = eventGroups[eventKey] as Dict;
+            eventsDict[eventKey] = this.parseEvent (g);
+        }
+        this.events = eventsDict;
+        return markets;
+    }
+
+    parseMarket (raw: Dict): Market {
+        //
+        // {
+        //   "id":"36814",
+        //   "automationType":"manual",
+        //   "conditionId":"0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
+        //   "negRiskRequestId":null,
+        //   "description":"<p>This market will resolve to “Yes” if Donald Trump resigns or is removed as President or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to \\""Yes\\"", regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinet’s determination of presidential inability) will qualify for a \\""Yes\\"" resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
+        //   "collateralToken":{
+        //       "address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        //       "decimals":"6",
+        //       "symbol":"USDC"
+        //   },
+        //   "title":"💎 Trump out as President before 2027?",
+        //   "proxyTitle":null,
+        //   "expirationDate":"Jan 1, 2027",
+        //   "expirationTimestamp":"1798779540000",
+        //   "createdAt":"2026-01-20T18:17:48.298Z",
+        //   "updatedAt":"2026-02-24T17:00:11.833Z",
+        //   "categories":[
+        //       "Politics"
+        //   ],
+        //   "status":"FUNDED",
+        //   "expired":false,
+        //   "hidden":false,
+        //   "creator":{
+        //       "name":"Limitless",
+        //       "imageURI":"https://limitless.exchange/assets/images/logo.svg",
+        //       "link":"https://x.com/trylimitless"
+        //   },
+        //   "tags":[
+        //       "Limitless"
+        //   ],
+        //   "volume":"290091252",
+        //   "volumeFormatted":"290.091252",
+        //   "tokens":{
+        //       "yes":"56154308742753982686710750162015444986563701968079760676518531584453506363044",
+        //       "no":"32572248812801208874557774576516861470423415416073401354576860825663488568217"
+        //   },
+        //   "prices":[
+        //       0.164,
+        //       0.836
+        //   ],
+        //   "isOther":false,
+        //   "isRewardable":true,
+        //   "slug":"trump-out-as-president-before-2027-1768933068297",
+        //   "tradeType":"clob",
+        //   "venue":{
+        //       "exchange":"0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+        //       "adapter":null
+        //   },
+        //   "marketType":"single",
+        //   "priorityIndex":"0",
+        //   "winningOutcomeIndex":null,
+        //   "metadata":{
+        //       "fee":true,
+        //       "isBannered":false,
+        //       "isPolyArbitrage":true
+        //   },
+        //   "trends":{
+        //       "hourly":{
+        //           "value":"3",
+        //           "rank":"395"
+        //       }
+        //   },
+        //   "settings":{
+        //       "minSize":"100000000",
+        //       "maxSpread":"0.035",
+        //       "dailyReward":"5",
+        //       "rewardsEpoch":"0.003472222222222222",
+        //       "c":"3",
+        //       "rebateRate":"0"
+        //   },
+        //   "imageUrl":"https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
+        //   "logo":"https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png"
+        // }
+        //
+        const slug = this.safeString (raw, 'slug');
+        const address = this.safeString (raw, 'address', slug);
+        const groupId = this.safeString (raw, 'groupId', slug);
+        const tokens = this.safeValue (raw, 'tokens', {});
+        const active = this.safeBool (raw, 'active', true);
+        const endDate = this.safeString (raw, 'deadline', this.safeString (raw, 'expiresAt'));
+        const volume24h = this.safeNumber (raw, 'volume24h');
+        const marketSymbol = this.slugToMarketSymbol (groupId, slug);
+        const outcomes: any[] = [];
+        const tokenEntries = Object.keys (tokens);
+        for (let i = 0; i < tokenEntries.length; i++) {
+            const outcomeLabel = tokenEntries[i];
+            const tokenData = tokens[outcomeLabel];
+            const tokenId = tokenData;
+            outcomes.push ({
+                'id': tokenId,
+                'symbol': this.slugToOutcomeSymbol (groupId, slug, outcomeLabel),
+                'marketSymbol': marketSymbol,
+                'label': outcomeLabel,
+                'active': active,
+                'info': {
+                    'slug': slug,
+                    'address': address,
+                    'outcomeLabel': outcomeLabel,
+                    'tokenId': tokenId,
+                    'volume24h': volume24h,
+                },
+            });
+        }
+        return {
+            'id': slug,
+            'symbol': marketSymbol,
+            'base': slug,
+            'quote': 'USDC',
+            'settle': undefined,
+            'baseId': slug,
+            'quoteId': 'USDC',
+            'settleId': undefined,
+            'type': 'prediction',
+            'spot': false,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'prediction': true,
+            'active': active,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': endDate ? this.parse8601 (endDate) : undefined,
+            'expiryDatetime': endDate,
+            'strike': undefined,
+            'optionType': undefined,
+            'taker': 0.02,
+            'maker': 0.02,
+            'percentage': true,
+            'tierBased': false,
+            'feeSide': 'get',
+            'precision': {
+                'amount': 0.000001,
+                'price': 0.001,
+            },
+            'limits': {
+                'leverage': { 'min': 1, 'max': 1 },
+                'amount': { 'min': 0, 'max': undefined },
+                'price': { 'min': 0.001, 'max': 0.999 },
+                'cost': { 'min': undefined, 'max': undefined },
+            },
+            'outcomes': outcomes,
+            'info': this.extend (raw, {
+                'slug': slug,
+                'address': address,
+                'volume24h': volume24h,
+            }),
+            'created': undefined,
+        };
+    }
+
+    parseEvent (event: Dict): any {
+        // {
+        //    "groupId":"trump-out-as-president-before-2027-1768933068297",
+        //    "title":"💎 Trump out as President before 2027?",
+        //    "raw":{
+        //       "id":"36814",
+        //       "automationType":"manual",
+        //       "conditionId":"0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
+        //       "negRiskRequestId":null,
+        //       "description":"<p>This market will resolve to “Yes” if Donald Trump resigns or is removed as President or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to \\""Yes\\"", regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinet’s determination of presidential inability) will qualify for a \\""Yes\\"" resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
+        //       "collateralToken":{
+        //          "address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        //          "decimals":"6",
+        //          "symbol":"USDC"
+        //       },
+        //       "title":"💎 Trump out as President before 2027?",
+        //       "proxyTitle":null,
+        //       "expirationDate":"Jan 1, 2027",
+        //       "expirationTimestamp":"1798779540000",
+        //       "createdAt":"2026-01-20T18:17:48.298Z",
+        //       "updatedAt":"2026-02-24T17:00:11.833Z",
+        //       "categories":[
+        //          "Politics"
+        //       ],
+        //       "status":"FUNDED",
+        //       "expired":false,
+        //       "hidden":false,
+        //       "creator":{
+        //          "name":"Limitless",
+        //          "imageURI":"https://limitless.exchange/assets/images/logo.svg",
+        //          "link":"https://x.com/trylimitless"
+        //       },
+        //       "tags":[
+        //          "Limitless"
+        //       ],
+        //       "volume":"290091252",
+        //       "volumeFormatted":"290.091252",
+        //       "tokens":{
+        //          "yes":"56154308742753982686710750162015444986563701968079760676518531584453506363044",
+        //          "no":"32572248812801208874557774576516861470423415416073401354576860825663488568217"
+        //       },
+        //       "prices":[
+        //          0.164,
+        //          0.836
+        //       ],
+        //       "isOther":false,
+        //       "isRewardable":true,
+        //       "slug":"trump-out-as-president-before-2027-1768933068297",
+        //       "tradeType":"clob",
+        //       "venue":{
+        //          "exchange":"0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+        //          "adapter":null
+        //       },
+        //       "marketType":"single",
+        //       "priorityIndex":"0",
+        //       "winningOutcomeIndex":null,
+        //       "metadata":{
+        //          "fee":true,
+        //          "isBannered":false,
+        //          "isPolyArbitrage":true
+        //       },
+        //       "trends":{
+        //          "hourly":{
+        //             "value":"3",
+        //             "rank":"395"
+        //          }
+        //       },
+        //       "settings":{
+        //          "minSize":"100000000",
+        //          "maxSpread":"0.035",
+        //          "dailyReward":"5",
+        //          "rewardsEpoch":"0.003472222222222222",
+        //          "c":"3",
+        //          "rebateRate":"0"
+        //       },
+        //       "imageUrl":"https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
+        //       "logo":"https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png"
+        //    },
+        //    "markets":[
+        //       {
+        //          "id":"trump-out-as-president-before-2027-1768933068297",
+        //          "symbol":"TRUMP_OUT_PRESIDENT_2027_1768933068297",
+        //          "base":"trump-out-as-president-before-2027-1768933068297",
+        //          "quote":"USDC",
+        //          "baseId":"trump-out-as-president-before-2027-1768933068297",
+        //          "quoteId":"USDC",
+        //          "type":"prediction",
+        //          "spot":false,
+        //          "margin":false,
+        //          "swap":false,
+        //          "future":false,
+        //          "option":false,
+        //          "prediction":true,
+        //          "active":true,
+        //          "contract":false,
+        //          "taker":0.02,
+        //          "maker":0.02,
+        //          "percentage":true,
+        //          "tierBased":false,
+        //          "feeSide":"get",
+        //          "precision":{
+        //             "amount":0.000001,
+        //             "price":0.001
+        //          },
+        //          "limits":{
+        //             "leverage":{
+        //                "min":1,
+        //                "max":1
+        //             },
+        //             "amount":{
+        //                "min":0
+        //             },
+        //             "price":{
+        //                "min":0.001,
+        //                "max":0.999
+        //             },
+        //             "cost":{
+        //             }
+        //          },
+        //          "outcomes":[
+        //             {
+        //                "id":"trump-out-as-president-before-2027-1768933068297/yes",
+        //                "symbol":"TRUMP_OUT_PRESIDENT_2027_1768933068297:YES",
+        //                "marketSymbol":"TRUMP_OUT_PRESIDENT_2027_1768933068297",
+        //                "label":"yes",
+        //                "active":true,
+        //                "info":{
+        //                   "slug":"trump-out-as-president-before-2027-1768933068297",
+        //                   "address":"trump-out-as-president-before-2027-1768933068297",
+        //                   "outcomeLabel":"yes",
+        //                   "tokenId":"trump-out-as-president-before-2027-1768933068297/yes"
+        //                }
+        //             },
+        //             {
+        //                "id":"trump-out-as-president-before-2027-1768933068297/no",
+        //                "symbol":"TRUMP_OUT_PRESIDENT_2027_1768933068297:NO",
+        //                "marketSymbol":"TRUMP_OUT_PRESIDENT_2027_1768933068297",
+        //                "label":"no",
+        //                "active":true,
+        //                "info":{
+        //                   "slug":"trump-out-as-president-before-2027-1768933068297",
+        //                   "address":"trump-out-as-president-before-2027-1768933068297",
+        //                   "outcomeLabel":"no",
+        //                   "tokenId":"trump-out-as-president-before-2027-1768933068297/no"
+        //                }
+        //             }
+        //          ],
+        //          "info":{
+        //             "id":"36814",
+        //             "automationType":"manual",
+        //             "conditionId":"0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
+        //             "negRiskRequestId":null,
+        //             "description":"<p>This market will resolve to “Yes” if Donald Trump resigns or is removed as President or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to \\""Yes\\"", regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinet’s determination of presidential inability) will qualify for a \\""Yes\\"" resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
+        //             "collateralToken":{
+        //                "address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        //                "decimals":"6",
+        //                "symbol":"USDC"
+        //             },
+        //             "title":"💎 Trump out as President before 2027?",
+        //             "proxyTitle":null,
+        //             "expirationDate":"Jan 1, 2027",
+        //             "expirationTimestamp":"1798779540000",
+        //             "createdAt":"2026-01-20T18:17:48.298Z",
+        //             "updatedAt":"2026-02-24T17:00:11.833Z",
+        //             "categories":[
+        //                "Politics"
+        //             ],
+        //             "status":"FUNDED",
+        //             "expired":false,
+        //             "hidden":false,
+        //             "creator":{
+        //                "name":"Limitless",
+        //                "imageURI":"https://limitless.exchange/assets/images/logo.svg",
+        //                "link":"https://x.com/trylimitless"
+        //             },
+        //             "tags":[
+        //                "Limitless"
+        //             ],
+        //             "volume":"290091252",
+        //             "volumeFormatted":"290.091252",
+        //             "tokens":{
+        //                "yes":"56154308742753982686710750162015444986563701968079760676518531584453506363044",
+        //                "no":"32572248812801208874557774576516861470423415416073401354576860825663488568217"
+        //             },
+        //             "prices":[
+        //                0.164,
+        //                0.836
+        //             ],
+        //             "isOther":false,
+        //             "isRewardable":true,
+        //             "slug":"trump-out-as-president-before-2027-1768933068297",
+        //             "tradeType":"clob",
+        //             "venue":{
+        //                "exchange":"0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+        //                "adapter":null
+        //             },
+        //             "marketType":"single",
+        //             "priorityIndex":"0",
+        //             "winningOutcomeIndex":null,
+        //             "metadata":{
+        //                "fee":true,
+        //                "isBannered":false,
+        //                "isPolyArbitrage":true
+        //             },
+        //             "trends":{
+        //                "hourly":{
+        //                   "value":"3",
+        //                   "rank":"395"
+        //                }
+        //             },
+        //             "settings":{
+        //                "minSize":"100000000",
+        //                "maxSpread":"0.035",
+        //                "dailyReward":"5",
+        //                "rewardsEpoch":"0.003472222222222222",
+        //                "c":"3",
+        //                "rebateRate":"0"
+        //             },
+        //             "imageUrl":"https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
+        //             "logo":"https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
+        //             "address":"trump-out-as-president-before-2027-1768933068297"
+        //          }
+        //       }
+        //    ]
+        // }
+        const groupId = this.safeString (event, 'address', this.safeString (event, 'groupId', this.safeString (event, 'slug')));
+        const endDate = this.safeString (event, 'deadline', this.safeString (event, 'expiresAt'));
+        const title = this.safeString (event, 'title', groupId);
+        const markets = [];
+        const rawMarkets = this.safeList (event, 'markets', []);
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const rawMarket = rawMarkets[i];
+            const marketSymbol = this.safeString (rawMarket, 'symbol');
+            const marketOutcomes = this.safeList (rawMarket, 'outcomes');
+            if (marketSymbol !== undefined && marketOutcomes !== undefined) {
+                markets.push (rawMarket);
+            } else {
+                markets.push (this.parseMarket (rawMarket));
+            }
+        }
+        return this.extend ({
+            'id': groupId,
+            'slug': groupId,
+            'symbol': groupId ? this.shortenSlug (groupId) : undefined,
+            'title': title,
+            'description': this.safeString (event, 'description'),
+            'markets': markets,
+            'url': this.safeString (event, 'url'),
+            'image': this.safeString (event, 'imageUrl', this.safeString (event, 'image')),
+            'active': this.safeBool (event, 'active', true),
+            'resolved': this.safeBool (event, 'resolved', false),
+            'category': this.safeString (event, 'category'),
+            'tags': this.safeList (event, 'tags'),
+            'created': this.parse8601 (this.safeString (event, 'createdAt')),
+            'createdDatetime': this.safeString (event, 'createdAt'),
+            'end': endDate ? this.parse8601 (endDate) : undefined,
+            'endDatetime': endDate,
+            'lastUpdatedAt': this.parse8601 (this.safeString (event, 'updatedAt')),
+            'resolutionSource': this.safeString (event, 'resolutionSource'),
+            'info': event,
+        }) as any;
+    }
+
+    /**
+     * @method
+     * @name limitless#fetchTicker
+     * @description fetches the current price and best bid/ask for a single outcome token, combining the market detail and order book endpoints
+     * @see https://docs.limitless.exchange/api-reference/markets/get-market
+     * @see https://docs.limitless.exchange/api-reference/trading/orderbook
+     * @param {string} symbol unified outcome symbol like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
+    async fetchTicker (symbol: Str, params = {}): Promise<Ticker> {
+        const outcome = symbol;
+        await this.loadMarkets ();
+        this.checkEventsAndMarkets (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const slug = this.safeString (outcomeObj['info'], 'slug');
+        const request: Dict = {
+            'addressOrSlug': slug,
+        };
+        const promises = [
+            this.limitlessPublicGetMarketsAddressOrSlug (this.extend (request, params)),
+            this.limitlessPublicGetMarketsSlugOrderbook ({ 'slug': slug }),
+        ];
+        const responses = await Promise.all (promises);
+        const response = responses[0];
+        //
+        //     {
+        //         "id": "36814",
+        //         "automationType": "manual",
+        //         "conditionId": "0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
+        //         "negRiskRequestId": null,
+        //         "description": "<p>This market will resolve to Yes if Donald Trump resigns or is removed as President or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to No.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to Yes, regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinets determination of presidential inability) will qualify for a Yes resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
+        //         "collateralToken": {
+        //             "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        //             "decimals": "6",
+        //             "symbol": "USDC"
+        //         },
+        //         "title": "Trump out as President before 2027?",
+        //         "proxyTitle": null,
+        //         "expirationDate": "Jan 1, 2027",
+        //         "expirationTimestamp": "1798779540000",
+        //         "createdAt": "2026-01-20T18:17:48.298Z",
+        //         "updatedAt": "2026-04-09T10:47:02.254Z",
+        //         "categories": [ "Politics" ],
+        //         "status": "FUNDED",
+        //         "expired": false,
+        //         "hidden": false,
+        //         "creator": {
+        //             "name": "Limitless",
+        //             "imageURI": "https://limitless.exchange/assets/images/logo.svg",
+        //             "link": "https://x.com/trylimitless"
+        //         },
+        //         "tags": [ "Limitless" ],
+        //         "volume": "1032001807",
+        //         "volumeFormatted": "1032.001807",
+        //         "tokens": {
+        //             "yes": "56154308742753982686710750162015444986563701968079760676518531584453506363044",
+        //             "no": "32572248812801208874557774576516861470423415416073401354576860825663488568217"
+        //         },
+        //         "prices": [ 0.155, 0.845 ],
+        //         "tradePrices": {
+        //             "buy": { "market": [Array], "limit": [Array] },
+        //             "sell": { "market": [Array], "limit": [Array] }
+        //         },
+        //         "isOther": false,
+        //         "isRewardable": true,
+        //         "slug": "trump-out-as-president-before-2027-1768933068297",
+        //         "tradeType": "clob",
+        //         "venue": {
+        //             "exchange": "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+        //             "adapter": null
+        //         },
+        //         "marketType": "single",
+        //         "priorityIndex": "0",
+        //         "winningOutcomeIndex": null,
+        //         "metadata": { "fee": true, "isBannered": false, "isPolyArbitrage": true },
+        //         "settings": {
+        //             "minSize": "100000000",
+        //             "maxSpread": "0.035",
+        //             "dailyReward": "5",
+        //             "rewardsEpoch": "0.003472222222222222",
+        //             "c": "3",
+        //             "rebateRate": "0"
+        //         },
+        //         "imageUrl": "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
+        //         "logo": "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png"
+        //     }
+        //
+        const tickerInput: Dict = { 'market': response, 'book': responses[1] };
+        return this.parseTicker (tickerInput, outcomeObj);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name limitless#parseTicker
+     * @description parses a raw market object, or a composite market + book dict, into a unified ticker for the specified outcome token
+     * @param {object} ticker a raw limitless market object or a dict with market and book entries
+     * @param {object} [market] the outcome object the ticker belongs to
+     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "id": "36814",
+        //         "automationType": "manual",
+        //         "conditionId": "0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
+        //         "negRiskRequestId": null,
+        //         "description": "<p>This market will resolve to Yes if Donald Trump resigns or is removed as President or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to No.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to Yes, regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinets determination of presidential inability) will qualify for a Yes resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
+        //         "collateralToken": {
+        //             "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        //             "decimals": "6",
+        //             "symbol": "USDC"
+        //         },
+        //         "title": "Trump out as President before 2027?",
+        //         "proxyTitle": null,
+        //         "expirationDate": "Jan 1, 2027",
+        //         "expirationTimestamp": "1798779540000",
+        //         "createdAt": "2026-01-20T18:17:48.298Z",
+        //         "updatedAt": "2026-04-09T10:47:02.254Z",
+        //         "categories": [ "Politics" ],
+        //         "status": "FUNDED",
+        //         "expired": false,
+        //         "hidden": false,
+        //         "creator": {
+        //             "name": "Limitless",
+        //             "imageURI": "https://limitless.exchange/assets/images/logo.svg",
+        //             "link": "https://x.com/trylimitless"
+        //         },
+        //         "tags": [ "Limitless" ],
+        //         "volume": "1032001807",
+        //         "volumeFormatted": "1032.001807",
+        //         "tokens": {
+        //             "yes": "56154308742753982686710750162015444986563701968079760676518531584453506363044",
+        //             "no": "32572248812801208874557774576516861470423415416073401354576860825663488568217"
+        //         },
+        //         "prices": [ 0.155, 0.845 ],
+        //         "tradePrices": {
+        //             "buy": { "market": [Array], "limit": [Array] },
+        //             "sell": { "market": [Array], "limit": [Array] }
+        //         },
+        //         "isOther": false,
+        //         "isRewardable": true,
+        //         "slug": "trump-out-as-president-before-2027-1768933068297",
+        //         "tradeType": "clob",
+        //         "venue": {
+        //             "exchange": "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+        //             "adapter": null
+        //         },
+        //         "marketType": "single",
+        //         "priorityIndex": "0",
+        //         "winningOutcomeIndex": null,
+        //         "metadata": { "fee": true, "isBannered": false, "isPolyArbitrage": true },
+        //         "settings": {
+        //             "minSize": "100000000",
+        //             "maxSpread": "0.035",
+        //             "dailyReward": "5",
+        //             "rewardsEpoch": "0.003472222222222222",
+        //             "c": "3",
+        //             "rebateRate": "0"
+        //         },
+        //         "imageUrl": "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
+        //         "logo": "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png"
+        //     }
+        //
+        // ticker is either a plain raw market object, or a composite dict { 'market': rawMarket, 'book': rawOrderbook }
+        let raw = ticker;
+        let book = undefined;
+        if ('market' in ticker) {
+            raw = this.safeDict (ticker, 'market', {});
+            book = this.safeDict (ticker, 'book');
+        }
+        const rawLabel = (market !== undefined) ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'yes')) : 'yes';
+        const isYes = rawLabel.toLowerCase () !== 'no';
+        let bidStr = undefined;
+        let askStr = undefined;
+        let bidSizeStr = undefined;
+        let askSizeStr = undefined;
+        let lastStr = undefined;
+        let midStr = undefined;
+        if (book !== undefined) {
+            // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
+            const rawBids = this.safeList (book, 'bids', []) as any[];
+            const rawAsks = this.safeList (book, 'asks', []) as any[];
+            const rawBidsLength = rawBids.length;
+            const rawAsksLength = rawAsks.length;
+            const yesBestBid = (rawBidsLength > 0) ? rawBids[0] : undefined;
+            const yesBestAsk = (rawAsksLength > 0) ? rawAsks[0] : undefined;
+            const yesBidPrice = this.safeString (yesBestBid, 'price');
+            const yesBidSize = this.safeString (yesBestBid, 'size');
+            const yesAskPrice = this.safeString (yesBestAsk, 'price');
+            const yesAskSize = this.safeString (yesBestAsk, 'size');
+            const yesLast = this.safeString (book, 'lastTradePrice');
+            const yesMid = this.safeString (book, 'midpoint');
+            if (isYes) {
+                bidStr = yesBidPrice;
+                bidSizeStr = yesBidSize;
+                askStr = yesAskPrice;
+                askSizeStr = yesAskSize;
+                lastStr = yesLast;
+                midStr = yesMid;
+            } else {
+                if (yesAskPrice !== undefined) {
+                    bidStr = Precise.stringSub ('1', yesAskPrice);
+                }
+                bidSizeStr = yesAskSize;
+                if (yesBidPrice !== undefined) {
+                    askStr = Precise.stringSub ('1', yesBidPrice);
+                }
+                askSizeStr = yesBidSize;
+                if (yesLast !== undefined) {
+                    lastStr = Precise.stringSub ('1', yesLast);
+                }
+                if (yesMid !== undefined) {
+                    midStr = Precise.stringSub ('1', yesMid);
+                }
+            }
+        }
+        const prices = this.safeList (raw, 'prices', []) as any[];
+        const pricesLength = prices.length;
+        if ((lastStr === undefined) && (pricesLength > 0)) {
+            lastStr = (isYes) ? this.safeString (prices, 0) : this.safeString (prices, 1);
+        }
+        // volume and book sizes are in USDC micro-units (6 decimals)
+        const rawVolume = this.safeString (raw, 'volume');
+        let volumeStr = undefined;
+        if (rawVolume !== undefined) {
+            volumeStr = Precise.stringDiv (rawVolume, '1000000');
+        }
+        if (bidSizeStr !== undefined) {
+            bidSizeStr = Precise.stringDiv (bidSizeStr, '1000000');
+        }
+        if (askSizeStr !== undefined) {
+            askSizeStr = Precise.stringDiv (askSizeStr, '1000000');
+        }
+        const now = this.milliseconds ();
+        return this.safeTicker ({
+            'symbol': this.safeSymbol (undefined, market),
+            'timestamp': now,
+            'datetime': this.iso8601 (now),
+            'high': undefined,
+            'low': undefined,
+            'bid': this.parseNumber (bidStr),
+            'bidVolume': this.parseNumber (bidSizeStr),
+            'ask': this.parseNumber (askStr),
+            'askVolume': this.parseNumber (askSizeStr),
+            'vwap': undefined,
+            'open': undefined,
+            'close': this.parseNumber (lastStr),
+            'last': this.parseNumber (lastStr),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': this.parseNumber (midStr),
+            'baseVolume': undefined,
+            'quoteVolume': this.parseNumber (volumeStr),
+            'info': ticker,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name limitless#fetchTickers
+     * @description fetches tickers for multiple outcome tokens, grouping requested outcomes by their parent market, fetches all active markets when symbols is omitted
+     * @see https://docs.limitless.exchange/api-reference/markets/get-market
+     * @see https://docs.limitless.exchange/api-reference/trading/orderbook
+     * @param {string[]} [symbols] unified outcome symbols or outcome token ids
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome symbol
+     */
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        const result: Tickers = {};
+        if (symbols === undefined) {
+            // parse tickers for every loaded outcome from the cached listing data, without the per-market order books
+            const allMarkets = await this.fetchMarkets (params);
+            for (let i = 0; i < allMarkets.length; i++) {
+                const m = allMarkets[i];
+                const raw = m['info'];
+                const outcomesList = this.safeList (m as any, 'outcomes', []) as any[];
+                for (let j = 0; j < outcomesList.length; j++) {
+                    const ticker = this.parseTicker (raw, outcomesList[j]);
+                    const symbolKey = this.safeString (ticker, 'symbol');
+                    if (symbolKey !== undefined) {
+                        result[symbolKey] = ticker;
+                    }
+                }
+            }
+            return result;
+        }
+        // group target outcomes by their parent market to fetch each market and book only once
+        const outcomesBySlug: Dict = {};
+        const slugs: any[] = [];
+        for (let i = 0; i < symbols.length; i++) {
+            this.checkEventsAndMarkets (symbols[i]);
+            const outcomeObj = this.outcome (symbols[i]);
+            const slug = this.safeString (outcomeObj['info'], 'slug');
+            if (!(slug in outcomesBySlug)) {
+                outcomesBySlug[slug] = [];
+                slugs.push (slug);
+            }
+            // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
+            const grouped = outcomesBySlug[slug];
+            grouped.push (outcomeObj);
+            outcomesBySlug[slug] = grouped;
+        }
+        const promises: any[] = [];
+        for (let i = 0; i < slugs.length; i++) {
+            const slug = slugs[i];
+            promises.push (this.limitlessPublicGetMarketsAddressOrSlug (this.extend ({ 'addressOrSlug': slug }, params)));
+            promises.push (this.limitlessPublicGetMarketsSlugOrderbook ({ 'slug': slug }));
+        }
+        const responses = await Promise.all (promises);
+        for (let i = 0; i < slugs.length; i++) {
+            const slug = slugs[i];
+            const detailIndex = i * 2;
+            const detail = responses[detailIndex];
+            const book = responses[this.sum (detailIndex, 1)];
+            const tickerInput: Dict = { 'market': detail, 'book': book };
+            const grouped = outcomesBySlug[slug] as any[];
+            for (let j = 0; j < grouped.length; j++) {
+                const ticker = this.parseTicker (tickerInput, grouped[j]);
+                const symbolKey = this.safeString (ticker, 'symbol');
+                if (symbolKey !== undefined) {
+                    result[symbolKey] = ticker;
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name limitless#fetchTrades
+     * @description fetches recent public trades for a single outcome token from the market events feed
+     * @see https://docs.limitless.exchange/api-reference/trading/market-events
+     * @param {string} symbol unified outcome symbol like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+     */
+    async fetchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        this.checkEventsAndMarkets (symbol);
+        const outcomeObj = this.outcome (symbol);
+        const slug = this.safeString (outcomeObj['info'], 'slug');
+        const tokenId = this.safeString (outcomeObj, 'id');
+        const request: Dict = {
+            'slug': slug,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.limitlessPublicGetMarketsSlugEvents (this.extend (request, params));
+        //
+        //     {
+        //         "events": [
+        //             {
+        //                 "createdAt": "2026-06-12T15:24:25.617Z",
+        //                 "makerAmount": "19996200",
+        //                 "matchedSize": "2500000",
+        //                 "price": 0.332,
+        //                 "profile": { "account": "0x0572B4Aa431e730d1d19cc7CFea7D6C0Bc07096f" },
+        //                 "side": 0,
+        //                 "takerAmount": "830000",
+        //                 "title": "",
+        //                 "tokenId": "34504808738227095158010759634880534083339296329182698784451980951930485131851",
+        //                 "txHash": "0x432344fc63f26f37e3ffe3aca45bcfcba6b7addfc07d04de4410855c0a56a175"
+        //             }
+        //         ],
+        //         "limit": 30,
+        //         "page": 1,
+        //         "totalPages": 1,
+        //         "totalRows": 13
+        //     }
+        //
+        const rows = this.safeList (response, 'events', []) as any[];
+        const filtered: any[] = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const rowTokenId = this.safeString (row, 'tokenId');
+            if ((tokenId !== undefined) && (rowTokenId !== undefined) && (rowTokenId !== tokenId)) {
+                continue;
+            }
+            filtered.push (row);
+        }
+        return this.parseTrades (filtered, outcomeObj as any, since, limit);
+    }
+
+    /**
+     * @method
+     * @name limitless#fetchOrderBook
+     * @description fetches the order book for a single outcome token, converting 6-decimal USDC sizes to whole units, no outcomes are quoted at 1 - price with the sides swapped
+     * @see https://docs.limitless.exchange/api-reference/trading/orderbook
+     * @param {string} symbol unified outcome symbol like TRUMP_OUT_PRESIDENT_2027:YES or an outcome token id
+     * @param {int} [limit] not used by limitless fetchOrderBook
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
+     */
+    async fetchOrderBook (symbol: Str, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        const outcome = symbol;
+        await this.loadMarkets ();
+        this.checkEventsAndMarkets (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const slug = this.safeString (outcomeObj['info'], 'slug');
+        const request: Dict = {
+            'slug': slug,
+        };
+        const response = await this.limitlessPublicGetMarketsSlugOrderbook (this.extend (request, params));
+        //
+        //     {
+        //         "bids": [
+        //             { "price": "0.14", "size": "12360330000", "side": "BUY" },
+        //             { "price": "0.1", "size": "1000000", "side": "BUY" },
+        //             { "price": "0.003", "size": "500000000", "side": "BUY" }
+        //         ],
+        //         "asks": [
+        //             { "price": "0.161", "size": "222000000", "side": "SELL" },
+        //             { "price": "0.996", "size": "5555000000", "side": "SELL" },
+        //             { "price": "0.997", "size": "500000000", "side": "SELL" }
+        //         ],
+        //         "tokenId": "56154308742753982686710750162015444986563701968079760676518531584453506363044",
+        //         "adjustedMidpoint": "0.1505",
+        //         "midpoint": "0.1505",
+        //         "maxSpread": "0.035",
+        //         "minSize": "100000000",
+        //         "lastTradePrice": "0.161"
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const decimals = this.safeInteger (this.options, 'usdcDecimals', 6);
+        // sizes are scaled by 10^decimals, USDC uses 6 decimals
+        const scaleStr = this.parsePrecision (this.numberToString (-decimals));
+        const outcomeLabel = this.safeStringLower (outcomeObj['info'], 'outcomeLabel', 'yes');
+        const isYes = outcomeLabel !== 'no';
+        const rawBids = this.safeList (response, 'bids', []) as any[];
+        const rawAsks = this.safeList (response, 'asks', []) as any[];
+        // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
+        const bidsSource = (isYes) ? rawBids : rawAsks;
+        const asksSource = (isYes) ? rawAsks : rawBids;
+        const bids: any[] = [];
+        const asks: any[] = [];
+        for (let bi = 0; bi < bidsSource.length; bi++) {
+            let priceStr = this.safeString (bidsSource[bi], 'price');
+            if (!isYes && (priceStr !== undefined)) {
+                priceStr = Precise.stringSub ('1', priceStr);
+            }
+            let sizeStr = this.safeString (bidsSource[bi], 'size');
+            if (sizeStr !== undefined) {
+                sizeStr = Precise.stringDiv (sizeStr, scaleStr);
+            }
+            bids.push ([ this.parseNumber (priceStr), this.parseNumber (sizeStr) ]);
+        }
+        for (let ai = 0; ai < asksSource.length; ai++) {
+            let priceStr = this.safeString (asksSource[ai], 'price');
+            if (!isYes && (priceStr !== undefined)) {
+                priceStr = Precise.stringSub ('1', priceStr);
+            }
+            let sizeStr = this.safeString (asksSource[ai], 'size');
+            if (sizeStr !== undefined) {
+                sizeStr = Precise.stringDiv (sizeStr, scaleStr);
+            }
+            asks.push ([ this.parseNumber (priceStr), this.parseNumber (sizeStr) ]);
+        }
+        return {
+            'symbol': this.safeString (outcomeObj, 'symbol', outcome),
+            'bids': this.sortBy (bids, 0, true),
+            'asks': this.sortBy (asks, 0),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        } as unknown as OrderBook;
+    }
+
+    /**
+     * @method
+     * @name limitless#fetchOHLCV
+     * @description fetches historical prices for a single limitless market outcome and maps them to OHLCV format, uses the `interval` query parameter and selects the YES/NO series that matches the requested outcome
+     * @see https://docs.limitless.exchange/api-reference/trading/historical-price
+     * @param {string} symbol outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum number of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV (symbol: Str, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        this.checkEventsAndMarkets (symbol);
+        const outcomeObj = this.outcome (symbol);
+        const slug = this.safeString (outcomeObj['info'], 'slug');
+        const outcomeLabel = this.safeStringUpper (outcomeObj['info'], 'outcomeLabel');
+        const interval = this.safeString (this.timeframes, timeframe, '1d');
+        const response = await this.limitlessPublicGetMarketsSlugHistoricalPrice (this.extend ({
+            'slug': slug,
+            'interval': interval,
+        }, params));
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                  "timestamp": 1705318200000,
+        //                  "price": 0.1655
+        //             },
+        //         ]
+        //     }
+        //
+        //
+        //     [
+        //         {
+        //             "title": "YES Token",
+        //             "prices": [
+        //                 {
+        //                     "price": 0.75,
+        //                     "timestamp": "2024-01-15T10:30:00Z"
+        //                 },
+        //             ]
+        //         },
+        //         {
+        //             "title": "NO Token",
+        //             "prices": [
+        //                 {
+        //                     "price": 0.25,
+        //                     "timestamp": "2024-01-15T10:30:00Z"
+        //                 }
+        //             ]
+        //         }
+        //     ]
+        //
+        const rawHistoryList = this.safeList (response, 'data', this.safeList (response, 'prices', response as any));
+        const rawHistory = (rawHistoryList !== undefined) ? rawHistoryList : [];
+        let history: any[] = rawHistory;
+        const rawHistoryLength = rawHistory.length;
+        if (rawHistoryLength > 0) {
+            const first = this.safeDict (rawHistory, 0, {});
+            const firstPrices = this.safeList (first, 'prices');
+            if (firstPrices !== undefined) {
+                let selectedSeries = first;
+                for (let i = 0; i < rawHistory.length; i++) {
+                    const series = this.safeDict (rawHistory, i, {});
+                    const title = this.safeStringUpper (series, 'title', '');
+                    if ((outcomeLabel !== undefined) && (title.indexOf (outcomeLabel) >= 0)) {
+                        selectedSeries = series;
+                        break;
+                    }
+                }
+                history = this.safeList (selectedSeries, 'prices', []);
+            }
+        }
+        const usableHistory = [];
+        for (let i = 0; i < history.length; i++) {
+            const point = history[i];
+            const pointPrice = this.safeNumber (point, 'price');
+            const pointTs = this.safeString (point, 'timestamp');
+            if ((pointPrice !== undefined) && (pointTs !== undefined)) {
+                usableHistory.push (point);
+            }
+        }
+        return this.parseOHLCVs (usableHistory, outcomeObj, timeframe, since, limit);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name limitless#parseOHLCV
+     * @description parses a single limitless price tick into a synthetic CCXT OHLCV tuple (all four OHLC fields set to price)
+     * @param {object} ohlcv the raw price tick object
+     * @param {object} [market] the outcome object the candle belongs to
+     * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
+     */
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //     {
+        //         "timestamp": 1705318200000,
+        //         "price": 0.1655
+        //     }
+        //
+        //     {
+        //         "price": 0.75,
+        //         "timestamp": "2024-01-15T10:30:00Z"
+        //     }
+        //
+        let ts = this.safeInteger (ohlcv, 'timestamp');
+        if (ts === undefined) {
+            const tsString = this.safeString (ohlcv, 'timestamp');
+            ts = tsString ? this.parse8601 (tsString) : undefined;
+        } else if (ts < 1000000000000) {
+            // old responses may return unix seconds
+            ts = ts * 1000;
+        }
+        const price = this.safeNumber (ohlcv, 'price');
+        const volume = this.safeNumber (ohlcv, 'volume', 0);   // history endpoint has no volume → 0
+        return [
+            ts,
+            price, price, price, price,   // synthetic OHLC from single tick
+            volume,
+        ];
+    }
+
+    /**
+     * @method
+     * @name limitless#fetchOrders
+     * @description fetches orders for the authenticated user for a single outcome
+     * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
+     * @param {string} [symbol] outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const outcome = symbol;
+        if (outcome === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires an outcome argument');
+        }
+        await this.loadMarkets ();
+        this.checkEventsAndMarkets (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const info = this.safeDict (outcomeObj, 'info');
+        const request: Dict = {
+            'slug': this.safeString (info, 'slug'),
+            'statuses': [ 'LIVE', 'MATCHED' ],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.limitlessPrivateGetMarketsSlugUserOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "createdAt": "2026-05-04T08:57:06.448Z",
+        //             "id": "c4b1a83a-219f-48db-a9be-1ddadf0bc14c",
+        //             "ownerId": 1315134,
+        //             "marketId": "112523",
+        //             "token": "46235703925185836960484608024734446969378108670784413458211837874003718039438",
+        //             "type": "GTC",
+        //             "status": "LIVE",
+        //             "side": "BUY",
+        //             "makerAmount": "1000040",
+        //             "takerAmount": "10870000",
+        //             "price": "0.092",
+        //             "originalSize": "10870000",
+        //             "remainingSize": "10870000"
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, outcomeObj as any, since, limit);
+    }
+
+    /**
+     * @method
+     * @name limitless#fetchOpenOrders
+     * @description fetches open orders for the authenticated user for a single outcome
+     * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
+     * @param {string} [symbol] outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const outcome = symbol;
+        if (outcome === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires an outcome argument');
+        }
+        await this.loadMarkets ();
+        this.checkEventsAndMarkets (outcome);
+        params = this.extend (params, {
+            'statuses': [ 'LIVE' ],
+        });
+        return await this.fetchOrders (outcome, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name limitless#fetchClosedOrders
+     * @description fetches closed orders for the authenticated user for a single outcome
+     * @see https://docs.limitless.exchange/api-reference/orders/get-user-orders
+     * @param {string} [symbol] outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const outcome = symbol;
+        if (outcome === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires an outcome argument');
+        }
+        await this.loadMarkets ();
+        this.checkEventsAndMarkets (outcome);
+        params = this.extend (params, {
+            'statuses': [ 'MATCHED' ],
+        });
+        return await this.fetchOrders (outcome, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name limitless#fetchOrdersByIds
+     * @description fetch orders by the list of order id
+     * @see https://docs.limitless.exchange/api-reference/trading/order-status-batch
+     * @param {string[]} ids list of order id
+     * @param {string} [symbol] market outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async fetchOrdersByIds (ids, symbol: Str = undefined, params = {}) {
+        const outcome = symbol;
+        await this.loadMarkets ();
+        this.checkEventsAndMarkets (outcome);
+        const length = ids.length;
+        if (length > 50) {
+            throw new BadRequest (this.id + ' fetchOrdersByIds can only fetch up to 50 orders at a time');
+        }
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            outcomeObj = this.outcome (outcome);
+        }
+        const items: Dict[] = [];
+        for (let i = 0; i < length; i++) {
+            const id = this.safeString (ids, i);
+            const item: Dict = {
+                'orderId': id,
+            };
+            items.push (item);
+        }
+        const request: Dict = {
+            'items': items,
+        };
+        const response = await this.limitlessPrivatePostOrdersStatusBatch (this.extend (request, params));
+        //
+        //     {
+        //         "results": [
+        //             {
+        //                 "index": 0,
+        //                 "status": "found",
+        //                 "orderId": "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
+        //                 "data": {
+        //                     "order": {
+        //                         "createdAt": "2026-05-04T10:26:01.334Z",
+        //                         "id": "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
+        //                         "makerAmount": "9999360",
+        //                         "takerAmount": "10752000",
+        //                         "expiration": null,
+        //                         "signatureType": 2,
+        //                         "salt": "277966495716",
+        //                         "maker": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+        //                         "signer": "0x82a0f074C6C0C11aA370D7FBF077668c31fCc990",
+        //                         "taker": "0x0000000000000000000000000000000000000000",
+        //                         "tokenId": "46235703925185836960484608024734446969378108670784413458211837874003718039438",
+        //                         "side": 0,
+        //                         "feeRateBps": 300,
+        //                         "nonce": "0",
+        //                         "signature": "0x1640c8558d8c627017b2c6ac71a79770d177033afeb9be72842803afcd12938f23308c507935011ad6d10acc299e5367f76b4f806eb025c15cb05739de11260d1b",
+        //                         "orderType": "FAK",
+        //                         "price": "0.93",
+        //                         "marketId": 112523,
+        //                         "ownerId": 1315134,
+        //                         "market": {
+        //                             "id": 112523,
+        //                             "slug": "doge-above-dollar010859-on-may-4-2000-utc-1777838401426",
+        //                             "title": "DOGE above $0.10859 on May 4, 20:00 UTC?",
+        //                             "status": "FUNDED",
+        //                             "yesPositionId": "46235703925185836960484608024734446969378108670784413458211837874003718039438",
+        //                             "noPositionId": "101714389600295994108208140228744407174156865974966685440205519669272948152879"
+        //                         },
+        //                         "owner": {
+        //                             "id": 1315134,
+        //                             "account": "0x7CFF82f72b991B6B2b661e404389fD8a40bCD21B",
+        //                             "client": "eoa",
+        //                             "tradeWalletOption": "smartWallet",
+        //                             "smartWallet": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+        //                             "points": 0,
+        //                             "referredUsersCount": 0
+        //                         }
+        //                     },
+        //                     "makerMatches": [
+        //                         {
+        //                             "id": "be44a183-ec56-4076-a69c-10283321abd6",
+        //                             "matchedSize": "10752000",
+        //                             "fillPrice": "0.93",
+        //                             "fillCost": "9999360",
+        //                             "orderId": "3255c786-3f30-4115-a99f-72be478f2e44",
+        //                             "order": {
+        //                                 "id": "3255c786-3f30-4115-a99f-72be478f2e44",
+        //                                 "maker": "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
+        //                                 "price": "0.07",
+        //                                 "side": 0,
+        //                                 "tokenId": "101714389600295994108208140228744407174156865974966685440205519669272948152879",
+        //                                 "owner": {
+        //                                     "id": 202602,
+        //                                     "account": "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
+        //                                     "client": "eoa",
+        //                                     "tradeWalletOption": null,
+        //                                     "smartWallet": null,
+        //                                     "username": null,
+        //                                     "displayName": "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
+        //                                     "pfpUrl": null,
+        //                                     "socialUrl": null,
+        //                                     "points": 0,
+        //                                     "referredUsersCount": 0
+        //                                 }
+        //                             }
+        //                         }
+        //                     ],
+        //                     "execution": {
+        //                         "feeRateBps": 300,
+        //                         "effectiveFeeBps": 59,
+        //                         "matched": true,
+        //                         "settlementStatus": "MINED",
+        //                         "tradeEventId": "44c46a93-f5cb-40f5-a52f-bd55bb97641e",
+        //                         "txHash": "0x101cda4b605007440b382c35a27531605c7fc1b29a7c803b19237586a74c10e8",
+        //                         "totalsRaw": {
+        //                             "contractsGross": "10752000",
+        //                             "contractsFee": "63436",
+        //                             "contractsNet": "10688564",
+        //                             "usdGross": "9999360",
+        //                             "usdFee": "0",
+        //                             "usdNet": "9999360"
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const results = this.safeList (response, 'results', []);
+        return this.parseOrders (results, outcomeObj as any);
+    }
+
+    /**
+     * @method
+     * @name limitless#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.limitless.exchange/api-reference/trading/order-status-batch
+     * @param {string} id the order id
+     * @param {string} [symbol] market outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        const outcome = symbol;
+        await this.loadMarkets ();
+        this.checkEventsAndMarkets (outcome);
+        const orders = await this.fetchOrdersByIds ([ id ], outcome, params);
+        return this.safeDict (orders, 0) as Order;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name limitless#parseOrder
+     * @description parses a raw limitless order object into a unified order object
+     * @param {object} order the raw order object
+     * @param {object} [market] the outcome object the order belongs to
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // fetchOrders, fetchOpenOrders, fetchClosedOrders
+        //     {
+        //         "createdAt": "2026-05-04T08:57:06.448Z",
+        //         "id": "c4b1a83a-219f-48db-a9be-1ddadf0bc14c",
+        //         "ownerId": 1315134,
+        //         "marketId": "112523",
+        //         "token": "46235703925185836960484608024734446969378108670784413458211837874003718039438",
+        //         "type": "GTC",
+        //         "status": "LIVE",
+        //         "side": "BUY",
+        //         "makerAmount": "1000040",
+        //         "takerAmount": "10870000",
+        //         "price": "0.092",
+        //         "originalSize": "10870000",
+        //         "remainingSize": "10870000"
+        //     }
+        //
+        // fetchOrdersByIds, fetchOrder
+        //     {
+        //         "index": 0,
+        //         "status": "found",
+        //         "orderId": "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
+        //         "data": {
+        //             "order": {
+        //                 "createdAt": "2026-05-04T10:26:01.334Z",
+        //                 "id": "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
+        //                 "makerAmount": "9999360",
+        //                 "takerAmount": "10752000",
+        //                 "expiration": null,
+        //                 "signatureType": 2,
+        //                 "salt": "277966495716",
+        //                 "maker": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+        //                 "signer": "0x82a0f074C6C0C11aA370D7FBF077668c31fCc990",
+        //                 "taker": "0x0000000000000000000000000000000000000000",
+        //                 "tokenId": "46235703925185836960484608024734446969378108670784413458211837874003718039438",
+        //                 "side": 0,
+        //                 "feeRateBps": 300,
+        //                 "nonce": "0",
+        //                 "signature": "0x1640c8558d8c627017b2c6ac71a79770d177033afeb9be72842803afcd12938f23308c507935011ad6d10acc299e5367f76b4f806eb025c15cb05739de11260d1b",
+        //                 "orderType": "FAK",
+        //                 "price": "0.93",
+        //                 "marketId": 112523,
+        //                 "ownerId": 1315134,
+        //                 "market": {
+        //                     "id": 112523,
+        //                     "slug": "doge-above-dollar010859-on-may-4-2000-utc-1777838401426",
+        //                     "title": "DOGE above $0.10859 on May 4, 20:00 UTC?",
+        //                     "status": "FUNDED",
+        //                     "yesPositionId": "46235703925185836960484608024734446969378108670784413458211837874003718039438",
+        //                     "noPositionId": "101714389600295994108208140228744407174156865974966685440205519669272948152879"
+        //                 },
+        //                 "owner": {
+        //                     "id": 1315134,
+        //                     "account": "0x7CFF82f72b991B6B2b661e404389fD8a40bCD21B",
+        //                     "client": "eoa",
+        //                     "tradeWalletOption": "smartWallet",
+        //                     "smartWallet": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+        //                     "points": 0,
+        //                     "referredUsersCount": 0
+        //                 }
+        //             },
+        //             "makerMatches": [
+        //                 {
+        //                     "id": "be44a183-ec56-4076-a69c-10283321abd6",
+        //                     "matchedSize": "10752000",
+        //                     "fillPrice": "0.93",
+        //                     "fillCost": "9999360",
+        //                     "orderId": "3255c786-3f30-4115-a99f-72be478f2e44",
+        //                     "order": {
+        //                         "id": "3255c786-3f30-4115-a99f-72be478f2e44",
+        //                         "maker": "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
+        //                         "price": "0.07",
+        //                         "side": 0,
+        //                         "tokenId": "101714389600295994108208140228744407174156865974966685440205519669272948152879",
+        //                         "owner": {
+        //                             "id": 202602,
+        //                             "account": "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
+        //                             "client": "eoa",
+        //                             "tradeWalletOption": null,
+        //                             "smartWallet": null,
+        //                             "username": null,
+        //                             "displayName": "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
+        //                             "pfpUrl": null,
+        //                             "socialUrl": null,
+        //                             "points": 0,
+        //                             "referredUsersCount": 0
+        //                         }
+        //                     }
+        //                 }
+        //             ],
+        //             "execution": {
+        //                 "feeRateBps": 300,
+        //                 "effectiveFeeBps": 59,
+        //                 "matched": true,
+        //                 "settlementStatus": "MINED",
+        //                 "tradeEventId": "44c46a93-f5cb-40f5-a52f-bd55bb97641e",
+        //                 "txHash": "0x101cda4b605007440b382c35a27531605c7fc1b29a7c803b19237586a74c10e8",
+        //                 "totalsRaw": {
+        //                     "contractsGross": "10752000",
+        //                     "contractsFee": "63436",
+        //                     "contractsNet": "10688564",
+        //                     "usdGross": "9999360",
+        //                     "usdFee": "0",
+        //                     "usdNet": "9999360"
+        //                 }
+        //             }
+        //         }
+        //     }
+        const data = this.safeDict (order, 'data');
+        const rawOrder = this.safeDict (data, 'order', order);
+        const id = this.safeString (rawOrder, 'id');
+        const tokenId = this.safeString2 (rawOrder, 'token', 'tokenId');
+        const mkt = this.safeOutcome (tokenId, market as any);
+        const symbol = this.safeString (mkt, 'symbol');
+        const rawSide = this.safeString (rawOrder, 'side');
+        const side = this.parseOrderSide (rawSide);
+        const price = this.safeString (rawOrder, 'price');
+        const amountKey = (side === 'buy') ? 'takerAmount' : 'makerAmount'; // todo check
+        const amount = this.safeString (rawOrder, amountKey);
+        const remaining = this.safeString (rawOrder, 'remainingSize');
+        const datetime = this.safeString (rawOrder, 'createdAt');
+        const ts = this.parse8601 (datetime);
+        const timeInForce = this.safeString2 (rawOrder, 'type', 'orderType');
+        let type = undefined;
+        if (timeInForce === 'GTC') {
+            type = 'limit';
+        } else if (timeInForce === 'FAK') {
+            type = 'market';
+        }
+        let rawStatus = this.safeString (rawOrder, 'status');
+        const execution = this.safeDict (data, 'execution');
+        let fee = undefined;
+        let filled = undefined;
+        let cost = undefined;
+        if (execution !== undefined) {
+            rawStatus = this.safeString (execution, 'settlementStatus');
+            const totals = this.safeDict (execution, 'totalsRaw');
+            cost = this.safeString (totals, 'usdGross');
+            filled = this.safeString (totals, 'contractsGross');
+            let feeCurrency = 'USDC';
+            let feeCost = this.safeString (totals, 'usdFee');
+            if (side === 'buy') {
+                feeCurrency = symbol;
+                feeCost = this.safeString (totals, 'contractsFee');
+            }
+            fee = {
+                'cost': this.applyScale (feeCost),
+                'currency': feeCurrency,
+            };
+        }
+        return this.safeOrder ({
+            'id': id,
+            'clientOrderId': undefined,
+            'info': order,
+            'timestamp': ts,
+            'datetime': datetime,
+            'lastTradeTimestamp': undefined,
+            'status': this.parseOrderStatus (rawStatus),
+            'symbol': mkt['marketSymbol'],
+            'outcome': symbol,
+            'type': type,
+            'timeInForce': this.parseOrderTimeInForce (timeInForce),
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'average': undefined,
+            'amount': this.applyScale (amount),
+            'cost': this.applyScale (cost),
+            'filled': this.applyScale (filled),
+            'remaining': this.applyScale (remaining),
+            'fee': fee,
+            'trades': [],
+        }, mkt);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name limitless#parseOrderStatus
+     * @description maps an order status string to the CCXT unified status vocabulary
+     * @param {string} status the raw limitless order status
+     * @returns {string} the unified order status
+     */
+    parseOrderStatus (status: Str): Str {
+        const statuses: Dict = {
+            'LIVE': 'open',
+            'MATCHED': 'closed',
+            // 'UNMATCHED': 'open', - both open and closed orders can have unmatched status, so we can't reliably map it to one or the other
+            'PENDING': 'pending',
+            'MINED': 'closed',
+            'CONFIRMED': 'closed',
+            'FAILED': 'rejected',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name limitless#parseOrderTimeInForce
+     * @description maps an order time in force string to the CCXT unified type vocabulary
+     * @param {string} timeInForce the raw limitless time in force
+     * @returns {string} the unified time in force
+     */
+    parseOrderTimeInForce (timeInForce: Str): Str {
+        const timeInForces: Dict = {
+            'FAK': 'FOK',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name limitless#parseOrderSide
+     * @description maps an order side string to the CCXT unified side vocabulary
+     * @param {string} side the raw limitless order side
+     * @returns {string} the unified order side
+     */
+    parseOrderSide (side: Str): Str {
+        const sides: Dict = {
+            'BUY': 'buy',
+            'SELL': 'sell',
+            '0': 'buy',
+            '1': 'sell',
+        };
+        return this.safeString (sides, side, side);
+    }
+
+    applyScale (amount: Str, multiply: Bool = false): Str {
+        const decimals = this.safeInteger (this.options, 'usdcDecimals', 6);
+        const scale = this.numberToString (Math.pow (10, decimals));
+        if (multiply) {
+            return Precise.stringMul (amount, scale);
+        } else {
+            return Precise.stringDiv (amount, scale);
+        }
+    }
+
+    parseAccount (account: Dict): Account {
+        const accountId = this.safeString (account, 'id');
+        return {
+            'id': accountId,
+            'type': undefined,
+            'code': undefined,
+            'info': account,
+        };
+    }
+
+    /**
+     * @method
+     * @name limitless#fetchAccounts
+     * @description query for account id and info
+     * @see https://docs.limitless.exchange/api-reference/portfolio/get-current-profile
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [account structures]
+     */
+    async fetchAccounts (params = {}): Promise<Account[]> {
+        await this.loadMarkets ();
+        const response = await this.limitlessPrivateGetProfilesMe (params);
+        const responseList = [ response ];
+        return this.parseAccounts (responseList);
+    }
+
+    /**
+     * @method
+     * @name limitless#createOrder
+     * @description places a limit or market order on limitless for the given outcome token
+     * @see https://docs.limitless.exchange/api-reference/orders/create-order
+     * @param {string} symbol outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount amount of outcome tokens
+     * @param {float} [price] limit price (0–1 range)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async createOrder (symbol: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
+        const outcome = symbol;
+        await this.loadMarkets ();
+        const accounts = await this.loadAccounts ();
+        this.checkEventsAndMarkets (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const account = this.safeDict (accounts, 0);
+        const accountInfo = this.safeDict (account, 'info');
+        const walletFromAccount = this.safeString (accountInfo, 'smartWallet');
+        let maker = this.walletAddress ? this.walletAddress : walletFromAccount;
+        [ maker, params ] = this.handleOptionAndParams (params, 'createOrder', 'maker', maker);
+        try {
+            this.checkAddress (maker);
+        } catch (e) {
+            throw new InvalidAddress (this.id + ' createOrder requires a valid maker address. Set the "maker" parameter to a valid address or set the "walletAddress" property in the constructor options.');
+        }
+        let signer = maker;
+        [ signer, params ] = this.handleOptionAndParams (params, 'createOrder', 'signer', signer);
+        try {
+            this.checkAddress (signer);
+        } catch (e) {
+            throw new InvalidAddress (this.id + ' createOrder requires a valid signer address. Set the "signer" parameter to a valid address or set the "walletAddress" property in the constructor options.');
+        }
+        let taker = this.safeString (this.options, 'nullAddress', '0x0000000000000000000000000000000000000000');
+        [ taker, params ] = this.handleOptionAndParams (params, 'createOrder', 'taker', taker);
+        try {
+            this.checkAddress (taker);
+        } catch (e) {
+            throw new InvalidAddress (this.id + ' createOrder requires a valid taker address. Set the "taker" parameter to a valid address or set the "nullAddress" property in the constructor options.');
+        }
+        const nonce = this.milliseconds ();
+        const sides: Dict = {
+            'buy': 0,
+            'sell': 1,
+        };
+        const sideValue = this.safeInteger (sides, side.toLowerCase ());
+        const rank = this.safeDict (accountInfo, 'rank');
+        const signRequest: Dict = {
+            'salt': nonce,
+            'maker': maker,
+            'signer': signer,
+            'taker': taker,
+            'tokenId': outcomeObj['id'],
+            'nonce': 0,
+            'feeRateBps': this.safeInteger (rank, 'feeRateBps'), // todo check
+            'side': sideValue,
+            'signatureType': 0, // todo check
+        };
+        const expirationInt = this.safeInteger (params, 'expiration');
+        const expirationString = this.safeString (params, 'expiration');
+        if (expirationInt !== undefined) {
+            signRequest['expiration'] = this.iso8601 (expirationInt);
+        } else if (expirationString !== undefined) {
+            signRequest['expiration'] = expirationString;
+        } else {
+            signRequest['expiration'] = '0';
+        }
+        const amountString = this.numberToString (amount);
+        const priceString = this.numberToString (price);
+        let makerAmount = undefined;
+        let takerAmount = undefined;
+        const isMarket = type === 'market';
+        let postOnly = false;
+        [ postOnly, params ] = this.handlePostOnly (isMarket, undefined, params);
+        let timeInForce = this.safeString (params, 'timeInForce');
+        if (timeInForce === undefined) {
+            timeInForce = isMarket ? 'FOK' : 'GTC';
+        }
+        const marketSymbol = this.safeString (outcomeObj, 'marketSymbol');
+        if (isMarket && (side === 'buy')) {
+            let createMarketBuyOrderRequiresPrice = true;
+            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            const cost = this.safeNumber (params, 'cost');
+            params = this.omit (params, 'cost');
+            if (createMarketBuyOrderRequiresPrice) {
+                if ((price === undefined) && (cost === undefined)) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
+                } else {
+                    const quoteAmount = this.parseToNumeric (Precise.stringMul (amountString, priceString));
+                    const costRequest = (cost !== undefined) ? cost : quoteAmount;
+                    makerAmount = this.costToPrecision (marketSymbol, costRequest);
+                }
+            } else {
+                makerAmount = this.costToPrecision (marketSymbol, amount);
+            }
+        } else if (isMarket) {
+            makerAmount = this.amountToPrecision (marketSymbol, amount);
+        } else {
+            const calculatedCost = Precise.stringMul (amountString, priceString);
+            if (side === 'buy') {
+                makerAmount = this.costToPrecision (marketSymbol, calculatedCost);
+                takerAmount = this.amountToPrecision (marketSymbol, amount);
+            } else {
+                makerAmount = this.amountToPrecision (marketSymbol, amount);
+                takerAmount = this.costToPrecision (marketSymbol, calculatedCost);
+            }
+        }
+        signRequest['makerAmount'] = this.parseNumber (this.applyScale (makerAmount, true));
+        signRequest['takerAmount'] = isMarket ? 1 : this.parseNumber (this.applyScale (takerAmount, true));
+        const signature = this.signOrderRequest (signRequest, marketSymbol);
+        signRequest['signature'] = signature;
+        const slug = this.safeString (outcomeObj['info'], 'slug');
+        const request: Dict = {
+            'ownerId': this.safeInteger (account, 'id'),
+            'order': signRequest,
+            'marketSlug': slug,
+            'orderType': timeInForce,
+        };
+        if (postOnly) {
+            request['postOnly'] = postOnly;
+        }
+        const response = await this.limitlessPrivatePostOrders (this.extend (request, params));
+        return this.parseOrder (response, outcomeObj as any);
+    }
+
+    signOrderRequest (signRequest: Dict, marketSymbol) {
+        this.checkRequiredCredentials ();
+        const market = this.market (marketSymbol);
+        const info = this.safeDict (market, 'info');
+        const venue = this.safeDict (info, 'venue');
+        const exchange = this.safeString (venue, 'exchange');
+        const domain: Dict = {
+            'chainId': 8453,
+            'name': 'Limitless CTF Exchange',
+            'verifyingContract': exchange,
+            'version': '1',
+        };
+        const messageTypes: Dict = {
+            'Order': [
+                { 'name': 'salt', 'type': 'uint256' },
+                { 'name': 'maker', 'type': 'address' },
+                { 'name': 'signer', 'type': 'address' },
+                { 'name': 'taker', 'type': 'address' },
+                { 'name': 'tokenId', 'type': 'uint256' },
+                { 'name': 'makerAmount', 'type': 'uint256' },
+                { 'name': 'takerAmount', 'type': 'uint256' },
+                { 'name': 'expiration', 'type': 'uint256' },
+                { 'name': 'nonce', 'type': 'uint256' },
+                { 'name': 'feeRateBps', 'type': 'uint256' },
+                { 'name': 'side', 'type': 'uint8' },
+                { 'name': 'signatureType', 'type': 'uint8' },
+            ],
+        };
+        const msg = this.ethEncodeStructuredData (domain, messageTypes, signRequest);
+        return this.signMessage (msg, this.privateKey);
+    }
+
+    hashMessage (message) {
+        return '0x' + this.hash (message, keccak, 'hex');
+    }
+
+    signHash (hash, privateKey) {
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        const r = signature['r'];
+        const s = signature['s'];
+        const v = this.intToBase16 (this.sum (27, signature['v']));
+        return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
+    }
+
+    signMessage (message, privateKey) {
+        return this.signHash (this.hashMessage (message), privateKey.slice (-64));
+    }
+
+    /**
+     * @method
+     * @name limitless#cancelOrder
+     * @description cancels a single open order by id
+     * @see https://docs.limitless.exchange/api-reference/orders/cancel-order
+     * @param {string} id order id
+     * @param {string} [symbol] outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async cancelOrder (id: Str, symbol: Str = undefined, params = {}): Promise<Order> {
+        const outcome = symbol;
+        await this.loadMarkets ();
+        this.checkEventsAndMarkets (outcome);
+        const request: Dict = {
+            'order_id': id,
+        };
+        const response = await this.limitlessPrivateDeleteOrdersOrderId (this.extend (request, params));
+        return this.parseOrder (response);
+    }
+
+    /**
+     * @method
+     * @name limitless#cancelOrders
+     * @description cancel multiple orders at the same time
+     * @see https://docs.limitless.exchange/api-reference/trading/cancel-batch
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+        const outcome = symbol;
+        await this.loadMarkets ();
+        this.checkEventsAndMarkets (outcome);
+        const request: Dict = {
+            'orderIds': ids,
+        };
+        const response = await this.limitlessPrivatePostOrdersCancelBatch (this.extend (request, params));
+        const canceled = this.safeList (response, 'canceled', []);
+        const failed = this.safeList (response, 'failed', []);
+        const failedLethgn = failed.length;
+        if (failedLethgn > 0) {
+            const message = this.json (response);
+            const feedback = this.id + ' cancelOrders failed: ' + message;
+            throw new OrderNotFound (feedback);
+        }
+        return this.parseOrders (canceled);
+    }
+
+    /**
+     * @method
+     * @name limitless#cancelAllOrders
+     * @description cancels all open orders for one market slug
+     * @see https://docs.limitless.exchange/api-reference/orders/cancel-all-orders
+     * @param {string} [symbol] outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.slug] the market slug to cancel all orders for
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+        const outcome = symbol;
+        await this.loadMarkets ();
+        this.checkEventsAndMarkets (outcome);
+        if (outcome !== undefined) {
+            let warn = true;
+            [ warn, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn);
+            if (warn) {
+                throw new BadRequest (this.id + ' cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.');
+            }
+        }
+        const request: Dict = {};
+        const slug = this.safeString (params, 'slug');
+        if (outcome !== undefined) {
+            const outcomeObj = this.outcome (outcome);
+            request['slug'] = this.safeString (outcomeObj['info'], 'slug');
+        } else if (slug === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires either an outcome argument or a slug parameter');
+        }
+        const response = await this.limitlessPrivateDeleteOrdersAllSlug (this.extend (request, params));
+        //
+        //     {
+        //         "message": "Orders canceled successfully"
+        //     }
+        //
+        return [ this.safeOrder ({ 'info': response }) ];
+    }
+
+    /**
+     * @method
+     * @name limitless#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.limitless.exchange/api-reference/trades/get-trades
+     * @param {string} [symbol] outcome symbol, e.g. "TRUMP_OUT:YES"
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        const outcome = symbol;
+        await this.loadMarkets ();
+        this.checkEventsAndMarkets (outcome);
+        let paginate = false;
+        const maxLimit = 100;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate', paginate);
+        if (paginate) {
+            params = this.omit (params, 'paginate');
+            return await this.fetchPaginatedCallCursor ('fetchMyTrades', outcome, since, limit, params, 'nextCursor', 'cursor', undefined, maxLimit);
+        }
+        const request: Dict = {};
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, maxLimit);
+        }
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            outcomeObj = this.outcome (outcome);
+        }
+        const response = await this.limitlessPrivateGetPortfolioHistory (this.extend (request, params));
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "action": "loss",
+        //                 "blockTimestamp": 1778144400,
+        //                 "collateralAmount": "2",
+        //                 "collateralSymbol": "USDC",
+        //                 "collateralToken": "7",
+        //                 "conditionId": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                 "market": {
+        //                     "closed": true,
+        //                     "collateral": {
+        //                     "symbol": "USDC",
+        //                     "id": "7",
+        //                     "decimals": 6},
+        //                     "group": null,
+        //                     "condition_id": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                     "conditionId": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                     "funding": "0",
+        //                     "id": "117515",
+        //                     "slug": "doge-up-or-down-1-hour-1778140801775",
+        //                     "title": "DOGE Up or Down - 1 hour",
+        //                     "expirationDate": "2026-05-07T09:00:00.000Z"
+        //                 },
+        //                 "outcomeIndex": 1,
+        //                 "pnl": "-2000000",
+        //                 "title": "DOGE Up or Down - 1 hour"
+        //             },
+        //             {
+        //                 "blockTimestamp": 1778144137,
+        //                 "collateralAmount": "2",
+        //                 "market": {
+        //                     "closed": true,
+        //                     "collateral": {
+        //                         "symbol": "USDC",
+        //                         "id": "7",
+        //                         "decimals": 6
+        //                     },
+        //                     "group": null,
+        //                     "condition_id": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                     "conditionId": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                     "funding": "0",
+        //                     "id": "117515",
+        //                     "slug": "doge-up-or-down-1-hour-1778140801775",
+        //                     "title": "DOGE Up or Down - 1 hour",
+        //                      "expirationDate": "2026-05-07T09:00:00.000Z"
+        //                 },
+        //                 "outcomeTokenAmount": "10",
+        //                 "outcomeTokenAmounts": [
+        //                     "10",
+        //                     "0"
+        //                 ],
+        //                 "outcomeIndex": 0,
+        //                 "outcomeTokenPrice": "0.2",
+        //                 "strategy": "Limit Buy",
+        //                 "transactionHash": "0x1e1167f09bb65ad3037610ae4f2521b696f7109f535e148ea388d42fdb6e2a10"
+        //             }
+        //         ],
+        //         "nextCursor": null
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        // response contains both trade, settlement, split and merge history
+        // we filter out the settlements here and only return the trades
+        const trades: any[] = [];
+        for (let i = 0; i < data.length; i++) {
+            const item = this.safeDict (data, i);
+            const strategy = this.safeStringLower (item, 'strategy');
+            if (strategy !== undefined) {
+                const buyIndex = strategy.indexOf ('buy');
+                const sellIndex = strategy.indexOf ('sell');
+                if ((buyIndex >= 0) || (sellIndex >= 0)) {
+                    trades.push (item);
+                }
+            }
+        }
+        return this.parseTrades (trades, outcomeObj as any, since, limit);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name limitless#parseTrade
+     * @description parses a raw trade from either the public market events feed or the private portfolio history into a unified trade object
+     * @param {object} trade the raw trade object
+     * @param {object} [market] the outcome object the trade belongs to
+     * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
+     */
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        const matchedSize = this.safeString (trade, 'matchedSize');
+        if (matchedSize !== undefined) {
+            // public market events feed trade, see fetchTrades for the response sample
+            const ts = this.parse8601 (this.safeString (trade, 'createdAt'));
+            const sideRaw = this.safeString (trade, 'side');
+            let feedSide = undefined;
+            if (sideRaw === '0') {
+                feedSide = 'buy';
+            } else if (sideRaw === '1') {
+                feedSide = 'sell';
+            }
+            const amountStr = Precise.stringDiv (matchedSize, '1000000');
+            const priceStr = this.safeString (trade, 'price');
+            let costStr = undefined;
+            if (priceStr !== undefined) {
+                costStr = Precise.stringMul (priceStr, amountStr);
+            }
+            return this.safeTrade ({
+                'id': this.safeString (trade, 'txHash'),
+                'info': trade,
+                'timestamp': ts,
+                'datetime': this.iso8601 (ts),
+                'symbol': this.safeSymbol (undefined, market),
+                'order': undefined,
+                'type': undefined,
+                'side': feedSide,
+                'takerOrMaker': 'taker',
+                'price': this.parseNumber (priceStr),
+                'amount': this.parseNumber (amountStr),
+                'cost': this.parseNumber (costStr),
+                'fee': undefined,
+            }, market);
+        }
+        //
+        //     {
+        //         "blockTimestamp": 1778144137,
+        //         "collateralAmount": "2",
+        //         "market": {
+        //             "closed": true,
+        //             "collateral": {
+        //                 "symbol": "USDC",
+        //                 "id": "7",
+        //                 "decimals": 6
+        //             },
+        //             "group": null,
+        //             "condition_id": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //             "conditionId": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //             "funding": "0",
+        //             "id": "117515",
+        //             "slug": "doge-up-or-down-1-hour-1778140801775",
+        //             "title": "DOGE Up or Down - 1 hour",
+        //             "expirationDate": "2026-05-07T09:00:00.000Z"
+        //         },
+        //         "outcomeTokenAmount": "10",
+        //         "outcomeTokenAmounts": [
+        //             "10",
+        //             "0"
+        //         ],
+        //         "outcomeIndex": 0,
+        //         "outcomeTokenPrice": "0.2",
+        //         "strategy": "Limit Buy",
+        //         "transactionHash": "0x1e1167f09bb65ad3037610ae4f2521b696f7109f535e148ea388d42fdb6e2a10"
+        //     }
+        //
+        const id = this.safeString (trade, 'transactionHash');
+        const timestamp = this.safeIntegerProduct (trade, 'blockTimestamp', 1000);
+        const price = this.safeString (trade, 'outcomeTokenPrice');
+        const amount = this.safeString (trade, 'outcomeTokenAmount');
+        const cost = this.safeString (trade, 'collateralAmount');
+        const rawSide = this.safeStringLower (trade, 'strategy');
+        const sellIndex = rawSide.indexOf ('sell');
+        const side = (sellIndex >= 0) ? 'sell' : 'buy';
+        let type = undefined;
+        let takerOrMaker = undefined;
+        if (rawSide.indexOf ('limit') >= 0) {
+            type = 'limit';
+            takerOrMaker = 'maker';
+        } else if (rawSide.indexOf ('market') >= 0) {
+            type = 'market';
+            takerOrMaker = 'taker';
+        }
+        const rawMarket = this.safeDict (trade, 'market', {});
+        const slug = this.safeString (rawMarket, 'slug');
+        const outcomeIndex = this.safeInteger (trade, 'outcomeIndex');
+        const label = (outcomeIndex === 0) ? 'yes' : 'no';
+        const outcome = this.getOutcomeBySlugAndLabel (slug, label, market);
+        return this.safeTrade ({
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'outcome': this.safeString (outcome, 'symbol'),
+            'outcomeId': this.safeString (trade, 'asset'),
+            'order': undefined,
+            'type': type,
+            'side': side,
+            'takerOrMaker': takerOrMaker, // todo check
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        }, market);
+    }
+
+    getOutcomeBySlugAndLabel (slug: Str, label: Str, market: Market = undefined): any {
+        const mkt = this.safeMarket (slug, market);
+        const outcomes = this.safeList (mkt, 'outcomes', []);
+        for (let i = 0; i < outcomes.length; i++) {
+            const outcome = this.safeDict (outcomes, i);
+            const outcomeLabel = this.safeString (outcome, 'label');
+            if (outcomeLabel === label) {
+                return outcome;
+            }
+        }
+        return undefined;
+    }
+
+    /**
+     * @method
+     * @name limitless#fetchPositions
+     * @description fetches open positions for the authenticated limitless user from the portfolio endpoint
+     * @see https://docs.limitless.exchange/api-reference/portfolio/get-positions
+     * @param {string[]} [symbols] filter by outcome ids or symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+        }
+        if (symbolsLength > 0) {
+            for (let i = 0; i < symbols.length; i++) {
+                this.checkEventsAndMarkets (symbols[i]);
+            }
+        } else {
+            this.checkEventsAndMarkets ();
+        }
+        const response = await this.limitlessPrivateGetPortfolioPositions (params);
+        //
+        //     {
+        //         "rewards": {
+        //                 "todaysRewards": "0",
+        //                 "totalUnpaidRewards": "0",
+        //                 "totalUserRewardsLastEpoch": "0",
+        //                 "rewardsChartData": [],
+        //                 "rewardsByEpoch": []
+        //         },
+        //         "points": "0.00000000",
+        //         "accumulativePoints": "0.00000000",
+        //         "amm": [],
+        //         "group": [],
+        //         "clob": [
+        //             {
+        //                 "market": {
+        //                     "slug": "btc-above-dollar7982448-on-may-11-1000-utc-1777888806248",
+        //                     "status": "FUNDED",
+        //                     "title": "BTC Up or Down - 1 week",
+        //                     "conditionId": "0xdcd8264cd09a6c50fca35eca24cda13e70f705e8b9ca7df7edb1c53d5e14ef91",
+        //                     "id": 113280,
+        //                     "address": null,
+        //                     "closed": false,
+        //                     "expirationDate": "2026-05-11T10:00:00.000Z",
+        //                     "deadline": "2026-05-11T10:00:00.000Z",
+        //                     "negRiskRequestId": null,
+        //                     "winningOutcomeIndex": null,
+        //                     "yesPositionId": "93872239373494820196551522390839917813776244436120184186867916673676200558660",
+        //                     "noPositionId": "63415751165356883207530164011662686422066216695676262832702521399916548381548",
+        //                     "collateralToken": {
+        //                         "id": 7,
+        //                         "decimals": 6,
+        //                         "symbol": "USDC",
+        //                         "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+        //                     },
+        //                     "venue": {
+        //                         "exchange": "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+        //                         "adapter": null,
+        //                         "operator": null
+        //                     },
+        //                     "group": {}
+        //                 },
+        //                 "latestTrade": {
+        //                     "outcomeTokenPrice": 0.991,
+        //                     "latestNoPrice": 0.009,
+        //                     "latestYesPrice": 0.991
+        //                 },
+        //                 "orders": {
+        //                     "liveOrders": [],
+        //                     "totalCollateralLocked": "0"
+        //                 },
+        //                 "positions": {
+        //                     "no": {
+        //                         "cost": "0",
+        //                         "fillPrice": "0",
+        //                         "marketValue": "0",
+        //                         "realisedPnl": "0",
+        //                         "unrealizedPnl": "0"
+        //                     },
+        //                     "yes": {
+        //                         "cost": "995720",
+        //                         "fillPrice": "991000",
+        //                         "marketValue": "999919",
+        //                         "realisedPnl": "0",
+        //                         "unrealizedPnl": "0"
+        //                     }
+        //                 },
+        //                 "tokensBalance": {
+        //                     "no": "0",
+        //                     "yes": "1004763"
+        //                 },
+        //                 "rewards": {
+        //                     "isEarning": false,
+        //                     "epochs": []
+        //                 },
+        //                 "makerAddress": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36"
+        //             }
+        //         ]
+        //     }
+        //
+        const clob = this.safeList (response, 'clob', []) as any[];
+        const result: Position[] = [];
+        const labels = [ 'yes', 'no' ];
+        for (let i = 0; i < clob.length; i++) {
+            const entry = this.safeDict (clob, i);
+            for (let j = 0; j < labels.length; j++) {
+                const label = this.safeString (labels, j);
+                const position = this.getPositionFromClobEntry (label, entry);
+                if (position !== undefined) {
+                    result.push (position);
+                }
+            }
+        }
+        return result;
+    }
+
+    getPositionFromClobEntry (label: string, entry: Dict = undefined) {
+        if (entry === undefined) {
+            return undefined;
+        }
+        const tokensBalance = this.safeDict (entry, 'tokensBalance');
+        const contracts = this.omitZero (this.safeString (tokensBalance, label));
+        if (contracts === undefined) {
+            return undefined;
+        }
+        const positions = this.safeDict (entry, 'positions');
+        const position = this.safeDict (positions, label);
+        const rawMarket = this.safeDict (entry, 'market');
+        const slug = this.safeString (rawMarket, 'slug');
+        const outcomeObj = this.getOutcomeBySlugAndLabel (slug, label);
+        const parsed = this.parsePosition (position, outcomeObj);
+        parsed['contracts'] = this.parseNumber (this.applyScale (contracts));
+        const latestTrade = this.safeDict (entry, 'latestTrade');
+        let key = 'latestYesPrice';
+        if (label === 'no') {
+            key = 'latestNoPrice';
+        }
+        parsed['markPrice'] = this.safeNumber (latestTrade, key);
+        parsed['info'] = entry;
+        return this.safePosition (parsed);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name limitless#parsePosition
+     * @description parses a raw limitless portfolio position into a unified position object
+     * @param {object} position the raw position object
+     * @param {object} [market] the outcome object the position belongs to
+     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    parsePosition (position: Dict, market: Market = undefined): Position {
+        //
+        //     {
+        //         "cost": "995720",
+        //         "fillPrice": "991000",
+        //         "marketValue": "999919",
+        //         "realisedPnl": "0",
+        //         "unrealizedPnl": "0"
+        //     }
+        //
+        const symbol = this.safeString (market, 'symbol');
+        const notional = this.applyScale (this.safeString (position, 'marketValue'));
+        const unrealizedPnl = this.applyScale (this.safeString (position, 'unrealizedPnl'));
+        const realizedPnl = this.applyScale (this.safeString (position, 'realisedPnl'));
+        const collateral = this.applyScale (this.safeString (position, 'cost'));
+        const entryPrice = this.applyScale (this.safeString (position, 'fillPrice'));
+        return {
+            'id': undefined,
+            'symbol': symbol,
+            'outcome': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'contracts': undefined,
+            'contractSize': 1,
+            'side': 'long',
+            'notional': this.parseNumber (notional),
+            'leverage': 1,
+            'unrealizedPnl': this.parseNumber (unrealizedPnl),
+            'realizedPnl': this.parseNumber (realizedPnl),
+            'collateral': this.parseNumber (collateral),
+            'entryPrice': this.parseNumber (entryPrice),
+            'markPrice': undefined,
+            'liquidationPrice': undefined,
+            'hedged': false,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'marginRatio': undefined,
+            'marginMode': 'cross',
+            'marginType': 'cross',
+            'percentage': undefined,
+            'info': position,
+        } as Position;
+    }
+
+    /**
+     * @method
+     * @name limitless#fetchEvents
+     * @description fetches prediction-market events matching the given search terms (or all active markets when omitted) and caches their markets and outcomes on the instance
+     * @see https://docs.limitless.exchange/api-reference/markets/search
+     * @param {string[]} [queries] search terms, fetches all active markets when omitted
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {int} [params.limit] maximum number of markets per query, defaults to 50
+     * @returns {object[]} an array of event structures
+     */
+    async fetchEvents (queries: Strings = undefined, params = {}): Promise<PredictionEvent[]> {
+        queries = (queries === undefined) ? [] : queries;
+        let result = [];
+        const queriesLength = queries.length;
+        if (!queries || queriesLength === 0) {
+            await this.loadMarkets ();
+            result = Object.values (this.events as Dict) as any[];
+        } else {
+            const limit = this.safeInteger (params, 'limit', 50);
+            const rest = this.omit (params, [ 'limit' ]);
+            const seen: Dict = {};
+            const rawMarkets: any[] = [];
+            for (let i = 0; i < queries.length; i++) {
+                const q = queries[i];
+                const response = await this.limitlessPublicGetMarketsSearch (this.extend ({
+                    'query': q,
+                    'limit': limit,
+                }, rest));
+                const found = this.safeList (response, 'markets', []) as any[];
+                for (let j = 0; j < found.length; j++) {
+                    const raw = found[j];
+                    const rawSlug = this.safeString (raw, 'slug');
+                    if (rawSlug && !(rawSlug in seen)) {
+                        seen[rawSlug] = true;
+                        rawMarkets.push (raw);
+                    }
+                }
+            }
+            if (!this.events) {
+                this.events = {};
+            }
+            if (!this.markets) {
+                this.markets = this.createSafeDictionary ();
+            }
+            const eventGroups: Dict = {};
+            for (let i = 0; i < rawMarkets.length; i++) {
+                const raw = rawMarkets[i];
+                const groupId = this.safeString (raw, 'groupId', this.safeString (raw, 'slug'));
+                const eventKey = groupId ? this.shortenSlug (groupId) : undefined;
+                const m = this.parseMarket (raw);
+                this.markets[m['symbol'] as string] = m;
+                if (eventKey) {
+                    if (!(eventKey in eventGroups)) {
+                        eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString (raw, 'title', groupId), 'raw': raw, 'markets': [] };
+                    }
+                    const eventGroup = eventGroups[eventKey] as Dict;
+                    eventGroup['markets'].push (m);
+                }
+            }
+            result = [];
+            const eventKeys = Object.keys (eventGroups);
+            for (let i = 0; i < eventKeys.length; i++) {
+                const eventKey = eventKeys[i];
+                const g = eventGroups[eventKey] as Dict;
+                const ev = this.parseEvent (g);
+                this.events[eventKey] = ev;
+                result.push (ev);
+            }
+        }
+        this.rebuildOutcomes ();
+        return result;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name limitless#rebuildOutcomes
+     * @description rebuilds this.outcomes and this.outcomes_by_id from the outcomes of every loaded market
+     * @returns {undefined}
+     */
+    rebuildOutcomes () {
+        this.outcomes = {};
+        this.outcomes_by_id = {};
+        const marketsMap = (this.markets !== undefined) ? this.markets : {};
+        const marketKeys = Object.keys (marketsMap);
+        for (let i = 0; i < marketKeys.length; i++) {
+            const market = this.markets[marketKeys[i]] as Dict;
+            const outcomesList = this.safeList (market, 'outcomes', []) as any[];
+            for (let j = 0; j < outcomesList.length; j++) {
+                const oc = outcomesList[j];
+                const ocSymbol = this.safeString (oc, 'symbol');
+                if (ocSymbol !== undefined) {
+                    this.outcomes[ocSymbol] = oc;
+                }
+                const ocId = this.safeString (oc, 'id');
+                if (ocId !== undefined) {
+                    this.outcomes_by_id[ocId] = oc;
+                }
+            }
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name limitless#sign
+     * @description builds the request URL and attaches the lmts authentication headers for private endpoints
+     * @param {string} path the endpoint path
+     * @param {string|string[]} [api] the api group and access level
+     * @param {string} [method] HTTP method
+     * @param {object} [params] request parameters
+     * @param {object} [headers] request headers
+     * @param {object} [body] request body
+     * @returns {object} a dictionary with url, method, body and headers
+     */
+    sign (path: any, api: any = 'limitless', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+        const apiGroup: string = typeof api === 'string' ? api : api[0];
+        const access: string = typeof api === 'string' ? 'public' : api[1];
+        const baseUrls = this.urls['api'] as Dict;
+        const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['limitless'] as string);
+        let url = '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
+        const querystring = this.urlencodeWithArrayRepeat (query);
+        if (method === 'GET' && querystring) {
+            url += '?' + querystring;
+        }
+        if (access === 'private') {
+            let bodyString = '';
+            if (method === 'POST' && querystring) {
+                bodyString = this.json (query);
+                body = bodyString;
+                const headerDefaults = (headers !== undefined) ? headers : {};
+                headers = this.extend ({
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }, headerDefaults);
+            }
+            this.checkRequiredCredentials ();
+            const timestamp = this.iso8601 (this.milliseconds ());
+            const payload = timestamp + '\n' + method + '\n' + url + '\n' + bodyString;
+            const signature = this.hmac (this.encode (payload), this.base64ToBinary (this.secret), sha256, 'base64');
+            headers = this.extend (headers, {
+                'lmts-api-key': this.apiKey,
+                'lmts-timestamp': timestamp,
+                'lmts-signature': signature,
+            });
+        }
+        url = baseUrl + url;
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+}

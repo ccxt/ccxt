@@ -5813,6 +5813,29 @@ func (this *ExchangeTyped) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (a
 	}
 	return res, nil
 }
+func (this *ExchangeTyped) FetchEvents(options ...FetchEventsOptions) ([]map[string]any, error) {
+
+	opts := FetchEventsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var queries any = nil
+	if opts.Queries != nil {
+		queries = *opts.Queries
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchEvents(queries, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewMapArray(res), nil
+}
 
 // missing typed methods from base
 //nolint

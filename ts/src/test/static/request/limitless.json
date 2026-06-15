@@ -1,0 +1,40 @@
+{
+    "exchange": "limitless",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook for a yes outcome",
+                "method": "fetchOrderBook",
+                "url": "https://api.limitless.exchange/markets/usa-and-australia-both-to-score-1779980360817/orderbook",
+                "input": [
+                    "USA_AUSTRALIA_BOTH_SCORE_1779980360817:YES"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades with limit",
+                "method": "fetchTrades",
+                "url": "https://api.limitless.exchange/markets/usa-and-australia-both-to-score-1779980360817/events?limit=5",
+                "input": [
+                    "USA_AUSTRALIA_BOTH_SCORE_1779980360817:YES",
+                    null,
+                    5
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV daily",
+                "method": "fetchOHLCV",
+                "url": "https://api.limitless.exchange/markets/usa-and-australia-both-to-score-1779980360817/historical-price?interval=1d",
+                "input": [
+                    "USA_AUSTRALIA_BOTH_SCORE_1779980360817:YES",
+                    "1d"
+                ]
+            }
+        ]
+    }
+}

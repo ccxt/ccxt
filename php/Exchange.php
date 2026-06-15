@@ -256,6 +256,13 @@ class Exchange {
 
     public $markets_by_id = null;
     public $currencies_by_id = null;
+    // prediction-market state (Polymarket, Kalshi, Limitless, Myriad, ...)
+    public $outcomes = null;
+    public $outcomes_by_id = null;
+    public $events = null;
+    public $events_by_slug = null;
+    public $reloadingEvents = null;
+    public $eventsLoading = null;
     public $minFundingAddressLength = 1; // used in check_address
     public $substituteCommonCurrencyCodes = true;
 
@@ -4617,7 +4624,33 @@ class Exchange {
         $this->currencies_by_id = $this->index_by_safe($this->currencies, 'id');
         $currenciesSortedByCode = $this->keysort($this->currencies);
         $this->codes = is_array($currenciesSortedByCode) ? array_keys($currenciesSortedByCode) : array();
+        if ($this->is_prediction()) {
+            $this->set_outcomes_from_markets();
+        }
         return $this->markets;
+    }
+
+    public function set_outcomes_from_markets() {
+        // prediction markets carry their outcome tokens under the outcomes key,
+        // rebuild the outcome lookup caches so cached $market data works offline
+        $this->outcomes = array();
+        $this->outcomes_by_id = array();
+        $marketKeys = is_array($this->markets) ? array_keys($this->markets) : array();
+        for ($i = 0; $i < count($marketKeys); $i++) {
+            $market = $this->markets[$marketKeys[$i]];
+            $outcomesList = $this->safe_list($market, 'outcomes', array());
+            for ($j = 0; $j < count($outcomesList); $j++) {
+                $oc = $outcomesList[$j];
+                $ocSymbol = $this->safe_string($oc, 'symbol');
+                if ($ocSymbol !== null) {
+                    $this->outcomes[$ocSymbol] = $oc;
+                }
+                $ocId = $this->safe_string($oc, 'id');
+                if ($ocId !== null) {
+                    $this->outcomes_by_id[$ocId] = $oc;
+                }
+            }
+        }
     }
 
     public function set_markets_from_exchange($sourceExchange) {
