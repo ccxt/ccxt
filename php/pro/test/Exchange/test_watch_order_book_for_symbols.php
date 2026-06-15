@@ -33,7 +33,7 @@ function test_watch_order_book_for_symbols($exchange, $skipped_properties, $symb
             }
             if ($success === true) {
                 // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-                assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($symbols) . ' must return an object. ' . $exchange->json($response));
+                assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($symbols) . ' must return an object. ' . $exchange->json($response));
                 $now = $exchange->milliseconds();
                 assert_in_array($exchange, $skipped_properties, $method, $response, 'symbol', $symbols);
                 test_order_book($exchange, $skipped_properties, $method, $response, null);

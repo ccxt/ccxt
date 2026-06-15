@@ -244,7 +244,7 @@ func (this *testMainClass) ExpandSettings(exchange ccxt.ICoreExchange) {
 			var key any = GetValue(settingKeys, i)
 			if IsTrue(GetValue(exchangeSettings, key)) {
 				var finalValue any = nil
-				if IsTrue(IsObject(GetValue(exchangeSettings, key))) {
+				if IsTrue(exchange.IsDictionary(GetValue(exchangeSettings, key))) {
 					var existing any = GetExchangeProp(exchange, key, map[string]any{})
 					finalValue = exchange.DeepExtend(existing, GetValue(exchangeSettings, key))
 				} else {
@@ -1224,7 +1224,7 @@ func (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.ICoreExch
 		storedOutput = JsonParse(storedOutput)
 		newOutput = JsonParse(newOutput)
 	}
-	if IsTrue(IsTrue((IsObject(storedOutput))) && IsTrue((IsObject(newOutput)))) {
+	if IsTrue(IsTrue(exchange.IsDictionary(storedOutput)) && IsTrue(exchange.IsDictionary(newOutput))) {
 		var storedOutputKeys any = ObjectKeys(storedOutput)
 		var newOutputKeys any = ObjectKeys(newOutput)
 		var storedKeysLength any = GetArrayLength(storedOutputKeys)

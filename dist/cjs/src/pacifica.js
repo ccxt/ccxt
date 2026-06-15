@@ -3163,7 +3163,7 @@ class pacifica extends pacifica$1["default"] {
         return costNumber;
     }
     sortJsonKeys(value) {
-        if (typeof value === 'object') {
+        if (this.isDictionary(value)) {
             const result = {};
             const keys = Object.keys(value);
             const sortedKeys = this.sort(keys);

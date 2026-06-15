@@ -34,7 +34,7 @@ func FetchTickersHelperTest(exchange ccxt.ICoreExchange, skippedProperties any, 
 
 		response := (<-exchange.FetchTickers(argSymbols, argParams))
 		PanicOnError(response)
-		Assert(IsObject(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return an object. "), exchange.Json(response)))
+		Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return a dict. "), exchange.Json(response)))
 		var values any = ObjectValues(response)
 		var checkedSymbol any = nil
 		if IsTrue(IsTrue(!IsEqual(argSymbols, nil)) && IsTrue(IsEqual(GetArrayLength(argSymbols), 1))) {

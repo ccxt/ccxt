@@ -203,7 +203,7 @@ public partial class testMainClass
                 if (isTrue(getValue(exchangeSettings, key)))
                 {
                     object finalValue = null;
-                    if (isTrue((getValue(exchangeSettings, key) is IDictionary<string, object>)))
+                    if (isTrue(exchange.isDictionary(getValue(exchangeSettings, key))))
                     {
                         object existing = getExchangeProp(exchange, key, new Dictionary<string, object>() {});
                         finalValue = exchange.deepExtend(existing, getValue(exchangeSettings, key));
@@ -1140,7 +1140,7 @@ public partial class testMainClass
             storedOutput = jsonParse(storedOutput);
             newOutput = jsonParse(newOutput);
         }
-        if (isTrue(isTrue(((storedOutput is IDictionary<string, object>))) && isTrue(((newOutput is IDictionary<string, object>)))))
+        if (isTrue(isTrue(exchange.isDictionary(storedOutput)) && isTrue(exchange.isDictionary(newOutput))))
         {
             object storedOutputKeys = new List<object>(((IDictionary<string,object>)storedOutput).Keys);
             object newOutputKeys = new List<object>(((IDictionary<string,object>)newOutput).Keys);

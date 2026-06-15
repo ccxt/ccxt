@@ -3138,6 +3138,16 @@ func (this *Kucoin) FetchTransfers(options ...FetchTransfersOptions) ([]Transfer
 	}
 	return NewTransferEntryArray(res), nil
 }
+
+/**
+ * @method
+ * @name kucoin#fetchPositionsADLRank
+ * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+ * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+ */
 func (this *Kucoin) FetchPositionsADLRank(options ...FetchPositionsADLRankOptions) ([]ADL, error) {
 
 	opts := FetchPositionsADLRankOptionsStruct{}

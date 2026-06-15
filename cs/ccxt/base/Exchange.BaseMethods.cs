@@ -466,12 +466,12 @@ public partial class Exchange
          * @returns {object | undefined}
          */
         object value = this.safeValue(dictionaryOrList, key1);
-        if (isTrue(isTrue(isTrue((!isEqual(value, null))) && isTrue(((value is IDictionary<string, object>)))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        if (isTrue(this.isDictionary(value)))
         {
             return value;
         }
         object value2 = this.safeValue(dictionaryOrList, key2);
-        if (isTrue(isTrue(isTrue((!isEqual(value2, null))) && isTrue(((value2 is IDictionary<string, object>)))) && !isTrue(((value2 is IList<object>) || (value2.GetType().IsGenericType && value2.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        if (isTrue(this.isDictionary(value2)))
         {
             return value2;
         }

@@ -34,6 +34,7 @@
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
 * [watchTrades](#watchtrades)
+* [watchTradesForSymbols](#watchtradesforsymbols)
 * [watchMyTrades](#watchmytrades)
 * [watchMyTradesForSymbols](#watchmytradesforsymbols)
 * [watchOrdersForSymbols](#watchordersforsymbols)
@@ -699,6 +700,28 @@ get the list of most recent trades for a particular symbol
 
 ```javascript
 coinbaseexchange.watchTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="watchTradesForSymbols" id="watchtradesforsymbols"></a>
+
+### watchTradesForSymbols{docsify-ignore}
+get the list of most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>coinbaseexchange</code>](#coinbaseexchange)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coinbaseexchange.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 

@@ -2331,7 +2331,7 @@ class whitebit extends Exchange {
             $id = $balanceKeys[$i];
             $code = $this->safe_currency_code($id);
             $balance = $response[$id];
-            if (gettype($balance) === 'array' && $balance !== null) {
+            if ($balance !== null && $this->is_dictionary($balance)) {
                 $account = $this->account();
                 $account['free'] = $this->safe_string_2($balance, 'available', 'main_balance');
                 $account['used'] = $this->safe_string($balance, 'freeze');

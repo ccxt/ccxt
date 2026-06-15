@@ -12,6 +12,7 @@
 * [fetchTransfers](#fetchtransfers)
 * [createDepositAddress](#createdepositaddress)
 * [setMargin](#setmargin)
+* [fetchDepositsWithdrawals](#fetchdepositswithdrawals)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
 * [fetchWithdrawals](#fetchwithdrawals)
@@ -193,6 +194,34 @@ Either adds or reduces margin in order to set the margin to a specific value
 
 ```javascript
 coinbaseinternational.setMargin (symbol, amount, params?)
+```
+
+
+<a name="fetchDepositsWithdrawals" id="fetchdepositswithdrawals"></a>
+
+### fetchDepositsWithdrawals{docsify-ignore}
+fetch history of deposits and withdrawals
+
+**Kind**: instance method of [<code>coinbaseinternational</code>](#coinbaseinternational)  
+**Returns**: <code>object</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://docs.cloud.coinbase.com/intx/reference/gettransfers  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code for the currency of the deposit/withdrawals, default is undefined |
+| since | <code>int</code> | No | timestamp in ms of the earliest deposit/withdrawal, default is undefined |
+| limit | <code>int</code> | No | max number of deposit/withdrawals to return, default is undefined |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.portfolios | <code>string</code> | No | Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided. |
+| params.until | <code>int</code> | No | Only find transfers updated before this time. Use timestamp format |
+| params.status | <code>string</code> | No | The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED] |
+| params.type | <code>string</code> | No | The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING] |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+coinbaseinternational.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
