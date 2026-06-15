@@ -3197,7 +3197,7 @@ class pacifica extends Exchange {
     }
 
     public function sort_json_keys(mixed $value): mixed {
-        if (gettype($value) === 'array') {
+        if ($this->is_dictionary($value)) {
             $result = array();
             $keys = is_array($value) ? array_keys($value) : array();
             $sortedKeys = $this->sort($keys);
