@@ -89,6 +89,26 @@ class Exchange extends \ccxt\Exchange {
         return $connector;
     }
 
+    public function __destruct() {
+        $this->close();
+        // parent::__destruct(); // not needed atm
+    }
+
+    public function close() {
+        // ##### language-specific cleanup of WS & REST resources #####
+        // [REST]
+        if ($this->browser) {
+            $this->browser = null;
+        }
+        if ($this->default_connector) {
+            $this->default_connector = null;
+        }
+        parent::close();
+        // [WS]
+        $this->close_clients();
+        $this->clean_ws_data();
+    }
+
     private $proxyDictionaries = [];
 
     public function setProxyAgents($httpProxy, $httpsProxy, $socksProxy) {
