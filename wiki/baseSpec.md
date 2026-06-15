@@ -36,7 +36,7 @@ add margin
 * [weex](/exchanges/weex.md#addmargin)
 * [woo](/exchanges/woo.md#addmargin)
 * [xt](/exchanges/xt.md#addmargin)
-* [zebpayfutures](/exchanges/zebpayfutures.md#addmargin)
+* [zebpay](/exchanges/zebpay.md#addmargin)
 
 ---
 
@@ -6140,7 +6140,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 * [woo](/exchanges/woo.md#fetchtime)
 * [woofipro](/exchanges/woofipro.md#fetchtime)
 * [xt](/exchanges/xt.md#fetchtime)
-* [zebpayfutures](/exchanges/zebpayfutures.md#fetchtime)
+* [zebpay](/exchanges/zebpay.md#fetchtime)
 
 ---
 
@@ -6387,7 +6387,7 @@ fetch the trading fees for multiple markets
 * [whitebit](/exchanges/whitebit.md#fetchtradingfees)
 * [woo](/exchanges/woo.md#fetchtradingfees)
 * [woofipro](/exchanges/woofipro.md#fetchtradingfees)
-* [zebpay(futures)](/exchanges/zebpay(futures).md#fetchtradingfees)
+* [zebpay](/exchanges/zebpay.md#fetchtradingfees)
 
 ---
 
@@ -6980,7 +6980,7 @@ remove margin from a position
 * [weex](/exchanges/weex.md#reducemargin)
 * [woo](/exchanges/woo.md#reducemargin)
 * [xt](/exchanges/xt.md#reducemargin)
-* [zebpayfutures](/exchanges/zebpayfutures.md#reducemargin)
+* [zebpay](/exchanges/zebpay.md#reducemargin)
 
 ---
 
