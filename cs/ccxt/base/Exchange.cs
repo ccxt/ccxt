@@ -1125,8 +1125,6 @@ public partial class Exchange
 
     public object getProperty(object obj, object property, object defaultValue = null)
     {
-        if (obj == null || property == null) return defaultValue;
-
         var type = obj.GetType();
         var name = property.ToString();
 
