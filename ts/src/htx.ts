@@ -8991,7 +8991,7 @@ export default class htx extends Exchange {
         return openInterest as OpenInterest;
     }
 
-    parseOpenInterest (interest, market: Market = undefined): OpenInterest {
+    parseOpenInterest (interest, market: Market = undefined) {
         //
         // fetchOpenInterestHistory
         //
