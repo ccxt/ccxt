@@ -277,7 +277,6 @@ public partial class BaseTest
             Assert(isEqual(exchange.timeout, 10000), "timeout should be 10000");
             Assert(isEqual(exchange.verbose, false), "verbose should be false");
             // Assert (exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); // todo WS
-            // Assert (exchange.requiresEddsa === false);
             Assert(!isTrue(exchangeProp(exchange, "reloadingMarkets")), "reloadingMarkets should be false");
             Assert(isEqual(exchangeProp(exchange, "marketsLoading"), null), "marketsLoading should be undefined");
             // undefined or false

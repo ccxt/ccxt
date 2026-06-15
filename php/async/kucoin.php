@@ -3673,7 +3673,7 @@ class kucoin extends Exchange {
                 $networkCode = null;
                 list($networkCode, $params) = $this->handle_network_code_and_params($params);
                 if ($networkCode !== null) {
-                    $request['chain'] = strtolower($this->network_code_to_id($networkCode));
+                    $request['chain'] = strtolower($this->network_code_to_id($networkCode, $code));
                 }
                 //
                 //     {

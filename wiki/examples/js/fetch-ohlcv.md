@@ -1,8 +1,5 @@
-- [Fetch Ohlcv](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 // AUTO-TRANSPILE //
 async function example() {
     // eslint-disable-next-line import/no-named-as-default-member
@@ -19,5 +16,5 @@ async function example() {
     }
 }
 await example();
- 
+
 ```

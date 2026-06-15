@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var phemex$1 = require('./abstract/phemex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -3809,7 +3809,7 @@ class phemex extends phemex$1["default"] {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -4716,7 +4716,7 @@ class phemex extends phemex$1["default"] {
                 headers['Content-Type'] = 'application/json';
             }
             const auth = requestPath + queryString + expiryString + payload;
-            headers['x-phemex-request-signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+            headers['x-phemex-request-signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
         }
         url = this.implodeHostname(this.urls['api'][api]) + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -5082,7 +5082,7 @@ class phemex extends phemex$1["default"] {
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         let networkId = undefined;
         if (networkCode !== undefined) {
-            networkId = this.networkCodeToId(networkCode);
+            networkId = this.networkCodeToId(networkCode, code);
         }
         const stableCoins = this.safeValue(this.options, 'stableCoins');
         if (networkId === undefined) {

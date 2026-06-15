@@ -4166,7 +4166,7 @@ func (this *PhemexCore) ParseTransaction(transaction any, optionalArgs ...any) a
 		"txid":        txid,
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-		"network":     this.NetworkIdToCode(networkId),
+		"network":     this.NetworkIdToCode(networkId, code),
 		"address":     address,
 		"addressTo":   address,
 		"addressFrom": nil,
@@ -5719,7 +5719,7 @@ func (this *PhemexCore) Withdraw(code any, amount any, address any, optionalArgs
 		params = GetValue(networkCodeparamsVariable, 1)
 		var networkId any = nil
 		if IsTrue(!IsEqual(networkCode, nil)) {
-			networkId = this.NetworkCodeToId(networkCode)
+			networkId = this.NetworkCodeToId(networkCode, code)
 		}
 		var stableCoins any = this.SafeValue(this.Options, "stableCoins")
 		if IsTrue(IsEqual(networkId, nil)) {

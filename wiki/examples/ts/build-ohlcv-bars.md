@@ -1,8 +1,5 @@
-- [Build Ohlcv Bars](./examples/ts/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 
 // AUTO-TRANSPILE //
 
@@ -55,5 +52,5 @@ async function example_with_watch_trades () {
 
 await example_with_fetch_trades ();
 await example_with_watch_trades ();
- 
+
 ```

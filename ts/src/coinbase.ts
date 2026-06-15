@@ -1,11 +1,11 @@
 
 // ----------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coinbase.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded, InvalidNonce, PermissionDenied, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
 import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict, int, TradingFees, LedgerEntry, DepositAddress, Position } from './base/types.js';
 
@@ -1172,13 +1172,14 @@ export default class coinbase extends Exchange {
         const toObject = this.safeDict (transaction, 'to');
         const addressTo = this.safeString (toObject, 'address');
         const networkId = this.safeString (network, 'network_name');
+        const code = this.safeCurrencyCode (currencyId, currency);
         return {
             'info': transaction,
             'id': id,
             'txid': this.safeString (network, 'hash', id),
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
-            'network': this.networkIdToCode (networkId),
+            'network': this.networkIdToCode (networkId, code),
             'address': addressTo,
             'addressTo': addressTo,
             'addressFrom': undefined,
@@ -1187,7 +1188,7 @@ export default class coinbase extends Exchange {
             'tagFrom': undefined,
             'type': type,
             'amount': this.parseNumber (amountStringAbs),
-            'currency': this.safeCurrencyCode (currencyId, currency),
+            'currency': code,
             'status': status,
             'updated': this.parse8601 (this.safeString (transaction, 'updated_at')),
             'fee': {

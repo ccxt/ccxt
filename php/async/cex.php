@@ -379,7 +379,7 @@ class cex extends Exchange {
         for ($j = 0; $j < count($keys); $j++) {
             $networkId = $keys[$j];
             $rawNetwork = $rawNetworks[$networkId];
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $deposit = $this->safe_string($rawNetwork, 'deposit') === 'enabled';
             $withdraw = $this->safe_string($rawNetwork, 'withdrawal') === 'enabled';
             $networks[$networkCode] = array(
@@ -1784,7 +1784,7 @@ class cex extends Exchange {
             $request = array(
                 'accountId' => $accountId,
                 'currency' => $currency['id'], // documentation is wrong about this param
-                'blockchain' => $this->network_code_to_id($networkCode),
+                'blockchain' => $this->network_code_to_id($networkCode, $currency['code']),
             );
             $response = Async\await($this->privatePostGetDepositAddress ($this->extend($request, $params)));
             //
@@ -1811,7 +1811,7 @@ class cex extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $currency['code'],
-            'network' => $this->network_id_to_code($this->safe_string($depositAddress, 'blockchain')),
+            'network' => $this->network_id_to_code($this->safe_string($depositAddress, 'blockchain'), $currency['code']),
             'address' => $address,
             'tag' => null,
         );

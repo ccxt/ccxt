@@ -3538,7 +3538,7 @@ class kucoin(Exchange, ImplicitAPI):
             networkCode = None
             networkCode, params = self.handle_network_code_and_params(params)
             if networkCode is not None:
-                request['chain'] = self.network_code_to_id(networkCode).lower()
+                request['chain'] = self.network_code_to_id(networkCode, code).lower()
             #
             #     {
             #         "code": "200000",

@@ -446,7 +446,7 @@ func (this *DigifinexCore) ParseCurrency(rawCurrency any) any {
 	for j := 0; IsLessThan(j, GetArrayLength(networkEntries)); j++ {
 		var networkEntry any = GetValue(networkEntries, j)
 		var networkId any = this.SafeString2(networkEntry, "chain", "currency")
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		AddElementToObject(networks, networkCode, map[string]any{
 			"id":        networkId,
 			"network":   networkCode,
@@ -4868,7 +4868,7 @@ func (this *DigifinexCore) ParseDepositWithdrawFees(response any, optionalArgs .
 				"percentage": nil,
 			}
 			if IsTrue(!IsEqual(networkId, nil)) {
-				var networkCode any = this.NetworkIdToCode(networkId)
+				var networkCode any = this.NetworkIdToCode(networkId, code)
 				AddElementToObject(GetValue(GetValue(depositWithdrawFees, code), "networks"), networkCode, map[string]any{
 					"withdraw": withdrawResult,
 					"deposit":  depositResult,

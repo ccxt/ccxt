@@ -692,59 +692,65 @@ class woofipro(Exchange, ImplicitAPI):
         indexedChains = self.index_by(chainRows, 'chain_id')
         for i in range(0, len(tokenRows)):
             token = tokenRows[i]
-            currencyId = self.safe_string(token, 'token')
-            networks = self.safe_list(token, 'chain_details')
-            code = self.safe_currency_code(currencyId)
-            resultingNetworks: dict = {}
-            for j in range(0, len(networks)):
-                networkEntry = networks[j]
-                networkId = self.safe_string(networkEntry, 'chain_id')
-                networkRow = self.safe_dict(indexedChains, networkId)
-                networkName = self.safe_string(networkRow, 'name')
-                networkCode = self.network_id_to_code(networkName, code)
-                resultingNetworks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                    'active': None,
-                    'deposit': None,
-                    'withdraw': None,
-                    'fee': self.safe_number(networkEntry, 'withdrawal_fee'),
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(networkEntry, 'decimals'))),
-                    'info': [networkEntry, networkRow],
-                }
-            result[code] = self.safe_currency_structure({
-                'id': currencyId,
-                'name': None,
-                'code': code,
-                'precision': None,
-                'active': None,
-                'fee': None,
-                'networks': resultingNetworks,
-                'deposit': None,
-                'withdraw': None,
+            parsed = self.parse_currency({'_token': token, '_indexedChains': indexedChains})
+            result[parsed['code']] = parsed
+        return result
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        token = self.safe_dict(rawCurrency, '_token', {})
+        currencyId = self.safe_string(token, 'token')
+        networks = self.safe_list(token, 'chain_details')
+        code = self.safe_currency_code(currencyId)
+        indexedChains = self.safe_dict(rawCurrency, '_indexedChains', {})
+        resultingNetworks: dict = {}
+        for j in range(0, len(networks)):
+            networkEntry = networks[j]
+            networkId = self.safe_string(networkEntry, 'chain_id')
+            networkRow = self.safe_dict(indexedChains, networkId)
+            networkName = self.safe_string(networkRow, 'name')
+            networkCode = self.network_id_to_code(networkName, code)
+            resultingNetworks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'limits': {
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
                     'deposit': {
                         'min': None,
                         'max': None,
                     },
-                    'withdraw': {
-                        'min': self.safe_number(token, 'minimum_withdraw_amount'),
-                        'max': None,
-                    },
                 },
-                'info': token,
-            })
-        return result
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': self.safe_number(networkEntry, 'withdrawal_fee'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(networkEntry, 'decimals'))),
+                'info': {'network': networkEntry, 'networkRow': networkRow},
+            }
+        return self.safe_currency_structure({
+            'id': currencyId,
+            'name': None,
+            'code': code,
+            'precision': None,
+            'active': None,
+            'fee': None,
+            'networks': resultingNetworks,
+            'deposit': None,
+            'withdraw': None,
+            'limits': {
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': self.safe_number(token, 'minimum_withdraw_amount'),
+                    'max': None,
+                },
+            },
+            'info': token,
+        })
 
     def parse_token_and_fee_temp(self, item, feeTokenKey, feeAmountKey):
         feeCost = self.safe_string(item, feeAmountKey)

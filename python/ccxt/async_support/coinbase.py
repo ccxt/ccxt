@@ -1149,13 +1149,14 @@ class coinbase(Exchange, ImplicitAPI):
         toObject = self.safe_dict(transaction, 'to')
         addressTo = self.safe_string(toObject, 'address')
         networkId = self.safe_string(network, 'network_name')
+        code = self.safe_currency_code(currencyId, currency)
         return {
             'info': transaction,
             'id': id,
             'txid': self.safe_string(network, 'hash', id),
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'address': addressTo,
             'addressTo': addressTo,
             'addressFrom': None,
@@ -1164,7 +1165,7 @@ class coinbase(Exchange, ImplicitAPI):
             'tagFrom': None,
             'type': type,
             'amount': self.parse_number(amountStringAbs),
-            'currency': self.safe_currency_code(currencyId, currency),
+            'currency': code,
             'status': status,
             'updated': self.parse8601(self.safe_string(transaction, 'updated_at')),
             'fee': {

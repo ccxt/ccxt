@@ -582,7 +582,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
                 return false;
             }
         }
-        return message;
+        return true;
     }
 
     public void handleMessage(Client client, Object message)

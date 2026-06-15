@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bydfi$1 = require('./abstract/bydfi.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var number = require('./base/functions/number.js');
 
 // ----------------------------------------------------------------------------
@@ -2819,7 +2819,7 @@ class bydfi extends bydfi$1["default"] {
             'txid': this.safeString(transaction, 'txId'),
             'type': undefined,
             'currency': code,
-            'network': this.networkIdToCode(this.safeString(transaction, 'network')),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network'), code),
             'amount': this.safeNumber(transaction, 'amount'),
             'status': this.parseTransactionStatus(rawStatus),
             'timestamp': timestamp,
@@ -2860,7 +2860,7 @@ class bydfi extends bydfi$1["default"] {
             const timestamp = this.milliseconds().toString();
             if (method === 'GET') {
                 const payload = this.apiKey + timestamp + query;
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'hex');
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'hex');
                 headers = {
                     'X-API-KEY': this.apiKey,
                     'X-API-TIMESTAMP': timestamp,
@@ -2870,7 +2870,7 @@ class bydfi extends bydfi$1["default"] {
             else {
                 body = this.json(sortedParams);
                 const payload = this.apiKey + timestamp + body;
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'hex');
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'hex');
                 headers = {
                     'Content-Type': 'application/json',
                     'X-API-KEY': this.apiKey,

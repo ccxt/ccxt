@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var zebpay$1 = require('./abstract/zebpay.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var Precise = require('./base/Precise.js');
 
 // ----------------------------------------------------------------------------
@@ -260,7 +260,7 @@ class zebpay extends zebpay$1["default"] {
     }
     /**
      * @method
-     * @name zebpayfutures#fetchTime
+     * @name zebpay#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-time
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-time
@@ -385,7 +385,7 @@ class zebpay extends zebpay$1["default"] {
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'chainId');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             const depositAllowed = this.safeBool(chain, 'isDepositEnabled') === true;
             deposit = (depositAllowed) ? depositAllowed : deposit;
             const withdrawAllowed = this.safeBool(chain, 'isWithdrawEnabled') === true;
@@ -509,7 +509,7 @@ class zebpay extends zebpay$1["default"] {
     }
     /**
      * @method
-     * @name zebpay(futures)#fetchTradingFees
+     * @name zebpay#fetchTradingFees
      * @description fetch the trading fees for multiple markets
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1460,7 +1460,7 @@ class zebpay extends zebpay$1["default"] {
     }
     /**
      * @method
-     * @name zebpayfutures#addMargin
+     * @name zebpay#addMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position
      * @param {string} symbol unified market symbol
@@ -1504,7 +1504,7 @@ class zebpay extends zebpay$1["default"] {
     }
     /**
      * @method
-     * @name zebpayfutures#reduceMargin
+     * @name zebpay#reduceMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-reduce-margin-from-position
      * @param {string} symbol unified market symbol.
@@ -1879,13 +1879,13 @@ class zebpay extends zebpay$1["default"] {
             if (method === 'GET' || (method === 'DELETE' && isSpot)) {
                 // For GET/DELETE: Append params to URL and sign the query string
                 const queryString = this.urlencode(params);
-                signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha256.sha256, 'hex');
+                signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha2_js.sha256, 'hex');
                 url += '?' + queryString;
             }
             else {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
                 body = this.json(params);
-                signature = this.hmac(this.encode(body), this.encode(this.secret), sha256.sha256, 'hex');
+                signature = this.hmac(this.encode(body), this.encode(this.secret), sha2_js.sha256, 'hex');
             }
             headers = {
                 'Referrer': 'ccxt',

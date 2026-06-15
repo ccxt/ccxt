@@ -903,7 +903,7 @@ public class BingxCore extends BingxApi
         {
             Object rawNetwork = Helpers.GetValue(networkList, j);
             Object network = this.safeString(rawNetwork, "network");
-            Object networkCode = this.networkIdToCode(network);
+            Object networkCode = this.networkIdToCode(network, code);
             Object limits = new java.util.HashMap<String, Object>() {{
                 put( "withdraw", new java.util.HashMap<String, Object>() {{
                     put( "min", BingxCore.this.safeNumber(rawNetwork, "withdrawMin") );
@@ -5557,7 +5557,7 @@ public class BingxCore extends BingxApi
             put( "txid", BingxCore.this.safeString(transaction, "txId") );
             put( "type", type );
             put( "currency", finalCode );
-            put( "network", BingxCore.this.networkIdToCode(finalNetwork) );
+            put( "network", BingxCore.this.networkIdToCode(finalNetwork, finalCode) );
             put( "amount", BingxCore.this.safeNumber(transaction, "amount") );
             put( "status", BingxCore.this.parseTransactionStatus(BingxCore.this.safeString(transaction, "status")) );
             put( "timestamp", finalTimestamp );
@@ -6101,7 +6101,7 @@ public class BingxCore extends BingxApi
             Object network = this.safeStringUpper(parameters, "network");
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
             {
-                Helpers.addElementToObject(request, "network", this.networkCodeToId(network));
+                Helpers.addElementToObject(request, "network", this.networkCodeToId(network, Helpers.GetValue(currency, "code")));
             }
             if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
             {

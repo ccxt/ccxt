@@ -1,12 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/kraken.js';
 import { AccountSuspended, BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress, Position, OrderRequest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -903,22 +902,6 @@ export default class kraken extends Exchange {
         });
     }
 
-    addKeyInArrayItems (obj, keyName) {
-        const result = [];
-        const keys = Object.keys (obj);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const item = obj[key];
-            if (item === undefined) {
-                continue;
-            }
-            const itemWithKey = this.extend ({}, item);
-            itemWithKey[keyName] = key;
-            result.push (itemWithKey);
-        }
-        return result;
-    }
-
     safeCurrencyCode (currencyId: Str, currency: Currency = undefined): Str {
         if (currencyId === undefined) {
             return currencyId;
@@ -998,7 +981,7 @@ export default class kraken extends Exchange {
         };
     }
 
-    parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+    parseOrderBookBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         const timestamp = this.safeInteger (bidask, 2);

@@ -431,7 +431,7 @@ public partial class digifinex : Exchange
         {
             object networkEntry = getValue(networkEntries, j);
             object networkId = this.safeString2(networkEntry, "chain", "currency");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "id", networkId },
                 { "network", networkCode },
@@ -4443,7 +4443,7 @@ public partial class digifinex : Exchange
                 };
                 if (isTrue(!isEqual(networkId, null)))
                 {
-                    object networkCode = this.networkIdToCode(networkId);
+                    object networkCode = this.networkIdToCode(networkId, code);
                     ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                         { "withdraw", withdrawResult },
                         { "deposit", depositResult },

@@ -519,7 +519,7 @@ class apex(Exchange, ImplicitAPI):
                 tokenName = self.safe_string(token, 'token')
                 if tokenName == currencyId:
                     networkId = self.safe_string(chain, 'chainId')
-                    networkCode = self.network_id_to_code(networkId)
+                    networkCode = self.network_id_to_code(networkId, code)
                     networks[networkCode] = {
                         'info': chain,
                         'id': networkId,

@@ -382,7 +382,7 @@ class zebpay extends Exchange {
         for ($j = 0; $j < count($chains); $j++) {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'chainId');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $depositAllowed = $this->safe_bool($chain, 'isDepositEnabled') === true;
             $deposit = ($depositAllowed) ? $depositAllowed : $deposit;
             $withdrawAllowed = $this->safe_bool($chain, 'isWithdrawEnabled') === true;

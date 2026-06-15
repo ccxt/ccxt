@@ -501,7 +501,7 @@ class hollaex extends \ccxt\async\hollaex {
                 return false;
             }
         }
-        return $message;
+        return true;
     }
 
     public function handle_message(Client $client, $message) {

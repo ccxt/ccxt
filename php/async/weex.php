@@ -875,7 +875,7 @@ class weex extends Exchange {
         for ($j = 0; $j < count($chains); $j++) {
             $chain = $this->safe_dict($chains, $j);
             $networkId = $this->safe_string($chain, 'network');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'info' => $chain,
                 'id' => $networkId,
@@ -1582,8 +1582,11 @@ class weex extends Exchange {
         $timestamp = $this->safe_integer($trade, 'time');
         $isBuyer = $this->safe_bool($trade, 'isBuyer');
         $side = $this->safe_string_lower($trade, 'side');
+        $isBuyerMaker = $this->safe_bool($trade, 'isBuyerMaker');
         if ($isBuyer !== null) {
             $side = $isBuyer ? 'buy' : 'sell';
+        } elseif ($isBuyerMaker !== null) {
+            $side = $isBuyerMaker ? 'sell' : 'buy';
         }
         $isSpot = true;
         if ($market === null) {
@@ -1616,6 +1619,8 @@ class weex extends Exchange {
         $takerOrMaker = null;
         if ($isMaker !== null) {
             $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        } elseif ($isBuyerMaker !== null) {
+            $takerOrMaker = 'taker';
         }
         return $this->safe_trade(array(
             'info' => $trade,

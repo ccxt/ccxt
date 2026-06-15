@@ -442,7 +442,7 @@ public partial class lbank : Exchange
             {
                 networkId = this.safeString(networkEntry, "assetCode"); // use type as fallback if networkId is not present
             }
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "id", networkId },
                 { "network", networkCode },
@@ -2391,7 +2391,7 @@ public partial class lbank : Exchange
         return new Dictionary<string, object>() {
             { "info", response },
             { "currency", code },
-            { "network", this.networkIdToCode(this.safeString(result, "netWork")) },
+            { "network", this.networkIdToCode(this.safeString(result, "netWork"), code) },
             { "address", address },
             { "tag", tag },
         };
@@ -2592,7 +2592,7 @@ public partial class lbank : Exchange
             { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", this.networkIdToCode(this.safeString(transaction, "networkName")) },
+            { "network", this.networkIdToCode(this.safeString(transaction, "networkName"), code) },
             { "address", address },
             { "addressTo", addressTo },
             { "addressFrom", addressFrom },
@@ -2811,7 +2811,7 @@ public partial class lbank : Exchange
                 object fee = this.safeNumber(networkEntry, "withdrawFee");
                 if (isTrue(!isEqual(fee, null)))
                 {
-                    object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"));
+                    object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
                     ((IDictionary<string,object>)getValue(withdrawFees, code))[(string)networkCode] = fee;
                 }
             }
@@ -2869,7 +2869,7 @@ public partial class lbank : Exchange
             {
                 object currencyId = this.safeString(item, "assetCode");
                 object codeInner = this.safeCurrencyCode(currencyId);
-                object network = this.networkIdToCode(this.safeString(item, "chain"));
+                object network = this.networkIdToCode(this.safeString(item, "chain"), codeInner);
                 if (isTrue(isEqual(network, null)))
                 {
                     network = codeInner;
@@ -3040,7 +3040,7 @@ public partial class lbank : Exchange
                             object resultCodeInfo = getValue(getValue(result, code), "info");
                             ((IList<object>)resultCodeInfo).Add(fee);
                         }
-                        object networkCode = this.networkIdToCode(this.safeString(fee, "chain"));
+                        object networkCode = this.networkIdToCode(this.safeString(fee, "chain"), code);
                         if (isTrue(!isEqual(networkCode, null)))
                         {
                             ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
@@ -3096,11 +3096,12 @@ public partial class lbank : Exchange
         //    }
         //
         object result = this.depositWithdrawFee(fee);
+        object code = this.safeString(currency, "code");
         object networkList = this.safeValue(fee, "networkList", new List<object>() {});
         for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
         {
             object networkEntry = getValue(networkList, j);
-            object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"));
+            object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
             object withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
             object isDefault = this.safeValue(networkEntry, "isDefault");
             if (isTrue(!isEqual(withdrawFee, null)))

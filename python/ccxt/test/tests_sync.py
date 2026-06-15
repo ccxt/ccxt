@@ -147,7 +147,7 @@ class testMainClass:
                 key = setting_keys[i]
                 if exchange_settings[key]:
                     final_value = None
-                    if isinstance(exchange_settings[key], dict):
+                    if exchange.is_dictionary(exchange_settings[key]):
                         existing = get_exchange_prop(exchange, key, {})
                         final_value = exchange.deep_extend(existing, exchange_settings[key])
                     else:
@@ -780,7 +780,7 @@ class testMainClass:
         if (isinstance(stored_output, str)) and (isinstance(new_output, str)) and stored_output.startswith('{') and new_output.startswith('{'):
             stored_output = json_parse(stored_output)
             new_output = json_parse(new_output)
-        if (isinstance(stored_output, dict)) and (isinstance(new_output, dict)):
+        if exchange.is_dictionary(stored_output) and exchange.is_dictionary(new_output):
             stored_output_keys = list(stored_output.keys())
             new_output_keys = list(new_output.keys())
             stored_keys_length = len(stored_output_keys)

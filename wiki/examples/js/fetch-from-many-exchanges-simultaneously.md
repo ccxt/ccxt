@@ -1,8 +1,5 @@
-- [Fetch From Many Exchanges Simultaneously](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 import log from 'ololog';
@@ -22,5 +19,5 @@ const exchanges = [ 'coinbasepro', 'hitbtc2', 'poloniex' ]
 
     log (result);
 
-}) () 
+}) ()
 ```

@@ -2,12 +2,12 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var ed25519_js = require('@noble/curves/ed25519.js');
 var pacifica$1 = require('./abstract/pacifica.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var crypto = require('./base/functions/crypto.js');
-var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -3163,7 +3163,7 @@ class pacifica extends pacifica$1["default"] {
         return costNumber;
     }
     sortJsonKeys(value) {
-        if (typeof value === 'object') {
+        if (this.isDictionary(value)) {
             const result = {};
             const keys = Object.keys(value);
             const sortedKeys = this.sort(keys);
@@ -3197,7 +3197,7 @@ class pacifica extends pacifica$1["default"] {
         const messageBytes = this.encode(message);
         const secretBytes = this.base58ToBinary(privateKey);
         const seed = this.arraySlice(secretBytes, 0, 32);
-        const signatureBase64 = crypto.eddsa(messageBytes, seed, ed25519.ed25519);
+        const signatureBase64 = crypto.eddsa(messageBytes, seed, ed25519_js.ed25519);
         const signatureBinary = this.base64ToBinary(signatureBase64);
         const signatureBase58 = this.binaryToBase58(signatureBinary);
         return signatureBase58;

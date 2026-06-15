@@ -2336,7 +2336,7 @@ export default class bitteam extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'addressFrom': addressFrom,
             'address': undefined,
             'addressTo': addressTo,

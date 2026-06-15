@@ -344,7 +344,7 @@ func (this *LunoCore) ParseCurrency(rawCurrency any) any {
 	for i := 0; IsLessThan(i, GetArrayLength(rawCurrency)); i++ {
 		var networkEntry any = GetValue(rawCurrency, i)
 		var networkId any = this.SafeString(networkEntry, "name")
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		AddElementToObject(networks, networkCode, map[string]any{
 			"id":      networkId,
 			"network": networkCode,

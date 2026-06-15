@@ -1,8 +1,5 @@
-- [Hybridcjsexample](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 const ccxt = require('ccxt');
 
 console.log('--------------------------------------------')
@@ -20,5 +17,5 @@ const exchange = new ccxt.huobi ({
 ;(async () => {
 const result = await exchange.fetchBalance();
 console.log(result)
-}) () 
+}) ()
 ```

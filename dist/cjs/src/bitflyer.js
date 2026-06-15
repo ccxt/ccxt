@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitflyer$1 = require('./abstract/bitflyer.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var Precise = require('./base/Precise.js');
 
 // ----------------------------------------------------------------------------
@@ -1207,7 +1207,7 @@ class bitflyer extends bitflyer$1["default"] {
             headers = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
-                'ACCESS-SIGN': this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256),
+                'ACCESS-SIGN': this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256),
                 'Content-Type': 'application/json',
             };
         }

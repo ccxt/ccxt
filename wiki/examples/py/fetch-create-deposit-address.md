@@ -1,8 +1,5 @@
-- [Fetch Create Deposit Address](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -79,5 +76,5 @@ except ccxt.InvalidAddress as e:
 except Exception as e:
 
     print('There was an error while fetching deposit address for ' + currency_code, type(e).__name__, str(e))
- 
+
 ```

@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinbaseexchange$1 = require('./abstract/coinbaseexchange.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -525,7 +525,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         for (let j = 0; j < supportedNetworks.length; j++) {
             const network = supportedNetworks[j];
             const networkId = this.safeString(network, 'id');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             networks[networkCode] = {
                 'id': networkId,
                 'name': this.safeString(network, 'name'),
@@ -2022,7 +2022,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             'txid': this.safeString(details, 'crypto_transaction_hash'),
             'type': type,
             'currency': code,
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'amount': amount,
             'status': this.parseTransactionStatus(transaction),
             'timestamp': timestamp,
@@ -2104,7 +2104,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             catch (e) {
                 throw new errors.AuthenticationError(this.id + ' sign() invalid base64 secret');
             }
-            const signature = this.hmac(this.encode(what), secret, sha256.sha256, 'base64');
+            const signature = this.hmac(this.encode(what), secret, sha2_js.sha256, 'base64');
             headers = {
                 'CB-ACCESS-KEY': this.apiKey,
                 'CB-ACCESS-SIGN': signature,

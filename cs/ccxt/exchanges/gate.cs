@@ -2009,7 +2009,7 @@ public partial class gate : Exchange
         {
             object chain = getValue(chains, j);
             object networkId = this.safeString(chain, "name");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "info", chain },
                 { "id", networkId },
@@ -2378,12 +2378,13 @@ public partial class gate : Exchange
         //
         object address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
+        object code = this.safeString(currency, "code");
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", this.safeString(currency, "code") },
+            { "currency", code },
             { "address", address },
             { "tag", this.safeString(depositAddress, "payment_id") },
-            { "network", this.networkIdToCode(this.safeString(depositAddress, "chain")) },
+            { "network", this.networkIdToCode(this.safeString(depositAddress, "chain"), code) },
         };
     }
 
@@ -2550,7 +2551,7 @@ public partial class gate : Exchange
                 for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
                 {
                     object networkId = getValue(networkIds, j);
-                    object networkCode = this.networkIdToCode(networkId);
+                    object networkCode = this.networkIdToCode(networkId, code);
                     ((IDictionary<string,object>)withdrawFees)[(string)networkCode] = this.parseNumber(getValue(withdrawFixOnChains, networkId));
                 }
             }
@@ -2637,7 +2638,9 @@ public partial class gate : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(chainKeys)); postFixIncrement(ref i))
             {
                 object chainKey = getValue(chainKeys, i);
-                object networkCode = this.networkIdToCode(chainKey, this.safeString(fee, "currency"));
+                object currencyId = this.safeString(fee, "currency");
+                object code = this.safeCurrencyCode(currencyId, currency);
+                object networkCode = this.networkIdToCode(chainKey, code);
                 ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "fee", this.parseNumber(getValue(withdrawFixOnChains, chainKey)) },
@@ -3458,7 +3461,7 @@ public partial class gate : Exchange
 
     /**
      * @method
-     * @name gateio#fetchOHLCV
+     * @name gate#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://www.gate.com/docs/developers/apiv4/en/#market-k-line-chart                       // spot
      * @see https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart               // swap
@@ -4328,7 +4331,7 @@ public partial class gate : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode);
+            ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode, code);
         }
         object response = await this.privateWithdrawalsPostWithdrawals(this.extend(request, parameters));
         //
@@ -4469,7 +4472,7 @@ public partial class gate : Exchange
             { "txid", txid },
             { "currency", code },
             { "amount", this.parseNumber(amountString) },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "addressTo", null },
             { "addressFrom", null },

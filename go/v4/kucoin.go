@@ -3718,7 +3718,7 @@ func (this *KucoinCore) FetchDepositAddressesByNetwork(code any, optionalArgs ..
 			networkCode = GetValue(networkCodeparamsVariable, 0)
 			params = GetValue(networkCodeparamsVariable, 1)
 			if IsTrue(!IsEqual(networkCode, nil)) {
-				AddElementToObject(request, "chain", ToLower(this.NetworkCodeToId(networkCode)))
+				AddElementToObject(request, "chain", ToLower(this.NetworkCodeToId(networkCode, code)))
 			}
 			//
 			//     {
@@ -13403,7 +13403,7 @@ func (this *KucoinCore) FetchTransfers(optionalArgs ...any) <-chan any {
 
 /**
  * @method
- * @name kucoinfutures#fetchPositionsADLRank
+ * @name kucoin#fetchPositionsADLRank
  * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
  * @param {string[]} [symbols] list of unified market symbols

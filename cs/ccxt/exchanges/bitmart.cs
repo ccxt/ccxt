@@ -1187,7 +1187,7 @@ public partial class bitmart : Exchange
                     { "type", ((bool) isTrue(isNtf)) ? "other" : "crypto" },
                 };
             }
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, currencyCode);
             object withdraw = this.safeBool(currency, "withdraw_enabled");
             object deposit = this.safeBool(currency, "deposit_enabled");
             ((IDictionary<string,object>)getValue(entry, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
@@ -4033,11 +4033,12 @@ public partial class bitmart : Exchange
         }
         object address = this.safeString(depositAddress, "address");
         currency = this.safeCurrency(currencyId, currency);
+        object code = this.safeString(currency, "code");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", this.safeString(currency, "code") },
-            { "network", this.networkIdToCode(network) },
+            { "currency", code },
+            { "network", this.networkIdToCode(network, code) },
             { "address", address },
             { "tag", this.safeString2(depositAddress, "address_memo", "memo") },
         };
@@ -4364,7 +4365,7 @@ public partial class bitmart : Exchange
             { "id", id },
             { "currency", code },
             { "amount", amount },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "addressFrom", null },
             { "addressTo", null },

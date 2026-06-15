@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var weex$1 = require('./abstract/weex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -861,7 +861,7 @@ class weex extends weex$1["default"] {
         for (let j = 0; j < chains.length; j++) {
             const chain = this.safeDict(chains, j);
             const networkId = this.safeString(chain, 'network');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             networks[networkCode] = {
                 'info': chain,
                 'id': networkId,
@@ -1552,8 +1552,12 @@ class weex extends weex$1["default"] {
         const timestamp = this.safeInteger(trade, 'time');
         const isBuyer = this.safeBool(trade, 'isBuyer');
         let side = this.safeStringLower(trade, 'side');
+        const isBuyerMaker = this.safeBool(trade, 'isBuyerMaker');
         if (isBuyer !== undefined) {
             side = isBuyer ? 'buy' : 'sell';
+        }
+        else if (isBuyerMaker !== undefined) {
+            side = isBuyerMaker ? 'sell' : 'buy';
         }
         let isSpot = true;
         if (market === undefined) {
@@ -1588,6 +1592,9 @@ class weex extends weex$1["default"] {
         let takerOrMaker = undefined;
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
+        }
+        else if (isBuyerMaker !== undefined) {
+            takerOrMaker = 'taker';
         }
         return this.safeTrade({
             'info': trade,
@@ -3782,7 +3789,7 @@ class weex extends weex$1["default"] {
                 body = this.json(query);
                 payload += body;
             }
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'base64');
             headers = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-SIGN': signature,

@@ -1,11 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/exmo.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, OnMaintenance, RateLimitExceeded, BadRequest, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import type { Dict, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees, Dictionary, int, DepositAddress, OrderBooks } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -641,7 +641,10 @@ export default class exmo extends Exchange {
             const provider = fee[i];
             const type = this.safeString (provider, 'type');
             const networkId = this.safeString (provider, 'name');
-            const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
+            const currencyId = this.safeString (provider, 'currency_name');
+            currency = this.safeCurrency (currencyId, currency);
+            const code = this.safeString (currency, 'code');
+            const networkCode = this.networkIdToCode (networkId, code);
             const commissionDesc = this.safeString (provider, 'commission_desc');
             let splitCommissionDesc = [];
             let percentage = undefined;
@@ -748,7 +751,7 @@ export default class exmo extends Exchange {
                 networkId = networkId.replace ('(', '');
                 const replaceChar = ')'; // transpiler trick
                 networkId = networkId.replace (replaceChar, '');
-                const networkCode = this.networkIdToCode (networkId);
+                const networkCode = this.networkIdToCode (networkId, code);
                 if (!(networkCode in networks)) {
                     networks[networkCode] = {
                         'id': networkId,

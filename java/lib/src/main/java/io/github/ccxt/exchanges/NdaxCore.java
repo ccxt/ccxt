@@ -707,7 +707,7 @@ public class NdaxCore extends NdaxApi
                 Object newNonce = this.safeInteger(level, 0);
                 nonce = Helpers.mathMax(nonce, newNonce);
             }
-            Object bidask = this.parseBidAsk(level, priceKey, amountKey);
+            Object bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             Object levelSide = this.safeInteger(level, 9);
             Object side = ((Helpers.isTrue(levelSide))) ? asksKey : bidsKey;
             Object resultSide = Helpers.GetValue(result, side);

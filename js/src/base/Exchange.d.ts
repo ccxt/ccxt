@@ -101,7 +101,6 @@ export default class Exchange {
         referral?: string;
     };
     requiresWeb3: boolean;
-    requiresEddsa: boolean;
     precision: {
         amount: Num;
         price: Num;
@@ -240,22 +239,12 @@ export default class Exchange {
     implodeParams: (string: string, params: any[] | Dictionary<any>) => string;
     extractParams: (string: string) => string[];
     json: (data: any, params?: any) => string;
-    binaryConcat: typeof import("../static_dependencies/noble-curves/abstract/utils.js").concatBytes;
-    hash: (request: import("../static_dependencies/noble-hashes/utils.js").Input, hash: {
-        (message: import("../static_dependencies/noble-hashes/utils.js").Input): Uint8Array;
-        outputLen: number;
-        blockLen: number;
-        create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
-    }, digest?: "binary" | "hex" | "base64") => any;
+    binaryConcat: (...arrays: import("@noble/curves/utils.js").TArg<Uint8Array[]>) => Uint8Array;
+    hash: (request: string | Uint8Array, hash: import("@noble/hashes/utils.js").CHash<import("@noble/hashes/utils.js").Hash<any>, undefined>, digest?: "binary" | "hex" | "base64") => any;
     arrayConcat: (a: any[], b: any[]) => any[];
     encode: (str: string) => Uint8Array;
     urlencode: (object: object, sort?: boolean) => string;
-    hmac: (request: import("../static_dependencies/noble-hashes/utils.js").Input, secret: import("../static_dependencies/noble-hashes/utils.js").Input, hash: {
-        (message: import("../static_dependencies/noble-hashes/utils.js").Input): Uint8Array;
-        outputLen: number;
-        blockLen: number;
-        create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
-    }, digest?: "binary" | "hex" | "base64") => any;
+    hmac: (request: string | Uint8Array, secret: string | Uint8Array, hash: import("@noble/hashes/utils.js").CHash<import("@noble/hashes/utils.js").Hash<any>, undefined>, digest?: "binary" | "hex" | "base64") => any;
     numberToString: typeof functions.numberToString;
     parseTimeframe: (timeframe: string) => number;
     safeInteger2: (o: any, k1: IndexType, k2: IndexType, $default?: number) => number;
@@ -383,7 +372,6 @@ export default class Exchange {
     getProperty(obj: any, property: any, defaultValue?: any): any;
     setProperty(obj: any, property: any, defaultValue?: any): void;
     exceptionMessage(exc: any, includeStack?: boolean): string;
-    axolotl(payload: any, hexKey: any, ed25519: any): string;
     fixStringifiedJsonMembers(content: string): string;
     ethAbiEncode(types: any, args: any): Uint8Array;
     ethEncodeStructuredData(domain: any, messageTypes: any, messageData: any): Uint8Array;
@@ -395,6 +383,9 @@ export default class Exchange {
     };
     starknetEncodeStructuredData(domain: any, messageTypes: any, messageData: any, address: any): string;
     starknetSign(msgHash: any, pri: any): string;
+    extendedStarknetSign(msgHash: any, pri: any): string;
+    extendedStarknetGetSelectorFromName(name: any): string;
+    extendedStarknetComputePoseidonHashOnElements(data: any): string;
     getZKContractSignatureObj(seed: any, params?: {}): Promise<any>;
     getZKTransferSignatureObj(seed: any, params?: {}): Promise<any>;
     loadDydxProtos(): Promise<void>;
@@ -634,6 +625,7 @@ export default class Exchange {
     parsedFeeAndFees(container: any): Dictionary<any>[];
     parseFeeNumeric(fee: any): any;
     findNearestCeiling(arr: number[], providedValue: number): number;
+    addKeyInArrayItems(obj: any, keyName: any): any[];
     invertFlatStringDictionary(dict: any): {};
     stringToBase16(str: any): string;
     reduceFeesByCurrency(fees: any): any[];
@@ -658,7 +650,7 @@ export default class Exchange {
     marketsForSymbols(symbols?: Strings): any[];
     marketSymbols(symbols?: Strings, type?: Str, allowEmpty?: boolean, sameTypeOnly?: boolean, sameSubTypeOnly?: boolean): any[];
     marketCodes(codes?: Strings): any[];
-    parseBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): any[];
+    parseOrderBookBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): any[];
     fetchL2OrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     filterBySymbol(objects: any, symbol?: Str): any;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
@@ -757,7 +749,7 @@ export default class Exchange {
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     fetchLedgerEntry(id: string, code?: Str, params?: {}): Promise<LedgerEntry>;
-    parseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): number[];
+    parseOrderBookBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): number[];
     safeCurrency(currencyId: Str, currency?: Currency): CurrencyInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     marketOrNull(symbol?: Str): MarketInterface;

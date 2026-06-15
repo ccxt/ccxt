@@ -550,7 +550,7 @@ public class CryptocomCore extends CryptocomApi
             } catch(Exception e)
             {
                 Object erString = this.exceptionMessage(e);
-                if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(erString, "\"msg\":\"SYS_ERROR\""), 0)))
+                if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(erString, "SYS_ERROR"), 0)))
                 {
                     // sub-accounts can't access this endpoint
                     // {"code":"10001","msg":"SYS_ERROR"}
@@ -655,20 +655,6 @@ public class CryptocomCore extends CryptocomApi
             put( "type", "crypto" );
             put( "networks", networks );
         }});
-    }
-
-    public Object addKeyInArrayItems(Object obj, Object keyName)
-    {
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object keys = Helpers.objectKeys(obj);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
-        {
-            Object key = Helpers.GetValue(keys, i);
-            Object item = Helpers.GetValue(obj, key);
-            Helpers.addElementToObject(item, keyName, key);
-            ((java.util.List<Object>)result).add(item);
-        }
-        return result;
     }
 
     /**
@@ -2318,7 +2304,7 @@ public class CryptocomCore extends CryptocomApi
             var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
             networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
-            Object networkId = this.networkCodeToId(networkCode);
+            Object networkId = this.networkCodeToId(networkCode, code);
             if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
             {
                 Helpers.addElementToObject(request, "network_id", networkId);

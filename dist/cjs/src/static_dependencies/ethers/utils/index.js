@@ -13,18 +13,18 @@ require('../../../base/functions/platform.js');
 require('../../../base/functions/encode.js');
 var crypto = require('../../../base/functions/crypto.js');
 require('../../../base/functions/io.js');
-var sha3 = require('../../noble-hashes/sha3.js');
-require('../../noble-hashes/sha256.js');
+var sha3_js = require('@noble/hashes/sha3.js');
+require('@noble/hashes/sha2.js');
 
 // ----------------------------------------------------------------------------
 function id(value) {
-    return '0x' + crypto.hash(value, sha3.keccak_256, 'hex');
+    return '0x' + crypto.hash(value, sha3_js.keccak_256, 'hex');
 }
 function keccak256(value) {
     if (data.isHexString(value)) {
-        return '0x' + crypto.hash(data.getBytes(value), sha3.keccak_256, 'hex');
+        return '0x' + crypto.hash(data.getBytes(value), sha3_js.keccak_256, 'hex');
     }
-    return '0x' + crypto.hash(value, sha3.keccak_256, 'hex');
+    return '0x' + crypto.hash(value, sha3_js.keccak_256, 'hex');
 }
 
 exports.concat = data.concat;

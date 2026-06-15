@@ -2,7 +2,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-require('../../noble-curves/abstract/utils.js');
+require('@noble/curves/utils.js');
 var encode = require('./encode.js');
 
 // ----------------------------------------------------------------------------

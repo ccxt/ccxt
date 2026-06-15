@@ -1206,7 +1206,7 @@ public class HashkeyCore extends HashkeyApi
         {
             Object network = Helpers.GetValue(networks, j);
             Object networkId = this.safeString(network, "chainType");
-            Object networkCode = this.networkCodeToId(networkId);
+            Object networkCode = this.networkCodeToId(networkId, code);
             Helpers.addElementToObject(parsedNetworks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", networkCode );
@@ -2224,7 +2224,7 @@ public class HashkeyCore extends HashkeyApi
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
-                Helpers.addElementToObject(request, "chainType", this.networkCodeToId(networkCode));
+                Helpers.addElementToObject(request, "chainType", this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code")));
             }
             Object response = (this.privatePostApiV1AccountWithdraw(this.extend(request, parameters))).join();
             //

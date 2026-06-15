@@ -162,7 +162,7 @@ public class LighterCore extends LighterApi
                 put( "doc", "https://apidocs.lighter.xyz/" );
                 put( "fees", "https://docs.lighter.xyz/perpetual-futures/fees" );
                 put( "referral", new java.util.HashMap<String, Object>() {{
-                    put( "url", "app.lighter.xyz/?referral=715955W9" );
+                    put( "url", "https://app.lighter.xyz/?referral=715955W9" );
                     put( "discount", 0.1 );
                 }} );
             }} );
@@ -2161,10 +2161,12 @@ public class LighterCore extends LighterApi
                 } else
                 {
                     Object perpBalance = this.safeDict(result, "USDC", this.account());
-                    Object perpUSDCTotal = this.safeString(account, "collateral");
-                    Object perpUSDCFree = this.safeString(account, "available_balance");
-                    Helpers.addElementToObject(perpBalance, "total", Precise.stringAdd(Helpers.GetValue(perpBalance, "total"), perpUSDCTotal));
-                    Helpers.addElementToObject(perpBalance, "free", Precise.stringAdd(Helpers.GetValue(perpBalance, "free"), perpUSDCFree));
+                    Object perpTotal = this.safeString(perpBalance, "total", "0");
+                    Object perpFree = this.safeString(perpBalance, "free", "0");
+                    Object perpUSDCTotal = this.safeString(account, "collateral", "0");
+                    Object perpUSDCFree = this.safeString(account, "available_balance", "0");
+                    Helpers.addElementToObject(perpBalance, "total", Precise.stringAdd(perpTotal, perpUSDCTotal));
+                    Helpers.addElementToObject(perpBalance, "free", Precise.stringAdd(perpFree, perpUSDCFree));
                     Helpers.addElementToObject(result, "USDC", perpBalance);
                 }
             }

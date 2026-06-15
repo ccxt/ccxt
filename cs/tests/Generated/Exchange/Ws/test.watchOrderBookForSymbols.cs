@@ -35,7 +35,7 @@ public partial class testMainClass : BaseTest
             if (isTrue(isEqual(success, true)))
             {
                 // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-                assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an object. "), exchange.json(response)));
+                assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an object. "), exchange.json(response)));
                 now = exchange.milliseconds();
                 testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
                 testOrderBook(exchange, skippedProperties, method, response, null);

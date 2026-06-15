@@ -513,7 +513,7 @@ class hollaex extends Exchange {
         for ($j = 0; $j < count($networkIds); $j++) {
             $networkId = $networkIds[$j];
             $networkEntry = $this->safe_dict($rawNetworks, $networkId);
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'id' => $networkId,
                 'network' => $networkCode,

@@ -1,8 +1,5 @@
-- [Kraken Fetch Order Trades](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 
 (async () => {
 
@@ -35,5 +32,5 @@
     // const trades = await exchange.fetchOrderTrades (order['id'], undefined, undefined, undefined, params);
 
 }) ()
- 
+
 ```

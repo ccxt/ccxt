@@ -1267,6 +1267,7 @@ public class CoinbaseCore extends CoinbaseApi
         Object toObject = this.safeDict(transaction, "to");
         Object addressTo = this.safeString(toObject, "address");
         Object networkId = this.safeString(network, "network_name");
+        Object code = this.safeCurrencyCode(currencyId, currency);
         final Object finalType = type;
         final Object finalStatus = status;
         final Object finalFeeObject = feeObject;
@@ -1276,7 +1277,7 @@ public class CoinbaseCore extends CoinbaseApi
             put( "txid", CoinbaseCore.this.safeString(network, "hash", id) );
             put( "timestamp", CoinbaseCore.this.parse8601(datetime) );
             put( "datetime", datetime );
-            put( "network", CoinbaseCore.this.networkIdToCode(networkId) );
+            put( "network", CoinbaseCore.this.networkIdToCode(networkId, code) );
             put( "address", addressTo );
             put( "addressTo", addressTo );
             put( "addressFrom", null );
@@ -1285,7 +1286,7 @@ public class CoinbaseCore extends CoinbaseApi
             put( "tagFrom", null );
             put( "type", finalType );
             put( "amount", CoinbaseCore.this.parseNumber(amountStringAbs) );
-            put( "currency", CoinbaseCore.this.safeCurrencyCode(currencyId, currency) );
+            put( "currency", code );
             put( "status", finalStatus );
             put( "updated", CoinbaseCore.this.parse8601(CoinbaseCore.this.safeString(transaction, "updated_at")) );
             put( "fee", new java.util.HashMap<String, Object>() {{

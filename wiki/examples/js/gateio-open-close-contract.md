@@ -1,8 +1,5 @@
-- [Gateio Open Close Contract](./examples/js/)
-
-
- ```javascript
- const ccxt = require ('../../ccxt');
+```javascript
+const ccxt = require ('../../ccxt');
 
 
 const exchange = new ccxt.gate ({
@@ -51,5 +48,5 @@ const exchange = new ccxt.gate ({
         console.log (e.constructor.name, e.message)
     }
 }) ()
- 
+
 ```

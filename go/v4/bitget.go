@@ -2967,7 +2967,7 @@ func (this *BitgetCore) Withdraw(code any, amount any, address any, optionalArgs
 		retRes28878 := (<-this.LoadMarkets())
 		PanicOnError(retRes28878)
 		var currency any = this.Currency(code)
-		var networkId any = this.NetworkCodeToId(networkCode)
+		var networkId any = this.NetworkCodeToId(networkCode, code)
 		var request any = map[string]any{
 			"coin":         GetValue(currency, "id"),
 			"address":      address,
@@ -3178,7 +3178,7 @@ func (this *BitgetCore) ParseTransaction(transaction any, optionalArgs ...any) a
 		"txid":        this.SafeString(transaction, "tradeId"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-		"network":     this.NetworkIdToCode(networkId),
+		"network":     this.NetworkIdToCode(networkId, code),
 		"addressFrom": this.SafeString(transaction, "fromAddress"),
 		"address":     this.SafeString(transaction, "toAddress"),
 		"addressTo":   this.SafeString(transaction, "toAddress"),

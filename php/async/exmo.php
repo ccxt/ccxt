@@ -659,7 +659,10 @@ class exmo extends Exchange {
             $provider = $fee[$i];
             $type = $this->safe_string($provider, 'type');
             $networkId = $this->safe_string($provider, 'name');
-            $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
+            $currencyId = $this->safe_string($provider, 'currency_name');
+            $currency = $this->safe_currency($currencyId, $currency);
+            $code = $this->safe_string($currency, 'code');
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $commissionDesc = $this->safe_string($provider, 'commission_desc');
             $splitCommissionDesc = array();
             $percentage = null;
@@ -768,7 +771,7 @@ class exmo extends Exchange {
                 $networkId = str_replace('(', '', $networkId);
                 $replaceChar = ')'; // transpiler trick
                 $networkId = str_replace($replaceChar, '', $networkId);
-                $networkCode = $this->network_id_to_code($networkId);
+                $networkCode = $this->network_id_to_code($networkId, $code);
                 if (!(is_array($networks) && array_key_exists($networkCode, $networks))) {
                     $networks[$networkCode] = array(
                         'id' => $networkId,

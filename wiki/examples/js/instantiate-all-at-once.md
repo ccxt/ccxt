@@ -1,8 +1,5 @@
-- [Instantiate All At Once](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 
@@ -48,5 +45,5 @@ async function test () {
 }
 
 test ()
- 
+
 ```

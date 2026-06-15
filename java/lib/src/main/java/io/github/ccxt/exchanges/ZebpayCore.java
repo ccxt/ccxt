@@ -276,7 +276,7 @@ public class ZebpayCore extends ZebpayApi
 
     /**
      * @method
-     * @name zebpayfutures#fetchTime
+     * @name zebpay#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-time
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-time
@@ -432,7 +432,7 @@ public class ZebpayCore extends ZebpayApi
         {
             Object chain = Helpers.GetValue(chains, j);
             Object networkId = this.safeString(chain, "chainId");
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             Object depositAllowed = Helpers.isEqual(this.safeBool(chain, "isDepositEnabled"), true);
             deposit = ((Helpers.isTrue((depositAllowed)))) ? depositAllowed : deposit;
             Object withdrawAllowed = Helpers.isEqual(this.safeBool(chain, "isWithdrawEnabled"), true);
@@ -578,7 +578,7 @@ public class ZebpayCore extends ZebpayApi
 
     /**
      * @method
-     * @name zebpay(futures)#fetchTradingFees
+     * @name zebpay#fetchTradingFees
      * @description fetch the trading fees for multiple markets
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1750,7 +1750,7 @@ public class ZebpayCore extends ZebpayApi
 
     /**
      * @method
-     * @name zebpayfutures#addMargin
+     * @name zebpay#addMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position
      * @param {string} symbol unified market symbol
@@ -1802,7 +1802,7 @@ public class ZebpayCore extends ZebpayApi
 
     /**
      * @method
-     * @name zebpayfutures#reduceMargin
+     * @name zebpay#reduceMargin
      * @description add margin
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-reduce-margin-from-position
      * @param {string} symbol unified market symbol.

@@ -1,8 +1,5 @@
-- [Bitfinex Fetch Trades](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 // ----------------------------------------------------------------------------
 
@@ -36,5 +33,5 @@ table = asTable.configure ({ delimiter: ' | ' });(async () => {
         log.error ('Failed.')
     }
 
-}) () 
+}) ()
 ```

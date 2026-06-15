@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/okx.js';
 import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded, OperationRejected, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class okx
@@ -1518,7 +1518,18 @@ export default class okx extends Exchange {
         };
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
-        const isOption = (marketId !== undefined) && ((marketId.indexOf('-C') > -1) || (marketId.indexOf('-P') > -1));
+        let isOption = false;
+        if (marketId !== undefined) {
+            const parts = marketId.split('-');
+            const partsLength = parts.length;
+            // a valid OKX option ends with the call/put flag and carries expiry+strike segments,
+            // e.g. the market id BTC-USD-220325-194000-P (5 parts) or the unified symbol
+            // BTC/USD:USD-260611-54000-C (4 parts). Requiring more than 3 dash-separated parts avoids
+            // misclassifying ordinary ids that merely contain "-C"/"-P" (such as a SPOT id like
+            // "PERFTESTA-PERFTESTB") as expired options, which would crash createExpiredOptionMarket
+            // on the missing expiry.
+            isOption = (partsLength > 3) && (marketId.endsWith('-C') || marketId.endsWith('-P'));
+        }
         if (isOption && !(marketId in this.markets_by_id)) {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -1939,6 +1950,10 @@ export default class okx extends Exchange {
         const marketsWithoutTest = [];
         for (let i = 0; i < dataResponse.length; i++) {
             const data = dataResponse[i];
+            const instId = this.safeString(data, 'instId', '');
+            if (instId === '') {
+                continue; // skip broken "preopen" placeholder instruments that have no instId
+            }
             if (this.isSandboxModeEnabled) {
                 const instFamily = this.safeString(data, 'instFamily', '');
                 if (instFamily.startsWith('TEST')) {

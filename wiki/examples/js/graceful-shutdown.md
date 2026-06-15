@@ -1,8 +1,5 @@
-- [Graceful Shutdown](./examples/js/)
-
-
- ```javascript
- 'use strict';
+```javascript
+'use strict';
 import ccxt from '../../js/ccxt.js';
 console.log('CCXT Version:', ccxt.version); // eslint-disable-line import/no-named-as-default-member
 let stop = false;
@@ -38,5 +35,5 @@ async function main() {
     ]);
 }
 main();
- 
+
 ```

@@ -805,7 +805,7 @@ public partial class weex : Exchange
         {
             object chain = this.safeDict(chains, j);
             object networkId = this.safeString(chain, "network");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "info", chain },
                 { "id", networkId },
@@ -1557,9 +1557,13 @@ public partial class weex : Exchange
         object timestamp = this.safeInteger(trade, "time");
         object isBuyer = this.safeBool(trade, "isBuyer");
         object side = this.safeStringLower(trade, "side");
+        object isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
         if (isTrue(!isEqual(isBuyer, null)))
         {
             side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
+        } else if (isTrue(!isEqual(isBuyerMaker, null)))
+        {
+            side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
         }
         object isSpot = true;
         if (isTrue(isEqual(market, null)))
@@ -1599,6 +1603,9 @@ public partial class weex : Exchange
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+        } else if (isTrue(!isEqual(isBuyerMaker, null)))
+        {
+            takerOrMaker = "taker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },

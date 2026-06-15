@@ -3447,7 +3447,7 @@ public partial class kucoin : Exchange
             parameters = ((IList<object>)networkCodeparametersVariable)[1];
             if (isTrue(!isEqual(networkCode, null)))
             {
-                ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode)).ToLower();
+                ((IDictionary<string,object>)request)["chain"] = ((string)this.networkCodeToId(networkCode, code)).ToLower();
             }
             //
             //     {
@@ -12111,7 +12111,7 @@ public partial class kucoin : Exchange
 
     /**
      * @method
-     * @name kucoinfutures#fetchPositionsADLRank
+     * @name kucoin#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
      * @param {string[]} [symbols] list of unified market symbols

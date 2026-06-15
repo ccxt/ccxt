@@ -721,7 +721,7 @@ export default class blockchaincom extends blockchaincomRest {
     }
 
     handleDelta (bookside, delta) {
-        const bookArray = this.parseBidAsk (delta, 'px', 'qty', 'num');
+        const bookArray = this.parseOrderBookBidAsk (delta, 'px', 'qty', 'num');
         bookside.storeArray (bookArray);
     }
 

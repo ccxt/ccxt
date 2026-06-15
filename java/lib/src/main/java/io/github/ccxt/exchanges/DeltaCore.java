@@ -543,7 +543,7 @@ public class DeltaCore extends DeltaApi
         {
             Object chain = Helpers.GetValue(chains, j);
             Object networkId = this.safeString(chain, "network");
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", networkCode );
@@ -2834,11 +2834,12 @@ public class DeltaCore extends DeltaApi
         Object address = this.safeString(depositAddress, "address");
         Object marketId = this.safeString(depositAddress, "asset_symbol");
         Object networkId = this.safeString(depositAddress, "network");
+        Object code = this.safeCurrencyCode(marketId, currency);
         this.checkAddress(address);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", DeltaCore.this.safeCurrencyCode(marketId, currency) );
-            put( "network", DeltaCore.this.networkIdToCode(networkId) );
+            put( "currency", code );
+            put( "network", DeltaCore.this.networkIdToCode(networkId, code) );
             put( "address", address );
             put( "tag", DeltaCore.this.safeString(depositAddress, "memo") );
         }};

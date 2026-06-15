@@ -832,7 +832,7 @@ public class WeexCore extends WeexApi
         {
             Object chain = this.safeDict(chains, j);
             Object networkId = this.safeString(chain, "network");
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
@@ -1649,9 +1649,13 @@ public class WeexCore extends WeexApi
         Object timestamp = this.safeInteger(trade, "time");
         Object isBuyer = this.safeBool(trade, "isBuyer");
         Object side = this.safeStringLower(trade, "side");
+        Object isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
         if (Helpers.isTrue(!Helpers.isEqual(isBuyer, null)))
         {
             side = ((Helpers.isTrue(isBuyer))) ? "buy" : "sell";
+        } else if (Helpers.isTrue(!Helpers.isEqual(isBuyerMaker, null)))
+        {
+            side = ((Helpers.isTrue(isBuyerMaker))) ? "sell" : "buy";
         }
         Object isSpot = true;
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
@@ -1693,6 +1697,9 @@ public class WeexCore extends WeexApi
         if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
         {
             takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
+        } else if (Helpers.isTrue(!Helpers.isEqual(isBuyerMaker, null)))
+        {
+            takerOrMaker = "taker";
         }
         final Object finalMarket = market;
         final Object finalTakerOrMaker = takerOrMaker;

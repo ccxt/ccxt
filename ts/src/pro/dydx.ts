@@ -253,7 +253,7 @@ export default class dydx extends dydxRest {
             const amount = this.safeFloat (delta, 1);
             bookside.store (price, amount);
         } else {
-            const bidAsk = this.parseBidAsk (delta, 'price', 'size');
+            const bidAsk = this.parseOrderBookBidAsk (delta, 'price', 'size');
             bookside.storeArray (bidAsk);
         }
     }

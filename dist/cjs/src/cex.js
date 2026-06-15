@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var cex$1 = require('./abstract/cex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -373,7 +373,7 @@ class cex extends cex$1["default"] {
         for (let j = 0; j < keys.length; j++) {
             const networkId = keys[j];
             const rawNetwork = rawNetworks[networkId];
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             const deposit = this.safeString(rawNetwork, 'deposit') === 'enabled';
             const withdraw = this.safeString(rawNetwork, 'withdrawal') === 'enabled';
             networks[networkCode] = {
@@ -1701,7 +1701,7 @@ class cex extends cex$1["default"] {
         const request = {
             'accountId': accountId,
             'currency': currency['id'],
-            'blockchain': this.networkCodeToId(networkCode),
+            'blockchain': this.networkCodeToId(networkCode, currency['code']),
         };
         const response = await this.privatePostGetDepositAddress(this.extend(request, params));
         //
@@ -1726,7 +1726,7 @@ class cex extends cex$1["default"] {
         return {
             'info': depositAddress,
             'currency': currency['code'],
-            'network': this.networkIdToCode(this.safeString(depositAddress, 'blockchain')),
+            'network': this.networkIdToCode(this.safeString(depositAddress, 'blockchain'), currency['code']),
             'address': address,
             'tag': undefined,
         };
@@ -1752,7 +1752,7 @@ class cex extends cex$1["default"] {
             const seconds = this.seconds().toString();
             body = this.json(query);
             const auth = path + seconds + body;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256, 'base64');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256, 'base64');
             headers = {
                 'Content-Type': 'application/json',
                 'X-AGGR-KEY': this.apiKey,

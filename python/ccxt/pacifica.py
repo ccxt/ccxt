@@ -3026,7 +3026,7 @@ class pacifica(Exchange, ImplicitAPI):
         return costNumber
 
     def sort_json_keys(self, value: Any) -> Any:
-        if isinstance(value, dict):
+        if self.is_dictionary(value):
             result = {}
             keys = list(value.keys())
             sortedKeys = self.sort(keys)

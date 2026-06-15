@@ -41,7 +41,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-timex.fetchTime ([params])
+timex.fetchTime (params?)
 ```
 
 
@@ -61,7 +61,7 @@ retrieves data on all markets for timex
 
 
 ```javascript
-timex.fetchMarkets ([params])
+timex.fetchMarkets (params?)
 ```
 
 
@@ -81,7 +81,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-timex.fetchCurrencies ([params])
+timex.fetchCurrencies (params?)
 ```
 
 
@@ -104,7 +104,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-timex.fetchDeposits (code[, since, limit, params])
+timex.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -127,7 +127,7 @@ fetch all withdrawals made to an account
 
 
 ```javascript
-timex.fetchWithdrawals (code[, since, limit, params])
+timex.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -148,7 +148,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-timex.fetchTickers (symbols[, params])
+timex.fetchTickers (symbols, params?)
 ```
 
 
@@ -169,7 +169,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-timex.fetchTicker (symbol[, params])
+timex.fetchTicker (symbol, params?)
 ```
 
 
@@ -191,7 +191,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-timex.fetchOrderBook (symbol[, limit, params])
+timex.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -214,7 +214,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-timex.fetchTrades (symbol[, since, limit, params])
+timex.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -239,7 +239,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-timex.fetchOHLCV (symbol, timeframe[, since, limit, params])
+timex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -259,7 +259,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-timex.fetchBalance ([params])
+timex.fetchBalance (params?)
 ```
 
 
@@ -284,7 +284,7 @@ create a trade order
 
 
 ```javascript
-timex.createOrder (symbol, type, side, amount[, price, params])
+timex.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -306,7 +306,7 @@ cancels an open order
 
 
 ```javascript
-timex.cancelOrder (id, symbol[, params])
+timex.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -328,7 +328,7 @@ cancel multiple orders
 
 
 ```javascript
-timex.cancelOrders (ids, symbol[, params])
+timex.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -350,7 +350,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-timex.fetchOrder (id, symbol[, params])
+timex.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -373,7 +373,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-timex.fetchOpenOrders (symbol[, since, limit, params])
+timex.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -396,7 +396,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-timex.fetchClosedOrders (symbol[, since, limit, params])
+timex.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -419,7 +419,7 @@ fetch all trades made by the user
 
 
 ```javascript
-timex.fetchMyTrades (symbol[, since, limit, params])
+timex.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -440,7 +440,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-timex.fetchTradingFee (symbol[, params])
+timex.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -461,6 +461,6 @@ fetch the deposit address for a currency associated with this account, does not 
 
 
 ```javascript
-timex.fetchDepositAddress (code[, params])
+timex.fetchDepositAddress (code, params?)
 ```
 

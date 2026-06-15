@@ -2092,7 +2092,7 @@ public class GateCore extends GateApi
         {
             Object chain = Helpers.GetValue(chains, j);
             Object networkId = this.safeString(chain, "name");
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
@@ -2491,12 +2491,13 @@ public class GateCore extends GateApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
+        Object code = this.safeString(currency, "code");
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", GateCore.this.safeString(currency, "code") );
+            put( "currency", code );
             put( "address", address );
             put( "tag", GateCore.this.safeString(depositAddress, "payment_id") );
-            put( "network", GateCore.this.networkIdToCode(GateCore.this.safeString(depositAddress, "chain")) );
+            put( "network", GateCore.this.networkIdToCode(GateCore.this.safeString(depositAddress, "chain"), code) );
         }};
     }
 
@@ -2679,7 +2680,7 @@ public class GateCore extends GateApi
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
                     {
                         Object networkId = Helpers.GetValue(networkIds, j);
-                        Object networkCode = this.networkIdToCode(networkId);
+                        Object networkCode = this.networkIdToCode(networkId, code);
                         Helpers.addElementToObject(withdrawFees, networkCode, this.parseNumber(Helpers.GetValue(withdrawFixOnChains, networkId)));
                     }
                 }
@@ -2776,7 +2777,9 @@ public class GateCore extends GateApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chainKeys)); i++)
             {
                 Object chainKey = Helpers.GetValue(chainKeys, i);
-                Object networkCode = this.networkIdToCode(chainKey, this.safeString(fee, "currency"));
+                Object currencyId = this.safeString(fee, "currency");
+                Object code = this.safeCurrencyCode(currencyId, currency);
+                Object networkCode = this.networkIdToCode(chainKey, code);
                 final Object finalWithdrawFixOnChains = withdrawFixOnChains;
                 Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "withdraw", new java.util.HashMap<String, Object>() {{
@@ -3634,7 +3637,7 @@ public class GateCore extends GateApi
 
     /**
      * @method
-     * @name gateio#fetchOHLCV
+     * @name gate#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://www.gate.com/docs/developers/apiv4/en/#market-k-line-chart                       // spot
      * @see https://www.gate.com/docs/developers/apiv4/en/#futures-market-k-line-chart               // swap
@@ -4579,7 +4582,7 @@ final Object finalPointFee = pointFee;
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
-                Helpers.addElementToObject(request, "chain", this.networkCodeToId(networkCode));
+                Helpers.addElementToObject(request, "chain", this.networkCodeToId(networkCode, code));
             }
             Object response = (this.privateWithdrawalsPostWithdrawals(this.extend(request, parameters))).join();
             //
@@ -4726,7 +4729,7 @@ final Object finalPointFee = pointFee;
             put( "txid", txid );
             put( "currency", code );
             put( "amount", GateCore.this.parseNumber(finalAmountString) );
-            put( "network", GateCore.this.networkIdToCode(networkId) );
+            put( "network", GateCore.this.networkIdToCode(networkId, code) );
             put( "address", address );
             put( "addressTo", null );
             put( "addressFrom", null );

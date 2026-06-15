@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bigone.js';
 import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 /**
@@ -534,7 +534,7 @@ export default class bigone extends Exchange {
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'gateway_name');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             const deposit = this.safeBool(chain, 'is_deposit_enabled');
             const withdraw = this.safeBool(chain, 'is_withdrawal_enabled');
             const minDepositAmount = this.safeString(chain, 'min_deposit_amount');
@@ -2008,7 +2008,7 @@ export default class bigone extends Exchange {
         return {
             'info': response,
             'currency': code,
-            'network': this.networkIdToCode(selectedNetworkId),
+            'network': this.networkIdToCode(selectedNetworkId, code),
             'address': address,
             'tag': tag,
         };
@@ -2314,7 +2314,7 @@ export default class bigone extends Exchange {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
-            request['gateway_name'] = this.networkCodeToId(networkCode);
+            request['gateway_name'] = this.networkCodeToId(networkCode, currency['code']);
         }
         // requires write permission on the wallet
         const response = await this.privatePostWithdrawals(this.extend(request, params));

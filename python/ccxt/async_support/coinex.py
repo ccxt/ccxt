@@ -3827,7 +3827,7 @@ class coinex(Exchange, ImplicitAPI):
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a "network" parameter')
-        request['chain'] = self.network_code_to_id(networkCode)  # required for on-chain, not required for inter-user transfer
+        request['chain'] = self.network_code_to_id(networkCode, currency['code'])  # required for on-chain, not required for inter-user transfer
         response = await self.v2PrivateGetAssetsDepositAddress(self.extend(request, params))
         #
         #     {
@@ -4718,7 +4718,7 @@ class coinex(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode)  # required for on-chain, not required for inter-user transfer
+            request['chain'] = self.network_code_to_id(networkCode, currency['code'])  # required for on-chain, not required for inter-user transfer
         response = await self.v2PrivatePostAssetsWithdraw(self.extend(request, params))
         #
         #     {
@@ -4911,7 +4911,7 @@ class coinex(Exchange, ImplicitAPI):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.network_id_to_code(networkId),
+            'network': self.network_id_to_code(networkId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': None,
@@ -5594,7 +5594,9 @@ class coinex(Exchange, ImplicitAPI):
                 result['withdraw']['percentage'] = False
                 networkId = self.safe_string(entry, 'chain')
                 if networkId:
-                    networkCode = self.network_id_to_code(networkId, self.safe_string(asset, 'ccy'))
+                    currencyId = self.safe_string(asset, 'ccy')
+                    feeCode = self.safe_currency_code(currencyId, currency)
+                    networkCode = self.network_id_to_code(networkId, feeCode)
                     result['networks'][networkCode] = {
                         'withdraw': {
                             'fee': self.safe_number(entry, 'withdrawal_fee'),

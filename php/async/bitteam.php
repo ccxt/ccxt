@@ -2394,7 +2394,7 @@ class bitteam extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'addressFrom' => $addressFrom,
             'address' => null,
             'addressTo' => $addressTo,

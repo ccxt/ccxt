@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var ascendex$1 = require('./abstract/ascendex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -538,7 +538,7 @@ class ascendex extends ascendex$1["default"] {
         for (let j = 0; j < chains.length; j++) {
             const networkEtnry = chains[j];
             const networkId = this.safeString(networkEtnry, 'chainName');
-            const networkCode = this.networkCodeToId(networkId);
+            const networkCode = this.networkCodeToId(networkId, code);
             networks[networkCode] = {
                 'fee': this.safeNumber(networkEtnry, 'withdrawFee'),
                 'active': undefined,
@@ -2598,7 +2598,7 @@ class ascendex extends ascendex$1["default"] {
         await this.loadMarkets();
         const currency = this.currency(code);
         const networkCode = this.safeString2(params, 'network', 'chainName');
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, currency['code']);
         params = this.omit(params, ['chainName']);
         const request = {
             'asset': currency['id'],
@@ -3735,7 +3735,7 @@ class ascendex extends ascendex$1["default"] {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
             const payload = timestamp + '+' + request;
-            const hmac = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
+            const hmac = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'base64');
             headers = {
                 'x-auth-key': this.apiKey,
                 'x-auth-timestamp': timestamp,

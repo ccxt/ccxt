@@ -15,7 +15,7 @@ func TestFetchOrderBooks(exchange ccxt.ICoreExchange, skippedProperties any) <-c
 
 		orderBooks := (<-exchange.FetchOrderBooks([]any{symbol}))
 		PanicOnError(orderBooks)
-		Assert(IsObject(orderBooks), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return an object. "), exchange.Json(orderBooks)))
+		Assert(exchange.IsDictionary(orderBooks), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return a dict. "), exchange.Json(orderBooks)))
 		var orderBookKeys any = ObjectKeys(orderBooks)
 		Assert(GetArrayLength(orderBookKeys), Add(Add(Add(exchange.GetId(), " "), method), " returned 0 length data"))
 		for i := 0; IsLessThan(i, GetArrayLength(orderBookKeys)); i++ {

@@ -1598,11 +1598,11 @@ public class IndodaxCore extends IndodaxApi
                             Object networkIds = Helpers.split(networkId, ",");
                             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
                             {
-                                ((java.util.List<Object>)network).add(((String)this.networkIdToCode(Helpers.GetValue(networkIds, j))).toUpperCase());
+                                ((java.util.List<Object>)network).add(((String)this.networkIdToCode(Helpers.GetValue(networkIds, j), code)).toUpperCase());
                             }
                         } else
                         {
-                            network = ((String)this.networkIdToCode(networkId)).toUpperCase();
+                            network = ((String)this.networkIdToCode(networkId, code)).toUpperCase();
                         }
                     }
                     Object finalNetwork = network; // java req

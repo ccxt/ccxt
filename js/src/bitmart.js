@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitmart.js';
 import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported, NetworkError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bitmart
@@ -1262,7 +1262,7 @@ export default class bitmart extends Exchange {
                     'type': isNtf ? 'other' : 'crypto',
                 };
             }
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, currencyCode);
             const withdraw = this.safeBool(currency, 'withdraw_enabled');
             const deposit = this.safeBool(currency, 'deposit_enabled');
             entry['networks'][networkCode] = {
@@ -3933,11 +3933,12 @@ export default class bitmart extends Exchange {
         }
         const address = this.safeString(depositAddress, 'address');
         currency = this.safeCurrency(currencyId, currency);
+        const code = this.safeString(currency, 'code');
         this.checkAddress(address);
         return {
             'info': depositAddress,
-            'currency': this.safeString(currency, 'code'),
-            'network': this.networkIdToCode(network),
+            'currency': code,
+            'network': this.networkIdToCode(network, code),
             'address': address,
             'tag': this.safeString2(depositAddress, 'address_memo', 'memo'),
         };
@@ -4229,7 +4230,7 @@ export default class bitmart extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'addressFrom': undefined,
             'addressTo': undefined,

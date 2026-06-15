@@ -1,8 +1,5 @@
-- [Bittrex Fetch Closed Orders History](./examples/js/)
-
-
- ```javascript
- import ccxt from '../../js/ccxt.js';
+```javascript
+import ccxt from '../../js/ccxt.js';
 import ololog from 'ololog';
 import asTable from 'as-table';
 
@@ -71,5 +68,5 @@ const exchange = new ccxt.bittrex ({
 
 }) ()
 
- 
+
 ```

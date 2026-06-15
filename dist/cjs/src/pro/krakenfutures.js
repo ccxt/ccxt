@@ -2,12 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var krakenfutures$1 = require('../krakenfutures.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var Precise = require('../base/Precise.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
-var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -1617,9 +1616,9 @@ class krakenfutures extends krakenfutures$1["default"] {
         const messageHash = 'challenge';
         if (event !== 'error') {
             const challenge = this.safeValue(message, 'message');
-            const hashedChallenge = this.hash(this.encode(challenge), sha256.sha256, 'binary');
+            const hashedChallenge = this.hash(this.encode(challenge), sha2_js.sha256, 'binary');
             const base64Secret = this.base64ToBinary(this.secret);
-            const signature = this.hmac(hashedChallenge, base64Secret, sha512.sha512, 'base64');
+            const signature = this.hmac(hashedChallenge, base64Secret, sha2_js.sha512, 'base64');
             this.options['challenge'] = challenge;
             this.options['signedChallenge'] = signature;
             const future = this.safeValue(client.futures, messageHash);

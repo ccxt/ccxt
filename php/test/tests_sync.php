@@ -182,7 +182,7 @@ class testMainClass {
                 $key = $setting_keys[$i];
                 if ($exchange_settings[$key]) {
                     $final_value = null;
-                    if (is_array($exchange_settings[$key])) {
+                    if ($exchange->is_dictionary($exchange_settings[$key])) {
                         $existing = get_exchange_prop($exchange, $key, array());
                         $final_value = $exchange->deep_extend($existing, $exchange_settings[$key]);
                     } else {
@@ -954,7 +954,7 @@ class testMainClass {
             $stored_output = json_parse($stored_output);
             $new_output = json_parse($new_output);
         }
-        if ((is_array($stored_output)) && (is_array($new_output))) {
+        if ($exchange->is_dictionary($stored_output) && $exchange->is_dictionary($new_output)) {
             $stored_output_keys = is_array($stored_output) ? array_keys($stored_output) : array();
             $new_output_keys = is_array($new_output) ? array_keys($new_output) : array();
             $stored_keys_length = count($stored_output_keys);

@@ -677,8 +677,8 @@ class upbit extends Exchange {
             $timestamp = $this->safe_integer($orderbook, 'timestamp');
             $result[$symbol] = array(
                 'symbol' => $symbol,
-                'bids' => $this->sort_by($this->parse_bids_asks($orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, true),
-                'asks' => $this->sort_by($this->parse_bids_asks($orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
+                'bids' => $this->sort_by($this->parse_order_book_bids_asks($orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, true),
+                'asks' => $this->sort_by($this->parse_order_book_bids_asks($orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
                 'nonce' => null,
@@ -2176,7 +2176,7 @@ class upbit extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $code,
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'tag' => $tag,
         );

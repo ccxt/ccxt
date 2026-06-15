@@ -868,7 +868,7 @@ class weex(Exchange, ImplicitAPI):
         for j in range(0, len(chains)):
             chain = self.safe_dict(chains, j)
             networkId = self.safe_string(chain, 'network')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             networks[networkCode] = {
                 'info': chain,
                 'id': networkId,
@@ -1522,8 +1522,11 @@ class weex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'time')
         isBuyer = self.safe_bool(trade, 'isBuyer')
         side = self.safe_string_lower(trade, 'side')
+        isBuyerMaker = self.safe_bool(trade, 'isBuyerMaker')
         if isBuyer is not None:
             side = 'buy' if isBuyer else 'sell'
+        elif isBuyerMaker is not None:
+            side = 'sell' if isBuyerMaker else 'buy'
         isSpot = True
         if market is None:
             marketId = self.safe_string(trade, 'symbol')
@@ -1551,6 +1554,8 @@ class weex(Exchange, ImplicitAPI):
         takerOrMaker = None
         if isMaker is not None:
             takerOrMaker = 'maker' if isMaker else 'taker'
+        elif isBuyerMaker is not None:
+            takerOrMaker = 'taker'
         return self.safe_trade({
             'info': trade,
             'id': self.safe_string(trade, 'id'),

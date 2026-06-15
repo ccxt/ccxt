@@ -1484,7 +1484,7 @@ class foxbit(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['network_code'] = self.network_code_to_id(networkCode)
+            request['network_code'] = self.network_code_to_id(networkCode, code)
         response = self.v3PrivatePostWithdrawals(self.extend(request, params))
         # {
         #     "amount": "2",

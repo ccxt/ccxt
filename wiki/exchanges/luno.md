@@ -43,7 +43,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-luno.fetchCurrencies ([params])
+luno.fetchCurrencies (params?)
 ```
 
 
@@ -63,7 +63,7 @@ retrieves data on all markets for luno
 
 
 ```javascript
-luno.fetchMarkets ([params])
+luno.fetchMarkets (params?)
 ```
 
 
@@ -83,7 +83,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-luno.fetchAccounts ([params])
+luno.fetchAccounts (params?)
 ```
 
 
@@ -103,7 +103,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-luno.fetchBalance ([params])
+luno.fetchBalance (params?)
 ```
 
 
@@ -129,7 +129,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-luno.fetchOrderBook (symbol[, limit, params])
+luno.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -151,7 +151,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-luno.fetchOrder (id, symbol[, params])
+luno.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -174,7 +174,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-luno.fetchOrders (symbol[, since, limit, params])
+luno.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -197,7 +197,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-luno.fetchOpenOrders (symbol[, since, limit, params])
+luno.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -220,7 +220,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-luno.fetchClosedOrders (symbol[, since, limit, params])
+luno.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -241,7 +241,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-luno.fetchTickers (symbols[, params])
+luno.fetchTickers (symbols, params?)
 ```
 
 
@@ -262,7 +262,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-luno.fetchTicker (symbol[, params])
+luno.fetchTicker (symbol, params?)
 ```
 
 
@@ -285,7 +285,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-luno.fetchTrades (symbol[, since, limit, params])
+luno.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -309,7 +309,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-luno.fetchOHLCV (symbol, timeframe[, since, limit, params])
+luno.fetchOHLCV (symbol, timeframe, since?, limit?, params)
 ```
 
 
@@ -332,7 +332,7 @@ fetch all trades made by the user
 
 
 ```javascript
-luno.fetchMyTrades (symbol[, since, limit, params])
+luno.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -353,7 +353,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-luno.fetchTradingFee (symbol[, params])
+luno.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -382,7 +382,7 @@ create a trade order
 
 
 ```javascript
-luno.createOrder (symbol, type, side, amount[, price, params])
+luno.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -404,7 +404,7 @@ cancels an open order
 
 
 ```javascript
-luno.cancelOrder (id, symbol[, params])
+luno.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -427,7 +427,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-luno.fetchLedger ([code, since, limit, params])
+luno.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -450,7 +450,7 @@ create a currency deposit address
 
 
 ```javascript
-luno.createDepositAddress (code[, params])
+luno.createDepositAddress (code, params?)
 ```
 
 
@@ -472,7 +472,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-luno.fetchDepositAddress (code[, params])
+luno.fetchDepositAddress (code, params?)
 ```
 
 
@@ -495,7 +495,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-luno.watchTrades (symbol[, since, limit, params])
+luno.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -517,6 +517,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-luno.watchOrderBook (symbol[, limit, params])
+luno.watchOrderBook (symbol, limit?, params?)
 ```
 

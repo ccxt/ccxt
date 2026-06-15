@@ -2850,7 +2850,7 @@ class bydfi extends Exchange {
             'txid' => $this->safe_string($transaction, 'txId'),
             'type' => null,
             'currency' => $code,
-            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network')),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network'), $code),
             'amount' => $this->safe_number($transaction, 'amount'),
             'status' => $this->parse_transaction_status($rawStatus),
             'timestamp' => $timestamp,

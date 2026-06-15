@@ -4004,7 +4004,7 @@ public partial class phemex : Exchange
             { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "addressTo", address },
             { "addressFrom", null },
@@ -5415,7 +5415,7 @@ public partial class phemex : Exchange
         object networkId = null;
         if (isTrue(!isEqual(networkCode, null)))
         {
-            networkId = this.networkCodeToId(networkCode);
+            networkId = this.networkCodeToId(networkCode, code);
         }
         object stableCoins = this.safeValue(this.options, "stableCoins");
         if (isTrue(isEqual(networkId, null)))

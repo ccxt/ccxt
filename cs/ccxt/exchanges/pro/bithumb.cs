@@ -269,7 +269,7 @@ public partial class bithumb : ccxt.bithumb
         //
         object sideId = this.safeString(delta, "orderType");
         object side = ((bool) isTrue((isEqual(sideId, "bid")))) ? "bids" : "asks";
-        object bidAsk = this.parseBidAsk(delta, "price", "quantity");
+        object bidAsk = this.parseOrderBookBidAsk(delta, "price", "quantity");
         object orderbookSide = getValue(orderbook, side);
         (orderbookSide as IOrderBookSide).storeArray(bidAsk);
     }

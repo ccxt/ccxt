@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/weex.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class weex
@@ -862,7 +862,7 @@ export default class weex extends Exchange {
         for (let j = 0; j < chains.length; j++) {
             const chain = this.safeDict(chains, j);
             const networkId = this.safeString(chain, 'network');
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             networks[networkCode] = {
                 'info': chain,
                 'id': networkId,
@@ -1553,8 +1553,12 @@ export default class weex extends Exchange {
         const timestamp = this.safeInteger(trade, 'time');
         const isBuyer = this.safeBool(trade, 'isBuyer');
         let side = this.safeStringLower(trade, 'side');
+        const isBuyerMaker = this.safeBool(trade, 'isBuyerMaker');
         if (isBuyer !== undefined) {
             side = isBuyer ? 'buy' : 'sell';
+        }
+        else if (isBuyerMaker !== undefined) {
+            side = isBuyerMaker ? 'sell' : 'buy';
         }
         let isSpot = true;
         if (market === undefined) {
@@ -1589,6 +1593,9 @@ export default class weex extends Exchange {
         let takerOrMaker = undefined;
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
+        }
+        else if (isBuyerMaker !== undefined) {
+            takerOrMaker = 'taker';
         }
         return this.safeTrade({
             'info': trade,

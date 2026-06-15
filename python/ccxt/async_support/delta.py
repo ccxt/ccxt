@@ -577,7 +577,7 @@ class delta(Exchange, ImplicitAPI):
         for j in range(0, len(chains)):
             chain = chains[j]
             networkId = self.safe_string(chain, 'network')
-            networkCode = self.network_id_to_code(networkId)
+            networkCode = self.network_id_to_code(networkId, code)
             networks[networkCode] = {
                 'id': networkId,
                 'network': networkCode,
@@ -2542,11 +2542,12 @@ class delta(Exchange, ImplicitAPI):
         address = self.safe_string(depositAddress, 'address')
         marketId = self.safe_string(depositAddress, 'asset_symbol')
         networkId = self.safe_string(depositAddress, 'network')
+        code = self.safe_currency_code(marketId, currency)
         self.check_address(address)
         return {
             'info': depositAddress,
-            'currency': self.safe_currency_code(marketId, currency),
-            'network': self.network_id_to_code(networkId),
+            'currency': code,
+            'network': self.network_id_to_code(networkId, code),
             'address': address,
             'tag': self.safe_string(depositAddress, 'memo'),
         }

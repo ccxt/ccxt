@@ -1,8 +1,5 @@
-- [Aiohttp Custom Session Connector](./examples/py/)
-
-
- ```python
- # pip install aiohttp_socks
+```python
+# pip install aiohttp_socks
 
 import asyncio
 import ccxt.async_support as ccxt
@@ -27,5 +24,5 @@ async def test():
     # ...
 
 asyncio.run(test())
- 
+
 ```

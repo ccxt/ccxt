@@ -1588,11 +1588,12 @@ public partial class bitstamp : Exchange
     public override object parseDepositWithdrawFee(object fee, object currency = null)
     {
         object result = this.depositWithdrawFee(fee);
+        object code = this.safeString(currency, "code");
         for (object j = 0; isLessThan(j, getArrayLength(fee)); postFixIncrement(ref j))
         {
             object networkEntry = getValue(fee, j);
             object networkId = this.safeString(networkEntry, "network");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             object withdrawFee = this.safeNumber(networkEntry, "fee");
             ((IDictionary<string,object>)result)["withdraw"] = new Dictionary<string, object>() {
                 { "fee", withdrawFee },

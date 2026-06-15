@@ -460,7 +460,7 @@ class lbank extends Exchange {
             if ($networkId === null) {
                 $networkId = $this->safe_string($networkEntry, 'assetCode'); // use type if $networkId is not present
             }
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $networks[$networkCode] = array(
                 'id' => $networkId,
                 'network' => $networkCode,
@@ -2283,7 +2283,7 @@ class lbank extends Exchange {
         return array(
             'info' => $response,
             'currency' => $code,
-            'network' => $this->network_id_to_code($this->safe_string($result, 'netWork')),
+            'network' => $this->network_id_to_code($this->safe_string($result, 'netWork'), $code),
             'address' => $address,
             'tag' => $tag,
         );
@@ -2474,7 +2474,7 @@ class lbank extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->network_id_to_code($this->safe_string($transaction, 'networkName')),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'networkName'), $code),
             'address' => $address,
             'addressTo' => $addressTo,
             'addressFrom' => $addressFrom,
@@ -2679,7 +2679,7 @@ class lbank extends Exchange {
                 $networkEntry = $networkList[$j];
                 $fee = $this->safe_number($networkEntry, 'withdrawFee');
                 if ($fee !== null) {
-                    $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'name'));
+                    $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'name'), $code);
                     $withdrawFees[$code][$networkCode] = $fee;
                 }
             }
@@ -2732,7 +2732,7 @@ class lbank extends Exchange {
             if ($canWithdraw === 'true') {
                 $currencyId = $this->safe_string($item, 'assetCode');
                 $codeInner = $this->safe_currency_code($currencyId);
-                $network = $this->network_id_to_code($this->safe_string($item, 'chain'));
+                $network = $this->network_id_to_code($this->safe_string($item, 'chain'), $codeInner);
                 if ($network === null) {
                     $network = $codeInner;
                 }
@@ -2884,7 +2884,7 @@ class lbank extends Exchange {
                             $resultCodeInfo = $result[$code]['info'];
                             $resultCodeInfo[] = $fee;
                         }
-                        $networkCode = $this->network_id_to_code($this->safe_string($fee, 'chain'));
+                        $networkCode = $this->network_id_to_code($this->safe_string($fee, 'chain'), $code);
                         if ($networkCode !== null) {
                             $result[$code]['networks'][$networkCode] = array(
                                 'withdraw' => array(
@@ -2937,10 +2937,11 @@ class lbank extends Exchange {
         //    }
         //
         $result = $this->deposit_withdraw_fee($fee);
+        $code = $this->safe_string($currency, 'code');
         $networkList = $this->safe_value($fee, 'networkList', array());
         for ($j = 0; $j < count($networkList); $j++) {
             $networkEntry = $networkList[$j];
-            $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'name'));
+            $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'name'), $code);
             $withdrawFee = $this->safe_number($networkEntry, 'withdrawFee');
             $isDefault = $this->safe_value($networkEntry, 'isDefault');
             if ($withdrawFee !== null) {

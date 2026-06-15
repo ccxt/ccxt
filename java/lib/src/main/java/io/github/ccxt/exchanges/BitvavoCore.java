@@ -655,7 +655,7 @@ final Object finalBase = base;
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networksArray)); j++)
         {
             Object networkId = Helpers.GetValue(networksArray, j);
-            Object networkCode = this.networkIdToCode(networkId);
+            Object networkCode = this.networkIdToCode(networkId, code);
             final Object finalDeposit = deposit;
             Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "info", rawCurrency );
@@ -1086,7 +1086,7 @@ final Object finalBase = base;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateGetAccountFees", new Object[] { this.extend(request, parameters) })).join();
+            Object response = (this.privateGetAccountFees(this.extend(request, parameters))).join();
             //
             //     {
             //         "tier": "0",
@@ -2054,7 +2054,7 @@ final Object finalBase = base;
                 put( "codGroupId", finalCodGroupId );
                 put( "expiryAfterSeconds", ((Helpers.isTrue((Helpers.isGreaterThan(finalTimeout, 0))))) ? BitvavoCore.this.parseToInt(Helpers.divide(finalTimeout, 1000)) : 0 );
             }};
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privatePostCancelOrdersAfter", new Object[] { this.extend(request, parameters) })).join();
+            Object response = (this.privatePostCancelOrdersAfter(this.extend(request, parameters))).join();
             //
             //     {
             //         "codGroupId": 1,
@@ -2564,7 +2564,7 @@ final Object finalBase = base;
             var requestparametersVariable = this.handleUntilOption("toDate", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateGetAccountHistory", new Object[] { this.extend(request, parameters) })).join();
+            Object response = (this.privateGetAccountHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "items": [
