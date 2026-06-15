@@ -213,7 +213,7 @@ class testMainClass {
                 const key = settingKeys[i];
                 if (exchangeSettings[key]) {
                     let finalValue = undefined;
-                    if (typeof exchangeSettings[key] === 'object') {
+                    if (exchange.isDictionary (exchangeSettings[key])) {
                         const existing = getExchangeProp (exchange, key, {});
                         finalValue = exchange.deepExtend (existing, exchangeSettings[key]);
                     } else {
@@ -1083,7 +1083,7 @@ class testMainClass {
             newOutput = jsonParse (newOutput);
         }
 
-        if ((typeof storedOutput === 'object') && (typeof newOutput === 'object')) {
+        if (exchange.isDictionary (storedOutput) && exchange.isDictionary (newOutput)) {
             const storedOutputKeys = Object.keys (storedOutput);
             const newOutputKeys = Object.keys (newOutput);
             const storedKeysLength = storedOutputKeys.length;
