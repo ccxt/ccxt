@@ -1230,33 +1230,52 @@ func (this *Exchange) ExceptionMessage(exc any, includeStack ...any) any {
 }
 
 func (this *Exchange) GetProperty(obj any, property any, defaultValue ...any) any {
+	// Pre-calculate the default value upfront
+	var defaultVal any
+	if len(defaultValue) > 0 {
+		defaultVal = defaultValue[0]
+	}
+
+	// 1. Null check for property
+	if property == nil {
+		return defaultVal
+	}
+
 	// Convert property to string
 	propName, ok := property.(string)
 	if !ok {
-		// fmt.Println("Property should be a string")
-		if len(defaultValue) > 0 {
-			return defaultValue[0]
-		}
-		return nil
+		return defaultVal
 	}
 
-	// Get the reflection object for the obj
-	val := reflect.ValueOf(obj).Elem()
+	// 2. Null check for obj (Catches untyped nil)
+	if obj == nil {
+		return defaultVal
+	}
+
+	val := reflect.ValueOf(obj)
+
+	// 3. Advanced Null Check: Handle pointers and typed nil pointers
+	if val.Kind() == reflect.Ptr {
+		if val.IsNil() {
+			return defaultVal
+		}
+		val = val.Elem() // Safely dereference the pointer
+	}
+
+	// 4. Safety check: Ensure we are actually looking at a struct
+	if val.Kind() != reflect.Struct {
+		return defaultVal
+	}
 
 	// Get the field by name
 	field := val.FieldByName(propName)
 
 	// Check if the field exists and can be accessed
 	if field.IsValid() && field.CanInterface() {
-		// Return the field value as an any
 		return field.Interface()
-	} else {
-		// fmt.Printf("Field '%s' is either invalid or cannot be accessed\n", propName)
-		if len(defaultValue) > 0 {
-			return defaultValue[0]
-		}
-		return nil
 	}
+
+	return defaultVal
 }
 
 func (this *Exchange) Unique(obj any) []any {
