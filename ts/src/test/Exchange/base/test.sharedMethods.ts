@@ -1,10 +1,10 @@
 /* eslint no-restricted-syntax: ["error", "FunctionExpression", "WithStatement"] */
 
 import assert from 'assert';
-import { Exchange } from "../../../../ccxt";
+import { Exchange } from "../../../../ccxt.js";
 import Precise from '../../../base/Precise.js';
 import { OnMaintenance, OperationFailed } from '../../../base/errors.js';
-import { Str } from '../../../base/types';
+import { Str } from '../../../base/types.js';
 
 function logTemplate (exchange: Exchange, method: string, entry: object) {
     // there are cases when exchange is undefined (eg. base tests)

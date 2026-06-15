@@ -1,8 +1,8 @@
 import assert from 'assert';
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 import testLastPrice from './base/test.lastPrice.js';
 import testSharedMethods from './base/test.sharedMethods.js';
-import { LastPrices } from '../../base/types';
+import { LastPrices } from '../../base/types.js';
 
 async function testFetchLastPrices (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'fetchLastprices';

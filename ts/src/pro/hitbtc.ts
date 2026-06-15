@@ -6,7 +6,7 @@ import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types';
+import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------

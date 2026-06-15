@@ -2507,7 +2507,7 @@ public class WhitebitCore extends WhitebitApi
             Object id = Helpers.GetValue(balanceKeys, i);
             Object code = this.safeCurrencyCode(id);
             Object balance = Helpers.GetValue(response, id);
-            if (Helpers.isTrue(Helpers.isTrue((balance instanceof java.util.Map)) && Helpers.isTrue(!Helpers.isEqual(balance, null))))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(balance, null)) && Helpers.isTrue(this.isDictionary(balance))))
             {
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString2(balance, "available", "main_balance"));

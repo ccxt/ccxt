@@ -700,7 +700,7 @@ class extended(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -755,7 +755,7 @@ class extended(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -868,7 +868,7 @@ class extended(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -914,7 +914,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -952,7 +952,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         paginate = False
@@ -1016,7 +1016,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of funding history structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns FundingHistory[]: a list of `funding history structures <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        :returns FundingHistory[]: a list of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         self.load_markets()
         paginate = False
@@ -1260,7 +1260,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [params.endTime]: exchange-specific end timestamp in ms of the latest funding rate to fetch
         :param int [params.cursor]: offset of the result set
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
@@ -1345,7 +1345,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of open interest structures to retrieve
         :param dict [params]: exchange specific parameters
         :param int [params.until]: timestamp in ms of the latest open interest record to fetch
-        :returns dict[]: an array of `open interest structures <https://docs.ccxt.com/#/?id=open-interest-structure>`
+        :returns dict[]: an array of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1464,7 +1464,7 @@ class extended(Exchange, ImplicitAPI):
         https://api.docs.extended.exchange/#get-account-details
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `account structure <https://docs.ccxt.com/#/?id=account-structure>`
+        :returns dict: an `account structure <https://docs.ccxt.com/?id=account-structure>`
         """
         response = self.v1PrivateGetUserAccountInfo(params)
         #
@@ -1495,7 +1495,7 @@ class extended(Exchange, ImplicitAPI):
         https://api.docs.extended.exchange/#get-sub-accounts
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `account structures <https://docs.ccxt.com/#/?id=account-structure>`
+        :returns dict[]: a list of `account structures <https://docs.ccxt.com/?id=account-structure>`
         """
         response = self.v1PrivateGetUserAccounts(params)
         #
@@ -1548,7 +1548,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/#/?id=ledger>`
+        :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/?id=ledger>`
         """
         self.load_markets()
         paginate = False
@@ -1632,7 +1632,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of transaction structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Transaction[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns Transaction[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         paginate = False
@@ -1691,7 +1691,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of deposit structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Transaction[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns Transaction[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         return self.fetch_transactions(code, since, limit, self.extend({'type': 'DEPOSIT'}, params))
 
@@ -1706,7 +1706,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of withdrawal structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Transaction[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns Transaction[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         return self.fetch_transactions(code, since, limit, self.extend({'type': 'WITHDRAWAL'}, params))
 
@@ -1787,7 +1787,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of transfer structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns TransferEntry[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns TransferEntry[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         self.load_markets()
         paginate = False
@@ -1829,7 +1829,7 @@ class extended(Exchange, ImplicitAPI):
         :param str params['toVault']: destination account L2 vault
         :param str params['toL2Key']: destination account L2 public key
         :param int [params.settlementExpiration]: settlement expiration timestamp in seconds, defaults to now + 21 days
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         self.check_required_credentials()
         self.load_markets()
@@ -2093,7 +2093,7 @@ class extended(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2170,7 +2170,7 @@ class extended(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Position[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns Position[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -2219,7 +2219,7 @@ class extended(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         positions = self.fetch_positions([symbol], params)
         return self.safe_dict(positions, 0)
@@ -2235,7 +2235,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of position structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Position[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns Position[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         if isinstance(symbols, str):
@@ -2670,7 +2670,7 @@ class extended(Exchange, ImplicitAPI):
         :param float [params.stopLoss.triggerPrice]: *swap only* stop loss trigger price
         :param float [params.stopLoss.price]: *swap only* the execution price for a stop loss attached to a trigger order
         :param str [params.stopLoss.type]: *swap only* the type for a stop loss attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.check_required_credentials()
         extendedOrderRequest = self.create_extended_order_request(symbol, type, side, amount, price, params)
@@ -2705,7 +2705,7 @@ class extended(Exchange, ImplicitAPI):
         :param float [amount]: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if id is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an id argument')
@@ -2903,7 +2903,7 @@ class extended(Exchange, ImplicitAPI):
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: user-defined order id, fetches by external id
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -2940,7 +2940,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -2991,7 +2991,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         paginate = False
@@ -3061,7 +3061,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         orders = self.fetch_orders(symbol, since, None, params)
         closedOrders = self.filter_by(orders, 'status', 'closed')
@@ -3078,7 +3078,7 @@ class extended(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         orders = self.fetch_orders(symbol, since, None, params)
         canceledOrders = self.filter_by(orders, 'status', 'canceled')

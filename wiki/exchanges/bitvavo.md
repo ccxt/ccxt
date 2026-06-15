@@ -302,7 +302,7 @@ bitvavo.fetchBalance (params?)
 fetch all the accounts associated with a profile
 
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [account structures](https://docs.ccxt.com/#/?id=account-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [account structures](https://docs.ccxt.com/?id=account-structure)
 
 **See**: https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/  
 
@@ -322,7 +322,7 @@ bitvavo.fetchAccounts (params?)
 transfer currency internally between the master account and a subaccount
 
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.bitvavo.com/docs/institutional-api/create-transfer/  
 
@@ -348,7 +348,7 @@ bitvavo.transfer (code, amount, fromAccount, toAccount, params?)
 fetch a history of internal transfers made on an account
 
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.bitvavo.com/docs/institutional-api/get-transfers/  
 
@@ -373,7 +373,7 @@ bitvavo.fetchTransfers (code?, since?, limit?, params?)
 fetches a transfer
 
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.bitvavo.com/docs/institutional-api/get-transfer/  
 

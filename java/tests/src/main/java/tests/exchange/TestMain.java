@@ -221,7 +221,7 @@ public class TestMain extends BaseTest
                 if (Helpers.isTrue(Helpers.GetValue(exchangeSettings, key)))
                 {
                     Object finalValue = null;
-                    if (Helpers.isTrue((Helpers.GetValue(exchangeSettings, key) instanceof java.util.Map)))
+                    if (Helpers.isTrue(exchange.isDictionary(Helpers.GetValue(exchangeSettings, key))))
                     {
                         Object existing = getExchangeProp(exchange, key, new java.util.HashMap<String, Object>() {{}});
                         finalValue = exchange.deepExtend(existing, Helpers.GetValue(exchangeSettings, key));
@@ -1213,7 +1213,7 @@ public class TestMain extends BaseTest
             storedOutput = jsonParse(storedOutput);
             newOutput = jsonParse(newOutput);
         }
-        if (Helpers.isTrue(Helpers.isTrue(((storedOutput instanceof java.util.Map))) && Helpers.isTrue(((newOutput instanceof java.util.Map)))))
+        if (Helpers.isTrue(Helpers.isTrue(exchange.isDictionary(storedOutput)) && Helpers.isTrue(exchange.isDictionary(newOutput))))
         {
             Object storedOutputKeys = Helpers.objectKeys(storedOutput);
             Object newOutputKeys = Helpers.objectKeys(newOutput);

@@ -1,4 +1,4 @@
-import { Str, Int } from './types';
+import { Str, Int } from './types.js';
 
 const zero = BigInt (0);
 const minusOne = BigInt (-1);

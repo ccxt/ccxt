@@ -370,7 +370,6 @@ class Exchange {
         'bydfi',
         'cex',
         'coinbase',
-        'coinbaseadvanced',
         'coinbaseexchange',
         'coinbaseinternational',
         'coincheck',
@@ -1117,9 +1116,13 @@ class Exchange {
     }
 
     public static function is_json_encoded_object($input) {
-        return ('string' === gettype($input)) &&
-            // (strlen($input) >= 2) && // commented: https://github.com/ccxt/ccxt/pull/28193
-            (('{' === $input[0]) || ('[' === $input[0]));
+        try {
+            return ('string' === gettype($input)) &&
+                // (strlen($input) >= 2) && // commented: https://github.com/ccxt/ccxt/pull/28193
+                (('{' === $input[0]) || ('[' === $input[0]));
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     public static function encode($input) {

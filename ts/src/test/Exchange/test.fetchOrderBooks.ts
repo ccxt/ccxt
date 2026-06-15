@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 import testOrderBook from './base/test.orderBook.js';
 
 async function testFetchOrderBooks (exchange: Exchange, skippedProperties: object) {
