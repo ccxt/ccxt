@@ -116,8 +116,6 @@ class Transpiler {
             [ /errorHierarchy/g, 'error_hierarchy'],
             [ /\.featuresGenerator/g, '.features_generator'],
             [ /\.featuresMapper/g, '.features_mapper'],
-            [ /\.fetchHistoryCacheSize/g, '.fetch_history_cache_size'],
-            [ /\.fetchHistoryCache/g, '.fetch_history_cache'],
             [ /\.safeValue2/g, '.safe_value_2'],
             [ /\.safeInteger2/g, '.safe_integer_2'],
             [ /\.safeString2/g, '.safe_string_2'],
