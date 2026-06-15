@@ -2204,3 +2204,19 @@ func (this *Exchange) UnlockId() bool {
 	this.idMutex.Unlock()
 	return true
 }
+
+// FetchEvents is a default stub so every exchange satisfies IDerivedExchange.
+// Prediction exchanges (PredictionExchange and its derivatives) override it.
+func (this *Exchange) FetchEvents(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		queries := GetArg(optionalArgs, 0, nil)
+		_ = queries
+		params := GetArg(optionalArgs, 1, map[string]any{})
+		_ = params
+		panic(NotSupported(Add(this.Id, " fetchEvents() is not supported yet")))
+	}()
+	return ch
+}

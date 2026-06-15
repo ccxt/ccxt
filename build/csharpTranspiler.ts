@@ -51,10 +51,6 @@ if (platform === 'win32') {
 const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
 const EXCHANGE_WRAPPER_FOLDER = './cs/ccxt/wrappers/'
 const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
-const EXCHANGE_PREDICTION_WRAPPER_FOLDER = './cs/ccxt/wrappers/prediction/'
-const EXCHANGE_PREDICTION_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/prediction/pro/wrappers/'
-const EXCHANGES_PREDICTION_FOLDER = './cs/ccxt/exchanges/prediction/';
-const EXCHANGES_PREDICTION_WS_FOLDER = './cs/ccxt/exchanges/prediction/pro/';
 const ERRORS_FILE = './cs/ccxt/base/Exchange.Errors.cs';
 const BASE_METHODS_FILE = './cs/ccxt/base/Exchange.BaseMethods.cs';
 const EXCHANGES_FOLDER = './cs/ccxt/exchanges/';
@@ -1569,7 +1565,6 @@ async function runMain () {
         log.bright.green ({ force })
     }
     const transpiler = new NewTranspiler ();
-    const prediction = process.argv.includes ('--prediction')
     const inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
     if (baseClassOnly) {
         transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')

@@ -661,7 +661,7 @@ class NewTranspiler {
                 classNameMap[exchangeName] = capitalize(exchangeName) + 'Core';
                 classNameMap[`${exchangeName}Rest`] = capitalize(exchangeName) + 'Core';
             });
-            exchangeIdsPrediction.forEach((exchangeName: string) => {
+            predictionIds.forEach((exchangeName: string) => {
                 classNameMap[exchangeName] = capitalize(exchangeName) + 'Core';
                 classNameMap[`${exchangeName}Rest`] = capitalize(exchangeName) + 'Core';
             });
@@ -808,7 +808,7 @@ class NewTranspiler {
         const values = [
             // "using ccxt;",
             namespace,
-            (ws || prediction) ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : '',
+            (ws || this.isPrediction) ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : '',
             // 'import "helpers"'
         ]
         return values;
@@ -1823,7 +1823,7 @@ ${constStatements.join('\n')}
     createDynamicInstanceFile(ws = false, prediction = false){
         const subFolder = ws ? '/pro' : (prediction ? '/prediction' : '');
         const dynamicInstanceFile = `./go/v4${subFolder}/exchange_dynamic.go`;
-        const exchanges = ws ? exchangeIdsWs : (prediction ? exchangeIdsPrediction : ['Exchange'].concat(exchangeIds));
+        const exchanges = ws ? exchangeIdsWs : (prediction ? predictionIds : ['Exchange'].concat(exchangeIds));
         const externalPackage = ws || prediction; // packages outside go/v4 import the base ccxt package
         const caseStatements = exchanges.map(exchange => {
             const coreName = (exchange === 'Exchange') ? exchange : capitalize(exchange) + 'Core';
@@ -2368,6 +2368,15 @@ ${caseStatements.join('\n')}
                 // package-level types/functions of go/v4 need the ccxt. qualifier
                 // (this also rewrites the embedded struct member into ccxt.PredictionExchange)
                 content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
+                // inherited prediction helpers (outcome, shortenSlug, checkEventsAndMarkets, ...)
+                // reach the derived exchange via callDynamically. The shared `<-callDynamically`
+                // fixup only covers awaited calls; non-awaited/sync ones stay bare and would be
+                // undefined in package ccxtprediction. Route them through the exported
+                // channel-based dispatcher — CallInternalMethod forwards both plain and channel
+                // returns, so the `<-` receive is always valid.
+                content = this.regexAll (content, [
+                    [/callDynamically\(/gm, '<-this.CallDynamically('],
+                ]);
             }
         } else {
             const restPackagePrefix = this.isPrediction ? `${PREDICTION_PACKAGE}.` : 'ccxt.';
@@ -2935,14 +2944,13 @@ if (isMainEntry(import.meta.url)) {
         transpiledExchanges = [ exchange ];
     }
     if (prediction) {
-        transpiledExchanges = exchangeIdsPrediction;
+        transpiledExchanges = predictionIds;
     }
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi');
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true;
     if (!child && !multiprocess) {
         log.bright.green ({ force });
     }
-    const prediction = process.argv.includes ('--prediction');
     const inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'));
     const transpiler = new NewTranspiler (ws);
     if (baseClassOnly) {
