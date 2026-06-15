@@ -3127,7 +3127,7 @@ export default class Exchange {
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
-        return {'url': undefined, 'method': undefined, 'headers': undefined, 'body': undefined};
+        return { 'url': undefined, 'method': undefined, 'headers': undefined, 'body': undefined };
     }
 
     async fetchAccounts (params = {}): Promise<Account[]> {
