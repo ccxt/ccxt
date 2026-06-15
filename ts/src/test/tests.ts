@@ -977,10 +977,10 @@ class testMainClass {
         const watchOrderBookSkips = this.getSkips (exchange, 'watchOrderBook');
         const fetchOrderBookSkips = this.getSkips (exchange, 'fetchOrderBook');
         // ensure with hardcoded list of required methods
-        if (this.wsTests && exchange.has['watchOrderBook'] !== true && typeof watchOrderBookSkips !== 'string') {
+        if (this.wsTests && !exchange.safeBool (exchange.has, 'watchOrderBook', false) && typeof watchOrderBookSkips !== 'string') {
             dump ('[TEST_FAILURE] Method "watchOrderBook" is not set in "has", please check the "has" property of exchange');
             exitScript (1);
-        } else if (!this.wsTests && exchange.has['fetchOrderBook'] !== true && typeof fetchOrderBookSkips !== 'string') {
+        } else if (!this.wsTests && !exchange.safeBool (exchange.has, 'fetchOrderBook', false) && typeof fetchOrderBookSkips !== 'string') {
             dump ('[TEST_FAILURE] Method "fetchOrderBook" is not set in "has", please check the "has" property of exchange');
             exitScript (1);
         }
