@@ -3205,11 +3205,11 @@ class Exchange {
          * @return array(object | null)
          */
         $value = $this->safe_value($dictionaryOrList, $key1);
-        if (($value !== null) && (gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
+        if ($this->is_dictionary($value)) {
             return $value;
         }
         $value2 = $this->safe_value($dictionaryOrList, $key2);
-        if (($value2 !== null) && (gettype($value2) === 'array') && (gettype($value2) !== 'array' || array_keys($value2) !== array_keys(array_keys($value2)))) {
+        if ($this->is_dictionary($value2)) {
             return $value2;
         }
         return $defaultValue;
