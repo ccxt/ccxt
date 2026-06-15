@@ -38,9 +38,27 @@ const outputFile = './wiki/baseSpec.md'
 const helper = './wiki/helpers.cjs'
 
 console.log ('📰 loading js docs...')
-let templateData = await Promise.all(inputFiles.map (file => jsdoc2md.getTemplateData({ files: file })));
+let templateData = await Promise.all(inputFiles.map (async (file) => {
+  const data = await jsdoc2md.getTemplateData({ files: file })
+  // remember the source exchange id so the output filename never depends on jsdoc's
+  // doclet order (arrays are objects, so this survives the filter/find/push below)
+  data.exchangeId = path.basename (file, '.js')
+  return data
+}));
+// alias exchanges (binanceus, bequant, …) document no methods of their own, so jsdoc
+// returns no doclets for them — drop those, they have no exchange page to render
 templateData = templateData.filter (x => x.length > 0)
-// TODO: handle alias exchanges
+// every remaining exchange MUST expose its class-level doclet as the first entry, emitted
+// from the /** @class <id> @augments <Parent> */ comment above the class. Without it jsdoc
+// falls through to the first method doclet, whose name then leaks into the output as a
+// phantom exchanges/<method>.md (e.g. fetchStatus.md / fetchBidsAsks.md), and the real page
+// renders empty. Detect by name mismatch (the class doclet is named after the exchange;
+// a leaked method is not) — kind is unreliable (jsdoc reports it as 'class' or 'constructor').
+for (const data of templateData) {
+  if (!data[0] || data[0].name !== data.exchangeId) {
+    throw new Error (`🚨 ${data.exchangeId}.js exposes no class-level doclet (first doclet is '${data[0] && data[0].name}', kind '${data[0] && data[0].kind}'). Add a "/** @class ${data.exchangeId} @augments <Parent> */" comment above the class declaration in ts/src/${data.exchangeId}.ts.`)
+  }
+}
 
 let proTemplateData = await Promise.all(proInputFiles.map (file => jsdoc2md.getTemplateData({ files: file })));
 proTemplateData = proTemplateData.filter (x => x.length > 0)
@@ -49,9 +67,26 @@ proTemplateData = proTemplateData.filter (x => x.length > 0)
 proTemplateData.forEach((proData) => {
   const classArray = templateData.find ((template) => template[0].id === proData[0].memberof);
   if (classArray) {
-    const classArray = templateData.find ((template) => template[0].id === proData[0].memberof);
     classArray.push(...proData);
   }
+})
+
+// the pro-merge can append a method that the REST class already documents (e.g. the
+// post-#27661 kucoinfutures pro class re-declares kucoinfutures#transfer / #fetchBidsAsks
+// with identical @name). Drop duplicate doclets per exchange so each method renders once on
+// the exchange page (the base-spec grouping already de-dups, but the per-exchange render did not).
+templateData = templateData.map ((data) => {
+  const seen = new Set ()
+  const deduped = data.filter ((doclet) => {
+    const key = doclet.id || doclet.longname
+    if (seen.has (key)) {
+      return false
+    }
+    seen.add (key)
+    return true
+  })
+  deduped.exchangeId = data.exchangeId
+  return deduped
 })
 
 console.log ('📰 rendering docs for each exchange...')
@@ -107,9 +142,19 @@ const baseOutput = await Promise.all(templateDataGroupedByMethod.map(data =>
 ));
 
 console.log ('📰 creating index of exchange functions')
+// remove stale per-exchange pages first, so renamed/removed exchanges (and any legacy
+// phantom files) don't linger in wiki/exchanges/ and get pushed to the wiki
+const exchangesDir = outputFolder + 'exchanges/'
+if (fs.existsSync (exchangesDir)) {
+  for (const f of fs.readdirSync (exchangesDir)) {
+    if (f.endsWith ('.md')) {
+      fs.unlinkSync (exchangesDir + f)
+    }
+  }
+}
 const exchangeLinks = []
 outputByExchange.forEach ((output, i) => {
-  const name = templateData[i][0].name
+  const name = templateData[i].exchangeId
   const fileName = 'exchanges/' + name + '.md'
   try {
     fs.writeFileSync(outputFolder + fileName, output)

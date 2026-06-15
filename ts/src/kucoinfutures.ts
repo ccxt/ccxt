@@ -7,6 +7,10 @@ import type { Dict, Strings, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
+/**
+ * @class kucoinfutures
+ * @augments kucoin
+ */
 export default class kucoinfutures extends kucoin {
     describe (): any {
         return this.deepExtend (super.describe (), {
