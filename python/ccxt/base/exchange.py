@@ -2063,7 +2063,7 @@ class Exchange(object):
         return array[first:second] if second else array[first:]
 
     def get_property(self, obj, property, defaultValue=None):
-        return getattr(obj, property) if hasattr(obj, property) else defaultValue
+        return getattr(obj, property) if obj is not None and property is not None and hasattr(obj, property) else defaultValue
 
     def set_property(self, obj, property, value):
         setattr(obj, property, value)

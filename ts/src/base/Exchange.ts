@@ -1600,7 +1600,7 @@ export default class Exchange {
     }
 
     getProperty (obj, property, defaultValue: any = undefined) {
-        return (property in obj ? obj[property] : defaultValue);
+        return (obj !== null && property !==null && property in obj ? obj[property] : defaultValue);
     }
 
     setProperty (obj, property, defaultValue: any = undefined) {

@@ -2633,7 +2633,7 @@ class Exchange {
     }
 
     function get_property($obj, $property, $defaultValue = null) {
-        return (property_exists($obj, $property) ? $obj->$property : $defaultValue);
+        return ($obj !== null && $property !== null && property_exists($obj, $property) ? $obj->$property : $defaultValue);
     }
 
     function set_property($obj, $property, $defaultValue = null) {
