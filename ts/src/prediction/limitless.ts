@@ -61,6 +61,7 @@ export default class limitless extends Exchange {
                 'fetchBalance': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
+                'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -465,6 +466,22 @@ export default class limitless extends Exchange {
             }),
             'created': undefined,
         };
+    }
+
+    /**
+     * @method
+     * @name limitless#fetchEvent
+     * @description fetches a single prediction-market event by its market slug or address
+     * @see https://docs.limitless.exchange/api-reference/markets/get-market
+     * @param {string} id the market slug or address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
+     */
+    async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
+        const request: Dict = { 'addressOrSlug': id };
+        const response = await this.limitlessPublicGetMarketsAddressOrSlug (this.extend (request, params));
+        const event: any = this.parseEvent (response);
+        return event;
     }
 
     parseEvent (event: Dict): any {

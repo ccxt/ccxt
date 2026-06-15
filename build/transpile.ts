@@ -1935,7 +1935,32 @@ class Transpiler {
             python3,
             php,
             phpAsync,
+            methodNames,
         } = this.transpileMethodsToAllLanguages ('PredictionExchange', methods)
+
+        // The per-method transpile only snake-cases base-Exchange method calls (e.g. this.safeString),
+        // not the class's own methods (this.setOutcomesFromMarkets) or super calls (super.setMarkets).
+        // PredictionExchange is the first base-path class that uses both, so apply the same self/super
+        // (Python) and $this->/parent:: (PHP) conversion the derived-exchange path does.
+        const convertMethods = methodNames.concat (this.getBaseMethods ())
+        const fixPyCalls = (body: string) => {
+            let out = body
+            for (const method of convertMethods) {
+                const r = new RegExp ('(self|super\\([^)]+\\))\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
+                out = out.replace (r, (match: any, p1: string, p2: string, p3: string) => p1 + '.' + unCamelCase (p2) + p3)
+            }
+            return out
+        }
+        const fixPhpCalls = (body: string) => {
+            let out = body
+            for (const method of convertMethods) {
+                let r = new RegExp ('\\$this->(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
+                out = out.replace (r, (match: any, p1: string, p2: string) => ((p2 === '(') ? ('$this->' + unCamelCase (p1) + p2) : ("array($this, '" + unCamelCase (p1) + "')" + p2)))
+                r = new RegExp ('parent::(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
+                out = out.replace (r, (match: any, p1: string, p2: string) => ((p2 === '(') ? ('parent::' + unCamelCase (p1) + p2) : ("array($this, '" + unCamelCase (p1) + "')" + p2)))
+            }
+            return out
+        }
 
         const pythonDelimiter = '# ' + delimiter + '\n'
         const phpDelimiter = '// ' + delimiter + '\n'
@@ -1948,12 +1973,12 @@ class Transpiler {
 
         if (this.buildPython) {
             log.magenta ('→', python3File.yellow)
-            replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python3.join ('\n') + '\n')
+            replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + fixPyCalls (python3.join ('\n')) + '\n')
         }
 
         if (this.buildPHP) {
             log.magenta ('→', phpAsyncFile.yellow)
-            replaceInFile (phpAsyncFile, new RegExp (phpDelimiter + restOfFile),    phpDelimiter + phpAsync.join ('\n') + '\n}\n')
+            replaceInFile (phpAsyncFile, new RegExp (phpDelimiter + restOfFile),    phpDelimiter + fixPhpCalls (phpAsync.join ('\n')) + '\n}\n')
         }
     }
 

@@ -5,7 +5,7 @@ import { rsa } from '../base/functions/rsa.js';
 import type {
     Int, Str, Num, Dict, Strings,
     Market, Ticker, Tickers, OrderBook, Trade, OHLCV,
-    Order, Balances, Position,
+    Order, Balances, Position, OpenInterest,
     PredictionEvent,
 } from '../base/types.js';
 
@@ -36,13 +36,16 @@ export default class kalshi extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': false,
+                'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPositions': true,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -494,6 +497,67 @@ export default class kalshi extends Exchange {
         //
         const raw = this.safeValue (response, 'market', response);
         return this.parseTicker (raw, outcomeObj as any);
+    }
+
+    /**
+     * @method
+     * @name kalshi#fetchStatus
+     * @description fetches the kalshi exchange status
+     * @see https://docs.kalshi.com/api-reference/exchange/get-exchange-status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+     */
+    async fetchStatus (params = {}): Promise<any> {
+        const response = await this.kalshiPublicGetExchangeStatus (params);
+        //
+        //     { "exchange_active": true, "trading_active": true }
+        //
+        const tradingActive = this.safeBool (response, 'trading_active', false);
+        return {
+            'status': tradingActive ? 'ok' : 'maintenance',
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
+    }
+
+    /**
+     * @method
+     * @name kalshi#fetchOpenInterest
+     * @description fetches the open interest of a prediction market outcome
+     * @see https://docs.kalshi.com/api-reference/market/get-market
+     * @param {string} symbol unified outcome symbol or outcome id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+     */
+    async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
+        const outcome = symbol;
+        await this.loadMarkets ();
+        this.checkEventsAndMarkets (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const ticker = this.safeString (outcomeObj['info'], 'ticker');
+        const request: Dict = { 'ticker': ticker };
+        const response = await this.kalshiPublicGetMarketsTicker (this.extend (request, params));
+        const raw = this.safeDict (response, 'market', response);
+        return this.parseOpenInterest (raw, outcomeObj as any);
+    }
+
+    parseOpenInterest (interest, market: Market = undefined): OpenInterest {
+        //
+        //     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
+        //
+        const timestamp = this.milliseconds ();
+        return this.safeOpenInterest ({
+            'symbol': this.safeSymbol (undefined, market),
+            'openInterestAmount': this.safeNumber2 (interest, 'open_interest_fp', 'open_interest'),
+            'openInterestValue': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        }, market);
     }
 
     /**
@@ -1469,6 +1533,27 @@ export default class kalshi extends Exchange {
             }
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name kalshi#fetchEvent
+     * @description fetches a single prediction-market event by its event ticker
+     * @see https://trading-api.readme.io/reference/getevent
+     * @param {string} id the event ticker
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
+     */
+    async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
+        const request: Dict = { 'event_ticker': id, 'with_nested_markets': true };
+        const response = await this.kalshiPublicGetEventsEventTicker (this.extend (request, params));
+        const fullEvent = this.safeDict (response, 'event', response);
+        const nestedMarkets = this.safeList (fullEvent, 'markets');
+        if (nestedMarkets === undefined) {
+            fullEvent['markets'] = this.safeList (response, 'markets', []);
+        }
+        const event: any = this.parseEvent (fullEvent);
+        return event;
     }
 
     /**

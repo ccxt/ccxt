@@ -16,12 +16,13 @@
 
 import Exchange from '../abstract/prediction/myriad.js';
 import type {
-    Int, Str, Dict,
+    Int, Str, Num, Dict,
     Strings,
-    Market, Ticker, Tickers, OrderBook, OHLCV, Trade,
-    PredictionEvent,
+    Market, Ticker, Tickers, OrderBook, OHLCV, Trade, TradingFeeInterface,
+    PredictionEvent, Position,
 } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
+import { ArgumentsRequired } from '../../ccxt.js';
 
 // ---------------------------------------------------------------------------
 
@@ -49,15 +50,17 @@ export default class myriad extends Exchange {
                 'createOrder': false,
                 'fetchBalance': false,
                 'fetchCurrencies': false,
+                'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': false,
                 'fetchOrderBook': true,
-                'fetchPositions': false,
+                'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
                 'prediction': true,
             },
             'timeframes': {
@@ -271,6 +274,97 @@ export default class myriad extends Exchange {
             return allRawMarkets.slice (0, maxMarkets);
         }
         return allRawMarkets;
+    }
+
+    /**
+     * @method
+     * @name myriad#fetchEvent
+     * @description fetches a single prediction-market event by its market id
+     * @see https://docs.myriad.markets/builders/myriad-api-reference
+     * @param {string} id the market id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
+     */
+    async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
+        // the unified event id is a composite networkId:marketId
+        const parts = id.split (':');
+        const partsLength = parts.length;
+        const request: Dict = {};
+        if (partsLength > 1) {
+            request['network_id'] = this.safeString (parts, 0);
+            request['id'] = this.safeString (parts, 1);
+        } else {
+            request['id'] = id;
+        }
+        const response = await this.myriadPublicGetMarketsId (this.extend (request, params));
+        const market = this.parseMyriadMarket (response);
+        const event: any = this.parseMarketToEvent (response, market);
+        return event;
+    }
+
+    /**
+     * @method
+     * @name myriad#fetchPositions
+     * @description fetch the open outcome-token positions held by a wallet (myriad settles trades on-chain, so only read-only portfolio data is exposed by the API)
+     * @see https://docs.myriad.markets/builders/myriad-api-reference
+     * @param {string[]} [symbols] unified outcome symbols to filter by
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {string} [params.address] the wallet address to query, defaults to this.walletAddress
+     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        const address = this.safeString2 (params, 'address', 'user', this.walletAddress);
+        if (address === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPositions() requires a walletAddress or an address parameter');
+        }
+        const rest = this.omit (params, [ 'address', 'user' ]);
+        const response = await this.myriadPublicGetUsersAddressPortfolio (this.extend ({ 'address': address }, rest));
+        const data = this.safeList (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            result.push (this.parsePosition (data[i]));
+        }
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name myriad#parsePosition
+     * @description parses a raw myriad portfolio entry into a unified position structure
+     * @param {object} position the raw portfolio entry
+     * @param {object} [market] not used by myriad
+     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    parsePosition (position: Dict, market: Market = undefined): Position {
+        const marketSlug = this.safeString (position, 'marketSlug', '');
+        const outcomeTitle = this.safeString (position, 'outcomeTitle', '');
+        const symbol = this.slugToOutcomeSymbol (marketSlug, marketSlug, outcomeTitle);
+        const networkId = this.safeString (position, 'networkId');
+        const marketId = this.safeString (position, 'marketId');
+        const outcomeId = this.safeString (position, 'outcomeId');
+        const id = networkId + ':' + marketId + '/' + outcomeId;
+        const shares = this.safeNumber (position, 'shares');
+        const value = this.safeNumber (position, 'value');
+        const profit = this.safeNumber (position, 'profit');
+        const roi = this.safeNumber (position, 'roi');
+        let percentage: Num = undefined;
+        if (roi !== undefined) {
+            percentage = roi * 100;
+        }
+        return this.safePosition ({
+            'info': position,
+            'id': id,
+            'symbol': symbol,
+            'contracts': shares,
+            'side': 'long',
+            'notional': value,
+            'markPrice': this.safeNumber (position, 'price'),
+            'unrealizedPnl': profit,
+            'percentage': percentage,
+            'marginMode': 'cash',
+            'hedged': false,
+        });
     }
 
     /**
@@ -501,6 +595,47 @@ export default class myriad extends Exchange {
         //     }
         //
         return this.parseTicker (response, outcomeObj);
+    }
+
+    /**
+     * @method
+     * @name myriad#fetchTradingFee
+     * @description fetches the buy/sell fee rates for a market outcome
+     * @see https://docs.myriad.markets/builders/myriad-api-reference
+     * @param {string} symbol unified outcome symbol or outcome id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+     */
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+        const outcome = symbol;
+        await this.loadMarkets ();
+        this.ensureOutcomesLoaded ();
+        const outcomeObj = this.outcome (outcome);
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const request: Dict = {
+            'id': this.safeString (info, 'marketId'),
+            'network_id': this.safeString (info, 'networkId'),
+        };
+        const response = await this.myriadPublicGetMarketsId (this.extend (request, params));
+        //
+        //     {
+        //         "fees": {
+        //             "buy": { "fee": "0.02", "treasury_fee": "0.01", "distributor_fee": "0.01" },
+        //             "sell": { "fee": "0", "treasury_fee": "0", "distributor_fee": "0" }
+        //         }
+        //     }
+        //
+        const fees = this.safeDict (response, 'fees', {});
+        const buy = this.safeDict (fees, 'buy', {});
+        const sell = this.safeDict (fees, 'sell', {});
+        return {
+            'info': response,
+            'symbol': this.safeSymbol (undefined, outcomeObj as any),
+            'maker': this.safeNumber (sell, 'fee'),
+            'taker': this.safeNumber (buy, 'fee'),
+            'percentage': true,
+            'tierBased': false,
+        };
     }
 
     /**

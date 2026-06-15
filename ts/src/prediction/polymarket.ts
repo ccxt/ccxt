@@ -6,7 +6,7 @@ import type {
     Int, Str, Num, Dict,
     Market, Ticker, Tickers, OrderBook, Trade, OHLCV,
     Order, Balances, Position,
-    Strings,
+    Strings, OpenInterest, TradingFeeInterface,
     PredictionEvent,
 } from '../base/types.js';
 import { ArgumentsRequired, BadRequest } from '../../ccxt.js';
@@ -39,19 +39,23 @@ export default class polymarket extends Exchange {
                 'fetchBalance': true,
                 'fetchCurrencies': false,
                 'fetchDeposits': false,
+                'fetchEvent': true,         // Custom: fetch a single Polymarket event by id/slug
                 'fetchEvents': true,        // Custom: fetch Polymarket events
                 'fetchLedger': false,
                 'fetchMarkets': true,       // Each outcome token = one market
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPositions': true,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
                 'fetchWithdrawals': false,
                 'prediction': true,         // Prediction market support
                 'watchOrderBook': true,
@@ -1020,6 +1024,104 @@ export default class polymarket extends Exchange {
 
     /**
      * @method
+     * @name polymarket#fetchStatus
+     * @description fetches the gamma API health status
+     * @see https://docs.polymarket.com/api-reference/events/list-events
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+     */
+    async fetchStatus (params = {}): Promise<any> {
+        const response = await this.gammaPublicGetStatus (params);
+        //
+        //     OK
+        //
+        const ok = (response === 'OK') || (response === 'ok');
+        return {
+            'status': ok ? 'ok' : 'maintenance',
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
+    }
+
+    /**
+     * @method
+     * @name polymarket#fetchOpenInterest
+     * @description fetches the open interest of a prediction market outcome
+     * @see https://docs.polymarket.com/api-reference/misc/get-open-interest
+     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+     */
+    async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
+        const outcome = symbol;
+        this.checkEventsAndMarkets (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
+        const conditionId = this.safeString (outcomeInfo, 'conditionId');
+        if (conditionId === undefined) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() requires outcome.info.conditionId for ' + outcome);
+        }
+        const request: Dict = { 'market': conditionId };
+        const response = await this.dataPublicGetOi (this.extend (request, params));
+        //
+        //     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
+        //
+        const first = this.safeDict (response, 0, {});
+        return this.parseOpenInterest (first, outcomeObj as any);
+    }
+
+    parseOpenInterest (interest, market: Market = undefined): OpenInterest {
+        //
+        //     { "market": "0x7976b8...92", "value": 4925662.470476 }
+        //
+        const timestamp = this.milliseconds ();
+        return this.safeOpenInterest ({
+            'symbol': this.safeSymbol (undefined, market),
+            'openInterestAmount': undefined,
+            'openInterestValue': this.safeNumber (interest, 'value'),
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name polymarket#fetchTradingFee
+     * @description fetches the base fee rate for a prediction market outcome token
+     * @see https://docs.polymarket.com/api-reference/market-data/get-fee-rate
+     * @param {string} symbol unified outcome symbol or outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+     */
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+        const outcome = symbol;
+        this.checkEventsAndMarkets (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const tokenId = this.safeString (outcomeObj, 'id');
+        const request: Dict = { 'token_id': tokenId };
+        const response = await this.clobPublicGetFeeRate (this.extend (request, params));
+        //
+        //     { "base_fee": 30 }   // base fee in basis points
+        //
+        const baseFeeBps = this.safeString (response, 'base_fee');
+        const rate = (baseFeeBps !== undefined) ? this.parseNumber (Precise.stringDiv (baseFeeBps, '10000')) : undefined;
+        return {
+            'info': response,
+            'symbol': this.safeSymbol (undefined, outcomeObj as any),
+            'maker': rate,
+            'taker': rate,
+            'percentage': true,
+            'tierBased': false,
+        };
+    }
+
+    /**
+     * @method
      * @name polymarket#fetchTrades
      * @description fetches public trade history for a single outcome token from the data API
      * @see https://docs.polymarket.com/api-reference/core/get-trades-for-a-user-or-markets
@@ -1482,6 +1584,28 @@ export default class polymarket extends Exchange {
             }
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name polymarket#fetchEvent
+     * @description fetches a single prediction-market event by its id or slug
+     * @see https://docs.polymarket.com/api-reference/events/get-event-by-id
+     * @see https://docs.polymarket.com/api-reference/events/get-event-by-slug
+     * @param {string} id the event id (numeric) or slug
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
+     */
+    async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
+        let response = undefined;
+        if (id.indexOf ('-') >= 0) {
+            response = await this.gammaPublicGetEventsSlugSlug (this.extend ({ 'slug': id }, params));
+        } else {
+            response = await this.gammaPublicGetEventsId (this.extend ({ 'id': id }, params));
+        }
+        const eventForParsing = this.safeDict (response, 'event', response);
+        const event: any = this.parseEvent (eventForParsing);
+        return event;
     }
 
     parseEvent (rawEvent: Dict): Dict {
