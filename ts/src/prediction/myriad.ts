@@ -368,6 +368,69 @@ export default class myriad extends Exchange {
     }
 
     /**
+     * @method
+     * @name myriad#fetchTradeQuote
+     * @description fetches a trade quote — price, shares, fees and the on-chain calldata — for buying or selling an outcome. Myriad settles trades on-chain, so this returns the calldata to submit to the prediction-market contract rather than placing an off-chain order
+     * @see https://docs.myriad.markets/builders/myriad-api-reference
+     * @param {string} symbol unified outcome symbol or outcome id
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount for 'buy' the collateral value to spend; for 'sell' the number of shares to sell
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.slippage] maximum slippage tolerance (default 0.005)
+     * @returns {object} a quote object with price, shares, fees and the on-chain calldata
+     */
+    async fetchTradeQuote (symbol: string, side: string, amount: number, params = {}): Promise<Dict> {
+        this.checkEventsAndMarkets (symbol);
+        const outcomeObj = this.outcome (symbol);
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const networkId = this.safeString (info, 'networkId');
+        const marketId = this.safeString (info, 'marketId');
+        const outcomeId = this.safeInteger (info, 'outcomeId');
+        const sideStr = (side as string).toLowerCase ();
+        const request: Dict = {
+            'market_id': this.parseToInt (marketId),
+            'network_id': this.parseToInt (networkId),
+            'outcome_id': outcomeId,
+            'action': sideStr,
+            'slippage': this.safeNumber (params, 'slippage', 0.005),
+        };
+        if (sideStr === 'buy') {
+            request['value'] = amount;
+        } else {
+            request['shares'] = amount;
+        }
+        const rest = this.omit (params, [ 'slippage' ]);
+        const response = await this.myriadPublicPostMarketsQuote (this.extend (request, rest));
+        return this.parseTradeQuote (response, outcomeObj as any);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name myriad#parseTradeQuote
+     * @description parses a raw myriad quote response into a unified-ish quote object
+     * @param {object} quote the raw quote response
+     * @param {object} [market] the outcome the quote belongs to
+     * @returns {object} a quote object
+     */
+    parseTradeQuote (quote: Dict, market: any = undefined): Dict {
+        return {
+            'symbol': this.safeString (market, 'symbol'),
+            'side': this.safeStringLower (quote, 'action'),
+            'value': this.safeNumber (quote, 'value'),
+            'shares': this.safeNumber (quote, 'shares'),
+            'sharesThreshold': this.safeNumber (quote, 'shares_threshold'),
+            'priceAverage': this.safeNumber (quote, 'price_average'),
+            'priceBefore': this.safeNumber (quote, 'price_before'),
+            'priceAfter': this.safeNumber (quote, 'price_after'),
+            'netAmount': this.safeNumber (quote, 'net_amount'),
+            'fees': this.safeDict (quote, 'fees'),
+            'calldata': this.safeString (quote, 'calldata'),
+            'info': quote,
+        };
+    }
+
+    /**
      * @ignore
      * @method
      * @name myriad#parseMarketToEvent
@@ -1413,7 +1476,6 @@ export default class myriad extends Exchange {
      */
     sign (path: any, api: any = 'myriad', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];
-        const access: string = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['myriad'] as string);
         let url = baseUrl + '/' + this.implodeParams (path, params);
@@ -1427,13 +1489,17 @@ export default class myriad extends Exchange {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders);
-        if (access === 'private' || this.apiKey) {
-            if (this.apiKey) {
-                headers = this.extend (headers, { 'x-api-key': this.apiKey });
+        // non-GET requests carry the params as a JSON body (public POSTs like markets/quote
+        // included — the previous logic only sent a body for authenticated requests)
+        if (method !== 'GET') {
+            const queryKeys = Object.keys (query);
+            const queryKeysLength = queryKeys.length;
+            if (queryKeysLength > 0) {
+                body = this.json (query);
             }
-            if (method !== 'GET' && querystring) {
-                body = query as any;
-            }
+        }
+        if (this.apiKey) {
+            headers = this.extend (headers, { 'x-api-key': this.apiKey });
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
