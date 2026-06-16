@@ -1522,6 +1522,15 @@ export default class polymarket extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // {
+        //     "errorMsg":"",
+        //     "orderID":"0xdf6c53273ad44ab208323c8dde43f04304852c89d55df57efaca8e40caf2f363",
+        //     "takingAmount":"",
+        //     "makingAmount":"",
+        //     "status":"live",
+        //     "success":true
+        // }
         // fetchOrder/fetchOpenOrders return 'id'; the createOrder POST response returns 'orderID'
         const id = this.safeString2 (order, 'id', 'orderID');
         const tokenId = this.safeString (order, 'asset_id');
@@ -1569,16 +1578,16 @@ export default class polymarket extends Exchange {
      */
     parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
-            'LIVE': 'open',
-            'MATCHED': 'closed',
-            'CANCELLED': 'canceled',
-            'DELAYED': 'open',
+            'live': 'open',
+            'matched': 'closed',
+            'cancelled': 'canceled',
+            'delayed': 'open',
             // user-websocket order lifecycle ('type' field)
-            'PLACEMENT': 'open',
-            'UPDATE': 'open',
-            'CANCELLATION': 'canceled',
+            'placement': 'open',
+            'update': 'open',
+            'cancellation': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeStringLower (statuses, status, status);
     }
 
     /**
