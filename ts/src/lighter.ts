@@ -144,7 +144,7 @@ export default class lighter extends Exchange {
             },
             'hostname': 'zklighter.elliot.ai',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/ff1aaf96-bffb-4545-a750-5eba716e75d0',
+                'logo': 'https://private-user-images.githubusercontent.com/10494397/608664782-b227f3e2-60d9-4163-bedf-807adfd57d1e.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3ODE2MjQ0MDAsIm5iZiI6MTc4MTYyNDEwMCwicGF0aCI6Ii8xMDQ5NDM5Ny82MDg2NjQ3ODItYjIyN2YzZTItNjBkOS00MTYzLWJlZGYtODA3YWRmZDU3ZDFlLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNjA2MTYlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjYwNjE2VDE1MzUwMFomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTFlNTQ4NGJlYWNjOGNlNGE5N2Y4N2M0NmQ3ZGY1NWFkZTY3NDcyYmYzMzc4OTRjMGRhMzhhOTUyY2E3ZWRlODcmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JnJlc3BvbnNlLWNvbnRlbnQtdHlwZT1pbWFnZSUyRnBuZyJ9.YigRSFJt_UOv7VoLygEc6rSSqvZZ9tmQT7hejUkooRY',
                 'api': {
                     'root': 'https://mainnet.{hostname}',
                     'public': 'https://mainnet.{hostname}',
