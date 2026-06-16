@@ -7,90 +7,90 @@
 
 package ccxt
 
-func (this *IndodaxCore) PublicGetApiServerTime (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiServerTime", args...)
+func (this *IndodaxCore) PublicGetApiServerTime(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiServerTime", args...)
 }
 
-func (this *IndodaxCore) PublicGetApiPairs (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiPairs", args...)
+func (this *IndodaxCore) PublicGetApiPairs(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiPairs", args...)
 }
 
-func (this *IndodaxCore) PublicGetApiPriceIncrements (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiPriceIncrements", args...)
+func (this *IndodaxCore) PublicGetApiPriceIncrements(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiPriceIncrements", args...)
 }
 
-func (this *IndodaxCore) PublicGetApiSummaries (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiSummaries", args...)
+func (this *IndodaxCore) PublicGetApiSummaries(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiSummaries", args...)
 }
 
-func (this *IndodaxCore) PublicGetApiTickerPair (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiTickerPair", args...)
+func (this *IndodaxCore) PublicGetApiTickerPair(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiTickerPair", args...)
 }
 
-func (this *IndodaxCore) PublicGetApiTickerAll (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiTickerAll", args...)
+func (this *IndodaxCore) PublicGetApiTickerAll(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiTickerAll", args...)
 }
 
-func (this *IndodaxCore) PublicGetApiTradesPair (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiTradesPair", args...)
+func (this *IndodaxCore) PublicGetApiTradesPair(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiTradesPair", args...)
 }
 
-func (this *IndodaxCore) PublicGetApiDepthPair (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiDepthPair", args...)
+func (this *IndodaxCore) PublicGetApiDepthPair(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiDepthPair", args...)
 }
 
-func (this *IndodaxCore) PublicGetTradingviewHistoryV2 (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTradingviewHistoryV2", args...)
+func (this *IndodaxCore) PublicGetTradingviewHistoryV2(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTradingviewHistoryV2", args...)
 }
 
-func (this *IndodaxCore) PrivatePostGetInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostGetInfo", args...)
+func (this *IndodaxCore) PrivatePostGetInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGetInfo", args...)
 }
 
-func (this *IndodaxCore) PrivatePostTransHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTransHistory", args...)
+func (this *IndodaxCore) PrivatePostTransHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTransHistory", args...)
 }
 
-func (this *IndodaxCore) PrivatePostTrade (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTrade", args...)
+func (this *IndodaxCore) PrivatePostTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTrade", args...)
 }
 
-func (this *IndodaxCore) PrivatePostTradeHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTradeHistory", args...)
+func (this *IndodaxCore) PrivatePostTradeHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeHistory", args...)
 }
 
-func (this *IndodaxCore) PrivatePostOpenOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOpenOrders", args...)
+func (this *IndodaxCore) PrivatePostOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenOrders", args...)
 }
 
-func (this *IndodaxCore) PrivatePostOrderHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrderHistory", args...)
+func (this *IndodaxCore) PrivatePostOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderHistory", args...)
 }
 
-func (this *IndodaxCore) PrivatePostGetOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostGetOrder", args...)
+func (this *IndodaxCore) PrivatePostGetOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGetOrder", args...)
 }
 
-func (this *IndodaxCore) PrivatePostCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostCancelOrder", args...)
+func (this *IndodaxCore) PrivatePostCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
-func (this *IndodaxCore) PrivatePostWithdrawFee (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWithdrawFee", args...)
+func (this *IndodaxCore) PrivatePostWithdrawFee(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdrawFee", args...)
 }
 
-func (this *IndodaxCore) PrivatePostWithdrawCoin (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWithdrawCoin", args...)
+func (this *IndodaxCore) PrivatePostWithdrawCoin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdrawCoin", args...)
 }
 
-func (this *IndodaxCore) PrivatePostListDownline (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostListDownline", args...)
+func (this *IndodaxCore) PrivatePostListDownline(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostListDownline", args...)
 }
 
-func (this *IndodaxCore) PrivatePostCheckDownline (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostCheckDownline", args...)
+func (this *IndodaxCore) PrivatePostCheckDownline(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCheckDownline", args...)
 }
 
-func (this *IndodaxCore) PrivatePostCreateVoucher (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostCreateVoucher", args...)
+func (this *IndodaxCore) PrivatePostCreateVoucher(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCreateVoucher", args...)
 }
