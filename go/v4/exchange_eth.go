@@ -377,9 +377,80 @@ func (this *Exchange) EthEncodeStructuredDataDynamically(domain2 any, messageTyp
 	return this.Base16ToBinary(hexData)
 }
 
-func (this *Exchange) EthAbiEncode(types any, args any) any {
-	byteArray := []uint8{}
-	return byteArray
+func (this *Exchange) EthAbiEncode(types2 any, args2 any) any {
+	typesList, ok1 := types2.([]any)
+	argsList, ok2 := args2.([]any)
+	if !ok1 || !ok2 || len(typesList) != len(argsList) {
+		return []uint8{}
+	}
+	result := []byte{}
+	for i := 0; i < len(typesList); i++ {
+		typeStr, _ := typesList[i].(string)
+		result = append(result, ethAbiEncodeWord(typeStr, argsList[i])...)
+	}
+	return result
+}
+
+// ethAbiEncodeWord encodes a single static ABI value into its 32-byte word. It covers the
+// static types EIP-712 signers use (uintN, intN, address, bytesN, bool); the ABI head encoding
+// of static types is simply each value padded to 32 bytes, so no dynamic-type support is needed.
+func ethAbiEncodeWord(typeStr string, value any) []byte {
+	word := make([]byte, 32)
+	if typeStr == "address" {
+		s, _ := value.(string)
+		addr := common.HexToAddress(s)
+		copy(word[12:], addr.Bytes()) // addresses are right-aligned
+		return word
+	}
+	if strings.HasPrefix(typeStr, "bytes") {
+		var b []byte
+		switch v := value.(type) {
+		case []byte:
+			b = v
+		case string:
+			b = common.FromHex(v)
+		}
+		copy(word, b) // fixed bytesN are left-aligned (zero-padded on the right)
+		return word
+	}
+	if typeStr == "bool" {
+		if v, ok := value.(bool); ok && v {
+			word[31] = 1
+		}
+		return word
+	}
+	if strings.HasPrefix(typeStr, "uint") || strings.HasPrefix(typeStr, "int") {
+		bi := ethAbiToBigInt(value)
+		if bi.Sign() < 0 {
+			mod := new(big.Int).Lsh(big.NewInt(1), 256)
+			bi = new(big.Int).Add(mod, bi) // two's complement for signed ints
+		}
+		biBytes := bi.Bytes()
+		if len(biBytes) > 32 {
+			biBytes = biBytes[len(biBytes)-32:]
+		}
+		copy(word[32-len(biBytes):], biBytes) // integers are right-aligned
+		return word
+	}
+	return word
+}
+
+func ethAbiToBigInt(value any) *big.Int {
+	switch v := value.(type) {
+	case string:
+		bi := new(big.Int)
+		bi.SetString(v, 10)
+		return bi
+	case *big.Int:
+		return v
+	case int:
+		return big.NewInt(int64(v))
+	case int64:
+		return big.NewInt(v)
+	case float64:
+		return big.NewInt(int64(v))
+	}
+	return big.NewInt(0)
 }
 
 func ConvertInt64ToBigInt(data any) any { // these functions change in place the object, no bueno
