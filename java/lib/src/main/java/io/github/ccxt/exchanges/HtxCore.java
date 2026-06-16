@@ -4220,7 +4220,7 @@ public class HtxCore extends HtxApi
                         {
                             Helpers.addElementToObject(request, "type", "tp");
                         }
-                        response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "contractPrivateGetV5AlgoOrder", new Object[] { this.extend(request, parameters) })).join();
+                        response = (this.contractPrivateGetV5AlgoOrder(this.extend(request, parameters))).join();
                     } else
                     {
                         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
@@ -4551,7 +4551,7 @@ public class HtxCore extends HtxApi
                     {
                         Helpers.addElementToObject(request, "type", "tp");
                     }
-                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "contractPrivateGetV5AlgoOrderHistory", new Object[] { this.extend(request, parameters) })).join();
+                    response = (this.contractPrivateGetV5AlgoOrderHistory(this.extend(request, parameters))).join();
                 } else
                 {
                     response = (this.contractPrivateGetV5TradeOrderHistory(this.extend(request, parameters))).join();
@@ -4957,7 +4957,7 @@ public class HtxCore extends HtxApi
                         {
                             Helpers.addElementToObject(request, "type", "tp");
                         }
-                        response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "contractPrivateGetV5AlgoOrderOpens", new Object[] { this.extend(request, parameters) })).join();
+                        response = (this.contractPrivateGetV5AlgoOrderOpens(this.extend(request, parameters))).join();
                     } else
                     {
                         response = (this.contractPrivateGetV5TradeOrderOpens(this.extend(request, parameters))).join();
@@ -6157,7 +6157,7 @@ public class HtxCore extends HtxApi
                 {
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isTrigger) || Helpers.isTrue(isStopLossTriggerOrder)) || Helpers.isTrue(isTakeProfitTriggerOrder)) || Helpers.isTrue(isTrailingPercentOrder)))
                     {
-                        response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "contractPrivatePostV5AlgoOrder", new Object[] { contractRequest })).join();
+                        response = (this.contractPrivatePostV5AlgoOrder(contractRequest)).join();
                     } else
                     {
                         response = (this.contractPrivatePostV5TradeOrder(contractRequest)).join();
@@ -6594,7 +6594,7 @@ public class HtxCore extends HtxApi
                             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
                         }
                         Object requestBody = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.extend(requestItem, parameters)));
-                        response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "contractPrivatePostV5AlgoCancelOrders", new Object[] { requestBody })).join();
+                        response = (this.contractPrivatePostV5AlgoCancelOrders(requestBody)).join();
                     } else
                     {
                         response = (this.contractPrivatePostV5TradeCancelOrder(this.extend(request, parameters))).join();
@@ -7981,7 +7981,7 @@ public class HtxCore extends HtxApi
                 response = (this.contractPublicGetSwapApiV1SwapHistoricalFundingRate(this.extend(request, parameters))).join();
             } else if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "contractPublicGetV5MarketFundingRateHistory", new Object[] { this.extend(request, parameters) })).join();
+                response = (this.contractPublicGetV5MarketFundingRateHistory(this.extend(request, parameters))).join();
             } else
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchFundingRateHistory() supports inverse and linear swaps only")) ;
@@ -8126,7 +8126,7 @@ public class HtxCore extends HtxApi
                 response = (this.contractPublicGetSwapApiV1SwapFundingRate(this.extend(request, parameters))).join();
             } else if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "contractPublicGetV5MarketFundingRate", new Object[] { this.extend(request, parameters) })).join();
+                response = (this.contractPublicGetV5MarketFundingRate(this.extend(request, parameters))).join();
             } else
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchFundingRate() supports inverse and linear swaps only")) ;
@@ -9608,7 +9608,7 @@ public class HtxCore extends HtxApi
             } else if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
             {
                 // USDT-M swaps
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "contractPublicGetV5MarketOpenInterest", new Object[] { this.extend(request, parameters) })).join();
+                response = (this.contractPublicGetV5MarketOpenInterest(this.extend(request, parameters))).join();
             } else
             {
                 // COIN-M swaps

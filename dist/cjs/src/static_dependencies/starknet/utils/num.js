@@ -5,7 +5,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 require('@noble/curves/utils.js');
 var encode = require('./encode.js');
 
-// ----------------------------------------------------------------------------
 /**
  * Test if string is hex-string
  * @param hex hex-string

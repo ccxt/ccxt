@@ -7,538 +7,538 @@
 
 package ccxt
 
-func (this *WooCore) V1PubGetHistKline(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PubGetHistKline", args...)
+func (this *WooCore) V1PubGetHistKline (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PubGetHistKline", args...)
 }
 
-func (this *WooCore) V1PubGetHistTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PubGetHistTrades", args...)
+func (this *WooCore) V1PubGetHistTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PubGetHistTrades", args...)
 }
 
-func (this *WooCore) V1PublicGetInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetInfo", args...)
+func (this *WooCore) V1PublicGetInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetInfo", args...)
 }
 
-func (this *WooCore) V1PublicGetInfoSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetInfoSymbol", args...)
+func (this *WooCore) V1PublicGetInfoSymbol (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetInfoSymbol", args...)
 }
 
-func (this *WooCore) V1PublicGetSystemInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetSystemInfo", args...)
+func (this *WooCore) V1PublicGetSystemInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetSystemInfo", args...)
 }
 
-func (this *WooCore) V1PublicGetMarketTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetMarketTrades", args...)
+func (this *WooCore) V1PublicGetMarketTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetMarketTrades", args...)
 }
 
-func (this *WooCore) V1PublicGetToken(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetToken", args...)
+func (this *WooCore) V1PublicGetToken (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetToken", args...)
 }
 
-func (this *WooCore) V1PublicGetTokenNetwork(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetTokenNetwork", args...)
+func (this *WooCore) V1PublicGetTokenNetwork (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetTokenNetwork", args...)
 }
 
-func (this *WooCore) V1PublicGetFundingRates(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetFundingRates", args...)
+func (this *WooCore) V1PublicGetFundingRates (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetFundingRates", args...)
 }
 
-func (this *WooCore) V1PublicGetFundingRateSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetFundingRateSymbol", args...)
+func (this *WooCore) V1PublicGetFundingRateSymbol (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetFundingRateSymbol", args...)
 }
 
-func (this *WooCore) V1PublicGetFundingRateHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetFundingRateHistory", args...)
+func (this *WooCore) V1PublicGetFundingRateHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetFundingRateHistory", args...)
 }
 
-func (this *WooCore) V1PublicGetFutures(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetFutures", args...)
+func (this *WooCore) V1PublicGetFutures (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetFutures", args...)
 }
 
-func (this *WooCore) V1PublicGetFuturesSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetFuturesSymbol", args...)
+func (this *WooCore) V1PublicGetFuturesSymbol (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetFuturesSymbol", args...)
 }
 
-func (this *WooCore) V1PublicGetOrderbookSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetOrderbookSymbol", args...)
+func (this *WooCore) V1PublicGetOrderbookSymbol (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetOrderbookSymbol", args...)
 }
 
-func (this *WooCore) V1PublicGetKline(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetKline", args...)
+func (this *WooCore) V1PublicGetKline (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetKline", args...)
 }
 
-func (this *WooCore) V1PrivateGetClientToken(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetClientToken", args...)
+func (this *WooCore) V1PrivateGetClientToken (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetClientToken", args...)
 }
 
-func (this *WooCore) V1PrivateGetOrderOid(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetOrderOid", args...)
+func (this *WooCore) V1PrivateGetOrderOid (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetOrderOid", args...)
 }
 
-func (this *WooCore) V1PrivateGetClientOrderClientOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetClientOrderClientOrderId", args...)
+func (this *WooCore) V1PrivateGetClientOrderClientOrderId (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetClientOrderClientOrderId", args...)
 }
 
-func (this *WooCore) V1PrivateGetOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetOrders", args...)
+func (this *WooCore) V1PrivateGetOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetOrders", args...)
 }
 
-func (this *WooCore) V1PrivateGetClientTradeTid(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetClientTradeTid", args...)
+func (this *WooCore) V1PrivateGetClientTradeTid (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetClientTradeTid", args...)
 }
 
-func (this *WooCore) V1PrivateGetOrderOidTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetOrderOidTrades", args...)
+func (this *WooCore) V1PrivateGetOrderOidTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetOrderOidTrades", args...)
 }
 
-func (this *WooCore) V1PrivateGetClientTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetClientTrades", args...)
+func (this *WooCore) V1PrivateGetClientTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetClientTrades", args...)
 }
 
-func (this *WooCore) V1PrivateGetClientHistTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetClientHistTrades", args...)
+func (this *WooCore) V1PrivateGetClientHistTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetClientHistTrades", args...)
 }
 
-func (this *WooCore) V1PrivateGetStakingYieldHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetStakingYieldHistory", args...)
+func (this *WooCore) V1PrivateGetStakingYieldHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetStakingYieldHistory", args...)
 }
 
-func (this *WooCore) V1PrivateGetClientHolding(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetClientHolding", args...)
+func (this *WooCore) V1PrivateGetClientHolding (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetClientHolding", args...)
 }
 
-func (this *WooCore) V1PrivateGetAssetDeposit(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetAssetDeposit", args...)
+func (this *WooCore) V1PrivateGetAssetDeposit (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetAssetDeposit", args...)
 }
 
-func (this *WooCore) V1PrivateGetAssetHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetAssetHistory", args...)
+func (this *WooCore) V1PrivateGetAssetHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetAssetHistory", args...)
 }
 
-func (this *WooCore) V1PrivateGetSubAccountAll(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetSubAccountAll", args...)
+func (this *WooCore) V1PrivateGetSubAccountAll (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetSubAccountAll", args...)
 }
 
-func (this *WooCore) V1PrivateGetSubAccountAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetSubAccountAssets", args...)
+func (this *WooCore) V1PrivateGetSubAccountAssets (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetSubAccountAssets", args...)
 }
 
-func (this *WooCore) V1PrivateGetSubAccountAssetDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetSubAccountAssetDetail", args...)
+func (this *WooCore) V1PrivateGetSubAccountAssetDetail (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetSubAccountAssetDetail", args...)
 }
 
-func (this *WooCore) V1PrivateGetSubAccountIpRestriction(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetSubAccountIpRestriction", args...)
+func (this *WooCore) V1PrivateGetSubAccountIpRestriction (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetSubAccountIpRestriction", args...)
 }
 
-func (this *WooCore) V1PrivateGetAssetMainSubTransferHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetAssetMainSubTransferHistory", args...)
+func (this *WooCore) V1PrivateGetAssetMainSubTransferHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetAssetMainSubTransferHistory", args...)
 }
 
-func (this *WooCore) V1PrivateGetTokenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetTokenInterest", args...)
+func (this *WooCore) V1PrivateGetTokenInterest (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetTokenInterest", args...)
 }
 
-func (this *WooCore) V1PrivateGetTokenInterestToken(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetTokenInterestToken", args...)
+func (this *WooCore) V1PrivateGetTokenInterestToken (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetTokenInterestToken", args...)
 }
 
-func (this *WooCore) V1PrivateGetInterestHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetInterestHistory", args...)
+func (this *WooCore) V1PrivateGetInterestHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetInterestHistory", args...)
 }
 
-func (this *WooCore) V1PrivateGetInterestRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetInterestRepay", args...)
+func (this *WooCore) V1PrivateGetInterestRepay (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetInterestRepay", args...)
 }
 
-func (this *WooCore) V1PrivateGetFundingFeeHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetFundingFeeHistory", args...)
+func (this *WooCore) V1PrivateGetFundingFeeHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetFundingFeeHistory", args...)
 }
 
-func (this *WooCore) V1PrivateGetPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetPositions", args...)
+func (this *WooCore) V1PrivateGetPositions (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetPositions", args...)
 }
 
-func (this *WooCore) V1PrivateGetPositionSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetPositionSymbol", args...)
+func (this *WooCore) V1PrivateGetPositionSymbol (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetPositionSymbol", args...)
 }
 
-func (this *WooCore) V1PrivateGetClientTransactionHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetClientTransactionHistory", args...)
+func (this *WooCore) V1PrivateGetClientTransactionHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetClientTransactionHistory", args...)
 }
 
-func (this *WooCore) V1PrivateGetClientFuturesLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetClientFuturesLeverage", args...)
+func (this *WooCore) V1PrivateGetClientFuturesLeverage (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetClientFuturesLeverage", args...)
 }
 
-func (this *WooCore) V1PrivatePostOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostOrder", args...)
+func (this *WooCore) V1PrivatePostOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivatePostOrder", args...)
 }
 
-func (this *WooCore) V1PrivatePostOrderCancelAllAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostOrderCancelAllAfter", args...)
+func (this *WooCore) V1PrivatePostOrderCancelAllAfter (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivatePostOrderCancelAllAfter", args...)
 }
 
-func (this *WooCore) V1PrivatePostAssetLtv(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostAssetLtv", args...)
+func (this *WooCore) V1PrivatePostAssetLtv (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivatePostAssetLtv", args...)
 }
 
-func (this *WooCore) V1PrivatePostAssetInternalWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostAssetInternalWithdraw", args...)
+func (this *WooCore) V1PrivatePostAssetInternalWithdraw (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivatePostAssetInternalWithdraw", args...)
 }
 
-func (this *WooCore) V1PrivatePostInterestRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostInterestRepay", args...)
+func (this *WooCore) V1PrivatePostInterestRepay (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivatePostInterestRepay", args...)
 }
 
-func (this *WooCore) V1PrivatePostClientAccountMode(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostClientAccountMode", args...)
+func (this *WooCore) V1PrivatePostClientAccountMode (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivatePostClientAccountMode", args...)
 }
 
-func (this *WooCore) V1PrivatePostClientPositionMode(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostClientPositionMode", args...)
+func (this *WooCore) V1PrivatePostClientPositionMode (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivatePostClientPositionMode", args...)
 }
 
-func (this *WooCore) V1PrivatePostClientLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostClientLeverage", args...)
+func (this *WooCore) V1PrivatePostClientLeverage (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivatePostClientLeverage", args...)
 }
 
-func (this *WooCore) V1PrivatePostClientFuturesLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostClientFuturesLeverage", args...)
+func (this *WooCore) V1PrivatePostClientFuturesLeverage (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivatePostClientFuturesLeverage", args...)
 }
 
-func (this *WooCore) V1PrivatePostClientIsolatedMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostClientIsolatedMargin", args...)
+func (this *WooCore) V1PrivatePostClientIsolatedMargin (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivatePostClientIsolatedMargin", args...)
 }
 
-func (this *WooCore) V1PrivateDeleteOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateDeleteOrder", args...)
+func (this *WooCore) V1PrivateDeleteOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateDeleteOrder", args...)
 }
 
-func (this *WooCore) V1PrivateDeleteClientOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateDeleteClientOrder", args...)
+func (this *WooCore) V1PrivateDeleteClientOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateDeleteClientOrder", args...)
 }
 
-func (this *WooCore) V1PrivateDeleteOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateDeleteOrders", args...)
+func (this *WooCore) V1PrivateDeleteOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateDeleteOrders", args...)
 }
 
-func (this *WooCore) V1PrivateDeleteAssetWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateDeleteAssetWithdraw", args...)
+func (this *WooCore) V1PrivateDeleteAssetWithdraw (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateDeleteAssetWithdraw", args...)
 }
 
-func (this *WooCore) V2PrivateGetClientHolding(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetClientHolding", args...)
+func (this *WooCore) V2PrivateGetClientHolding (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetClientHolding", args...)
 }
 
-func (this *WooCore) V3PublicGetSystemInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetSystemInfo", args...)
+func (this *WooCore) V3PublicGetSystemInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetSystemInfo", args...)
 }
 
-func (this *WooCore) V3PublicGetInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetInstruments", args...)
+func (this *WooCore) V3PublicGetInstruments (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetInstruments", args...)
 }
 
-func (this *WooCore) V3PublicGetToken(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetToken", args...)
+func (this *WooCore) V3PublicGetToken (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetToken", args...)
 }
 
-func (this *WooCore) V3PublicGetTokenNetwork(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetTokenNetwork", args...)
+func (this *WooCore) V3PublicGetTokenNetwork (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetTokenNetwork", args...)
 }
 
-func (this *WooCore) V3PublicGetTokenInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetTokenInfo", args...)
+func (this *WooCore) V3PublicGetTokenInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetTokenInfo", args...)
 }
 
-func (this *WooCore) V3PublicGetMarketTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetMarketTrades", args...)
+func (this *WooCore) V3PublicGetMarketTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetMarketTrades", args...)
 }
 
-func (this *WooCore) V3PublicGetMarketTradesHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetMarketTradesHistory", args...)
+func (this *WooCore) V3PublicGetMarketTradesHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetMarketTradesHistory", args...)
 }
 
-func (this *WooCore) V3PublicGetOrderbook(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetOrderbook", args...)
+func (this *WooCore) V3PublicGetOrderbook (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetOrderbook", args...)
 }
 
-func (this *WooCore) V3PublicGetKline(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetKline", args...)
+func (this *WooCore) V3PublicGetKline (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetKline", args...)
 }
 
-func (this *WooCore) V3PublicGetKlineHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetKlineHistory", args...)
+func (this *WooCore) V3PublicGetKlineHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetKlineHistory", args...)
 }
 
-func (this *WooCore) V3PublicGetFutures(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetFutures", args...)
+func (this *WooCore) V3PublicGetFutures (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetFutures", args...)
 }
 
-func (this *WooCore) V3PublicGetFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetFundingRate", args...)
+func (this *WooCore) V3PublicGetFundingRate (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetFundingRate", args...)
 }
 
-func (this *WooCore) V3PublicGetFundingRateHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetFundingRateHistory", args...)
+func (this *WooCore) V3PublicGetFundingRateHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetFundingRateHistory", args...)
 }
 
-func (this *WooCore) V3PublicGetInsuranceFund(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetInsuranceFund", args...)
+func (this *WooCore) V3PublicGetInsuranceFund (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetInsuranceFund", args...)
 }
 
-func (this *WooCore) V3PrivateGetTradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetTradeOrder", args...)
+func (this *WooCore) V3PrivateGetTradeOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetTradeOrder", args...)
 }
 
-func (this *WooCore) V3PrivateGetTradeOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetTradeOrders", args...)
+func (this *WooCore) V3PrivateGetTradeOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetTradeOrders", args...)
 }
 
-func (this *WooCore) V3PrivateGetTradeAlgoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetTradeAlgoOrder", args...)
+func (this *WooCore) V3PrivateGetTradeAlgoOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetTradeAlgoOrder", args...)
 }
 
-func (this *WooCore) V3PrivateGetTradeAlgoOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetTradeAlgoOrders", args...)
+func (this *WooCore) V3PrivateGetTradeAlgoOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetTradeAlgoOrders", args...)
 }
 
-func (this *WooCore) V3PrivateGetTradeTransaction(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetTradeTransaction", args...)
+func (this *WooCore) V3PrivateGetTradeTransaction (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetTradeTransaction", args...)
 }
 
-func (this *WooCore) V3PrivateGetTradeTransactionHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetTradeTransactionHistory", args...)
+func (this *WooCore) V3PrivateGetTradeTransactionHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetTradeTransactionHistory", args...)
 }
 
-func (this *WooCore) V3PrivateGetTradeTradingFee(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetTradeTradingFee", args...)
+func (this *WooCore) V3PrivateGetTradeTradingFee (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetTradeTradingFee", args...)
 }
 
-func (this *WooCore) V3PrivateGetAccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetAccountInfo", args...)
+func (this *WooCore) V3PrivateGetAccountInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetAccountInfo", args...)
 }
 
-func (this *WooCore) V3PrivateGetAccountTokenConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetAccountTokenConfig", args...)
+func (this *WooCore) V3PrivateGetAccountTokenConfig (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetAccountTokenConfig", args...)
 }
 
-func (this *WooCore) V3PrivateGetAccountSymbolConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetAccountSymbolConfig", args...)
+func (this *WooCore) V3PrivateGetAccountSymbolConfig (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetAccountSymbolConfig", args...)
 }
 
-func (this *WooCore) V3PrivateGetAccountSubAccountsAll(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetAccountSubAccountsAll", args...)
+func (this *WooCore) V3PrivateGetAccountSubAccountsAll (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetAccountSubAccountsAll", args...)
 }
 
-func (this *WooCore) V3PrivateGetAccountReferralSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetAccountReferralSummary", args...)
+func (this *WooCore) V3PrivateGetAccountReferralSummary (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetAccountReferralSummary", args...)
 }
 
-func (this *WooCore) V3PrivateGetAccountReferralRewardHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetAccountReferralRewardHistory", args...)
+func (this *WooCore) V3PrivateGetAccountReferralRewardHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetAccountReferralRewardHistory", args...)
 }
 
-func (this *WooCore) V3PrivateGetAccountCredentials(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetAccountCredentials", args...)
+func (this *WooCore) V3PrivateGetAccountCredentials (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetAccountCredentials", args...)
 }
 
-func (this *WooCore) V3PrivateGetAssetBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetAssetBalances", args...)
+func (this *WooCore) V3PrivateGetAssetBalances (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetAssetBalances", args...)
 }
 
-func (this *WooCore) V3PrivateGetAssetTokenHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetAssetTokenHistory", args...)
+func (this *WooCore) V3PrivateGetAssetTokenHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetAssetTokenHistory", args...)
 }
 
-func (this *WooCore) V3PrivateGetAssetTransferHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetAssetTransferHistory", args...)
+func (this *WooCore) V3PrivateGetAssetTransferHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetAssetTransferHistory", args...)
 }
 
-func (this *WooCore) V3PrivateGetAssetWalletHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetAssetWalletHistory", args...)
+func (this *WooCore) V3PrivateGetAssetWalletHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetAssetWalletHistory", args...)
 }
 
-func (this *WooCore) V3PrivateGetAssetWalletDeposit(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetAssetWalletDeposit", args...)
+func (this *WooCore) V3PrivateGetAssetWalletDeposit (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetAssetWalletDeposit", args...)
 }
 
-func (this *WooCore) V3PrivateGetAssetStakingYieldHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetAssetStakingYieldHistory", args...)
+func (this *WooCore) V3PrivateGetAssetStakingYieldHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetAssetStakingYieldHistory", args...)
 }
 
-func (this *WooCore) V3PrivateGetFuturesPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetFuturesPositions", args...)
+func (this *WooCore) V3PrivateGetFuturesPositions (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetFuturesPositions", args...)
 }
 
-func (this *WooCore) V3PrivateGetFuturesLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetFuturesLeverage", args...)
+func (this *WooCore) V3PrivateGetFuturesLeverage (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetFuturesLeverage", args...)
 }
 
-func (this *WooCore) V3PrivateGetFuturesDefaultMarginMode(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetFuturesDefaultMarginMode", args...)
+func (this *WooCore) V3PrivateGetFuturesDefaultMarginMode (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetFuturesDefaultMarginMode", args...)
 }
 
-func (this *WooCore) V3PrivateGetFuturesFundingFeeHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetFuturesFundingFeeHistory", args...)
+func (this *WooCore) V3PrivateGetFuturesFundingFeeHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetFuturesFundingFeeHistory", args...)
 }
 
-func (this *WooCore) V3PrivateGetSpotMarginInterestRate(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetSpotMarginInterestRate", args...)
+func (this *WooCore) V3PrivateGetSpotMarginInterestRate (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetSpotMarginInterestRate", args...)
 }
 
-func (this *WooCore) V3PrivateGetSpotMarginInterestHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetSpotMarginInterestHistory", args...)
+func (this *WooCore) V3PrivateGetSpotMarginInterestHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetSpotMarginInterestHistory", args...)
 }
 
-func (this *WooCore) V3PrivateGetSpotMarginMaxMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetSpotMarginMaxMargin", args...)
+func (this *WooCore) V3PrivateGetSpotMarginMaxMargin (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetSpotMarginMaxMargin", args...)
 }
 
-func (this *WooCore) V3PrivateGetAlgoOrderOid(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetAlgoOrderOid", args...)
+func (this *WooCore) V3PrivateGetAlgoOrderOid (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetAlgoOrderOid", args...)
 }
 
-func (this *WooCore) V3PrivateGetAlgoOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetAlgoOrders", args...)
+func (this *WooCore) V3PrivateGetAlgoOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetAlgoOrders", args...)
 }
 
-func (this *WooCore) V3PrivateGetPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetPositions", args...)
+func (this *WooCore) V3PrivateGetPositions (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetPositions", args...)
 }
 
-func (this *WooCore) V3PrivateGetBuypower(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBuypower", args...)
+func (this *WooCore) V3PrivateGetBuypower (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBuypower", args...)
 }
 
-func (this *WooCore) V3PrivateGetConvertExchangeInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetConvertExchangeInfo", args...)
+func (this *WooCore) V3PrivateGetConvertExchangeInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetConvertExchangeInfo", args...)
 }
 
-func (this *WooCore) V3PrivateGetConvertAssetInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetConvertAssetInfo", args...)
+func (this *WooCore) V3PrivateGetConvertAssetInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetConvertAssetInfo", args...)
 }
 
-func (this *WooCore) V3PrivateGetConvertRfq(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetConvertRfq", args...)
+func (this *WooCore) V3PrivateGetConvertRfq (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetConvertRfq", args...)
 }
 
-func (this *WooCore) V3PrivateGetConvertTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetConvertTrade", args...)
+func (this *WooCore) V3PrivateGetConvertTrade (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetConvertTrade", args...)
 }
 
-func (this *WooCore) V3PrivateGetConvertTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetConvertTrades", args...)
+func (this *WooCore) V3PrivateGetConvertTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetConvertTrades", args...)
 }
 
-func (this *WooCore) V3PrivatePostTradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostTradeOrder", args...)
+func (this *WooCore) V3PrivatePostTradeOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostTradeOrder", args...)
 }
 
-func (this *WooCore) V3PrivatePostTradeAlgoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostTradeAlgoOrder", args...)
+func (this *WooCore) V3PrivatePostTradeAlgoOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostTradeAlgoOrder", args...)
 }
 
-func (this *WooCore) V3PrivatePostTradeCancelAllAfter(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostTradeCancelAllAfter", args...)
+func (this *WooCore) V3PrivatePostTradeCancelAllAfter (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostTradeCancelAllAfter", args...)
 }
 
-func (this *WooCore) V3PrivatePostAccountTradingMode(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostAccountTradingMode", args...)
+func (this *WooCore) V3PrivatePostAccountTradingMode (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostAccountTradingMode", args...)
 }
 
-func (this *WooCore) V3PrivatePostAccountListenKey(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostAccountListenKey", args...)
+func (this *WooCore) V3PrivatePostAccountListenKey (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostAccountListenKey", args...)
 }
 
-func (this *WooCore) V3PrivatePostAssetTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostAssetTransfer", args...)
+func (this *WooCore) V3PrivatePostAssetTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostAssetTransfer", args...)
 }
 
-func (this *WooCore) V3PrivatePostAssetWalletWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostAssetWalletWithdraw", args...)
+func (this *WooCore) V3PrivatePostAssetWalletWithdraw (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostAssetWalletWithdraw", args...)
 }
 
-func (this *WooCore) V3PrivatePostSpotMarginLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostSpotMarginLeverage", args...)
+func (this *WooCore) V3PrivatePostSpotMarginLeverage (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostSpotMarginLeverage", args...)
 }
 
-func (this *WooCore) V3PrivatePostSpotMarginInterestRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostSpotMarginInterestRepay", args...)
+func (this *WooCore) V3PrivatePostSpotMarginInterestRepay (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostSpotMarginInterestRepay", args...)
 }
 
-func (this *WooCore) V3PrivatePostAlgoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostAlgoOrder", args...)
+func (this *WooCore) V3PrivatePostAlgoOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostAlgoOrder", args...)
 }
 
-func (this *WooCore) V3PrivatePostConvertRft(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostConvertRft", args...)
+func (this *WooCore) V3PrivatePostConvertRft (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostConvertRft", args...)
 }
 
-func (this *WooCore) V3PrivatePutTradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePutTradeOrder", args...)
+func (this *WooCore) V3PrivatePutTradeOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePutTradeOrder", args...)
 }
 
-func (this *WooCore) V3PrivatePutTradeAlgoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePutTradeAlgoOrder", args...)
+func (this *WooCore) V3PrivatePutTradeAlgoOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePutTradeAlgoOrder", args...)
 }
 
-func (this *WooCore) V3PrivatePutFuturesLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePutFuturesLeverage", args...)
+func (this *WooCore) V3PrivatePutFuturesLeverage (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePutFuturesLeverage", args...)
 }
 
-func (this *WooCore) V3PrivatePutFuturesPositionMode(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePutFuturesPositionMode", args...)
+func (this *WooCore) V3PrivatePutFuturesPositionMode (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePutFuturesPositionMode", args...)
 }
 
-func (this *WooCore) V3PrivatePutOrderOid(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePutOrderOid", args...)
+func (this *WooCore) V3PrivatePutOrderOid (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePutOrderOid", args...)
 }
 
-func (this *WooCore) V3PrivatePutOrderClientClientOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePutOrderClientClientOrderId", args...)
+func (this *WooCore) V3PrivatePutOrderClientClientOrderId (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePutOrderClientClientOrderId", args...)
 }
 
-func (this *WooCore) V3PrivatePutAlgoOrderOid(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePutAlgoOrderOid", args...)
+func (this *WooCore) V3PrivatePutAlgoOrderOid (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePutAlgoOrderOid", args...)
 }
 
-func (this *WooCore) V3PrivatePutAlgoOrderClientClientOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePutAlgoOrderClientClientOrderId", args...)
+func (this *WooCore) V3PrivatePutAlgoOrderClientClientOrderId (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePutAlgoOrderClientClientOrderId", args...)
 }
 
-func (this *WooCore) V3PrivateDeleteTradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateDeleteTradeOrder", args...)
+func (this *WooCore) V3PrivateDeleteTradeOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateDeleteTradeOrder", args...)
 }
 
-func (this *WooCore) V3PrivateDeleteTradeOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateDeleteTradeOrders", args...)
+func (this *WooCore) V3PrivateDeleteTradeOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateDeleteTradeOrders", args...)
 }
 
-func (this *WooCore) V3PrivateDeleteTradeAlgoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateDeleteTradeAlgoOrder", args...)
+func (this *WooCore) V3PrivateDeleteTradeAlgoOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateDeleteTradeAlgoOrder", args...)
 }
 
-func (this *WooCore) V3PrivateDeleteTradeAlgoOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateDeleteTradeAlgoOrders", args...)
+func (this *WooCore) V3PrivateDeleteTradeAlgoOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateDeleteTradeAlgoOrders", args...)
 }
 
-func (this *WooCore) V3PrivateDeleteTradeAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateDeleteTradeAllOrders", args...)
+func (this *WooCore) V3PrivateDeleteTradeAllOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateDeleteTradeAllOrders", args...)
 }
 
-func (this *WooCore) V3PrivateDeleteAlgoOrderOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateDeleteAlgoOrderOrderId", args...)
+func (this *WooCore) V3PrivateDeleteAlgoOrderOrderId (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateDeleteAlgoOrderOrderId", args...)
 }
 
-func (this *WooCore) V3PrivateDeleteAlgoOrdersPending(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateDeleteAlgoOrdersPending", args...)
+func (this *WooCore) V3PrivateDeleteAlgoOrdersPending (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateDeleteAlgoOrdersPending", args...)
 }
 
-func (this *WooCore) V3PrivateDeleteAlgoOrdersPendingSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateDeleteAlgoOrdersPendingSymbol", args...)
+func (this *WooCore) V3PrivateDeleteAlgoOrdersPendingSymbol (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateDeleteAlgoOrdersPendingSymbol", args...)
 }
 
-func (this *WooCore) V3PrivateDeleteOrdersPending(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateDeleteOrdersPending", args...)
+func (this *WooCore) V3PrivateDeleteOrdersPending (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateDeleteOrdersPending", args...)
 }

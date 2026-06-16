@@ -4035,7 +4035,7 @@ public partial class htx : Exchange
                     {
                         ((IDictionary<string,object>)request)["type"] = "tp";
                     }
-                    response = await ((Task<object>)callDynamically(this, "contractPrivateGetV5AlgoOrder", new object[] { this.extend(request, parameters) }));
+                    response = await this.contractPrivateGetV5AlgoOrder(this.extend(request, parameters));
                 } else
                 {
                     if (isTrue(isEqual(symbol, null)))
@@ -4334,7 +4334,7 @@ public partial class htx : Exchange
                 {
                     ((IDictionary<string,object>)request)["type"] = "tp";
                 }
-                response = await ((Task<object>)callDynamically(this, "contractPrivateGetV5AlgoOrderHistory", new object[] { this.extend(request, parameters) }));
+                response = await this.contractPrivateGetV5AlgoOrderHistory(this.extend(request, parameters));
             } else
             {
                 response = await this.contractPrivateGetV5TradeOrderHistory(this.extend(request, parameters));
@@ -4700,7 +4700,7 @@ public partial class htx : Exchange
                     {
                         ((IDictionary<string,object>)request)["type"] = "tp";
                     }
-                    response = await ((Task<object>)callDynamically(this, "contractPrivateGetV5AlgoOrderOpens", new object[] { this.extend(request, parameters) }));
+                    response = await this.contractPrivateGetV5AlgoOrderOpens(this.extend(request, parameters));
                 } else
                 {
                     response = await this.contractPrivateGetV5TradeOrderOpens(this.extend(request, parameters));
@@ -5863,7 +5863,7 @@ public partial class htx : Exchange
             {
                 if (isTrue(isTrue(isTrue(isTrue(isTrigger) || isTrue(isStopLossTriggerOrder)) || isTrue(isTakeProfitTriggerOrder)) || isTrue(isTrailingPercentOrder)))
                 {
-                    response = await ((Task<object>)callDynamically(this, "contractPrivatePostV5AlgoOrder", new object[] { contractRequest }));
+                    response = await this.contractPrivatePostV5AlgoOrder(contractRequest);
                 } else
                 {
                     response = await this.contractPrivatePostV5TradeOrder(contractRequest);
@@ -6287,7 +6287,7 @@ public partial class htx : Exchange
                         parameters = this.omit(parameters, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
                     }
                     object requestBody = new List<object> {this.extend(requestItem, parameters)};
-                    response = await ((Task<object>)callDynamically(this, "contractPrivatePostV5AlgoCancelOrders", new object[] { requestBody }));
+                    response = await this.contractPrivatePostV5AlgoCancelOrders(requestBody);
                 } else
                 {
                     response = await this.contractPrivatePostV5TradeCancelOrder(this.extend(request, parameters));
@@ -7591,7 +7591,7 @@ public partial class htx : Exchange
             response = await this.contractPublicGetSwapApiV1SwapHistoricalFundingRate(this.extend(request, parameters));
         } else if (isTrue(getValue(market, "linear")))
         {
-            response = await ((Task<object>)callDynamically(this, "contractPublicGetV5MarketFundingRateHistory", new object[] { this.extend(request, parameters) }));
+            response = await this.contractPublicGetV5MarketFundingRateHistory(this.extend(request, parameters));
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchFundingRateHistory() supports inverse and linear swaps only")) ;
@@ -7730,7 +7730,7 @@ public partial class htx : Exchange
             response = await this.contractPublicGetSwapApiV1SwapFundingRate(this.extend(request, parameters));
         } else if (isTrue(getValue(market, "linear")))
         {
-            response = await ((Task<object>)callDynamically(this, "contractPublicGetV5MarketFundingRate", new object[] { this.extend(request, parameters) }));
+            response = await this.contractPublicGetV5MarketFundingRate(this.extend(request, parameters));
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchFundingRate() supports inverse and linear swaps only")) ;
@@ -9123,7 +9123,7 @@ public partial class htx : Exchange
         } else if (isTrue(getValue(market, "linear")))
         {
             // USDT-M swaps
-            response = await ((Task<object>)callDynamically(this, "contractPublicGetV5MarketOpenInterest", new object[] { this.extend(request, parameters) }));
+            response = await this.contractPublicGetV5MarketOpenInterest(this.extend(request, parameters));
         } else
         {
             // COIN-M swaps

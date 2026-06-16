@@ -8,7 +8,6 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 
-// ----------------------------------------------------------------------------
 /**
  * @class coinsph
  * @augments Exchange

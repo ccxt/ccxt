@@ -7,482 +7,482 @@
 
 package ccxt
 
-func (this *BitmartCore) PublicGetSystemTime(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSystemTime", args...)
+func (this *BitmartCore) PublicGetSystemTime (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSystemTime", args...)
 }
 
-func (this *BitmartCore) PublicGetSystemService(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSystemService", args...)
+func (this *BitmartCore) PublicGetSystemService (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSystemService", args...)
 }
 
-func (this *BitmartCore) PublicGetSpotV1Currencies(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotV1Currencies", args...)
+func (this *BitmartCore) PublicGetSpotV1Currencies (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSpotV1Currencies", args...)
 }
 
-func (this *BitmartCore) PublicGetSpotV1Symbols(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotV1Symbols", args...)
+func (this *BitmartCore) PublicGetSpotV1Symbols (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSpotV1Symbols", args...)
 }
 
-func (this *BitmartCore) PublicGetSpotV1SymbolsDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotV1SymbolsDetails", args...)
+func (this *BitmartCore) PublicGetSpotV1SymbolsDetails (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSpotV1SymbolsDetails", args...)
 }
 
-func (this *BitmartCore) PublicGetSpotQuotationV3Tickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotQuotationV3Tickers", args...)
+func (this *BitmartCore) PublicGetSpotQuotationV3Tickers (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSpotQuotationV3Tickers", args...)
 }
 
-func (this *BitmartCore) PublicGetSpotQuotationV3Ticker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotQuotationV3Ticker", args...)
+func (this *BitmartCore) PublicGetSpotQuotationV3Ticker (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSpotQuotationV3Ticker", args...)
 }
 
-func (this *BitmartCore) PublicGetSpotQuotationV3LiteKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotQuotationV3LiteKlines", args...)
+func (this *BitmartCore) PublicGetSpotQuotationV3LiteKlines (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSpotQuotationV3LiteKlines", args...)
 }
 
-func (this *BitmartCore) PublicGetSpotQuotationV3Klines(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotQuotationV3Klines", args...)
+func (this *BitmartCore) PublicGetSpotQuotationV3Klines (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSpotQuotationV3Klines", args...)
 }
 
-func (this *BitmartCore) PublicGetSpotQuotationV3Books(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotQuotationV3Books", args...)
+func (this *BitmartCore) PublicGetSpotQuotationV3Books (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSpotQuotationV3Books", args...)
 }
 
-func (this *BitmartCore) PublicGetSpotQuotationV3Trades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotQuotationV3Trades", args...)
+func (this *BitmartCore) PublicGetSpotQuotationV3Trades (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSpotQuotationV3Trades", args...)
 }
 
-func (this *BitmartCore) PublicGetSpotV1Ticker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotV1Ticker", args...)
+func (this *BitmartCore) PublicGetSpotV1Ticker (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSpotV1Ticker", args...)
 }
 
-func (this *BitmartCore) PublicGetSpotV2Ticker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotV2Ticker", args...)
+func (this *BitmartCore) PublicGetSpotV2Ticker (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSpotV2Ticker", args...)
 }
 
-func (this *BitmartCore) PublicGetSpotV1TickerDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotV1TickerDetail", args...)
+func (this *BitmartCore) PublicGetSpotV1TickerDetail (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSpotV1TickerDetail", args...)
 }
 
-func (this *BitmartCore) PublicGetSpotV1Steps(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotV1Steps", args...)
+func (this *BitmartCore) PublicGetSpotV1Steps (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSpotV1Steps", args...)
 }
 
-func (this *BitmartCore) PublicGetSpotV1SymbolsKline(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotV1SymbolsKline", args...)
+func (this *BitmartCore) PublicGetSpotV1SymbolsKline (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSpotV1SymbolsKline", args...)
 }
 
-func (this *BitmartCore) PublicGetSpotV1SymbolsBook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotV1SymbolsBook", args...)
+func (this *BitmartCore) PublicGetSpotV1SymbolsBook (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSpotV1SymbolsBook", args...)
 }
 
-func (this *BitmartCore) PublicGetSpotV1SymbolsTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotV1SymbolsTrades", args...)
+func (this *BitmartCore) PublicGetSpotV1SymbolsTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSpotV1SymbolsTrades", args...)
 }
 
-func (this *BitmartCore) PublicGetContractV1Tickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetContractV1Tickers", args...)
+func (this *BitmartCore) PublicGetContractV1Tickers (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetContractV1Tickers", args...)
 }
 
-func (this *BitmartCore) PublicGetContractPublicDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetContractPublicDetails", args...)
+func (this *BitmartCore) PublicGetContractPublicDetails (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetContractPublicDetails", args...)
 }
 
-func (this *BitmartCore) PublicGetContractPublicDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetContractPublicDepth", args...)
+func (this *BitmartCore) PublicGetContractPublicDepth (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetContractPublicDepth", args...)
 }
 
-func (this *BitmartCore) PublicGetContractPublicOpenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetContractPublicOpenInterest", args...)
+func (this *BitmartCore) PublicGetContractPublicOpenInterest (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetContractPublicOpenInterest", args...)
 }
 
-func (this *BitmartCore) PublicGetContractPublicFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetContractPublicFundingRate", args...)
+func (this *BitmartCore) PublicGetContractPublicFundingRate (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetContractPublicFundingRate", args...)
 }
 
-func (this *BitmartCore) PublicGetContractPublicFundingRateHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetContractPublicFundingRateHistory", args...)
+func (this *BitmartCore) PublicGetContractPublicFundingRateHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetContractPublicFundingRateHistory", args...)
 }
 
-func (this *BitmartCore) PublicGetContractPublicKline(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetContractPublicKline", args...)
+func (this *BitmartCore) PublicGetContractPublicKline (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetContractPublicKline", args...)
 }
 
-func (this *BitmartCore) PublicGetAccountV1Currencies(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAccountV1Currencies", args...)
+func (this *BitmartCore) PublicGetAccountV1Currencies (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetAccountV1Currencies", args...)
 }
 
-func (this *BitmartCore) PublicGetContractPublicMarkpriceKline(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetContractPublicMarkpriceKline", args...)
+func (this *BitmartCore) PublicGetContractPublicMarkpriceKline (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetContractPublicMarkpriceKline", args...)
 }
 
-func (this *BitmartCore) PrivateGetAccountSubAccountV1TransferList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountSubAccountV1TransferList", args...)
+func (this *BitmartCore) PrivateGetAccountSubAccountV1TransferList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountSubAccountV1TransferList", args...)
 }
 
-func (this *BitmartCore) PrivateGetAccountSubAccountV1TransferHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountSubAccountV1TransferHistory", args...)
+func (this *BitmartCore) PrivateGetAccountSubAccountV1TransferHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountSubAccountV1TransferHistory", args...)
 }
 
-func (this *BitmartCore) PrivateGetAccountSubAccountMainV1Wallet(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountSubAccountMainV1Wallet", args...)
+func (this *BitmartCore) PrivateGetAccountSubAccountMainV1Wallet (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountSubAccountMainV1Wallet", args...)
 }
 
-func (this *BitmartCore) PrivateGetAccountSubAccountMainV1SubaccountList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountSubAccountMainV1SubaccountList", args...)
+func (this *BitmartCore) PrivateGetAccountSubAccountMainV1SubaccountList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountSubAccountMainV1SubaccountList", args...)
 }
 
-func (this *BitmartCore) PrivateGetAccountContractSubAccountMainV1Wallet(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountContractSubAccountMainV1Wallet", args...)
+func (this *BitmartCore) PrivateGetAccountContractSubAccountMainV1Wallet (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountContractSubAccountMainV1Wallet", args...)
 }
 
-func (this *BitmartCore) PrivateGetAccountContractSubAccountMainV1TransferList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountContractSubAccountMainV1TransferList", args...)
+func (this *BitmartCore) PrivateGetAccountContractSubAccountMainV1TransferList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountContractSubAccountMainV1TransferList", args...)
 }
 
-func (this *BitmartCore) PrivateGetAccountContractSubAccountV1TransferHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountContractSubAccountV1TransferHistory", args...)
+func (this *BitmartCore) PrivateGetAccountContractSubAccountV1TransferHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountContractSubAccountV1TransferHistory", args...)
 }
 
-func (this *BitmartCore) PrivateGetAccountV1Wallet(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountV1Wallet", args...)
+func (this *BitmartCore) PrivateGetAccountV1Wallet (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountV1Wallet", args...)
 }
 
-func (this *BitmartCore) PrivateGetAccountV1Currencies(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountV1Currencies", args...)
+func (this *BitmartCore) PrivateGetAccountV1Currencies (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountV1Currencies", args...)
 }
 
-func (this *BitmartCore) PrivateGetSpotV1Wallet(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotV1Wallet", args...)
+func (this *BitmartCore) PrivateGetSpotV1Wallet (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSpotV1Wallet", args...)
 }
 
-func (this *BitmartCore) PrivateGetAccountV1DepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountV1DepositAddress", args...)
+func (this *BitmartCore) PrivateGetAccountV1DepositAddress (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountV1DepositAddress", args...)
 }
 
-func (this *BitmartCore) PrivateGetAccountV1WithdrawCharge(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountV1WithdrawCharge", args...)
+func (this *BitmartCore) PrivateGetAccountV1WithdrawCharge (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountV1WithdrawCharge", args...)
 }
 
-func (this *BitmartCore) PrivateGetAccountV2DepositWithdrawHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountV2DepositWithdrawHistory", args...)
+func (this *BitmartCore) PrivateGetAccountV2DepositWithdrawHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountV2DepositWithdrawHistory", args...)
 }
 
-func (this *BitmartCore) PrivateGetAccountV1DepositWithdrawDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountV1DepositWithdrawDetail", args...)
+func (this *BitmartCore) PrivateGetAccountV1DepositWithdrawDetail (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountV1DepositWithdrawDetail", args...)
 }
 
-func (this *BitmartCore) PrivateGetAccountV1WithdrawAddressList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountV1WithdrawAddressList", args...)
+func (this *BitmartCore) PrivateGetAccountV1WithdrawAddressList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetAccountV1WithdrawAddressList", args...)
 }
 
-func (this *BitmartCore) PrivateGetSpotV1OrderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotV1OrderDetail", args...)
+func (this *BitmartCore) PrivateGetSpotV1OrderDetail (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSpotV1OrderDetail", args...)
 }
 
-func (this *BitmartCore) PrivateGetSpotV2Orders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotV2Orders", args...)
+func (this *BitmartCore) PrivateGetSpotV2Orders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSpotV2Orders", args...)
 }
 
-func (this *BitmartCore) PrivateGetSpotV1Trades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotV1Trades", args...)
+func (this *BitmartCore) PrivateGetSpotV1Trades (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSpotV1Trades", args...)
 }
 
-func (this *BitmartCore) PrivateGetSpotV2Trades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotV2Trades", args...)
+func (this *BitmartCore) PrivateGetSpotV2Trades (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSpotV2Trades", args...)
 }
 
-func (this *BitmartCore) PrivateGetSpotV3Orders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotV3Orders", args...)
+func (this *BitmartCore) PrivateGetSpotV3Orders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSpotV3Orders", args...)
 }
 
-func (this *BitmartCore) PrivateGetSpotV2OrderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotV2OrderDetail", args...)
+func (this *BitmartCore) PrivateGetSpotV2OrderDetail (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSpotV2OrderDetail", args...)
 }
 
-func (this *BitmartCore) PrivateGetSpotV1MarginIsolatedBorrowRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotV1MarginIsolatedBorrowRecord", args...)
+func (this *BitmartCore) PrivateGetSpotV1MarginIsolatedBorrowRecord (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSpotV1MarginIsolatedBorrowRecord", args...)
 }
 
-func (this *BitmartCore) PrivateGetSpotV1MarginIsolatedRepayRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotV1MarginIsolatedRepayRecord", args...)
+func (this *BitmartCore) PrivateGetSpotV1MarginIsolatedRepayRecord (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSpotV1MarginIsolatedRepayRecord", args...)
 }
 
-func (this *BitmartCore) PrivateGetSpotV1MarginIsolatedPairs(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotV1MarginIsolatedPairs", args...)
+func (this *BitmartCore) PrivateGetSpotV1MarginIsolatedPairs (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSpotV1MarginIsolatedPairs", args...)
 }
 
-func (this *BitmartCore) PrivateGetSpotV1MarginIsolatedAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotV1MarginIsolatedAccount", args...)
+func (this *BitmartCore) PrivateGetSpotV1MarginIsolatedAccount (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSpotV1MarginIsolatedAccount", args...)
 }
 
-func (this *BitmartCore) PrivateGetSpotV1TradeFee(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotV1TradeFee", args...)
+func (this *BitmartCore) PrivateGetSpotV1TradeFee (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSpotV1TradeFee", args...)
 }
 
-func (this *BitmartCore) PrivateGetSpotV1UserFee(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotV1UserFee", args...)
+func (this *BitmartCore) PrivateGetSpotV1UserFee (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSpotV1UserFee", args...)
 }
 
-func (this *BitmartCore) PrivateGetSpotV1BrokerRebate(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSpotV1BrokerRebate", args...)
+func (this *BitmartCore) PrivateGetSpotV1BrokerRebate (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSpotV1BrokerRebate", args...)
 }
 
-func (this *BitmartCore) PrivateGetContractPrivateAssetsDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetContractPrivateAssetsDetail", args...)
+func (this *BitmartCore) PrivateGetContractPrivateAssetsDetail (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetContractPrivateAssetsDetail", args...)
 }
 
-func (this *BitmartCore) PrivateGetContractPrivateOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetContractPrivateOrder", args...)
+func (this *BitmartCore) PrivateGetContractPrivateOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetContractPrivateOrder", args...)
 }
 
-func (this *BitmartCore) PrivateGetContractPrivateOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetContractPrivateOrderHistory", args...)
+func (this *BitmartCore) PrivateGetContractPrivateOrderHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetContractPrivateOrderHistory", args...)
 }
 
-func (this *BitmartCore) PrivateGetContractPrivatePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetContractPrivatePosition", args...)
+func (this *BitmartCore) PrivateGetContractPrivatePosition (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetContractPrivatePosition", args...)
 }
 
-func (this *BitmartCore) PrivateGetContractPrivatePositionV2(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetContractPrivatePositionV2", args...)
+func (this *BitmartCore) PrivateGetContractPrivatePositionV2 (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetContractPrivatePositionV2", args...)
 }
 
-func (this *BitmartCore) PrivateGetContractPrivateGetOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetContractPrivateGetOpenOrders", args...)
+func (this *BitmartCore) PrivateGetContractPrivateGetOpenOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetContractPrivateGetOpenOrders", args...)
 }
 
-func (this *BitmartCore) PrivateGetContractPrivateCurrentPlanOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetContractPrivateCurrentPlanOrder", args...)
+func (this *BitmartCore) PrivateGetContractPrivateCurrentPlanOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetContractPrivateCurrentPlanOrder", args...)
 }
 
-func (this *BitmartCore) PrivateGetContractPrivateTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetContractPrivateTrades", args...)
+func (this *BitmartCore) PrivateGetContractPrivateTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetContractPrivateTrades", args...)
 }
 
-func (this *BitmartCore) PrivateGetContractPrivatePositionRisk(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetContractPrivatePositionRisk", args...)
+func (this *BitmartCore) PrivateGetContractPrivatePositionRisk (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetContractPrivatePositionRisk", args...)
 }
 
-func (this *BitmartCore) PrivateGetContractPrivateAffilateRebateList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetContractPrivateAffilateRebateList", args...)
+func (this *BitmartCore) PrivateGetContractPrivateAffilateRebateList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetContractPrivateAffilateRebateList", args...)
 }
 
-func (this *BitmartCore) PrivateGetContractPrivateAffilateTradeList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetContractPrivateAffilateTradeList", args...)
+func (this *BitmartCore) PrivateGetContractPrivateAffilateTradeList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetContractPrivateAffilateTradeList", args...)
 }
 
-func (this *BitmartCore) PrivateGetContractPrivateTransactionHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetContractPrivateTransactionHistory", args...)
+func (this *BitmartCore) PrivateGetContractPrivateTransactionHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetContractPrivateTransactionHistory", args...)
 }
 
-func (this *BitmartCore) PrivateGetContractPrivateGetPositionMode(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetContractPrivateGetPositionMode", args...)
+func (this *BitmartCore) PrivateGetContractPrivateGetPositionMode (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetContractPrivateGetPositionMode", args...)
 }
 
-func (this *BitmartCore) PrivatePostAccountSubAccountMainV1SubToMain(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSubAccountMainV1SubToMain", args...)
+func (this *BitmartCore) PrivatePostAccountSubAccountMainV1SubToMain (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSubAccountMainV1SubToMain", args...)
 }
 
-func (this *BitmartCore) PrivatePostAccountSubAccountSubV1SubToMain(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSubAccountSubV1SubToMain", args...)
+func (this *BitmartCore) PrivatePostAccountSubAccountSubV1SubToMain (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSubAccountSubV1SubToMain", args...)
 }
 
-func (this *BitmartCore) PrivatePostAccountSubAccountMainV1MainToSub(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSubAccountMainV1MainToSub", args...)
+func (this *BitmartCore) PrivatePostAccountSubAccountMainV1MainToSub (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSubAccountMainV1MainToSub", args...)
 }
 
-func (this *BitmartCore) PrivatePostAccountSubAccountSubV1SubToSub(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSubAccountSubV1SubToSub", args...)
+func (this *BitmartCore) PrivatePostAccountSubAccountSubV1SubToSub (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSubAccountSubV1SubToSub", args...)
 }
 
-func (this *BitmartCore) PrivatePostAccountSubAccountMainV1SubToSub(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSubAccountMainV1SubToSub", args...)
+func (this *BitmartCore) PrivatePostAccountSubAccountMainV1SubToSub (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountSubAccountMainV1SubToSub", args...)
 }
 
-func (this *BitmartCore) PrivatePostAccountContractSubAccountMainV1SubToMain(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountContractSubAccountMainV1SubToMain", args...)
+func (this *BitmartCore) PrivatePostAccountContractSubAccountMainV1SubToMain (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountContractSubAccountMainV1SubToMain", args...)
 }
 
-func (this *BitmartCore) PrivatePostAccountContractSubAccountMainV1MainToSub(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountContractSubAccountMainV1MainToSub", args...)
+func (this *BitmartCore) PrivatePostAccountContractSubAccountMainV1MainToSub (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountContractSubAccountMainV1MainToSub", args...)
 }
 
-func (this *BitmartCore) PrivatePostAccountContractSubAccountSubV1SubToMain(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountContractSubAccountSubV1SubToMain", args...)
+func (this *BitmartCore) PrivatePostAccountContractSubAccountSubV1SubToMain (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountContractSubAccountSubV1SubToMain", args...)
 }
 
-func (this *BitmartCore) PrivatePostAccountV1WithdrawApply(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountV1WithdrawApply", args...)
+func (this *BitmartCore) PrivatePostAccountV1WithdrawApply (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountV1WithdrawApply", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV1SubmitOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV1SubmitOrder", args...)
+func (this *BitmartCore) PrivatePostSpotV1SubmitOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV1SubmitOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV1BatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV1BatchOrders", args...)
+func (this *BitmartCore) PrivatePostSpotV1BatchOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV1BatchOrders", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV2CancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV2CancelOrder", args...)
+func (this *BitmartCore) PrivatePostSpotV2CancelOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV2CancelOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV1CancelOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV1CancelOrders", args...)
+func (this *BitmartCore) PrivatePostSpotV1CancelOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV1CancelOrders", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV4QueryOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV4QueryOrder", args...)
+func (this *BitmartCore) PrivatePostSpotV4QueryOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV4QueryOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV4QueryClientOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV4QueryClientOrder", args...)
+func (this *BitmartCore) PrivatePostSpotV4QueryClientOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV4QueryClientOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV4QueryOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV4QueryOpenOrders", args...)
+func (this *BitmartCore) PrivatePostSpotV4QueryOpenOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV4QueryOpenOrders", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV4QueryHistoryOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV4QueryHistoryOrders", args...)
+func (this *BitmartCore) PrivatePostSpotV4QueryHistoryOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV4QueryHistoryOrders", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV4QueryTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV4QueryTrades", args...)
+func (this *BitmartCore) PrivatePostSpotV4QueryTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV4QueryTrades", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV4QueryOrderTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV4QueryOrderTrades", args...)
+func (this *BitmartCore) PrivatePostSpotV4QueryOrderTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV4QueryOrderTrades", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV4CancelOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV4CancelOrders", args...)
+func (this *BitmartCore) PrivatePostSpotV4CancelOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV4CancelOrders", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV4CancelAll(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV4CancelAll", args...)
+func (this *BitmartCore) PrivatePostSpotV4CancelAll (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV4CancelAll", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV4BatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV4BatchOrders", args...)
+func (this *BitmartCore) PrivatePostSpotV4BatchOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV4BatchOrders", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV4AlgoSubmitOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV4AlgoSubmitOrder", args...)
+func (this *BitmartCore) PrivatePostSpotV4AlgoSubmitOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV4AlgoSubmitOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV4AlgoCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV4AlgoCancelOrder", args...)
+func (this *BitmartCore) PrivatePostSpotV4AlgoCancelOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV4AlgoCancelOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV4AlgoCancelAll(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV4AlgoCancelAll", args...)
+func (this *BitmartCore) PrivatePostSpotV4AlgoCancelAll (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV4AlgoCancelAll", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV4QueryAlgoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV4QueryAlgoOrder", args...)
+func (this *BitmartCore) PrivatePostSpotV4QueryAlgoOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV4QueryAlgoOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV4QueryAlgoClientOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV4QueryAlgoClientOrder", args...)
+func (this *BitmartCore) PrivatePostSpotV4QueryAlgoClientOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV4QueryAlgoClientOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV4QueryAlgoOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV4QueryAlgoOpenOrders", args...)
+func (this *BitmartCore) PrivatePostSpotV4QueryAlgoOpenOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV4QueryAlgoOpenOrders", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV4QueryAlgoHistoryOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV4QueryAlgoHistoryOrders", args...)
+func (this *BitmartCore) PrivatePostSpotV4QueryAlgoHistoryOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV4QueryAlgoHistoryOrders", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV3CancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV3CancelOrder", args...)
+func (this *BitmartCore) PrivatePostSpotV3CancelOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV3CancelOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV2BatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV2BatchOrders", args...)
+func (this *BitmartCore) PrivatePostSpotV2BatchOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV2BatchOrders", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV2SubmitOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV2SubmitOrder", args...)
+func (this *BitmartCore) PrivatePostSpotV2SubmitOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV2SubmitOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV1MarginSubmitOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV1MarginSubmitOrder", args...)
+func (this *BitmartCore) PrivatePostSpotV1MarginSubmitOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV1MarginSubmitOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV1MarginIsolatedBorrow(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV1MarginIsolatedBorrow", args...)
+func (this *BitmartCore) PrivatePostSpotV1MarginIsolatedBorrow (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV1MarginIsolatedBorrow", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV1MarginIsolatedRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV1MarginIsolatedRepay", args...)
+func (this *BitmartCore) PrivatePostSpotV1MarginIsolatedRepay (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV1MarginIsolatedRepay", args...)
 }
 
-func (this *BitmartCore) PrivatePostSpotV1MarginIsolatedTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSpotV1MarginIsolatedTransfer", args...)
+func (this *BitmartCore) PrivatePostSpotV1MarginIsolatedTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostSpotV1MarginIsolatedTransfer", args...)
 }
 
-func (this *BitmartCore) PrivatePostAccountV1TransferContractList(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountV1TransferContractList", args...)
+func (this *BitmartCore) PrivatePostAccountV1TransferContractList (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountV1TransferContractList", args...)
 }
 
-func (this *BitmartCore) PrivatePostAccountV1TransferContract(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountV1TransferContract", args...)
+func (this *BitmartCore) PrivatePostAccountV1TransferContract (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountV1TransferContract", args...)
 }
 
-func (this *BitmartCore) PrivatePostContractPrivateSubmitOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostContractPrivateSubmitOrder", args...)
+func (this *BitmartCore) PrivatePostContractPrivateSubmitOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostContractPrivateSubmitOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostContractPrivateCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostContractPrivateCancelOrder", args...)
+func (this *BitmartCore) PrivatePostContractPrivateCancelOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostContractPrivateCancelOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostContractPrivateCancelOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostContractPrivateCancelOrders", args...)
+func (this *BitmartCore) PrivatePostContractPrivateCancelOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostContractPrivateCancelOrders", args...)
 }
 
-func (this *BitmartCore) PrivatePostContractPrivateSubmitPlanOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostContractPrivateSubmitPlanOrder", args...)
+func (this *BitmartCore) PrivatePostContractPrivateSubmitPlanOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostContractPrivateSubmitPlanOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostContractPrivateCancelPlanOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostContractPrivateCancelPlanOrder", args...)
+func (this *BitmartCore) PrivatePostContractPrivateCancelPlanOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostContractPrivateCancelPlanOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostContractPrivateSubmitLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostContractPrivateSubmitLeverage", args...)
+func (this *BitmartCore) PrivatePostContractPrivateSubmitLeverage (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostContractPrivateSubmitLeverage", args...)
 }
 
-func (this *BitmartCore) PrivatePostContractPrivateSubmitTpSlOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostContractPrivateSubmitTpSlOrder", args...)
+func (this *BitmartCore) PrivatePostContractPrivateSubmitTpSlOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostContractPrivateSubmitTpSlOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostContractPrivateModifyPlanOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostContractPrivateModifyPlanOrder", args...)
+func (this *BitmartCore) PrivatePostContractPrivateModifyPlanOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostContractPrivateModifyPlanOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostContractPrivateModifyPresetPlanOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostContractPrivateModifyPresetPlanOrder", args...)
+func (this *BitmartCore) PrivatePostContractPrivateModifyPresetPlanOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostContractPrivateModifyPresetPlanOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostContractPrivateModifyLimitOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostContractPrivateModifyLimitOrder", args...)
+func (this *BitmartCore) PrivatePostContractPrivateModifyLimitOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostContractPrivateModifyLimitOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostContractPrivateModifyTpSlOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostContractPrivateModifyTpSlOrder", args...)
+func (this *BitmartCore) PrivatePostContractPrivateModifyTpSlOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostContractPrivateModifyTpSlOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostContractPrivateSubmitTrailOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostContractPrivateSubmitTrailOrder", args...)
+func (this *BitmartCore) PrivatePostContractPrivateSubmitTrailOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostContractPrivateSubmitTrailOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostContractPrivateCancelTrailOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostContractPrivateCancelTrailOrder", args...)
+func (this *BitmartCore) PrivatePostContractPrivateCancelTrailOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostContractPrivateCancelTrailOrder", args...)
 }
 
-func (this *BitmartCore) PrivatePostContractPrivateSetPositionMode(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostContractPrivateSetPositionMode", args...)
+func (this *BitmartCore) PrivatePostContractPrivateSetPositionMode (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostContractPrivateSetPositionMode", args...)
 }
