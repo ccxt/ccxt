@@ -2309,6 +2309,22 @@ ${caseStatements.join('\n')}
         // any of the method or type names that are not preceded by a `.`, but `...` is allowed e.g. MarketInterface, or ...MarketInterface but not .MarketInterface
         const regex = new RegExp(`(?<![A-Za-z0-9_\\)\\}]\\.)\\b(${pattern})\\b`, "g");
         const variadicRegex = new RegExp(`(?<=\\.\\.\\.)(${pattern})\\b`, "g");
+        // qualify type/func names only OUTSIDE string literals — a ccxt type name that appears
+        // inside a "..." or `...` literal is data (e.g. an EIP-712 type string or map key) and
+        // must not be rewritten to ccxt.Type
+        const qualifyOutsideStrings = (text: string): string => {
+            const segments = text.split(/("(?:[^"\\]|\\.)*"|`[^`]*`)/g);
+            let result = '';
+            for (let i = 0; i < segments.length; i++) {
+                const seg = segments[i];
+                if ((seg.length > 0) && ((seg[0] === '"') || (seg[0] === '`'))) {
+                    result += seg;
+                } else {
+                    result += seg.replace(regex, (match) => `${packageName}.${capitalize(match)}`).replace(variadicRegex, (match) => `${packageName}.${capitalize(match)}`);
+                }
+            }
+            return result;
+        };
         return content
             .split("\n")
             .map(line => {
@@ -2317,13 +2333,12 @@ ${caseStatements.join('\n')}
                     const declarationMatch = line.match(/^(func(?: \(\w+ \*?\w+\))? \w+)\s*(\(.*)/);
                     if (declarationMatch) {
                         const declaration = declarationMatch[1];
-                        const decMatch = declaration + declarationMatch[2].replace(regex, (match) => `${packageName}.${capitalize(match)}`).replace(variadicRegex, (match) => `${packageName}.${capitalize(match)}`);
+                        const decMatch = declaration + qualifyOutsideStrings(declarationMatch[2]);
                         return decMatch
                     }
                     return line;
                 }
-                const lineReplaced = line.replace(regex, (match) => `${packageName}.${capitalize(match)}`);
-                return lineReplaced;
+                return qualifyOutsideStrings(line);
             })
             .join("\n");
     }
