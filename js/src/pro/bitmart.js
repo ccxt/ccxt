@@ -2110,6 +2110,15 @@ export default class bitmart extends bitmartRest {
             };
             if (channel.indexOf('fundingRate') >= 0) {
                 this.handleFundingRate(client, message);
+                return;
+            }
+            // 'ticker' is a substring of 'bookTicker', so a bookTicker channel could
+            // be wrongly captured by (or double-dispatched with) the 'ticker' key in a
+            // first-match loop (in Go map iteration order is randomized). Check the
+            // bookTicker prefix explicitly, then fall back to a simple first-match.
+            if (channel.indexOf('bookTicker') >= 0) {
+                this.handleBidAsk(client, message);
+                return;
             }
             const keys = Object.keys(methods);
             for (let i = 0; i < keys.length; i++) {
@@ -2117,6 +2126,7 @@ export default class bitmart extends bitmartRest {
                 if (channel.indexOf(key) >= 0) {
                     const method = this.safeValue(methods, key);
                     method.call(this, client, message);
+                    return;
                 }
             }
         }

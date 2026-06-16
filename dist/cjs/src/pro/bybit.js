@@ -2442,10 +2442,18 @@ class bybit extends bybit$1["default"] {
             exacMethod.call(this, client, message);
             return;
         }
+        // 'order' is a substring of 'orderbook', so an orderbook topic like
+        // 'orderbook.50.BTCUSDT' could be wrongly captured by the 'order' key in a
+        // first-match loop (in Go map iteration order is randomized). Check the
+        // orderbook prefix explicitly, then fall back to a simple first-match.
+        if (topic.indexOf('orderbook') >= 0) {
+            this.handleOrderBook(client, message);
+            return;
+        }
         const keys = Object.keys(methods);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (topic.indexOf(keys[i]) >= 0) {
+            if (topic.indexOf(key) >= 0) {
                 const method = methods[key];
                 method.call(this, client, message);
                 return;
