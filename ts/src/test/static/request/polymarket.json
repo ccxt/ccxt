@@ -64,6 +64,14 @@
                 ]
             }
         ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades reads the authenticated user's CLOB trade history",
+                "method": "fetchMyTrades",
+                "url": "https://clob.polymarket.com/data/trades",
+                "input": []
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancelOrder sends the orderID body key to DELETE /order",

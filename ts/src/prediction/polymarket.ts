@@ -47,7 +47,7 @@ export default class polymarket extends Exchange {
                 'fetchEvents': true,        // Custom: fetch Polymarket events
                 'fetchLedger': false,
                 'fetchMarkets': true,       // Each outcome token = one market
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenOrders': true,
@@ -1169,6 +1169,31 @@ export default class polymarket extends Exchange {
     }
 
     /**
+     * @method
+     * @name polymarket#fetchMyTrades
+     * @description fetches the authenticated user's trade history from the CLOB, optionally filtered by outcome token
+     * @see https://docs.polymarket.com/api-reference/trade/get-trades
+     * @param {string} [symbol] unified outcome symbol or outcome token id
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadApiCredentials ();
+        const request: Dict = {};
+        let outcomeObj: any = undefined;
+        if (symbol !== undefined) {
+            this.checkEventsAndMarkets (symbol);
+            outcomeObj = this.outcome (symbol);
+            request['asset_id'] = outcomeObj['id'];
+        }
+        const response = await this.clobPrivateGetDataTrades (this.extend (request, params));
+        const rawTrades = Array.isArray (response) ? response : this.safeList (response, 'data', []) as any[];
+        return this.parseTrades (rawTrades, outcomeObj, since, limit);
+    }
+
+    /**
      * @ignore
      * @method
      * @name polymarket#parseTrade
@@ -1178,13 +1203,30 @@ export default class polymarket extends Exchange {
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
     parseTrade (trade: Dict, market: Market = undefined): Trade {
-        const id = this.safeString2 (trade, 'transactionHash', 'id');
-        const timestamp = this.safeIntegerProduct (trade, 'timestamp', 1000);
+        // public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp';
+        // the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
+        const id = this.safeStringN (trade, [ 'transactionHash', 'transaction_hash', 'id' ]);
+        let timestamp = this.safeIntegerProduct (trade, 'timestamp', 1000);
+        if (timestamp === undefined) {
+            timestamp = this.safeIntegerProduct (trade, 'match_time', 1000);
+        }
         const price = this.safeNumber (trade, 'price');
         const amount = this.safeNumber (trade, 'size');
         const rawSide = this.safeStringLower (trade, 'side');
         const side = (rawSide === 'buy' || rawSide === 'sell') ? rawSide : undefined;
-        const symbol = this.safeSymbol (undefined, market);
+        const assetId = this.safeString2 (trade, 'asset', 'asset_id');
+        const mkt = (market !== undefined) ? market : this.safeOutcome (assetId);
+        const symbol = this.safeSymbol (undefined, mkt);
+        const rawTakerOrMaker = this.safeStringLower (trade, 'trader_side');
+        const takerOrMaker = (rawTakerOrMaker === 'taker' || rawTakerOrMaker === 'maker') ? rawTakerOrMaker : undefined;
+        const feeRateBps = this.safeString (trade, 'fee_rate_bps');
+        let fee = undefined;
+        if (feeRateBps !== undefined) {
+            fee = {
+                'currency': 'USDC',
+                'rate': this.parseNumber (Precise.stringDiv (feeRateBps, '10000')),
+            };
+        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -1192,16 +1234,16 @@ export default class polymarket extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'outcome': symbol,
-            'outcomeId': this.safeString (trade, 'asset'),
-            'order': this.safeString (trade, 'orderId'),
+            'outcomeId': assetId,
+            'order': this.safeString2 (trade, 'orderId', 'taker_order_id'),
             'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': undefined,
-            'fee': undefined,
-        }, market);
+            'fee': fee,
+        }, mkt);
     }
 
     /**
