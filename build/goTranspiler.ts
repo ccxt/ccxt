@@ -33,7 +33,6 @@ function overwriteFileAndFolder (path: string, content: string) {
         checkCreateFolder (path);
     }
     overwriteFile (path, content);
-    fs.writeFileSync (path, content);
 }
 
 function capitalize(s: string) {
