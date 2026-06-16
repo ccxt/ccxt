@@ -13,7 +13,7 @@ import * as functions from './functions.js';
 //     // vwap as vwapFunc,
 // } from './functions.js';
 // import exceptions from "./errors.js"
-import { // eslint-disable-line object-curly-newline
+import {
     ExchangeError,
     BadSymbol,
     NullResponse,
@@ -993,7 +993,7 @@ export default class Exchange {
                     // some users having issues with dynamic imports (https://github.com/ccxt/ccxt/pull/20687)
                     // so let them to fallback to node's native fetch
                     if (typeof fetch === 'function') {
-                        this.fetchImplementation = fetch; // eslint-disable-line
+                        this.fetchImplementation = fetch;
                         // as it's browser-compatible implementation ( https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch )
                         // it throws same error types
                         this.AbortError = DOMException;
@@ -1995,7 +1995,6 @@ export default class Exchange {
         return signer;
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateGroupedOrders (signer, request): any[] {
         const orders = request['orders'];
         const ordersArr = [];
@@ -2027,7 +2026,6 @@ export default class Exchange {
         return [ res.txType, res.txInfo ];
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateOrder (signer, request): any[] {
         const res = (globalThis.SignCreateOrder (
             parseInt (request['market_index']),
@@ -2085,7 +2083,6 @@ export default class Exchange {
         return [ res.txType, res.txInfo ];
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateSubAccount (signer, request): any[] {
         const res = (globalThis.SignCreateSubAccount (
             1, // skip nonce
@@ -2185,7 +2182,6 @@ export default class Exchange {
         return [ res.txType, res.txInfo ];
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignApproveIntegrator (signer, request): any[] {
         const res = globalThis.SignApproveIntegrator (
             request['integrator_account_index'],
@@ -2210,7 +2206,6 @@ export default class Exchange {
         return [ res.privateKey, res.publicKey ];
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignChangePubkey (signer, request): any[] {
         const res = globalThis.SignChangePubKey (
             Buffer.from (request['pubkey']).toString (),
@@ -2223,7 +2218,6 @@ export default class Exchange {
         return [ res.txType, res.txInfo, res.messageToSign ];
     }
 
-    /* eslint-enable */
     // ------------------------------------------------------------------------
 
     // ########################################################################
