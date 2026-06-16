@@ -1591,6 +1591,7 @@ export default class polymarket extends Exchange {
      * @param {bool} [params.negRisk] whether the market is a neg-risk market; fetched from the exchange when omitted
      * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
      * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
+     * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async createOrder (symbol: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
@@ -1613,9 +1614,14 @@ export default class polymarket extends Exchange {
         await this.loadApiCredentials ();
         const bodies = [];
         const outcomes = [];
+        const batchSalt = this.milliseconds ();
         for (let i = 0; i < orders.length; i++) {
             const o = orders[i];
-            const orderParams = this.safeDict (o, 'params', {});
+            let orderParams = this.safeDict (o, 'params', {});
+            if (this.safeString (orderParams, 'salt') === undefined) {
+                // a distinct salt per order so two identical orders in one batch don't collide
+                orderParams = this.extend (orderParams, { 'salt': this.numberToString (this.sum (batchSalt, i)) });
+            }
             const built = await this.buildClobOrderBody (this.safeString (o, 'symbol'), this.safeString (o, 'type'), this.safeString (o, 'side'), this.safeNumber (o, 'amount'), this.safeNumber (o, 'price'), orderParams);
             bodies.push (this.safeDict (built, 'body'));
             outcomes.push (this.safeDict (built, 'outcome'));
@@ -1681,9 +1687,11 @@ export default class polymarket extends Exchange {
         // salt and timestamp default to the current time but can be pinned via params for idempotency
         const salt = this.safeString (params, 'salt', this.numberToString (this.milliseconds ()));
         const timestamp = this.safeString (params, 'timestamp', this.numberToString (this.milliseconds ()));
+        // GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry
+        const expiration = this.safeString (params, 'expiration', '0');
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         const cost = this.safeNumber (params, 'cost');
-        const rest = this.omit (params, [ 'signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'tickSize', 'negRisk', 'salt', 'timestamp', 'cost' ]);
+        const rest = this.omit (params, [ 'signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost' ]);
         const amounts = this.polymarketOrderRawAmounts (sideStr, amount, price, tickSize, cost);
         const makerAmount = this.safeString (amounts, 'makerAmount');
         const takerAmount = this.safeString (amounts, 'takerAmount');
@@ -1725,7 +1733,7 @@ export default class polymarket extends Exchange {
                 'side': sideStr,
                 'signatureType': signatureType,
                 'timestamp': timestamp,
-                'expiration': '0',
+                'expiration': expiration,
                 'metadata': bytes32Zero,
                 'builder': bytes32Zero,
                 'signature': signature,
