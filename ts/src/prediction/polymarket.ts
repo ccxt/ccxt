@@ -1816,21 +1816,26 @@ export default class polymarket extends Exchange {
             // standard EOA EIP-712 order signature
             const encoded = this.ethEncodeStructuredData (orderDomain, { 'Order': orderStruct }, message);
             const eoaSig = this.signMessage (encoded, this.privateKey);
-            return '0x' + this.remove0xPrefix (eoaSig['r']) + this.remove0xPrefix (eoaSig['s']) + this.intToBase16 (eoaSig['v']);
+            // lowercase: intToBase16 emits uppercase hex in some target languages, but the
+            // signature is case-insensitive bytes and the rest of the hex is lowercase
+            const eoaSignature = '0x' + this.remove0xPrefix (eoaSig['r']) + this.remove0xPrefix (eoaSig['s']) + this.intToBase16 (eoaSig['v']);
+            return eoaSignature.toLowerCase ();
         }
-        // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet
-        const orderTypeHash = '0x' + this.hash (this.encode (orderTypeString), keccak, 'hex');
+        // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
+        // ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
+        // (raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs)
+        const orderTypeHash = this.hash (this.encode (orderTypeString), keccak, 'binary');
         const contentsData = this.ethAbiEncode (
-            [ { 'type': 'bytes32' }, { 'type': 'uint256' }, { 'type': 'address' }, { 'type': 'address' }, { 'type': 'uint256' }, { 'type': 'uint256' }, { 'type': 'uint256' }, { 'type': 'uint8' }, { 'type': 'uint8' }, { 'type': 'uint256' }, { 'type': 'bytes32' }, { 'type': 'bytes32' } ],
-            [ orderTypeHash, message['salt'], message['maker'], message['signer'], message['tokenId'], message['makerAmount'], message['takerAmount'], message['side'], message['signatureType'], message['timestamp'], message['metadata'], message['builder'] ]
+            [ 'bytes32', 'uint256', 'address', 'address', 'uint256', 'uint256', 'uint256', 'uint8', 'uint8', 'uint256', 'bytes32', 'bytes32' ],
+            [ orderTypeHash, this.convertToBigInt (message['salt']), message['maker'], message['signer'], this.convertToBigInt (message['tokenId']), this.convertToBigInt (message['makerAmount']), this.convertToBigInt (message['takerAmount']), message['side'], message['signatureType'], this.convertToBigInt (message['timestamp']), this.base16ToBinary (this.remove0xPrefix (message['metadata'])), this.base16ToBinary (this.remove0xPrefix (message['builder'])) ]
         );
         const contentsHash = '0x' + this.hash (contentsData, keccak, 'hex');
-        const domainTypeHash = '0x' + this.hash (this.encode ('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'), keccak, 'hex');
-        const nameHash = '0x' + this.hash (this.encode (domainName), keccak, 'hex');
-        const versionHash = '0x' + this.hash (this.encode (domainVersion), keccak, 'hex');
+        const domainTypeHash = this.hash (this.encode ('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'), keccak, 'binary');
+        const nameHash = this.hash (this.encode (domainName), keccak, 'binary');
+        const versionHash = this.hash (this.encode (domainVersion), keccak, 'binary');
         const appDomainData = this.ethAbiEncode (
-            [ { 'type': 'bytes32' }, { 'type': 'bytes32' }, { 'type': 'bytes32' }, { 'type': 'uint256' }, { 'type': 'address' } ],
-            [ domainTypeHash, nameHash, versionHash, chainId, exchangeAddress ]
+            [ 'bytes32', 'bytes32', 'bytes32', 'uint256', 'address' ],
+            [ domainTypeHash, nameHash, versionHash, this.convertToBigInt (this.numberToString (chainId)), exchangeAddress ]
         );
         const appDomainSep = '0x' + this.hash (appDomainData, keccak, 'hex');
         const typedDataSignStruct = [
@@ -1855,9 +1860,15 @@ export default class polymarket extends Exchange {
         const innerSig = this.remove0xPrefix (innerSigObj['r']) + this.remove0xPrefix (innerSigObj['s']) + this.intToBase16 (innerSigObj['v']);
         // innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
         const ctLen = orderTypeString.length;
-        const lenHex = this.intToBase16 (ctLen).padStart (4, '0');
+        // assign before padStart so the PHP transpiler's str_pad regex (which only matches a
+        // simple identifier) picks it up instead of leaking a padStart() function call
+        const ctLenHex = this.intToBase16 (ctLen);
+        const lenHex = ctLenHex.padStart (4, '0');
         const orderTypeStringHex = this.binaryToBase16 (this.encode (orderTypeString));
-        return '0x' + innerSig + this.remove0xPrefix (appDomainSep) + this.remove0xPrefix (contentsHash) + orderTypeStringHex + lenHex;
+        const wrappedSignature = '0x' + innerSig + this.remove0xPrefix (appDomainSep) + this.remove0xPrefix (contentsHash) + orderTypeStringHex + lenHex;
+        // lowercase for byte-stable output across languages (intToBase16/binaryToBase16 emit
+        // uppercase hex in some targets); the signature is case-insensitive bytes
+        return wrappedSignature.toLowerCase ();
     }
 
     /**
@@ -2236,8 +2247,11 @@ export default class polymarket extends Exchange {
 
     signHash (hash: string, privateKey: string): Dict {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        const r = signature['r'].padStart (64, '0');
-        const s = signature['s'].padStart (64, '0');
+        // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
+        const rRaw = signature['r'];
+        const sRaw = signature['s'];
+        const r = rRaw.padStart (64, '0');
+        const s = sRaw.padStart (64, '0');
         return {
             'r': '0x' + r,
             's': '0x' + s,

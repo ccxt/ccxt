@@ -1052,6 +1052,16 @@ class Transpiler {
             if (bodyAsString.match (/[\s(]Precise/)) {
                 precisionImports.push ('use ccxt\\Precise;')
             }
+            // decimal_to_precision constants live in the root ccxt namespace; classes outside
+            // it (ccxt\prediction, ...) need explicit `use const` imports to resolve them
+            const numberConstants = [ 'ROUND_UP', 'ROUND_DOWN', 'ROUND', 'TRUNCATE', 'DECIMAL_PLACES', 'SIGNIFICANT_DIGITS', 'TICK_SIZE', 'NO_PADDING', 'PAD_WITH_ZERO' ]
+            for (let i = 0; i < numberConstants.length; i++) {
+                const numberConstant = numberConstants[i]
+                const regex = new RegExp ("[^'\"\\w]" + numberConstant + "[^'\"\\w]")
+                if (bodyAsString.match (regex)) {
+                    precisionImports.push ('use const ccxt\\' + numberConstant + ';')
+                }
+            }
         }
 
         if (async) {
