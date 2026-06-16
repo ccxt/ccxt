@@ -2404,6 +2404,16 @@ public partial class bitmart : ccxt.bitmart
             if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "fundingRate"), 0)))
             {
                 this.handleFundingRate(client as WebSocketClient, message);
+                return;
+            }
+            // 'ticker' is a substring of 'bookTicker', so a bookTicker channel could
+            // be wrongly captured by (or double-dispatched with) the 'ticker' key in a
+            // first-match loop (in Go map iteration order is randomized). Check the
+            // bookTicker prefix explicitly, then fall back to a simple first-match.
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "bookTicker"), 0)))
+            {
+                this.handleBidAsk(client as WebSocketClient, message);
+                return;
             }
             object keys = new List<object>(((IDictionary<string,object>)methods).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -2413,6 +2423,7 @@ public partial class bitmart : ccxt.bitmart
                 {
                     object method = this.safeValue(methods, key);
                     DynamicInvoker.InvokeMethod(method, new object[] { client, message});
+                    return;
                 }
             }
         }
